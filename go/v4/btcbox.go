@@ -513,7 +513,7 @@ func (this *Btcbox) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 	ch <- this.ParseOrderBook(response, market["symbol"])
 	return nil
 }
-func (this *Btcbox) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Btcbox) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)
@@ -810,7 +810,7 @@ func (this *Btcbox) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Btcbox) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Btcbox) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id":11,

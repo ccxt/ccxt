@@ -718,7 +718,7 @@ func (this *Delta) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseCurrencies(currencies)
 	return nil
 }
-func (this *Delta) ParseCurrency(rawCurrency any) any {
+func (this *Delta) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "symbol")
 	var numericId *int64 = this.SafeInteger(rawCurrency, "id")
 	var code *string = this.SafeCurrencyCode(id)
@@ -1170,7 +1170,7 @@ func (this *Delta) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	ch <- result
 	return nil
 }
-func (this *Delta) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Delta) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// spot: fetchTicker, fetchTickers
 	//
@@ -1657,7 +1657,7 @@ func (this *Delta) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		if (contractType != nil && *contractType == "options_combos") || (contractType != nil && *contractType == "binary_call_options") || (contractType != nil && *contractType == "binary_put_options") {
 			continue
 		}
-		var ticker map[string]any = MapTyped(this.ParseTicker(rawTicker))
+		var ticker map[string]any = this.ParseTicker(rawTicker)
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			result[*symbol] = ticker
@@ -2234,7 +2234,7 @@ func (this *Delta) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Delta) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Delta) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
 	//
@@ -3038,7 +3038,7 @@ func (this *Delta) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Delta) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Delta) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "amount":"29.889184",
@@ -3664,7 +3664,7 @@ func (this *Delta) fetchOpenInterestBody(ch chan any, symbol string, optionalArg
 	ch <- this.ParseOpenInterest(result, market)
 	return nil
 }
-func (this *Delta) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Delta) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "close": 894.0,

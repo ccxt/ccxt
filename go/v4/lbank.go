@@ -594,7 +594,7 @@ func (this *Lbank) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseCurrencies(values)
 	return nil
 }
-func (this *Lbank) ParseCurrency(rawCurrency any) any {
+func (this *Lbank) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(GetValue(rawCurrency, 0), "assetCode") // first member is guaranteed
 	var code *string = this.SafeCurrencyCode(id)
 	var networksRaw any = rawCurrency
@@ -909,7 +909,7 @@ func (this *Lbank) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 	ch <- result
 	return nil
 }
-func (this *Lbank) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Lbank) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// spot: fetchTicker, fetchTickers
 	//
@@ -2180,7 +2180,7 @@ func (this *Lbank) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Lbank) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Lbank) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// fetchOrderSupplement (private)
 	//
@@ -2362,7 +2362,7 @@ func (this *Lbank) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	}
 	if method != nil && *method == "fetchOrderSupplement" {
 
-		var retRes192919 map[string]any = MapTyped(PanicOnError((<-this.FetchOrderSupplementAsync(id, symbol, params))))
+		var retRes192919 map[string]any = (<-this.FetchOrderSupplementAsync(id, symbol, params)).Checked()
 		if retRes192919 == nil {
 			ch <- nil
 		} else {
@@ -2371,7 +2371,7 @@ func (this *Lbank) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		return nil
 	}
 
-	var retRes193115 map[string]any = MapTyped(PanicOnError((<-this.FetchOrderDefaultAsync(id, symbol, params))))
+	var retRes193115 map[string]any = (<-this.FetchOrderDefaultAsync(id, symbol, params)).Checked()
 	if retRes193115 == nil {
 		ch <- nil
 	} else {
@@ -2379,14 +2379,14 @@ func (this *Lbank) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	}
 	return nil
 }
-func (this *Lbank) FetchOrderSupplementAsync(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Lbank) FetchOrderSupplementAsync(id any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchOrderSupplementBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchOrderSupplementBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Lbank) fetchOrderSupplementBody(ch chan EndpointResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2429,17 +2429,18 @@ func (this *Lbank) fetchOrderSupplementBody(ch chan any, id any, optionalArgs ..
 	//
 	var result map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- this.ParseOrder(result)
+	chValue := this.ParseOrder(result)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Lbank) FetchOrderDefaultAsync(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Lbank) FetchOrderDefaultAsync(id any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchOrderDefaultBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchOrderDefaultBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Lbank) fetchOrderDefaultBody(ch chan EndpointResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	// Id can be a list of ids delimited by a comma
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
@@ -2484,12 +2485,13 @@ func (this *Lbank) fetchOrderDefaultBody(ch chan any, id any, optionalArgs ...an
 	var numOrders int = len(result)
 	if numOrders == 1 {
 
-		ch <- this.ParseOrder(func() any {
+		chValue := this.ParseOrder(func() any {
 			if 0 >= 0 && 0 < len(result) {
 				return DerefScalar(result[0])
 			}
 			return nil
 		}())
+		ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 		return nil
 	} else {
 		panic(BadRequest(this.Id + " fetchOrder() can only fetch one order at a time"))
@@ -3038,14 +3040,14 @@ func (this *Lbank) fetchDepositAddressSupplementBody(ch chan EndpointResult[map[
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Lbank) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Lbank) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Lbank) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Lbank) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3095,10 +3097,11 @@ func (this *Lbank) withdrawBody(ch chan any, code string, amount any, address an
 	//
 	var result map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info": result,
 		"id":   this.SafeString(result, "withdrawId"),
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Lbank) ParseTransactionStatus(status *string, typeVar any) *string {
@@ -3119,7 +3122,7 @@ func (this *Lbank) ParseTransactionStatus(status *string, typeVar any) *string {
 	}
 	return this.SafeString(this.SafeDict(statuses, typeVar, map[string]any{}), status, status)
 }
-func (this *Lbank) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Lbank) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits (private)
 	//
@@ -4473,11 +4476,11 @@ func (this *Lbank) FetchOrderSupplement(id string, options ...FetchOrderSuppleme
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrderSupplementAsync(id, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.FetchOrderSupplementAsync(id, opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return Order{}, CreateReturnError(r.Raw)
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Raw)
 	return res, nil
 }
 func (this *Lbank) FetchOrderDefault(id string, options ...FetchOrderDefaultOptions) (Order, error) {
@@ -4487,11 +4490,11 @@ func (this *Lbank) FetchOrderDefault(id string, options ...FetchOrderDefaultOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrderDefaultAsync(id, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.FetchOrderDefaultAsync(id, opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return Order{}, CreateReturnError(r.Raw)
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Raw)
 	return res, nil
 }
 
@@ -4694,11 +4697,11 @@ func (this *Lbank) Withdraw(code string, amount float64, address string, options
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

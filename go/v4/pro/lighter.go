@@ -382,7 +382,7 @@ func (this *Lighter) HandleTicker(client any, message any) {
 			var marketId string = marketIds[i]
 			var market map[string]any = this.SafeMarket(marketId)
 			var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-			var ticker any = this.ParseTicker(data[marketId], market)
+			var ticker map[string]any = this.ParseTicker(data[marketId], market)
 			ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 			client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker", symbol))
 			client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker"))
@@ -391,7 +391,7 @@ func (this *Lighter) HandleTicker(client any, message any) {
 		var marketId *string = this.SafeString(data, "market_id")
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-		var ticker any = this.ParseTicker(data, market)
+		var ticker map[string]any = this.ParseTicker(data, market)
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker", symbol))
 	}
@@ -1788,12 +1788,12 @@ func (this *Lighter) HandleOrders(client any, message any) bool {
 		var market map[string]any = this.SafeMarket(marketId)
 		var orders []any = ccxt.SafeListTyped(data, marketId)
 		for j := 0; j < len(orders); j++ {
-			var order map[string]any = ccxt.MapTyped(this.ParseOrder(func() any {
+			var order map[string]any = this.ParseOrder(func() any {
 				if j >= 0 && j < len(orders) {
 					return ccxt.DerefScalar(orders[j])
 				}
 				return nil
-			}(), market))
+			}(), market)
 			stored.(ccxt.Appender).Append(order)
 			var symbol *string = ccxt.SafeStringPtr(order["symbol"])
 			if symbol != nil {

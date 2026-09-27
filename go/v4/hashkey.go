@@ -1356,7 +1356,7 @@ func (this *Hashkey) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseCurrencies(coins)
 	return nil
 }
-func (this *Hashkey) ParseCurrency(rawCurrency any) any {
+func (this *Hashkey) ParseCurrency(rawCurrency any) map[string]any {
 	var currencyId *string = this.SafeString(rawCurrency, "coinId")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var networks []any = SafeListTyped(rawCurrency, "chainTypes")
@@ -1949,7 +1949,7 @@ func (this *Hashkey) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTickers(response, symbolsNormalized)
 	return nil
 }
-func (this *Hashkey) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Hashkey) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "t": 1721685896846,
@@ -2460,14 +2460,14 @@ func (this *Hashkey) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
  * @param {string} [params.platform] the platform to withdraw to (hashkey, HashKey HK)
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Hashkey) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hashkey) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Hashkey) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2505,10 +2505,11 @@ func (this *Hashkey) withdrawBody(ch chan any, code string, amount any, address 
 	//         "accountId": "1732885739589466115"
 	//     }
 	//
-	ch <- this.ParseTransaction(response, currency)
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Hashkey) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Hashkey) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	//  fetchDeposits
 	//     {
@@ -2668,7 +2669,7 @@ func (this *Hashkey) transferBody(ch chan any, code string, amount any, fromAcco
 	ch <- this.ParseTransfer(response, currency)
 	return nil
 }
-func (this *Hashkey) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Hashkey) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var timestamp *int64 = this.SafeInteger(transfer, "timestamp")
@@ -2872,7 +2873,7 @@ func (this *Hashkey) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Hashkey) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Hashkey) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": "1740844413612065537",
@@ -2977,7 +2978,7 @@ func (this *Hashkey) createOrderBody(ch chan any, symbol string, typeVar string,
 	var market map[string]any = this.Market(symbol)
 	if market["spot"] == true {
 
-		var retRes253019 map[string]any = MapTyped(PanicOnError((<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params))))
+		var retRes253019 map[string]any = (<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params)).Checked()
 		if retRes253019 == nil {
 			ch <- nil
 		} else {
@@ -2986,7 +2987,7 @@ func (this *Hashkey) createOrderBody(ch chan any, symbol string, typeVar string,
 		return nil
 	} else if market["swap"] == true {
 
-		var retRes253219 map[string]any = MapTyped(PanicOnError((<-this.CreateSwapOrderAsync(symbol, typeVar, side, amount, price, params))))
+		var retRes253219 map[string]any = (<-this.CreateSwapOrderAsync(symbol, typeVar, side, amount, price, params)).Checked()
 		if retRes253219 == nil {
 			ch <- nil
 		} else {
@@ -3057,14 +3058,14 @@ func (this *Hashkey) createMarketBuyOrderWithCostBody(ch chan any, symbol string
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hashkey) CreateSpotOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hashkey) CreateSpotOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.createSpotOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) createSpotOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Hashkey) createSpotOrderBody(ch chan EndpointResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3100,7 +3101,8 @@ func (this *Hashkey) createSpotOrderBody(ch chan any, symbol string, typeVar str
 		PanicOnError(response) // the endpoint for market buy orders by cost and other orders
 	}
 
-	ch <- this.ParseOrder(response, market)
+	chValue := this.ParseOrder(response, market)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Hashkey) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
@@ -3281,14 +3283,14 @@ func (this *Hashkey) CreateSwapOrderRequest(symbol any, typeVar any, side any, a
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hashkey) CreateSwapOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hashkey) CreateSwapOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.createSwapOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) createSwapOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Hashkey) createSwapOrderBody(ch chan EndpointResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3323,7 +3325,8 @@ func (this *Hashkey) createSwapOrderBody(ch chan any, symbol string, typeVar str
 	//         "contractMultiplier": "0.00100000"
 	//     }
 	//
-	ch <- this.ParseOrder(response, market)
+	chValue := this.ParseOrder(response, market)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -3516,8 +3519,8 @@ func (this *Hashkey) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" "+methodName+"() is not supported for ", market["type"]), " type of markets")))
 	}
-	var order any = this.SafeOrder(response)
-	AddElementToObject(order, "info", response)
+	var order map[string]any = this.SafeOrder(response)
+	order["info"] = response
 
 	ch <- []any{order}
 	return nil
@@ -3571,8 +3574,8 @@ func (this *Hashkey) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	} else {
 		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + *marketTypeOption + " type of markets"))
 	}
-	var order any = this.SafeOrder(response)
-	AddElementToObject(order, "info", response)
+	var order map[string]any = this.SafeOrder(response)
+	order["info"] = response
 
 	ch <- []any{order}
 	return nil
@@ -3990,7 +3993,7 @@ func (this *Hashkey) HandleTriggerOptionAndParams(params any, methodName any, op
 	var paramsStop map[string]any = MapTyped(isTriggerStopparamsStopVariable[1])
 	return []any{isTriggerStop, paramsStop}
 }
-func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder spot
 	//     {
@@ -5674,11 +5677,11 @@ func (this *Hashkey) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

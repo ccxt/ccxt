@@ -1275,7 +1275,7 @@ func (this *Xt) HandleTicker(client any, message map[string]any) any {
 	if marketId != nil {
 		var cv *string = this.SafeString(data, "cv")
 		var isSpot bool = (cv != nil)
-		var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(data))
+		var ticker map[string]any = this.ParseTicker(data)
 		var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			ccxt.AddElementToObject(this.Tickers, symbol, ticker)
@@ -1375,7 +1375,7 @@ func (this *Xt) HandleTickers(client any, message map[string]any) any {
 			}
 			return nil
 		}()
-		var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(tickerData))
+		var ticker map[string]any = this.ParseTicker(tickerData)
 		var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			ccxt.AddElementToObject(this.Tickers, symbol, ticker)

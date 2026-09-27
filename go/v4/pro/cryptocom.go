@@ -1602,7 +1602,7 @@ func (this *Cryptocom) HandleOrder(client any, message map[string]any) {
 	//
 	var messageHash *string = this.SafeString(message, "id")
 	var rawOrder map[string]any = this.SafeDictMap(message, "result", map[string]any{})
-	var order map[string]any = ccxt.MapTyped(this.ParseOrder(rawOrder))
+	var order map[string]any = this.ParseOrder(rawOrder)
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)
 }
 

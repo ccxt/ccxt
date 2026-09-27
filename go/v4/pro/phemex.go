@@ -1461,7 +1461,7 @@ func (this *Phemex) HandleOrders(client any, message any) {
 				}
 				return nil
 			}()
-			var parsedOrder any = this.ParseOrder(rawOrder)
+			var parsedOrder map[string]any = this.ParseOrder(rawOrder)
 			parsedOrders = append(parsedOrders, parsedOrder)
 		}
 	} else {

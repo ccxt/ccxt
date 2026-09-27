@@ -966,19 +966,17 @@ func (this *Toobit) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}()
-		var parsed any = this.ParseCurrency(coin)
-		if !IsEqual(parsed, nil) {
-			var code *string = SafeStringPtr(GetValue(parsed, "code"))
-			if code != nil {
-				result[*code] = parsed
-			}
+		var parsed map[string]any = this.ParseCurrency(coin)
+		if parsed != nil {
+			var code *string = SafeStringPtr(parsed["code"])
+			AddElementToObject(result, code, parsed)
 		}
 	}
 
 	ch <- result
 	return nil
 }
-func (this *Toobit) ParseCurrency(rawCurrency any) any {
+func (this *Toobit) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "coinId")
 	var code *string = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}
@@ -1420,9 +1418,9 @@ func (this *Toobit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		request["limit"] = limit
 	}
 
-	listEp1421 := (<-this.CommonGetQuoteV1Trades(this.Extend(request, params)))
-	PanicOnError(listEp1421.Raw)
-	var response []any = listEp1421.Value
+	listEp1419 := (<-this.CommonGetQuoteV1Trades(this.Extend(request, params)))
+	PanicOnError(listEp1419.Raw)
+	var response []any = listEp1419.Value
 
 	//
 	//    [
@@ -1672,14 +1670,14 @@ func (this *Toobit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var response []any = nil
 	if typeVar != nil && *typeVar == "spot" {
 
-		listEp1671 := (<-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, paramsMarketType)))
-		PanicOnError(listEp1671.Raw)
-		response = listEp1671.Value
+		listEp1669 := (<-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, paramsMarketType)))
+		PanicOnError(listEp1669.Raw)
+		response = listEp1669.Value
 	} else {
 
-		listEp1674 := (<-this.CommonGetQuoteV1ContractTicker24hr(this.Extend(request, paramsMarketType)))
-		PanicOnError(listEp1674.Raw)
-		response = listEp1674.Value
+		listEp1672 := (<-this.CommonGetQuoteV1ContractTicker24hr(this.Extend(request, paramsMarketType)))
+		PanicOnError(listEp1672.Raw)
+		response = listEp1672.Value
 	}
 
 	//
@@ -1701,7 +1699,7 @@ func (this *Toobit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTickers(response, symbolsNormalized, paramsMarketType)
 	return nil
 }
-func (this *Toobit) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Toobit) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "s")
@@ -1778,9 +1776,9 @@ func (this *Toobit) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	listEp1773 := (<-this.CommonGetQuoteV1TickerPrice(this.Extend(request, params)))
-	PanicOnError(listEp1773.Raw)
-	var response []any = listEp1773.Value
+	listEp1771 := (<-this.CommonGetQuoteV1TickerPrice(this.Extend(request, params)))
+	PanicOnError(listEp1771.Raw)
+	var response []any = listEp1771.Value
 
 	//
 	//    [
@@ -1849,9 +1847,9 @@ func (this *Toobit) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	listEp1842 := (<-this.CommonGetQuoteV1TickerBookTicker(this.Extend(request, params)))
-	PanicOnError(listEp1842.Raw)
-	var response []any = listEp1842.Value
+	listEp1840 := (<-this.CommonGetQuoteV1TickerBookTicker(this.Extend(request, params)))
+	PanicOnError(listEp1840.Raw)
+	var response []any = listEp1840.Value
 
 	//
 	//    [
@@ -1939,9 +1937,9 @@ func (this *Toobit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 		}
 	}
 
-	listEp1930 := (<-this.CommonGetApiV1FuturesFundingRate(this.Extend(request, params)))
-	PanicOnError(listEp1930.Raw)
-	var response []any = listEp1930.Value
+	listEp1928 := (<-this.CommonGetApiV1FuturesFundingRate(this.Extend(request, params)))
+	PanicOnError(listEp1928.Raw)
+	var response []any = listEp1928.Value
 
 	//
 	//    [
@@ -2038,9 +2036,9 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		request["limit"] = limit
 	}
 
-	listEp2027 := (<-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, paramsPaginate)))
-	PanicOnError(listEp2027.Raw)
-	var response []any = listEp2027.Value
+	listEp2025 := (<-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, paramsPaginate)))
+	PanicOnError(listEp2025.Raw)
+	var response []any = listEp2025.Value
 
 	//
 	//    [
@@ -2349,7 +2347,7 @@ func (this *Toobit) CreateContractOrderRequest(symbol any, typeVar string, side 
 	}
 	return []any{request, paramsOmitted}
 }
-func (this *Toobit) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Toobit) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder, cancelOrder
 	//
@@ -3024,7 +3022,7 @@ func (this *Toobit) transferBody(ch chan any, code string, amount any, fromAccou
 	ch <- this.ParseTransfer(response, currency)
 	return nil
 }
-func (this *Toobit) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Toobit) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//     "code": 200, // 200 = success
@@ -3096,14 +3094,14 @@ func (this *Toobit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var response []any = nil
 	if marketType != nil && *marketType == "spot" {
 
-		listEp3083 := (<-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(requestUntil, paramsMarketType)))
-		PanicOnError(listEp3083.Raw)
-		response = listEp3083.Value
+		listEp3081 := (<-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(requestUntil, paramsMarketType)))
+		PanicOnError(listEp3081.Raw)
+		response = listEp3081.Value
 	} else {
 
-		listEp3086 := (<-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(requestUntil, paramsMarketType)))
-		PanicOnError(listEp3086.Raw)
-		response = listEp3086.Value
+		listEp3084 := (<-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(requestUntil, paramsMarketType)))
+		PanicOnError(listEp3084.Raw)
+		response = listEp3084.Value
 	}
 
 	//
@@ -3127,7 +3125,7 @@ func (this *Toobit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseLedger(response, currency, since, limit)
 	return nil
 }
-func (this *Toobit) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Toobit) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(item, "coinId")
@@ -3357,7 +3355,7 @@ func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan any, typeVar an
 	ch <- this.ParseTransactions(response, currency, since, limit, paramsUntil)
 	return nil
 }
-func (this *Toobit) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Toobit) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits & fetchWithdrawals
 	//
@@ -3537,14 +3535,14 @@ func (this *Toobit) ParseDepositAddress(depositAddress any, optionalArgs ...any)
  * @param {string} [params.addressType] recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Toobit) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Toobit) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Toobit) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Toobit) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3583,7 +3581,8 @@ func (this *Toobit) withdrawBody(ch chan any, code string, amount any, address a
 	//     "refuseReason":"" // failure rejection reason
 	// }
 	//
-	ch <- this.ParseTransaction(response, currency)
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -3709,9 +3708,9 @@ func (this *Toobit) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 		"symbol": market["id"],
 	}
 
-	listEp3689 := (<-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params)))
-	PanicOnError(listEp3689.Raw)
-	var response []any = listEp3689.Value
+	listEp3687 := (<-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params)))
+	PanicOnError(listEp3687.Raw)
+	var response []any = listEp3687.Value
 	//
 	// [
 	//     {
@@ -4686,11 +4685,11 @@ func (this *Toobit) Withdraw(code string, amount float64, address string, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

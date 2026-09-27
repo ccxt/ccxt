@@ -1471,7 +1471,7 @@ func (this *Bitfinex) transferBody(ch chan any, code string, amount any, fromAcc
 	}, currency)
 	return nil
 }
-func (this *Bitfinex) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Bitfinex) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	// transfer
 	//
@@ -1636,7 +1636,7 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan any, symbol string, optionalArg
 	ch <- result
 	return nil
 }
-func (this *Bitfinex) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Bitfinex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// on trading pairs (ex. tBTCUSD)
 	//
@@ -2203,7 +2203,7 @@ func (this *Bitfinex) ParseTimeInForce(orderType *string) *string {
 	}
 	return this.SafeString(orderTypes, orderType, "GTC")
 }
-func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var orderList []any = SafeListTyped(order, "result")
@@ -3344,7 +3344,7 @@ func (this *Bitfinex) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// withdraw
 	//
@@ -3733,14 +3733,14 @@ func (this *Bitfinex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitfinex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitfinex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bitfinex) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3823,7 +3823,8 @@ func (this *Bitfinex) withdrawBody(ch chan any, code string, amount any, address
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], text, text)
 	}
 
-	ch <- this.ParseTransaction(response, currency)
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -4141,7 +4142,7 @@ func (this *Bitfinex) ParseLedgerEntryType(typeVar *string) any {
 		return typeVar
 	}
 }
-func (this *Bitfinex) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Bitfinex) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	//     [
 	//         [
@@ -4804,7 +4805,7 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan any, symbol string, o
 	ch <- this.ParseOpenInterestsHistory(response, market, since, limit)
 	return nil
 }
-func (this *Bitfinex) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Bitfinex) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	// fetchOpenInterest:
 	//
@@ -5983,11 +5984,11 @@ func (this *Bitfinex) Withdraw(code string, amount float64, address string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

@@ -1646,7 +1646,7 @@ func (this *Pacifica) HandleOrder(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var order map[string]any = ccxt.MapTyped(this.ParseOrder(rawOrder))
+		var order map[string]any = this.ParseOrder(rawOrder)
 		stored.(ccxt.Appender).Append(order)
 		var symbol *string = this.SafeString(order, "symbol")
 		if symbol != nil {

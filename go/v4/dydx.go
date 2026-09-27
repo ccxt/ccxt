@@ -1061,7 +1061,7 @@ func (this *Dydx) HandlePublicAddress(methodName any, params any) any {
 	}
 	panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() requires a user parameter inside 'params' or the walletAddress set")))
 }
-func (this *Dydx) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Dydx) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "id": "dad46410-3444-5566-a129-19a619300fb7",
@@ -2217,7 +2217,7 @@ func (this *Dydx) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "size")
 	return nil
 }
-func (this *Dydx) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Dydx) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
@@ -2510,7 +2510,7 @@ func (this *Dydx) transferBody(ch chan any, code string, amount any, fromAccount
 	ch <- this.ParseTransfer(response)
 	return nil
 }
-func (this *Dydx) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Dydx) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
@@ -2603,7 +2603,7 @@ func (this *Dydx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTransfers(rows, currency, since, limit)
 	return nil
 }
-func (this *Dydx) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Dydx) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
@@ -2670,14 +2670,14 @@ func (this *Dydx) ParseTransaction(transaction any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Dydx) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Dydx) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Dydx) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Dydx) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2739,7 +2739,8 @@ func (this *Dydx) withdrawBody(ch chan any, code string, amount any, address any
 	//
 	var data map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- this.ParseTransaction(data, currency)
+	chValue := this.ParseTransaction(data, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -3778,11 +3779,11 @@ func (this *Dydx) Withdraw(code string, amount float64, address string, options 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

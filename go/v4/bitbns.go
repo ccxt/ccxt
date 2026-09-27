@@ -536,7 +536,7 @@ func (this *Bitbns) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 	ch <- this.ParseOrderBook(response, market["symbol"], timestamp)
 	return nil
 }
-func (this *Bitbns) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Bitbns) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol":"BTC/INR",
@@ -749,7 +749,7 @@ func (this *Bitbns) ParseStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitbns) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Bitbns) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder
 	//
@@ -1508,7 +1508,7 @@ func (this *Bitbns) ParseTransactionStatusByType(status *string, optionalArgs ..
 	var statuses map[string]any = SafeMapTyped(statusesByType, typeVar)
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitbns) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Bitbns) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//

@@ -476,7 +476,7 @@ func (this *Bitopro) HandleTicker(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId, nil, "_")
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
-	var result map[string]any = ccxt.MapTyped(this.ParseTicker(message, market))
+	var result map[string]any = this.ParseTicker(message, market)
 	result["symbol"] = this.SafeString(market, "symbol") // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	result["timestamp"] = timestamp

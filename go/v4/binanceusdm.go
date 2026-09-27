@@ -61,7 +61,7 @@ func (this *Binanceusdm) transferInBody(ch chan any, code any, amount any, optio
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	ch <- PanicOnError((<-this.FuturesTransferAsync(code, amount, 1, params)))
+	ch <- PanicOnError((<-this.FuturesTransferAsync(code, amount, 1, params)).Raw)
 	return nil
 }
 func (this *Binanceusdm) TransferOutAsync(code any, amount any, optionalArgs ...any) <-chan any {
@@ -76,7 +76,7 @@ func (this *Binanceusdm) transferOutBody(ch chan any, code any, amount any, opti
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	ch <- PanicOnError((<-this.FuturesTransferAsync(code, amount, 2, params)))
+	ch <- PanicOnError((<-this.FuturesTransferAsync(code, amount, 2, params)).Raw)
 	return nil
 }
 

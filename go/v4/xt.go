@@ -2373,12 +2373,12 @@ func (this *Xt) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var tickers []any = SafeListTyped(response, "result")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(tickers); i++ {
-		var ticker map[string]any = MapTyped(this.ParseTicker(func() any {
+		var ticker map[string]any = this.ParseTicker(func() any {
 			if i >= 0 && i < len(tickers) {
 				return DerefScalar(tickers[i])
 			}
 			return nil
-		}(), market))
+		}(), market)
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			result[*symbol] = ticker
@@ -2496,7 +2496,7 @@ func (this *Xt) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 			marketType = "contract"
 		}
 		var marketInner map[string]any = this.SafeMarket(marketId, market, "_", marketType)
-		var ticker map[string]any = MapTyped(this.ParseTicker(rawTicker, marketInner))
+		var ticker map[string]any = this.ParseTicker(rawTicker, marketInner)
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			result[*symbol] = ticker
@@ -2506,7 +2506,7 @@ func (this *Xt) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(result, "symbol", symbolsNormalized)
 	return nil
 }
-func (this *Xt) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Xt) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// spot: fetchTicker, fetchTickers
 	//
@@ -3263,7 +3263,7 @@ func (this *Xt) createOrderBody(ch chan any, symbol string, typeVar string, side
 			panic(NotSupported(this.Id + " createOrder() trailing orders are only supported on swap markets"))
 		}
 
-		var retRes260719 map[string]any = MapTyped(PanicOnError((<-this.CreateSpotOrderAsync(symbolValue, typeVar, side, amount, price, params))))
+		var retRes260719 map[string]any = (<-this.CreateSpotOrderAsync(symbolValue, typeVar, side, amount, price, params)).Checked()
 		if retRes260719 == nil {
 			ch <- nil
 		} else {
@@ -3272,7 +3272,7 @@ func (this *Xt) createOrderBody(ch chan any, symbol string, typeVar string, side
 		return nil
 	} else {
 
-		var retRes260919 map[string]any = MapTyped(PanicOnError((<-this.CreateContractOrderAsync(symbolValue, typeVar, side, amount, price, params))))
+		var retRes260919 map[string]any = (<-this.CreateContractOrderAsync(symbolValue, typeVar, side, amount, price, params)).Checked()
 		if retRes260919 == nil {
 			ch <- nil
 		} else {
@@ -3281,14 +3281,14 @@ func (this *Xt) createOrderBody(ch chan any, symbol string, typeVar string, side
 		return nil
 	}
 }
-func (this *Xt) CreateSpotOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Xt) CreateSpotOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.createSpotOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Xt) createSpotOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Xt) createSpotOrderBody(ch chan EndpointResult[map[string]any], symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3377,17 +3377,18 @@ func (this *Xt) createSpotOrderBody(ch chan any, symbol any, typeVar string, sid
 	//
 	var order map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- this.ParseOrder(order, market)
+	chValue := this.ParseOrder(order, market)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Xt) CreateContractOrderAsync(symbol any, typeVar string, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Xt) CreateContractOrderAsync(symbol any, typeVar string, side any, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.createContractOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Xt) createContractOrderBody(ch chan any, symbol any, typeVar string, side any, amount any, optionalArgs ...any) any {
+func (this *Xt) createContractOrderBody(ch chan EndpointResult[map[string]any], symbol any, typeVar string, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3541,7 +3542,8 @@ func (this *Xt) createContractOrderBody(ch chan any, symbol any, typeVar string,
 	//         "result": "206410760006650176"
 	//     }
 	//
-	ch <- this.ParseOrder(response, market)
+	chValue := this.ParseOrder(response, market)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -4747,7 +4749,7 @@ func (this *Xt) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any 
 	ch <- []any{this.SafeOrder(response)}
 	return nil
 }
-func (this *Xt) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Xt) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// spot: createOrder
 	//
@@ -5059,7 +5061,7 @@ func (this *Xt) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseLedger(ledger, currency, since, limit)
 	return nil
 }
-func (this *Xt) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Xt) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": "207260567109387524",
@@ -5357,14 +5359,14 @@ func (this *Xt) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
  */
-func (this *Xt) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Xt) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Xt) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Xt) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -5406,10 +5408,11 @@ func (this *Xt) withdrawBody(ch chan any, code string, amount any, address any, 
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- this.ParseTransaction(result, currency)
+	chValue := this.ParseTransaction(result, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Xt) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Xt) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//
@@ -6211,7 +6214,7 @@ func (this *Xt) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs .
 	ch <- this.ParseOpenInterest(result, market)
 	return nil
 }
-func (this *Xt) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Xt) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol": "btc_usdt",
@@ -6986,7 +6989,7 @@ func (this *Xt) transferBody(ch chan any, code string, amount any, fromAccount a
 	ch <- this.ParseTransfer(response, currency)
 	return nil
 }
-func (this *Xt) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Xt) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	return map[string]any{
@@ -8094,11 +8097,11 @@ func (this *Xt) Withdraw(code string, amount float64, address string, options ..
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

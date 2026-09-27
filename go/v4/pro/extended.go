@@ -645,7 +645,7 @@ func (this *Extended) HandleOrders(client any, message any) {
 		return
 	}
 	for i := 0; i < ccxt.GetArrayLength(rawOrders); i++ {
-		var order map[string]any = ccxt.MapTyped(this.ParseOrder(ccxt.GetValue(rawOrders, i)))
+		var order map[string]any = this.ParseOrder(ccxt.GetValue(rawOrders, i))
 		var symbol *string = this.SafeString(order, "symbol")
 		if symbol != nil {
 			symbols[*symbol] = true
@@ -825,7 +825,7 @@ func (this *Extended) HandleMarkPrice(client any, message any) {
 	if (timestamp == nil) || (timestamp != nil && *timestamp == 0) {
 		timestamp = this.SafeInteger(message, "ts")
 	}
-	var ticker any = this.SafeTicker(map[string]any{
+	var ticker map[string]any = this.SafeTicker(map[string]any{
 		"symbol":    symbol,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),

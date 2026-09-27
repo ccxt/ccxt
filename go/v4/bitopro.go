@@ -419,7 +419,7 @@ func (this *Bitopro) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseCurrencies(currencies)
 	return nil
 }
-func (this *Bitopro) ParseCurrency(rawCurrency any) any {
+func (this *Bitopro) ParseCurrency(rawCurrency any) map[string]any {
 	var fiatCurrencies any = this.HandleOption("fetchCurrencies", "fiatCurrencies", []any{})
 	var currencyId *string = this.SafeString(rawCurrency, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
@@ -568,7 +568,7 @@ func (this *Bitopro) ParseMarket(market any) any {
 		"info":    market,
 	})
 }
-func (this *Bitopro) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Bitopro) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "pair":"btc_twd",
@@ -1245,7 +1245,7 @@ func (this *Bitopro) ParseOrderStatus(status *string) any {
 		return this.SafeString(statuses, status)
 	}()
 }
-func (this *Bitopro) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Bitopro) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder
 	//         {
@@ -1899,7 +1899,7 @@ func (this *Bitopro) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(states, status, status)
 }
-func (this *Bitopro) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Bitopro) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//
@@ -2199,14 +2199,14 @@ func (this *Bitopro) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitopro) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitopro) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bitopro) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bitopro) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2264,7 +2264,8 @@ func (this *Bitopro) withdrawBody(ch chan any, code string, amount any, address 
 	//         }
 	//     }
 	//
-	ch <- this.ParseTransaction(result, currency)
+	chValue := this.ParseTransaction(result, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Bitopro) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
@@ -2959,11 +2960,11 @@ func (this *Bitopro) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

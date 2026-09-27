@@ -546,7 +546,7 @@ func (this *Btcmarkets) ParseTransactionType(typeVar *string) *string {
 	}
 	return this.SafeString(statuses, typeVar, typeVar)
 }
-func (this *Btcmarkets) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Btcmarkets) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//         "id": "6500230339",
@@ -982,7 +982,7 @@ func (this *Btcmarkets) fetchOrderBookBody(ch chan any, symbol string, optionalA
 	ch <- orderbook
 	return nil
 }
-func (this *Btcmarkets) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Btcmarkets) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// fetchTicker
 	//
@@ -1083,14 +1083,14 @@ func (this *Btcmarkets) fetchTickerBody(ch chan any, symbol string, optionalArgs
 	ch <- this.ParseTicker(response, market)
 	return nil
 }
-func (this *Btcmarkets) FetchTicker2Async(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Btcmarkets) FetchTicker2Async(symbol any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchTicker2Body(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Btcmarkets) fetchTicker2Body(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Btcmarkets) fetchTicker2Body(ch chan EndpointResult[map[string]any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -1104,7 +1104,8 @@ func (this *Btcmarkets) fetchTicker2Body(ch chan any, symbol any, optionalArgs .
 
 	var response map[string]any = (<-this.PublicGetMarketsMarketIdTicker(this.Extend(request, params))).Checked()
 
-	ch <- this.ParseTicker(response, market)
+	chValue := this.ParseTicker(response, market)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Btcmarkets) ParseTrade(trade any, optionalArgs ...any) any {
@@ -1504,7 +1505,7 @@ func (this *Btcmarkets) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Btcmarkets) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Btcmarkets) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder
 	//
@@ -1826,14 +1827,14 @@ func (this *Btcmarkets) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Btcmarkets) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Btcmarkets) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Btcmarkets) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Btcmarkets) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1876,7 +1877,8 @@ func (this *Btcmarkets) withdrawBody(ch chan any, code string, amount any, addre
 	//          }
 	//      }
 	//
-	ch <- this.ParseTransaction(response, currency)
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Btcmarkets) Nonce() any {
@@ -2208,11 +2210,11 @@ func (this *Btcmarkets) FetchTicker2(symbol string, options ...FetchTicker2Optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTicker2Async(symbol, opts.Params)
-	if IsError(raw) {
-		return Ticker{}, CreateReturnError(raw)
+	r := <-this.FetchTicker2Async(symbol, opts.Params)
+	if IsError(r.Raw) {
+		return Ticker{}, CreateReturnError(r.Raw)
 	}
-	var res Ticker = NewTicker(raw)
+	var res Ticker = NewTicker(r.Raw)
 	return res, nil
 }
 
@@ -2469,11 +2471,11 @@ func (this *Btcmarkets) Withdraw(code string, amount float64, address string, op
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

@@ -638,7 +638,7 @@ func (this *Indodax) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 	ch <- this.ParseOrderBook(orderbook, market["symbol"], nil, "buy", "sell")
 	return nil
 }
-func (this *Indodax) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Indodax) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "high":"0.01951",
@@ -788,7 +788,7 @@ func (this *Indodax) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var rawTicker any = tickers[key]
 		var marketId string = strings.Replace(key, "_", "", 1)
 		var market map[string]any = this.SafeMarket(marketId)
-		var parsed map[string]any = MapTyped(this.ParseTicker(rawTicker, market))
+		var parsed map[string]any = this.ParseTicker(rawTicker, market)
 		parsedTickers[marketId] = parsed
 	}
 
@@ -955,7 +955,7 @@ func (this *Indodax) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Indodax) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Indodax) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "order_id": "12345",
@@ -1095,9 +1095,9 @@ func (this *Indodax) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	response := (<-this.PrivatePostGetOrder(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	var orders map[string]any = SafeMapTyped(response, "return")
-	var order map[string]any = MapTyped(this.ParseOrder(this.Extend(map[string]any{
+	var order map[string]any = this.ParseOrder(this.Extend(map[string]any{
 		"id": id,
-	}, orders["order"]), market))
+	}, orders["order"]), market)
 	order["info"] = response
 
 	ch <- order
@@ -1618,14 +1618,14 @@ func (this *Indodax) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Indodax) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Indodax) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Indodax) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Indodax) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1673,10 +1673,11 @@ func (this *Indodax) withdrawBody(ch chan any, code string, amount any, address 
 	//         "withdraw_memo": "123123"
 	//     }
 	//
-	ch <- this.ParseTransaction(response, currency)
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Indodax) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Indodax) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// withdraw
 	//
@@ -2396,11 +2397,11 @@ func (this *Indodax) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

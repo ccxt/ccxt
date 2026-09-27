@@ -691,7 +691,7 @@ func (this *Latoken) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseCurrencies(response)
 	return nil
 }
-func (this *Latoken) ParseCurrency(currency any) any {
+func (this *Latoken) ParseCurrency(currency any) map[string]any {
 	var id *string = this.SafeString(currency, "id")
 	var tag *string = this.SafeString(currency, "tag")
 	var code *string = this.SafeCurrencyCode(tag)
@@ -908,7 +908,7 @@ func (this *Latoken) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 	ch <- this.ParseOrderBook(filtered, symbol, nil, "bid", "ask", "price", "quantity")
 	return nil
 }
-func (this *Latoken) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Latoken) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
@@ -1450,7 +1450,7 @@ func (this *Latoken) ParseTimeInForce(timeInForce *string) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
-func (this *Latoken) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Latoken) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder
 	//
@@ -2085,7 +2085,7 @@ func (this *Latoken) fetchTransactionsBody(ch chan any, optionalArgs ...any) any
 	ch <- this.ParseTransactions(content, currency, since, limit)
 	return nil
 }
-func (this *Latoken) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Latoken) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id":"fbf7d0d1-2629-4ad8-9def-7a1dba423362",
@@ -2311,7 +2311,7 @@ func (this *Latoken) transferBody(ch chan any, code string, amount any, fromAcco
 	ch <- this.ParseTransfer(response)
 	return nil
 }
-func (this *Latoken) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Latoken) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",

@@ -339,7 +339,7 @@ func (this *Deribit) HandleTicker(client any, message map[string]any) {
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "instrument_name")
 	var symbol *string = this.SafeSymbol(marketId)
-	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(data))
+	var ticker map[string]any = this.ParseTicker(data)
 	var messageHash *string = this.SafeString(params, "channel")
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
@@ -1006,7 +1006,7 @@ func (this *Deribit) HandleOrders(client any, message map[string]any) {
 	if ccxt.IsArray(data) {
 		orders = this.ParseOrders(data)
 	} else {
-		var order map[string]any = ccxt.MapTyped(this.ParseOrder(data))
+		var order map[string]any = this.ParseOrder(data)
 		orders = []any{order}
 	}
 	var cachedOrders any = this.Orders

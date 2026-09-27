@@ -2271,7 +2271,7 @@ func (this *Nado) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}()
-		var parsed any = this.ParseCurrency(currency)
+		var parsed map[string]any = this.ParseCurrency(currency)
 		var code *string = this.SafeString(parsed, "code")
 		if code == nil {
 			continue
@@ -2280,12 +2280,12 @@ func (this *Nado) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		var canDeposit *bool = this.SafeBool(currency, "can_deposit", false)
 		var canWithdraw *bool = this.SafeBool(currency, "can_withdraw", false)
 		if previous == nil {
-			result[*code] = parsed
+			AddElementToObject(result, code, parsed)
 		} else {
 			var previousDeposit *bool = this.SafeBool(previous, "deposit", false)
 			var previousWithdraw *bool = this.SafeBool(previous, "withdraw", false)
 			if (previousDeposit == nil || *previousDeposit != true) && (previousWithdraw == nil || *previousWithdraw != true) && ((canDeposit != nil && *canDeposit == true) || (canWithdraw != nil && *canWithdraw == true)) {
-				result[*code] = parsed
+				AddElementToObject(result, code, parsed)
 			}
 		}
 	}
@@ -3113,7 +3113,7 @@ func (this *Nado) ParseFundingHistory(funding any, optionalArgs ...any) any {
 		"amount":    this.ParseX18(this.SafeString(funding, "amount")),
 	}
 }
-func (this *Nado) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Nado) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "product_id": 1,
@@ -3148,7 +3148,7 @@ func (this *Nado) ParseOpenInterest(interest any, optionalArgs ...any) any {
 		"info":               interest,
 	}, marketResolved)
 }
-func (this *Nado) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Nado) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "product_id")
@@ -3178,7 +3178,7 @@ func (this *Nado) ParseTicker(ticker any, optionalArgs ...any) any {
 		"info":          ticker,
 	}, marketResolved)
 }
-func (this *Nado) ParseCurrency(rawCurrency any) any {
+func (this *Nado) ParseCurrency(rawCurrency any) map[string]any {
 	var canDeposit *bool = this.SafeBool(rawCurrency, "can_deposit", false)
 	var canWithdraw *bool = this.SafeBool(rawCurrency, "can_withdraw", false)
 	var id *string = this.SafeString(rawCurrency, "product_id")
@@ -3252,7 +3252,7 @@ func (this *Nado) ParseBalance(response any) any {
 	}
 	return this.SafeBalance(result)
 }
-func (this *Nado) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Nado) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "submission_idx": "563011",
@@ -3407,7 +3407,7 @@ func (this *Nado) IsArchiveOrderClosed(order any) bool {
 	}
 	return Precise.StringGe(Precise.StringAbs(filled), Precise.StringAbs(amount))
 }
-func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Nado) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// create order
 	//

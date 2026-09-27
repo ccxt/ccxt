@@ -475,7 +475,7 @@ func (this *Mercado) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 	ch <- this.ParseOrderBook(response, market["symbol"])
 	return nil
 }
-func (this *Mercado) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Mercado) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "high":"103.96000000",
@@ -854,7 +854,7 @@ func (this *Mercado) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Mercado) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Mercado) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "order_id": 4,
@@ -987,14 +987,14 @@ func (this *Mercado) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Mercado) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mercado) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Mercado) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Mercado) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1057,10 +1057,11 @@ func (this *Mercado) withdrawBody(ch chan any, code string, amount any, address 
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
 	var withdrawal map[string]any = SafeMapTyped(responseData, "withdrawal")
 
-	ch <- this.ParseTransaction(withdrawal, currency)
+	chValue := this.ParseTransaction(withdrawal, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Mercado) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Mercado) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": 1,
@@ -1610,11 +1611,11 @@ func (this *Mercado) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

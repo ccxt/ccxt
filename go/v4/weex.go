@@ -1062,7 +1062,7 @@ func (this *Weex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseCurrencies(response)
 	return nil
 }
-func (this *Weex) ParseCurrency(rawCurrency any) any {
+func (this *Weex) ParseCurrency(rawCurrency any) map[string]any {
 	var currencyId *string = this.SafeString(rawCurrency, "coin")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var name *string = this.SafeString(rawCurrency, "name")
@@ -1504,7 +1504,7 @@ func (this *Weex) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArrayTickers(results, "symbol", symbolsNormalized)
 	return nil
 }
-func (this *Weex) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Weex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// spot
 	//     {
@@ -2315,7 +2315,7 @@ func (this *Weex) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs
 	ch <- this.ParseOpenInterest(response, market)
 	return nil
 }
-func (this *Weex) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Weex) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol": "ETHUSDT",
@@ -2700,7 +2700,7 @@ func (this *Weex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTransfers(response, currency, since, limit)
 	return nil
 }
-func (this *Weex) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Weex) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var timestamp *int64 = this.SafeInteger(transfer, "tradeTime")
@@ -2763,7 +2763,7 @@ func (this *Weex) createOrderBody(ch chan any, symbol string, typeVar string, si
 	var market map[string]any = this.Market(symbol)
 	if market["contract"] == true {
 
-		var retRes220219 map[string]any = MapTyped(PanicOnError((<-this.CreateContractOrderAsync(symbol, typeVar, side, amount, price, params))))
+		var retRes220219 map[string]any = (<-this.CreateContractOrderAsync(symbol, typeVar, side, amount, price, params)).Checked()
 		if retRes220219 == nil {
 			ch <- nil
 		} else {
@@ -2776,7 +2776,7 @@ func (this *Weex) createOrderBody(ch chan any, symbol string, typeVar string, si
 			panic(NotSupported(this.Id + " createOrder() only supports swap markets in sandbox mode"))
 		}
 
-		var retRes220819 map[string]any = MapTyped(PanicOnError((<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params))))
+		var retRes220819 map[string]any = (<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params)).Checked()
 		if retRes220819 == nil {
 			ch <- nil
 		} else {
@@ -2801,14 +2801,14 @@ func (this *Weex) createOrderBody(ch chan any, symbol string, typeVar string, si
  * @param {string} [params.timeInForce] 'GTC', 'IOC', or 'FOK'
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Weex) CreateSpotOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) CreateSpotOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.createSpotOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Weex) createSpotOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Weex) createSpotOrderBody(ch chan EndpointResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2834,7 +2834,8 @@ func (this *Weex) createSpotOrderBody(ch chan any, symbol string, typeVar string
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
-	ch <- this.ParseOrder(response, market)
+	chValue := this.ParseOrder(response, market)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Weex) CreateSpotOrderRequest(symbol any, typeVar string, side string, amount any, optionalArgs ...any) map[string]any {
@@ -2903,14 +2904,14 @@ func (this *Weex) CreateSpotOrderRequest(symbol any, typeVar string, side string
  * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Weex) CreateContractOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) CreateContractOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.createContractOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Weex) createContractOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Weex) createContractOrderBody(ch chan EndpointResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2941,7 +2942,8 @@ func (this *Weex) createContractOrderBody(ch chan any, symbol string, typeVar st
 		panic(NullResponse(this.Id + " createOrder() returned empty response"))
 	}
 
-	ch <- this.ParseOrder(response, market)
+	chValue := this.ParseOrder(response, market)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Weex) CreateContractOrderRequest(symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
@@ -3191,7 +3193,7 @@ func (this *Weex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	if response == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
-	var order map[string]any = MapTyped(this.ParseOrder(response, market))
+	var order map[string]any = this.ParseOrder(response, market)
 	order["status"] = "canceled"
 
 	ch <- order
@@ -3901,7 +3903,7 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...
 	ch <- this.ParseOrders(response, market, since, limit)
 	return nil
 }
-func (this *Weex) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Weex) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder (spot)
 	//     {
@@ -4390,7 +4392,7 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseLedger(items, currency, since, limit)
 	return nil
 }
-func (this *Weex) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Weex) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	// spot
 	//     {

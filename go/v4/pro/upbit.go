@@ -337,7 +337,7 @@ func (this *Upbit) HandleTicker(client any, message map[string]any) {
 	//   "acc_trade_price_24h": 2.5955306323568927,
 	//   "acc_trade_volume_24h": 118.38798416,
 	//   "stream_type": "SNAPSHOT" }
-	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(message))
+	var ticker map[string]any = this.ParseTicker(message)
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)

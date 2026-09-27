@@ -992,7 +992,7 @@ func (this *Whitebit) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	ch <- this.ParseCurrencies(enhancedArray)
 	return nil
 }
-func (this *Whitebit) ParseCurrency(rawCurrency any) any {
+func (this *Whitebit) ParseCurrency(rawCurrency any) map[string]any {
 	// const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
 	var id *string = this.SafeString(rawCurrency, "_coin_id")
 	var code *string = this.SafeCurrencyCode(id)
@@ -1756,7 +1756,7 @@ func (this *Whitebit) fetchTickerBody(ch chan any, symbol string, optionalArgs .
 	ch <- this.ParseTicker(ticker, market)
 	return nil
 }
-func (this *Whitebit) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Whitebit) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//  FetchTicker (v1)
 	//
@@ -2150,7 +2150,7 @@ func (this *Whitebit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
-		var ticker map[string]any = MapTyped(this.ParseTicker(GetValue(response, marketId), market))
+		var ticker map[string]any = this.ParseTicker(GetValue(response, marketId), market)
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		AddElementToObject(result, symbol, ticker)
 	}
@@ -3394,12 +3394,12 @@ func (this *Whitebit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		var marketNew map[string]any = this.SafeMarket(marketId, nil, "_")
 		var orders []any = SafeListTyped(response, marketId)
 		for j := 0; j < len(orders); j++ {
-			var order map[string]any = MapTyped(this.ParseOrder(func() any {
+			var order map[string]any = this.ParseOrder(func() any {
 				if j >= 0 && j < len(orders) {
 					return DerefScalar(orders[j])
 				}
 				return nil
-			}(), marketNew))
+			}(), marketNew)
 			AppendToArray(&results, this.Extend(order, map[string]any{
 				"status": "closed",
 			}))
@@ -3423,7 +3423,7 @@ func (this *Whitebit) ParseOrderType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Whitebit) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Whitebit) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder, fetchOpenOrders, cancelOrder
 	//
@@ -4078,7 +4078,7 @@ func (this *Whitebit) transferBody(ch chan any, code string, amount any, fromAcc
 	ch <- this.ParseTransfer(response, currency)
 	return nil
 }
-func (this *Whitebit) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Whitebit) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	//    []
 	//
@@ -4109,14 +4109,14 @@ func (this *Whitebit) ParseTransfer(transfer any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Whitebit) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Whitebit) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Whitebit) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -4155,12 +4155,13 @@ func (this *Whitebit) withdrawBody(ch chan any, code string, amount any, address
 	//
 	//     []
 	//
-	ch <- this.Extend(this.ParseTransaction(response, currency), map[string]any{
+	chValue := this.Extend(this.ParseTransaction(response, currency), map[string]any{
 		"id": uniqueId,
 	})
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Whitebit) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Whitebit) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit address
@@ -6599,11 +6600,11 @@ func (this *Whitebit) Withdraw(code string, amount float64, address string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

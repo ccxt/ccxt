@@ -853,7 +853,7 @@ func (this *Extended) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	ch <- this.ParseCurrencies(data)
 	return nil
 }
-func (this *Extended) ParseCurrency(currency any) any {
+func (this *Extended) ParseCurrency(currency any) map[string]any {
 	//
 	//     {
 	//       "id": 1,
@@ -1034,7 +1034,7 @@ func (this *Extended) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var marketId *string = this.SafeString(marketData, "name")
 		var market map[string]any = this.SafeMarket(marketId)
 		var stats map[string]any = this.SafeDictMap(marketData, "marketStats", map[string]any{})
-		var ticker map[string]any = MapTyped(this.ParseTicker(stats, market))
+		var ticker map[string]any = this.ParseTicker(stats, market)
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			tickers[*symbol] = ticker
@@ -1044,7 +1044,7 @@ func (this *Extended) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArrayTickers(tickers, "symbol", symbolsNormalized)
 	return nil
 }
-func (this *Extended) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Extended) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//       "dailyVolume": "231216165.666600",
@@ -1890,7 +1890,7 @@ func (this *Extended) fetchOpenInterestHistoryBody(ch chan any, symbol string, o
 	ch <- this.ParseOpenInterestsHistory(data, market, sinceResolved, limitResolved)
 	return nil
 }
-func (this *Extended) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Extended) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//       "i": "112620590.6060360000000000",
@@ -2173,7 +2173,7 @@ func (this *Extended) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseLedger(result, currency, since, limit)
 	return nil
 }
-func (this *Extended) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Extended) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": "1951255127004282880",
@@ -2426,14 +2426,14 @@ func (this *Extended) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
  * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Extended) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Extended) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Extended) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Extended) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2474,7 +2474,7 @@ func (this *Extended) withdrawBody(ch chan any, code string, amount any, address
 	//
 	var now int64 = this.Milliseconds()
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":        response,
 		"id":          this.SafeString(response, "data"),
 		"txid":        nil,
@@ -2496,6 +2496,7 @@ func (this *Extended) withdrawBody(ch chan any, code string, amount any, address
 		"comment":     nil,
 		"internal":    false,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -2671,7 +2672,7 @@ func (this *Extended) transferBody(ch chan any, code string, amount any, fromAcc
 	}
 	return nil
 }
-func (this *Extended) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Extended) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var timestamp *int64 = this.SafeInteger(transfer, "time")
@@ -2757,7 +2758,7 @@ func (this *Extended) ParseTransactionType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Extended) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Extended) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": "1951255127004282880",
@@ -4421,7 +4422,7 @@ func (this *Extended) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Extended) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Extended) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": 1784963886257016832,
@@ -5145,11 +5146,11 @@ func (this *Extended) Withdraw(code string, amount float64, address string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

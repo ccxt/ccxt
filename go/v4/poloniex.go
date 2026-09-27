@@ -1123,7 +1123,7 @@ func (this *Poloniex) ParseMarket(market any) any {
 		return this.ParseSpotMarket(market)
 	}
 }
-func (this *Poloniex) ParseSpotMarket(market any) any {
+func (this *Poloniex) ParseSpotMarket(market any) map[string]any {
 	var id *string = this.SafeString(market, "symbol")
 	var baseId *string = this.SafeString(market, "baseCurrencyName")
 	var quoteId *string = this.SafeString(market, "quoteCurrencyName")
@@ -1182,7 +1182,7 @@ func (this *Poloniex) ParseSpotMarket(market any) any {
 		"info":    market,
 	})
 }
-func (this *Poloniex) ParseSwapMarket(market any) any {
+func (this *Poloniex) ParseSwapMarket(market any) map[string]any {
 	//
 	//            {
 	//                "symbol": "BNB_USDT_PERP",
@@ -1323,7 +1323,7 @@ func (this *Poloniex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.SafeInteger(response, "serverTime")
 	return nil
 }
-func (this *Poloniex) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Poloniex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//  spot:
 	//
@@ -1574,7 +1574,7 @@ func (this *Poloniex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	ch <- this.ParseCurrencies(response)
 	return nil
 }
-func (this *Poloniex) ParseCurrency(currency any) any {
+func (this *Poloniex) ParseCurrency(currency any) map[string]any {
 	var entry any = currency
 	var id *string = this.SafeString(entry, "coin")
 	var code *string = this.SafeCurrencyCode(id)
@@ -2052,7 +2052,7 @@ func (this *Poloniex) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// fetchOpenOrder
 	//
@@ -2982,7 +2982,7 @@ func (this *Poloniex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	//         "updateTime": 1646196019020
 	//     }
 	//
-	var order map[string]any = MapTyped(this.ParseOrder(response))
+	var order map[string]any = this.ParseOrder(response)
 	order["id"] = idValue
 
 	ch <- order
@@ -3552,7 +3552,7 @@ func (this *Poloniex) transferBody(ch chan any, code string, amount any, fromAcc
 	ch <- this.ParseTransfer(response, currency)
 	return nil
 }
-func (this *Poloniex) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Poloniex) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "transferId" : "168041074"
@@ -3585,14 +3585,14 @@ func (this *Poloniex) ParseTransfer(transfer any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Poloniex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Poloniex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Poloniex) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3627,7 +3627,8 @@ func (this *Poloniex) withdrawBody(ch chan any, code string, amount any, address
 	//         "withdrawalNumber": 13449869
 	//     }
 	//
-	ch <- this.ParseTransaction(response, currency)
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Poloniex) FetchTransactionsHelperAsync(optionalArgs ...any) <-chan any {
@@ -4058,7 +4059,7 @@ func (this *Poloniex) ParseTransactionStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Poloniex) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Poloniex) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// deposits
 	//
@@ -5376,11 +5377,11 @@ func (this *Poloniex) Withdraw(code string, amount float64, address string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 func (this *Poloniex) FetchTransactionsHelper(options ...FetchTransactionsHelperOptions) (map[string]any, error) {

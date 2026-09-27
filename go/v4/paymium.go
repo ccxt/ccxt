@@ -300,7 +300,7 @@ func (this *Paymium) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "amount")
 	return nil
 }
-func (this *Paymium) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Paymium) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "high":"33740.82",
@@ -776,7 +776,7 @@ func (this *Paymium) transferBody(ch chan any, code string, amount any, fromAcco
 	ch <- this.ParseTransfer(response, currency)
 	return nil
 }
-func (this *Paymium) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Paymium) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",

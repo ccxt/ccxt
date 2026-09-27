@@ -1072,7 +1072,7 @@ func (this *Hitbtc) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseCurrencies(enhancedArray)
 	return nil
 }
-func (this *Hitbtc) ParseCurrency(currency any) any {
+func (this *Hitbtc) ParseCurrency(currency any) map[string]any {
 	var currencyId any = GetValue(currency, "_coin_id")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var entry any = currency
@@ -1451,7 +1451,7 @@ func (this *Hitbtc) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArrayTickers(result, "symbol", symbolsNormalized)
 	return nil
 }
-func (this *Hitbtc) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Hitbtc) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//       "ask": "62756.01",
@@ -1831,7 +1831,7 @@ func (this *Hitbtc) ParseTransactionType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Hitbtc) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Hitbtc) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// transaction
 	//
@@ -3154,7 +3154,7 @@ func (this *Hitbtc) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Hitbtc) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Hitbtc) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// limit
 	//     {
@@ -3392,7 +3392,7 @@ func (this *Hitbtc) transferBody(ch chan any, code string, amount any, fromAccou
 	ch <- this.ParseTransfer(response, currency)
 	return nil
 }
-func (this *Hitbtc) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Hitbtc) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	// transfer
 	//
@@ -3478,14 +3478,14 @@ func (this *Hitbtc) convertCurrencyNetworkBody(ch chan EndpointResult[map[string
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Hitbtc) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hitbtc) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Hitbtc) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3532,7 +3532,8 @@ func (this *Hitbtc) withdrawBody(ch chan any, code string, amount any, address a
 	//         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
 	//     }
 	//
-	ch <- this.ParseTransaction(response, currency)
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -4010,7 +4011,7 @@ func (this *Hitbtc) ParsePosition(position any, optionalArgs ...any) any {
 		"takeProfitPrice":             nil,
 	})
 }
-func (this *Hitbtc) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Hitbtc) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "contract_type": "perpetual",
@@ -5643,11 +5644,11 @@ func (this *Hitbtc) Withdraw(code string, amount float64, address string, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

@@ -562,7 +562,7 @@ func (this *Btcturk) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 	ch <- this.ParseOrderBook(data, market["symbol"], timestamp, "bids", "asks", 0, 1)
 	return nil
 }
-func (this *Btcturk) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Btcturk) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//   {
 	//     "pair": "BTCTRY",
@@ -1182,7 +1182,7 @@ func (this *Btcturk) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Btcturk) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Btcturk) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// fetchOrders / fetchOpenOrders
 	//     {

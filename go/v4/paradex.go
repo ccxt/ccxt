@@ -1385,7 +1385,7 @@ func (this *Paradex) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 	ch <- this.ParseTicker(ticker, market)
 	return nil
 }
-func (this *Paradex) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Paradex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol": "BTC-USD-PERP",
@@ -1860,7 +1860,7 @@ func (this *Paradex) fetchOpenInterestBody(ch chan any, symbol string, optionalA
 	ch <- this.ParseOpenInterest(interest, market)
 	return nil
 }
-func (this *Paradex) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Paradex) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol": "BTC-USD-PERP",
@@ -2140,7 +2140,7 @@ func (this *Paradex) authenticateRestBody(ch chan EndpointResult[*string], optio
 	ch <- EndpointResult[*string]{Value: token, Raw: token}
 	return nil
 }
-func (this *Paradex) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Paradex) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
@@ -2526,7 +2526,7 @@ func (this *Paradex) createOrderBody(ch chan any, symbol string, typeVar string,
 	//     "type": "MARKET"
 	// }
 	//
-	var order map[string]any = MapTyped(this.ParseOrder(response, market))
+	var order map[string]any = this.ParseOrder(response, market)
 
 	ch <- order
 	return nil
@@ -3839,7 +3839,7 @@ func (this *Paradex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTransfers(rows, currency, since, limit)
 	return nil
 }
-func (this *Paradex) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Paradex) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": "1718940471200201703989430000",
@@ -3882,7 +3882,7 @@ func (this *Paradex) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"status":      this.ParseTransactionStatus(this.SafeString(transfer, "status")),
 	}
 }
-func (this *Paradex) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Paradex) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits & fetchWithdrawals
 	//

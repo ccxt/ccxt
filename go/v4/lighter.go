@@ -1774,7 +1774,7 @@ func (this *Lighter) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseCurrencies(data)
 	return nil
 }
-func (this *Lighter) ParseCurrency(rawCurrency any) any {
+func (this *Lighter) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "asset_id")
 	var code *string = this.SafeCurrencyCode(this.SafeString(rawCurrency, "symbol"))
 	var decimals *string = this.SafeString(rawCurrency, "decimals")
@@ -1883,7 +1883,7 @@ func (this *Lighter) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 	ch <- result
 	return nil
 }
-func (this *Lighter) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Lighter) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// fetchTicker, fetchTickers
 	//     {
@@ -2967,7 +2967,7 @@ func (this *Lighter) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
 }
-func (this *Lighter) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Lighter) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "order_index": 281474977354074,
@@ -3371,7 +3371,7 @@ func (this *Lighter) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTransfers(rows, currency, since, limit, paramsApiKeyIndex)
 	return nil
 }
-func (this *Lighter) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Lighter) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": "3085014",
@@ -3599,7 +3599,7 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	ch <- this.ParseTransactions(data, currency, since, limit)
 	return nil
 }
-func (this *Lighter) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Lighter) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//     {
@@ -3678,14 +3678,14 @@ func (this *Lighter) ParseTransactionStatus(status *string) *string {
  * @param {int} [params.routeType] wallet type, 0: perp, 1: spot, default is 0
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Lighter) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Lighter) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Lighter) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Lighter) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3740,7 +3740,8 @@ func (this *Lighter) withdrawBody(ch chan any, code string, amount any, address 
 
 	var response map[string]any = (<-this.PublicPostSendTx(request)).Checked()
 
-	ch <- this.ParseTransaction(response)
+	chValue := this.ParseTransaction(response)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -5132,11 +5133,11 @@ func (this *Lighter) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

@@ -1030,7 +1030,7 @@ func (this *Modetrade) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any
 	ch <- this.ParseCurrencies(tokenRows)
 	return nil
 }
-func (this *Modetrade) ParseCurrency(rawCurrency any) any {
+func (this *Modetrade) ParseCurrency(rawCurrency any) map[string]any {
 	var currencyId *string = this.SafeString(rawCurrency, "token")
 	var networks []any = SafeListTyped(rawCurrency, "chain_details")
 	var code *string = this.SafeCurrencyCode(currencyId)
@@ -1887,7 +1887,7 @@ func (this *Modetrade) fetchOHLCVBody(ch chan any, symbol string, optionalArgs .
 	ch <- this.ParseOHLCVs(rows, market, timeframe, since, limit)
 	return nil
 }
-func (this *Modetrade) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Modetrade) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// Possible input functions:
 	// * createOrder
@@ -2234,7 +2234,7 @@ func (this *Modetrade) createOrderBody(ch chan any, symbol string, typeVar strin
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	data["timestamp"] = this.SafeInteger(response, "timestamp")
-	var order map[string]any = MapTyped(this.ParseOrder(data, market))
+	var order map[string]any = this.ParseOrder(data, market)
 	order["type"] = typeVar
 
 	ch <- order
@@ -3260,7 +3260,7 @@ func (this *Modetrade) getAssetHistoryRowsBody(ch chan EndpointResult[[]any], op
 	ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Modetrade) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Modetrade) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": "230707030600002",
@@ -3367,7 +3367,7 @@ func (this *Modetrade) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseLedger(rows, currency, since, limit, params)
 	return nil
 }
-func (this *Modetrade) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Modetrade) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": "230707030600002",
@@ -3624,14 +3624,14 @@ func (this *Modetrade) SignMessage(message any, privateKey any) string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Modetrade) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Modetrade) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Modetrade) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Modetrade) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3723,7 +3723,8 @@ func (this *Modetrade) withdrawBody(ch chan any, code string, amount any, addres
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- this.ParseTransaction(data, currency)
+	chValue := this.ParseTransaction(data, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Modetrade) ParseLeverage(leverage any, optionalArgs ...any) any {
@@ -4978,11 +4979,11 @@ func (this *Modetrade) Withdraw(code string, amount float64, address string, opt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

@@ -4808,7 +4808,7 @@ func (this *Binance) HandleOrderWs(client any, message map[string]any) {
 	//
 	var messageHash *string = this.SafeString(message, "id")
 	var result map[string]any = this.SafeDictMap(message, "result", map[string]any{})
-	var order map[string]any = ccxt.MapTyped(this.ParseOrder(result))
+	var order map[string]any = this.ParseOrder(result)
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)
 }
 func (this *Binance) HandleOrdersWs(client any, message map[string]any) {
@@ -5028,7 +5028,7 @@ func (this *Binance) HandleEditOrderWs(client any, message map[string]any) {
 	var messageHash *string = this.SafeString(message, "id")
 	var result map[string]any = this.SafeDictMap(message, "result", map[string]any{})
 	var newSpotOrder map[string]any = ccxt.SafeMapTyped(result, "newOrderResponse")
-	var order any = nil
+	var order map[string]any = nil
 	if newSpotOrder != nil {
 		order = this.ParseOrder(newSpotOrder)
 	} else {
@@ -5983,7 +5983,7 @@ func (this *Binance) HandleStockPrice(client any, message map[string]any) {
 			continue
 		}
 		var timestamp *int64 = this.SafeInteger(rate, "t")
-		var parsed any = this.SafeTicker(map[string]any{
+		var parsed map[string]any = this.SafeTicker(map[string]any{
 			"symbol":        symbol,
 			"timestamp":     timestamp,
 			"datetime":      this.Iso8601(timestamp),
@@ -6005,7 +6005,7 @@ func (this *Binance) HandleStockQuote(client any, message map[string]any) {
 		return
 	}
 	var timestamp *int64 = this.SafeInteger2(message, "E", "T")
-	var parsed any = this.SafeTicker(map[string]any{
+	var parsed map[string]any = this.SafeTicker(map[string]any{
 		"symbol":    symbol,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),

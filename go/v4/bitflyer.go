@@ -683,7 +683,7 @@ func (this *Bitflyer) fetchOrderBookBody(ch chan any, symbol string, optionalArg
 	ch <- this.ParseOrderBook(orderbook, market["symbol"], nil, "bids", "asks", "price", "size")
 	return nil
 }
-func (this *Bitflyer) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Bitflyer) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)
@@ -1023,7 +1023,7 @@ func (this *Bitflyer) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitflyer) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Bitflyer) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "child_order_date"))
@@ -1373,14 +1373,14 @@ func (this *Bitflyer) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitflyer) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitflyer) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bitflyer) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bitflyer) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1406,7 +1406,8 @@ func (this *Bitflyer) withdrawBody(ch chan any, code string, amount any, address
 	//         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
 	//     }
 	//
-	ch <- this.ParseTransaction(response, currency)
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -1549,7 +1550,7 @@ func (this *Bitflyer) ParseWithdrawalStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitflyer) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Bitflyer) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//
@@ -2160,11 +2161,11 @@ func (this *Bitflyer) Withdraw(code string, amount float64, address string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

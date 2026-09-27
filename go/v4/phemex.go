@@ -883,7 +883,7 @@ func (this *Phemex) ParseSafeNumber(optionalArgs ...any) any {
 	parts = strings.Split(valueOption, " ")
 	return this.SafeNumber(parts, 0)
 }
-func (this *Phemex) ParseSwapMarket(market any) any {
+func (this *Phemex) ParseSwapMarket(market any) map[string]any {
 	//
 	//     {
 	//         "symbol":"BTCUSD", //
@@ -1040,7 +1040,7 @@ func (this *Phemex) ParseSwapMarket(market any) any {
 		"info":    market,
 	})
 }
-func (this *Phemex) ParseSpotMarket(market any) any {
+func (this *Phemex) ParseSpotMarket(market any) map[string]any {
 	//
 	//     {
 	//         "symbol":"sBTCUSDT",
@@ -1432,7 +1432,7 @@ func (this *Phemex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseCurrencies(currencies)
 	return nil
 }
-func (this *Phemex) ParseCurrency(rawCurrency any) any {
+func (this *Phemex) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "currency")
 	var code *string = this.SafeCurrencyCode(id)
 	var valueScaleString *string = this.SafeString(rawCurrency, "valueScale")
@@ -1811,7 +1811,7 @@ func (this *Phemex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	ch <- this.ParseOHLCVs(rows, market, timeframe, sinceResolved, userLimit)
 	return nil
 }
-func (this *Phemex) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Phemex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// spot
 	//
@@ -2806,7 +2806,7 @@ func (this *Phemex) ParseTimeInForce(timeInForce *string) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
-func (this *Phemex) ParseSpotOrder(order any, optionalArgs ...any) any {
+func (this *Phemex) ParseSpotOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// spot
 	//
@@ -2928,7 +2928,7 @@ func (this *Phemex) ParseOrderSide(side *string) *string {
 	}
 	return this.SafeString(sides, side, side)
 }
-func (this *Phemex) ParseSwapOrder(order any, optionalArgs ...any) any {
+func (this *Phemex) ParseSwapOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "bizError":0,
@@ -3113,7 +3113,7 @@ func (this *Phemex) ParseSwapOrder(order any, optionalArgs ...any) any {
 		"trades":             nil,
 	})
 }
-func (this *Phemex) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Phemex) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var isSwap *bool = this.SafeBool(market, "swap", false)
@@ -4449,7 +4449,7 @@ func (this *Phemex) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Phemex) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Phemex) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// withdraw
 	//
@@ -5798,7 +5798,7 @@ func (this *Phemex) transferBody(ch chan any, code string, amount any, fromAccou
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var scaledAmmount any = this.ToEv(amount, currency)
 	var direction any = nil
-	var transfer any = nil
+	var transfer map[string]any = nil
 	if (fromId != nil && *fromId == "spot") && (toId != nil && *toId == "future") {
 		direction = 2
 	} else if (fromId != nil && *fromId == "future") && (toId != nil && *toId == "spot") {
@@ -5852,16 +5852,16 @@ func (this *Phemex) transferBody(ch chan any, code string, amount any, fromAccou
 	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
-		if IsEqual(GetValue(transfer, "fromAccount"), nil) {
+		if IsEqual(transfer["fromAccount"], nil) {
 			AddElementToObject(transfer, "fromAccount", fromAccount)
 		}
-		if IsEqual(GetValue(transfer, "toAccount"), nil) {
+		if IsEqual(transfer["toAccount"], nil) {
 			AddElementToObject(transfer, "toAccount", toAccount)
 		}
-		if IsEqual(GetValue(transfer, "amount"), nil) {
+		if IsEqual(transfer["amount"], nil) {
 			AddElementToObject(transfer, "amount", amount)
 		}
-		if IsEqual(GetValue(transfer, "currency"), nil) {
+		if IsEqual(transfer["currency"], nil) {
 			AddElementToObject(transfer, "currency", code)
 		}
 	}
@@ -5942,7 +5942,7 @@ func (this *Phemex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTransfers(transfers, currency, since, limit)
 	return nil
 }
-func (this *Phemex) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Phemex) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	// transfer
 	//
@@ -6134,14 +6134,14 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
  * @param {string} [params.network] unified network code
  * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
  */
-func (this *Phemex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Phemex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Phemex) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Phemex) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -6210,7 +6210,8 @@ func (this *Phemex) withdrawBody(ch chan any, code string, amount any, address a
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- this.ParseTransaction(data, currency)
+	chValue := this.ParseTransaction(data, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -6272,7 +6273,7 @@ func (this *Phemex) fetchOpenInterestBody(ch chan any, symbol string, optionalAr
 	ch <- this.ParseOpenInterest(result, market)
 	return nil
 }
-func (this *Phemex) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Phemex) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        closeRp: '67550.1',
@@ -7688,11 +7689,11 @@ func (this *Phemex) Withdraw(code string, amount float64, address string, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

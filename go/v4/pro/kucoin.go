@@ -947,7 +947,7 @@ func (this *Kucoin) HandleContractTicker(client any, message any) {
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId, nil, "-")
-	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(data, market))
+	var ticker map[string]any = this.ParseTicker(data, market)
 	ccxt.AddElementToObject(this.Tickers, market["symbol"], ticker)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", market["symbol"]))
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)

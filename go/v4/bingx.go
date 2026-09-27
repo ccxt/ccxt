@@ -1339,7 +1339,7 @@ func (this *Bingx) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseCurrencies(data)
 	return nil
 }
-func (this *Bingx) ParseCurrency(rawCurrency any) any {
+func (this *Bingx) ParseCurrency(rawCurrency any) map[string]any {
 	var currencyId *string = this.SafeString(rawCurrency, "coin")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var name *string = this.SafeString(rawCurrency, "name")
@@ -2789,7 +2789,7 @@ func (this *Bingx) fetchOpenInterestBody(ch chan any, symbol string, optionalArg
 	ch <- this.ParseOpenInterest(result, market)
 	return nil
 }
-func (this *Bingx) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Bingx) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	// linear swap
 	//
@@ -3131,7 +3131,7 @@ func (this *Bingx) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTickers(tickers, symbolsNormalized)
 	return nil
 }
-func (this *Bingx) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Bingx) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// mark price
 	// {
@@ -4439,7 +4439,7 @@ func (this *Bingx) ParseOrderType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Bingx) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Bingx) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// spot
 	// createOrder, createOrders, cancelOrder
@@ -6001,7 +6001,7 @@ func (this *Bingx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTransfers(rows, currency, since, limit)
 	return nil
 }
-func (this *Bingx) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Bingx) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var tranId *string = this.SafeString(transfer, "transferId")
@@ -6319,7 +6319,7 @@ func (this *Bingx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTransactions(response, currency, since, limit)
 	return nil
 }
-func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//
@@ -6969,14 +6969,14 @@ func (this *Bingx) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any
  * @param {int} [params.walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bingx) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bingx) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bingx) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bingx) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -7027,7 +7027,8 @@ func (this *Bingx) withdrawBody(ch chan any, code string, amount any, address an
 	//           "id":"1197073063359000577"
 	//        }
 	//    }
-	ch <- this.ParseTransaction(data)
+	chValue := this.ParseTransaction(data)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Bingx) ParseParams(params map[string]any) any {
@@ -9257,11 +9258,11 @@ func (this *Bingx) Withdraw(code string, amount float64, address string, options
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

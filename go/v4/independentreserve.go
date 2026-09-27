@@ -610,7 +610,7 @@ func (this *Independentreserve) fetchOrderBookBody(ch chan any, symbol string, o
 	ch <- this.ParseOrderBook(response, market["symbol"], timestamp, "BuyOrders", "SellOrders", "Price", "Volume")
 	return nil
 }
-func (this *Independentreserve) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Independentreserve) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	// {
 	//     "DayHighestPrice":43489.49,
 	//     "DayLowestPrice":41998.32,
@@ -706,7 +706,7 @@ func (this *Independentreserve) fetchTickerBody(ch chan any, symbol string, opti
 	ch <- this.ParseTicker(response, market)
 	return nil
 }
-func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// fetchOrder
 	//
@@ -1425,14 +1425,14 @@ func (this *Independentreserve) ParseDepositAddress(depositAddress any, optional
  * @param {object} [params.comment] withdrawal comment, should not exceed 500 characters
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Independentreserve) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Independentreserve) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Independentreserve) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Independentreserve) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1479,10 +1479,11 @@ func (this *Independentreserve) withdrawBody(ch chan any, code string, amount an
 	//        "Transaction": null
 	//    }
 	//
-	ch <- this.ParseTransaction(response, currency)
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Independentreserve) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Independentreserve) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
@@ -1932,11 +1933,11 @@ func (this *Independentreserve) Withdraw(code string, amount float64, address st
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

@@ -1040,7 +1040,7 @@ func (this *Coinbaseexchange) HandleTicker(client any, message map[string]any) a
 	//
 	var marketId *string = this.SafeString(message, "product_id")
 	if marketId != nil {
-		var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(message))
+		var ticker map[string]any = this.ParseTicker(message)
 		var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			ccxt.AddElementToObject(this.Tickers, symbol, ticker)
@@ -1052,7 +1052,7 @@ func (this *Coinbaseexchange) HandleTicker(client any, message map[string]any) a
 	}
 	return message
 }
-func (this *Coinbaseexchange) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Coinbaseexchange) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "type": "ticker",

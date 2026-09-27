@@ -115,7 +115,7 @@ func (this *Ndax) HandleTicker(client any, message map[string]any) {
 	//         "TimeStamp": "1534862990358"
 	//     }
 	//
-	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(payload))
+	var ticker map[string]any = this.ParseTicker(payload)
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	var market map[string]any = this.Market(symbol)
 	if symbol != nil {

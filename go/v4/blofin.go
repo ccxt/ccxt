@@ -986,7 +986,7 @@ func (this *Blofin) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 	ch <- this.ParseOrderBook(first, symbol, timestamp)
 	return nil
 }
-func (this *Blofin) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Blofin) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// response similar for REST & WS
 	//
@@ -1851,7 +1851,7 @@ func (this *Blofin) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Blofin) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Blofin) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// response similar for REST & WS
 	//
@@ -2062,7 +2062,7 @@ func (this *Blofin) createOrderBody(ch chan any, symbol string, typeVar string, 
 	}
 	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = SafeMapTyped(data, 0)
-	var order map[string]any = MapTyped(this.ParseOrder(first, market))
+	var order map[string]any = this.ParseOrder(first, market)
 	order["type"] = typeVar
 	order["side"] = side
 
@@ -2626,14 +2626,14 @@ func (this *Blofin) ChainIdToNetworkCode(chainId any) any {
  * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
-func (this *Blofin) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Blofin) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Blofin) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Blofin) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	// LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
 	// - addrType is documented optional but the live venue rejects
 	//   on-chain withdrawals without it: 152001 "Parameter addrType
@@ -2708,7 +2708,8 @@ func (this *Blofin) withdrawBody(ch chan any, code string, amount any, address a
 	// parseTransaction reads every field from the payload - seed the
 	// parsed structure from the request so the unified transaction
 	// reflects what was actually submitted
-	ch <- this.ParseTransaction(this.Extend(request, data), currency)
+	chValue := this.ParseTransaction(this.Extend(request, data), currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -2774,7 +2775,7 @@ func (this *Blofin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseLedger(data, currency, since, limit)
 	return nil
 }
-func (this *Blofin) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Blofin) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	//
 	// fetchDeposits
@@ -2909,7 +2910,7 @@ func (this *Blofin) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Blofin) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Blofin) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(item, "currency")
@@ -3079,7 +3080,7 @@ func (this *Blofin) transferBody(ch chan any, code string, amount any, fromAccou
 	ch <- this.ParseTransfer(data, currency)
 	return nil
 }
-func (this *Blofin) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Blofin) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var id *string = this.SafeString(transfer, "transferId")
@@ -4639,11 +4640,11 @@ func (this *Blofin) Withdraw(code string, amount float64, address string, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

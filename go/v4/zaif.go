@@ -511,7 +511,7 @@ func (this *Zaif) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	ch <- this.ParseOrderBook(response, market["symbol"])
 	return nil
 }
-func (this *Zaif) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Zaif) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "last": 9e-08,
@@ -807,7 +807,7 @@ func (this *Zaif) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	ch <- this.ParseOrder(data)
 	return nil
 }
-func (this *Zaif) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Zaif) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "currency_pair": "btc_jpy",
@@ -978,14 +978,14 @@ func (this *Zaif) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Zaif) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Zaif) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Zaif) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Zaif) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1030,10 +1030,11 @@ func (this *Zaif) withdrawBody(ch chan any, code string, amount any, address any
 	//
 	var returnData map[string]any = this.SafeDictMap(result, "return", map[string]any{})
 
-	ch <- this.ParseTransaction(returnData, currency)
+	chValue := this.ParseTransaction(returnData, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Zaif) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Zaif) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": 23634,
@@ -1409,11 +1410,11 @@ func (this *Zaif) Withdraw(code string, amount float64, address string, options 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

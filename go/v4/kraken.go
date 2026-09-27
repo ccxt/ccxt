@@ -1010,7 +1010,7 @@ func (this *Kraken) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseCurrencies(enhancedArray)
 	return nil
 }
-func (this *Kraken) ParseCurrency(rawCurrency any) any {
+func (this *Kraken) ParseCurrency(rawCurrency any) map[string]any {
 	// todo: will need to rethink the fees
 	// see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
 	// to add support for multiple withdrawal/deposit methods and
@@ -1266,7 +1266,7 @@ func (this *Kraken) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 	ch <- this.ParseOrderBook(orderbook, symbol)
 	return nil
 }
-func (this *Kraken) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Kraken) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "a":["2432.77000","1","1.000"],
@@ -1526,7 +1526,7 @@ func (this *Kraken) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Kraken) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Kraken) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         'LTFK7F-N2CUX-PNY4SX': {
@@ -2371,7 +2371,7 @@ func (this *Kraken) ParseOrderType(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Kraken) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder
 	//
@@ -3181,9 +3181,9 @@ func (this *Kraken) fetchOrdersByIdsBody(ch chan any, ids any, optionalArgs ...a
 	for i := 0; i < len(orderIds); i++ {
 		var id string = orderIds[i]
 		var item any = result[id]
-		var order map[string]any = MapTyped(this.ParseOrder(this.Extend(map[string]any{
+		var order map[string]any = this.ParseOrder(this.Extend(map[string]any{
 			"id": id,
-		}, item)))
+		}, item))
 		orders = append(orders, order)
 	}
 
@@ -3766,7 +3766,7 @@ func (this *Kraken) ParseNetwork(network *string) *string {
 	var withdrawMethods map[string]any = SafeMapTyped(this.Options, "withdrawMethods")
 	return this.SafeString(withdrawMethods, network, network)
 }
-func (this *Kraken) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Kraken) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//
@@ -3889,9 +3889,9 @@ func (this *Kraken) ParseTransactionsByType(typeVar any, transactions any, optio
 	_ = limit
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(transactions); i++ {
-		var transaction map[string]any = MapTyped(this.ParseTransaction(this.Extend(map[string]any{
+		var transaction map[string]any = this.ParseTransaction(this.Extend(map[string]any{
 			"type": typeVar,
-		}, GetValue(transactions, i))))
+		}, GetValue(transactions, i)))
 		result = append(result, transaction)
 	}
 	return this.FilterByCurrencySinceLimit(result, code, since, limit)
@@ -4348,14 +4348,14 @@ func (this *Kraken) ParseDepositAddress(depositAddress any, optionalArgs ...any)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Kraken) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Kraken) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Kraken) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Kraken) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -4386,7 +4386,8 @@ func (this *Kraken) withdrawBody(ch chan any, code string, amount any, address a
 		//
 		var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-		ch <- this.ParseTransaction(result, currency)
+		chValue := this.ParseTransaction(result, currency)
+		ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 		return nil
 	}
 	panic(ExchangeError(this.Id + " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)"))
@@ -4616,7 +4617,7 @@ func (this *Kraken) transferBody(ch chan any, code string, amount any, fromAccou
 	//       }
 	//   }
 	//
-	var transfer any = this.ParseTransfer(response, currency)
+	var transfer map[string]any = this.ParseTransfer(response, currency)
 
 	ch <- this.Extend(transfer, map[string]any{
 		"amount":      amount,
@@ -4625,7 +4626,7 @@ func (this *Kraken) transferBody(ch chan any, code string, amount any, fromAccou
 	})
 	return nil
 }
-func (this *Kraken) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Kraken) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	// transfer
 	//
@@ -5651,11 +5652,11 @@ func (this *Kraken) Withdraw(code string, amount float64, address string, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

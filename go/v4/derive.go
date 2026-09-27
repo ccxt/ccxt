@@ -849,7 +849,7 @@ func (this *Derive) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseCurrencies(currencies)
 	return nil
 }
-func (this *Derive) ParseCurrency(rawCurrency any) any {
+func (this *Derive) ParseCurrency(rawCurrency any) map[string]any {
 	var currencyId *string = this.SafeString(rawCurrency, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	return this.SafeCurrencyStructure(map[string]any{
@@ -1227,7 +1227,7 @@ func (this *Derive) fetchTickerBody(ch chan any, symbol string, optionalArgs ...
 	ch <- this.ParseTicker(data, market)
 	return nil
 }
-func (this *Derive) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Derive) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "instrument_type": "perp",
@@ -1883,7 +1883,7 @@ func (this *Derive) createOrderBody(ch chan any, symbol string, typeVar string, 
 	if rawOrder == nil {
 		rawOrder = this.SafeDict(result, "order", map[string]any{})
 	}
-	var order map[string]any = MapTyped(this.ParseOrder(rawOrder, market))
+	var order map[string]any = this.ParseOrder(rawOrder, market)
 	order["type"] = typeVar
 
 	ch <- order
@@ -2058,7 +2058,7 @@ func (this *Derive) editOrderBody(ch chan any, id string, symbol any, typeVar an
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 	var rawOrder map[string]any = this.SafeDictMap(result, "order", map[string]any{})
-	var order map[string]any = MapTyped(this.ParseOrder(rawOrder, market))
+	var order map[string]any = this.ParseOrder(rawOrder, market)
 
 	ch <- order
 	return nil
@@ -2531,7 +2531,7 @@ func (this *Derive) ParseOrderStatus(status *string) *string {
 	}
 	return nil
 }
-func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) any {
+func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "subaccount_id": 130837,
@@ -3414,7 +3414,7 @@ func (this *Derive) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTransactions(events, currency, since, limit, paramsDeriveSubaccountId)
 	return nil
 }
-func (this *Derive) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Derive) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "timestamp": 1736860533599,

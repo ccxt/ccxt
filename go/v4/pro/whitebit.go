@@ -401,7 +401,7 @@ func (this *Whitebit) HandleTicker(client any, message map[string]any) any {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var rawTicker map[string]any = this.SafeDictMap(tickers, 1, map[string]any{})
 	var messageHash string = "ticker" + ":" + *symbol
-	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(rawTicker, market))
+	var ticker map[string]any = this.ParseTicker(rawTicker, market)
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	// watchTicker
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)

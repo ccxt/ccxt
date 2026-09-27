@@ -466,11 +466,11 @@ func (this *ExchangeTyped) Withdraw(code string, amount float64, address string,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.Exchange.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.Exchange.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
@@ -1046,11 +1046,11 @@ func (this *ExchangeTyped) CreateTwapOrder(symbol string, side string, amount fl
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.Exchange.CreateTwapOrderAsync(symbol, side, amount, duration, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.Exchange.CreateTwapOrderAsync(symbol, side, amount, duration, opts.Params)
+	if IsError(r.Raw) {
+		return Order{}, CreateReturnError(r.Raw)
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
@@ -1186,11 +1186,11 @@ func (this *ExchangeTyped) CancelSpotOrder(id string, options ...CancelSpotOrder
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.Exchange.CancelSpotOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.Exchange.CancelSpotOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return Order{}, CreateReturnError(r.Raw)
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) CancelContractOrder(id string, options ...CancelContractOrderOptions) (Order, error) {
@@ -1200,11 +1200,11 @@ func (this *ExchangeTyped) CancelContractOrder(id string, options ...CancelContr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.Exchange.CancelContractOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.Exchange.CancelContractOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return Order{}, CreateReturnError(r.Raw)
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) CancelAllSpotOrders(options ...CancelAllSpotOrdersOptions) ([]Order, error) {
@@ -1700,11 +1700,11 @@ func (this *ExchangeTyped) FetchTransfer(id string, options ...FetchTransferOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.Exchange.FetchTransferAsync(id, opts.Code, opts.Params)
-	if IsError(raw) {
-		return TransferEntry{}, CreateReturnError(raw)
+	r := <-this.Exchange.FetchTransferAsync(id, opts.Code, opts.Params)
+	if IsError(r.Raw) {
+		return TransferEntry{}, CreateReturnError(r.Raw)
 	}
-	var res TransferEntry = NewTransferEntry(raw)
+	var res TransferEntry = NewTransferEntry(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
@@ -3820,11 +3820,11 @@ func (this *BaseExchangeTyped) Withdraw(code string, amount float64, address str
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.BaseExchange.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.BaseExchange.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 func (this *BaseExchangeTyped) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
@@ -4400,11 +4400,11 @@ func (this *BaseExchangeTyped) CreateTwapOrder(symbol string, side string, amoun
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.BaseExchange.CreateTwapOrderAsync(symbol, side, amount, duration, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.BaseExchange.CreateTwapOrderAsync(symbol, side, amount, duration, opts.Params)
+	if IsError(r.Raw) {
+		return Order{}, CreateReturnError(r.Raw)
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Raw)
 	return res, nil
 }
 func (this *BaseExchangeTyped) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
@@ -4540,11 +4540,11 @@ func (this *BaseExchangeTyped) CancelSpotOrder(id string, options ...CancelSpotO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.BaseExchange.CancelSpotOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.BaseExchange.CancelSpotOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return Order{}, CreateReturnError(r.Raw)
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Raw)
 	return res, nil
 }
 func (this *BaseExchangeTyped) CancelContractOrder(id string, options ...CancelContractOrderOptions) (Order, error) {
@@ -4554,11 +4554,11 @@ func (this *BaseExchangeTyped) CancelContractOrder(id string, options ...CancelC
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.BaseExchange.CancelContractOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.BaseExchange.CancelContractOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return Order{}, CreateReturnError(r.Raw)
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Raw)
 	return res, nil
 }
 func (this *BaseExchangeTyped) CancelAllSpotOrders(options ...CancelAllSpotOrdersOptions) ([]Order, error) {
@@ -5054,11 +5054,11 @@ func (this *BaseExchangeTyped) FetchTransfer(id string, options ...FetchTransfer
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.BaseExchange.FetchTransferAsync(id, opts.Code, opts.Params)
-	if IsError(raw) {
-		return TransferEntry{}, CreateReturnError(raw)
+	r := <-this.BaseExchange.FetchTransferAsync(id, opts.Code, opts.Params)
+	if IsError(r.Raw) {
+		return TransferEntry{}, CreateReturnError(r.Raw)
 	}
-	var res TransferEntry = NewTransferEntry(raw)
+	var res TransferEntry = NewTransferEntry(r.Raw)
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {

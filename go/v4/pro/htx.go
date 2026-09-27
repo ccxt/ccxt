@@ -270,7 +270,7 @@ func (this *Htx) HandleTicker(client any, message map[string]any) any {
 	var parts []string = strings.Split(*ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
-	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(tick, market))
+	var ticker map[string]any = this.ParseTicker(tick, market)
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	ticker["timestamp"] = timestamp
 	ticker["datetime"] = this.Iso8601(timestamp)

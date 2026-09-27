@@ -982,7 +982,7 @@ func (this *Coinbaseinternational) fetchTransfersBody(ch chan any, optionalArgs 
 	ch <- this.ParseTransfers(transfers, currency, since, limit)
 	return nil
 }
-func (this *Coinbaseinternational) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "amount":"0.0008",
@@ -1664,7 +1664,7 @@ func (this *Coinbaseinternational) ParseTransactionStatus(status *string) *strin
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinbaseinternational) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
@@ -2020,7 +2020,7 @@ func (this *Coinbaseinternational) fetchCurrenciesBody(ch chan any, optionalArgs
 	ch <- this.ParseCurrencies(currencies)
 	return nil
 }
-func (this *Coinbaseinternational) ParseCurrency(currency any) any {
+func (this *Coinbaseinternational) ParseCurrency(currency any) map[string]any {
 	//
 	//    {
 	//       "asset_id":"1",
@@ -2129,7 +2129,7 @@ func (this *Coinbaseinternational) fetchTickerBody(ch chan any, symbol string, o
 	ch <- this.ParseTicker(ticker, market)
 	return nil
 }
-func (this *Coinbaseinternational) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "best_bid_price":"2490.8",
@@ -2439,7 +2439,7 @@ func (this *Coinbaseinternational) createOrderBody(ch chan any, symbol string, t
 	ch <- this.ParseOrder(response, market)
 	return nil
 }
-func (this *Coinbaseinternational) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "order_id":"1x96skvg-1-0",
@@ -3030,14 +3030,14 @@ func (this *Coinbaseinternational) fetchMyTradesBody(ch chan any, optionalArgs .
  * @param {string} [params.nonce] a unique integer representing the withdrawal request
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Coinbaseinternational) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Coinbaseinternational) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3083,7 +3083,8 @@ func (this *Coinbaseinternational) withdrawBody(ch chan any, code string, amount
 	//        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
 	//    }
 	//
-	ch <- this.ParseTransaction(response, currency)
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Coinbaseinternational) Sign(path string, optionalArgs ...any) any {
@@ -3843,11 +3844,11 @@ func (this *Coinbaseinternational) Withdraw(code string, amount float64, address
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

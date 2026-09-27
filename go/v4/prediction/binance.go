@@ -632,7 +632,7 @@ func (this *Binance) fetchEventsByQueryBody(ch chan ccxt.EndpointResult[[]any], 
 			}
 		}
 	}
-	var capped any = collected
+	var capped []any = collected
 	var collectedLength int = len(collected)
 	if (!ccxt.IsEqual(limitResolved, nil)) && (ccxt.IsGreaterThan(collectedLength, limitResolved)) {
 		capped = this.ArraySlice(collected, 0, limitResolved)

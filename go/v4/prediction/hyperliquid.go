@@ -616,7 +616,7 @@ func (this *Hyperliquid) ParseOutcomeMarket(outcomeInfo map[string]any, outcomeI
 			"parsedDescription": desc,
 		},
 	}}
-	var marketRow any = this.SafeMarketStructure(map[string]any{
+	var marketRow map[string]any = this.SafeMarketStructure(map[string]any{
 		"id":             ccxt.ToString(outcomeId),
 		"market":         parentSymbol,
 		"base":           ccxt.GetValue(ccxt.Split(parentSymbol, "/"), 0),

@@ -1172,7 +1172,7 @@ func (this *Hitbtc) HandleOrderHelper(client any, message map[string]any, order 
 	var splitMethod []string = strings.Split(*method, "_order")
 	var messageHash *string = this.SafeString(splitMethod, 0)
 	var symbol *string = this.SafeSymbol(marketId)
-	var parsed map[string]any = ccxt.MapTyped(this.ParseOrder(order))
+	var parsed map[string]any = this.ParseOrder(order)
 	orders.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 	if messageHash != nil {

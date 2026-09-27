@@ -589,7 +589,7 @@ func (this *Hollaex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseCurrencies(values)
 	return nil
 }
-func (this *Hollaex) ParseCurrency(rawCurrency any) any {
+func (this *Hollaex) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "symbol")
 	var code *string = this.SafeCurrencyCode(id)
 	var withdrawalLimits []any = SafeListTyped(rawCurrency, "withdrawal_limits")
@@ -873,7 +873,7 @@ func (this *Hollaex) ParseTickers(tickers any, optionalArgs ...any) any {
 	}
 	return this.FilterByArrayTickers(result, "symbol", symbols)
 }
-func (this *Hollaex) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Hollaex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// fetchTicker
 	//
@@ -1580,7 +1580,7 @@ func (this *Hollaex) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Hollaex) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Hollaex) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder, fetchOpenOrder, fetchOpenOrders
 	//
@@ -2235,7 +2235,7 @@ func (this *Hollaex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	ch <- this.ParseTransactions(data, currency, since, limit)
 	return nil
 }
-func (this *Hollaex) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Hollaex) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchWithdrawals, fetchDeposits
 	//
@@ -2348,14 +2348,14 @@ func (this *Hollaex) ParseTransaction(transaction any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Hollaex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Hollaex) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2397,7 +2397,8 @@ func (this *Hollaex) withdrawBody(ch chan any, code string, amount any, address 
 	//         "fee_coin": "xht"
 	//     }
 	//
-	ch <- this.ParseTransaction(response, currency)
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Hollaex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
@@ -3221,11 +3222,11 @@ func (this *Hollaex) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

@@ -1175,7 +1175,7 @@ func (this *Aster) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseCurrencies(sapiRows)
 	return nil
 }
-func (this *Aster) ParseCurrency(rawCurrency any) any {
+func (this *Aster) ParseCurrency(rawCurrency any) map[string]any {
 	var currencyId *string = this.SafeString(rawCurrency, "asset")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	return this.SafeCurrencyStructure(map[string]any{
@@ -1970,7 +1970,7 @@ func (this *Aster) fetchOrderBookBody(ch chan any, symbol string, optionalArgs .
 	ch <- this.ParseOrderBook(response, symbol, timestamp, "bids", "asks")
 	return nil
 }
-func (this *Aster) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Aster) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// fetchTicker & fetchTickers: both SPOT & PERP has similar format
 	//
@@ -2931,7 +2931,7 @@ func (this *Aster) ParseOrderType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Aster) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Aster) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// swap
 	//     {
@@ -4431,7 +4431,7 @@ func (this *Aster) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	ch <- this.ParseIncomes(response, market, since, limit)
 	return nil
 }
-func (this *Aster) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Aster) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol": "",
@@ -5347,14 +5347,14 @@ func (this *Aster) SignWithdrawPayload(withdrawPayload any, network any) string 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Aster) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Aster) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Aster) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -5401,10 +5401,11 @@ func (this *Aster) withdrawBody(ch chan any, code string, amount any, address an
 	//       "hash": "0x9e6baa3eb75d92a1164eef51a0cc97b9591930518ba3e8e5ab40ce524ba4e463"
 	//   }
 	//
-	ch <- this.ParseTransaction(response, currency)
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Aster) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Aster) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	return map[string]any{
@@ -5482,7 +5483,7 @@ func (this *Aster) transferBody(ch chan any, code string, amount any, fromAccoun
 	ch <- this.ParseTransfer(response, currency)
 	return nil
 }
-func (this *Aster) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Aster) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transfer, "code")
@@ -6836,11 +6837,11 @@ func (this *Aster) Withdraw(code string, amount float64, address string, options
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

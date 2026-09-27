@@ -693,7 +693,7 @@ func (this *Bitvavo) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseCurrencies(response)
 	return nil
 }
-func (this *Bitvavo) ParseCurrency(rawCurrency any) any {
+func (this *Bitvavo) ParseCurrency(rawCurrency any) map[string]any {
 	//
 	//     [
 	//         {
@@ -851,7 +851,7 @@ func (this *Bitvavo) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 	ch <- this.ParseTicker(response, market)
 	return nil
 }
-func (this *Bitvavo) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Bitvavo) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// fetchTicker
 	//
@@ -1699,14 +1699,14 @@ func (this *Bitvavo) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Bitvavo) FetchTransferAsync(id string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) FetchTransferAsync(id string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchTransferBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchTransferBody(ch chan any, id string, optionalArgs ...any) any {
+func (this *Bitvavo) fetchTransferBody(ch chan EndpointResult[map[string]any], id string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1737,7 +1737,8 @@ func (this *Bitvavo) fetchTransferBody(ch chan any, id string, optionalArgs ...a
 	//         "createdAt": "1700000000000"
 	//     }
 	//
-	ch <- this.ParseTransfer(response, currency)
+	chValue := this.ParseTransfer(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Bitvavo) ParseTransferStatus(status *string) *string {
@@ -1748,7 +1749,7 @@ func (this *Bitvavo) ParseTransferStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitvavo) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Bitvavo) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transfer, "symbol")
@@ -2571,7 +2572,7 @@ func (this *Bitvavo) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitvavo) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Bitvavo) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// cancelOrder, cancelAllOrders
 	//
@@ -2860,7 +2861,7 @@ func (this *Bitvavo) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Bitvavo) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Bitvavo) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var rawType *string = this.SafeString(item, "type")
@@ -2933,14 +2934,14 @@ func (this *Bitvavo) WithdrawRequest(code any, amount any, address any, optional
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitvavo) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bitvavo) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2965,7 +2966,8 @@ func (this *Bitvavo) withdrawBody(ch chan any, code string, amount any, address 
 	//         "amount": "1.5"
 	//     }
 	//
-	ch <- this.ParseTransaction(response, currency)
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Bitvavo) FetchWithdrawalsRequest(optionalArgs ...any) map[string]any {
@@ -3148,7 +3150,7 @@ func (this *Bitvavo) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitvavo) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Bitvavo) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// withdraw
 	//
@@ -3759,11 +3761,11 @@ func (this *Bitvavo) FetchTransfer(id string, options ...FetchTransferOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTransferAsync(id, opts.Code, opts.Params)
-	if IsError(raw) {
-		return TransferEntry{}, CreateReturnError(raw)
+	r := <-this.FetchTransferAsync(id, opts.Code, opts.Params)
+	if IsError(r.Raw) {
+		return TransferEntry{}, CreateReturnError(r.Raw)
 	}
-	var res TransferEntry = NewTransferEntry(raw)
+	var res TransferEntry = NewTransferEntry(r.Raw)
 	return res, nil
 }
 
@@ -4087,11 +4089,11 @@ func (this *Bitvavo) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

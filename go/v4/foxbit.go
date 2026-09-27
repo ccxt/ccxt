@@ -435,7 +435,7 @@ func (this *Foxbit) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseCurrencies(data)
 	return nil
 }
-func (this *Foxbit) ParseCurrency(rawCurrency any) any {
+func (this *Foxbit) ParseCurrency(rawCurrency any) map[string]any {
 	var currencyId *string = this.SafeString(rawCurrency, "symbol")
 	var name *string = this.SafeString(rawCurrency, "name")
 	var code *string = this.SafeCurrencyCode(currencyId)
@@ -2081,14 +2081,14 @@ func (this *Foxbit) editOrderBody(ch chan any, id string, symbol any, typeVar an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Foxbit) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Foxbit) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Foxbit) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Foxbit) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2125,7 +2125,8 @@ func (this *Foxbit) withdrawBody(ch chan any, code string, amount any, address a
 	//     "destination_address": "0x1234567890123456789012345678",
 	//     "destination_tag": "123456"
 	// }
-	ch <- this.ParseTransaction(response)
+	chValue := this.ParseTransaction(response)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -2261,7 +2262,7 @@ func (this *Foxbit) ParseTradingFee(entry any, optionalArgs ...any) any {
 		"tierBased":  true,
 	}
 }
-func (this *Foxbit) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Foxbit) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "market_symbol")
@@ -2341,7 +2342,7 @@ func (this *Foxbit) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Foxbit) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Foxbit) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeString(order, "market_symbol")
@@ -2434,7 +2435,7 @@ func (this *Foxbit) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Foxbit) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Foxbit) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
@@ -2500,7 +2501,7 @@ func (this *Foxbit) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Foxbit) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Foxbit) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	// {
 	//     "uuid": "f8e9f2d6-3c1e-4f2d-8f8e-9f2d6c1e4f2d",
 	//     "amount": "0.0001",
@@ -3298,11 +3299,11 @@ func (this *Foxbit) Withdraw(code string, amount float64, address string, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

@@ -479,7 +479,7 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 	var marketIds map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(rawOrders); i++ {
 		var order any = ccxt.GetValue(rawOrders, i)
-		var parsed map[string]any = ccxt.MapTyped(this.ParseOrder(order))
+		var parsed map[string]any = this.ParseOrder(order)
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol any = ccxt.GetValue(order, "symbol")
 		var market map[string]any = this.Market(symbol)

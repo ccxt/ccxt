@@ -1087,20 +1087,20 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 			}
 			return nil
 		}()
-		var parsed any = this.ParseCurrency(map[string]any{
+		var parsed map[string]any = this.ParseCurrency(map[string]any{
 			"_token":         token,
 			"_indexedChains": indexedChains,
 		})
-		if IsEqual(parsed, nil) {
+		if parsed == nil {
 			panic(ExchangeError(this.Id + " fetchCurrencies() could not resolve parsed"))
 		}
-		AddElementToObject(result, GetValue(parsed, "code"), parsed)
+		AddElementToObject(result, parsed["code"], parsed)
 	}
 
 	ch <- result
 	return nil
 }
-func (this *Woofipro) ParseCurrency(rawCurrency any) any {
+func (this *Woofipro) ParseCurrency(rawCurrency any) map[string]any {
 	var token map[string]any = this.SafeDictMap(rawCurrency, "_token", map[string]any{})
 	var currencyId *string = this.SafeString(token, "token")
 	var networks []any = SafeListTyped(token, "chain_details")
@@ -1497,7 +1497,7 @@ func (this *Woofipro) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 	ch <- this.ParseFundingRates(rows, symbolsNormalized)
 	return nil
 }
-func (this *Woofipro) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Woofipro) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol": "PERP_BTC_USDC",
@@ -1681,7 +1681,7 @@ func (this *Woofipro) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArrayTickers(result, "symbol", symbolsNormalized)
 	return nil
 }
-func (this *Woofipro) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Woofipro) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol": "PERP_BTC_USDC",
@@ -2276,7 +2276,7 @@ func (this *Woofipro) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 	ch <- this.ParseOHLCVs(rows, market, timeframe, since, limit)
 	return nil
 }
-func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// Possible input functions:
 	// * createOrder
@@ -2619,7 +2619,7 @@ func (this *Woofipro) createOrderBody(ch chan any, symbol string, typeVar string
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	data["timestamp"] = this.SafeInteger(response, "timestamp")
-	var order map[string]any = MapTyped(this.ParseOrder(data, market))
+	var order map[string]any = this.ParseOrder(data, market)
 	order["type"] = typeVar
 
 	ch <- order
@@ -3658,7 +3658,7 @@ func (this *Woofipro) getAssetHistoryRowsBody(ch chan EndpointResult[[]any], opt
 	ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Woofipro) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Woofipro) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(item, "token")
@@ -3736,7 +3736,7 @@ func (this *Woofipro) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseLedger(rows, currency, since, limit, params)
 	return nil
 }
-func (this *Woofipro) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Woofipro) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	// example in fetchLedger
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
@@ -3969,14 +3969,14 @@ func (this *Woofipro) SignMessage(message any, privateKey any) string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Woofipro) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Woofipro) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Woofipro) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -4063,7 +4063,8 @@ func (this *Woofipro) withdrawBody(ch chan any, code string, amount any, address
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- this.ParseTransaction(data, currency)
+	chValue := this.ParseTransaction(data, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Woofipro) ParseMarginMode(marginMode any, optionalArgs ...any) any {
@@ -5697,11 +5698,11 @@ func (this *Woofipro) Withdraw(code string, amount float64, address string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

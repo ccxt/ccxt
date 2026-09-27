@@ -513,7 +513,7 @@ func (this *Bit2c) fetchOrderBookBody(ch chan any, symbol string, optionalArgs .
 	ch <- this.ParseOrderBook(filtered, symbol)
 	return nil
 }
-func (this *Bit2c) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Bit2c) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)
@@ -914,7 +914,7 @@ func (this *Bit2c) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	ch <- this.ParseOrder(response, market)
 	return nil
 }
-func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//      createOrder
 	//      {

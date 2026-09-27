@@ -124,7 +124,7 @@ func (this *Backpack) watchPrivateBody(ch chan any, topics any, messageHashes an
 	var recvWindow *string = this.SafeString2(this.Options, "recvWindow", "X-Window", "5000")
 	var payload string = "instruction=" + instruction + "&" + "timestamp=" + ts + "&window=" + *recvWindow
 	var secretBytes []byte = this.Base64ToBinary(this.Secret)
-	var seed any = this.ArraySlice(secretBytes, 0, 32)
+	var seed []any = this.ArraySlice(secretBytes, 0, 32)
 	var signature string = ccxt.Eddsa(this.Encode(payload), seed, ccxt.Ed25519)
 	var request map[string]any = map[string]any{
 		"method":    method,

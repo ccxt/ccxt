@@ -206,7 +206,7 @@ func (this *Gate) createOrderWsBody(ch chan any, symbol string, typeVar string, 
 
 	rawOrder := (<-this.RequestPrivateAsync(url, request, channel))
 	ccxt.PanicOnError(rawOrder)
-	var order map[string]any = ccxt.MapTyped(this.ParseOrder(rawOrder, market))
+	var order map[string]any = this.ParseOrder(rawOrder, market)
 
 	ch <- order
 	return nil
@@ -1226,7 +1226,7 @@ func (this *Gate) HandleTickerAndBidAsk(objectName any, client any, message map[
 		}()
 		var marketId *string = this.SafeString(rawTicker, "s")
 		var market map[string]any = this.SafeMarket(marketId, nil, "_", marketType)
-		var parsedItem map[string]any = ccxt.MapTyped(this.ParseTicker(rawTicker, market))
+		var parsedItem map[string]any = this.ParseTicker(rawTicker, market)
 		var symbol *string = ccxt.SafeStringPtr(parsedItem["symbol"])
 		if isTicker {
 			if symbol != nil {

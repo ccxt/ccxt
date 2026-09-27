@@ -797,14 +797,14 @@ func (this *Coinmate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
 		var market map[string]any = this.Market(keys[i])
-		var ticker map[string]any = MapTyped(this.ParseTicker(this.SafeValue(data, keys[i]), market))
+		var ticker map[string]any = this.ParseTicker(this.SafeValue(data, keys[i]), market)
 		AddElementToObject(result, market["symbol"], ticker)
 	}
 
 	ch <- this.FilterByArrayTickers(result, "symbol", symbolsNormalized)
 	return nil
 }
-func (this *Coinmate) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Coinmate) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "last": "0.001337",
@@ -909,7 +909,7 @@ func (this *Coinmate) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinmate) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Coinmate) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// deposits
 	//
@@ -1000,14 +1000,14 @@ func (this *Coinmate) ParseTransaction(transaction any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Coinmate) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Coinmate) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Coinmate) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Coinmate) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1083,7 +1083,7 @@ func (this *Coinmate) withdrawBody(ch chan any, code string, amount any, address
 	//     }
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
-	var transaction map[string]any = MapTyped(this.ParseTransaction(data, currency))
+	var transaction map[string]any = this.ParseTransaction(data, currency)
 	var fillResponseFromRequest *bool = this.SafeBool(withdrawOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
 		transaction["amount"] = amount
@@ -1094,7 +1094,7 @@ func (this *Coinmate) withdrawBody(ch chan any, code string, amount any, address
 		transaction["status"] = "pending"
 	}
 
-	ch <- transaction
+	ch <- EndpointResult[map[string]any]{Value: transaction, Raw: transaction}
 	return nil
 }
 
@@ -1443,7 +1443,7 @@ func (this *Coinmate) ParseOrderType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Coinmate) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Coinmate) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// limit sell
 	//
@@ -1959,11 +1959,11 @@ func (this *Coinmate) Withdraw(code string, amount float64, address string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(r.Raw) {
+		return Transaction{}, CreateReturnError(r.Raw)
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 
