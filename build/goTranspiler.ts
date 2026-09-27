@@ -2675,6 +2675,7 @@ function formatGoSource (filePath: string, content: string): string {
     content = g10kInopClientMaps (content);
     content = h2kG13NativeKeysAndRemove (content);
     content = g10kTypepredIsArray (content);
+    content = g10kArrNativeRemove (content);
     content = nativeDerefArgMapReads (content);
     content = nativeOrderBookSideReads (content);
     content = nativeEndpointListReceives (content);
@@ -8536,7 +8537,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ());
+        const problems = g10kArithSelfTest ().concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -11209,6 +11210,120 @@ function g10kInopSelfTest (): string[] {
     }
     if (!f ('\tvar h string = \"a\"\n\tif ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), h) || ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), \"b\") {\n\t}\n').includes ('InOp(')) {
         problems.push ('g10k-inop: two calls must keep InOp');
+    }
+    return problems;
+}
+
+// ===== G10K-arr: native delete for Remove on typed receivers =====
+// Remove(R, k) where R is a *sync.Map base field -> R.Delete(k), or a
+// map[string]any (this.Clients, GetRejections()) -> delete(R, k); k must be a proven non-nil string.
+function g10kArrReceiverKind (recv: string): string | undefined {
+    if (/^this\.(?:Orderbooks|Tickers|Bidsasks|FundingRates|Ohlcvs|Options)$/.test (recv)) {
+        return 'sync';
+    }
+    if ((recv === 'this.Clients') || /^\w+\.\((?:ccxt\.)?ClientInterface\)\.GetRejections\(\)$/.test (recv)) {
+        return 'map';
+    }
+    return undefined;
+}
+
+// the Go text of a non-nil string key, or undefined (the helper panics on a nil/non-string key)
+function g10kArrKeyText (key: string, lines: string[], start: number, maskedFunc: string, offset: number): string | undefined {
+    if (/^"(?:[^"\\\n]|\\.)*"$/.test (key)) {
+        return key;
+    }
+    const decl = goAccessSingleDeclaration (maskedFunc, lines[start], key);
+    if ((decl === undefined) || ((decl.index !== undefined) && (decl.index >= offset))) {
+        return undefined;
+    }
+    if (decl.type === 'string') {
+        return key;
+    }
+    if ((decl.type !== '*string') || (decl.index === undefined)) {
+        return undefined;
+    }
+    // SafeString* with a literal default returns &v or &default: never nil, if never re-written
+    const n = goAccessEscape (key);
+    if (new RegExp ('(?:^|[^\\w.])' + n + '\\s*=[^=]|&' + n + '\\b', 'm').test (maskedFunc.replace (new RegExp ('\\bvar ' + n + ' \\*string ='), ''))) {
+        return undefined;
+    }
+    const declLine = lines[start + maskedFunc.substring (0, decl.index).split ('\n').length - 1];
+    return /\bvar \w+ \*string = this\.SafeString(?:Lower|Upper)?\((?:[^(),]|\([^()]*\))+, (?:[^(),]|\([^()]*\))+, "(?:[^"\\\n]|\\.)*"\)\s*$/.test (declLine) ? '*' + key : undefined;
+}
+
+function g10kArrNativeRemove (content: string): string {
+    if (!/\bRemove\(/.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    let start = -1;
+    let maskedFunc = '';
+    let offsets: number[] = [];
+    for (let k = 0; k < lines.length; k++) {
+        if (lines[k].startsWith ('func ')) {
+            start = k;
+            let end = k;
+            while ((end < lines.length) && (lines[end] !== '}')) {
+                end++;
+            }
+            maskedFunc = masked.slice (k, end + 1).join ('\n');
+            offsets = [];
+            let o = 0;
+            for (let j = k; (j <= end) && (j < lines.length); j++) {
+                offsets.push (o);
+                o += masked[j].length + 1;
+            }
+            continue;
+        }
+        if (lines[k] === '}') {
+            start = -1;
+            continue;
+        }
+        if (start < 0) {
+            continue;
+        }
+        const rm = /^(\s*)(?:ccxt\.)?Remove\((\w+\.\((?:ccxt\.)?ClientInterface\)\.Get\w+\(\)|this\.\w+), (\w+|"(?:[^"\\\n]|\\.)*")\)(\s*)$/.exec (lines[k]);
+        if ((rm === null) || !/^\s*(?:ccxt\.)?Remove\(/.test (masked[k])) {
+            continue;
+        }
+        const kind = g10kArrReceiverKind (rm[2]);
+        const key = (kind === undefined) ? undefined : g10kArrKeyText (rm[3], lines, start, maskedFunc, offsets[k - start]);
+        if (key === undefined) {
+            continue;
+        }
+        lines[k] = rm[1] + ((kind === 'sync') ? rm[2] + '.Delete(' + key + ')' : 'delete(' + rm[2] + ', ' + key + ')') + rm[4];
+    }
+    return lines.join ('\n');
+}
+
+function g10kArrSelfTest (): string[] {
+    const problems: string[] = [];
+    const src = [
+        'func (this *X) A(client any, symbol string, p any) {',
+        '\tvar h *string = this.SafeString(p, "k", "")',
+        '\tvar n *string = this.SafeString(p, "k")',
+        '\tvar g *string = this.SafeString(p, "k", "")',
+        '\tg = this.SafeString(p, "j")',
+        '\tccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), symbol)',
+        '\tccxt.Remove(this.Tickers, h)',
+        '\tccxt.Remove(this.Tickers, n)',
+        '\tccxt.Remove(this.Tickers, g)',
+        '\tccxt.Remove(this.Clients, "u")',
+        '\tccxt.Remove(this.Trades, symbol)',
+        '\tccxt.Remove(this.Tickers, p)',
+        '}',
+    ].join ('\n');
+    const out = g10kArrNativeRemove (src);
+    const want = [ 'ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), symbol)', 'this.Tickers.Delete(*h)', 'delete(this.Clients, "u")',
+        'ccxt.Remove(this.Tickers, n)', 'ccxt.Remove(this.Tickers, g)', 'ccxt.Remove(this.Trades, symbol)', 'ccxt.Remove(this.Tickers, p)' ];
+    for (const w of want) {
+        if (out.indexOf (w) < 0) {
+            problems.push ('g10k-arr: missing ' + w);
+        }
     }
     return problems;
 }

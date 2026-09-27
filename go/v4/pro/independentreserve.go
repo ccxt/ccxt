@@ -295,7 +295,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 		if responseChecksum == nil || *responseChecksum != calculatedChecksum {
 			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-			ccxt.Remove(this.Orderbooks, symbol)
+			this.Orderbooks.Delete(symbol)
 			client.(ccxt.ClientInterface).Reject(error, messageHash)
 			return
 		}

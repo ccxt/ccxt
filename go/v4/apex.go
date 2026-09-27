@@ -618,7 +618,7 @@ func (this *Apex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var chains any = this.SafeList(multiChain, "chains", []any{})
 	this.Options.Store("_temp_currencies_chains", chains)
 	var result any = this.ParseCurrencies(rows)
-	Remove(this.Options, "_temp_currencies_chains")
+	this.Options.Delete("_temp_currencies_chains")
 
 	ch <- result
 	return nil

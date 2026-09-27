@@ -1277,7 +1277,7 @@ func (this *Bitvavo) HandleUnsubscriptionStatus(client any, message map[string]a
 		// stashes the error in client.rejections instead - that stale entry
 		// would immediately reject the next subscribe's fresh future, so clear it here
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetRejections(), subHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetRejections(), subHash)
+			delete(client.(ccxt.ClientInterface).GetRejections(), subHash)
 		}
 	}
 	return message

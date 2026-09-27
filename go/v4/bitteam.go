@@ -732,7 +732,7 @@ func (this *Bitteam) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	statusesResponse = this.IndexBy(statusesResponse, "unified_cryptoasset_id")
 	this.Options.Store("_temp_currencies_statuses", statusesResponse)
 	var result any = this.ParseCurrencies(currencies)
-	Remove(this.Options, "_temp_currencies_statuses")
+	this.Options.Delete("_temp_currencies_statuses")
 
 	ch <- result
 	return nil
