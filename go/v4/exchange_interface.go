@@ -215,7 +215,7 @@ type ICoreExchange interface {
 	FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
 	FetchLastPricesAsync(optionalArgs ...any) <-chan AsyncResult[any]
-	ParseOpenInterest(interest any, optionalArgs ...any) any
+	ParseOpenInterest(interest any, optionalArgs ...any) map[string]any
 	FetchMyLiquidationsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	ParseLiquidation(liquidation any, optionalArgs ...any) any
 	FetchGreeksAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
@@ -333,7 +333,7 @@ type ICoreExchange interface {
 	CreateSafeDictionary(isWs ...bool) *sync.Map
 	SetOptions(options any)
 	CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[any]
-	WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any]
+	WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	// WS methods
 	FetchBalanceWsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	// FetchCurrenciesWs(optionalArgs ...any) <-chan AsyncResult[any]
@@ -392,19 +392,19 @@ type IDerivedExchange interface {
 	ParseTrades(trades any, optionalArgs ...any) any
 	ParseGreeks(greeks any, optionalArgs ...any) any
 	ParseMarket(market any) any
-	ParseCurrency(rawCurrency any) any
-	ParseTransaction(transaction any, optionalArgs ...any) any
-	ParseTransfer(transfer any, optionalArgs ...any) any
+	ParseCurrency(rawCurrency any) map[string]any
+	ParseTransaction(transaction any, optionalArgs ...any) map[string]any
+	ParseTransfer(transfer any, optionalArgs ...any) map[string]any
 	ParseAccount(account any) any
-	ParseLedgerEntry(item any, optionalArgs ...any) any
+	ParseLedgerEntry(item any, optionalArgs ...any) map[string]any
 	ParseLastPrice(item any, optionalArgs ...any) any
-	ParseOrder(order any, optionalArgs ...any) any
-	ParseTicker(ticker any, optionalArgs ...any) any
+	ParseOrder(order any, optionalArgs ...any) map[string]any
+	ParseTicker(ticker any, optionalArgs ...any) map[string]any
 	ParseTickers(tickers any, optionalArgs ...any) any
 	ParseOrderBook(orderbook any, symbol any, optionalArgs ...any) map[string]any
 	ParsePosition(position any, optionalArgs ...any) any
-	SafeMarketStructure(optionalArgs ...any) any
-	ParseOpenInterest(interest any, optionalArgs ...any) any
+	SafeMarketStructure(optionalArgs ...any) map[string]any
+	ParseOpenInterest(interest any, optionalArgs ...any) map[string]any
 	ParseLiquidation(liquidation any, optionalArgs ...any) any
 	ParseIncome(info any, optionalArgs ...any) any
 	ParseMarginMode(marginMode any, optionalArgs ...any) any
