@@ -1773,7 +1773,8 @@ export default class htx extends htxRest {
         for (let i = 0; i < marginModes.length; i++) {
             const marginMode = marginModes[i];
             const marginModePositions = this.safeList (positionsByMarginMode, marginMode, []);
-            const messageHashes = this.findMessageHashes (client, marginMode + ':positions::');
+            const positionsHashPrefix = marginMode + ':' + 'positions::'; // split so the php transpiler does not turn it into ':$positions::'
+            const messageHashes = this.findMessageHashes (client, positionsHashPrefix);
             for (let j = 0; j < messageHashes.length; j++) {
                 const messageHash = messageHashes[j];
                 const parts = messageHash.split ('::');
