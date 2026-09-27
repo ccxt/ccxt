@@ -1457,11 +1457,11 @@ class bybit extends Exchange {
         $this->options['enableDemoTrading'] = $enable;
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function add_pagination_cursor_to_result(mixed $response) {
+    public function add_pagination_cursor_to_result(array $response): array {
         $result = $this->safe_dict($response, 'result', array());
         $data = $this->safe_list_n($result, array( 'list', 'rows', 'data', 'dataList' ), array());
         $paginationCursor = $this->safe_string_2($result, 'nextPageCursor', 'cursor');
@@ -1474,7 +1474,7 @@ class bybit extends Exchange {
         return $data;
     }
 
-    public function is_unified_enabled($params = array()) {
+    public function is_unified_enabled($params = array()): array {
         /**
          *
          * @see https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
@@ -1578,7 +1578,7 @@ class bybit extends Exchange {
         return $this->privatePostV5AccountUpgradeToUta($params);
     }
 
-    public function create_expired_option_market(string $symbol) {
+    public function create_expired_option_market(string $symbol): array {
         // support expired option contracts
         $quote = null;
         $settle = null;
@@ -1705,7 +1705,7 @@ class bybit extends Exchange {
         return $amountString;
     }
 
-    public function get_price(?string $symbol, ?string $price) {
+    public function get_price(?string $symbol, mixed $price) {
         if ($price === null) {
             return $price;
         }
@@ -3050,7 +3050,7 @@ class bybit extends Exchange {
         return $this->parse_funding_rates($tickerList, $symbols);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -4252,7 +4252,7 @@ class bybit extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array(), $isUTA = true) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array(), ?bool $isUTA = true): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -4638,7 +4638,7 @@ class bybit extends Exchange {
         return $this->parse_orders($data);
     }
 
-    public function edit_order_request(?string $id, ?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order_request(?string $id, ?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -4861,7 +4861,7 @@ class bybit extends Exchange {
         return $this->parse_orders($data);
     }
 
-    public function cancel_order_request(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order_request(string $id, ?string $symbol = null, $params = array()): array {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -5013,7 +5013,7 @@ class bybit extends Exchange {
         return $this->parse_orders($row, $market);
     }
 
-    public function cancel_all_orders_after(?int $timeout, $params = array()) {
+    public function cancel_all_orders_after(?int $timeout, $params = array()): array {
         /**
          * dead man's switch, cancel all orders after the given $timeout
          *
@@ -5052,7 +5052,7 @@ class bybit extends Exchange {
         return $response;
     }
 
-    public function cancel_orders_for_symbols(array $orders, $params = array()) {
+    public function cancel_orders_for_symbols(array $orders, $params = array()): array {
         /**
          * cancel multiple $orders for multiple symbols
          *
@@ -5142,7 +5142,7 @@ class bybit extends Exchange {
         return $this->parse_orders($row);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open $orders
          *
@@ -7116,7 +7116,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()): array {
         /**
          * set margin mode (account) or trade mode ($symbol)
          *
@@ -7212,7 +7212,7 @@ class bybit extends Exchange {
         return $response;
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): array {
         /**
          * set the level of $leverage for a $market
          *
@@ -7255,7 +7255,7 @@ class bybit extends Exchange {
         return $response;
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()): array {
         /**
          * set $hedged to true or false for a $market
          *
@@ -7309,7 +7309,7 @@ class bybit extends Exchange {
         return $response;
     }
 
-    public function fetch_derivatives_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array()): array {
+    public function fetch_derivatives_open_interest_history(string $symbol, ?string $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -7373,7 +7373,7 @@ class bybit extends Exchange {
         return $this->parse_open_interests_history($data, $safeMarketObj, $since, $limit);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): array {
         /**
          * Retrieves the open interest of a derivative trading pair
          *
@@ -7476,7 +7476,7 @@ class bybit extends Exchange {
         return $this->fetch_derivatives_open_interest_history($symbol, $timeframe, $since, $limit, $params);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         //    {
         //        "openInterest": 64757.62400000,
@@ -8395,7 +8395,7 @@ class bybit extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
-    public function parse_settlement(mixed $settlement, mixed $market) {
+    public function parse_settlement(array $settlement, mixed $market): array {
         //
         // fetchSettlementHistory
         //
@@ -8429,7 +8429,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function parse_settlements(mixed $settlements, mixed $market) {
+    public function parse_settlements(array $settlements, mixed $market): array {
         //
         // fetchSettlementHistory
         //
@@ -8501,7 +8501,7 @@ class bybit extends Exchange {
         return $this->parse_volatility_history($volatility);
     }
 
-    public function parse_volatility_history(mixed $volatility) {
+    public function parse_volatility_history(array $volatility): array {
         //
         //     {
         //         "period": 7,
@@ -8856,7 +8856,7 @@ class bybit extends Exchange {
         ));
     }
 
-    public function get_leverage_tiers_paginated(?string $symbol = null, $params = array()) {
+    public function get_leverage_tiers_paginated(?string $symbol = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -10002,7 +10002,7 @@ class bybit extends Exchange {
         return $this->safe_string($marginModes, $marginMode, $marginMode);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
         if ($api === 'public') {
             if (count($params) > 0) {

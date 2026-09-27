@@ -884,7 +884,7 @@ class xt extends Exchange {
         ));
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
@@ -1492,7 +1492,7 @@ class xt extends Exchange {
         ));
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
@@ -1640,7 +1640,7 @@ class xt extends Exchange {
         );
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_book(...))($symbol, $limit, $params);
     }
 
@@ -1739,7 +1739,7 @@ class xt extends Exchange {
         return $swapOb;
     }
 
-    public function fetch_ticker(string $symbol, $params = array()) {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ticker(...))($symbol, $params);
     }
 
@@ -2012,7 +2012,7 @@ class xt extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function parse_ticker(mixed $ticker, ?array $market = null) {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // spot: fetchTicker, fetchTickers
         //
@@ -2095,7 +2095,7 @@ class xt extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -2175,7 +2175,7 @@ class xt extends Exchange {
         return $this->parse_trades($trades, $market);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -2291,7 +2291,7 @@ class xt extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trade(mixed $trade, ?array $market = null) {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // spot: fetchTrades
         //
@@ -2464,7 +2464,7 @@ class xt extends Exchange {
         ), $market);
     }
 
-    public function fetch_balance($params = array()) {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_balance(...))($params);
     }
 
@@ -2548,7 +2548,7 @@ class xt extends Exchange {
         return $this->parse_balance($balances);
     }
 
-    public function parse_balance(mixed $response) {
+    public function parse_balance(mixed $response): array {
         //
         // spot
         //
@@ -2598,7 +2598,7 @@ class xt extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): PromiseInterface {
         return Async\async(self::do_create_market_buy_order_with_cost(...))($symbol, $cost, $params);
     }
 
@@ -2623,7 +2623,7 @@ class xt extends Exchange {
         return Async\await($this->create_order($symbol, 'market', 'buy', $cost, 1, $params));
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -2868,7 +2868,7 @@ class xt extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -3070,7 +3070,7 @@ class xt extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_orders(...))($symbol, $since, $limit, $params);
     }
 
@@ -3652,7 +3652,7 @@ class xt extends Exchange {
         return Async\await($this->fetch_orders_by_status('canceled', $symbol, $since, $limit, $params));
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -3759,7 +3759,7 @@ class xt extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -3905,7 +3905,7 @@ class xt extends Exchange {
         );
     }
 
-    public function parse_order(array $order, ?array $market = null) {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // spot: createOrder
         //
@@ -4188,7 +4188,7 @@ class xt extends Exchange {
         return $this->parse_ledger($ledger, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry(mixed $item, ?array $currency = null): array {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
         //         "id": "207260567109387524",
@@ -4303,7 +4303,7 @@ class xt extends Exchange {
         );
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_deposits(...))($code, $since, $limit, $params);
     }
 
@@ -4366,7 +4366,7 @@ class xt extends Exchange {
         return $this->parse_transactions($deposits, $currency, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_withdrawals(...))($code, $since, $limit, $params);
     }
 
@@ -4569,7 +4569,7 @@ class xt extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_set_leverage(...))($leverage, $symbol, $params);
     }
 
@@ -4623,7 +4623,7 @@ class xt extends Exchange {
         return $response;
     }
 
-    public function add_margin(string $symbol, float $amount, $params = array()) {
+    public function add_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
         return Async\async(self::do_add_margin(...))($symbol, $amount, $params);
     }
 
@@ -4642,7 +4642,7 @@ class xt extends Exchange {
         return Async\await($this->modify_margin_helper($symbol, $amount, 'ADD', $params));
     }
 
-    public function reduce_margin(string $symbol, float $amount, $params = array()) {
+    public function reduce_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
         return Async\async(self::do_reduce_margin(...))($symbol, $amount, $params);
     }
 
@@ -4698,7 +4698,7 @@ class xt extends Exchange {
         return $this->parse_margin_modification($response, $market);
     }
 
-    public function parse_margin_modification(mixed $data, ?array $market = null): array {
+    public function parse_margin_modification(array $data, ?array $market = null): array {
         return array(
             'info' => $data,
             'type' => null,
@@ -4896,7 +4896,7 @@ class xt extends Exchange {
         return $tiers;
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -5263,7 +5263,7 @@ class xt extends Exchange {
         );
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -5655,7 +5655,7 @@ class xt extends Exchange {
         return $this->filter_by_since_limit($positions, $since, $limit);
     }
 
-    public function parse_position(mixed $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // position/list
         //
@@ -5799,7 +5799,7 @@ class xt extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function parse_transfer(mixed $transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         return array(
             'info' => $transfer,
             'id' => $this->safe_string($transfer, 'result'),
@@ -5813,7 +5813,7 @@ class xt extends Exchange {
         );
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_set_margin_mode(...))($marginMode, $symbol, $params);
     }
 
@@ -5979,7 +5979,7 @@ class xt extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function handle_errors(int $code, string $reason, mixed $url, mixed $method, mixed $headers, mixed $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         //
         // spot: error
         //

@@ -9,6 +9,8 @@ public partial class BaseExchange
 {
     public HttpClient httpClient { get; set; }
     public object fetchResponse = null; // tmp for response tests
+    // response-test mock keyed by url fragment, for methods that call several endpoints
+    public object fetchResponseByUrl = null;
     public string id { get; set; } = "Exchange";
 
     public string[] countries = null;

@@ -1243,6 +1243,20 @@
         ],
         "fetchClosedOrders": [
             {
+                "description": "Spot closed orders with since and until",
+                "method": "fetchClosedOrders",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/historyOrders?endTime=1740500000000&startTime=1740000000000&symbol=LTC-USDT&timestamp=1740518148275&signature=0000000000000000000000000000000000000000000000000000000000000000",
+                "input": [
+                    "LTC/USDT",
+                    1740000000000,
+                    null,
+                    {
+                        "until": 1740500000000
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch closed orders with limit",
                 "method": "fetchClosedOrders",
                 "url": "https://open-api.bingx.com/openApi/spot/v1/trade/historyOrders?pageSize=50&symbol=LTC-USDT&timestamp=1740518148275&signature=2797718cce7debcdd081aa813738210bf8f56e100aeefa9e51871847c15d0ddf",
@@ -1288,6 +1302,47 @@
                     {
                         "twap": true,
                         "until": 1732697788022
+                    }
+                ]
+            },
+            {
+                "description": "Spot closed orders without symbol",
+                "method": "fetchClosedOrders",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/historyOrders?timestamp=1699458294623&signature=80016769e53019f01380e74b927ad3e36f5980e32c3de4a3a4bcfe9fc68efa7a",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Linear swap fetch closed orders without symbol",
+                "method": "fetchClosedOrders",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/allOrders?timestamp=1699458294851&signature=d1622ab21a981576341cb05abaece32622e00a0b296c69e937e792c157e3e687",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap",
+                        "subType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "Inverse swap fetch closed orders without symbol",
+                "method": "fetchClosedOrders",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/orderHistory?timestamp=1721961756401&signature=e9cfa075457e0a4e8346e2dd32fa082cfb631ecaf87ca7ff414a1fe1096c5a8c",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap",
+                        "subType": "inverse"
                     }
                 ]
             }

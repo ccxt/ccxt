@@ -791,7 +791,7 @@ class bitstamp extends bitstamp$1["default"] {
     async fetchMarketsFromCache(params = {}) {
         // this method is now redundant
         // currencies are now fetched before markets
-        const options = this.safeValue(this.options, 'fetchMarkets', {});
+        const options = this.safeDict(this.options, 'fetchMarkets', {});
         const timestamp = this.safeInteger(options, 'timestamp');
         const expires = this.safeInteger(options, 'expires', 1000);
         const now = this.milliseconds();
@@ -1323,6 +1323,7 @@ class bitstamp extends bitstamp$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1335,15 +1336,27 @@ class bitstamp extends bitstamp$1["default"] {
             'step': this.safeString(this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe(timeframe);
+        const until = this.safeInteger(params, 'until');
+        const untilIsDefined = (until !== undefined);
         if (limit === undefined) {
+            limit = 1000;
             if (since === undefined) {
-                request['limit'] = 1000; // we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
+                request['limit'] = limit;
+                if (untilIsDefined) {
+                    const end = this.parseToInt(until / 1000);
+                    request['start'] = end - (duration * limit) - 1;
+                    request['end'] = end;
+                }
             }
             else {
-                limit = 1000;
                 const start = this.parseToInt(since / 1000);
                 request['start'] = start;
-                request['end'] = this.sum(start, duration * (limit - 1));
+                if (untilIsDefined) {
+                    request['end'] = this.parseToInt(until / 1000);
+                }
+                else {
+                    request['end'] = this.sum(start, duration * limit - 1);
+                }
                 request['limit'] = limit;
             }
         }
@@ -1351,10 +1364,20 @@ class bitstamp extends bitstamp$1["default"] {
             if (since !== undefined) {
                 const start = this.parseToInt(since / 1000);
                 request['start'] = start;
-                request['end'] = this.sum(start, duration * (limit - 1));
+                let end = this.sum(start, duration * limit - 1);
+                if (untilIsDefined) {
+                    end = Math.min(end, this.parseToInt(until / 1000));
+                }
+                request['end'] = end;
+            }
+            else if (untilIsDefined) {
+                const end = this.parseToInt(until / 1000);
+                request['end'] = end;
+                request['start'] = end - (duration * limit) - 1;
             }
             request['limit'] = Math.min(limit, 1000); // min 1, max 1000
         }
+        params = this.omit(params, 'until');
         const response = await this.publicGetOhlcPair(this.extend(request, params));
         //
         //     {
@@ -1368,7 +1391,7 @@ class bitstamp extends bitstamp$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const ohlc = this.safeList(data, 'ohlc', []);
         return this.parseOHLCVs(ohlc, market, timeframe, since, limit);
     }
@@ -1546,7 +1569,7 @@ class bitstamp extends bitstamp$1["default"] {
         const ids = Object.keys(currencies);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const fees = this.safeValue(response, i, {});
+            const fees = this.safeDict(response, i, {});
             const code = this.safeCurrencyCode(id);
             if ((codes !== undefined) && !this.inArray(code, codes)) {
                 continue;
@@ -1947,7 +1970,7 @@ class bitstamp extends bitstamp$1["default"] {
         //         ]
         //     }
         //
-        const values = this.safeValue(response, 'funding_rate_history', []);
+        const values = this.safeList(response, 'funding_rate_history', []);
         return this.parseFundingRateHistories(values, market, since, limit);
     }
     parseFundingRateHistory(contract, market = undefined) {
@@ -2284,7 +2307,7 @@ class bitstamp extends bitstamp$1["default"] {
         const symbol = this.safeSymbol(marketId, market, '/');
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
         const amount = this.safeString(order, 'amount');
-        const transactions = this.safeValue(order, 'transactions', []);
+        const transactions = this.safeList(order, 'transactions', []);
         const price = this.safeString(order, 'price');
         return this.safeOrder({
             'id': id,
@@ -2476,14 +2499,16 @@ class bitstamp extends bitstamp$1["default"] {
         //         "next_funding_time": "1644406050"
         //     }
         //
+        // the websocket funding_rate channel additionally carries mark_price and index_price
+        //
         const currentTime = this.safeIntegerProduct(fundingRate, 'timestamp', 1000);
         const nextFundingRateTimestamp = this.safeIntegerProduct(fundingRate, 'next_funding_time', 1000);
         const marketId = this.safeString(fundingRate, 'market');
         return {
             'info': fundingRate,
             'symbol': this.safeSymbol(marketId, market),
-            'markPrice': undefined,
-            'indexPrice': undefined,
+            'markPrice': this.safeNumber(fundingRate, 'mark_price'),
+            'indexPrice': this.safeNumber(fundingRate, 'index_price'),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': currentTime,

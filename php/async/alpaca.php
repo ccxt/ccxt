@@ -378,8 +378,8 @@ class alpaca extends Exchange {
                         ),
                         'timeInForce' => array(
                             'IOC' => true,
-                            'FOK' => true,
-                            'PO' => true,
+                            'FOK' => false, // {"code":42210000,"message":"invalid crypto time_in_force"} — verified live 2026-09-13
+                            'PO' => false, // {"code":40010001,"message":"invalid time_in_force for crypto order"} — verified live 2026-09-13
                             'GTD' => false,
                         ),
                         'hedged' => false,
@@ -449,6 +449,7 @@ class alpaca extends Exchange {
                     '40410000' => '\\ccxt\\InvalidOrder', // { "code": 40410000, "message": "order is not found."}
                     '40010001' => '\\ccxt\\BadRequest', // {"code":40010001,"message":"invalid order type for crypto order"}
                     '40110000' => '\\ccxt\\PermissionDenied', // { "code": 40110000, "message": "request is not authorized"}
+                    '42210000' => '\\ccxt\\BadRequest', // {"code":42210000,"message":"invalid crypto time_in_force"}
                     '42910000' => '\\ccxt\\RateLimitExceeded', // {"code":42910000,"message":"rate limit exceeded"}
                 ),
                 'broad' => array(
@@ -1104,7 +1105,7 @@ class alpaca extends Exchange {
         return $this->filter_by_array($results, 'symbol', $symbols);
     }
 
-    public function generate_client_order_id(mixed $params) {
+    public function generate_client_order_id(array $params): ?string {
         $clientOrderIdprefix = $this->safe_string($this->options, 'clientOrderId');
         $uuid = $this->uuid();
         $parts = explode('-', $uuid);
@@ -1114,7 +1115,7 @@ class alpaca extends Exchange {
         return $clientOrderId;
     }
 
-    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()) {
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()): PromiseInterface {
         return Async\async(self::do_create_market_order_with_cost(...))($symbol, $side, $cost, $params);
     }
 
@@ -1139,7 +1140,7 @@ class alpaca extends Exchange {
         return Async\await($this->create_order($symbol, 'market', $side, 0, null, $this->extend($req, $params)));
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): PromiseInterface {
         return Async\async(self::do_create_market_buy_order_with_cost(...))($symbol, $cost, $params);
     }
 
@@ -1163,7 +1164,7 @@ class alpaca extends Exchange {
         return Async\await($this->create_order($symbol, 'market', 'buy', 0, null, $this->extend($req, $params)));
     }
 
-    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()): PromiseInterface {
         return Async\async(self::do_create_market_sell_order_with_cost(...))($symbol, $cost, $params);
     }
 
@@ -1187,7 +1188,7 @@ class alpaca extends Exchange {
         return Async\await($this->create_order($symbol, 'market', 'sell', $cost, null, $this->extend($req, $params)));
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1204,6 +1205,7 @@ class alpaca extends Exchange {
          * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
+         * @param {string} [$params->timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
          * @param {float} [$params->cost] *$market orders only* the $cost of the $order in units of the quote currency
          * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
@@ -1239,6 +1241,10 @@ class alpaca extends Exchange {
         }
         $defaultTIF = null;
         list($defaultTIF, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce');
+        if ($defaultTIF !== null) {
+            // the venue only accepts lowercase values, normalize the unified uppercase spellings
+            $defaultTIF = strtolower($defaultTIF);
+        }
         $request['time_in_force'] = $defaultTIF;
         $params = $this->omit($params, array( 'timeInForce', 'triggerPrice' ));
         $request['client_order_id'] = $this->generate_client_order_id($params);
@@ -1283,7 +1289,7 @@ class alpaca extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1311,7 +1317,7 @@ class alpaca extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -1340,7 +1346,7 @@ class alpaca extends Exchange {
         }
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -1504,7 +1510,7 @@ class alpaca extends Exchange {
         return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1522,7 +1528,7 @@ class alpaca extends Exchange {
          * @param {float} [$price] the $price for the order, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->triggerPrice] the $price to trigger a stop order
-         * @param {string} [$params->timeInForce] for crypto trading either 'gtc' or 'ioc' can be used
+         * @param {string} [$params->timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
          * @param {string} [$params->clientOrderId] a unique identifier for the order, automatically generated if not sent
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -1550,7 +1556,8 @@ class alpaca extends Exchange {
         $timeInForce = null;
         list($timeInForce, $params) = $this->handle_option_and_params($params, 'editOrder', 'timeInForce', 'gtc');
         if ($timeInForce !== null) {
-            $request['time_in_force'] = $timeInForce;
+            // the venue only accepts lowercase values, normalize the unified uppercase spellings
+            $request['time_in_force'] = strtolower($timeInForce);
         }
         $request['client_order_id'] = $this->generate_client_order_id($params);
         $params = $this->omit($params, array( 'clientOrderId' ));
@@ -1607,7 +1614,7 @@ class alpaca extends Exchange {
         if ($feeValue !== null) {
             $fee = array(
                 'cost' => $feeValue,
-                'currency' => 'USD',
+                'currency' => 'USD', // commission is denominated per the account currency; crypto fills omit the field entirely — their fee is taken from the received asset, verified live 2026-09-15
             );
         }
         $orderType = $this->safe_string($order, 'order_type');
@@ -1624,7 +1631,7 @@ class alpaca extends Exchange {
             'clientOrderId' => $this->safe_string($order, 'client_order_id'),
             'timestamp' => $timestamp,
             'datetime' => $datetime,
-            'lastTradeTimeStamp' => null,
+            'lastTradeTimestamp' => $this->parse8601($this->safe_string($order, 'filled_at')), // set on complete fills only — per-fill timestamps for partials come from the account activities used by fetchMyTrades, and updated_at also moves on non-fill transitions so it is no substitute
             'status' => $status,
             'symbol' => $symbol,
             'type' => $orderType,
@@ -1648,22 +1655,37 @@ class alpaca extends Exchange {
         $statuses = array(
             'pending_new' => 'open',
             'accepted' => 'open',
+            'accepted_for_bidding' => 'open',
             'new' => 'open',
             'partially_filled' => 'open',
             'activated' => 'open',
+            'done_for_day' => 'open', // no more executions on that day, the order itself stays live
+            'stopped' => 'open', // a fill is guaranteed at a stated price but has not occurred yet
+            'suspended' => 'open',
+            'held' => 'open',
+            'pending_replace' => 'open',
+            'pending_cancel' => 'canceling',
             'filled' => 'closed',
+            'calculated' => 'closed', // completed for the day, settlement calculations are pending
+            'canceled' => 'canceled',
+            'replaced' => 'canceled', // the venue closes the replaced id and opens a new order id for the replacement
+            'expired' => 'expired',
+            'rejected' => 'rejected',
         );
         return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_time_in_force(?string $timeInForce) {
         $timeInForces = array(
-            'day' => 'Day',
+            'day' => 'Day', // equities-only value kept as-is deliberately: crypto orders reject it with 42210000, verified live 2026-09-13, and the unified set has no day spelling either way
+            'gtc' => 'GTC',
+            'ioc' => 'IOC',
+            'fok' => 'FOK',
         );
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -2163,7 +2185,7 @@ class alpaca extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction_type(mixed $type) {
+    public function parse_transaction_type(?string $type): ?string {
         $types = array(
             'INCOMING' => 'deposit',
             'OUTGOING' => 'withdrawal',
@@ -2180,14 +2202,20 @@ class alpaca extends Exchange {
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
          * @see https://docs.alpaca.markets/reference/getaccount-1
+         * @see https://docs.alpaca.markets/reference/getallopenpositions
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~. note that `info` is
+         * the composite `array( $account, $positions )` wrapper of both raw venue payloads, not the bare $account payload it was
+         * before crypto $positions were included — read `info['account']['cash']` where `info['cash']` used to be read
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $response = Async\await($this->traderPrivateGetV2Account($params));
+        // the two calls stay sequential deliberately — the static request harness records one request per case,
+        // and concurrent calls make the recorded url nondeterministic per language
+        $account = Async\await($this->traderPrivateGetV2Account($params));
+        $positions = Async\await($this->traderPrivateGetV2Positions());
         //
         //     {
         //         "id": "43a01bde-4eb1-64fssc26adb5",
@@ -2236,23 +2264,81 @@ class alpaca extends Exchange {
         //         "pending_reg_taf_fees": "0"
         //     }
         //
+        $response = array(
+            'account' => $account,
+            'positions' => $positions,
+        );
         return $this->parse_balance($response);
     }
 
     public function parse_balance(mixed $response): array {
+        //
+        // crypto holdings live on the positions endpoint, the account endpoint carries only the cash currency
+        //
+        //     "positions": [
+        //         {
+        //             "asset_id": "64bbff51-59d6-4b3c-9351-13ad85e3c752",
+        //             "symbol": "BTCUSD",
+        //             "exchange": "CRYPTO",
+        //             "asset_class": "crypto",
+        //             "asset_marginable": false,
+        //             "qty": "0.000207296",
+        //             "avg_entry_price": "80037",
+        //             "side": "long",
+        //             "market_value": "16.592345",
+        //             "cost_basis": "16.59135",
+        //             "unrealized_pl": "0.000995",
+        //             "unrealized_plpc": "0.00006",
+        //             "current_price": "80041.8",
+        //             "qty_available": "0.000207296"
+        //         }
+        //     ]
+        //
+        $account = $this->safe_dict($response, 'account', array());
+        $positions = $this->safe_list($response, 'positions', array());
         $result = array( 'info' => $response );
-        $account = $this->account();
-        $currencyId = $this->safe_string($response, 'currency');
+        $currencyId = $this->safe_string($account, 'currency');
         $code = $this->safe_currency_code($currencyId);
-        $account['free'] = $this->safe_string($response, 'cash');
-        $account['total'] = $this->safe_string($response, 'equity');
         if ($code !== null) {
-            $result[$code] = $account;
+            $cashAccount = $this->account();
+            $cashAccount['free'] = $this->safe_string($account, 'cash'); // cash already excludes the amounts held for open orders, verified live 2026-09-16
+            $equity = $this->safe_string($account, 'equity');
+            $positionsValue = $this->safe_string($account, 'position_market_value');
+            $cashAccount['total'] = Precise::string_sub($equity, $positionsValue); // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
+            $result[$code] = $cashAccount;
+        }
+        for ($i = 0; $i < count($positions); $i++) {
+            $position = $positions[$i];
+            $positionSymbol = $this->safe_string($position, 'symbol');
+            if ($positionSymbol === null) {
+                continue;
+            }
+            $baseId = null;
+            if (mb_strpos($positionSymbol, '/') !== false) {
+                $parts = explode('/', $positionSymbol);
+                $baseId = $this->safe_string($parts, 0);
+            } else {
+                // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
+                $baseLength = strlen($positionSymbol) - 3;
+                if (($baseLength > 0) && (mb_substr($positionSymbol, $baseLength) === 'USD')) {
+                    $baseId = mb_substr($positionSymbol, 0, $baseLength - 0);
+                }
+            }
+            if ($baseId === null) {
+                continue; // an unrecognized position symbol shape must not break the whole balance
+            }
+            $positionCode = $this->safe_currency_code($baseId);
+            if (($positionCode !== null) && !(is_array($result) && array_key_exists($positionCode ?? '', $result))) {
+                $positionAccount = $this->account();
+                $positionAccount['free'] = $this->safe_string($position, 'qty_available');
+                $positionAccount['total'] = $this->safe_string($position, 'qty');
+                $result[$positionCode] = $positionAccount;
+            }
         }
         return $this->safe_balance($result);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->implode_hostname($this->urls['api'][$api[0]]);
         $headers = ($headers !== null) ? $headers : array();

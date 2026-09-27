@@ -6,6 +6,7 @@ using System;
 using System.Net.WebSockets;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO.Compression;
 using System.Net;
 
@@ -42,7 +43,7 @@ public partial class BaseExchange
 
         public onCloseDelegate onClose = null;
 
-        public onErrorDelegate onError = null;
+        public onErrorDelegate onErrorCallback = null;
 
         public delegate object pingDelegate(WebSocketClient client);
 
@@ -56,7 +57,9 @@ public partial class BaseExchange
 
         public Int64? connectionEstablished;
 
-        public bool error = false;
+        // mirrors js Client.error: null while live, the terminal error once
+        // retired. read and written under futuresSync.
+        public object error = null;
 
         public bool decompressBinary = true;
 
@@ -73,7 +76,7 @@ public partial class BaseExchange
             this.handleMessage = handleMessage;
             this.verbose = isVerbose;
             this.onClose = onClose;
-            this.onError = onError;
+            this.onErrorCallback = onError;
             this.keepAlive = keepA;
             this.decompressBinary = decompressBinary;
             this.webSocket.Options.KeepAliveInterval = TimeSpan.Zero; // Disable unsolicited PONG. https://learn.microsoft.com/en-us/dotnet/fundamentals/networking/websockets?#compression
@@ -165,18 +168,52 @@ public partial class BaseExchange
             }
         }
 
-        public void reset(object message2)
+        // mirrors js Client.reset: reject every pending future and clear the
+        // consumer state. settles outside the lock, Future's
+        // TaskCompletionSource runs continuations inline.
+        public void reset(object error)
         {
-            // stub implement this later
-            this.reject(error);
+            var settled = new List<Future>();
+            lock (futuresSync)
+            {
+                foreach (var messageHash in this.futures.Keys.ToArray())
+                {
+                    settled.Add(this.futures[messageHash]);
+                    this.futures.Remove(messageHash);
+                }
+                this.subscriptions.Clear();
+            }
+            foreach (var future in settled)
+            {
+                future.reject(error);
+            }
+        }
+
+        // mirrors js Client.onError: set the error marker, reset, notify the
+        // exchange. the lock elects one winner when the transport error, a
+        // late onClose and a user Close() race on separate threads.
+        public void onError(object error)
+        {
+            lock (futuresSync)
+            {
+                if (this.error != null)
+                {
+                    return;
+                }
+                this.error = error;
+            }
+            this.isConnected = false; // stops PingLoop's while() condition
+            this.reset(error);
+            this.onErrorCallback?.Invoke(this, error);
         }
 
         public void onOpen()
         {
 
-            this.connected.SetResult(true);
             this.connectionEstablished = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             this.isConnected = true;
+            // Awaiters can resume inline in SetResult: publish the ready state first.
+            this.connected.SetResult(true);
             // this.clearConnectionTimeout();
             Task.Run(async () =>
             {
@@ -240,7 +277,7 @@ public partial class BaseExchange
                         // real kill window with the real unit instead of the millisecond keepAlive
                         // labeled as "seconds", and raise RequestTimeout instead of a bare
                         // Exception the error-class handling cannot categorize
-                        this.onError(this, new RequestTimeout("Connection to " + this.url + " timed out due to a ping-pong keepalive missing on time (no liveness within " + (convertedKeepAlive * this.maxPingPongMisses) + " ms = keepAlive " + convertedKeepAlive + " ms x " + this.maxPingPongMisses + " misses)"));
+                        this.onError(new RequestTimeout("Connection to " + this.url + " timed out due to a ping-pong keepalive missing on time (no liveness within " + (convertedKeepAlive * this.maxPingPongMisses) + " ms = keepAlive " + convertedKeepAlive + " ms x " + this.maxPingPongMisses + " misses)"));
                         // onError rejects the pending futures and the exchange drops
                         // this client from its registry, but the socket itself is
                         // still open: leaving the loop does not tear it down, and the
@@ -291,7 +328,7 @@ public partial class BaseExchange
                 {
                     Console.WriteLine($"PingLoop error: {ex.Message}");
                 }
-                this.onError(this, ex);
+                this.onError(ex);
             }
         }
 
@@ -553,7 +590,7 @@ public partial class BaseExchange
                     Console.WriteLine($"Receiving error: {ex.Message}");
                 }
                 this.isConnected = false;
-                this.onError(this, ex);
+                this.onError(ex);
             }
         }
 
@@ -568,24 +605,16 @@ public partial class BaseExchange
 
         public async Task Close()
         {
+            this.onError(new ExchangeClosedByUser("Connection closed by the user"));
             if (this.webSocket.State == WebSocketState.Open)
             {
                 try
                 {
                     await this.webSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    // Console.WriteLine(e);
-                }
-
-            }
-            foreach (var future in this.futures.Values)
-            {
-                if (!future.task.IsCompleted)
-                {
-                    future.reject(new ExchangeClosedByUser("Connection closed by the user"));
-
+                    // the transport is going away regardless
                 }
             }
         }

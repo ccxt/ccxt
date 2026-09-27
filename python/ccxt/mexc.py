@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, FundingHistory, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -1063,7 +1063,7 @@ class mexc(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_status(self, params={}) -> Status:
+    def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -1101,7 +1101,7 @@ class mexc(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_time(self, params={}) -> Int:
+    def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -1127,7 +1127,7 @@ class mexc(Exchange, ImplicitAPI):
             return self.safe_integer(response, 'data')
         return None
 
-    def fetch_currencies(self, params={}) -> Currencies:
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -1230,7 +1230,7 @@ class mexc(Exchange, ImplicitAPI):
             'networks': networks,
         })
 
-    def fetch_markets(self, params={}) -> list[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for mexc
 
@@ -1247,7 +1247,7 @@ class mexc(Exchange, ImplicitAPI):
         spotMarket, swapMarket = [spotMarketPromise, swapMarketPromise]
         return self.array_concat(spotMarket, swapMarket)
 
-    def fetch_spot_markets(self, params: object = {}) -> list[Market]:
+    def fetch_spot_markets(self, params: dict = {}) -> list[Market]:
         """
  @ignore
         retrieves data on all spot markets for mexc
@@ -1310,11 +1310,11 @@ class mexc(Exchange, ImplicitAPI):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             status = self.safe_string(market, 'status')
-            isSpotTradingAllowed = self.safe_value(market, 'isSpotTradingAllowed')
+            isSpotTradingAllowed = self.safe_bool(market, 'isSpotTradingAllowed')
             active = False
             if (status == '1') and (isSpotTradingAllowed is True):
                 active = True
-            isMarginTradingAllowed = self.safe_value(market, 'isMarginTradingAllowed')
+            isMarginTradingAllowed = self.safe_bool(market, 'isMarginTradingAllowed')
             makerCommission = self.safe_number(market, 'makerCommission')
             takerCommission = self.safe_number(market, 'takerCommission')
             maxQuoteAmount = self.safe_number(market, 'maxQuoteAmount')
@@ -1371,7 +1371,7 @@ class mexc(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_swap_markets(self, params: object = {}) -> list[Market]:
+    def fetch_swap_markets(self, params: dict = {}) -> list[Market]:
         """
  @ignore
         retrieves data on all swap markets for mexc
@@ -1495,7 +1495,7 @@ class mexc(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
 
         https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/order-book  # spot
@@ -1554,7 +1554,7 @@ class mexc(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-            data = self.safe_value(response, 'data')
+            data = self.safe_dict(response, 'data')
             timestamp = self.safe_integer(data, 'timestamp')
             orderbook = self.parse_order_book(data, symbol, timestamp)
             orderbook['nonce'] = self.safe_integer(data, 'version')
@@ -1569,7 +1569,7 @@ class mexc(Exchange, ImplicitAPI):
             return [price, amount, count]
         return [price, amount]
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
 
         https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/recent-trades-list  # spot
@@ -1764,15 +1764,15 @@ class mexc(Exchange, ImplicitAPI):
                     'cost': self.safe_string(trade, 'fee'),
                     'currency': self.safe_currency_code(self.safe_string(trade, 'feeCurrency')),
                 }
-                isTaker = (self.safe_bool(trade, 'taker') is True)
+                isTaker = (self.safe_bool_2(trade, 'isTaker', 'taker') is True)
                 takerOrMaker = 'taker' if isTaker else 'maker'
             else:
                 timestamp = self.safe_integer_2(trade, 'time', 'T')
                 amountString = self.safe_string_2(trade, 'qty', 'q')
                 costString = self.safe_string(trade, 'quoteQty')
-                isBuyer = self.safe_value(trade, 'isBuyer')
-                isMaker = self.safe_value(trade, 'isMaker')
-                buyerMaker = self.safe_value_2(trade, 'isBuyerMaker', 'm')
+                isBuyer = self.safe_bool(trade, 'isBuyer')
+                isMaker = self.safe_bool(trade, 'isMaker')
+                buyerMaker = self.safe_bool_2(trade, 'isBuyerMaker', 'm')
                 if isMaker is not None:
                     takerOrMaker = 'maker' if (isMaker is True) else 'taker'
                 if isBuyer is not None:
@@ -1804,7 +1804,7 @@ class mexc(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
 
         https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/klinecandlestick-data  # spot
@@ -1830,8 +1830,8 @@ class mexc(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit)
-        options = self.safe_value(self.options, 'timeframes', {})
-        timeframes = self.safe_value(options, market['type'], {})
+        options = self.safe_dict(self.options, 'timeframes', {})
+        timeframes = self.safe_dict(options, market['type'], {})
         timeframeValue = self.safe_string(timeframes, timeframe)
         duration = self.parse_timeframe(timeframe) * 1000
         request = {
@@ -1920,7 +1920,7 @@ class mexc(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -2000,13 +2000,13 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            tickers = self.safe_value(response, 'data', [])
+            tickers = self.safe_list(response, 'data', [])
         # when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         if isSingularMarket:
             tickers = [tickers]
         return self.parse_tickers(tickers, symbols)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -2076,7 +2076,7 @@ class mexc(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-            ticker = self.safe_value(response, 'data', {})
+            ticker = self.safe_dict(response, 'data', {})
         # when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         return self.parse_ticker(ticker, market)
 
@@ -2096,7 +2096,7 @@ class mexc(Exchange, ImplicitAPI):
         changePcnt = None
         changeValue = None
         prevClose = None
-        isSwap = self.safe_value(market, 'swap')
+        isSwap = self.safe_bool(market, 'swap')
         # if swap
         if (isSwap is True) or ('timestamp' in ticker):
             #
@@ -2193,7 +2193,7 @@ class mexc(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_bids_asks(self, symbols: Strings = None, params={}):
+    def fetch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches the bid and ask price and volume for multiple markets
 
@@ -2233,7 +2233,7 @@ class mexc(Exchange, ImplicitAPI):
             tickers = [tickers]
         return self.parse_tickers(tickers, symbols)
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
         create a market buy order by providing the symbol and cost
 
@@ -2254,7 +2254,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.create_order(symbol, 'market', 'buy', 0, None, self.extend(req, params))
 
-    def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
+    def create_market_sell_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
         create a market sell order by providing the symbol and cost
 
@@ -2275,7 +2275,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.create_order(symbol, 'market', 'sell', 0, None, self.extend(req, params))
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -2537,7 +2537,7 @@ class mexc(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.safe_order({'id': self.safe_string(data, 'orderId'), 'timestamp': self.safe_integer(data, 'ts')}, market)
 
-    def create_orders(self, orders: list[OrderRequest], params={}):
+    def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
         *spot only*  *all orders must have the same symbol* create a list of trade orders
 
@@ -2566,7 +2566,7 @@ class mexc(Exchange, ImplicitAPI):
             side = self.safe_string(rawOrder, 'side')
             amount = self.safe_value(rawOrder, 'amount')
             price = self.safe_value(rawOrder, 'price')
-            orderParams = self.safe_value(rawOrder, 'params', {})
+            orderParams = self.safe_dict(rawOrder, 'params', {})
             marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
             orderRequest = self.create_spot_order_request(market, type, side, amount, price, marginMode, orderParams)
@@ -2597,7 +2597,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response)
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -2715,7 +2715,7 @@ class mexc(Exchange, ImplicitAPI):
             data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2897,7 +2897,7 @@ class mexc(Exchange, ImplicitAPI):
             merged = self.array_concat(ordersOfTrigger, ordersOfRegular)
             return self.parse_orders(merged, market, since, limit, params)
 
-    def fetch_orders_by_ids(self, ids: object, symbol: Str = None, params={}) -> list[Order]:
+    def fetch_orders_by_ids(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         if self.markets is None:
             self.load_markets()
         request = {}
@@ -2948,7 +2948,7 @@ class mexc(Exchange, ImplicitAPI):
             data = self.safe_list(response, 'data')
             return self.parse_orders(data, market)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -3038,7 +3038,7 @@ class mexc(Exchange, ImplicitAPI):
             data = self.safe_list(swapResponse, 'data', [])
             return self.parse_orders(data, market, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -3054,7 +3054,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_state(3, symbol, since, limit, params)
 
-    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
@@ -3070,7 +3070,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_state(4, symbol, since, limit, params)
 
-    def fetch_orders_by_state(self, state: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_orders_by_state(self, state: float, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         if self.markets is None:
             self.load_markets()
         request = {}
@@ -3084,7 +3084,7 @@ class mexc(Exchange, ImplicitAPI):
             request['states'] = state
             return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -3186,13 +3186,13 @@ class mexc(Exchange, ImplicitAPI):
             #     }
             #
             data = self.safe_value(response, 'data')
-            order = self.safe_value(data, 0)
-            errorMsg = self.safe_value(order, 'errorMsg', '')
+            order = self.safe_dict(data, 0)
+            errorMsg = self.safe_string(order, 'errorMsg', '')
             if errorMsg != 'success':
                 raise InvalidOrder(self.id + ' cancelOrder() the order with id ' + id + ' cannot be cancelled: ' + errorMsg)
         return self.parse_order(data, market)
 
-    def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
 
@@ -3227,7 +3227,7 @@ class mexc(Exchange, ImplicitAPI):
             data = self.safe_list(response, 'data')
             return self.parse_orders(data, market)
 
-    def cancel_all_orders(self, symbol: Str = None, params={}) -> list[Order]:
+    def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders
 
@@ -3522,7 +3522,7 @@ class mexc(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    def parse_order_side(self, status: object):
+    def parse_order_side(self, status: Str) -> Str:
         statuses = {
             'BUY': 'buy',
             'SELL': 'sell',
@@ -3532,7 +3532,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, status: object):
+    def parse_order_type(self, status: Str) -> Str:
         statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -3559,7 +3559,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_time_in_force(self, status: object):
+    def parse_order_time_in_force(self, status: Str) -> Str:
         statuses = {
             'GTC': 'GTC',
             'FOK': 'FOK',
@@ -3567,7 +3567,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def get_tif_from_raw_order_type(self, orderType: Str = None):
+    def get_tif_from_raw_order_type(self, orderType: Str = None) -> Str:
         statuses = {
             'LIMIT': 'GTC',
             'LIMIT_MAKER': 'POST_ONLY',
@@ -3577,7 +3577,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, orderType, orderType)
 
-    def fetch_account_helper(self, type: object, params: object):
+    def fetch_account_helper(self, type: Str, params: dict):
         if type == 'spot':
             return self.spotPrivateGetAccount(params)
             #
@@ -3631,11 +3631,11 @@ class mexc(Exchange, ImplicitAPI):
             # wrap the swap asset list so this helper always returns an account
             # dict with a `balances` array — fetchAccounts reads response['balances']
             return {
-                'balances': self.safe_value(response, 'data', []),
+                'balances': self.safe_list(response, 'data', []),
             }
         return None
 
-    def fetch_accounts(self, params={}) -> list[Account]:
+    def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -3664,7 +3664,7 @@ class mexc(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+    def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
 
@@ -3704,7 +3704,7 @@ class mexc(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def custom_parse_balance(self, response: object, marketType: object) -> Balances:
+    def custom_parse_balance(self, response: dict, marketType: Str) -> Balances:
         #
         # spot
         #
@@ -3776,8 +3776,8 @@ class mexc(Exchange, ImplicitAPI):
         if marketType == 'margin':
             for i in range(0, len(wallet)):
                 entry = wallet[i]
-                base = self.safe_value(entry, 'baseAsset', {})
-                quote = self.safe_value(entry, 'quoteAsset', {})
+                base = self.safe_dict(entry, 'baseAsset', {})
+                quote = self.safe_dict(entry, 'quoteAsset', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'asset'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'asset'))
                 if baseCode is not None:
@@ -3808,7 +3808,7 @@ class mexc(Exchange, ImplicitAPI):
                     result[code] = account
             return self.safe_balance(result)
 
-    def parse_balance_helper(self, entry: object):
+    def parse_balance_helper(self, entry: dict):
         account = self.account()
         account['used'] = self.safe_string(entry, 'locked')
         account['free'] = self.safe_string(entry, 'free')
@@ -3818,7 +3818,7 @@ class mexc(Exchange, ImplicitAPI):
         account['debt'] = Precise.string_add(debt, interest)
         return account
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -3843,7 +3843,7 @@ class mexc(Exchange, ImplicitAPI):
             parsedSymbols = None
             symbol = self.safe_string(params, 'symbol')
             if symbol is None:
-                symbols = self.safe_value(params, 'symbols')
+                symbols = self.safe_list(params, 'symbols')
                 if symbols is not None:
                     symbolIds = self.market_ids(symbols)
                     if symbolIds is not None:
@@ -3948,7 +3948,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return self.custom_parse_balance(response, marketType)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -4039,7 +4039,7 @@ class mexc(Exchange, ImplicitAPI):
             trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all the trades made from a single order
 
@@ -4117,7 +4117,7 @@ class mexc(Exchange, ImplicitAPI):
             trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit, query)
 
-    def modify_margin_helper(self, symbol: str, amount: object, addOrReduce: object, params={}):
+    def modify_margin_helper(self, symbol: str, amount: Num, addOrReduce: Str, params: dict = {}) -> MarginModification:
         positionId = self.safe_integer(params, 'positionId')
         if positionId is None:
             raise ArgumentsRequired(self.id + ' modifyMarginHelper() requires a positionId parameter')
@@ -4136,7 +4136,7 @@ class mexc(Exchange, ImplicitAPI):
         #     }
         return response
 
-    def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    def reduce_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         remove margin from a position
 
@@ -4149,7 +4149,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'SUB', params)
 
-    def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         add margin
 
@@ -4162,7 +4162,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'ADD', params)
 
-    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}):
         """
         set the level of leverage for a market
 
@@ -4193,7 +4193,7 @@ class mexc(Exchange, ImplicitAPI):
             request['positionId'] = positionId
         return self.contractPrivatePostPositionChangeLeverage(self.extend(request, params))
 
-    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:
         """
         fetch the history of funding payments paid and received on self account
 
@@ -4252,7 +4252,7 @@ class mexc(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         resultList = self.safe_list(data, 'resultList', [])
         result = []
         for i in range(0, len(resultList)):
@@ -4319,7 +4319,7 @@ class mexc(Exchange, ImplicitAPI):
             'interval': intervalString,
         }
 
-    def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
+    def fetch_funding_interval(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         fetch the current funding rate interval
 
@@ -4363,10 +4363,10 @@ class mexc(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'data', {})
+        result = self.safe_dict(response, 'data', {})
         return self.parse_funding_rate(result, market)
 
-    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -4415,7 +4415,7 @@ class mexc(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         result = self.safe_list(data, 'resultList', [])
         rates = []
         for i in range(0, len(result)):
@@ -4433,7 +4433,7 @@ class mexc(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
+    def fetch_leverage_tiers(self, symbols: Strings = None, params: dict = {}) -> LeverageTiers:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for self market
 
@@ -4598,7 +4598,7 @@ class mexc(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'memo'),
         }
 
-    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> DepositAddresses:
+    def fetch_deposit_addresses_by_network(self, code: str, params: dict = {}) -> DepositAddresses:
         """
         fetch a dictionary of addresses for a currency, indexed by network
 
@@ -4622,7 +4622,7 @@ class mexc(Exchange, ImplicitAPI):
             networks = self.safe_dict(currency, 'networks', {})
             if (networkUnified is not None) and (networkUnified in networks):
                 network = {} if (networkUnified is None) else self.safe_dict(networks, networkUnified, {})
-                networkInfo = self.safe_value(network, 'info', {})
+                networkInfo = self.safe_dict(network, 'info', {})
                 networkId = self.safe_string(networkInfo, 'network')
             else:
                 networkId = self.network_code_to_id(networkCode, code)
@@ -4644,7 +4644,7 @@ class mexc(Exchange, ImplicitAPI):
         addressStructures = self.parse_deposit_addresses(response, None, False)
         return self.index_by(addressStructures, 'network')
 
-    def create_deposit_address(self, code: str, params={}) -> DepositAddress:
+    def create_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         create a currency deposit address
 
@@ -4670,7 +4670,7 @@ class mexc(Exchange, ImplicitAPI):
         networks = self.safe_dict(currency, 'networks', {})
         if (networkUnified is not None) and (networkUnified in networks):
             network = {} if (networkUnified is None) else self.safe_dict(networks, networkUnified, {})
-            networkInfo = self.safe_value(network, 'info', {})
+            networkInfo = self.safe_dict(network, 'info', {})
             networkId = self.safe_string(networkInfo, 'network')
         else:
             networkId = self.network_code_to_id(networkCode, code)
@@ -4686,7 +4686,7 @@ class mexc(Exchange, ImplicitAPI):
         #     }
         return self.parse_deposit_address(response, currency)
 
-    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -4716,7 +4716,7 @@ class mexc(Exchange, ImplicitAPI):
             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find a deposit address for ' + code + ', and network' + network + 'consider creating one using .createDepositAddress() method or in MEXC website')
         return result
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -4775,7 +4775,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -4936,7 +4936,7 @@ class mexc(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_transaction_status_by_type(self, status: object, type: Str = None):
+    def parse_transaction_status_by_type(self, status: Str, type: Str = None) -> Str:
         statusesByType = {
             'deposit': {
                 '1': 'failed',  # SMALL
@@ -4960,10 +4960,10 @@ class mexc(Exchange, ImplicitAPI):
                 '10': 'pending',  # MANUAL
             },
         }
-        statuses = self.safe_value(statusesByType, type, {})
+        statuses = self.safe_dict(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    def close_all_positions(self, params={}) -> list[Position]:
+    def close_all_positions(self, params: dict = {}) -> list[Position]:
         """
         closes all open swap positions
 
@@ -4985,7 +4985,7 @@ class mexc(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_positions(data)
 
-    def fetch_position(self, symbol: str, params={}):
+    def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """
         fetch data on a single open contract trade position
 
@@ -5002,9 +5002,9 @@ class mexc(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = self.fetch_positions(None, self.extend(request, params))
-        return self.safe_value(response, 0)
+        return self.safe_dict(response, 0)
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -5050,7 +5050,7 @@ class mexc(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_positions(data, symbols)
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         # fetchPositions
         #
@@ -5153,7 +5153,7 @@ class mexc(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': None,
         })
 
-    def fetch_transfer(self, id: str, code: Str = None, params={}) -> TransferEntry:
+    def fetch_transfer(self, id: str, code: Str = None, params: dict = {}) -> TransferEntry:
         """
         fetches a transfer
 
@@ -5191,7 +5191,7 @@ class mexc(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' fetchTransfer() is not supported for ' + marketType)
         raise BadRequest(self.id + ' fetchTransfer() is not supported for ' + marketType)
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -5265,7 +5265,7 @@ class mexc(Exchange, ImplicitAPI):
             if limit is not None:
                 request['page_size'] = limit
             response = self.contractPrivateGetAccountTransferRecord(self.extend(request, params))
-            data = self.safe_value(response, 'data')
+            data = self.safe_dict(response, 'data')
             resultList = self.safe_value(data, 'resultList')
             #
             #     {
@@ -5293,7 +5293,7 @@ class mexc(Exchange, ImplicitAPI):
             #
         return self.parse_transfers(resultList, currency, since, limit)
 
-    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
 
@@ -5422,7 +5422,7 @@ class mexc(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(self.safe_string_n(transfer, ['transact_state', 'state', 'status'])),
         }
 
-    def parse_account_id(self, status: object):
+    def parse_account_id(self, status: Str) -> Str:
         statuses = {
             'SPOT': 'spot',
             'FUTURES': 'swap',
@@ -5439,7 +5439,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -5500,7 +5500,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
+    def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}):
         """
         set hedged to True or False for a market
 
@@ -5523,7 +5523,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return response
 
-    def fetch_position_mode(self, symbol: Str = None, params={}) -> PositionModeInfo:
+    def fetch_position_mode(self, symbol: Str = None, params: dict = {}) -> PositionModeInfo:
         """
         fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
 
@@ -5547,7 +5547,7 @@ class mexc(Exchange, ImplicitAPI):
             'hedged': (positionMode == 1),
         }
 
-    def fetch_transaction_fees(self, codes: Strings = None, params={}):
+    def fetch_transaction_fees(self, codes: Strings = None, params: dict = {}):
         """
         fetch deposit and withdrawal fees
 
@@ -5591,7 +5591,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return self.parse_transaction_fees(response, codes)
 
-    def parse_transaction_fees(self, response: object, codes: Strings = None):
+    def parse_transaction_fees(self, response: list[object], codes: Strings = None) -> dict:
         withdrawFees = {}
         for i in range(0, len(response)):
             entry = response[i]
@@ -5606,7 +5606,7 @@ class mexc(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def parse_transaction_fee(self, transaction: object, currency: Currency = None):
+    def parse_transaction_fee(self, transaction: dict, currency: Currency = None) -> dict:
         #
         #    {
         #        "coin": "AGLD",
@@ -5643,7 +5643,7 @@ class mexc(Exchange, ImplicitAPI):
             result[networkCode] = fee
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
         """
         fetch deposit and withdrawal fees
 
@@ -5687,7 +5687,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes, 'coin')
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
         #
         #    {
         #        "coin": "AGLD",
@@ -5733,7 +5733,7 @@ class mexc(Exchange, ImplicitAPI):
                 }
         return self.assign_default_deposit_withdraw_fees(result)
 
-    def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+    def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:
         """
         fetch the set leverage for a market
 
@@ -5804,7 +5804,7 @@ class mexc(Exchange, ImplicitAPI):
             'shortLeverage': shortLeverage,
         }
 
-    def handle_margin_mode_and_params(self, methodName: str, params={}, defaultValue: object = None) -> list:
+    def handle_margin_mode_and_params(self, methodName: str, params: dict = {}, defaultValue: object = None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -5820,7 +5820,7 @@ class mexc(Exchange, ImplicitAPI):
             marginMode = 'isolated'
         return [marginMode, params]
 
-    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
+    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
         fetches historical positions
 
@@ -5891,7 +5891,7 @@ class mexc(Exchange, ImplicitAPI):
         positions = self.parse_positions(data, symbols, params)
         return self.filter_by_since_limit(positions, since, limit)
 
-    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params: dict = {}):
         """
         set margin mode to 'cross' or 'isolated'
 
@@ -5931,10 +5931,10 @@ class mexc(Exchange, ImplicitAPI):
         #
         return self.parse_leverage(response, market)  # widened to Dict to match the base setMarginMode return ({}) — narrowing it to Leverage breaks the Go IExchange interface
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         section = self.safe_string(api, 0)
         access = self.safe_string(api, 1)
         path, params = self.resolve_path(path, params)

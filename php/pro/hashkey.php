@@ -118,7 +118,7 @@ class hashkey extends \ccxt\async\hashkey {
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
         //         "symbol": "DOGEUSDT",
@@ -217,7 +217,7 @@ class hashkey extends \ccxt\async\hashkey {
         return Async\await($this->wath_public($market, $topic, $messageHash, $params));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -247,7 +247,7 @@ class hashkey extends \ccxt\async\hashkey {
         //     }
         //
         $data = $this->safe_list($message, 'data', array());
-        $ticker = $this->parse_ticker($this->safe_dict($data, 0));
+        $ticker = $this->parse_ticker($this->safe_dict($data, 0, array()));
         $symbol = $ticker['symbol'];
         $messageHash = 'ticker:' . $symbol;
         $this->tickers[$symbol] = $ticker;
@@ -285,7 +285,7 @@ class hashkey extends \ccxt\async\hashkey {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -357,7 +357,7 @@ class hashkey extends \ccxt\async\hashkey {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -435,7 +435,7 @@ class hashkey extends \ccxt\async\hashkey {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         // swap
         //     {
@@ -563,7 +563,7 @@ class hashkey extends \ccxt\async\hashkey {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_my_trade(Client $client, mixed $message, $subscription = array()) {
+    public function handle_my_trade(Client $client, array $message, array $subscription = array()) {
         //
         //     {
         //         "e": "ticketInfo",
@@ -694,7 +694,7 @@ class hashkey extends \ccxt\async\hashkey {
         return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
     }
 
-    public function handle_position(Client $client, mixed $message) {
+    public function handle_position(Client $client, array $message) {
         //
         //     {
         //         "e": "outboundContractPositionInfo",
@@ -798,7 +798,7 @@ class hashkey extends \ccxt\async\hashkey {
         return Async\await($this->watch($url, $messageHash, null, $messageHash));
     }
 
-    public function set_balance_cache(Client $client, mixed $type, mixed $subscribeHash) {
+    public function set_balance_cache(Client $client, string $type, string $subscribeHash) {
         if (is_array($client->subscriptions) && array_key_exists($subscribeHash ?? '', $client->subscriptions)) {
             return;
         }
@@ -815,13 +815,13 @@ class hashkey extends \ccxt\async\hashkey {
         // without this comment, transpilation breaks for some reason...
     }
 
-    public function load_balance_snapshot(Client $client, mixed $messageHash, mixed $type) {
+    public function load_balance_snapshot(Client $client, string $messageHash, string $type) {
         return Async\async(self::do_load_balance_snapshot(...))($client, $messageHash, $type);
     }
 
-    private function do_load_balance_snapshot(Client $client, mixed $messageHash, mixed $type) {
+    private function do_load_balance_snapshot(Client $client, string $messageHash, string $type) {
         $response = Async\await($this->fetch_balance(array( 'type' => $type )));
-        $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
+        $this->balance[$type] = $this->extend($response, $this->safe_dict($this->balance, $type, array()));
         // don't remove the future from the .futures cache
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             $future = $client->futures[$messageHash];
@@ -830,7 +830,7 @@ class hashkey extends \ccxt\async\hashkey {
         }
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
         //         "e": "outboundContractAccountInfo",        // event type
@@ -871,7 +871,7 @@ class hashkey extends \ccxt\async\hashkey {
         $client->resolve($this->balance[$type], $messageHash);
     }
 
-    public function authenticate($params = array()) {
+    public function authenticate($params = array()): PromiseInterface {
         return Async\async(self::do_authenticate(...))($params);
     }
 
@@ -930,11 +930,11 @@ class hashkey extends \ccxt\async\hashkey {
         return $listenKey;
     }
 
-    public function keep_alive_listen_key(mixed $listenKey, $params = array()) {
+    public function keep_alive_listen_key(?string $listenKey, $params = array()) {
         return Async\async(self::do_keep_alive_listen_key(...))($listenKey, $params);
     }
 
-    private function do_keep_alive_listen_key(mixed $listenKey, $params = array()) {
+    private function do_keep_alive_listen_key(?string $listenKey, $params = array()) {
         if ($listenKey === null) {
             return;
         }

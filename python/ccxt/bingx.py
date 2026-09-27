@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bingx import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, Leverage, LeverageTier, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, FundingHistory, Int, Leverage, LeverageTier, Liquidation, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -117,7 +117,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchPositionHistory': True,
                 'fetchPositionMode': True,
                 'fetchPositions': True,
-                'fetchPositionsHistory': True,
+                'fetchPositionsHistory': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -726,7 +726,7 @@ class bingx(Exchange, ImplicitAPI):
                         'trailing': True,
                         'leverage': False,
                         'marketBuyRequiresPrice': False,
-                        'marketBuyByCost': True,
+                        'marketBuyByCost': False,
                         'selfTradePrevention': False,
                         'iceberg': False,
                     },
@@ -760,7 +760,7 @@ class bingx(Exchange, ImplicitAPI):
                         'untilDays': 7,
                         'trigger': False,
                         'trailing': False,
-                        'symbolRequired': True,
+                        'symbolRequired': False,
                     },
                     'fetchClosedOrders': {
                         'marginMode': False,
@@ -770,7 +770,7 @@ class bingx(Exchange, ImplicitAPI):
                         'untilDays': 7,
                         'trigger': False,
                         'trailing': False,
-                        'symbolRequired': True,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1440,
@@ -778,6 +778,7 @@ class bingx(Exchange, ImplicitAPI):
                 },
                 'defaultForInverse': {
                     'extends': 'defaultForLinear',
+                    'sandbox': False,
                     'createOrders': None,
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -792,10 +793,12 @@ class bingx(Exchange, ImplicitAPI):
                 #
                 'spot': {
                     'extends': 'defaultForLinear',
+                    'sandbox': False,
                     'fetchCurrencies': {
                         'private': True,
                     },
                     'createOrder': {
+                        'marketBuyByCost': True,
                         'triggerPriceType': None,
                         'attachedStopLossTakeProfit': None,
                         'trailing': False,
@@ -819,23 +822,11 @@ class bingx(Exchange, ImplicitAPI):
                         'extends': 'defaultForInverse',
                     },
                 },
-                'defaultForFuture': {
-                    'extends': 'defaultForLinear',
-                    'fetchOrders': None,
-                },
-                'future': {
-                    'linear': {
-                        'extends': 'defaultForFuture',
-                    },
-                    'inverse': {
-                        'extends': 'defaultForFuture',
-                    },
-                },
             },
             'rollingWindowSize': 2000.0,  # Some endpoints have a 10s window, some have a 5s window, a more complicated rate limiter is needed to accommodate for this
         })
 
-    def fetch_time(self, params={}) -> Int:
+    def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the bingx server
 
@@ -857,7 +848,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.safe_integer(data, 'serverTime')
 
-    def fetch_currencies(self, params={}) -> Currencies:
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -1163,7 +1154,7 @@ class bingx(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def fetch_markets(self, params={}) -> list[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for bingx
 
@@ -1186,7 +1177,7 @@ class bingx(Exchange, ImplicitAPI):
         swapMarkets = self.array_concat(linearSwapMarkets, inverseSwapMarkets)
         return self.array_concat(spotMarkets, swapMarkets)
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1339,7 +1330,7 @@ class bingx(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1547,8 +1538,16 @@ class bingx(Exchange, ImplicitAPI):
             # Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             # safeTrade applies contractSize when calculating inverse cost.
             amount = self.safe_string(trade, 'volume')
+        price = self.safe_string_n(trade, ['price', 'p', 'tradePrice'])
+        if (market is not None) and (market['linear'] is True) and (self.safe_string(trade, 'x') == 'TRADE'):
+            lastAmount = self.safe_string(trade, 'l')
+            lastPrice = self.safe_string(trade, 'L')
+            if (lastAmount is not None) and (lastPrice is not None):
+                # Linear WS l/L describe the last fill, not the original order's q/p.
+                amount = lastAmount
+                price = lastPrice
         return self.safe_trade({
-            'id': self.safe_string_2(trade, 'id', 't'),
+            'id': self.safe_string_n(trade, ['id', 't', 'fillId', 'tradeId']),
             'info': trade,
             'timestamp': time,
             'datetime': self.iso8601(time),
@@ -1557,7 +1556,7 @@ class bingx(Exchange, ImplicitAPI):
             'type': self.safe_string_lower(trade, 'o'),
             'side': self.parse_order_side(side),
             'takerOrMaker': takeOrMaker,
-            'price': self.safe_string_n(trade, ['price', 'p', 'tradePrice']),
+            'price': price,
             'amount': amount,
             'cost': cost,
             'fee': {
@@ -1566,7 +1565,7 @@ class bingx(Exchange, ImplicitAPI):
             },
         }, market)
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -1727,7 +1726,7 @@ class bingx(Exchange, ImplicitAPI):
             data = self.safe_dict(response, 'data', {})
         return self.parse_funding_rate(data, market)
 
-    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+    def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
         fetch the current funding rate for multiple symbols
 
@@ -1760,11 +1759,18 @@ class bingx(Exchange, ImplicitAPI):
         #         "markPrice": "16884.5",
         #         "indexPrice": "16886.9",
         #         "lastFundingRate": "0.0001",
-        #         "nextFundingTime": 1672041600000
+        #         "nextFundingTime": 1672041600000,
+        #         "fundingIntervalHours": 8,
+        #         "updateTime": 1672012800000
         #     }
         #
         marketId = self.safe_string(contract, 'symbol')
         nextFundingTimestamp = self.safe_integer(contract, 'nextFundingTime')
+        timestamp = self.safe_integer(contract, 'updateTime')
+        interval = self.safe_string(contract, 'fundingIntervalHours')
+        intervalString = None
+        if interval is not None:
+            intervalString = interval + 'h'
         return {
             'info': contract,
             'symbol': self.safe_symbol(marketId, market, '-', 'swap'),
@@ -1772,8 +1778,8 @@ class bingx(Exchange, ImplicitAPI):
             'indexPrice': self.safe_number(contract, 'indexPrice'),
             'interestRate': None,
             'estimatedSettlePrice': None,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'fundingRate': self.safe_number(contract, 'lastFundingRate'),
             'fundingTimestamp': None,
             'fundingDatetime': None,
@@ -1783,10 +1789,10 @@ class bingx(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
-            'interval': None,
+            'interval': intervalString,
         }
 
-    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -1837,7 +1843,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_funding_rate_histories(data, market, since, limit)
 
-    def parse_funding_rate_history(self, contract: object, market: Market = None):
+    def parse_funding_rate_history(self, contract: object, market: Market = None) -> FundingRateHistory:
         #
         #     {
         #         "symbol": "BTC-USDT",
@@ -1854,7 +1860,7 @@ class bingx(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:
         """
         fetches historical funding received
 
@@ -1915,7 +1921,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_incomes(data, market, since, limit)
 
-    def parse_income(self, income: object, market: Market = None):
+    def parse_income(self, income: object, market: Market = None) -> object:
         # {
         #     "symbol": "LDO-USDT",
         #     "incomeType": "FUNDING_FEE",
@@ -1940,7 +1946,7 @@ class bingx(Exchange, ImplicitAPI):
             'type': 'funding',
         }
 
-    def fetch_open_interest(self, symbol: str, params={}):
+    def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
         """
         retrieves the open interest of a trading pair
 
@@ -1998,7 +2004,7 @@ class bingx(Exchange, ImplicitAPI):
             result = self.safe_dict(response, 'data', {})
         return self.parse_open_interest(result, market)
 
-    def parse_open_interest(self, interest: object, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
         #
         # linear swap
         #
@@ -2035,7 +2041,7 @@ class bingx(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -2096,7 +2102,7 @@ class bingx(Exchange, ImplicitAPI):
         dataDict = self.safe_dict(response, 'data', {})
         return self.parse_ticker(dataDict, market)
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -2160,7 +2166,7 @@ class bingx(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'data')
         return self.parse_tickers(tickers, symbols)
 
-    def fetch_mark_price(self, symbol: str, params={}) -> Ticker:
+    def fetch_mark_price(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches mark prices for the market
 
@@ -2217,7 +2223,7 @@ class bingx(Exchange, ImplicitAPI):
             return self.parse_ticker(self.safe_dict(response['data'], 0, {}), market)
         return self.parse_ticker(response['data'], market)
 
-    def fetch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_mark_prices(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches mark prices for multiple markets
 
@@ -2375,7 +2381,7 @@ class bingx(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -2605,7 +2611,7 @@ class bingx(Exchange, ImplicitAPI):
                     result[code] = account
         return self.safe_balance(result)
 
-    def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Position]:
+    def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
         fetches historical positions
 
@@ -2667,7 +2673,7 @@ class bingx(Exchange, ImplicitAPI):
         positions = self.parse_positions(records)
         return self.filter_by_symbol_since_limit(positions, symbol, since, limit)
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -2761,7 +2767,7 @@ class bingx(Exchange, ImplicitAPI):
         positions = self.safe_list(response, 'data', [])
         return self.parse_positions(positions, symbols)
 
-    def fetch_position(self, symbol: str, params={}):
+    def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """
         fetch data on a single open contract trade position
 
@@ -2846,7 +2852,7 @@ class bingx(Exchange, ImplicitAPI):
         first = self.safe_dict(data, 0, {})
         return self.parse_position(first, market)
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         # inverse swap
         #
@@ -2967,7 +2973,7 @@ class bingx(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params: dict = {}):
+    def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params: dict = {}) -> Order:
         """
         create a spot market order by providing the symbol, side and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -2979,7 +2985,7 @@ class bingx(Exchange, ImplicitAPI):
         params['quoteOrderQty'] = cost
         return self.create_order(symbol, 'market', side, cost, None, params)
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
         create a spot market buy order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -2990,7 +2996,7 @@ class bingx(Exchange, ImplicitAPI):
         params['quoteOrderQty'] = cost
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_market_sell_order_with_cost(self, symbol: str, cost: float, params: dict = {}):
+    def create_market_sell_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
         create a spot market sell order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -3001,7 +3007,7 @@ class bingx(Exchange, ImplicitAPI):
         params['quoteOrderQty'] = cost
         return self.create_order(symbol, 'market', 'sell', cost, None, params)
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:
@@ -3068,7 +3074,7 @@ class bingx(Exchange, ImplicitAPI):
                 request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
             if triggerPrice is not None:
                 if isMarketOrder and (side == 'buy') and self.safe_string(request, 'quoteOrderQty') is None:
-                    raise ArgumentsRequired(self.id + ' createOrder() requires the cost parameter(or the amount + price) for placing spot market-buy trigger orders')
+                    raise ArgumentsRequired(self.id + ' createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders')
                 request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
                 if type == 'LIMIT':
                     request['type'] = 'TRIGGER_LIMIT'
@@ -3208,7 +3214,7 @@ class bingx(Exchange, ImplicitAPI):
         params = self.omit(params, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'clientOrderId'])
         return self.extend(request, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -3238,7 +3244,7 @@ class bingx(Exchange, ImplicitAPI):
         :param float [params.takeProfit.triggerPrice]: take profit trigger price
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
-        :param boolean [params.test]: *swap only* whether to use the test endpoint or not, default is False
+        :param boolean [params.test]: *linear swap only* whether to use the test endpoint or not, default is False
         :param str [params.positionSide]: *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
         :param boolean [params.hedged]: *swap only* whether the order is in hedged mode or one way mode
         :param bool [params.closePosition]: *swap only* True to close the entire position with a TP/SL order, in which case the quantity is not sent
@@ -3248,6 +3254,8 @@ class bingx(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         test = self.safe_bool(params, 'test', False)
+        if test and ((market['swap'] is not True) or (market['inverse'] is True)):
+            raise NotSupported(self.id + ' createOrder() only supports test orders for linear swap markets')
         params = self.omit(params, 'test')
         request = self.create_order_request(symbol, type, side, amount, price, params)
         response: dict | string
@@ -3354,7 +3362,7 @@ class bingx(Exchange, ImplicitAPI):
             result['takeProfit'] = self.parse_json(takeProfit)
         return self.parse_order(result, market)
 
-    def create_orders(self, orders: list[OrderRequest], params={}):
+    def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
         create a list of trade orders
 
@@ -3455,7 +3463,7 @@ class bingx(Exchange, ImplicitAPI):
         result = self.safe_list(data, 'orders', [])
         return self.parse_orders(result, market)
 
-    def parse_order_side(self, side: object):
+    def parse_order_side(self, side: Str) -> Str:
         sides = {
             'BUY': 'buy',
             'SELL': 'sell',
@@ -3829,7 +3837,8 @@ class bingx(Exchange, ImplicitAPI):
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': self.safe_string_2(order, 'avgPrice', 'ap'),
-            'cost': self.safe_string(order, 'cummulativeQuoteQty'),
+            # Spot WS: Z is cumulative quote amount; Y is last-fill quote amount.
+            'cost': self.safe_string_2(order, 'cummulativeQuoteQty', 'Z'),
             'amount': self.safe_string_n(order, ['origQty', 'q', 'quantity', 'totalAmount']),
             'filled': self.safe_string_2(order, 'executedQty', 'z'),
             'remaining': None,
@@ -3855,7 +3864,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -4031,7 +4040,7 @@ class bingx(Exchange, ImplicitAPI):
         order = self.safe_dict(data, 'order', data)
         return self.parse_order(order, market)
 
-    def cancel_all_orders(self, symbol: Str = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders
 
@@ -4176,7 +4185,7 @@ class bingx(Exchange, ImplicitAPI):
         orders = self.safe_list_2(data, 'success', 'orders', [])
         return self.parse_orders(orders)
 
-    def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
 
@@ -4199,7 +4208,7 @@ class bingx(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        clientOrderIds = self.safe_value(params, 'clientOrderIds')
+        clientOrderIds = self.safe_list(params, 'clientOrderIds')
         params = self.omit(params, 'clientOrderIds')
         idsToParse = ids
         areClientOrderIds = (clientOrderIds is not None)
@@ -4280,7 +4289,7 @@ class bingx(Exchange, ImplicitAPI):
         success = self.safe_list_2(data, 'success', 'orders', [])
         return self.parse_orders(success)
 
-    def cancel_all_orders_after(self, timeout: Int, params={}):
+    def cancel_all_orders_after(self, timeout: Int, params: dict = {}):
         """
         dead man's switch, cancel all orders after the given timeout
 
@@ -4326,7 +4335,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         return response
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -4499,14 +4508,14 @@ class bingx(Exchange, ImplicitAPI):
         order = self.safe_dict(data, 'order', data)
         return self.parse_order(order, market)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/All%20Orders
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history(returns less fields than above)
 
-        :param str symbol: unified market symbol of the market orders were made in
+        :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4587,7 +4596,7 @@ class bingx(Exchange, ImplicitAPI):
         orders = self.safe_list(data, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -4769,7 +4778,7 @@ class bingx(Exchange, ImplicitAPI):
         orders = self.safe_list_2(data, 'orders', 'list', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -4778,7 +4787,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
         https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
 
-        :param str symbol: unified market symbol of the closed orders
+        :param str [symbol]: unified market symbol of the closed orders
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the max number of closed orders to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4791,7 +4800,7 @@ class bingx(Exchange, ImplicitAPI):
         orders = self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')
 
-    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
@@ -4800,7 +4809,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
         https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
 
-        :param str symbol: unified market symbol of the canceled orders
+        :param str [symbol]: unified market symbol of the canceled orders
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the max number of canceled orders to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4813,7 +4822,7 @@ class bingx(Exchange, ImplicitAPI):
         orders = self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'canceled')
 
-    def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -4849,6 +4858,12 @@ class bingx(Exchange, ImplicitAPI):
         if standard:
             response = self.contractV1PrivateGetAllOrders(self.extend(request, params))
         elif type == 'spot':
+            if since is not None:
+                request['startTime'] = since
+            until = self.safe_integer_2(params, 'until', 'till')
+            if until is not None:
+                request['endTime'] = until
+            params = self.omit(params, ['until', 'till'])
             if limit is not None:
                 request['pageSize'] = limit
             response = self.spotV1PrivateGetTradeHistoryOrders(self.extend(request, params))
@@ -5005,7 +5020,7 @@ class bingx(Exchange, ImplicitAPI):
         orders = self.safe_list_2(data, 'orders', 'list', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
 
@@ -5067,7 +5082,7 @@ class bingx(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -5162,7 +5177,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> DepositAddresses:
+    def fetch_deposit_addresses_by_network(self, code: str, params: dict = {}) -> DepositAddresses:
         """
         fetch the deposit addresses for a currency associated with self account
 
@@ -5206,7 +5221,7 @@ class bingx(Exchange, ImplicitAPI):
         parsed = self.parse_deposit_addresses(data, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
-    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -5265,7 +5280,7 @@ class bingx(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -5311,7 +5326,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -5407,7 +5422,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         # parse withdraw-type output first...
         #
-        data = self.safe_value(transaction, 'data')
+        data = self.safe_dict(transaction, 'data')
         dataId = None if (data is None) else self.safe_string(data, 'id')
         id = self.safe_string(transaction, 'id', dataId)
         address = self.safe_string(transaction, 'address')
@@ -5471,7 +5486,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params: dict = {}):
         """
         set margin mode to 'cross' or 'isolated'
 
@@ -5506,19 +5521,19 @@ class bingx(Exchange, ImplicitAPI):
         else:
             return self.swapV2PrivatePostTradeMarginType(self.extend(request, params))
 
-    def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         request = {
             'type': 1,
         }
         return self.set_margin(symbol, amount, self.extend(request, params))
 
-    def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    def reduce_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         request = {
             'type': 2,
         }
         return self.set_margin(symbol, amount, self.extend(request, params))
 
-    def set_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    def set_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         Either adds or reduces margin in an isolated position in order to set the margin to a specific value
 
@@ -5531,9 +5546,9 @@ class bingx(Exchange, ImplicitAPI):
         """
         type = self.safe_integer(params, 'type')  # 1 increase margin 2 decrease margin
         if type is None:
-            raise ArgumentsRequired(self.id + ' setMargin() requires a type parameter either 1(increase margin) or 2(decrease margin)')
+            raise ArgumentsRequired(self.id + ' setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)')
         if not self.in_array(type, [1, 2]):
-            raise ArgumentsRequired(self.id + ' setMargin() requires a type parameter either 1(increase margin) or 2(decrease margin)')
+            raise ArgumentsRequired(self.id + ' setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)')
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -5576,7 +5591,7 @@ class bingx(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+    def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:
         """
         fetch the set leverage for a market
 
@@ -5673,7 +5688,7 @@ class bingx(Exchange, ImplicitAPI):
             'shortLeverage': self.safe_integer(leverage, 'shortLeverage'),
         }
 
-    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}):
         """
         set the level of leverage for a market
 
@@ -5736,7 +5751,7 @@ class bingx(Exchange, ImplicitAPI):
             #     }
             #
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -5869,7 +5884,7 @@ class bingx(Exchange, ImplicitAPI):
                 #
         return self.parse_trades(fills, market, since, limit, params)
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
         #
         # currencie structure
         #
@@ -5901,7 +5916,7 @@ class bingx(Exchange, ImplicitAPI):
                     result['withdraw']['percentage'] = False
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -5923,7 +5938,7 @@ class bingx(Exchange, ImplicitAPI):
                 depositWithdrawFees[code] = self.parse_deposit_withdraw_fee(entry)
         return depositWithdrawFees
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -5976,7 +5991,7 @@ class bingx(Exchange, ImplicitAPI):
         #    }
         return self.parse_transaction(data)
 
-    def parse_params(self, params: object):
+    def parse_params(self, params: dict) -> dict:
         # const sortedParams = this.keysort (params);
         copied = self.clone(params)
         rawKeys = list(params.keys())
@@ -5995,7 +6010,7 @@ class bingx(Exchange, ImplicitAPI):
                 copied[key] = arrStr
         return copied
 
-    def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
         """
         retrieves the users liquidated positions
 
@@ -6092,7 +6107,7 @@ class bingx(Exchange, ImplicitAPI):
             liquidations = self.safe_list(data, 'orders', [])
         return self.parse_liquidations(liquidations, market, since, limit)
 
-    def parse_liquidation(self, liquidation: object, market: Market = None):
+    def parse_liquidation(self, liquidation: object, market: Market = None) -> Liquidation:
         #
         #     {
         #         "time": "int64",
@@ -6133,7 +6148,7 @@ class bingx(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         })
 
-    def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
+    def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
         """
         closes open positions for a market
 
@@ -6205,7 +6220,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def close_all_positions(self, params={}) -> list[Position]:
+    def close_all_positions(self, params: dict = {}) -> list[Position]:
         """
         closes open positions for a market
 
@@ -6225,7 +6240,7 @@ class bingx(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('closeAllPositions', None, params)
         if marketType == 'margin':
-            raise BadRequest(self.id + ' closePositions() cannot be used for ' + marketType + ' markets')
+            raise BadRequest(self.id + ' closePositions () cannot be used for ' + marketType + ' markets')
         request = {
             'recvWindow': recvWindow,
         }
@@ -6266,7 +6281,7 @@ class bingx(Exchange, ImplicitAPI):
             positions.append(position)
         return positions
 
-    def fetch_position_mode(self, symbol: Str = None, params={}) -> PositionModeInfo:
+    def fetch_position_mode(self, symbol: Str = None, params: dict = {}) -> PositionModeInfo:
         """
         fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
 
@@ -6302,7 +6317,7 @@ class bingx(Exchange, ImplicitAPI):
             'hedged': (dualSidePosition == 'true'),
         }
 
-    def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
+    def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}):
         """
         set hedged to True or False for a market
 
@@ -6339,7 +6354,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         return self.swapV1PrivatePostPositionSideDual(self.extend(request, params))
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         cancels an order and places a new order
 
@@ -6478,7 +6493,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
+    def fetch_margin_mode(self, symbol: str, params: dict = {}) -> MarginMode:
         """
         fetches the margin mode of the trading pair
 
@@ -6535,7 +6550,7 @@ class bingx(Exchange, ImplicitAPI):
             'marginMode': marginType,
         }
 
-    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+    def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
 
@@ -6619,7 +6634,7 @@ class bingx(Exchange, ImplicitAPI):
             'tierBased': False,
         }
 
-    def custom_encode(self, params: object):
+    def custom_encode(self, params: dict) -> Str:
         # const sortedParams = this.keysort (params);
         rawKeys = list(params.keys())
         keys = self.sort(rawKeys)
@@ -6651,7 +6666,7 @@ class bingx(Exchange, ImplicitAPI):
                 result += '&' + key + '=' + value
         return result
 
-    def fetch_market_leverage_tiers(self, symbol: str, params={}) -> list[LeverageTier]:
+    def fetch_market_leverage_tiers(self, symbol: str, params: dict = {}) -> list[LeverageTier]:
         """
         retrieve information on the maximum leverage, for different trade sizes for a single market
 
@@ -6724,7 +6739,7 @@ class bingx(Exchange, ImplicitAPI):
             })
         return tiers
 
-    def sign(self, path: object, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         type = section[0]
         version = section[1]
         access = section[2]
@@ -6780,7 +6795,7 @@ class bingx(Exchange, ImplicitAPI):
                 url += '?' + query + '&' + 'signature=' + signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds()
 
     def set_sandbox_mode(self, enable: bool):

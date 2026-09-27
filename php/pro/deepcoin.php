@@ -98,7 +98,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         ));
     }
 
-    public function ping(Client $client) {
+    public function ping(Client $client): ?string {
         $url = $client->url;
         if (mb_strpos($url, 'private') !== false) {
             $client->lastPong = $this->milliseconds();
@@ -107,7 +107,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return 'ping';
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
@@ -310,7 +310,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return Async\await($this->un_watch_public($market, $messageHash, '7', $params, $subscription));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     a: 'PO',
         //     m: 'Success',
@@ -467,7 +467,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return Async\await($this->un_watch_public($market, $messageHash, '2', $params, $subscription));
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
         //         "a": "PMT",
@@ -649,7 +649,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return Async\await($this->un_watch_public($market, $messageHash, '11', $params, $subscription, $suffix));
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
         //         "a": "PK",
@@ -802,7 +802,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return array( '_' . $aggregation, $params );
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
         //         "a": "PMO",
@@ -845,7 +845,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         }
     }
 
-    public function handle_order_book_snapshot(Client $client, mixed $message) {
+    public function handle_order_book_snapshot(Client $client, array $message) {
         $entries = $this->safe_list($message, 'r', array());
         $first = $this->safe_dict($entries, 0, array());
         $data = $this->safe_dict($first, 'd', array());
@@ -884,7 +884,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_order_book_message(Client $client, mixed $message, mixed $orderbook) {
+    public function handle_order_book_message(Client $client, array $message, mixed $orderbook) {
         //     {
         //         "a": "PMO",
         //         "t": "i", // i - update, f - snapshot
@@ -956,7 +956,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
-    public function handle_my_trade(Client $client, mixed $message) {
+    public function handle_my_trade(Client $client, array $message) {
         //
         //     {
         //         "action": "PushTrade",
@@ -1039,7 +1039,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //     {
         //         "action": "PushOrder",
@@ -1090,7 +1090,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         }
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null): array {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         //     {
         //         "D": "0",
@@ -1194,7 +1194,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
     }
 
-    public function handle_position(Client $client, mixed $message) {
+    public function handle_position(Client $client, array $message) {
         //
         //     {
         //         "action": "PushPosition",
@@ -1339,7 +1339,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         }
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message) {
         //
         //     {
         //         "a": "RecvTopicAction",
@@ -1379,7 +1379,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $this->clean_cache($subscription);
     }
 
-    public function handle_error_message(Client $client, mixed $message) {
+    public function handle_error_message(Client $client, array $message) {
         //
         //     {
         //         "a": "RecvTopicAction",

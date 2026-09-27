@@ -261,7 +261,7 @@ export default class hyperliquid extends hyperliquidRest {
         const subMessageHash = 'orderbook:' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const url = this.urls['api']['ws']['public'];
-        const id = this.nonce().toString();
+        const id = this.incrementingNonce().toString();
         const request = {
             'id': id,
             'method': 'unsubscribe',
@@ -1085,7 +1085,7 @@ export default class hyperliquid extends hyperliquidRest {
         if (this.balance === undefined) {
             this.balance = {};
         }
-        const topic = this.safeValue(message, 'channel');
+        const topic = this.safeString(message, 'channel');
         const messageHash = topic + '::balance';
         let info = undefined;
         let rawBalances = [];

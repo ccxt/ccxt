@@ -86,7 +86,7 @@ class pacifica extends \ccxt\async\pacifica {
         $this->options['ws']['options']['headers'] = $headers;
     }
 
-    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order_ws(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -177,7 +177,7 @@ class pacifica extends \ccxt\async\pacifica {
         return $this->safe_order(array( 'id' => $orderId, 'clientOrderId' => $clientOrderId, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
     }
 
-    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order_ws(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -241,7 +241,7 @@ class pacifica extends \ccxt\async\pacifica {
         return $this->safe_order(array( 'id' => $orderId, 'clientOrderId' => $clientOrderId, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
     }
 
-    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders_ws(...))($ids, $symbol, $params);
     }
 
@@ -321,7 +321,7 @@ class pacifica extends \ccxt\async\pacifica {
         return $ordersToReturn;
     }
 
-    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order_ws(...))($id, $symbol, $params);
     }
 
@@ -386,7 +386,7 @@ class pacifica extends \ccxt\async\pacifica {
         return $this->safe_order(array( 'id' => $orderId, 'clientOrderId' => $clientOrderId, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
     }
 
-    public function cancel_all_orders_ws(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders_ws(...))($symbol, $params);
     }
 
@@ -511,7 +511,7 @@ class pacifica extends \ccxt\async\pacifica {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function handle_order_book(mixed $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // {
         //   "channel": "book",
@@ -739,7 +739,7 @@ class pacifica extends \ccxt\async\pacifica {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function handle_ws_tickers(Client $client, mixed $message): bool {
+    public function handle_ws_tickers(Client $client, array $message): bool {
         //
         // {
         //     "channel": "prices",
@@ -776,11 +776,11 @@ class pacifica extends \ccxt\async\pacifica {
         return true;
     }
 
-    public function parse_ws_ticker(mixed $rawTicker, ?array $market = null): array {
+    public function parse_ws_ticker(array $rawTicker, ?array $market = null): array {
         return $this->parse_ticker($rawTicker, $market);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, array $message) {
         //
         // {
         //   "channel": "account_trades",
@@ -910,7 +910,7 @@ class pacifica extends \ccxt\async\pacifica {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         // {
         //   "channel": "trades",
@@ -1108,7 +1108,7 @@ class pacifica extends \ccxt\async\pacifica {
         return Async\await($this->watch($url, $messagehash, $message, $messagehash));
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         // {
         //   "channel": "candle",
@@ -1137,7 +1137,7 @@ class pacifica extends \ccxt\async\pacifica {
         if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        $symbolOhlcvs = $this->safe_value($this->ohlcvs, $symbol, array());
+        $symbolOhlcvs = $this->safe_dict($this->ohlcvs, $symbol, array());
         $ohlcv = $this->safe_value($symbolOhlcvs, $timeframe);
         if ($ohlcv === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -1235,7 +1235,7 @@ class pacifica extends \ccxt\async\pacifica {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         // not snapshot, only updates
         // {
         //   "channel": "account_order_updates",
@@ -1293,7 +1293,7 @@ class pacifica extends \ccxt\async\pacifica {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         // 'rl' key is present only when a rate-limited API key is used
         // {"id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":{"r":1245,"q":1250,"t":56}}
@@ -1387,7 +1387,7 @@ class pacifica extends \ccxt\async\pacifica {
         $this->clean_cache($topicStructure);
     }
 
-    public function handle_subscription_response(Client $client, mixed $message) {
+    public function handle_subscription_response(Client $client, array $message) {
         //  {
         //      "channel": "subscribe",
         //      "data": {
@@ -1484,7 +1484,7 @@ class pacifica extends \ccxt\async\pacifica {
         );
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         //
         //   {
         //       "channel": "pong"

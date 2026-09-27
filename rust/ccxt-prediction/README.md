@@ -16,4 +16,12 @@ let ticker = exchange.fetch_ticker("KXBTCD", Params::none()).await?;
 For spot/derivatives exchanges see [`ccxt`](https://crates.io/crates/ccxt); for WebSocket
 support see [`ccxt-pro`](https://crates.io/crates/ccxt-pro).
 
+Every venue is behind a cargo feature named after its id; the default `all` compiles every
+one. To keep build time and memory down, disable the defaults and list what you use — the
+same feature names work on every ccxt crate, so keep the lists in sync:
+
+```toml
+ccxt-prediction = { version = "4", default-features = false, features = ["polymarket", "kalshi"] }
+```
+
 Documentation: <https://docs.ccxt.com> · Manual: <https://github.com/ccxt/ccxt/wiki>

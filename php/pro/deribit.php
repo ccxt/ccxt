@@ -117,7 +117,7 @@ class deribit extends \ccxt\async\deribit {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         // subscription
         //     {
@@ -161,8 +161,8 @@ class deribit extends \ccxt\async\deribit {
         //         }
         //     }
         //
-        $params = $this->safe_value($message, 'params', array());
-        $data = $this->safe_value($params, 'data', array());
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_dict($params, 'data', array());
         $this->balance['info'] = $data;
         $currencyId = $this->safe_string($data, 'currency');
         $currencyCode = $this->safe_currency_code($currencyId);
@@ -266,7 +266,7 @@ class deribit extends \ccxt\async\deribit {
         return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -296,8 +296,8 @@ class deribit extends \ccxt\async\deribit {
         //         }
         //     }
         //
-        $params = $this->safe_value($message, 'params', array());
-        $data = $this->safe_value($params, 'data', array());
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_dict($params, 'data', array());
         $marketId = $this->safe_string($data, 'instrument_name');
         $symbol = $this->safe_symbol($marketId);
         $ticker = $this->parse_ticker($data);
@@ -348,7 +348,7 @@ class deribit extends \ccxt\async\deribit {
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
     }
 
-    public function handle_bid_ask(Client $client, mixed $message) {
+    public function handle_bid_ask(Client $client, array $message) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -375,7 +375,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve($ticker, $messageHash);
     }
 
-    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(array $ticker, ?array $market = null): array {
         $marketId = $this->safe_string($ticker, 'instrument_name');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_string($market, 'symbol');
@@ -443,7 +443,7 @@ class deribit extends \ccxt\async\deribit {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -473,7 +473,7 @@ class deribit extends \ccxt\async\deribit {
         $symbol = $this->safe_symbol($marketId);
         $market = $this->safe_market($marketId);
         $trades = $this->safe_list($params, 'data', array());
-        if ($this->safe_value($this->trades, $symbol) === null) {
+        if ($this->safe_dict($this->trades, $symbol) === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->trades[$symbol] = new ArrayCache($limit);
         }
@@ -527,7 +527,7 @@ class deribit extends \ccxt\async\deribit {
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, array $message) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -560,9 +560,9 @@ class deribit extends \ccxt\async\deribit {
         //         }
         //     }
         //
-        $params = $this->safe_value($message, 'params', array());
+        $params = $this->safe_dict($message, 'params', array());
         $channel = $this->safe_string($params, 'channel', '');
-        $trades = $this->safe_value($params, 'data', array());
+        $trades = $this->safe_list($params, 'data', array());
         $cachedTrades = $this->myTrades;
         if ($cachedTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -635,7 +635,7 @@ class deribit extends \ccxt\async\deribit {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //  snapshot
         //     {
@@ -681,8 +681,8 @@ class deribit extends \ccxt\async\deribit {
         //         }
         //     }
         //
-        $params = $this->safe_value($message, 'params', array());
-        $data = $this->safe_value($params, 'data', array());
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_dict($params, 'data', array());
         $channel = $this->safe_string($params, 'channel');
         $parts = explode('.', $channel);
         $descriptor = '';
@@ -717,7 +717,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve($storedOrderBook, $messageHash);
     }
 
-    public function clean_order_book(mixed $data) {
+    public function clean_order_book(array $data): array {
         $bids = $this->safe_list($data, 'bids', array());
         $asks = $this->safe_list($data, 'asks', array());
         $cleanedBids = array();
@@ -794,7 +794,7 @@ class deribit extends \ccxt\async\deribit {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_orders(Client $client, mixed $message) {
+    public function handle_orders(Client $client, array $message) {
         // Does not return a snapshot of current orders
         //
         //     {
@@ -833,7 +833,7 @@ class deribit extends \ccxt\async\deribit {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById($limit);
         }
-        $params = $this->safe_value($message, 'params', array());
+        $params = $this->safe_dict($message, 'params', array());
         $channel = $this->safe_string($params, 'channel', '');
         $data = $this->safe_value($params, 'data', array());
         $orders = array();
@@ -903,7 +903,7 @@ class deribit extends \ccxt\async\deribit {
         return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -933,7 +933,7 @@ class deribit extends \ccxt\async\deribit {
         $timeframes = $this->safe_dict($wsOptions, 'timeframes', array());
         $unifiedTimeframe = $this->find_timeframe($rawTimeframe, $timeframes);
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
-        if ($this->safe_value($this->ohlcvs[$symbol], $unifiedTimeframe) === null) {
+        if ($this->safe_dict($this->ohlcvs[$symbol], $unifiedTimeframe) === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $this->ohlcvs[$symbol][$unifiedTimeframe] = new ArrayCacheByTimestamp($limit);
         }
@@ -1022,7 +1022,7 @@ class deribit extends \ccxt\async\deribit {
         return Async\await($this->watch_multiple($url, $messageHashes, $extendedRequest, $rawSubscriptions));
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         //
         // error
         //     {
@@ -1086,7 +1086,7 @@ class deribit extends \ccxt\async\deribit {
         if ($error !== null) {
             throw new ExchangeError($this->id . ' ' . $this->json($error));
         }
-        $params = $this->safe_value($message, 'params');
+        $params = $this->safe_dict($message, 'params');
         $channel = $this->safe_string($params, 'channel');
         if ($channel !== null) {
             $parts = explode('.', $channel);
@@ -1111,14 +1111,14 @@ class deribit extends \ccxt\async\deribit {
             }
             throw new NotSupported($this->id . ' no $handler found for this $message ' . $this->json($message));
         }
-        $result = $this->safe_value($message, 'result', array());
+        $result = $this->safe_dict($message, 'result', array());
         $accessToken = $this->safe_string($result, 'access_token');
         if ($accessToken !== null) {
             $this->handle_authentication_message($client, $message);
         }
     }
 
-    public function handle_authentication_message(Client $client, mixed $message) {
+    public function handle_authentication_message(Client $client, array $message): array {
         //
         //     {
         //         "jsonrpc": "2.0",

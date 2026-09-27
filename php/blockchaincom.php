@@ -327,7 +327,7 @@ class blockchaincom extends Exchange {
         $result = array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $market = $this->safe_value($markets, $marketId);
+            $market = $this->safe_dict($markets, $marketId);
             $baseId = $this->safe_string($market, 'base_currency');
             $quoteId = $this->safe_string($market, 'counter_currency');
             $base = $this->safe_currency_code($baseId);
@@ -433,7 +433,7 @@ class blockchaincom extends Exchange {
         return $this->fetch_l3_order_book($symbol, $limit, $params);
     }
 
-    public function fetch_l3_order_book(string $symbol, ?int $limit = null, $params = array()) {
+    public function fetch_l3_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -549,7 +549,7 @@ class blockchaincom extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function parse_order_state(mixed $state) {
+    public function parse_order_state(?string $state): ?string {
         $states = array(
             'OPEN' => 'open',
             'REJECTED' => 'rejected',
@@ -618,7 +618,7 @@ class blockchaincom extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -686,7 +686,7 @@ class blockchaincom extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -707,7 +707,7 @@ class blockchaincom extends Exchange {
         ));
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders
          *
@@ -776,7 +776,7 @@ class blockchaincom extends Exchange {
         return $result;
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple canceled orders made by the user
          *
@@ -824,7 +824,7 @@ class blockchaincom extends Exchange {
         return $this->fetch_orders_by_state($state, $symbol, $since, $limit, $params);
     }
 
-    public function fetch_orders_by_state(mixed $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+    public function fetch_orders_by_state(string $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -890,7 +890,7 @@ class blockchaincom extends Exchange {
         ), $market);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all $trades made by the user
          *
@@ -954,7 +954,7 @@ class blockchaincom extends Exchange {
         );
     }
 
-    public function parse_transaction_state(mixed $state) {
+    public function parse_transaction_state(?string $state): ?string {
         $states = array(
             'COMPLETED' => 'ok', //
             'REJECTED' => 'failed',
@@ -1210,7 +1210,7 @@ class blockchaincom extends Exchange {
         //         ]
         //     }
         //
-        $balances = $this->safe_value($response, $accountName);
+        $balances = $this->safe_list($response, $accountName);
         if ($balances === null) {
             throw new ExchangeError($this->id . ' fetchBalance() could not find the "' . $accountName . '" account');
         }
@@ -1227,7 +1227,7 @@ class blockchaincom extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -1268,7 +1268,7 @@ class blockchaincom extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $requestPath = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $requestPath;
         $query = $this->omit($params, $this->extract_params($path));

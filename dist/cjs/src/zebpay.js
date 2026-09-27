@@ -483,7 +483,7 @@ class zebpay extends zebpay$1["default"] {
         }
         const market = this.market(symbol);
         let response = undefined;
-        let data;
+        let data = undefined;
         const request = {
             'symbol': market['id'],
         };
@@ -575,7 +575,7 @@ class zebpay extends zebpay$1["default"] {
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-order-book
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
@@ -587,11 +587,11 @@ class zebpay extends zebpay$1["default"] {
         const request = {
             'symbol': market['id'],
         };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         let response = undefined;
         if (market['spot'] === true) {
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
             //
             //       {
             //         "asks": [
@@ -710,9 +710,11 @@ class zebpay extends zebpay$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch. Swap: 1–1000, omit for 1000
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch (inclusive). Swap: requires since
      * @param {int} [params.endtime] the latest time in ms to fetch orders for
+     * @param {string} [params.priceType] *swap only* LTP (default) or MARK_PRICE
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -720,42 +722,43 @@ class zebpay extends zebpay$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (limit === undefined) {
-            limit = 100; // default is 200
-        }
         const request = {
             'symbol': market['id'],
         };
-        if (market['spot'] === true) {
-            request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
-        }
-        else {
-            request['interval'] = timeframe;
-        }
-        if ((market['contract'] === true) && (limit !== undefined)) {
-            request['limit'] = limit;
-        }
-        if (since !== undefined) {
-            if (market['spot'] === true) {
-                request['startTime'] = since;
-            }
-            else {
-                request['since'] = since;
-            }
-        }
         const until = this.safeInteger2(params, 'until', 'endtime');
-        if (until !== undefined) {
-            request['endTime'] = until;
-            params = this.omit(params, ['endtime', 'until']);
-        }
+        params = this.omit(params, ['until', 'endtime', 'endTime', 'interval', 'startTime']);
         let response = undefined;
         if (market['spot'] === true) {
+            if (limit === undefined) {
+                limit = 100;
+            }
+            request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+            if (until !== undefined) {
+                request['endTime'] = until;
+            }
             if (until === undefined || since === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchOHLCV() requires a both a since and until/endtime parameter for spot markets');
             }
+            params = this.omit(params, 'priceType');
             response = await this.publicSpotGetV2MarketKlines(this.extend(request, params));
         }
         else {
+            request['timeframe'] = timeframe;
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            if (since !== undefined) {
+                request['since'] = since;
+            }
+            if (until !== undefined) {
+                if (since === undefined) {
+                    throw new errors.ArgumentsRequired(this.id + ' fetchOHLCV() requires a since argument when params["until"] is used');
+                }
+                request['until'] = until;
+            }
             response = await this.publicSwapPostV1MarketKlines(this.extend(request, params));
         }
         //
@@ -1897,7 +1900,6 @@ class zebpay extends zebpay$1["default"] {
         //         "status": "ok"
         //    }
         //
-        const timestamp = this.milliseconds();
         return {
             'info': info,
             'symbol': this.safeString(market, 'id'),
@@ -1907,8 +1909,8 @@ class zebpay extends zebpay$1["default"] {
             'total': undefined,
             'code': this.safeString(info, 'code'),
             'status': this.safeString(info, 'status'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1930,6 +1932,11 @@ class zebpay extends zebpay$1["default"] {
                 }
             }
             else {
+                const priceType = this.safeString(params, 'priceType');
+                params = this.omit(params, 'priceType');
+                if (priceType !== undefined) {
+                    url += '?' + this.urlencode({ 'priceType': priceType });
+                }
                 body = JSON.stringify(params);
                 headers = {
                     'Referrer': 'ccxt',

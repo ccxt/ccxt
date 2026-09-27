@@ -75,7 +75,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrdersWs (orders: OrderRequest[], params = {}) {
+    override async createOrdersWs (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -111,7 +111,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -146,7 +146,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrderWs (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrderWs (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -179,7 +179,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.vaultAddress] the vault address for order cancellation
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrdersWs (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         this.checkRequiredCredentials ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -216,7 +216,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.vaultAddress] the vault address for order cancellation
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrderWs (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const orders = await this.cancelOrdersWs ([ id ], symbol, params);
         return this.safeDict (orders, 0) as Order;
     }
@@ -231,7 +231,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -270,7 +270,7 @@ export default class hyperliquid extends hyperliquidRest {
         const subMessageHash = 'orderbook:' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const url = this.urls['api']['ws']['public'];
-        const id = this.nonce ().toString ();
+        const id = this.incrementingNonce ().toString ();
         const request: Dict = {
             'id': id,
             'method': 'unsubscribe',
@@ -283,7 +283,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleOrderBook (client: any, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "l2Book",
@@ -340,7 +340,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -404,7 +404,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -479,7 +479,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         let userAddress: Str = undefined;
         const userAddressResult = this.handlePublicAddress ('watchMyTrades', params);
         userAddress = this.safeString (userAddressResult, 0);
@@ -548,7 +548,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleWsTickers (client: Client, message: any): boolean {
+    handleWsTickers (client: Client, message: Dict): boolean {
         // hip3 mids
         // {
         //     channel: 'allMids',
@@ -588,7 +588,7 @@ export default class hyperliquid extends hyperliquidRest {
         return true;
     }
 
-    handleActiveAssetCtx (client: Client, message: any): boolean {
+    handleActiveAssetCtx (client: Client, message: Dict): boolean {
         //
         //     {
         //         "channel": "activeAssetCtx",
@@ -628,7 +628,7 @@ export default class hyperliquid extends hyperliquidRest {
         return this.parseTicker (rawTicker, market);
     }
 
-    handleMyTrades (client: Client, message: any) {
+    handleMyTrades (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "userFills",
@@ -697,7 +697,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -750,7 +750,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "trades",
@@ -868,7 +868,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -924,7 +924,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messagehash, message, messagehash);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         channel: 'candle',
@@ -988,7 +988,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1070,7 +1070,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict) {
         //
         // spot
         // {
@@ -1126,7 +1126,7 @@ export default class hyperliquid extends hyperliquidRest {
         if (this.balance === undefined) {
             this.balance = {};
         }
-        const topic = this.safeValue (message, 'channel');
+        const topic = this.safeString (message, 'channel');
         const messageHash = topic + '::balance';
         let info: NullableDict = undefined;
         let rawBalances: any[] = [];
@@ -1160,7 +1160,7 @@ export default class hyperliquid extends hyperliquidRest {
         client.resolve (this.balance[(account as string)], messageHash);
     }
 
-    parseWsBalance (balance: any, accountType: Str = undefined) {
+    parseWsBalance (balance: Dict, accountType: Str = undefined) {
         //
         // spot
         //     {
@@ -1230,7 +1230,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1279,7 +1279,7 @@ export default class hyperliquid extends hyperliquidRest {
         this.positions = new ArrayCacheBySymbolBySide ();
     }
 
-    handlePositions (client: any, message: any) {
+    handlePositions (client: Client, message: Dict) {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
@@ -1357,7 +1357,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1434,7 +1434,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleOrder (client: Client, message: any) {
+    handleOrder (client: Client, message: Dict) {
         //
         //     {
         //         channel: 'orderUpdates',
@@ -1483,7 +1483,7 @@ export default class hyperliquid extends hyperliquidRest {
         client.resolve (stored, messageHash);
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //    {
         //      "channel": "post",
@@ -1711,7 +1711,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
-    handleSubscriptionResponse (client: Client, message: any) {
+    handleSubscriptionResponse (client: Client, message: Dict) {
         // {
         //     "channel":"subscriptionResponse",
         //     "data":{
@@ -1763,7 +1763,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         //
         // {
         //     "channel":"subscriptionResponse",
@@ -1813,13 +1813,13 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
-    override ping (client: Client) {
+    override ping (client: Client): Dict {
         return {
             'method': 'ping',
         };
     }
 
-    handlePong (client: Client, message: any) {
+    handlePong (client: Client, message: Dict): Dict {
         //
         //   {
         //       "channel": "pong"

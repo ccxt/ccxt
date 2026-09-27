@@ -19,7 +19,7 @@ import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBag
 import { JAVA_STRING_PARAM_POSITIONS } from './java-local-types.js';
 import { typedReturnTable } from './javaTypedCore.js';
 import type { JavaTier } from './javaTypedCore.js';
-import { applyJavaImports } from './javaUtilImports.js';
+import { applyJavaImports, nativeTypedList } from './javaUtilImports.js';
 
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
 const BASE_PKG = './java/lib/src/main/java/io/github/ccxt/';
@@ -297,7 +297,7 @@ function coreReturnType(m: MethodInfo, table: Map<string, MethodInfo>): string {
 
 // Conversion of an untyped core result; only the SURFACE_ONLY names still need one.
 function genReturnExpr(m: MethodInfo): string {
-    if (m.isArray && m.elementType) return `Helpers.toTypedList(res, ${m.elementType}::new)`;
+    if (m.isArray && m.elementType) return nativeTypedList(m.elementType);
     if (m.javaReturnType === 'Object') return 'res';
     if (m.javaReturnType === 'Long') return '(res instanceof Number n) ? n.longValue() : null';
     if (m.javaReturnType === 'Double') return '(res instanceof Number n) ? n.doubleValue() : null';
@@ -308,7 +308,7 @@ function genReturnExpr(m: MethodInfo): string {
 }
 
 function genAsyncReturnExpr(m: MethodInfo): string {
-    if (m.isArray && m.elementType) return `res -> Helpers.toTypedList(res, ${m.elementType}::new)`;
+    if (m.isArray && m.elementType) return `res -> ${nativeTypedList(m.elementType)}`;
     if (m.javaReturnType === 'Object') return 'res -> res';
     if (m.javaReturnType === 'Long') return 'res -> (res instanceof Number n) ? n.longValue() : null';
     if (m.javaReturnType === 'Double') return 'res -> (res instanceof Number n) ? n.doubleValue() : null';

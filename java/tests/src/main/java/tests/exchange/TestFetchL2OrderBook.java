@@ -15,7 +15,7 @@ public class TestFetchL2OrderBook extends BaseTest {
     public CompletableFuture<Object> testFetchL2OrderBook(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchL2OrderBook";
         Object orderBook = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchL2OrderBook", new Object[]{symbol})).join();

@@ -1148,8 +1148,8 @@ class bigone extends Exchange {
     }
 
     public function parse_contract_order_book(array $orderbook, string $symbol, ?int $limit = null): array {
-        $responseBids = $this->safe_value($orderbook, 'bids');
-        $responseAsks = $this->safe_value($orderbook, 'asks');
+        $responseBids = $this->safe_dict($orderbook, 'bids');
+        $responseAsks = $this->safe_dict($orderbook, 'asks');
         $bids = $this->parse_contract_bids_asks($responseBids);
         $asks = $this->parse_contract_bids_asks($responseAsks);
         return array(
@@ -1593,7 +1593,7 @@ class bigone extends Exchange {
         ), $market);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): PromiseInterface {
         return Async\async(self::do_create_market_buy_order_with_cost(...))($symbol, $cost, $params);
     }
 
@@ -1619,7 +1619,7 @@ class bigone extends Exchange {
         return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1735,7 +1735,7 @@ class bigone extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1771,7 +1771,7 @@ class bigone extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -1828,7 +1828,7 @@ class bigone extends Exchange {
         return $result;
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -1910,7 +1910,7 @@ class bigone extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -2032,12 +2032,12 @@ class bigone extends Exchange {
         return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
     }
 
-    public function nonce() {
+    public function nonce(): float {
         $exchangeTimeCorrection = $this->safe_integer($this->options, 'exchangeMillisecondsCorrection', 0) * 1000000;
         return $this->sum($this->microseconds() * 1000, $exchangeTimeCorrection);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $query = $this->omit($params, $this->extract_params($path));
         $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);

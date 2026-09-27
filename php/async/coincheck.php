@@ -383,7 +383,7 @@ class coincheck extends Exchange {
             $market = $this->market($symbol);
         }
         $response = Async\await($this->privateGetExchangeOrdersOpens($params));
-        $rawOrders = $this->safe_value($response, 'orders', array());
+        $rawOrders = $this->safe_list($response, 'orders', array());
         $parsedOrders = $this->parse_orders($rawOrders, $market, $since, $limit);
         $result = array();
         for ($i = 0; $i < count($parsedOrders); $i++) {
@@ -596,7 +596,7 @@ class coincheck extends Exchange {
             } elseif ($this->safe_string($trade, 'liquidity') === 'M') {
                 $takerOrMaker = 'maker';
             }
-            $funds = $this->safe_value($trade, 'funds', array());
+            $funds = $this->safe_dict($trade, 'funds', array());
             $amountString = $this->safe_string($funds, $baseId);
             $costString = $this->safe_string($funds, $quoteId);
             $fee = array(
@@ -626,7 +626,7 @@ class coincheck extends Exchange {
         ), $market);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -754,7 +754,7 @@ class coincheck extends Exchange {
         //         }
         //     }
         //
-        $fees = $this->safe_value($response, 'exchange_fees', array());
+        $fees = $this->safe_dict($response, 'exchange_fees', array());
         $result = array();
         $symbols = $this->symbols;
         if ($symbols === null) {
@@ -763,7 +763,7 @@ class coincheck extends Exchange {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $fee = $this->safe_value($fees, $market['id'], array());
+            $fee = $this->safe_dict($fees, $market['id'], array());
             $result[$symbol] = array(
                 'info' => $fee,
                 'symbol' => $symbol,
@@ -776,7 +776,7 @@ class coincheck extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -826,7 +826,7 @@ class coincheck extends Exchange {
         ), $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1044,11 +1044,11 @@ class coincheck extends Exchange {
         );
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api']['rest'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {

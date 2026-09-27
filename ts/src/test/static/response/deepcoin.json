@@ -2432,6 +2432,292 @@
                         }
                     }
                 }
+            },
+            {
+                "description": "Captured spot ticker with zero timestamp",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": [
+                        {
+                            "instType": "SPOT",
+                            "instId": "xAAOI-USDT",
+                            "last": "106",
+                            "lastSz": "",
+                            "askPx": "0",
+                            "askSz": "0",
+                            "bidPx": "0",
+                            "bidSz": "0",
+                            "open24h": "106",
+                            "high24h": "106",
+                            "low24h": "106",
+                            "volCcy24h": "0",
+                            "vol24h": "0",
+                            "sodUtc0": "",
+                            "sodUtc8": "",
+                            "ts": "0"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "XAAOI/USDT": {
+                        "symbol": "XAAOI/USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 106,
+                        "low": 106,
+                        "bid": null,
+                        "bidVolume": 0,
+                        "ask": null,
+                        "askVolume": 0,
+                        "vwap": null,
+                        "open": 106,
+                        "close": 106,
+                        "last": 106,
+                        "previousClose": null,
+                        "change": 0,
+                        "percentage": 0,
+                        "average": 106,
+                        "baseVolume": 0,
+                        "quoteVolume": 0,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "instType": "SPOT",
+                            "instId": "xAAOI-USDT",
+                            "last": "106",
+                            "lastSz": "",
+                            "askPx": "0",
+                            "askSz": "0",
+                            "bidPx": "0",
+                            "bidSz": "0",
+                            "open24h": "106",
+                            "high24h": "106",
+                            "low24h": "106",
+                            "volCcy24h": "0",
+                            "vol24h": "0",
+                            "sodUtc0": "",
+                            "sodUtc8": "",
+                            "ts": "0"
+                        }
+                    }
+                }
+            },
+            {
+                "description": "Spot ticker with numeric zero timestamp",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": [
+                        {
+                            "instType": "SPOT",
+                            "instId": "BTC-USDT",
+                            "last": "114873.9",
+                            "lastSz": "",
+                            "askPx": "114871.6",
+                            "askSz": "23.7848106",
+                            "bidPx": "114871.3",
+                            "bidSz": "23.96317061",
+                            "open24h": "113699.7",
+                            "high24h": "116398.8",
+                            "low24h": "112901",
+                            "volCcy24h": "242687041.3823563",
+                            "vol24h": "4219.1253998",
+                            "sodUtc0": "",
+                            "sodUtc8": "",
+                            "ts": 0
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "symbol": "BTC/USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 116398.8,
+                        "low": 112901,
+                        "bid": 114871.3,
+                        "bidVolume": 23.96317061,
+                        "ask": 114871.6,
+                        "askVolume": 23.7848106,
+                        "vwap": 57520.6988144653,
+                        "open": 113699.7,
+                        "close": 114873.9,
+                        "last": 114873.9,
+                        "previousClose": null,
+                        "change": 1174.2,
+                        "percentage": 1.0327204029562083,
+                        "average": 114286.8,
+                        "baseVolume": 4219.1253998,
+                        "quoteVolume": 242687041.3823563,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "instType": "SPOT",
+                            "instId": "BTC-USDT",
+                            "last": "114873.9",
+                            "lastSz": "",
+                            "askPx": "114871.6",
+                            "askSz": "23.7848106",
+                            "bidPx": "114871.3",
+                            "bidSz": "23.96317061",
+                            "open24h": "113699.7",
+                            "high24h": "116398.8",
+                            "low24h": "112901",
+                            "volCcy24h": "242687041.3823563",
+                            "vol24h": "4219.1253998",
+                            "sodUtc0": "",
+                            "sodUtc8": "",
+                            "ts": 0
+                        }
+                    }
+                }
+            },
+            {
+                "description": "Spot ticker with missing timestamp",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": [
+                        {
+                            "instType": "SPOT",
+                            "instId": "BTC-USDT",
+                            "last": "114873.9",
+                            "lastSz": "",
+                            "askPx": "114871.6",
+                            "askSz": "23.7848106",
+                            "bidPx": "114871.3",
+                            "bidSz": "23.96317061",
+                            "open24h": "113699.7",
+                            "high24h": "116398.8",
+                            "low24h": "112901",
+                            "volCcy24h": "242687041.3823563",
+                            "vol24h": "4219.1253998",
+                            "sodUtc0": "",
+                            "sodUtc8": ""
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "symbol": "BTC/USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 116398.8,
+                        "low": 112901,
+                        "bid": 114871.3,
+                        "bidVolume": 23.96317061,
+                        "ask": 114871.6,
+                        "askVolume": 23.7848106,
+                        "vwap": 57520.6988144653,
+                        "open": 113699.7,
+                        "close": 114873.9,
+                        "last": 114873.9,
+                        "previousClose": null,
+                        "change": 1174.2,
+                        "percentage": 1.0327204029562083,
+                        "average": 114286.8,
+                        "baseVolume": 4219.1253998,
+                        "quoteVolume": 242687041.3823563,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "instType": "SPOT",
+                            "instId": "BTC-USDT",
+                            "last": "114873.9",
+                            "lastSz": "",
+                            "askPx": "114871.6",
+                            "askSz": "23.7848106",
+                            "bidPx": "114871.3",
+                            "bidSz": "23.96317061",
+                            "open24h": "113699.7",
+                            "high24h": "116398.8",
+                            "low24h": "112901",
+                            "volCcy24h": "242687041.3823563",
+                            "vol24h": "4219.1253998",
+                            "sodUtc0": "",
+                            "sodUtc8": ""
+                        }
+                    }
+                }
+            },
+            {
+                "description": "Spot ticker with empty timestamp",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": [
+                        {
+                            "instType": "SPOT",
+                            "instId": "BTC-USDT",
+                            "last": "114873.9",
+                            "lastSz": "",
+                            "askPx": "114871.6",
+                            "askSz": "23.7848106",
+                            "bidPx": "114871.3",
+                            "bidSz": "23.96317061",
+                            "open24h": "113699.7",
+                            "high24h": "116398.8",
+                            "low24h": "112901",
+                            "volCcy24h": "242687041.3823563",
+                            "vol24h": "4219.1253998",
+                            "sodUtc0": "",
+                            "sodUtc8": "",
+                            "ts": ""
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "symbol": "BTC/USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 116398.8,
+                        "low": 112901,
+                        "bid": 114871.3,
+                        "bidVolume": 23.96317061,
+                        "ask": 114871.6,
+                        "askVolume": 23.7848106,
+                        "vwap": 57520.6988144653,
+                        "open": 113699.7,
+                        "close": 114873.9,
+                        "last": 114873.9,
+                        "previousClose": null,
+                        "change": 1174.2,
+                        "percentage": 1.0327204029562083,
+                        "average": 114286.8,
+                        "baseVolume": 4219.1253998,
+                        "quoteVolume": 242687041.3823563,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "instType": "SPOT",
+                            "instId": "BTC-USDT",
+                            "last": "114873.9",
+                            "lastSz": "",
+                            "askPx": "114871.6",
+                            "askSz": "23.7848106",
+                            "bidPx": "114871.3",
+                            "bidSz": "23.96317061",
+                            "open24h": "113699.7",
+                            "high24h": "116398.8",
+                            "low24h": "112901",
+                            "volCcy24h": "242687041.3823563",
+                            "vol24h": "4219.1253998",
+                            "sodUtc0": "",
+                            "sodUtc8": "",
+                            "ts": ""
+                        }
+                    }
+                }
             }
         ],
         "fetchOHLCV": [

@@ -2,6 +2,7 @@ package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.concurrent.CompletableFuture;
@@ -15,7 +16,7 @@ public class TestWatchOrderBook extends BaseTest {
     public CompletableFuture<Object> testWatchOrderBook(Exchange exchange, Object skippedProperties, String symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "watchOrderBook";
         // `watchOrderBook` only resolves when the exchange pushes an update, and a
@@ -27,7 +28,7 @@ public class TestWatchOrderBook extends BaseTest {
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
         Boolean idle = false;
-        while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
+        while ((Helpers.isLessThan(now, ends)) && !Boolean.TRUE.equals(idle))
         {
             Object response = null;
             Boolean success = true;
@@ -37,7 +38,7 @@ public class TestWatchOrderBook extends BaseTest {
                 response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOrderBook", new Object[]{symbol})).join();
             } catch(Exception e)
             {
-                if (Helpers.isTrue(!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)) && !Helpers.isTrue((Helpers.isInstance(e, InvalidNonce.class)))))
+                if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)) && !(Helpers.isInstance(e, InvalidNonce.class)))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
@@ -46,11 +47,11 @@ public class TestWatchOrderBook extends BaseTest {
             // refresh the deadline on every path, otherwise a stream of temporary
             // failures would loop forever
             now = exchange.milliseconds();
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
+            if ((java.util.Objects.equals(success, true)) && (!java.util.Objects.equals(response, null)))
             {
                 TestOrderBook.testOrderBook(exchange, skippedProperties, method, response, symbol);
                 Object elapsed = Helpers.subtract(now, startTime);
-                if (Helpers.isTrue(Helpers.isGreaterThan(elapsed, maxIdleTime)))
+                if (Helpers.isGreaterThan(elapsed, maxIdleTime))
                 {
                     // this market updates slower than the remaining test window, so
                     // awaiting another delta would only end in a harness timeout

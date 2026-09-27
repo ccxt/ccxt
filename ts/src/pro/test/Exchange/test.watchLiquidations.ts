@@ -5,7 +5,6 @@ import testLiquidation from '../../../test/Exchange/base/test.liquidation.js';
 import { NetworkError } from '../../../base/errors.js';
 import type { Liquidation } from '../../../base/types.js';
 
-
 async function testWatchLiquidations (exchange: Exchange, skippedProperties: object, symbol: string) {
 
     // log (symbol.green, 'watching trades...')

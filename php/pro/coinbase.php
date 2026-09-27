@@ -330,7 +330,7 @@ class coinbase extends \ccxt\async\coinbase {
         return Async\await($this->subscribe($name, false, $symbol, $params));
     }
 
-    public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
+    public function un_watch_ticker(string $symbol, $params = array()) {
         return Async\async(self::do_un_watch_ticker(...))($symbol, $params);
     }
 
@@ -405,7 +405,7 @@ class coinbase extends \ccxt\async\coinbase {
         return Async\await($this->un_subscribe_multiple('ticker', 'ticker_batch', false, $symbols));
     }
 
-    public function handle_tickers(Client $client, mixed $message) {
+    public function handle_tickers(Client $client, array $message) {
         //
         //    {
         //        "channel": "ticker",
@@ -787,7 +787,7 @@ class coinbase extends \ccxt\async\coinbase {
         return $orderbook->limit();
     }
 
-    public function handle_trade(mixed $client, mixed $message) {
+    public function handle_trade(mixed $client, array $message) {
         //
         //    {
         //        "channel": "market_trades",
@@ -815,7 +815,7 @@ class coinbase extends \ccxt\async\coinbase {
         if ($events === null) {
             return;
         }
-        $event = $this->safe_value($events, 0);
+        $event = $this->safe_dict($events, 0);
         $trades = $this->safe_list($event, 'trades');
         $trade = $this->safe_dict($trades, 0);
         $marketId = $this->safe_string($trade, 'product_id');
@@ -844,7 +844,7 @@ class coinbase extends \ccxt\async\coinbase {
         $this->try_resolve_usdc($client, $messageHash, $tradesArray);
     }
 
-    public function handle_order(mixed $client, mixed $message) {
+    public function handle_order(mixed $client, array $message) {
         //
         //    {
         //        "channel": "user",
@@ -911,7 +911,7 @@ class coinbase extends \ccxt\async\coinbase {
         $client->resolve($this->orders, 'user');
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         //    {
         //        "order_id": "XXX",
@@ -974,7 +974,7 @@ class coinbase extends \ccxt\async\coinbase {
         }
     }
 
-    public function handle_order_book(mixed $client, mixed $message) {
+    public function handle_order_book(mixed $client, array $message) {
         //
         //    {
         //        "channel": "l2_data",
@@ -1016,7 +1016,7 @@ class coinbase extends \ccxt\async\coinbase {
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
             $messageHash = 'level2::' . $symbol;
-            $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
+            $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
             $limit = $this->safe_integer($subscription, 'limit');
             $type = $this->safe_string($event, 'type');
             if ($type === 'snapshot') {
@@ -1042,7 +1042,7 @@ class coinbase extends \ccxt\async\coinbase {
         }
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message): array {
         //
         //     {
         //         "type": "subscriptions",
@@ -1082,7 +1082,7 @@ class coinbase extends \ccxt\async\coinbase {
         return $message;
     }
 
-    public function handle_heartbeats(Client $client, mixed $message) {
+    public function handle_heartbeats(Client $client, array $message): array {
         // although the subscription takes a product_ids parameter (i.e. symbol),
         // there is no (clear) way of mapping the message back to the symbol.
         //
@@ -1102,7 +1102,7 @@ class coinbase extends \ccxt\async\coinbase {
         return $message;
     }
 
-    public function handle_message(mixed $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $channel = $this->safe_string($message, 'channel');
         $methods = array(
             'subscriptions' => array($this, 'handle_subscription_status'),

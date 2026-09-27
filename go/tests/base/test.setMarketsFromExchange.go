@@ -19,6 +19,7 @@ func testSetMarketsFromExchangeBody(ch chan any) any {
 		"id": "sample0",
 	}, map[string]any{}, emptyExchange)
 	//
+
 	emptyExchange.Describe() // avoid unused var
 	return nil
 }

@@ -1053,15 +1053,14 @@ class limitless(PredictionExchange, ImplicitAPI):
             bidSizeStr = Precise.string_div(bidSizeStr, '1000000')
         if askSizeStr is not None:
             askSizeStr = Precise.string_div(askSizeStr, '1000000')
-        now = self.milliseconds()
         outcomeSymbol = self.safe_outcome_symbol(None, market)
         return self.safe_prediction_ticker({
             'outcome': outcomeSymbol,
             'outcomeId': self.safe_string(market, 'outcomeId'),
             'label': self.safe_string(market, 'label'),
             'market': self.safe_string(market, 'market'),
-            'timestamp': now,
-            'datetime': self.iso8601(now),
+            'timestamp': None,
+            'datetime': None,
             'high': None,
             'low': None,
             'bid': self.parse_number(bidStr),
@@ -1093,7 +1092,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         :returns dict: a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
         """
         if outcomes is None:
-            raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch(discover them via fetchEvents())')
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())')
         result = {}
         # resolve the uncached outcomes first, then group by parent market to fetch each
         # market and book only once
@@ -1226,7 +1225,6 @@ class limitless(PredictionExchange, ImplicitAPI):
         #         "lastTradePrice": "0.161"
         #     }
         #
-        timestamp = self.milliseconds()
         decimals = self.safe_integer(self.options, 'usdcDecimals', 6)
         # sizes are scaled by 10^decimals, USDC uses 6 decimals
         scaleStr = self.parse_precision(self.number_to_string(-decimals))
@@ -1259,8 +1257,8 @@ class limitless(PredictionExchange, ImplicitAPI):
             'outcome': self.safe_outcome_symbol(outcome, outcomeObj),
             'bids': self.sort_by(bids, 0, True),
             'asks': self.sort_by(asks, 0),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'nonce': None,
         }
         return self.safe_prediction_order_book(orderbook, outcomeObj)
@@ -1940,7 +1938,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             self.check_address(taker)
         except Exception as e:
             raise InvalidAddress(self.id + ' createOrder requires a valid taker address. Set the "taker" parameter to a valid address or set the "nullAddress" property in the constructor options.')
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         sides = {
             'buy': 0,
             'sell': 1,
@@ -1989,7 +1987,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             params = self.omit(params, 'cost')
             if createMarketBuyOrderRequiresPrice:
                 if (price is None) and (cost is None):
-                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                 else:
                     quoteAmount = self.parse_to_numeric(Precise.string_mul(amountString, priceString))
                     costRequest = cost if (cost is not None) else quoteAmount
@@ -2033,7 +2031,7 @@ class limitless(PredictionExchange, ImplicitAPI):
     def sign_order_request(self, signRequest: dict, marketSymbol: object):
         self.check_required_credentials()
         if self.privateKey is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a privateKey(the embedded/trading wallet key) to sign orders')
+            raise ArgumentsRequired(self.id + ' createOrder() requires a privateKey (the embedded/trading wallet key) to sign orders')
         market = self.market(marketSymbol)
         info = self.safe_dict(market, 'info')
         venue = self.safe_dict(info, 'venue')
@@ -2191,7 +2189,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             outcomeObj = self.outcome(outcome)
             conditionId = self.safe_string(self.safe_dict(outcomeObj, 'info', {}), 'conditionId')
         if conditionId is None:
-            raise ArgumentsRequired(self.id + ' redeem() could not resolve the market conditionId - pass params.conditionId(a bytes32 hex string)')
+            raise ArgumentsRequired(self.id + ' redeem() could not resolve the market conditionId - pass params.conditionId (a bytes32 hex string)')
         request = {
             'conditionId': conditionId,
         }
@@ -2244,7 +2242,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             warn = True
             warn, params = self.handle_option_and_params(params, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', warn)
             if warn:
-                raise BadRequest(self.id + ' cancelAllOrders cancels all orders for entire slug(both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to False to suppress self warning message.')
+                raise BadRequest(self.id + ' cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to False to suppress self warning message.')
         request = {}
         slug = self.safe_string(params, 'slug')
         if outcome is not None:
@@ -2785,7 +2783,7 @@ class limitless(PredictionExchange, ImplicitAPI):
     async def fetch_raw_active_markets(self, params={}, categoryId: Str = None) -> list[object]:
         """
  @ignore
-        pages the active-markets listing(or a single category's listing), bounded by limit(or options.fetchMarketsLimit)
+        pages the active-markets listing(or a single category's listing), bounded by limit (or options.fetchMarketsLimit)
         :param dict [params]: extra exchange-specific parameters
         :param int [params.limit]: max number of raw markets to collect
         :param str [categoryId]: a limitless category id — pages only that category's listing
@@ -2864,6 +2862,11 @@ class limitless(PredictionExchange, ImplicitAPI):
                     seen[slug] = True
                     allRaw.append(raw)
         return allRaw
+
+    def nonce(self) -> float:
+        # the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
+        # unique when two orders are signed within the same millisecond
+        return self.milliseconds()
 
     def sign(self, path: object, api: object = 'limitless', method='GET', params={}, headers: object = None, body: object = None):
         """

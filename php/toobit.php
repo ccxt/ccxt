@@ -1221,7 +1221,7 @@ class toobit extends Exchange {
         ), $market);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1434,7 +1434,7 @@ class toobit extends Exchange {
         ), $market);
     }
 
-    public function fetch_last_prices(?array $symbols = null, $params = array()) {
+    public function fetch_last_prices(?array $symbols = null, $params = array()): array {
         /**
          * fetches the last price for multiple markets
          *
@@ -1469,7 +1469,7 @@ class toobit extends Exchange {
         return $this->parse_last_prices($response, $symbols);
     }
 
-    public function parse_last_price(mixed $entry, ?array $market = null) {
+    public function parse_last_price(mixed $entry, ?array $market = null): array {
         $marketId = $this->safe_string($entry, 's');
         $market = $this->safe_market($marketId, $market);
         return array(
@@ -1482,7 +1482,7 @@ class toobit extends Exchange {
         );
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()): array {
         /**
          * fetches the bid and ask price and volume for multiple markets
          *
@@ -1531,7 +1531,7 @@ class toobit extends Exchange {
         return $this->filter_by_array($results, 'symbol', $symbols);
     }
 
-    public function parse_bid_ask_custom(mixed $ticker) {
+    public function parse_bid_ask_custom(array $ticker): array {
         // 's' is the exchange id and 't' a millisecond integer, the pair parseTicker
         // reads through safeMarket and safeInteger. The caller filters on a unified symbol.
         $marketId = $this->safe_string($ticker, 's');
@@ -1610,7 +1610,7 @@ class toobit extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -1655,7 +1655,7 @@ class toobit extends Exchange {
         return $this->parse_funding_rate_histories($response, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
         $timestamp = $this->safe_integer($contract, 'settleTime');
         $marketId = $this->safe_string($contract, 'symbol');
         return array(
@@ -1739,7 +1739,7 @@ class toobit extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -1794,7 +1794,7 @@ class toobit extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -1830,7 +1830,7 @@ class toobit extends Exchange {
         return array( $request, $params );
     }
 
-    public function create_contract_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_contract_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -2037,7 +2037,7 @@ class toobit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(mixed $status) {
+    public function parse_order_type(?string $status) {
         $statuses = array(
             'MARKET' => 'market',
             'LIMIT' => 'limit',
@@ -2049,7 +2049,7 @@ class toobit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -2089,7 +2089,7 @@ class toobit extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders in a $market
          *
@@ -2133,7 +2133,7 @@ class toobit extends Exchange {
         );
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple orders
          *
@@ -2190,7 +2190,7 @@ class toobit extends Exchange {
         return $this->parse_orders($result, $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -2449,7 +2449,7 @@ class toobit extends Exchange {
         return $this->parse_orders($ordersList, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all trades made by the user
          *
@@ -2680,7 +2680,7 @@ class toobit extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_type(mixed $type) {
+    public function parse_ledger_type(?string $type): ?string {
         $types = array(
             'USER_ACCOUNT_TRANSFER' => 'transfer',
             'AIRDROP' => 'rebate',
@@ -2735,7 +2735,7 @@ class toobit extends Exchange {
         return $result;
     }
 
-    public function parse_trading_fee(mixed $data, ?array $market = null) {
+    public function parse_trading_fee(?array $data, ?array $market = null): array {
         $marketId = $this->safe_string($data, 'symbol');
         return array(
             'info' => $data,
@@ -2777,7 +2777,7 @@ class toobit extends Exchange {
         return $this->fetch_deposits_or_withdrawals_helper('withdrawals', $code, $since, $limit, $params);
     }
 
-    public function fetch_deposits_or_withdrawals_helper(mixed $type, mixed $code, mixed $since, mixed $limit, $params = array()): array {
+    public function fetch_deposits_or_withdrawals_helper(?string $type, ?string $code, ?int $since, ?int $limit, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -3203,7 +3203,7 @@ class toobit extends Exchange {
         return $this->parse_positions($response, $symbols);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $side = $this->safe_string_lower($position, 'side');
@@ -3237,7 +3237,7 @@ class toobit extends Exchange {
         ));
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $isPost = $method === 'POST';
         $isDelete = $method === 'DELETE';

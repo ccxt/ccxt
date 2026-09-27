@@ -483,7 +483,7 @@
                         "id": "36c8e2a7ea184a219de72215a696acaf",
                         "currency": "USDT",
                         "amount": 86.975843,
-                        "network": null,
+                        "network": "TRC20",
                         "addressFrom": null,
                         "addressTo": "TGfJLtnsh3B9EqekBi",
                         "address": "TGfJLtnsh3B9EqekBi",
@@ -554,7 +554,7 @@
                         "id": "e0768698cfdf4aee8e54654c3775914b",
                         "currency": "USDT",
                         "amount": 9,
-                        "network": null,
+                        "network": "TRC20",
                         "addressFrom": null,
                         "addressTo": "TYgB3sVXHPfslkdsfjkldsfjgW",
                         "address": "TYgB3sVXHPfslkdsfjkldsfjgW",
@@ -575,6 +575,13 @@
                         }
                     }
                 ]
+            },
+            {
+                "description": "live completed withdrawal row, harvested 2026-09-15 - note the display-name chain and the net-of-fee amount",
+                "method": "fetchWithdrawals",
+                "input": ["USDT"],
+                "httpResponse": {"code": "0", "msg": "success", "data": [{"currency": "USDT", "chain": "Tron (TRC20)", "address": "TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6", "txId": "0000000000000000000000000000000000000000000000000000000000000000", "type": "0", "amount": "29", "fee": "1", "feeCurrency": "USDT", "state": "3", "clientId": "", "ts": "1789477463982", "tag": null, "memo": null, "withdrawId": "11112222333344445555666677778888"}]},
+                "parsedResponse": [{"info": {"currency": "USDT", "chain": "Tron (TRC20)", "address": "TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6", "txId": "0000000000000000000000000000000000000000000000000000000000000000", "type": "0", "amount": "29", "fee": "1", "feeCurrency": "USDT", "state": "3", "clientId": "", "ts": "1789477463982", "tag": null, "memo": null, "withdrawId": "11112222333344445555666677778888"}, "id": "11112222333344445555666677778888", "currency": "USDT", "amount": 29, "network": "TRC20", "addressFrom": null, "addressTo": "TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6", "address": "TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6", "tagFrom": null, "tagTo": null, "tag": null, "status": "ok", "type": "withdrawal", "updated": null, "txid": "0000000000000000000000000000000000000000000000000000000000000000", "timestamp": 1789477463982, "datetime": "2026-09-15T13:04:23.982Z", "internal": null, "comment": null, "fee": {"currency": "USDT", "cost": 1}}]
             }
         ],
         "fetchBalance": [
@@ -1593,6 +1600,15 @@
                     "timestamp": 1767169876207,
                     "datetime": "2025-12-31T08:31:16.207Z"
                 }
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "live on-chain withdrawal, harvested from the venue 2026-09-15",
+                "method": "withdraw",
+                "input": ["USDT", 30, "TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6", null, {"network": "TRC20"}],
+                "httpResponse": {"code": "0", "msg": "success", "data": {"withdrawId": "11112222333344445555666677778888", "clientId": ""}},
+                "parsedResponse": {"info": {"currency": "USDT", "address": "TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6", "amount": "30", "dest": "onchain", "addrType": "1", "chain": "Tron (TRC20)", "withdrawId": "11112222333344445555666677778888", "clientId": ""}, "id": "11112222333344445555666677778888", "currency": "USDT", "amount": 30, "network": "TRC20", "addressFrom": null, "addressTo": "TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6", "address": "TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6", "tagFrom": null, "tagTo": null, "tag": null, "status": null, "type": "withdrawal", "updated": null, "txid": null, "timestamp": null, "datetime": null, "internal": null, "comment": null, "fee": {"currency": null, "cost": null}}
             }
         ]
     }

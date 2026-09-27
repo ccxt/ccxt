@@ -10,17 +10,17 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchLiquidations(mut exchange: Value, mut skippedProperties: Value, mut code: Value) -> Value {
-    let mut method: Value = Value::Str("fetchLiquidations".to_string());
-    if is_equal(&get_value(&get_value(&exchange, &Value::Str("has".to_string())), &Value::Str("fetchLiquidations".to_string())), &Value::Null) || is_equal(&get_value(&get_value(&exchange, &Value::Str("has".to_string())), &Value::Str("fetchLiquidations".to_string())), &Value::Bool(false)) {
+    let mut method: Value = Value::Str("fetchLiquidations".into());
+    if (get_value(&exchange, &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchLiquidations")).cloned().unwrap_or(Value::Null) == Value::Null) || (get_value(&exchange, &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchLiquidations")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
         return Value::Bool(true);
     }
     let mut items: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_liquidations", vec![code.clone()]).await;
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_array(&items)))));
+    assert!(ccxt::runtime::is_true(&((matches!(&items, Value::Arr(_))))));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1454: bool = true;
-        while { if !__for_first_1454 { i = add(&i, &Value::Int(1)); } __for_first_1454 = false; is_less_than(&i, &get_array_length(&items)) } {
-        testLiquidation(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&items, &i), code.clone());
+        let mut __for_first_1527: bool = true;
+        while { if !__for_first_1527 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1527 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(items.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        testLiquidation(exchange.clone(), skippedProperties.clone(), method.clone(), items.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), code.clone());
     }
     }
     crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), code.clone(), items.clone()]);

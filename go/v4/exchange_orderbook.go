@@ -249,18 +249,20 @@ func (this *WsOrderBook) String() string {
 }
 
 func normalizeToFloat64SliceSlice(value any) [][]float64 {
-	raw, ok := value.([]any)
+	// bid/ask levels may carry typed pointers from the Safe* accessors
+	raw, ok := derefScalar(value).([]any)
 	if !ok {
 		return [][]float64{}
 	}
 	result := make([][]float64, 0, len(raw))
 	for _, row := range raw {
-		rowArr, ok := row.([]any)
+		rowArr, ok := derefScalar(row).([]any)
 		if !ok {
 			continue
 		}
 		floatRow := make([]float64, 0, len(rowArr))
 		for _, num := range rowArr {
+			num = derefScalar(num)
 			if f, ok := num.(float64); ok {
 				floatRow = append(floatRow, f)
 			} else if i, ok := num.(int); ok {

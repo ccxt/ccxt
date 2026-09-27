@@ -16,6 +16,20 @@
         "accountId": "495274990579220581"
     },
     "methods": {
+        "fetchOHLCV": [
+            {
+                "description": "over limit",
+                "method": "fetchOHLCV",
+                "url": "https://omni.apex.exchange/api/v3/klines?interval=1&symbol=BTCUSDT&limit=200",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    null,
+                    209
+                ],
+                "output": null
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "default",

@@ -3,6 +3,750 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchPositionsHistory": [
+            {
+                "description": "opening events describe the new position, the exchange filters are not merged into the structures",
+                "method": "fetchPositionsHistory",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "opened": true
+                    }
+                ],
+                "httpResponse": {
+                    "elements": [
+                        {
+                            "uid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                            "timestamp": 1789646492483,
+                            "event": {
+                                "PositionUpdate": {
+                                    "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                                    "tradeable": "PF_DOGEUSD",
+                                    "oldPosition": "250",
+                                    "oldAverageEntryPrice": "0.08085",
+                                    "newPosition": "0",
+                                    "newAverageEntryPrice": "0.08085",
+                                    "fillTime": 1789643150594,
+                                    "fee": "0.01013125",
+                                    "feeCurrency": "USD",
+                                    "realizedPnL": "0.05",
+                                    "positionChange": "close",
+                                    "executionUid": "7bfe252a-ab7b-480b-8c52-0ce55e6cba75",
+                                    "executionPrice": "0.08105",
+                                    "executionSize": "250",
+                                    "tradeType": "userExecution",
+                                    "fundingRealizationTime": 1789646492483,
+                                    "realizedFunding": "-0.00000764284",
+                                    "timestamp": 1789646492483,
+                                    "updateReason": "trade"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                            "timestamp": 1789643150594,
+                            "event": {
+                                "PositionUpdate": {
+                                    "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                                    "tradeable": "PF_DOGEUSD",
+                                    "oldPosition": "0",
+                                    "oldAverageEntryPrice": "0",
+                                    "newPosition": "250",
+                                    "newAverageEntryPrice": "0.08085",
+                                    "fillTime": 1789643150594,
+                                    "fee": "0.01010625",
+                                    "feeCurrency": "USD",
+                                    "realizedPnL": "0",
+                                    "positionChange": "open",
+                                    "executionUid": "4e7da0a6-a77d-4d88-8c4b-030a14b25dc4",
+                                    "executionPrice": "0.08085",
+                                    "executionSize": "250",
+                                    "tradeType": "userExecution",
+                                    "fundingRealizationTime": 1789643150594,
+                                    "realizedFunding": "0",
+                                    "timestamp": 1789643150594,
+                                    "updateReason": "trade"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                            "timestamp": 1786478124250,
+                            "event": {
+                                "PositionUpdate": {
+                                    "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                                    "tradeable": "PF_DOGEUSD",
+                                    "oldPosition": "100",
+                                    "oldAverageEntryPrice": "0.070956",
+                                    "newPosition": "0",
+                                    "newAverageEntryPrice": "0.070956",
+                                    "fillTime": 1786478091789,
+                                    "fee": "0.0035457",
+                                    "feeCurrency": "USD",
+                                    "realizedPnL": "-0.0042",
+                                    "positionChange": "close",
+                                    "executionUid": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+                                    "executionPrice": "0.070914",
+                                    "executionSize": "100",
+                                    "tradeType": "userExecution",
+                                    "fundingRealizationTime": 1786478124250,
+                                    "realizedFunding": "-0.00000101881",
+                                    "timestamp": 1786478124250,
+                                    "updateReason": "trade"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                            "timestamp": 1786478091789,
+                            "event": {
+                                "PositionUpdate": {
+                                    "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                                    "tradeable": "PF_DOGEUSD",
+                                    "oldPosition": "0",
+                                    "oldAverageEntryPrice": "0",
+                                    "newPosition": "100",
+                                    "newAverageEntryPrice": "0.070956",
+                                    "fillTime": 1786478091789,
+                                    "fee": "0.0035478",
+                                    "feeCurrency": "USD",
+                                    "realizedPnL": "0",
+                                    "positionChange": "open",
+                                    "executionUid": "004c2883-935a-4d66-86e7-87aa2345e77e",
+                                    "executionPrice": "0.070956",
+                                    "executionSize": "100",
+                                    "tradeType": "userExecution",
+                                    "fundingRealizationTime": 1786478091789,
+                                    "realizedFunding": "0",
+                                    "timestamp": 1786478091789,
+                                    "updateReason": "trade"
+                                }
+                            }
+                        }
+                    ],
+                    "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                    "len": 4
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                            "tradeable": "PF_DOGEUSD",
+                            "oldPosition": "250",
+                            "oldAverageEntryPrice": "0.08085",
+                            "newPosition": "0",
+                            "newAverageEntryPrice": "0.08085",
+                            "fillTime": 1789643150594,
+                            "fee": "0.01013125",
+                            "feeCurrency": "USD",
+                            "realizedPnL": "0.05",
+                            "positionChange": "close",
+                            "executionUid": "7bfe252a-ab7b-480b-8c52-0ce55e6cba75",
+                            "executionPrice": "0.08105",
+                            "executionSize": "250",
+                            "tradeType": "userExecution",
+                            "fundingRealizationTime": 1789646492483,
+                            "realizedFunding": "-0.00000764284",
+                            "timestamp": 1789646492483,
+                            "updateReason": "trade"
+                        },
+                        "id": "7bfe252a-ab7b-480b-8c52-0ce55e6cba75",
+                        "symbol": "DOGE/USD:USD",
+                        "timestamp": 1789646492483,
+                        "datetime": "2026-09-17T12:01:32.483Z",
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 0.08085,
+                        "notional": null,
+                        "leverage": null,
+                        "unrealizedPnl": null,
+                        "realizedPnl": 0.05,
+                        "contracts": 250,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": 0.08105,
+                        "collateral": null,
+                        "marginType": "cross",
+                        "side": "long",
+                        "percentage": null
+                    },
+                    {
+                        "info": {
+                            "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                            "tradeable": "PF_DOGEUSD",
+                            "oldPosition": "0",
+                            "oldAverageEntryPrice": "0",
+                            "newPosition": "250",
+                            "newAverageEntryPrice": "0.08085",
+                            "fillTime": 1789643150594,
+                            "fee": "0.01010625",
+                            "feeCurrency": "USD",
+                            "realizedPnL": "0",
+                            "positionChange": "open",
+                            "executionUid": "4e7da0a6-a77d-4d88-8c4b-030a14b25dc4",
+                            "executionPrice": "0.08085",
+                            "executionSize": "250",
+                            "tradeType": "userExecution",
+                            "fundingRealizationTime": 1789643150594,
+                            "realizedFunding": "0",
+                            "timestamp": 1789643150594,
+                            "updateReason": "trade"
+                        },
+                        "id": "4e7da0a6-a77d-4d88-8c4b-030a14b25dc4",
+                        "symbol": "DOGE/USD:USD",
+                        "timestamp": 1789643150594,
+                        "datetime": "2026-09-17T11:05:50.594Z",
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 0.08085,
+                        "notional": null,
+                        "leverage": null,
+                        "unrealizedPnl": null,
+                        "realizedPnl": 0,
+                        "contracts": 250,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": 0.08085,
+                        "collateral": null,
+                        "marginType": "cross",
+                        "side": "long",
+                        "percentage": null
+                    },
+                    {
+                        "info": {
+                            "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                            "tradeable": "PF_DOGEUSD",
+                            "oldPosition": "100",
+                            "oldAverageEntryPrice": "0.070956",
+                            "newPosition": "0",
+                            "newAverageEntryPrice": "0.070956",
+                            "fillTime": 1786478091789,
+                            "fee": "0.0035457",
+                            "feeCurrency": "USD",
+                            "realizedPnL": "-0.0042",
+                            "positionChange": "close",
+                            "executionUid": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+                            "executionPrice": "0.070914",
+                            "executionSize": "100",
+                            "tradeType": "userExecution",
+                            "fundingRealizationTime": 1786478124250,
+                            "realizedFunding": "-0.00000101881",
+                            "timestamp": 1786478124250,
+                            "updateReason": "trade"
+                        },
+                        "id": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+                        "symbol": "DOGE/USD:USD",
+                        "timestamp": 1786478124250,
+                        "datetime": "2026-08-11T19:55:24.250Z",
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 0.070956,
+                        "notional": null,
+                        "leverage": null,
+                        "unrealizedPnl": null,
+                        "realizedPnl": -0.0042,
+                        "contracts": 100,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": 0.070914,
+                        "collateral": null,
+                        "marginType": "cross",
+                        "side": "long",
+                        "percentage": null
+                    },
+                    {
+                        "info": {
+                            "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                            "tradeable": "PF_DOGEUSD",
+                            "oldPosition": "0",
+                            "oldAverageEntryPrice": "0",
+                            "newPosition": "100",
+                            "newAverageEntryPrice": "0.070956",
+                            "fillTime": 1786478091789,
+                            "fee": "0.0035478",
+                            "feeCurrency": "USD",
+                            "realizedPnL": "0",
+                            "positionChange": "open",
+                            "executionUid": "004c2883-935a-4d66-86e7-87aa2345e77e",
+                            "executionPrice": "0.070956",
+                            "executionSize": "100",
+                            "tradeType": "userExecution",
+                            "fundingRealizationTime": 1786478091789,
+                            "realizedFunding": "0",
+                            "timestamp": 1786478091789,
+                            "updateReason": "trade"
+                        },
+                        "id": "004c2883-935a-4d66-86e7-87aa2345e77e",
+                        "symbol": "DOGE/USD:USD",
+                        "timestamp": 1786478091789,
+                        "datetime": "2026-08-11T19:54:51.789Z",
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 0.070956,
+                        "notional": null,
+                        "leverage": null,
+                        "unrealizedPnl": null,
+                        "realizedPnl": 0,
+                        "contracts": 100,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": 0.070956,
+                        "collateral": null,
+                        "marginType": "cross",
+                        "side": "long",
+                        "percentage": null
+                    }
+                ]
+            },
+            {
+                "description": "closed positions by default",
+                "method": "fetchPositionsHistory",
+                "input": [],
+                "httpResponse": {
+                    "elements": [
+                        {
+                            "uid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                            "timestamp": 1789646492483,
+                            "event": {
+                                "PositionUpdate": {
+                                    "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                                    "tradeable": "PF_DOGEUSD",
+                                    "oldPosition": "250",
+                                    "oldAverageEntryPrice": "0.08085",
+                                    "newPosition": "0",
+                                    "newAverageEntryPrice": "0.08085",
+                                    "fillTime": 1789643150594,
+                                    "fee": "0.01013125",
+                                    "feeCurrency": "USD",
+                                    "realizedPnL": "0.05",
+                                    "positionChange": "close",
+                                    "executionUid": "7bfe252a-ab7b-480b-8c52-0ce55e6cba75",
+                                    "executionPrice": "0.08105",
+                                    "executionSize": "250",
+                                    "tradeType": "userExecution",
+                                    "fundingRealizationTime": 1789646492483,
+                                    "realizedFunding": "-0.00000764284",
+                                    "timestamp": 1789646492483,
+                                    "updateReason": "trade"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                            "timestamp": 1786478124250,
+                            "event": {
+                                "PositionUpdate": {
+                                    "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                                    "tradeable": "PF_DOGEUSD",
+                                    "oldPosition": "100",
+                                    "oldAverageEntryPrice": "0.070956",
+                                    "newPosition": "0",
+                                    "newAverageEntryPrice": "0.070956",
+                                    "fillTime": 1786478091789,
+                                    "fee": "0.0035457",
+                                    "feeCurrency": "USD",
+                                    "realizedPnL": "-0.0042",
+                                    "positionChange": "close",
+                                    "executionUid": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+                                    "executionPrice": "0.070914",
+                                    "executionSize": "100",
+                                    "tradeType": "userExecution",
+                                    "fundingRealizationTime": 1786478124250,
+                                    "realizedFunding": "-0.00000101881",
+                                    "timestamp": 1786478124250,
+                                    "updateReason": "trade"
+                                }
+                            }
+                        }
+                    ],
+                    "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                    "len": 2
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                            "tradeable": "PF_DOGEUSD",
+                            "oldPosition": "250",
+                            "oldAverageEntryPrice": "0.08085",
+                            "newPosition": "0",
+                            "newAverageEntryPrice": "0.08085",
+                            "fillTime": 1789643150594,
+                            "fee": "0.01013125",
+                            "feeCurrency": "USD",
+                            "realizedPnL": "0.05",
+                            "positionChange": "close",
+                            "executionUid": "7bfe252a-ab7b-480b-8c52-0ce55e6cba75",
+                            "executionPrice": "0.08105",
+                            "executionSize": "250",
+                            "tradeType": "userExecution",
+                            "fundingRealizationTime": 1789646492483,
+                            "realizedFunding": "-0.00000764284",
+                            "timestamp": 1789646492483,
+                            "updateReason": "trade"
+                        },
+                        "id": "7bfe252a-ab7b-480b-8c52-0ce55e6cba75",
+                        "symbol": "DOGE/USD:USD",
+                        "timestamp": 1789646492483,
+                        "datetime": "2026-09-17T12:01:32.483Z",
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 0.08085,
+                        "notional": null,
+                        "leverage": null,
+                        "unrealizedPnl": null,
+                        "realizedPnl": 0.05,
+                        "contracts": 250,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": 0.08105,
+                        "collateral": null,
+                        "marginType": "cross",
+                        "side": "long",
+                        "percentage": null
+                    },
+                    {
+                        "info": {
+                            "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                            "tradeable": "PF_DOGEUSD",
+                            "oldPosition": "100",
+                            "oldAverageEntryPrice": "0.070956",
+                            "newPosition": "0",
+                            "newAverageEntryPrice": "0.070956",
+                            "fillTime": 1786478091789,
+                            "fee": "0.0035457",
+                            "feeCurrency": "USD",
+                            "realizedPnL": "-0.0042",
+                            "positionChange": "close",
+                            "executionUid": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+                            "executionPrice": "0.070914",
+                            "executionSize": "100",
+                            "tradeType": "userExecution",
+                            "fundingRealizationTime": 1786478124250,
+                            "realizedFunding": "-0.00000101881",
+                            "timestamp": 1786478124250,
+                            "updateReason": "trade"
+                        },
+                        "id": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+                        "symbol": "DOGE/USD:USD",
+                        "timestamp": 1786478124250,
+                        "datetime": "2026-08-11T19:55:24.250Z",
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 0.070956,
+                        "notional": null,
+                        "leverage": null,
+                        "unrealizedPnl": null,
+                        "realizedPnl": -0.0042,
+                        "contracts": 100,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": 0.070914,
+                        "collateral": null,
+                        "marginType": "cross",
+                        "side": "long",
+                        "percentage": null
+                    }
+                ]
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "funding payments without a symbol, the market is resolved from the lower case contract id of the account log",
+                "method": "fetchFundingHistory",
+                "input": [],
+                "httpResponse": {
+                    "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                    "logs": [
+                        {
+                            "asset": "usd",
+                            "contract": "pf_dogeusd",
+                            "booking_uid": "124f43a6-389a-4349-abc6-06fc7eeac86b",
+                            "collateral": null,
+                            "date": "2026-09-17T12:00:00.000Z",
+                            "execution": null,
+                            "fee": 0,
+                            "funding_rate": 9.288451412e-7,
+                            "id": 16,
+                            "info": "funding rate change",
+                            "margin_account": "flex",
+                            "mark_price": null,
+                            "new_average_entry_price": null,
+                            "new_balance": 0,
+                            "old_average_entry_price": null,
+                            "old_balance": 0.0002,
+                            "realized_funding": -0.0002,
+                            "realized_pnl": null,
+                            "trade_price": null,
+                            "conversion_spread_percentage": null,
+                            "liquidation_fee": null,
+                            "position_uid": null
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "asset": "usd",
+                            "contract": "pf_dogeusd",
+                            "booking_uid": "124f43a6-389a-4349-abc6-06fc7eeac86b",
+                            "collateral": null,
+                            "date": "2026-09-17T12:00:00.000Z",
+                            "execution": null,
+                            "fee": 0,
+                            "funding_rate": 9.288451412e-7,
+                            "id": 16,
+                            "info": "funding rate change",
+                            "margin_account": "flex",
+                            "mark_price": null,
+                            "new_average_entry_price": null,
+                            "new_balance": 0,
+                            "old_average_entry_price": null,
+                            "old_balance": 0.0002,
+                            "realized_funding": -0.0002,
+                            "realized_pnl": null,
+                            "trade_price": null,
+                            "conversion_spread_percentage": null,
+                            "liquidation_fee": null,
+                            "position_uid": null
+                        },
+                        "symbol": "DOGE/USD:USD",
+                        "code": "USD",
+                        "timestamp": 1789646400000,
+                        "datetime": "2026-09-17T12:00:00.000Z",
+                        "id": "16",
+                        "amount": -0.0002
+                    }
+                ]
+            }
+        ],
+        "fetchIndexOHLCV": [
+            {
+                "description": "index price candles map to the spot price type",
+                "method": "fetchIndexOHLCV",
+                "input": [
+                    "BTC/USD:USD",
+                    "1h",
+                    1650000000000,
+                    3
+                ],
+                "httpResponse": {
+                    "candles": [
+                        {
+                            "time": 1650002400000,
+                            "open": "40143.65",
+                            "high": "40168.14",
+                            "low": "39979.49",
+                            "close": "40046.87",
+                            "volume": "0"
+                        },
+                        {
+                            "time": 1650006000000,
+                            "open": "40046.87",
+                            "high": "40439.78",
+                            "low": "39972.28",
+                            "close": "40260.22",
+                            "volume": "0"
+                        },
+                        {
+                            "time": 1650009600000,
+                            "open": "40260.22",
+                            "high": "40389.05",
+                            "low": "40114.01",
+                            "close": "40157.03",
+                            "volume": "0"
+                        }
+                    ],
+                    "more_candles": false
+                },
+                "parsedResponse": [
+                    [
+                        1650002400000,
+                        40143.65,
+                        40168.14,
+                        39979.49,
+                        40046.87,
+                        0
+                    ],
+                    [
+                        1650006000000,
+                        40046.87,
+                        40439.78,
+                        39972.28,
+                        40260.22,
+                        0
+                    ],
+                    [
+                        1650009600000,
+                        40260.22,
+                        40389.05,
+                        40114.01,
+                        40157.03,
+                        0
+                    ]
+                ]
+            }
+        ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "mark price candles",
+                "method": "fetchMarkOHLCV",
+                "input": [
+                    "BTC/USD:USD",
+                    "1h",
+                    1650000000000,
+                    3
+                ],
+                "httpResponse": {
+                    "candles": [
+                        {
+                            "time": 1650002400000,
+                            "open": "40141.5",
+                            "high": "40167.5",
+                            "low": "39976.5",
+                            "close": "40047.5",
+                            "volume": "0"
+                        },
+                        {
+                            "time": 1650006000000,
+                            "open": "40047.5",
+                            "high": "40438.5",
+                            "low": "39969.5",
+                            "close": "40239",
+                            "volume": "0"
+                        },
+                        {
+                            "time": 1650009600000,
+                            "open": "40239",
+                            "high": "40392",
+                            "low": "40107.5",
+                            "close": "40158",
+                            "volume": "0"
+                        }
+                    ],
+                    "more_candles": false
+                },
+                "parsedResponse": [
+                    [
+                        1650002400000,
+                        40141.5,
+                        40167.5,
+                        39976.5,
+                        40047.5,
+                        0
+                    ],
+                    [
+                        1650006000000,
+                        40047.5,
+                        40438.5,
+                        39969.5,
+                        40239,
+                        0
+                    ],
+                    [
+                        1650009600000,
+                        40239,
+                        40392,
+                        40107.5,
+                        40158,
+                        0
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "trade price candles by default",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USD:USD",
+                    "1h",
+                    1650000000000,
+                    3
+                ],
+                "httpResponse": {
+                    "candles": [
+                        {
+                            "time": 1650002400000,
+                            "open": "40154",
+                            "high": "40160",
+                            "low": "39969",
+                            "close": "40032",
+                            "volume": "22.2079"
+                        },
+                        {
+                            "time": 1650006000000,
+                            "open": "40032",
+                            "high": "40428",
+                            "low": "39988",
+                            "close": "40208",
+                            "volume": "24.1811"
+                        },
+                        {
+                            "time": 1650009600000,
+                            "open": "40208",
+                            "high": "40339",
+                            "low": "40108",
+                            "close": "40145",
+                            "volume": "3.095000000000001"
+                        }
+                    ],
+                    "more_candles": false
+                },
+                "parsedResponse": [
+                    [
+                        1650002400000,
+                        40154,
+                        40160,
+                        39969,
+                        40032,
+                        22.2079
+                    ],
+                    [
+                        1650006000000,
+                        40032,
+                        40428,
+                        39988,
+                        40208,
+                        24.1811
+                    ],
+                    [
+                        1650009600000,
+                        40208,
+                        40339,
+                        40108,
+                        40145,
+                        3.095000000000001
+                    ]
+                ]
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "fetch a single ticker",
@@ -753,6 +1497,7 @@
                             "unrealizedPnl": "-0.08",
                             "unrealizedFunding": "-0.001878596918214635"
                         },
+                        "id": null,
                         "symbol": "LTC/USD:USD",
                         "timestamp": 1707258274849,
                         "datetime": "2024-02-06T22:24:34.849Z",
@@ -764,11 +1509,13 @@
                         "notional": null,
                         "leverage": null,
                         "unrealizedPnl": -0.08,
+                        "realizedPnl": null,
                         "contracts": 0.1,
                         "contractSize": 1,
                         "marginRatio": null,
                         "liquidationPrice": null,
                         "markPrice": null,
+                        "lastPrice": null,
                         "collateral": null,
                         "marginType": "cross",
                         "side": "long",
@@ -810,6 +1557,7 @@
                             "pnlCurrency": "USD",
                             "maxFixedLeverage": "1.0"
                         },
+                        "id": null,
                         "symbol": "LTC/USD:USD",
                         "timestamp": 1707258274849,
                         "datetime": "2024-02-06T22:24:34.849Z",
@@ -821,11 +1569,13 @@
                         "notional": null,
                         "leverage": 1,
                         "unrealizedPnl": 12.34,
+                        "realizedPnl": null,
                         "contracts": 0.1,
                         "contractSize": 1,
                         "marginRatio": null,
                         "liquidationPrice": null,
                         "markPrice": null,
+                        "lastPrice": null,
                         "collateral": null,
                         "marginType": "isolated",
                         "side": "long",

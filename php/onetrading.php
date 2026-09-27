@@ -614,7 +614,7 @@ class onetrading extends Exchange {
         $method = $this->safe_string($params, 'method');
         $params = $this->omit($params, 'method');
         if ($method === null) {
-            $options = $this->safe_value($this->options, 'fetchTradingFees', array());
+            $options = $this->safe_dict($this->options, 'fetchTradingFees', array());
             $method = $this->safe_string($options, 'method', 'fetchPrivateTradingFees');
         }
         if ($method === 'fetchPrivateTradingFees') {
@@ -626,7 +626,7 @@ class onetrading extends Exchange {
         }
     }
 
-    public function fetch_public_trading_fees($params = array()) {
+    public function fetch_public_trading_fees($params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -700,7 +700,7 @@ class onetrading extends Exchange {
         return $result;
     }
 
-    public function fetch_private_trading_fees($params = array()) {
+    public function fetch_private_trading_fees($params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -769,7 +769,7 @@ class onetrading extends Exchange {
         return $result;
     }
 
-    public function parse_fee_tiers(mixed $feeTiers, ?array $market = null) {
+    public function parse_fee_tiers(array $feeTiers, ?array $market = null): array {
         $takerFees = array();
         $makerFees = array();
         for ($i = 0; $i < count($feeTiers); $i++) {
@@ -1029,7 +1029,7 @@ class onetrading extends Exchange {
         //         "last_sequence":461123
         //     }
         //
-        $granularity = $this->safe_value($ohlcv, 'granularity');
+        $granularity = $this->safe_dict($ohlcv, 'granularity');
         $unit = $this->safe_string($granularity, 'unit');
         $period = $this->safe_string($granularity, 'period');
         $units = array(
@@ -1051,7 +1051,7 @@ class onetrading extends Exchange {
             throw new ExchangeError($this->id . ' parseOHLCV() missing timestamp');
         }
         $alignedTimestamp = $duration * $this->parse_to_int($timestamp / $duration);
-        $options = $this->safe_value($this->options, 'fetchOHLCV', array());
+        $options = $this->safe_dict($this->options, 'fetchOHLCV', array());
         $volumeField = $this->safe_string($options, 'volume', 'total_amount');
         return array(
             $alignedTimestamp,
@@ -1156,7 +1156,7 @@ class onetrading extends Exchange {
         //         }
         //     }
         //
-        $feeInfo = $this->safe_value($trade, 'fee', array());
+        $feeInfo = $this->safe_dict($trade, 'fee', array());
         $trade = $this->safe_value($trade, 'trade', $trade);
         $timestamp = $this->safe_integer($trade, 'trade_timestamp');
         if ($timestamp === null) {
@@ -1345,8 +1345,8 @@ class onetrading extends Exchange {
         $side = $this->safe_string_lower($rawOrder, 'side');
         $type = $this->safe_string_lower($rawOrder, 'type');
         $timeInForce = $this->parse_time_in_force($this->safe_string($rawOrder, 'time_in_force'));
-        $postOnly = $this->safe_value($rawOrder, 'is_post_only');
-        $rawTrades = $this->safe_value($order, 'trades', array());
+        $postOnly = $this->safe_bool($rawOrder, 'is_post_only');
+        $rawTrades = $this->safe_list($order, 'trades', array());
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1383,7 +1383,7 @@ class onetrading extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -1463,7 +1463,7 @@ class onetrading extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -1500,7 +1500,7 @@ class onetrading extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders
          *
@@ -1527,7 +1527,7 @@ class onetrading extends Exchange {
         return array( $this->safe_order(array( 'info' => $response )) );
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple orders
          *
@@ -1554,7 +1554,7 @@ class onetrading extends Exchange {
         return array( $order );
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -1761,7 +1761,7 @@ class onetrading extends Exchange {
         return $this->fetch_open_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all the trades made from a single order
          *
@@ -1816,7 +1816,7 @@ class onetrading extends Exchange {
         //         "cursor": "string"
         //     }
         //
-        $tradeHistory = $this->safe_value($response, 'trade_history', array());
+        $tradeHistory = $this->safe_list($response, 'trade_history', array());
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1824,7 +1824,7 @@ class onetrading extends Exchange {
         return $this->parse_trades($tradeHistory, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all trades made by the user
          *
@@ -1898,7 +1898,7 @@ class onetrading extends Exchange {
         return $this->parse_trades($tradeHistory, $market, $since, $limit);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {

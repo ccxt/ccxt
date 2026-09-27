@@ -94,14 +94,14 @@ class deepcoin(ccxt.async_support.deepcoin):
             },
         })
 
-    def ping(self, client: Client):
+    def ping(self, client: Client) -> Str:
         url = client.url
         if url.find('private') >= 0:
             client.lastPong = self.milliseconds()
             # prevent automatic disconnects on private channel
         return 'ping'
 
-    def handle_pong(self, client: Client, message: object):
+    def handle_pong(self, client: Client, message: dict) -> dict:
         client.lastPong = self.milliseconds()
         return message
 
@@ -164,7 +164,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         url = self.urls['api']['ws']['private'] + '?listenKey=' + listenKey
         return await self.watch(url, messageHash, None, 'private', params)
 
-    async def authenticate(self, params={}):
+    async def authenticate(self, params: dict = {}):
         self.check_required_credentials()
         time = self.milliseconds()
         # single-flight leader election on a never-dialed client, see
@@ -225,7 +225,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         await future
         return listenKey
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -260,7 +260,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         }
         return await self.un_watch_public(market, messageHash, '7', params, subscription)
 
-    def handle_ticker(self, client: Client, message: object):
+    def handle_ticker(self, client: Client, message: dict):
         #
         #     a: 'PO',
         #     m: 'Success',
@@ -361,7 +361,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             'info': ticker,
         }, market)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made in a market
 
@@ -382,7 +382,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def un_watch_trades(self, symbol: str, params={}):
+    async def un_watch_trades(self, symbol: str, params: dict = {}):
         """
         unWatches the list of most recent trades for a particular symbol
 
@@ -401,7 +401,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         }
         return await self.un_watch_public(market, messageHash, '2', params, subscription)
 
-    def handle_trades(self, client: Client, message: object):
+    def handle_trades(self, client: Client, message: dict):
         #
         #     {
         #         "a": "PMT",
@@ -512,7 +512,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         }
         return self.safe_string(roles, matchRole, matchRole)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -563,7 +563,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         }
         return await self.un_watch_public(market, messageHash, '11', params, subscription, suffix)
 
-    def handle_ohlcv(self, client: Client, message: object):
+    def handle_ohlcv(self, client: Client, message: dict):
         #
         #     {
         #         "a": "PK",
@@ -630,7 +630,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             self.safe_number(ohlcv, 'V'),
         ]
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -696,7 +696,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             aggregation = self.number_to_string(tickSize)
         return ['_' + aggregation, params]
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         #     {
         #         "a": "PMO",
@@ -735,7 +735,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             messageHash = 'orderbook' + '::' + symbol
             client.resolve(orderbook, messageHash)
 
-    def handle_order_book_snapshot(self, client: Client, message: object):
+    def handle_order_book_snapshot(self, client: Client, message: dict):
         entries = self.safe_list(message, 'r', [])
         first = self.safe_dict(entries, 0, {})
         data = self.safe_dict(first, 'd', {})
@@ -770,7 +770,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         messageHash = 'orderbook' + '::' + symbol
         client.resolve(orderbook, messageHash)
 
-    def handle_order_book_message(self, client: Client, message: object, orderbook: object):
+    def handle_order_book_message(self, client: Client, message: dict, orderbook: object):
         #     {
         #         "a": "PMO",
         #         "t": "i", // i - update, f - snapshot
@@ -807,7 +807,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             # ask
             asks.store(price, volume)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
@@ -830,7 +830,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trade(self, client: Client, message: object):
+    def handle_my_trade(self, client: Client, message: dict):
         #
         #     {
         #         "action": "PushTrade",
@@ -879,7 +879,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             client.resolve(stored, messageHash)
             client.resolve(stored, symbolMessageHash)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -902,7 +902,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message: object):
+    def handle_order(self, client: Client, message: dict):
         #
         #     {
         #         "action": "PushOrder",
@@ -950,7 +950,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             client.resolve(self.orders, messageHash)
             client.resolve(self.orders, symbolMessageHash)
 
-    def parse_ws_order(self, order: object, market: Market = None) -> Order:
+    def parse_ws_order(self, order: dict, market: Market = None) -> Order:
         #
         #     {
         #         "D": "0",
@@ -1012,7 +1012,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         }
         return self.safe_string(statuses, status, status)
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
         watch all open positions
 
@@ -1043,7 +1043,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             return positions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
-    def handle_position(self, client: Client, message: object):
+    def handle_position(self, client: Client, message: dict):
         #
         #     {
         #         "action": "PushPosition",
@@ -1176,7 +1176,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             elif action == 'PushPosition':
                 self.handle_position(client, message)
 
-    def handle_subscription_status(self, client: Client, message: object):
+    def handle_subscription_status(self, client: Client, message: dict):
         #
         #     {
         #         "a": "RecvTopicAction",
@@ -1213,7 +1213,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         self.clean_unsubscription(client, subHash, unsubHash)
         self.clean_cache(subscription)
 
-    def handle_error_message(self, client: Client, message: object):
+    def handle_error_message(self, client: Client, message: dict):
         #
         #     {
         #         "a": "RecvTopicAction",

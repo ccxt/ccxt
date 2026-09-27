@@ -501,6 +501,8 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Order Book Extra Level Depth Param](./examples/py/order-book-extra-level-depth-param.md)
 
+- [Order Router](./examples/py/order-router.md)
+
 - [Phemex Cancel All Orders](./examples/py/phemex-cancel-all-orders.md)
 
 - [Phemex Create Order Position With Takeprofit Stoploss](./examples/py/phemex-create-order-position-with-takeprofit-stoploss.md)

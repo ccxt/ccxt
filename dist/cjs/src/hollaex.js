@@ -380,7 +380,7 @@ class hollaex extends hollaex$1["default"] {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': this.safeValue(market, 'active'),
+                'active': this.safeBool(market, 'active'),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -547,7 +547,7 @@ class hollaex extends hollaex$1["default"] {
                 },
                 'withdraw': {
                     'min': undefined,
-                    'max': this.safeValue(withdrawalLimits, 0),
+                    'max': this.safeNumber(withdrawalLimits, 0),
                 },
             },
             'networks': networks,
@@ -618,7 +618,7 @@ class hollaex extends hollaex$1["default"] {
         //         // ...
         //     }
         //
-        const orderbook = this.safeValue(response, market['id']);
+        const orderbook = this.safeDict(response, market['id']);
         const timestamp = this.parse8601(this.safeString(orderbook, 'timestamp'));
         return this.parseOrderBook(orderbook, market['symbol'], timestamp);
     }
@@ -887,10 +887,10 @@ class hollaex extends hollaex$1["default"] {
         //         ...
         //     }
         //
-        const firstTier = this.safeValue(response, '1', {});
-        const fees = this.safeValue(firstTier, 'fees', {});
-        const makerFees = this.safeValue(fees, 'maker', {});
-        const takerFees = this.safeValue(fees, 'taker', {});
+        const firstTier = this.safeDict(response, '1', {});
+        const fees = this.safeDict(firstTier, 'fees', {});
+        const makerFees = this.safeDict(fees, 'maker', {});
+        const takerFees = this.safeDict(fees, 'taker', {});
         const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
@@ -1280,7 +1280,7 @@ class hollaex extends hollaex$1["default"] {
         const amount = this.safeString(order, 'size');
         const filled = this.safeString(order, 'filled');
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
-        const meta = this.safeValue(order, 'meta', {});
+        const meta = this.safeDict(order, 'meta', {});
         const postOnly = this.safeBool(meta, 'post_only', false);
         return this.safeOrder({
             'id': id,
@@ -1335,7 +1335,7 @@ class hollaex extends hollaex$1["default"] {
             // 'meta': {}, // other options such as post_only
         };
         const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'stop']);
-        const meta = this.safeValue(params, 'meta', {});
+        const meta = this.safeDict(params, 'meta', {});
         const exchangeSpecificParam = this.safeBool(meta, 'post_only', false);
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, params);
@@ -1591,7 +1591,7 @@ class hollaex extends hollaex$1["default"] {
         //         ]
         //     }
         //
-        const wallet = this.safeValue(response, 'wallet', []);
+        const wallet = this.safeList(response, 'wallet', []);
         const addresses = (network === undefined) ? wallet : this.filterBy(wallet, 'network', network);
         return this.parseDepositAddresses(addresses, codes, false);
     }
@@ -1703,7 +1703,7 @@ class hollaex extends hollaex$1["default"] {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const transaction = this.safeDict(data, 0, {});
         return this.parseTransaction(transaction, currency);
     }
@@ -1823,8 +1823,8 @@ class hollaex extends hollaex$1["default"] {
         const currencyId = this.safeString(transaction, 'currency');
         currency = this.safeCurrency(currencyId, currency);
         let status = this.safeValue(transaction, 'status');
-        const dismissed = this.safeValue(transaction, 'dismissed');
-        const rejected = this.safeValue(transaction, 'rejected');
+        const dismissed = this.safeBool(transaction, 'dismissed');
+        const rejected = this.safeBool(transaction, 'rejected');
         if (status === true) {
             status = 'ok';
         }
@@ -1959,11 +1959,11 @@ class hollaex extends hollaex$1["default"] {
             },
             'networks': {},
         };
-        const allowWithdrawal = this.safeValue(fee, 'allow_withdrawal');
+        const allowWithdrawal = this.safeBool(fee, 'allow_withdrawal');
         if (allowWithdrawal === true) {
             result['withdraw'] = { 'fee': this.safeNumber(fee, 'withdrawal_fee'), 'percentage': false };
         }
-        const withdrawalFees = this.safeValue(fee, 'withdrawal_fees');
+        const withdrawalFees = this.safeDict(fee, 'withdrawal_fees');
         if (withdrawalFees !== undefined) {
             const keys = Object.keys(withdrawalFees);
             const keysLength = keys.length;

@@ -142,7 +142,7 @@ class blofin extends Exchange {
                 'setPositionMode' => true,
                 'signIn' => false,
                 'transfer' => true,
-                'withdraw' => false,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -414,8 +414,8 @@ class blofin extends Exchange {
                     '405' => '\\ccxt\\BadRequest',  // Method Not Allowed
                     '406' => '\\ccxt\\BadRequest',  // Not Acceptable
                     '429' => '\\ccxt\\RateLimitExceeded',  // Too Many Requests
-                    '152001' => '\\ccxt\\BadRequest',  // Parameter {} cannot be empty
-                    '152002' => '\\ccxt\\BadRequest',  // Parameter {} error
+                    '152001' => '\\ccxt\\BadRequest',  // Parameter {} cannot be empty - verified live 2026-09-14 (withdrawal-apply without addrType)
+                    '152002' => '\\ccxt\\BadRequest',  // Parameter {} error - verified live 2026-09-14 (short-form chain id in withdrawal-apply; NOTE the live message omits the field name)
                     '152003' => '\\ccxt\\BadRequest',  // Either parameter {} or {} is required
                     '152004' => '\\ccxt\\BadRequest',  // JSON syntax error
                     '152005' => '\\ccxt\\BadRequest',  // Parameter error: wrong or empty
@@ -448,6 +448,46 @@ class blofin extends Exchange {
                     '102065' => '\\ccxt\\BadRequest',  // Sell price is not within the price limit
                     '102068' => '\\ccxt\\BadRequest',  // Cancel failed as the order has been filled, triggered, canceled or does not exist
                     '103013' => '\\ccxt\\ExchangeError',  // Internal error; unable to process your request. Please try again.
+                    '102067' => '\\ccxt\\OrderNotFound',  // Order modification failed as the order has been filled, triggered, canceled or does not exist.
+                    '102089' => '\\ccxt\\BadRequest',  // Position mode mismatch
+                    '102148' => '\\ccxt\\DuplicateOrderId',  // Duplicate requestId, request ignored.
+                    '103003' => '\\ccxt\\InsufficientFunds',  // Order failed. Insufficient USDT margin in account
+                    '110006' => '\\ccxt\\InvalidOrder',  // You have pending cross orders. Please cancel them before adjusting your leverage.
+                    '110019' => '\\ccxt\\InvalidOrder',  // Setting failed. Cancel any open orders, and close positions first.
+                    '148082' => '\\ccxt\\BadRequest',  // Callback percentage range 0.1% - 100%
+                    '148083' => '\\ccxt\\BadRequest',  // Callback constant range
+                    '152011' => '\\ccxt\\PermissionDenied',  // Transaction API Key does not support brokerId
+                    '152012' => '\\ccxt\\BadRequest',  // BrokerId is required
+                    '152013' => '\\ccxt\\PermissionDenied',  // Unmatched brokerId, please check your API key's bound broker
+                    '152014' => '\\ccxt\\BadRequest',  // Instrument ID does not exist
+                    '152015' => '\\ccxt\\BadRequest',  // Number of instId values exceeds the maximum limit of 20
+                    '152020' => '\\ccxt\\InvalidAddress',  // Address binding not found.
+                    '152022' => '\\ccxt\\BadRequest',  // Current network is not available.
+                    '152023' => '\\ccxt\\PermissionDenied',  // This address is still within the 24-hour withdrawal lock period.
+                    '152024' => '\\ccxt\\PermissionDenied',  // Your account now can only withdraw to whitelist addresses.
+                    '152025' => '\\ccxt\\PermissionDenied',  // Deposits not supported yet, contact customer support for details.
+                    '152026' => '\\ccxt\\BadRequest',  // Amount precision error.
+                    '152027' => '\\ccxt\\BadRequest',  // The withdrawal must exceed the minimum limit.
+                    '152028' => '\\ccxt\\InsufficientFunds',  // Insufficient balance.
+                    '152029' => '\\ccxt\\PermissionDenied',  // The maximum daily withdrawal amount has been reached.
+                    '152030' => '\\ccxt\\DuplicateOrderId',  // Duplicated clientId.
+                    '152031' => '\\ccxt\\InvalidAddress',  // This address is not marked as verification-free. - verified live 2026-09-14 (account-policy rejection, address must carry the verification-free flag for api withdrawals)
+                    '152032' => '\\ccxt\\PermissionDenied',  // Quick withdrawal daily limit exceeded. Please complete 2FA verification.
+                    '152401' => '\\ccxt\\AuthenticationError',  // Access key does not exist
+                    '152402' => '\\ccxt\\AuthenticationError',  // Access key has expired
+                    '152404' => '\\ccxt\\PermissionDenied',  // This operation is not supported, Please check the requestPath or API key permissions. - verified live 2026-09-14 (api key without the withdrawal permission)
+                    '152405' => '\\ccxt\\InvalidNonce',  // Timestamp in header or signature has expired, need to be within 60s
+                    '152406' => '\\ccxt\\PermissionDenied',  // Your IP is not included in your API key's IP whitelist
+                    '152407' => '\\ccxt\\InvalidNonce',  // Repeated nonce, Reusing within 60 seconds is not allowed.
+                    '152408' => '\\ccxt\\AuthenticationError',  // Passphrase error
+                    '152409' => '\\ccxt\\AuthenticationError',  // Signature verification failed
+                    '152410' => '\\ccxt\\InvalidNonce',  // The value of ACCESS-TIMESTAMP needs to be a millisecond timestamp
+                    '152420' => '\\ccxt\\DuplicateOrderId',  // Duplicate order in batch request
+                    '152421' => '\\ccxt\\DuplicateOrderId',  // requestId already exists, please try again later
+                    '152422' => '\\ccxt\\BadRequest',  // Exactly one of callbackRatio and callbackSpread must be provided
+                    '152423' => '\\ccxt\\InvalidOrder',  // New size cannot be less than filled size
+                    '152428' => '\\ccxt\\BadRequest',  // Invalid trigger price type
+                    '152429' => '\\ccxt\\BadRequest',  // Request expired, ttl exceeded
                     'Order failed. Insufficient USDT margin in account' => '\\ccxt\\InsufficientFunds',  // Insufficient USDT margin in account
                 ),
                 'broad' => array(
@@ -482,10 +522,49 @@ class blofin extends Exchange {
                     'USDT' => 'TRC20',
                 ),
                 'networks' => array(
+                    // code -> the live withdrawal-apply chain identifier where
+                    // it carries no parenthesized suffix; the suffix family
+                    // ('Tron (TRC20)' and friends) is constructed at runtime
+                    // in networkCodeToChainId from networkPrefixes, because a
+                    // space before a paren inside a source literal is not
+                    // transpiler-safe
                     'BTC' => 'Bitcoin',
-                    'BEP20' => 'BSC',
-                    'ERC20' => 'ERC20',
-                    'TRC20' => 'TRC20',
+                    'SOL' => 'Solana',
+                    'MATIC' => 'Polygon POS',
+                    'AVAXC' => 'AVAX C-Chain',
+                    'ARBITRUM' => 'Arbitrum One',
+                    'OP' => 'Optimism',
+                    'KAIA' => 'KAIA',
+                ),
+                'networkPrefixes' => array(
+                    // code -> the display-name prefix; the venue id is
+                    // prefix + space + parenthesized suffix, where the suffix
+                    // defaults to the unified code itself
+                    'TRC20' => 'Tron',
+                    'ERC20' => 'Ethereum',
+                    'BEP20' => 'BNB Smart Chain',
+                    'APT' => 'APT',
+                    'TON' => 'TON',
+                ),
+                'networkSuffixes' => array(
+                    // only where the parenthesized suffix differs from the code
+                    'TON' => 'Toncoin',
+                ),
+                'networkCodesBySuffix' => array(
+                    // reverse of networkSuffixes for parsing venue ids
+                    'Toncoin' => 'TON',
+                ),
+                'networksById' => array(
+                    // paren-free venue ids and legacy short forms -> unified;
+                    // ids with a parenthesized suffix are parsed at runtime in
+                    // chainIdToNetworkCode
+                    'Bitcoin' => 'BTC',
+                    'Solana' => 'SOL',
+                    'Polygon POS' => 'MATIC',
+                    'AVAX C-Chain' => 'AVAXC',
+                    'Arbitrum One' => 'ARBITRUM',
+                    'Optimism' => 'OP',
+                    'BSC' => 'BEP20',
                 ),
                 'fetchOpenInterestHistory' => array(
                     'timeframes' => array(
@@ -1040,7 +1119,7 @@ class blofin extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -1179,7 +1258,7 @@ class blofin extends Exchange {
         return $this->parse_funding_rate($entry, $market);
     }
 
-    public function parse_balance_by_type(mixed $response) {
+    public function parse_balance_by_type(array $response): array {
         $data = $this->safe_list($response, 'data');
         if (($data !== null) && (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
             return $this->parse_funding_balance($response);
@@ -1188,7 +1267,7 @@ class blofin extends Exchange {
         }
     }
 
-    public function parse_balance(mixed $response) {
+    public function parse_balance(mixed $response): array {
         //
         // "data" similar for REST & WS
         //
@@ -1245,7 +1324,7 @@ class blofin extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_funding_balance(mixed $response) {
+    public function parse_funding_balance(array $response): array {
         //
         //  {
         //      "code": "0",
@@ -1322,7 +1401,7 @@ class blofin extends Exchange {
         return $this->parse_balance_by_type($response);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -1600,7 +1679,7 @@ class blofin extends Exchange {
         return $order;
     }
 
-    public function create_tpsl_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function create_tpsl_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         $market = $this->market($symbol);
         $hedged = $this->safe_bool($params, 'hedged', false);
         $positionSide = 'net';
@@ -1654,7 +1733,7 @@ class blofin extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1964,6 +2043,137 @@ class blofin extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
+    public function network_code_to_chain_id(string $networkCode): ?string {
+        // the live venue identifies chains by display names; the suffix
+        // family is built here as prefix + space + parenthesized suffix
+        // because such literals are not transpiler-safe in source
+        $networks = $this->safe_dict($this->options, 'networks', array());
+        $direct = $this->safe_string($networks, $networkCode);
+        if ($direct !== null) {
+            return $direct;
+        }
+        $prefixes = $this->safe_dict($this->options, 'networkPrefixes', array());
+        $prefix = $this->safe_string($prefixes, $networkCode);
+        if ($prefix !== null) {
+            $suffixes = $this->safe_dict($this->options, 'networkSuffixes', array());
+            $suffix = $this->safe_string($suffixes, $networkCode, $networkCode);
+            return $prefix . ' ' . '(' . $suffix . ')';
+        }
+        return $networkCode;
+    }
+
+    public function chain_id_to_network_code(?string $chainId): ?string {
+        // live history rows and the currencies registry carry display-name
+        // chain ids like Tron with a parenthesized TRC20 suffix (verified
+        // live 2026-09-15), while the doc examples still show short forms -
+        // parse the suffix when present, fall back to the id maps otherwise
+        if ($chainId === null) {
+            return null;
+        }
+        if (mb_strpos($chainId, '(') > -1) {
+            // php-safe suffix extraction: split instead of index arithmetic,
+            // because a stored strpos result and a two-argument slice do not
+            // survive the php conversion (false-vs-int compare; length arg)
+            $parts = explode('(', $chainId);
+            $tail = $this->safe_string($parts, 1, '');
+            $tailParts = explode(')', $tail);
+            $suffix = $this->safe_string($tailParts, 0);
+            $bySuffix = $this->safe_dict($this->options, 'networkCodesBySuffix', array());
+            return $this->safe_string($bySuffix, $suffix, $suffix);
+        }
+        // delegate the paren-free branch to the base resolver so the
+        // currency-scoped networks and the deprecated-network-code aliases
+        // keep applying alongside options['networksById']
+        return $this->network_id_to_code($chainId);
+    }
+
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    }
+
+    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+        /**
+         * make a withdrawal
+         *
+         * @see https://docs.blofin.com/index.html#withdrawal
+         *
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw, the withdrawal fee is not included and must be reserved on top
+         * @param {string} $address the $address to withdraw to, or a UID / email / phone number for an internal transfer
+         * @param {string} $tag additional identifier (memo / payment id) required by certain networks
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->network] the unified network $code for on-$chain withdrawals, mapped to the exchange's $chain name
+         * @param {string} [$params->dest] 'onchain' (default) or 'internal' for an internal transfer
+         * @param {string} [$params->addrType] $address type, 1 => wallet $address, 2 => UID, 3 => email, 4 => mobile phone
+         * @param {string} [$params->areaCode] area $code for the phone number, required when $address is a phone number
+         * @param {string} [$params->clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         */
+        // LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
+        // - addrType is documented optional but the live venue rejects
+        //   on-chain withdrawals without it: 152001 "Parameter addrType
+        //   cannot be empty" - defaulted to 1 below
+        // - the chain identifiers accepted here are the DISPLAY NAMES from
+        //   GET /asset/currencies ("Tron (TRC20)", "Ethereum (ERC20)", ...);
+        //   the short forms shown in the doc examples ("TRC20") are rejected
+        //   with 152002 "Invalid parameter" - see options["networks"]
+        // - 152002 responses omit the offending field name even though the
+        //   error table documents the message as "Parameter {} error"
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        Async\await($this->load_markets());
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+            'address' => $address,
+            'amount' => $this->number_to_string($amount),
+        );
+        $dest = $this->safe_string($params, 'dest', 'onchain');
+        $request['dest'] = $dest;
+        $params = $this->omit($params, 'dest');
+        if ($dest === 'onchain') {
+            $this->check_address($address);
+            // the doc's Request Parameters table marks addrType "Required:
+            // No", but the live venue rejects on-chain withdrawals without
+            // it (152001 "Parameter addrType cannot be empty") - default to
+            // 1 = wallet address, callers can override for other kinds
+            $request['addrType'] = $this->safe_string($params, 'addrType', '1');
+            $params = $this->omit($params, 'addrType');
+        }
+        if ($tag !== null) {
+            $request['tag'] = $tag;
+        }
+        // consume the unified network key unconditionally so it never leaks
+        // onto the wire; an explicit raw params['chain'] takes precedence
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        $chain = $this->safe_string($params, 'chain');
+        if ($chain === null) {
+            if ($networkCode !== null) {
+                $request['chain'] = $this->network_code_to_chain_id($networkCode);
+            } elseif ($dest === 'onchain') {
+                // required for on-chain withdrawals, optional for internal transfers
+                throw new ArgumentsRequired($this->id . ' withdraw() requires a $params["network"] or $params["chain"] for on-$chain withdrawals');
+            }
+        }
+        $response = Async\await($this->privatePostAssetWithdrawalApply($this->extend($request, $params)));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "withdrawId": "a1b2c3d4e5",
+        //             "clientId": "broker-20260706-0001"
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        // the response carries only withdrawId + clientId, and this class's
+        // parseTransaction reads every field from the payload - seed the
+        // parsed structure from the request so the unified transaction
+        // reflects what was actually submitted
+        return $this->parse_transaction($this->extend($request, $data), $currency);
+    }
+
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ledger(...))($code, $since, $limit, $params);
     }
@@ -2063,6 +2273,16 @@ class blofin extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $amount = $this->safe_number($transaction, 'amount');
+        // live history rows carry the DISPLAY-NAME chain identifiers
+        // ('Tron (TRC20)', verified live 2026-09-15) even though the doc
+        // examples show short forms ('TRC20') - chainIdToNetworkCode parses
+        // the parenthesized suffix for the display-name family, and the
+        // paren-free ids resolve through the base networkIdToCode with
+        // options['networksById']. note the history
+        // amount is NET of the fee: a 30 USDT withdrawal-apply lands as
+        // amount 29 + fee 1
+        $networkId = $this->safe_string($transaction, 'chain');
+        $networkCode = $this->chain_id_to_network_code($networkId);
         $txid = $this->safe_string($transaction, 'txId');
         $timestamp = $this->safe_integer($transaction, 'ts');
         $feeCurrencyId = $this->safe_string($transaction, 'feeCurrency');
@@ -2073,7 +2293,7 @@ class blofin extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
-            'network' => null,
+            'network' => $networkCode,
             'addressFrom' => null,
             'addressTo' => $addressTo,
             'address' => $address,
@@ -2117,7 +2337,7 @@ class blofin extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array(
             '1' => 'transfer', // transfer
             '2' => 'trade', // trade
@@ -2171,7 +2391,7 @@ class blofin extends Exchange {
         }
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
     }
 
@@ -2420,7 +2640,7 @@ class blofin extends Exchange {
         return $this->filter_by_since_limit($positions, $since, $limit);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // response similar for REST & WS
         //
@@ -3087,7 +3307,7 @@ class blofin extends Exchange {
         return null;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api']['rest'] . $request;

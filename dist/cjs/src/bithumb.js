@@ -3356,6 +3356,9 @@ class bithumb extends bithumb$1["default"] {
         const queryKeysLength = queryKeys.length;
         const hasQuery = (queryKeysLength > 0);
         if (api === 'public') {
+            headers = {
+                'OPEN-API-PARTNER': 'CCXT',
+            };
             if (hasQuery) {
                 url += '?' + this.urlencode(query);
             }
@@ -3366,6 +3369,7 @@ class bithumb extends bithumb$1["default"] {
             if (isVersionedApi) {
                 headers = {
                     'Accept': 'application/json',
+                    'OPEN-API-PARTNER': 'CCXT',
                 };
                 const request = {
                     'access_key': this.apiKey,
@@ -3409,6 +3413,7 @@ class bithumb extends bithumb$1["default"] {
                     'Api-Key': this.apiKey,
                     'Api-Sign': signature64,
                     'Api-Nonce': nonce,
+                    'OPEN-API-PARTNER': 'CCXT',
                 };
             }
         }

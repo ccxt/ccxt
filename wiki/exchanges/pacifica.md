@@ -336,6 +336,7 @@ create a trade order
 | params.takeProfitPrice | <code>float</code> | No | the price that a take profit order is triggered at (optional provide takeProfitCloid) |
 | params.timeInForce | <code>string</code> | No | "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book) |
 | params.reduceOnly | <code>boolean</code> | No | Ensures that the executed order does not flip the opened position. |
+| params.slippage | <code>string</code> | No | the slippage for market orders in percent, defaults to options.defaultSlippage (0.5) |
 | params.clientOrderId | <code>string</code> | No | client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479) |
 | params.expiryWindow | <code>int</code> | No | time to live in milliseconds |
 

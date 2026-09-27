@@ -711,7 +711,7 @@ class tokocrypto extends Exchange {
         ));
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
@@ -793,7 +793,7 @@ class tokocrypto extends Exchange {
         if ($this->options['adjustForTimeDifference'] === true) {
             Async\await($this->load_time_difference());
         }
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $list = $this->safe_list($data, 'list', array());
         $result = array();
         for ($i = 0; $i < count($list); $i++) {
@@ -807,7 +807,7 @@ class tokocrypto extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $settle = $this->safe_currency_code($settleId);
             $symbol = $base . '/' . $quote;
-            $filters = $this->safe_value($market, 'filters', array());
+            $filters = $this->safe_list($market, 'filters', array());
             $filtersByType = $this->index_by($filters, 'filterType');
             $status = $this->safe_string($market, 'spotTradingEnable');
             $active = ($status === '1');
@@ -885,7 +885,7 @@ class tokocrypto extends Exchange {
                 $entry['precision']['price'] = $filter['tickSize'];
             }
             if (is_array($filtersByType) && array_key_exists('LOT_SIZE' ?? '', $filtersByType)) {
-                $filter = $this->safe_value($filtersByType, 'LOT_SIZE', array());
+                $filter = $this->safe_dict($filtersByType, 'LOT_SIZE', array());
                 $entry['precision']['amount'] = $this->safe_number($filter, 'stepSize');
                 $entry['limits']['amount'] = array(
                     'min' => $this->safe_number($filter, 'minQty'),
@@ -893,14 +893,14 @@ class tokocrypto extends Exchange {
                 );
             }
             if (is_array($filtersByType) && array_key_exists('MARKET_LOT_SIZE' ?? '', $filtersByType)) {
-                $filter = $this->safe_value($filtersByType, 'MARKET_LOT_SIZE', array());
+                $filter = $this->safe_dict($filtersByType, 'MARKET_LOT_SIZE', array());
                 $entry['limits']['market'] = array(
                     'min' => $this->safe_number($filter, 'minQty'),
                     'max' => $this->safe_number($filter, 'maxQty'),
                 );
             }
             if (is_array($filtersByType) && array_key_exists('MIN_NOTIONAL' ?? '', $filtersByType)) {
-                $filter = $this->safe_value($filtersByType, 'MIN_NOTIONAL', array());
+                $filter = $this->safe_dict($filtersByType, 'MIN_NOTIONAL', array());
                 $entry['limits']['cost']['min'] = $this->safe_number_2($filter, 'minNotional', 'notional');
             }
             $result[] = $entry;
@@ -967,7 +967,7 @@ class tokocrypto extends Exchange {
         //         },
         //         "timestamp":1692262634599
         //     }
-        $data = $this->safe_value($response, 'data', $response);
+        $data = $this->safe_dict($response, 'data', $response);
         $timestamp = $this->safe_integer_2($response, 'T', 'timestamp');
         $orderbook = $this->parse_order_book($data, $symbol, $timestamp);
         $orderbook['nonce'] = $this->safe_integer($data, 'lastUpdateId');
@@ -1078,7 +1078,7 @@ class tokocrypto extends Exchange {
         $id = $this->safe_string_2($trade, 'id', 'tradeId', $id);
         $side = null;
         $orderId = $this->safe_string($trade, 'orderId');
-        $buyerMaker = $this->safe_value_2($trade, 'm', 'isBuyerMaker');
+        $buyerMaker = $this->safe_bool_2($trade, 'm', 'isBuyerMaker');
         $takerOrMaker = null;
         if ($buyerMaker !== null) {
             $side = ($buyerMaker === true) ? 'sell' : 'buy'; // this is reversed intentionally
@@ -1415,7 +1415,7 @@ class tokocrypto extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_bids_asks(...))($symbols, $params);
     }
 
@@ -1634,14 +1634,14 @@ class tokocrypto extends Exchange {
         return $this->parse_balance_custom($response, $type, $marginMode);
     }
 
-    public function parse_balance_custom(mixed $response, ?string $type = null, ?string $marginMode = null) {
+    public function parse_balance_custom(array $response, ?string $type = null, ?string $marginMode = null): array {
         $timestamp = $this->safe_integer($response, 'updateTime');
         $result = array(
             'info' => $response,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         );
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $balances = $this->safe_list($data, 'accountAssets', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
@@ -1796,7 +1796,7 @@ class tokocrypto extends Exchange {
         } elseif ($side === '1') {
             $side = 'sell';
         }
-        $fills = $this->safe_value($order, 'fills', array());
+        $fills = $this->safe_list($order, 'fills', array());
         $clientOrderId = $this->safe_string_2($order, 'clientOrderId', 'clientId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         if ($timeInForce === 'GTX') {
@@ -1830,7 +1830,7 @@ class tokocrypto extends Exchange {
         ), $market);
     }
 
-    public function parse_order_type(mixed $status) {
+    public function parse_order_type(?string $status): ?string {
         $statuses = array(
             '2' => 'market',
             '1' => 'limit',
@@ -1840,7 +1840,7 @@ class tokocrypto extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1909,7 +1909,7 @@ class tokocrypto extends Exchange {
             $request['side'] = 1;
         }
         if ($clientOrderId === null) {
-            $broker = $this->safe_value($this->options, 'broker');
+            $broker = $this->safe_dict($this->options, 'broker');
             if ($broker !== null) {
                 $brokerId = $this->safe_string($broker, 'marketType');
                 if ($brokerId !== null) {
@@ -2025,7 +2025,7 @@ class tokocrypto extends Exchange {
         return $this->parse_order($rawOrder, $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -2074,8 +2074,8 @@ class tokocrypto extends Exchange {
         //         "timestamp": 1662710056523
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $list = $this->safe_value($data, 'list', array());
+        $data = $this->safe_dict($response, 'data', array());
+        $list = $this->safe_list($data, 'list', array());
         $rawOrder = $this->safe_dict($list, 0, array());
         return $this->parse_order($rawOrder);
     }
@@ -2153,7 +2153,7 @@ class tokocrypto extends Exchange {
         //         "timestamp": 1572860756458
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $orders = $this->safe_list($data, 'list', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
@@ -2198,7 +2198,7 @@ class tokocrypto extends Exchange {
         return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -2248,7 +2248,7 @@ class tokocrypto extends Exchange {
         return $this->parse_order($rawOrder);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -2311,7 +2311,7 @@ class tokocrypto extends Exchange {
         //         "timestamp": 1573723498893
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $trades = $this->safe_list($data, 'list', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -2338,7 +2338,7 @@ class tokocrypto extends Exchange {
             'asset' => $currency['id'],
             // 'network': 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         );
-        $networks = $this->safe_value($this->options, 'networks', array());
+        $networks = $this->safe_dict($this->options, 'networks', array());
         $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
         if ($network !== null) {
@@ -2363,7 +2363,7 @@ class tokocrypto extends Exchange {
         //         "timestamp":1660685915746
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $address = $this->safe_string($data, 'address');
         $tag = $this->safe_string($data, 'addressTag', '');
         if (strlen($tag) === 0) {
@@ -2442,7 +2442,7 @@ class tokocrypto extends Exchange {
         //         "timestamp":1659758865998
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $deposits = $this->safe_list($data, 'list', array());
         return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
@@ -2506,12 +2506,12 @@ class tokocrypto extends Exchange {
         //         "timestamp":1659759062187
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $withdrawals = $this->safe_list($data, 'list', array());
         return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
-    public function parse_transaction_status_by_type(mixed $status, ?string $type = null) {
+    public function parse_transaction_status_by_type(?string $status, ?string $type = null): ?string {
         $statusesByType = array(
             'deposit' => array(
                 '0' => 'pending',
@@ -2527,7 +2527,7 @@ class tokocrypto extends Exchange {
                 '10' => 'ok', // Completed
             ),
         );
-        $statuses = $this->safe_value($statusesByType, $type, array());
+        $statuses = $this->safe_dict($statusesByType, $type, array());
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -2619,7 +2619,7 @@ class tokocrypto extends Exchange {
         }
         $id = $this->safe_string($transaction, 'id');
         if ($id === null) {
-            $data = $this->safe_value($transaction, 'data', array());
+            $data = $this->safe_dict($transaction, 'data', array());
             $id = $this->safe_string($data, 'withdrawId');
             $type = 'withdrawal';
         }
@@ -2700,7 +2700,7 @@ class tokocrypto extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, $api = 'public', mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         if (!(is_array($this->urls['api']['rest']) && array_key_exists($api ?? '', $this->urls['api']['rest']))) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
         }
@@ -2839,7 +2839,7 @@ class tokocrypto extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, mixed $config = array()) {
         if ((is_array($config) && array_key_exists('noCoin' ?? '', $config)) && !(is_array($params) && array_key_exists('coin' ?? '', $params))) {
             return $config['noCoin'];
         } elseif ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {

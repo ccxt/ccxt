@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official kucoinfutures API documentation:** [docs.kucoin.com](https://docs.kucoin.com)
 
-> 360 implicit endpoints across 9 access groups.
+> 361 implicit endpoints across 10 access groups.
 
 ## public
 
@@ -437,6 +437,14 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `utaGetMarketBorrowableCurrency` | GET | `market/borrowable-currency` | 30 |
 | `utaGetUserMyIp` | GET | `user/my-ip` | 20 |
 | `utaGetMarketFiatPrice` | GET | `market/fiat-price` | 6 |
+
+## utaV2
+
+**Base URL**: `https://api.kucoin.com`
+
+| Method | HTTP | Endpoint | Cost |
+| --- | --- | --- | --- |
+| `utaV2GetMarketFundingRate` | GET | `market/funding-rate` | 6 |
 
 ## utaPrivate
 

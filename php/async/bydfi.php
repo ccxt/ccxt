@@ -632,8 +632,7 @@ class bydfi extends Exchange {
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        $timestamp = $this->milliseconds();
-        $orderBook = $this->parse_order_book($data, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'amount');
+        $orderBook = $this->parse_order_book($data, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
         $orderBook['nonce'] = $this->safe_integer($data, 'lastUpdateId');
         return $orderBook;
     }
@@ -853,11 +852,11 @@ class bydfi extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    private function do_fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1200,7 +1199,7 @@ class bydfi extends Exchange {
         return $this->parse_funding_rate_histories($data, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol": "ETH-USDT",
@@ -1293,7 +1292,7 @@ class bydfi extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -1412,7 +1411,7 @@ class bydfi extends Exchange {
         return $this->safe_string($types, $workingType, $workingType);
     }
 
-    public function create_orders(array $orders, $params = array()) {
+    public function create_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(self::do_create_orders(...))($orders, $params);
     }
 
@@ -1535,7 +1534,7 @@ class bydfi extends Exchange {
         return $this->parse_orders($data);
     }
 
-    public function create_edit_order_request(?string $id, ?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function create_edit_order_request(?string $id, ?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         $request = array();
         if (($id === null) && ($clientOrderId === null)) {
@@ -2025,7 +2024,7 @@ class bydfi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_set_leverage(...))($leverage, $symbol, $params);
     }
 
@@ -2198,7 +2197,7 @@ class bydfi extends Exchange {
         return $this->parse_positions($data, array( $market['symbol'] ));
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // fetchPositions, fetchPositionsForSymbol
         //     {
@@ -2486,7 +2485,7 @@ class bydfi extends Exchange {
         );
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_set_margin_mode(...))($marginMode, $symbol, $params);
     }
 
@@ -2527,7 +2526,7 @@ class bydfi extends Exchange {
         return Async\await($this->privatePostV1FapiUserDataMarginType($this->extend($request, $params)));
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_set_position_mode(...))($hedged, $symbol, $params);
     }
 
@@ -2719,11 +2718,10 @@ class bydfi extends Exchange {
     }
 
     public function parse_balance(mixed $response): array {
-        $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
         );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -2781,9 +2779,6 @@ class bydfi extends Exchange {
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
         if ($fillResponseFromRequest === true) {
-            $timestamp = $this->milliseconds();
-            $transfer['timestamp'] = $timestamp;
-            $transfer['datetime'] = $this->iso8601($timestamp);
             $transfer['currency'] = $code;
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
@@ -3103,7 +3098,7 @@ class bydfi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api'][$api];
         $endpoint = '/' . $path;
         $query = '';

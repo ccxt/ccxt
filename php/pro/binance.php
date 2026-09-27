@@ -233,12 +233,12 @@ class binance extends \ccxt\async\binance {
         return (mb_strpos($client->url, '/stream') > -1) || (mb_strpos($client->url, 'demo-stream') > -1);
     }
 
-    public function stream(?string $type, ?string $subscriptionHash, $numSubscriptions = 1) {
+    public function stream(?string $type, ?string $subscriptionHash, ?int $numSubscriptions = 1): ?string {
         $streamBySubscriptionsHash = $this->safe_dict($this->options, 'streamBySubscriptionsHash', $this->create_safe_dictionary());
         $stream = $this->safe_string($streamBySubscriptionsHash, $subscriptionHash);
         if ($stream === null) {
             $streamIndex = $this->safe_integer($this->options, 'streamIndex', -1);
-            $streamLimits = $this->safe_value($this->options, 'streamLimits');
+            $streamLimits = $this->safe_dict($this->options, 'streamLimits');
             $streamLimit = $this->safe_integer($streamLimits, $type);
             $streamIndex = $streamIndex + 1;
             $normalizedIndex = fmod($streamIndex, $streamLimit);
@@ -247,7 +247,7 @@ class binance extends \ccxt\async\binance {
             if ($subscriptionHash !== null) {
                 $this->options['streamBySubscriptionsHash'][$subscriptionHash] = $stream;
             }
-            $subscriptionsByStreams = $this->safe_value($this->options, 'numSubscriptionsByStream');
+            $subscriptionsByStreams = $this->safe_dict($this->options, 'numSubscriptionsByStream');
             if ($subscriptionsByStreams === null) {
                 $this->options['numSubscriptionsByStream'] = $this->create_safe_dictionary();
             }
@@ -444,7 +444,7 @@ class binance extends \ccxt\async\binance {
         return $this->filter_by_symbols_since_limit($this->liquidations, $symbols, $since, $limit, true);
     }
 
-    public function handle_liquidation(Client $client, mixed $message) {
+    public function handle_liquidation(Client $client, array $message) {
         //
         // future
         //    {
@@ -484,7 +484,7 @@ class binance extends \ccxt\async\binance {
         //        }
         //    }
         //
-        $rawLiquidation = $this->safe_value($message, 'o', array());
+        $rawLiquidation = $this->safe_dict($message, 'o', array());
         $marketId = $this->safe_string($rawLiquidation, 's');
         $market = $this->safe_market($marketId, null, '', 'contract');
         $symbol = $market['symbol'];
@@ -963,7 +963,7 @@ class binance extends \ccxt\async\binance {
         return $orderbook;
     }
 
-    public function handle_fetch_order_book(Client $client, mixed $message) {
+    public function handle_fetch_order_book(Client $client, array $message) {
         //
         //    {
         //        "id":"51e2affb-0aba-4821-ba75-f2625006eb43",
@@ -1004,9 +1004,9 @@ class binance extends \ccxt\async\binance {
         $messageHash = 'orderbook::' . $symbol;
         try {
             $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
-            $type = $this->safe_value($subscription, 'type');
+            $type = $this->safe_string($subscription, 'type');
             $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
-            $params = $this->safe_value($subscription, 'params');
+            $params = $this->safe_dict($subscription, 'params');
             // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
             // todo: this is a synch blocking call - make it async
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
@@ -1070,10 +1070,10 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function handle_order_book_message(Client $client, mixed $message, mixed $orderbook) {
+    public function handle_order_book_message(Client $client, array $message, mixed $orderbook) {
         $u = $this->safe_integer($message, 'u');
-        $this->handle_deltas($orderbook['asks'], $this->safe_value($message, 'a', array()));
-        $this->handle_deltas($orderbook['bids'], $this->safe_value($message, 'b', array()));
+        $this->handle_deltas($orderbook['asks'], $this->safe_list($message, 'a', array()));
+        $this->handle_deltas($orderbook['bids'], $this->safe_list($message, 'b', array()));
         $orderbook['nonce'] = $u;
         $timestamp = $this->safe_integer($message, 'E');
         $orderbook['timestamp'] = $timestamp;
@@ -1200,7 +1200,7 @@ class binance extends \ccxt\async\binance {
         $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
         // const messageHash = this.safeString (subscription, 'messageHash');
         $symbolOfSubscription = $this->safe_string($subscription, 'symbol'); // watchOrderBook
-        $symbols = $this->safe_value($subscription, 'symbols', array( $symbolOfSubscription )); // watchOrderBookForSymbols
+        $symbols = $this->safe_list($subscription, 'symbols', array( $symbolOfSubscription )); // watchOrderBookForSymbols
         $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
         // handle list of symbols
         for ($i = 0; $i < count($symbols); $i++) {
@@ -1224,7 +1224,7 @@ class binance extends \ccxt\async\binance {
         //
         $id = $this->safe_string($message, 'id');
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
-        $subscription = $this->safe_value($subscriptionsById, $id, array());
+        $subscription = $this->safe_dict($subscriptionsById, $id, array());
         $method = $this->safe_value($subscription, 'method');
         if ($method !== null) {
             $method($client, $message, $subscription);
@@ -1331,7 +1331,7 @@ class binance extends \ccxt\async\binance {
         );
         $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $query), $messageHashes, $subscribe));
         if ($this->newUpdates) {
-            $first = $this->safe_value($trades, 0);
+            $first = $this->safe_dict($trades, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limit = $trades->getLimit($tradeSymbol, $limit);
         }
@@ -1470,7 +1470,7 @@ class binance extends \ccxt\async\binance {
         return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null): array {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         // public watchTrades
         //
@@ -1916,7 +1916,7 @@ class binance extends \ccxt\async\binance {
         return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
         //         "e": "kline",
@@ -1949,7 +1949,7 @@ class binance extends \ccxt\async\binance {
             'markPrice_kline' => 'markPriceKline',
         );
         $event = $this->safe_string($eventMap, $event, $event);
-        $kline = $this->safe_value($message, 'k');
+        $kline = $this->safe_dict($message, 'k');
         $marketId = $this->safe_string_2($kline, 's', 'ps');
         if ($event === 'indexPriceKline') {
             // indexPriceKline doesn't have the _PERP suffix
@@ -1972,8 +1972,8 @@ class binance extends \ccxt\async\binance {
         $marketType = $isSpot ? 'spot' : 'contract';
         $symbol = $this->safe_symbol($marketId, null, null, $marketType);
         $messageHash = 'ohlcv::' . $symbol . '::' . $unifiedTimeframe;
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $unifiedTimeframe);
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
+        $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $unifiedTimeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
@@ -2092,7 +2092,7 @@ class binance extends \ccxt\async\binance {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
     }
 
-    public function handle_fetch_ohlcv(Client $client, mixed $message) {
+    public function handle_fetch_ohlcv(Client $client, array $message) {
         //
         //    {
         //        "id": "1dbbeb56-8eea-466a-8f6e-86bdcfa2fc0b",
@@ -2722,7 +2722,7 @@ class binance extends \ccxt\async\binance {
         ), $market);
     }
 
-    public function handle_ticker_ws(Client $client, mixed $message) {
+    public function handle_ticker_ws(Client $client, array $message) {
         //
         // ticker.price
         //    {
@@ -2750,7 +2750,7 @@ class binance extends \ccxt\async\binance {
         //    }
         //
         $messageHash = $this->safe_string($message, 'id');
-        $result = $this->safe_value($message, 'result', array());
+        $result = $this->safe_dict($message, 'result', array());
         $ticker = $this->parse_ws_ticker($result, 'future');
         $client->resolve($ticker, $messageHash);
     }
@@ -2839,12 +2839,12 @@ class binance extends \ccxt\async\binance {
                 continue;
             }
             $tickerMarketId = $this->safe_string($ticker, 's');
-            $tickerMarketsByIdList = $this->safe_value($this->markets_by_id, $tickerMarketId);
+            $tickerMarketsByIdList = $this->safe_list($this->markets_by_id, $tickerMarketId);
             $numTickerMarkets = ($tickerMarketsByIdList === null) ? 0 : count($tickerMarketsByIdList);
             // an ambiguous id, spot and swap share e.g. BTCUSDC, must not be resolved by
             // blind first pick, the stream url decides; only a unique match, like an
             // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
-            $tickerMarketById = ($numTickerMarkets === 1) ? $this->safe_value($tickerMarketsByIdList, 0) : null;
+            $tickerMarketById = ($numTickerMarkets === 1) ? $this->safe_dict($tickerMarketsByIdList, 0) : null;
             $isSpot = $this->is_spot_url($client);
             $tickerFallbackType = $isSpot ? 'spot' : 'contract';
             $tickerMarketType = ($tickerMarketById !== null) ? $tickerMarketById['type'] : $tickerFallbackType;
@@ -3140,7 +3140,7 @@ class binance extends \ccxt\async\binance {
         }
         $params = $this->omit($params, 'symbol');
         $isStock = ($type === 'stock');
-        $options = $this->safe_value($this->options, $type, array());
+        $options = $this->safe_dict($this->options, $type, array());
         $lastAuthenticatedTime = $this->safe_integer($options, 'lastAuthenticatedTime', 0);
         $refreshRateKey = $isStock ? 'stockListenKeyRefreshRate' : 'listenKeyRefreshRate';
         $listenKeyRefreshRate = $this->safe_integer($this->options, $refreshRateKey, 1200000);
@@ -3247,7 +3247,7 @@ class binance extends \ccxt\async\binance {
             return;
         }
         $isStock = ($type === 'stock');
-        $options = $this->safe_value($this->options, $type, array());
+        $options = $this->safe_dict($this->options, $type, array());
         $listenKey = $this->safe_string($options, 'listenKey');
         if ($listenKey === null) {
             // A network error happened: we can't renew a listen key that does not exist.
@@ -3334,11 +3334,11 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function set_balance_cache(Client $client, mixed $type, $isPortfolioMargin = false) {
+    public function set_balance_cache(Client $client, mixed $type, bool $isPortfolioMargin = false) {
         if ((is_array($client->subscriptions) && array_key_exists($type ?? '', $client->subscriptions)) && (is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             return;
         }
-        $options = $this->safe_value($this->options, 'watchBalance');
+        $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         if ($fetchBalanceSnapshot === true) {
             $messageHash = $type . ':fetchBalanceSnapshot';
@@ -3363,7 +3363,7 @@ class binance extends \ccxt\async\binance {
             $params['portfolioMargin'] = true;
         }
         $response = Async\await($this->fetch_balance($params));
-        $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
+        $this->balance[$type] = $this->extend($response, $this->safe_dict($this->balance, $type, array()));
         // don't remove the future from the .futures cache
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             $future = $client->futures[$messageHash];
@@ -3419,7 +3419,7 @@ class binance extends \ccxt\async\binance {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
     }
 
-    public function handle_balance_ws(Client $client, mixed $message) {
+    public function handle_balance_ws(Client $client, array $message) {
         //
         //
         $messageHash = $this->safe_string($message, 'id');
@@ -3436,7 +3436,7 @@ class binance extends \ccxt\async\binance {
         $client->resolve($parsedBalances, $messageHash);
     }
 
-    public function handle_account_status_ws(Client $client, mixed $message) {
+    public function handle_account_status_ws(Client $client, array $message) {
         //
         // spot
         //    {
@@ -3561,7 +3561,7 @@ class binance extends \ccxt\async\binance {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function handle_positions_ws(Client $client, mixed $message) {
+    public function handle_positions_ws(Client $client, array $message) {
         //
         //    {
         //        id: '1',
@@ -3905,7 +3905,7 @@ class binance extends \ccxt\async\binance {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
     }
 
-    public function handle_order_ws(Client $client, mixed $message) {
+    public function handle_order_ws(Client $client, array $message) {
         //
         //    {
         //        "id": 1,
@@ -3959,7 +3959,7 @@ class binance extends \ccxt\async\binance {
         $client->resolve($order, $messageHash);
     }
 
-    public function handle_orders_ws(Client $client, mixed $message) {
+    public function handle_orders_ws(Client $client, array $message) {
         //
         //    {
         //        "id": 1,
@@ -4056,7 +4056,7 @@ class binance extends \ccxt\async\binance {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
     }
 
-    public function handle_edit_order_ws(Client $client, mixed $message) {
+    public function handle_edit_order_ws(Client $client, array $message) {
         //
         // spot
         //    {
@@ -4234,7 +4234,7 @@ class binance extends \ccxt\async\binance {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
     }
 
-    public function cancel_all_orders_ws(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders_ws(...))($symbol, $params);
     }
 
@@ -4565,7 +4565,7 @@ class binance extends \ccxt\async\binance {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         // spot
         //
@@ -5018,7 +5018,7 @@ class binance extends \ccxt\async\binance {
         $client->resolve($parsed, 'stock:quote:' . $symbol);
     }
 
-    public function handle_options_order_update(Client $client, mixed $message) {
+    public function handle_options_order_update(Client $client, array $message) {
         //
         // eOptions ORDER_TRADE_UPDATE: "o" is an array of orders (not a dict like futures)
         //
@@ -5184,7 +5184,7 @@ class binance extends \ccxt\async\binance {
         return $this->filter_by_symbols_since_limit($cache, $symbols, $since, $limit, true);
     }
 
-    public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null, $isPortfolioMargin = false) {
+    public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null, bool $isPortfolioMargin = false) {
         if ($type === 'spot') {
             return;
         }
@@ -5235,7 +5235,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function handle_positions(mixed $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //     {
         //         e: 'ACCOUNT_UPDATE',
@@ -5515,7 +5515,7 @@ class binance extends \ccxt\async\binance {
         return $this->filter_by_since_limit($trades, $since, $limit);
     }
 
-    public function handle_trades_ws(Client $client, mixed $message) {
+    public function handle_trades_ws(Client $client, array $message) {
         //
         // fetchMyTradesWs
         //
@@ -5644,12 +5644,12 @@ class binance extends \ccxt\async\binance {
             if ($orderId !== null && $tradeFee !== null && $symbol !== null) {
                 $cachedOrders = $this->orders;
                 if ($cachedOrders !== null) {
-                    $orders = $this->safe_value($cachedOrders->hashmap, $symbol, array());
-                    $order = $this->safe_value($orders, $orderId);
+                    $orders = $this->safe_dict($cachedOrders->hashmap, $symbol, array());
+                    $order = $this->safe_dict($orders, $orderId);
                     if ($order !== null) {
                         // accumulate order fees
                         $fees = $this->safe_value($order, 'fees');
-                        $fee = $this->safe_value($order, 'fee');
+                        $fee = $this->safe_dict($order, 'fee');
                         if (!$this->is_empty($fees)) {
                             $insertNewFeeCurrency = true;
                             for ($i = 0; $i < count($fees); $i++) {
@@ -5723,8 +5723,8 @@ class binance extends \ccxt\async\binance {
                 $this->orders = new ArrayCacheBySymbolById($limit);
             }
             $cachedOrders = $this->orders;
-            $orders = $this->safe_value($cachedOrders->hashmap, $symbol, array());
-            $order = $this->safe_value($orders, $orderId);
+            $orders = $this->safe_dict($cachedOrders->hashmap, $symbol, array());
+            $order = $this->safe_dict($orders, $orderId);
             if ($order !== null) {
                 $fee = $this->safe_value($order, 'fee');
                 if ($fee !== null) {
@@ -5921,7 +5921,7 @@ class binance extends \ccxt\async\binance {
         }
         // user subscription wraps message in subscriptionId and event
         $id = $this->safe_string($message, 'id');
-        $subscriptions = $this->safe_value($client->subscriptions, $id);
+        $subscriptions = $this->safe_dict($client->subscriptions, $id);
         $method = $this->safe_value($subscriptions, 'method');
         if ($method !== null) {
             $method($client, $message);

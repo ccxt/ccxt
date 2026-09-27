@@ -533,7 +533,6 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
         'kucoinfutures',
         'bitget',
         'hyperliquid',
-        'bitmex',
         'bingx',
         'htx',
         'mexc',
@@ -791,7 +790,7 @@ async function exportEverything () {
     flat.push ('error_hierarchy')
 
     const typeExports = getTypesExports();
-    const staticExports = ['version', 'Exchange', 'BaseExchange', 'PredictionExchange', 'exchanges', 'pro', 'prediction', 'Precise', 'functions', 'errors'].concat(errorsExports).concat(typeExports)
+    const staticExports = ['version', 'Exchange', 'BaseExchange', 'PredictionExchange', 'exchanges', 'pro', 'prediction', 'Precise', 'OrderRouter', 'functions', 'errors'].concat(errorsExports).concat(typeExports)
 
     const fullExports  = staticExports.concat(ids)
 

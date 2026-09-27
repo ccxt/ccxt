@@ -236,7 +236,6 @@ function assertSymbolInMarkets (exchange: Exchange, skippedProperties: object, m
     assert ((exchange.markets !== undefined) && (symbol in exchange.markets), 'symbol should be present in exchange.symbols' + logText);
 }
 
-
 function assertGreater (exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, compareTo: string, allowNull: boolean = true) {
     if (key in skippedProperties) {
         return;
@@ -695,7 +694,6 @@ function validateTickerExceptionForPercentage (ex: any, exchange: Exchange, tick
     }
     assert (eMessage === '', eMessage); // trigger error
 }
-
 
 export default {
     exchangeProp,

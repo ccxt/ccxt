@@ -108,7 +108,7 @@ class bitget extends \ccxt\async\bitget {
         ));
     }
 
-    public function get_inst_type(mixed $methodName, mixed $market, bool $uta = false, $params = array()): array {
+    public function get_inst_type(?string $methodName, array $market, bool $uta = false, $params = array()): array {
         $instType = null;
         if ($market === null) {
             list($instType, $params) = $this->handleProductTypeAndParams(null, $params);
@@ -230,7 +230,7 @@ class bitget extends \ccxt\async\bitget {
         return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         // default
         //
@@ -296,7 +296,7 @@ class bitget extends \ccxt\async\bitget {
         $client->resolve($ticker, $messageHash);
     }
 
-    public function parse_ws_ticker(mixed $message, ?array $market = null) {
+    public function parse_ws_ticker(array $message, ?array $market = null): array {
         //
         // spot
         //
@@ -390,9 +390,9 @@ class bitget extends \ccxt\async\bitget {
         //         "ts": 1753230479687
         //     }
         //
-        $arg = $this->safe_value($message, 'arg', array());
-        $data = $this->safe_value($message, 'data', array());
-        $ticker = $this->safe_value($data, 0, array());
+        $arg = $this->safe_dict($message, 'arg', array());
+        $data = $this->safe_list($message, 'data', array());
+        $ticker = $this->safe_dict($data, 0, array());
         $utaTimestamp = $this->safe_integer($message, 'ts');
         $timestamp = $this->safe_integer($ticker, 'ts', $utaTimestamp);
         $instType = $this->safe_string_lower($arg, 'instType');
@@ -480,7 +480,7 @@ class bitget extends \ccxt\async\bitget {
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
     }
 
-    public function handle_bid_ask(Client $client, mixed $message) {
+    public function handle_bid_ask(Client $client, array $message) {
         $ticker = $this->parse_ws_bid_ask($message);
         $symbol = $ticker['symbol'];
         if ($symbol !== null) {
@@ -490,10 +490,10 @@ class bitget extends \ccxt\async\bitget {
         $client->resolve($ticker, $messageHash);
     }
 
-    public function parse_ws_bid_ask(mixed $message, ?array $market = null) {
-        $arg = $this->safe_value($message, 'arg', array());
-        $data = $this->safe_value($message, 'data', array());
-        $ticker = $this->safe_value($data, 0, array());
+    public function parse_ws_bid_ask(array $message, ?array $market = null): array {
+        $arg = $this->safe_dict($message, 'arg', array());
+        $data = $this->safe_list($message, 'data', array());
+        $ticker = $this->safe_dict($data, 0, array());
         $utaTimestamp = $this->safe_integer($message, 'ts');
         $timestamp = $this->safe_integer($ticker, 'ts', $utaTimestamp);
         $instType = $this->safe_string_lower($arg, 'instType');
@@ -538,7 +538,7 @@ class bitget extends \ccxt\async\bitget {
         }
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
-        $timeframes = $this->safe_value($this->options, 'timeframes');
+        $timeframes = $this->safe_dict($this->options, 'timeframes');
         $interval = $this->safe_string($timeframes, $timeframe);
         $messageHash = null;
         $instType = null;
@@ -616,7 +616,7 @@ class bitget extends \ccxt\async\bitget {
         return Async\await($this->un_watch_channel($symbol, $channel, $messageHash, 'watchOHLCV', $params));
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
         //         "action": "snapshot",
@@ -674,13 +674,13 @@ class bitget extends \ccxt\async\bitget {
         //         "ts": 1755594421877
         //     }
         //
-        $arg = $this->safe_value($message, 'arg', array());
+        $arg = $this->safe_dict($message, 'arg', array());
         $instType = $this->safe_string_lower($arg, 'instType');
         $marketType = ($instType === 'spot') ? 'spot' : 'contract';
         $marketId = $this->safe_string_2($arg, 'instId', 'symbol');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $channel = $this->safe_string_2($arg, 'channel', 'topic', '');
         $interval = $this->safe_string($arg, 'interval');
         $isUta = null;
@@ -690,7 +690,7 @@ class bitget extends \ccxt\async\bitget {
         } else {
             $isUta = true;
         }
-        $timeframes = $this->safe_value($this->options, 'timeframes');
+        $timeframes = $this->safe_dict($this->options, 'timeframes');
         $timeframe = $this->find_timeframe($interval, $timeframes);
         if ($timeframe === null) {
             return;
@@ -889,7 +889,7 @@ class bitget extends \ccxt\async\bitget {
         }
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //   {
         //       "action":"snapshot",
@@ -936,7 +936,7 @@ class bitget extends \ccxt\async\bitget {
         //     "ts": 1755937421337
         // }
         //
-        $arg = $this->safe_value($message, 'arg');
+        $arg = $this->safe_dict($message, 'arg');
         $channel = $this->safe_string_2($arg, 'channel', 'topic', '');
         $instType = $this->safe_string_lower($arg, 'instType');
         $marketType = ($instType === 'spot') ? 'spot' : 'contract';
@@ -944,8 +944,8 @@ class bitget extends \ccxt\async\bitget {
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $messageHash = 'orderbook:' . $symbol;
-        $data = $this->safe_value($message, 'data');
-        $rawOrderBook = $this->safe_value($data, 0);
+        $data = $this->safe_list($message, 'data');
+        $rawOrderBook = $this->safe_dict($data, 0, array());
         $timestamp = $this->safe_integer($rawOrderBook, 'ts');
         $incrementalBook = $channel === 'books';
         if ($incrementalBook) {
@@ -1106,7 +1106,7 @@ class bitget extends \ccxt\async\bitget {
         }
         $trades = Async\await($this->watch_public_multiple($uta, $messageHashes, $topics, $params));
         if ($this->newUpdates) {
-            $first = $this->safe_value($trades, 0);
+            $first = $this->safe_dict($trades, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limit = $trades->getLimit($tradeSymbol, $limit);
         }
@@ -1142,7 +1142,7 @@ class bitget extends \ccxt\async\bitget {
         return Async\await($this->un_watch_channel($symbol, $channelTopic, 'trade', 'watchTrades', $params));
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
         //         "action": "snapshot",
@@ -1177,7 +1177,7 @@ class bitget extends \ccxt\async\bitget {
         //         "ts": 1701910980730
         //     }
         //
-        $arg = $this->safe_value($message, 'arg', array());
+        $arg = $this->safe_dict($message, 'arg', array());
         $instType = $this->safe_string_lower($arg, 'instType');
         $marketType = ($instType === 'spot') ? 'spot' : 'contract';
         $marketId = $this->safe_string_2($arg, 'instId', 'symbol');
@@ -1202,7 +1202,7 @@ class bitget extends \ccxt\async\bitget {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "ts": "1701910980366",
@@ -1393,7 +1393,7 @@ class bitget extends \ccxt\async\bitget {
         return $this->filter_by_symbols_since_limit($newPositions, $symbols, $since, $limit, true);
     }
 
-    public function handle_positions(Client $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //     {
         //         "action": "snapshot",
@@ -1504,7 +1504,7 @@ class bitget extends \ccxt\async\bitget {
         $client->resolve($newPositions, $instType . ':positions');
     }
 
-    public function parse_ws_position(mixed $position, ?array $market = null) {
+    public function parse_ws_position(array $position, ?array $market = null): array {
         //
         //     {
         //         "posId": "926036334386778112",
@@ -1709,7 +1709,7 @@ class bitget extends \ccxt\async\bitget {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         // spot
         //
@@ -1863,7 +1863,7 @@ class bitget extends \ccxt\async\bitget {
         }
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         // spot
         //
@@ -2032,8 +2032,8 @@ class bitget extends \ccxt\async\bitget {
         $timestamp = $this->safe_integer_2($order, 'cTime', 'createdTime');
         $symbol = $market['symbol'];
         $rawStatus = $this->safe_string_2($order, 'status', 'orderStatus');
-        $orderFee = $this->safe_value($order, 'feeDetail', array());
-        $fee = $this->safe_value($orderFee, 0);
+        $orderFee = $this->safe_list($order, 'feeDetail', array());
+        $fee = $this->safe_dict($orderFee, 0);
         $feeAmount = $this->safe_string($fee, 'fee');
         $feeObject = null;
         if ($feeAmount !== null) {
@@ -2122,7 +2122,7 @@ class bitget extends \ccxt\async\bitget {
         ), $market);
     }
 
-    public function parse_ws_order_status(mixed $status) {
+    public function parse_ws_order_status(?string $status): ?string {
         $statuses = array(
             'new' => 'open',
             'live' => 'open',
@@ -2193,7 +2193,7 @@ class bitget extends \ccxt\async\bitget {
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, array $message) {
         //
         // spot
         // {
@@ -2399,7 +2399,7 @@ class bitget extends \ccxt\async\bitget {
         return Async\await($this->watch_private($uta, $messageHash, $messageHash, $args, $params));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         // spot
         //
@@ -2544,11 +2544,11 @@ class bitget extends \ccxt\async\bitget {
         $client->resolve($this->balance, $messageHash);
     }
 
-    public function watch_public(mixed $uta, mixed $messageHash, mixed $args, $params = array()) {
+    public function watch_public(bool $uta, string $messageHash, array $args, $params = array()) {
         return Async\async(self::do_watch_public(...))($uta, $messageHash, $args, $params);
     }
 
-    private function do_watch_public(mixed $uta, mixed $messageHash, mixed $args, $params = array()) {
+    private function do_watch_public(bool $uta, string $messageHash, array $args, $params = array()) {
         $url = ($uta === true) ? $this->urls['api']['ws']['utaPublic'] : $this->urls['api']['ws']['public'];
         $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
         if ($sandboxMode === true) {
@@ -2569,11 +2569,11 @@ class bitget extends \ccxt\async\bitget {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function un_watch_public(mixed $uta, mixed $messageHash, mixed $args, $params = array()) {
+    public function un_watch_public(bool $uta, string $messageHash, array $args, $params = array()) {
         return Async\async(self::do_un_watch_public(...))($uta, $messageHash, $args, $params);
     }
 
-    private function do_un_watch_public(mixed $uta, mixed $messageHash, mixed $args, $params = array()) {
+    private function do_un_watch_public(bool $uta, string $messageHash, array $args, $params = array()) {
         $url = ($uta === true) ? $this->urls['api']['ws']['utaPublic'] : $this->urls['api']['ws']['public'];
         $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
         if ($sandboxMode === true) {
@@ -2594,11 +2594,11 @@ class bitget extends \ccxt\async\bitget {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function watch_public_multiple(mixed $uta, mixed $messageHashes, mixed $argsArray, $params = array()) {
+    public function watch_public_multiple(bool $uta, array $messageHashes, array $argsArray, $params = array()) {
         return Async\async(self::do_watch_public_multiple(...))($uta, $messageHashes, $argsArray, $params);
     }
 
-    private function do_watch_public_multiple(mixed $uta, mixed $messageHashes, mixed $argsArray, $params = array()) {
+    private function do_watch_public_multiple(bool $uta, array $messageHashes, array $argsArray, $params = array()) {
         $url = ($uta === true) ? $this->urls['api']['ws']['utaPublic'] : $this->urls['api']['ws']['public'];
         $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
         if ($sandboxMode === true) {
@@ -2649,11 +2649,11 @@ class bitget extends \ccxt\async\bitget {
         return Async\await($future);
     }
 
-    public function watch_private(mixed $uta, mixed $messageHash, mixed $subscriptionHash, mixed $args, $params = array()) {
+    public function watch_private(bool $uta, string $messageHash, string $subscriptionHash, array $args, $params = array()) {
         return Async\async(self::do_watch_private(...))($uta, $messageHash, $subscriptionHash, $args, $params);
     }
 
-    private function do_watch_private(mixed $uta, mixed $messageHash, mixed $subscriptionHash, mixed $args, $params = array()) {
+    private function do_watch_private(bool $uta, string $messageHash, string $subscriptionHash, array $args, $params = array()) {
         $url = ($uta === true) ? $this->urls['api']['ws']['utaPrivate'] : $this->urls['api']['ws']['private'];
         $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
         if ($sandboxMode === true) {
@@ -2675,7 +2675,7 @@ class bitget extends \ccxt\async\bitget {
         return Async\await($this->watch($url, $messageHash, $message, $subscriptionHash));
     }
 
-    public function handle_authenticate(Client $client, mixed $message) {
+    public function handle_authenticate(Client $client, array $message) {
         //
         //  { event: "login", code: 0 }
         //
@@ -2684,7 +2684,7 @@ class bitget extends \ccxt\async\bitget {
         $future->resolve(true);
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //    { event: "error", code: 30015, msg: "Invalid sign" }
         //
@@ -2838,8 +2838,8 @@ class bitget extends \ccxt\async\bitget {
             'account-crossed' => array($this, 'handle_balance'),
             'kline' => array($this, 'handle_ohlcv'),
         );
-        $arg = $this->safe_value($message, 'arg', array());
-        $topic = $this->safe_value_2($arg, 'channel', 'topic', '');
+        $arg = $this->safe_dict($message, 'arg', array());
+        $topic = $this->safe_string_2($arg, 'channel', 'topic', '');
         $method = $this->safe_value($methods, $topic);
         if ($method !== null) {
             $method($client, $message);
@@ -2852,16 +2852,16 @@ class bitget extends \ccxt\async\bitget {
         }
     }
 
-    public function ping(Client $client) {
+    public function ping(Client $client): string {
         return 'ping';
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message): array {
         //
         //    {
         //        "event": "subscribe",
@@ -2871,7 +2871,7 @@ class bitget extends \ccxt\async\bitget {
         return $message;
     }
 
-    public function handle_order_book_un_subscription(Client $client, mixed $message) {
+    public function handle_order_book_un_subscription(Client $client, array $message) {
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
         //
@@ -2903,7 +2903,7 @@ class bitget extends \ccxt\async\bitget {
         $client->resolve(true, $messageHash);
     }
 
-    public function handle_trades_un_subscription(Client $client, mixed $message) {
+    public function handle_trades_un_subscription(Client $client, array $message) {
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
         //
@@ -2931,7 +2931,7 @@ class bitget extends \ccxt\async\bitget {
         $client->resolve(true, $messageHash);
     }
 
-    public function handle_ticker_un_subscription(Client $client, mixed $message) {
+    public function handle_ticker_un_subscription(Client $client, array $message) {
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
         //
@@ -2959,7 +2959,7 @@ class bitget extends \ccxt\async\bitget {
         $client->resolve(true, $messageHash);
     }
 
-    public function handle_ohlcv_un_subscription(Client $client, mixed $message) {
+    public function handle_ohlcv_un_subscription(Client $client, array $message) {
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"candle1m","instId":"BTCUSDT"}}
         //
@@ -2980,7 +2980,7 @@ class bitget extends \ccxt\async\bitget {
         } else {
             $isUta = true;
         }
-        $timeframes = $this->safe_value($this->options, 'timeframes');
+        $timeframes = $this->safe_dict($this->options, 'timeframes');
         $timeframe = $this->find_timeframe($interval, $timeframes);
         $market = $this->safe_market($instId, null, null, $type);
         $symbol = $market['symbol'];
@@ -3001,7 +3001,7 @@ class bitget extends \ccxt\async\bitget {
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
     }
 
-    public function handle_un_subscription_status(Client $client, mixed $message) {
+    public function handle_un_subscription_status(Client $client, array $message): array {
         //
         //  {
         //      "op":"unsubscribe",

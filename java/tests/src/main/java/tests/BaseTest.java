@@ -439,6 +439,12 @@ public class BaseTest {
         return exchange;
     }
 
+    public static BaseExchange setFetchResponseByUrl(Object exchange2, Object responsesByUrl) {
+        var exchange = (BaseExchange) exchange2;
+        exchange.setFetchResponseByUrl(responsesByUrl);
+        return exchange;
+    }
+
     public static Object setupWsMockTransport(Object exchange2, Object url) {
         // put the ws client for the given url into an "already connected" state
         // with a transport stub, so watch* methods never open a real socket;

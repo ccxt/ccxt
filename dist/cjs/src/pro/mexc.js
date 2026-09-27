@@ -567,7 +567,7 @@ class mexc extends mexc$1["default"] {
         }
         const market = this.market(symbol);
         symbol = market['symbol'];
-        const timeframes = this.safeValue(this.options, 'timeframes', {});
+        const timeframes = this.safeDict(this.options, 'timeframes', {});
         const timeframeId = this.safeString(timeframes, timeframe);
         const messageHash = 'candles:' + symbol + ':' + timeframe;
         let ohlcv = undefined;
@@ -665,10 +665,10 @@ class mexc extends mexc$1["default"] {
             parsed = this.parseWsOHLCV(data, this.safeMarket(symbol));
         }
         else {
-            const d = this.safeValue2(message, 'd', 'data', {});
-            const rawOhlcv = this.safeValue(d, 'k', d);
+            const d = this.safeDict2(message, 'd', 'data', {});
+            const rawOhlcv = this.safeDict(d, 'k', d);
             const timeframeId = this.safeString2(rawOhlcv, 'i', 'interval');
-            const timeframes = this.safeValue(this.options, 'timeframes', {});
+            const timeframes = this.safeDict(this.options, 'timeframes', {});
             timeframe = this.findTimeframe(timeframeId, timeframes);
             const marketId = this.safeString2(message, 's', 'symbol');
             const market = this.safeMarket(marketId);
@@ -676,7 +676,7 @@ class mexc extends mexc$1["default"] {
             parsed = this.parseWsOHLCV(rawOhlcv, market);
         }
         const messageHash = 'candles:' + symbol + ':' + timeframe;
-        const symbolOhlcvs = this.safeValue(this.ohlcvs, symbol, {});
+        const symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, {});
         this.ohlcvs[symbol] = symbolOhlcvs;
         let stored = this.safeValue(symbolOhlcvs, timeframe);
         if (stored === undefined) {
@@ -797,7 +797,7 @@ class mexc extends mexc$1["default"] {
     getCacheIndex(orderbook, cache) {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         const nonce = this.safeInteger(orderbook, 'nonce');
-        const firstDelta = this.safeValue(cache, 0);
+        const firstDelta = this.safeDict(cache, 0);
         const firstDeltaNonce = this.safeIntegerN(firstDelta, ['r', 'version', 'fromVersion']);
         if ((nonce === undefined) || (firstDeltaNonce === undefined)) {
             return -1;
@@ -888,7 +888,7 @@ class mexc extends mexc$1["default"] {
         const marketId = this.safeString2(message, 's', 'symbol');
         const symbol = this.safeSymbol(marketId);
         const messageHash = 'orderbook:' + symbol;
-        const subscription = this.safeValue(client.subscriptions, messageHash);
+        const subscription = this.safeDict(client.subscriptions, messageHash);
         const limit = this.safeInteger(subscription, 'limit');
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook();
@@ -1245,7 +1245,7 @@ class mexc extends mexc$1["default"] {
             'symbol': this.safeSymbol(undefined, market),
             'type': undefined,
             'side': side,
-            'takerOrMaker': (isMaker !== undefined && isMaker !== null && isMaker !== 0) ? 'maker' : 'taker',
+            'takerOrMaker': (isMaker !== undefined && isMaker !== 0) ? 'maker' : 'taker',
             'price': priceString,
             'amount': amountString,
             'cost': this.safeString(trade, 'amount'),
@@ -1850,7 +1850,7 @@ class mexc extends mexc$1["default"] {
         }
         const market = this.market(symbol);
         symbol = market['symbol'];
-        const timeframes = this.safeValue(this.options, 'timeframes', {});
+        const timeframes = this.safeDict(this.options, 'timeframes', {});
         const timeframeId = this.safeString(timeframes, timeframe);
         const messageHash = 'unsubscribe:candles:' + symbol + ':' + timeframe;
         let url = undefined;

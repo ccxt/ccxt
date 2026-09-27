@@ -291,7 +291,7 @@ public class WsClient {
             if (this.startedConnecting.compareAndSet(false, true)) {
                 if (backoffDelay > 0) {
                     CompletableFuture.delayedExecutor(backoffDelay,
-                            java.util.concurrent.TimeUnit.MILLISECONDS)
+                            java.util.concurrent.TimeUnit.MILLISECONDS, Exchange.VIRTUAL_EXECUTOR)
                             .execute(this::createConnection);
                 } else {
                     Exchange.VIRTUAL_EXECUTOR.execute(this::createConnection);
@@ -703,7 +703,7 @@ public class WsClient {
     public void scheduleExecutorShutdown() {
         if (executorShutdownScheduled.compareAndSet(false, true)) {
             CompletableFuture.delayedExecutor(executorShutdownDelayMs,
-                    java.util.concurrent.TimeUnit.MILLISECONDS)
+                    java.util.concurrent.TimeUnit.MILLISECONDS, Exchange.VIRTUAL_EXECUTOR)
                     .execute(() -> {
                         // Serialize with connect()'s CAS on startedConnecting.
                         synchronized (connectedLock) {

@@ -326,6 +326,7 @@ interface kucoin {
     utaGetMarketBorrowableCurrency(params?: {}): Promise<Dict>;
     utaGetUserMyIp(params?: {}): Promise<Dict>;
     utaGetMarketFiatPrice(params?: {}): Promise<Dict>;
+    utaV2GetMarketFundingRate(params?: {}): Promise<Dict>;
     utaPrivateGetMarketOrderbook(params?: {}): Promise<Dict>;
     utaPrivateGetAccountBalance(params?: {}): Promise<Dict>;
     utaPrivateGetAccountTransferQuota(params?: {}): Promise<Dict>;

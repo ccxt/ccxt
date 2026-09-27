@@ -116,8 +116,8 @@ public partial class BaseTest
             });
             Int64 value = exchange.microseconds();
             string valueString = ((object)value).ToString();
-            Assert(isGreaterThan(value, 0));
-            Assert(isEqual(((string)valueString).Length, 16));
+            Assert(value > 0);
+            Assert((valueString.Length == 16));
         }
         public void testMilliseconds()
         {
@@ -126,8 +126,8 @@ public partial class BaseTest
             });
             Int64 value = exchange.milliseconds();
             string valueString = ((object)value).ToString();
-            Assert(isGreaterThan(value, 0));
-            Assert(isEqual(((string)valueString).Length, 13));
+            Assert(value > 0);
+            Assert((valueString.Length == 13));
         }
         public void testSeconds()
         {
@@ -136,8 +136,8 @@ public partial class BaseTest
             });
             Int64 value = exchange.seconds();
             string valueString = ((object)value).ToString();
-            Assert(isGreaterThan(value, 0));
-            Assert(isEqual(((string)valueString).Length, 10));
+            Assert(value > 0);
+            Assert((valueString.Length == 10));
         }
         public void testConvertExpireDate()
         {
@@ -162,11 +162,11 @@ public partial class BaseTest
             });
             object testMs = 1750123456789; // 17 June 2025
             string? value = exchange.yymmdd(testMs, "_");
-            Assert(isEqual(value, "25_06_17"));
+            Assert((value == "25_06_17"));
             string? value2 = exchange.yymmdd(exchange.milliseconds());
-            Assert(isEqual(((string)value2).Length, 6));
+            Assert((((string)value2).Length == 6));
             Int64? intNum = exchange.parseToInt(value2);
-            Assert(isTrue(isGreaterThan(intNum, 260000)) && isTrue(isLessThan(intNum, 360000))); // date between 2026 and 2036
+            Assert(isGreaterThan(intNum, 260000) && isLessThan(intNum, 360000)); // date between 2026 and 2036
         }
         public void testYyyymmdd()
         {
@@ -175,11 +175,11 @@ public partial class BaseTest
             });
             object testMs = 1750123456789; // 17 June 2025
             string? value = exchange.yyyymmdd(testMs, "_");
-            Assert(isEqual(value, "2025_06_17"));
+            Assert((value == "2025_06_17"));
             string? value2 = exchange.yyyymmdd(exchange.milliseconds());
-            Assert(isEqual(((string)value2).Length, 10));
+            Assert((((string)value2).Length == 10));
             Int64? intNum = exchange.parseToInt(((string)(((string)value2).Replace((string)"-", (string)""))).Replace((string)"-", (string)""));
-            Assert(isTrue(isGreaterThan(intNum, 20260000)) && isTrue(isLessThan(intNum, 20360000))); // date between 2026 and 2036
+            Assert(isGreaterThan(intNum, 20260000) && isLessThan(intNum, 20360000)); // date between 2026 and 2036
         }
         public void testYmd()
         {
@@ -197,7 +197,7 @@ public partial class BaseTest
             });
             object testMs = 1750123456789; // 17 June 2025
             string? value = exchange.ymdhms(testMs, "_");
-            Assert(isTrue(isEqual(value, "2025-06-17_01:24:16")) || isTrue(isEqual(value, "2025-06-17_01:24:17"))); // todo: php/py rounds up to 17
+            Assert((value == "2025-06-17_01:24:16") || (value == "2025-06-17_01:24:17")); // todo: php/py rounds up to 17
         }
         public void testDatetime()
         {

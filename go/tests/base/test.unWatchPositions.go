@@ -29,6 +29,8 @@ func TestUnWatchPositionsAsync(exchange ccxt.ICoreExchange, skippedProperties an
 func testUnWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
+	chSent := false
+	_ = chSent
 	var method string = "unWatchPositions"
 	exchange.SetSandboxMode(true)
 	// First, we need to subscribe to positions to test the unsubscribe functionality
@@ -43,12 +45,13 @@ func testUnWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedP
 					}
 					ret_ = func() any {
 						// catch block:
-						if !IsTrue(IsTemporaryFailure(e)) {
+						if !EvalTruthy(IsTemporaryFailure(e)) {
 							panic(e)
 						}
 
 						// If we can't subscribe, we can't test unsubscribe, so skip this test
 						ch <- false
+						chSent = true
 						return nil
 
 					}()
@@ -67,6 +70,9 @@ func testUnWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedP
 			PanicOnError(positionsSubscription)
 			return nil
 		}()
+		if chSent {
+			return nil
+		}
 
 	}
 	// Verify that we have a subscription
@@ -94,6 +100,9 @@ func testUnWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedP
 			PanicOnError(errorResponse)
 			return nil
 		}()
+		if chSent {
+			return nil
+		}
 
 	}
 	Assert(!IsEqual(errorResponse, nil), Add(Add(Add(Add(exchange.GetId(), " "), method), " must throw an error when unwatching a specific symbol, returned "), exchange.Json(errorResponse)))
@@ -109,7 +118,7 @@ func testUnWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedP
 					}
 					ret_ = func() any {
 						// catch block:
-						if !IsTrue(IsTemporaryFailure(e)) {
+						if !EvalTruthy(IsTemporaryFailure(e)) {
 							panic(e)
 						}
 						panic(e)
@@ -123,6 +132,9 @@ func testUnWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedP
 			PanicOnError(responseAll)
 			return nil
 		}()
+		if chSent {
+			return nil
+		}
 
 	}
 	// Verify the response for unwatching all positions
@@ -139,7 +151,7 @@ func testUnWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedP
 					}
 					ret_ = func() any {
 						// catch block:
-						if !IsTrue(IsTemporaryFailure(e)) {
+						if !EvalTruthy(IsTemporaryFailure(e)) {
 							panic(e)
 						}
 						panic(Error(Add(Add(Add(exchange.GetId(), " "), method), " failed to resubscribe after unwatch, indicating potential cleanup issues")))
@@ -157,6 +169,9 @@ func testUnWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedP
 			PanicOnError(resubscribeResponse)
 			return nil
 		}()
+		if chSent {
+			return nil
+		}
 
 	}
 	// Verify resubscription works

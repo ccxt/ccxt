@@ -4,6 +4,7 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -15,15 +16,15 @@ public class TestFetchLedger extends BaseTest {
     public CompletableFuture<Object> testFetchLedger(BaseExchange exchange, Object skippedProperties, Object code)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchLedger";
         Object items = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLedger", new Object[]{code})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, items, code);
         Object now = exchange.milliseconds();
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(items)); i++)
+        for (var i = 0; i < ((List<?>)items).size(); i++)
         {
-            TestLedgerEntry.testLedgerEntry(exchange, skippedProperties, method, Helpers.GetValue(items, i), code, now);
+            TestLedgerEntry.testLedgerEntry(exchange, skippedProperties, method, (items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)), code, now);
         }
         TestSharedMethods.AssertTimestampOrder(exchange, method, code, items);
         return true;

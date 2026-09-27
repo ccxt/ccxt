@@ -38,7 +38,7 @@ public class TestLedgerEntry extends BaseTest {
         List<Object> emptyAllowedFor = new ArrayList<Object>(Arrays.asList("referenceId", "referenceAccount", "id"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
-        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, Helpers.GetValue(entry, "currency"), requestedCode);
+        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("currency"), requestedCode);
         //
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "direction", new ArrayList<Object>(Arrays.asList("in", "out")));
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "type", new ArrayList<Object>(Arrays.asList("trade", "transaction", "margin", "cashback", "referral", "transfer", "fee")));

@@ -695,7 +695,10 @@ export default class opinion extends Exchange {
         const bestBid = this.safeDict (bids, 0, {});
         const bestAsk = this.safeDict (asks, 0, {});
         const last = this.safeNumber (priceResult, 'price');
-        const timestamp = this.safeInteger (priceResult, 'timestamp', this.milliseconds ());
+        let timestamp = this.safeInteger (priceResult, 'timestamp');
+        if (timestamp === 0) {
+            timestamp = undefined; // the venue reports timestamp 0 for outcomes that have not traded yet
+        }
         return this.safePredictionTicker ({
             'outcome': this.safeString (marketAny, 'outcome'),
             'outcomeId': this.safeString2 (marketAny, 'outcomeId', 'id'),
@@ -1819,9 +1822,8 @@ export default class opinion extends Exchange {
         const price = this.safeNumber (message, 'price');
         const size = this.safeNumber (message, 'size');
         bookSide.storeArray ([ price, size ]);
-        const now = this.milliseconds ();
-        orderbook['timestamp'] = now;
-        orderbook['datetime'] = this.iso8601 (now);
+        orderbook['timestamp'] = undefined;
+        orderbook['datetime'] = undefined;
         client.resolve (orderbook, 'orderbook::' + sym);
     }
 
@@ -1859,15 +1861,14 @@ export default class opinion extends Exchange {
         if (sym === undefined) {
             return;
         }
-        const now = this.milliseconds ();
         const last = this.safeNumber (message, 'price');
         const ticker = this.safePredictionTicker ({
             'outcome': sym,
             'outcomeId': tokenId,
             'label': this.safeString (outcomeObj, 'label'),
             'market': this.safeString (outcomeObj, 'market'),
-            'timestamp': now,
-            'datetime': this.iso8601 (now),
+            'timestamp': undefined,
+            'datetime': undefined,
             'close': last,
             'last': last,
             'info': message,
@@ -1916,12 +1917,11 @@ export default class opinion extends Exchange {
         if (sym === undefined) {
             return;
         }
-        const now = this.milliseconds ();
         const trade = this.safePredictionTrade ({
             'id': undefined,
             'info': message,
-            'timestamp': now,
-            'datetime': this.iso8601 (now),
+            'timestamp': undefined,
+            'datetime': undefined,
             'outcome': sym,
             'outcomeId': tokenId,
             'label': this.safeString (outcomeObj, 'label'),

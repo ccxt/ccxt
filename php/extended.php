@@ -355,7 +355,7 @@ class extended extends Exchange {
         return $markets;
     }
 
-    public function index_by_stringified_numeric_id(mixed $input) {
+    public function index_by_stringified_numeric_id(array $input) {
         $result = array();
         if ($input === null) {
             return null;
@@ -825,7 +825,7 @@ class extended extends Exchange {
         return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
     }
 
-    public function parse_ticker(mixed $ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //       "dailyVolume": "231216165.666600",
@@ -1155,7 +1155,7 @@ class extended extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function parse_trade(mixed $trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
         //
@@ -1377,7 +1377,7 @@ class extended extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $info, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $info, ?array $market = null): array {
         //
         //     {
         //       "m": "BTC-USD",
@@ -1450,7 +1450,7 @@ class extended extends Exchange {
         return $this->parse_open_interests_history($data, $market, $since, $limit);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         //     {
         //       "i": "112620590.6060360000000000",
@@ -2427,7 +2427,7 @@ class extended extends Exchange {
         return $this->filter_by_since_limit($positions, $since, $limit, 'timestamp');
     }
 
-    public function parse_position(mixed $position, ?array $market = null): array {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         //     {
         //         "id": 1,
@@ -2492,7 +2492,7 @@ class extended extends Exchange {
         ));
     }
 
-    public function get_extended_stark_amount(string $amount, mixed $resolution, $roundUp = false): string {
+    public function get_extended_stark_amount(string $amount, ?int $resolution, bool $roundUp = false): string {
         $resolutionString = $this->number_to_string($resolution);
         $precise = Precise::string_mul($amount, $resolutionString);
         $result = $this->decimal_to_precision($precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
@@ -2513,7 +2513,7 @@ class extended extends Exchange {
         return $account;
     }
 
-    public function create_order_settlement_data(bool $isBuy, string $amountString, string $priceString, $params = array()) {
+    public function create_order_settlement_data(bool $isBuy, string $amountString, string $priceString, $params = array()): array {
         $totalFee = $this->safe_string($params, 'totalFee');
         $settlementExpiration = $this->safe_integer($params, 'settlementExpiration');
         $nonce = $this->safe_integer($params, 'nonce');
@@ -2555,7 +2555,7 @@ class extended extends Exchange {
         return $settlement;
     }
 
-    public function create_withdrawal_settlement_data(string $address, string $amountString, array $currency, array $account, $params = array()) {
+    public function create_withdrawal_settlement_data(string $address, string $amountString, array $currency, array $account, $params = array()): array {
         $now = $this->milliseconds();
         $settlementExpiration = $this->safe_integer($params, 'settlementExpiration', $this->parse_to_int(($now + 999) / 1000) + 1209600 + 60);
         $nonce = $this->safe_integer($params, 'nonce', $this->nonce());
@@ -2588,7 +2588,7 @@ class extended extends Exchange {
         return $settlement;
     }
 
-    public function create_transfer_settlement_data(string $amountString, array $currency, array $account, string $toVault, string $toL2Key, $params = array()) {
+    public function create_transfer_settlement_data(string $amountString, array $currency, array $account, string $toVault, string $toL2Key, $params = array()): array {
         $now = $this->milliseconds();
         $settlementExpiration = $this->safe_integer($params, 'settlementExpiration', $this->parse_to_int(($now + 999) / 1000) + 1814400);
         $nonce = $this->safe_integer($params, 'nonce', $this->nonce());
@@ -3573,7 +3573,7 @@ class extended extends Exchange {
         return null;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $version = $this->safe_string($api, 0);
         $accessibility = $this->safe_string($api, 1);
         $endpoint = '/' . $this->implode_params($path, $params);

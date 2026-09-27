@@ -339,7 +339,7 @@ class delta extends Exchange {
         ));
     }
 
-    public function create_expired_option_market(string $symbol) {
+    public function create_expired_option_market(string $symbol): array {
         // support expired option contracts
         $quote = 'USDT';
         $optionParts = explode('-', $symbol);
@@ -635,7 +635,7 @@ class delta extends Exchange {
         return $markets;
     }
 
-    public function index_by_stringified_numeric_id(mixed $input) {
+    public function index_by_stringified_numeric_id(?array $input) {
         $result = array();
         if ($input === null) {
             return null;
@@ -1738,7 +1738,7 @@ class delta extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): array {
         /**
          * fetch data on a single open contract trade position
          *
@@ -1805,7 +1805,7 @@ class delta extends Exchange {
         return $this->parse_positions($result, $symbols);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // fetchPosition
         //
@@ -2004,7 +2004,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -2087,7 +2087,7 @@ class delta extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
          * edit a trade order
          *
@@ -2142,7 +2142,7 @@ class delta extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -2203,7 +2203,7 @@ class delta extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders in a $market
          *
@@ -2380,7 +2380,7 @@ class delta extends Exchange {
         return $this->parse_orders($result, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all trades made by the user
          *
@@ -2967,7 +2967,7 @@ class delta extends Exchange {
         );
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): array {
         /**
          * retrieves the open interest of a derivative $market
          *
@@ -3042,7 +3042,7 @@ class delta extends Exchange {
         return $this->parse_open_interest($result, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         //     {
         //         "close": 894.0,
@@ -3151,7 +3151,7 @@ class delta extends Exchange {
         );
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): array {
         /**
          * set the level of $leverage for a $market
          *
@@ -3273,7 +3273,7 @@ class delta extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
-    public function parse_settlement(mixed $settlement, mixed $market) {
+    public function parse_settlement(array $settlement, mixed $market): array {
         //
         //     {
         //         "contract_value": "0.001",
@@ -3338,7 +3338,7 @@ class delta extends Exchange {
         );
     }
 
-    public function parse_settlements(mixed $settlements, mixed $market) {
+    public function parse_settlements(array $settlements, mixed $market): array {
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
             $result[] = $this->parse_settlement($settlements[$i], $market);
@@ -3615,7 +3615,7 @@ class delta extends Exchange {
         );
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()): array {
         /**
          * set margin mode to 'isolated' or 'portfolio'
          *
@@ -4150,7 +4150,7 @@ class delta extends Exchange {
         );
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = array(), mixed $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = array(), ?string $body = null): array {
         $requestPath = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $requestPath;
         $query = $this->omit($params, $this->extract_params($path));

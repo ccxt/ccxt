@@ -526,7 +526,7 @@ class coinspot extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all $trades made by the user
          *
@@ -658,7 +658,7 @@ class coinspot extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -703,7 +703,7 @@ class coinspot extends Exchange {
         ));
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -748,7 +748,12 @@ class coinspot extends Exchange {
         return null;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function nonce(): float {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return $this->milliseconds();
+    }
+
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $isVersionedApi = (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api)));
         $version = $isVersionedApi ? $api[0] : null;
         $accessType = $isVersionedApi ? $api[1] : $api;
@@ -757,7 +762,8 @@ class coinspot extends Exchange {
         $url = $this->urls['api'][$accessType] . $fullPath;
         if ($accessType === 'private') {
             $this->check_required_credentials();
-            $nonce = $this->nonce();
+            // coinspot requires an increasing nonce
+            $nonce = $this->incrementing_nonce();
             $body = $this->json($this->extend(array( 'nonce' => $nonce ), $params));
             $headers = array(
                 'Content-Type' => 'application/json',

@@ -9,42 +9,42 @@ package ccxt
 
 // V2PublicGetReferenceCurrencies returns a channel that yields a JSON object.
 func (this *Htx) V2PublicGetReferenceCurrencies(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetReferenceCurrencies", args...)
+	return this.Fetch2Async("reference/currencies", "v2Public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PublicGetMarketStatus returns a channel that yields a JSON object.
 func (this *Htx) V2PublicGetMarketStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetMarketStatus", args...)
+	return this.Fetch2Async("market-status", "v2Public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetAccountLedger returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetAccountLedger(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAccountLedger", args...)
+	return this.Fetch2Async("account/ledger", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetAccountWithdrawQuota returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetAccountWithdrawQuota(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAccountWithdrawQuota", args...)
+	return this.Fetch2Async("account/withdraw/quota", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetAccountWithdrawAddress returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetAccountWithdrawAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAccountWithdrawAddress", args...)
+	return this.Fetch2Async("account/withdraw/address", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetAccountDepositAddress returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetAccountDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAccountDepositAddress", args...)
+	return this.Fetch2Async("account/deposit/address", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetAccountRepayment returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetAccountRepayment(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAccountRepayment", args...)
+	return this.Fetch2Async("account/repayment", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // V2PrivateGetReferenceTransactFeeRate returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetReferenceTransactFeeRate(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetReferenceTransactFeeRate", args...)
+	return this.Fetch2Async("reference/transact-fee-rate", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetAccountAssetValuation returns a channel that yields a JSON object.
@@ -54,247 +54,247 @@ func (this *Htx) V2PrivateGetAccountAssetValuation(args ...any) <-chan any {
 
 // V2PrivateGetPointAccount returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetPointAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetPointAccount", args...)
+	return this.Fetch2Async("point/account", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // V2PrivateGetSubUserUserList returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetSubUserUserList(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetSubUserUserList", args...)
+	return this.Fetch2Async("sub-user/user-list", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetSubUserUserState returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetSubUserUserState(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetSubUserUserState", args...)
+	return this.Fetch2Async("sub-user/user-state", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetSubUserAccountList returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetSubUserAccountList(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetSubUserAccountList", args...)
+	return this.Fetch2Async("sub-user/account-list", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetSubUserDepositAddress returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetSubUserDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetSubUserDepositAddress", args...)
+	return this.Fetch2Async("sub-user/deposit-address", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetSubUserQueryDeposit returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetSubUserQueryDeposit(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetSubUserQueryDeposit", args...)
+	return this.Fetch2Async("sub-user/query-deposit", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetUserApiKey returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetUserApiKey(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetUserApiKey", args...)
+	return this.Fetch2Async("user/api-key", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetUserUid returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetUserUid(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetUserUid", args...)
+	return this.Fetch2Async("user/uid", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetAlgoOrdersOpening returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetAlgoOrdersOpening(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAlgoOrdersOpening", args...)
+	return this.Fetch2Async("algo-orders/opening", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetAlgoOrdersHistory returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetAlgoOrdersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAlgoOrdersHistory", args...)
+	return this.Fetch2Async("algo-orders/history", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetAlgoOrdersSpecific returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetAlgoOrdersSpecific(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAlgoOrdersSpecific", args...)
+	return this.Fetch2Async("algo-orders/specific", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetC2cOffers returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetC2cOffers(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetC2cOffers", args...)
+	return this.Fetch2Async("c2c/offers", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetC2cOffer returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetC2cOffer(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetC2cOffer", args...)
+	return this.Fetch2Async("c2c/offer", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetC2cTransactions returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetC2cTransactions(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetC2cTransactions", args...)
+	return this.Fetch2Async("c2c/transactions", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetC2cRepayment returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetC2cRepayment(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetC2cRepayment", args...)
+	return this.Fetch2Async("c2c/repayment", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetC2cAccount returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetC2cAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetC2cAccount", args...)
+	return this.Fetch2Async("c2c/account", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetEtpReference returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetEtpReference(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetEtpReference", args...)
+	return this.Fetch2Async("etp/reference", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetEtpTransactions returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetEtpTransactions(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetEtpTransactions", args...)
+	return this.Fetch2Async("etp/transactions", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // V2PrivateGetEtpTransaction returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetEtpTransaction(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetEtpTransaction", args...)
+	return this.Fetch2Async("etp/transaction", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // V2PrivateGetEtpRebalance returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetEtpRebalance(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetEtpRebalance", args...)
+	return this.Fetch2Async("etp/rebalance", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivateGetEtpLimit returns a channel that yields a JSON object.
 func (this *Htx) V2PrivateGetEtpLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetEtpLimit", args...)
+	return this.Fetch2Async("etp/limit", "v2Private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivatePostAccountTransfer returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostAccountTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostAccountTransfer", args...)
+	return this.Fetch2Async("account/transfer", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivatePostAccountRepayment returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostAccountRepayment(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostAccountRepayment", args...)
+	return this.Fetch2Async("account/repayment", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // V2PrivatePostPointTransfer returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostPointTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPointTransfer", args...)
+	return this.Fetch2Async("point/transfer", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // V2PrivatePostSubUserManagement returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostSubUserManagement(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostSubUserManagement", args...)
+	return this.Fetch2Async("sub-user/management", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivatePostSubUserCreation returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostSubUserCreation(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostSubUserCreation", args...)
+	return this.Fetch2Async("sub-user/creation", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivatePostSubUserTradableMarket returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostSubUserTradableMarket(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostSubUserTradableMarket", args...)
+	return this.Fetch2Async("sub-user/tradable-market", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivatePostSubUserTransferability returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostSubUserTransferability(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostSubUserTransferability", args...)
+	return this.Fetch2Async("sub-user/transferability", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivatePostSubUserApiKeyGeneration returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostSubUserApiKeyGeneration(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostSubUserApiKeyGeneration", args...)
+	return this.Fetch2Async("sub-user/api-key-generation", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivatePostSubUserApiKeyModification returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostSubUserApiKeyModification(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostSubUserApiKeyModification", args...)
+	return this.Fetch2Async("sub-user/api-key-modification", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivatePostSubUserApiKeyDeletion returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostSubUserApiKeyDeletion(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostSubUserApiKeyDeletion", args...)
+	return this.Fetch2Async("sub-user/api-key-deletion", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivatePostSubUserDeductMode returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostSubUserDeductMode(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostSubUserDeductMode", args...)
+	return this.Fetch2Async("sub-user/deduct-mode", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivatePostAlgoOrders returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostAlgoOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostAlgoOrders", args...)
+	return this.Fetch2Async("algo-orders", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivatePostAlgoOrdersCancelAllAfter returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostAlgoOrdersCancelAllAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostAlgoOrdersCancelAllAfter", args...)
+	return this.Fetch2Async("algo-orders/cancel-all-after", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivatePostAlgoOrdersCancellation returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostAlgoOrdersCancellation(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostAlgoOrdersCancellation", args...)
+	return this.Fetch2Async("algo-orders/cancellation", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivatePostC2cOffer returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostC2cOffer(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostC2cOffer", args...)
+	return this.Fetch2Async("c2c/offer", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivatePostC2cCancellation returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostC2cCancellation(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostC2cCancellation", args...)
+	return this.Fetch2Async("c2c/cancellation", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivatePostC2cCancelAll returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostC2cCancelAll(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostC2cCancelAll", args...)
+	return this.Fetch2Async("c2c/cancel-all", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivatePostC2cRepayment returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostC2cRepayment(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostC2cRepayment", args...)
+	return this.Fetch2Async("c2c/repayment", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivatePostC2cTransfer returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostC2cTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostC2cTransfer", args...)
+	return this.Fetch2Async("c2c/transfer", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivatePostEtpCreation returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostEtpCreation(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostEtpCreation", args...)
+	return this.Fetch2Async("etp/creation", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // V2PrivatePostEtpRedemption returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostEtpRedemption(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostEtpRedemption", args...)
+	return this.Fetch2Async("etp/redemption", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // V2PrivatePostEtpTransactIdCancel returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostEtpTransactIdCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostEtpTransactIdCancel", args...)
+	return this.Fetch2Async("etp/{transactId}/cancel", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V2PrivatePostEtpBatchCancel returns a channel that yields a JSON object.
 func (this *Htx) V2PrivatePostEtpBatchCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostEtpBatchCancel", args...)
+	return this.Fetch2Async("etp/batch-cancel", "v2Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
 }
 
 // PublicGetCommonSymbols returns a channel that yields a JSON object.
 func (this *Htx) PublicGetCommonSymbols(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCommonSymbols", args...)
+	return this.Fetch2Async("common/symbols", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetCommonCurrencys returns a channel that yields a JSON object.
 func (this *Htx) PublicGetCommonCurrencys(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCommonCurrencys", args...)
+	return this.Fetch2Async("common/currencys", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetCommonTimestamp returns a channel that yields a JSON object.
 func (this *Htx) PublicGetCommonTimestamp(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCommonTimestamp", args...)
+	return this.Fetch2Async("common/timestamp", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetCommonExchange returns a channel that yields a JSON object.
 func (this *Htx) PublicGetCommonExchange(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCommonExchange", args...)
+	return this.Fetch2Async("common/exchange", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetSettingsCurrencys returns a channel that yields a JSON object.
 func (this *Htx) PublicGetSettingsCurrencys(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSettingsCurrencys", args...)
+	return this.Fetch2Async("settings/currencys", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetAccountAccounts returns a channel that yields a JSON object.
@@ -309,27 +309,27 @@ func (this *Htx) PrivateGetAccountAccountsIdBalance(args ...any) <-chan any {
 
 // PrivateGetAccountAccountsSubUid returns a channel that yields a JSON object.
 func (this *Htx) PrivateGetAccountAccountsSubUid(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountAccountsSubUid", args...)
+	return this.Fetch2Async("account/accounts/{sub-uid}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetAccountHistory returns a channel that yields a JSON object.
 func (this *Htx) PrivateGetAccountHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountHistory", args...)
+	return this.Fetch2Async("account/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetCrossMarginLoanInfo returns a channel that yields a JSON object.
 func (this *Htx) PrivateGetCrossMarginLoanInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCrossMarginLoanInfo", args...)
+	return this.Fetch2Async("cross-margin/loan-info", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetMarginLoanInfo returns a channel that yields a JSON object.
 func (this *Htx) PrivateGetMarginLoanInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetMarginLoanInfo", args...)
+	return this.Fetch2Async("margin/loan-info", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetFeeFeeRateGet returns a channel that yields a JSON object.
 func (this *Htx) PrivateGetFeeFeeRateGet(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFeeFeeRateGet", args...)
+	return this.Fetch2Async("fee/fee-rate/get", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetOrderOpenOrders returns a channel that yields a JSON object.
@@ -359,17 +359,17 @@ func (this *Htx) PrivateGetOrderOrdersGetClientOrder(args ...any) <-chan any {
 
 // PrivateGetOrderHistory returns a channel that yields a JSON object.
 func (this *Htx) PrivateGetOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrderHistory", args...)
+	return this.Fetch2Async("order/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetOrderMatchresults returns a channel that yields a JSON object.
 func (this *Htx) PrivateGetOrderMatchresults(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrderMatchresults", args...)
+	return this.Fetch2Async("order/matchresults", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetQueryDepositWithdraw returns a channel that yields a JSON object.
 func (this *Htx) PrivateGetQueryDepositWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetQueryDepositWithdraw", args...)
+	return this.Fetch2Async("query/deposit-withdraw", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetMarginLoanOrders returns a channel that yields a JSON object.
@@ -384,47 +384,47 @@ func (this *Htx) PrivateGetMarginAccountsBalance(args ...any) <-chan any {
 
 // PrivateGetCrossMarginLoanOrders returns a channel that yields a JSON object.
 func (this *Htx) PrivateGetCrossMarginLoanOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCrossMarginLoanOrders", args...)
+	return this.Fetch2Async("cross-margin/loan-orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetCrossMarginAccountsBalance returns a channel that yields a JSON object.
 func (this *Htx) PrivateGetCrossMarginAccountsBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCrossMarginAccountsBalance", args...)
+	return this.Fetch2Async("cross-margin/accounts/balance", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetPointsActions returns a channel that yields a JSON object.
 func (this *Htx) PrivateGetPointsActions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetPointsActions", args...)
+	return this.Fetch2Async("points/actions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetPointsOrders returns a channel that yields a JSON object.
 func (this *Htx) PrivateGetPointsOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetPointsOrders", args...)
+	return this.Fetch2Async("points/orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetSubuserAggregateBalance returns a channel that yields a JSON object.
 func (this *Htx) PrivateGetSubuserAggregateBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSubuserAggregateBalance", args...)
+	return this.Fetch2Async("subuser/aggregate-balance", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // PrivateGetStableCoinExchangeRate returns a channel that yields a JSON object.
 func (this *Htx) PrivateGetStableCoinExchangeRate(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetStableCoinExchangeRate", args...)
+	return this.Fetch2Async("stable-coin/exchange_rate", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetStableCoinQuote returns a channel that yields a JSON object.
 func (this *Htx) PrivateGetStableCoinQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetStableCoinQuote", args...)
+	return this.Fetch2Async("stable-coin/quote", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAccountTransfer returns a channel that yields a JSON object.
 func (this *Htx) PrivatePostAccountTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountTransfer", args...)
+	return this.Fetch2Async("account/transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostFuturesTransfer returns a channel that yields a JSON object.
 func (this *Htx) PrivatePostFuturesTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesTransfer", args...)
+	return this.Fetch2Async("futures/transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostOrderBatchOrders returns a channel that yields a JSON object.
@@ -459,177 +459,177 @@ func (this *Htx) PrivatePostOrderOrdersBatchcancel(args ...any) <-chan any {
 
 // PrivatePostDwWithdrawApiCreate returns a channel that yields a JSON object.
 func (this *Htx) PrivatePostDwWithdrawApiCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDwWithdrawApiCreate", args...)
+	return this.Fetch2Async("dw/withdraw/api/create", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostDwWithdrawVirtualIdCancel returns a channel that yields a JSON object.
 func (this *Htx) PrivatePostDwWithdrawVirtualIdCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDwWithdrawVirtualIdCancel", args...)
+	return this.Fetch2Async("dw/withdraw-virtual/{id}/cancel", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostDwTransferInMargin returns a channel that yields a JSON object.
 func (this *Htx) PrivatePostDwTransferInMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDwTransferInMargin", args...)
+	return this.Fetch2Async("dw/transfer-in/margin", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // PrivatePostDwTransferOutMargin returns a channel that yields a JSON object.
 func (this *Htx) PrivatePostDwTransferOutMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDwTransferOutMargin", args...)
+	return this.Fetch2Async("dw/transfer-out/margin", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // PrivatePostMarginOrders returns a channel that yields a JSON object.
 func (this *Htx) PrivatePostMarginOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginOrders", args...)
+	return this.Fetch2Async("margin/orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // PrivatePostMarginOrdersIdRepay returns a channel that yields a JSON object.
 func (this *Htx) PrivatePostMarginOrdersIdRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginOrdersIdRepay", args...)
+	return this.Fetch2Async("margin/orders/{id}/repay", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // PrivatePostCrossMarginTransferIn returns a channel that yields a JSON object.
 func (this *Htx) PrivatePostCrossMarginTransferIn(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCrossMarginTransferIn", args...)
+	return this.Fetch2Async("cross-margin/transfer-in", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostCrossMarginTransferOut returns a channel that yields a JSON object.
 func (this *Htx) PrivatePostCrossMarginTransferOut(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCrossMarginTransferOut", args...)
+	return this.Fetch2Async("cross-margin/transfer-out", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostCrossMarginOrders returns a channel that yields a JSON object.
 func (this *Htx) PrivatePostCrossMarginOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCrossMarginOrders", args...)
+	return this.Fetch2Async("cross-margin/orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostCrossMarginOrdersIdRepay returns a channel that yields a JSON object.
 func (this *Htx) PrivatePostCrossMarginOrdersIdRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCrossMarginOrdersIdRepay", args...)
+	return this.Fetch2Async("cross-margin/orders/{id}/repay", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostStableCoinExchange returns a channel that yields a JSON object.
 func (this *Htx) PrivatePostStableCoinExchange(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostStableCoinExchange", args...)
+	return this.Fetch2Async("stable-coin/exchange", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostSubuserTransfer returns a channel that yields a JSON object.
 func (this *Htx) PrivatePostSubuserTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSubuserTransfer", args...)
+	return this.Fetch2Async("subuser/transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // SpotPublicGetV2MarketStatus returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetV2MarketStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetV2MarketStatus", args...)
+	return this.Fetch2Async("v2/market-status", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetV1CommonSymbols returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetV1CommonSymbols(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetV1CommonSymbols", args...)
+	return this.Fetch2Async("v1/common/symbols", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetV1CommonCurrencys returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetV1CommonCurrencys(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetV1CommonCurrencys", args...)
+	return this.Fetch2Async("v1/common/currencys", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetV2SettingsCommonCurrencies returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetV2SettingsCommonCurrencies(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetV2SettingsCommonCurrencies", args...)
+	return this.Fetch2Async("v2/settings/common/currencies", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetV2ReferenceCurrencies returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetV2ReferenceCurrencies(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetV2ReferenceCurrencies", args...)
+	return this.Fetch2Async("v2/reference/currencies", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetV1CommonTimestamp returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetV1CommonTimestamp(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetV1CommonTimestamp", args...)
+	return this.Fetch2Async("v1/common/timestamp", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetV1CommonExchange returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetV1CommonExchange(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetV1CommonExchange", args...)
+	return this.Fetch2Async("v1/common/exchange", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetV1SettingsCommonChains returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetV1SettingsCommonChains(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetV1SettingsCommonChains", args...)
+	return this.Fetch2Async("v1/settings/common/chains", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetV1SettingsCommonCurrencys returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetV1SettingsCommonCurrencys(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetV1SettingsCommonCurrencys", args...)
+	return this.Fetch2Async("v1/settings/common/currencys", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetV1SettingsCommonSymbols returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetV1SettingsCommonSymbols(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetV1SettingsCommonSymbols", args...)
+	return this.Fetch2Async("v1/settings/common/symbols", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetV2SettingsCommonSymbols returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetV2SettingsCommonSymbols(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetV2SettingsCommonSymbols", args...)
+	return this.Fetch2Async("v2/settings/common/symbols", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetV1SettingsCommonMarketSymbols returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetV1SettingsCommonMarketSymbols(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetV1SettingsCommonMarketSymbols", args...)
+	return this.Fetch2Async("v1/settings/common/market-symbols", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetMarketHistoryCandles returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetMarketHistoryCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetMarketHistoryCandles", args...)
+	return this.Fetch2Async("market/history/candles", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetMarketHistoryKline returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetMarketHistoryKline(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetMarketHistoryKline", args...)
+	return this.Fetch2Async("market/history/kline", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetMarketDetailMerged returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetMarketDetailMerged(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetMarketDetailMerged", args...)
+	return this.Fetch2Async("market/detail/merged", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetMarketTickers returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetMarketTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetMarketTickers", args...)
+	return this.Fetch2Async("market/tickers", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetMarketDetail returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetMarketDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetMarketDetail", args...)
+	return this.Fetch2Async("market/detail", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetMarketDepth returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetMarketDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetMarketDepth", args...)
+	return this.Fetch2Async("market/depth", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetMarketTrade returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetMarketTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetMarketTrade", args...)
+	return this.Fetch2Async("market/trade", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetMarketHistoryTrade returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetMarketHistoryTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetMarketHistoryTrade", args...)
+	return this.Fetch2Async("market/history/trade", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetMarketEtp returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetMarketEtp(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetMarketEtp", args...)
+	return this.Fetch2Async("market/etp", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetV2EtpReference returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetV2EtpReference(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetV2EtpReference", args...)
+	return this.Fetch2Async("v2/etp/reference", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPublicGetV2EtpRebalance returns a channel that yields a JSON object.
 func (this *Htx) SpotPublicGetV2EtpRebalance(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPublicGetV2EtpRebalance", args...)
+	return this.Fetch2Async("v2/etp/rebalance", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV1AccountAccounts returns a channel that yields a JSON object.
@@ -644,7 +644,7 @@ func (this *Htx) SpotPrivateGetV1AccountAccountsAccountIdBalance(args ...any) <-
 
 // SpotPrivateGetV2AccountValuation returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2AccountValuation(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2AccountValuation", args...)
+	return this.Fetch2Async("v2/account/valuation", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2AccountAssetValuation returns a channel that yields a JSON object.
@@ -654,92 +654,92 @@ func (this *Htx) SpotPrivateGetV2AccountAssetValuation(args ...any) <-chan any {
 
 // SpotPrivateGetV1AccountHistory returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV1AccountHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV1AccountHistory", args...)
+	return this.Fetch2Async("v1/account/history", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // SpotPrivateGetV2AccountLedger returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2AccountLedger(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2AccountLedger", args...)
+	return this.Fetch2Async("v2/account/ledger", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2PointAccount returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2PointAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2PointAccount", args...)
+	return this.Fetch2Async("v2/point/account", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // SpotPrivateGetV2AccountDepositAddress returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2AccountDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2AccountDepositAddress", args...)
+	return this.Fetch2Async("v2/account/deposit/address", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2AccountWithdrawQuota returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2AccountWithdrawQuota(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2AccountWithdrawQuota", args...)
+	return this.Fetch2Async("v2/account/withdraw/quota", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2AccountWithdrawAddress returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2AccountWithdrawAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2AccountWithdrawAddress", args...)
+	return this.Fetch2Async("v2/account/withdraw/address", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2ReferenceCurrencies returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2ReferenceCurrencies(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2ReferenceCurrencies", args...)
+	return this.Fetch2Async("v2/reference/currencies", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV1QueryDepositWithdraw returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV1QueryDepositWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV1QueryDepositWithdraw", args...)
+	return this.Fetch2Async("v1/query/deposit-withdraw", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV1QueryWithdrawClientOrderId returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV1QueryWithdrawClientOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV1QueryWithdrawClientOrderId", args...)
+	return this.Fetch2Async("v1/query/withdraw/client-order-id", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2UserApiKey returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2UserApiKey(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2UserApiKey", args...)
+	return this.Fetch2Async("v2/user/api-key", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2UserUid returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2UserUid(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2UserUid", args...)
+	return this.Fetch2Async("v2/user/uid", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2SubUserUserList returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2SubUserUserList(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2SubUserUserList", args...)
+	return this.Fetch2Async("v2/sub-user/user-list", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2SubUserUserState returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2SubUserUserState(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2SubUserUserState", args...)
+	return this.Fetch2Async("v2/sub-user/user-state", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2SubUserAccountList returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2SubUserAccountList(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2SubUserAccountList", args...)
+	return this.Fetch2Async("v2/sub-user/account-list", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2SubUserDepositAddress returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2SubUserDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2SubUserDepositAddress", args...)
+	return this.Fetch2Async("v2/sub-user/deposit-address", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2SubUserQueryDeposit returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2SubUserQueryDeposit(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2SubUserQueryDeposit", args...)
+	return this.Fetch2Async("v2/sub-user/query-deposit", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV1SubuserAggregateBalance returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV1SubuserAggregateBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV1SubuserAggregateBalance", args...)
+	return this.Fetch2Async("v1/subuser/aggregate-balance", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // SpotPrivateGetV1AccountAccountsSubUid returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV1AccountAccountsSubUid(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV1AccountAccountsSubUid", args...)
+	return this.Fetch2Async("v1/account/accounts/{sub-uid}", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV1OrderOpenOrders returns a channel that yields a JSON object.
@@ -774,37 +774,37 @@ func (this *Htx) SpotPrivateGetV1OrderOrders(args ...any) <-chan any {
 
 // SpotPrivateGetV1OrderHistory returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV1OrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV1OrderHistory", args...)
+	return this.Fetch2Async("v1/order/history", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV1OrderMatchresults returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV1OrderMatchresults(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV1OrderMatchresults", args...)
+	return this.Fetch2Async("v1/order/matchresults", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2ReferenceTransactFeeRate returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2ReferenceTransactFeeRate(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2ReferenceTransactFeeRate", args...)
+	return this.Fetch2Async("v2/reference/transact-fee-rate", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2AlgoOrdersOpening returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2AlgoOrdersOpening(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2AlgoOrdersOpening", args...)
+	return this.Fetch2Async("v2/algo-orders/opening", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2AlgoOrdersHistory returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2AlgoOrdersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2AlgoOrdersHistory", args...)
+	return this.Fetch2Async("v2/algo-orders/history", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2AlgoOrdersSpecific returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2AlgoOrdersSpecific(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2AlgoOrdersSpecific", args...)
+	return this.Fetch2Async("v2/algo-orders/specific", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV1MarginLoanInfo returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV1MarginLoanInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV1MarginLoanInfo", args...)
+	return this.Fetch2Async("v1/margin/loan-info", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV1MarginLoanOrders returns a channel that yields a JSON object.
@@ -819,157 +819,157 @@ func (this *Htx) SpotPrivateGetV1MarginAccountsBalance(args ...any) <-chan any {
 
 // SpotPrivateGetV1CrossMarginLoanInfo returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV1CrossMarginLoanInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV1CrossMarginLoanInfo", args...)
+	return this.Fetch2Async("v1/cross-margin/loan-info", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV1CrossMarginLoanOrders returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV1CrossMarginLoanOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV1CrossMarginLoanOrders", args...)
+	return this.Fetch2Async("v1/cross-margin/loan-orders", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV1CrossMarginAccountsBalance returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV1CrossMarginAccountsBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV1CrossMarginAccountsBalance", args...)
+	return this.Fetch2Async("v1/cross-margin/accounts/balance", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2AccountRepayment returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2AccountRepayment(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2AccountRepayment", args...)
+	return this.Fetch2Async("v2/account/repayment", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // SpotPrivateGetV5AccountUniversalTransferRecords returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV5AccountUniversalTransferRecords(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV5AccountUniversalTransferRecords", args...)
+	return this.Fetch2Async("v5/account/universal_transfer_records", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // SpotPrivateGetV1StableCoinQuote returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV1StableCoinQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV1StableCoinQuote", args...)
+	return this.Fetch2Async("v1/stable-coin/quote", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV1StableCoinExchangeRate returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV1StableCoinExchangeRate(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV1StableCoinExchangeRate", args...)
+	return this.Fetch2Async("v1/stable_coin/exchange_rate", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2EtpTransactions returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2EtpTransactions(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2EtpTransactions", args...)
+	return this.Fetch2Async("v2/etp/transactions", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // SpotPrivateGetV2EtpTransaction returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2EtpTransaction(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2EtpTransaction", args...)
+	return this.Fetch2Async("v2/etp/transaction", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // SpotPrivateGetV2EtpLimit returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2EtpLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2EtpLimit", args...)
+	return this.Fetch2Async("v2/etp/limit", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2InviteeRebateReferrals returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2InviteeRebateReferrals(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2InviteeRebateReferrals", args...)
+	return this.Fetch2Async("v2/invitee/rebate/referrals", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // SpotPrivateGetV2InviteeRebateDetail returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2InviteeRebateDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2InviteeRebateDetail", args...)
+	return this.Fetch2Async("v2/invitee/rebate/detail", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2InviteeRebateHistory returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2InviteeRebateHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2InviteeRebateHistory", args...)
+	return this.Fetch2Async("v2/invitee/rebate/history", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2InviteeRebateAllRebateDetail returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2InviteeRebateAllRebateDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2InviteeRebateAllRebateDetail", args...)
+	return this.Fetch2Async("v2/invitee/rebate/all_rebate/detail", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetV2InviteeRebateBatcherRebateDetail returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivateGetV2InviteeRebateBatcherRebateDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivateGetV2InviteeRebateBatcherRebateDetail", args...)
+	return this.Fetch2Async("v2/invitee/rebate/batcher_rebate/detail", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV1AccountTransfer returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV1AccountTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV1AccountTransfer", args...)
+	return this.Fetch2Async("v1/account/transfer", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV1FuturesTransfer returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV1FuturesTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV1FuturesTransfer", args...)
+	return this.Fetch2Async("v1/futures/transfer", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV2PointTransfer returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV2PointTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV2PointTransfer", args...)
+	return this.Fetch2Async("v2/point/transfer", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // SpotPrivatePostV2AccountTransfer returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV2AccountTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV2AccountTransfer", args...)
+	return this.Fetch2Async("v2/account/transfer", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV1DwWithdrawApiCreate returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV1DwWithdrawApiCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV1DwWithdrawApiCreate", args...)
+	return this.Fetch2Async("v1/dw/withdraw/api/create", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV1DwWithdrawVirtualWithdrawIdCancel returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV1DwWithdrawVirtualWithdrawIdCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV1DwWithdrawVirtualWithdrawIdCancel", args...)
+	return this.Fetch2Async("v1/dw/withdraw-virtual/{withdraw-id}/cancel", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV2SubUserDeductMode returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV2SubUserDeductMode(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV2SubUserDeductMode", args...)
+	return this.Fetch2Async("v2/sub-user/deduct-mode", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV2SubUserCreation returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV2SubUserCreation(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV2SubUserCreation", args...)
+	return this.Fetch2Async("v2/sub-user/creation", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV2SubUserManagement returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV2SubUserManagement(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV2SubUserManagement", args...)
+	return this.Fetch2Async("v2/sub-user/management", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV2SubUserTradableMarket returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV2SubUserTradableMarket(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV2SubUserTradableMarket", args...)
+	return this.Fetch2Async("v2/sub-user/tradable-market", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV2SubUserTransferability returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV2SubUserTransferability(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV2SubUserTransferability", args...)
+	return this.Fetch2Async("v2/sub-user/transferability", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV2SubUserApiKeyGeneration returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV2SubUserApiKeyGeneration(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV2SubUserApiKeyGeneration", args...)
+	return this.Fetch2Async("v2/sub-user/api-key-generation", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV2SubUserApiKeyModification returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV2SubUserApiKeyModification(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV2SubUserApiKeyModification", args...)
+	return this.Fetch2Async("v2/sub-user/api-key-modification", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV2SubUserApiKeyDeletion returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV2SubUserApiKeyDeletion(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV2SubUserApiKeyDeletion", args...)
+	return this.Fetch2Async("v2/sub-user/api-key-deletion", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV1SubuserTransfer returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV1SubuserTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV1SubuserTransfer", args...)
+	return this.Fetch2Async("v1/subuser/transfer", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // SpotPrivatePostV1TrustUserActiveCredit returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV1TrustUserActiveCredit(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV1TrustUserActiveCredit", args...)
+	return this.Fetch2Async("v1/trust/user/active/credit", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // SpotPrivatePostV1OrderOrdersPlace returns a channel that yields a JSON object.
@@ -1009,547 +1009,547 @@ func (this *Htx) SpotPrivatePostV1OrderOrdersBatchcancel(args ...any) <-chan any
 
 // SpotPrivatePostV2AlgoOrdersCancelAllAfter returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV2AlgoOrdersCancelAllAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV2AlgoOrdersCancelAllAfter", args...)
+	return this.Fetch2Async("v2/algo-orders/cancel-all-after", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV2AlgoOrders returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV2AlgoOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV2AlgoOrders", args...)
+	return this.Fetch2Async("v2/algo-orders", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV2AlgoOrdersCancellation returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV2AlgoOrdersCancellation(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV2AlgoOrdersCancellation", args...)
+	return this.Fetch2Async("v2/algo-orders/cancellation", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV2AccountRepayment returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV2AccountRepayment(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV2AccountRepayment", args...)
+	return this.Fetch2Async("v2/account/repayment", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // SpotPrivatePostV1DwTransferInMargin returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV1DwTransferInMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV1DwTransferInMargin", args...)
+	return this.Fetch2Async("v1/dw/transfer-in/margin", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // SpotPrivatePostV1DwTransferOutMargin returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV1DwTransferOutMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV1DwTransferOutMargin", args...)
+	return this.Fetch2Async("v1/dw/transfer-out/margin", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // SpotPrivatePostV1MarginOrders returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV1MarginOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV1MarginOrders", args...)
+	return this.Fetch2Async("v1/margin/orders", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // SpotPrivatePostV1MarginOrdersOrderIdRepay returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV1MarginOrdersOrderIdRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV1MarginOrdersOrderIdRepay", args...)
+	return this.Fetch2Async("v1/margin/orders/{order-id}/repay", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // SpotPrivatePostV1CrossMarginTransferIn returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV1CrossMarginTransferIn(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV1CrossMarginTransferIn", args...)
+	return this.Fetch2Async("v1/cross-margin/transfer-in", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV1CrossMarginTransferOut returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV1CrossMarginTransferOut(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV1CrossMarginTransferOut", args...)
+	return this.Fetch2Async("v1/cross-margin/transfer-out", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV1CrossMarginOrders returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV1CrossMarginOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV1CrossMarginOrders", args...)
+	return this.Fetch2Async("v1/cross-margin/orders", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV1CrossMarginOrdersOrderIdRepay returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV1CrossMarginOrdersOrderIdRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV1CrossMarginOrdersOrderIdRepay", args...)
+	return this.Fetch2Async("v1/cross-margin/orders/{order-id}/repay", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV1StableCoinExchange returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV1StableCoinExchange(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV1StableCoinExchange", args...)
+	return this.Fetch2Async("v1/stable-coin/exchange", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostV2EtpCreation returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV2EtpCreation(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV2EtpCreation", args...)
+	return this.Fetch2Async("v2/etp/creation", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // SpotPrivatePostV2EtpRedemption returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV2EtpRedemption(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV2EtpRedemption", args...)
+	return this.Fetch2Async("v2/etp/redemption", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // SpotPrivatePostV2EtpTransactIdCancel returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV2EtpTransactIdCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV2EtpTransactIdCancel", args...)
+	return this.Fetch2Async("v2/etp/{transactId}/cancel", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // SpotPrivatePostV2EtpBatchCancel returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV2EtpBatchCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV2EtpBatchCancel", args...)
+	return this.Fetch2Async("v2/etp/batch-cancel", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
 }
 
 // SpotPrivatePostV5AccountUniversalTransfer returns a channel that yields a JSON object.
 func (this *Htx) SpotPrivatePostV5AccountUniversalTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostV5AccountUniversalTransfer", args...)
+	return this.Fetch2Async("v5/account/universal_transfer", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // ContractPublicGetApiV1Timestamp returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetApiV1Timestamp(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetApiV1Timestamp", args...)
+	return this.Fetch2Async("api/v1/timestamp", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetHeartbeat returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetHeartbeat(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetHeartbeat", args...)
+	return this.Fetch2Async("heartbeat/", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetApiV1ContractContractInfo returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetApiV1ContractContractInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetApiV1ContractContractInfo", args...)
+	return this.Fetch2Async("api/v1/contract_contract_info", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetApiV1ContractIndex returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetApiV1ContractIndex(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetApiV1ContractIndex", args...)
+	return this.Fetch2Async("api/v1/contract_index", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetApiV1ContractQueryElements returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetApiV1ContractQueryElements(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetApiV1ContractQueryElements", args...)
+	return this.Fetch2Async("api/v1/contract_query_elements", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetApiV1ContractPriceLimit returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetApiV1ContractPriceLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetApiV1ContractPriceLimit", args...)
+	return this.Fetch2Async("api/v1/contract_price_limit", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetApiV1ContractOpenInterest returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetApiV1ContractOpenInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetApiV1ContractOpenInterest", args...)
+	return this.Fetch2Async("api/v1/contract_open_interest", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetApiV1ContractDeliveryPrice returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetApiV1ContractDeliveryPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetApiV1ContractDeliveryPrice", args...)
+	return this.Fetch2Async("api/v1/contract_delivery_price", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetMarketDepth returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetMarketDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetMarketDepth", args...)
+	return this.Fetch2Async("market/depth", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetMarketBbo returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetMarketBbo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetMarketBbo", args...)
+	return this.Fetch2Async("market/bbo", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetMarketHistoryKline returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetMarketHistoryKline(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetMarketHistoryKline", args...)
+	return this.Fetch2Async("market/history/kline", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetIndexMarketHistoryMarkPriceKline returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetIndexMarketHistoryMarkPriceKline(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetIndexMarketHistoryMarkPriceKline", args...)
+	return this.Fetch2Async("index/market/history/mark_price_kline", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetMarketDetailMerged returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetMarketDetailMerged(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetMarketDetailMerged", args...)
+	return this.Fetch2Async("market/detail/merged", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetMarketDetailBatchMerged returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetMarketDetailBatchMerged(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetMarketDetailBatchMerged", args...)
+	return this.Fetch2Async("market/detail/batch_merged", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetV2MarketDetailBatchMerged returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetV2MarketDetailBatchMerged(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetV2MarketDetailBatchMerged", args...)
+	return this.Fetch2Async("v2/market/detail/batch_merged", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetMarketTrade returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetMarketTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetMarketTrade", args...)
+	return this.Fetch2Async("market/trade", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetMarketHistoryTrade returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetMarketHistoryTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetMarketHistoryTrade", args...)
+	return this.Fetch2Async("market/history/trade", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetApiV1ContractRiskInfo returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetApiV1ContractRiskInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetApiV1ContractRiskInfo", args...)
+	return this.Fetch2Async("api/v1/contract_risk_info", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetApiV1ContractInsuranceFund returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetApiV1ContractInsuranceFund(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetApiV1ContractInsuranceFund", args...)
+	return this.Fetch2Async("api/v1/contract_insurance_fund", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetApiV1ContractAdjustfactor returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetApiV1ContractAdjustfactor(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetApiV1ContractAdjustfactor", args...)
+	return this.Fetch2Async("api/v1/contract_adjustfactor", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetApiV1ContractHisOpenInterest returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetApiV1ContractHisOpenInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetApiV1ContractHisOpenInterest", args...)
+	return this.Fetch2Async("api/v1/contract_his_open_interest", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetApiV1ContractLadderMargin returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetApiV1ContractLadderMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetApiV1ContractLadderMargin", args...)
+	return this.Fetch2Async("api/v1/contract_ladder_margin", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetApiV1ContractApiState returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetApiV1ContractApiState(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetApiV1ContractApiState", args...)
+	return this.Fetch2Async("api/v1/contract_api_state", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetApiV1ContractEliteAccountRatio returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetApiV1ContractEliteAccountRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetApiV1ContractEliteAccountRatio", args...)
+	return this.Fetch2Async("api/v1/contract_elite_account_ratio", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetApiV1ContractElitePositionRatio returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetApiV1ContractElitePositionRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetApiV1ContractElitePositionRatio", args...)
+	return this.Fetch2Async("api/v1/contract_elite_position_ratio", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetApiV1ContractLiquidationOrders returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetApiV1ContractLiquidationOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetApiV1ContractLiquidationOrders", args...)
+	return this.Fetch2Async("api/v1/contract_liquidation_orders", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetApiV1ContractSettlementRecords returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetApiV1ContractSettlementRecords(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetApiV1ContractSettlementRecords", args...)
+	return this.Fetch2Async("api/v1/contract_settlement_records", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetIndexMarketHistoryIndex returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetIndexMarketHistoryIndex(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetIndexMarketHistoryIndex", args...)
+	return this.Fetch2Async("index/market/history/index", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetIndexMarketHistoryBasis returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetIndexMarketHistoryBasis(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetIndexMarketHistoryBasis", args...)
+	return this.Fetch2Async("index/market/history/basis", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetApiV1ContractEstimatedSettlementPrice returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetApiV1ContractEstimatedSettlementPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetApiV1ContractEstimatedSettlementPrice", args...)
+	return this.Fetch2Async("api/v1/contract_estimated_settlement_price", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetApiV3ContractLiquidationOrders returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetApiV3ContractLiquidationOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetApiV3ContractLiquidationOrders", args...)
+	return this.Fetch2Async("api/v3/contract_liquidation_orders", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapApiV1SwapContractInfo returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapApiV1SwapContractInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapContractInfo", args...)
+	return this.Fetch2Async("swap-api/v1/swap_contract_info", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapApiV1SwapIndex returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapApiV1SwapIndex(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapIndex", args...)
+	return this.Fetch2Async("swap-api/v1/swap_index", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapApiV1SwapQueryElements returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapApiV1SwapQueryElements(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapQueryElements", args...)
+	return this.Fetch2Async("swap-api/v1/swap_query_elements", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapApiV1SwapPriceLimit returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapApiV1SwapPriceLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapPriceLimit", args...)
+	return this.Fetch2Async("swap-api/v1/swap_price_limit", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapApiV1SwapOpenInterest returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapApiV1SwapOpenInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapOpenInterest", args...)
+	return this.Fetch2Async("swap-api/v1/swap_open_interest", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapExMarketDepth returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapExMarketDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapExMarketDepth", args...)
+	return this.Fetch2Async("swap-ex/market/depth", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapExMarketBbo returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapExMarketBbo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapExMarketBbo", args...)
+	return this.Fetch2Async("swap-ex/market/bbo", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapExMarketHistoryKline returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapExMarketHistoryKline(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapExMarketHistoryKline", args...)
+	return this.Fetch2Async("swap-ex/market/history/kline", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetIndexMarketHistorySwapMarkPriceKline returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetIndexMarketHistorySwapMarkPriceKline(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetIndexMarketHistorySwapMarkPriceKline", args...)
+	return this.Fetch2Async("index/market/history/swap_mark_price_kline", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapExMarketDetailMerged returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapExMarketDetailMerged(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapExMarketDetailMerged", args...)
+	return this.Fetch2Async("swap-ex/market/detail/merged", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetV2SwapExMarketDetailBatchMerged returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetV2SwapExMarketDetailBatchMerged(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetV2SwapExMarketDetailBatchMerged", args...)
+	return this.Fetch2Async("v2/swap-ex/market/detail/batch_merged", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetIndexMarketHistorySwapPremiumIndexKline returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetIndexMarketHistorySwapPremiumIndexKline(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetIndexMarketHistorySwapPremiumIndexKline", args...)
+	return this.Fetch2Async("index/market/history/swap_premium_index_kline", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapExMarketDetailBatchMerged returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapExMarketDetailBatchMerged(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapExMarketDetailBatchMerged", args...)
+	return this.Fetch2Async("swap-ex/market/detail/batch_merged", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapExMarketTrade returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapExMarketTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapExMarketTrade", args...)
+	return this.Fetch2Async("swap-ex/market/trade", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapExMarketHistoryTrade returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapExMarketHistoryTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapExMarketHistoryTrade", args...)
+	return this.Fetch2Async("swap-ex/market/history/trade", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapApiV1SwapRiskInfo returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapApiV1SwapRiskInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapRiskInfo", args...)
+	return this.Fetch2Async("swap-api/v1/swap_risk_info", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapApiV1SwapInsuranceFund returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapApiV1SwapInsuranceFund(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapInsuranceFund", args...)
+	return this.Fetch2Async("swap-api/v1/swap_insurance_fund", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapApiV1SwapAdjustfactor returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapApiV1SwapAdjustfactor(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapAdjustfactor", args...)
+	return this.Fetch2Async("swap-api/v1/swap_adjustfactor", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapApiV1SwapHisOpenInterest returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapApiV1SwapHisOpenInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapHisOpenInterest", args...)
+	return this.Fetch2Async("swap-api/v1/swap_his_open_interest", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapApiV1SwapLadderMargin returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapApiV1SwapLadderMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapLadderMargin", args...)
+	return this.Fetch2Async("swap-api/v1/swap_ladder_margin", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapApiV1SwapApiState returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapApiV1SwapApiState(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapApiState", args...)
+	return this.Fetch2Async("swap-api/v1/swap_api_state", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapApiV1SwapEliteAccountRatio returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapApiV1SwapEliteAccountRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapEliteAccountRatio", args...)
+	return this.Fetch2Async("swap-api/v1/swap_elite_account_ratio", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapApiV1SwapElitePositionRatio returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapApiV1SwapElitePositionRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapElitePositionRatio", args...)
+	return this.Fetch2Async("swap-api/v1/swap_elite_position_ratio", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapApiV1SwapEstimatedSettlementPrice returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapApiV1SwapEstimatedSettlementPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapEstimatedSettlementPrice", args...)
+	return this.Fetch2Async("swap-api/v1/swap_estimated_settlement_price", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapApiV1SwapLiquidationOrders returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapApiV1SwapLiquidationOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapLiquidationOrders", args...)
+	return this.Fetch2Async("swap-api/v1/swap_liquidation_orders", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapApiV1SwapSettlementRecords returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapApiV1SwapSettlementRecords(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapSettlementRecords", args...)
+	return this.Fetch2Async("swap-api/v1/swap_settlement_records", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapApiV1SwapFundingRate returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapApiV1SwapFundingRate(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapFundingRate", args...)
+	return this.Fetch2Async("swap-api/v1/swap_funding_rate", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapApiV1SwapBatchFundingRate returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapApiV1SwapBatchFundingRate(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapBatchFundingRate", args...)
+	return this.Fetch2Async("swap-api/v1/swap_batch_funding_rate", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapApiV1SwapHistoricalFundingRate returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapApiV1SwapHistoricalFundingRate(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapHistoricalFundingRate", args...)
+	return this.Fetch2Async("swap-api/v1/swap_historical_funding_rate", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapApiV3SwapLiquidationOrders returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapApiV3SwapLiquidationOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapApiV3SwapLiquidationOrders", args...)
+	return this.Fetch2Async("swap-api/v3/swap_liquidation_orders", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetIndexMarketHistorySwapEstimatedRateKline returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetIndexMarketHistorySwapEstimatedRateKline(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetIndexMarketHistorySwapEstimatedRateKline", args...)
+	return this.Fetch2Async("index/market/history/swap_estimated_rate_kline", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetIndexMarketHistorySwapBasis returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetIndexMarketHistorySwapBasis(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetIndexMarketHistorySwapBasis", args...)
+	return this.Fetch2Async("index/market/history/swap_basis", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapApiV1SwapContractInfo returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapApiV1SwapContractInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapContractInfo", args...)
+	return this.Fetch2Async("linear-swap-api/v1/swap_contract_info", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapApiV1SwapIndex returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapApiV1SwapIndex(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapIndex", args...)
+	return this.Fetch2Async("linear-swap-api/v1/swap_index", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapApiV1SwapQueryElements returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapApiV1SwapQueryElements(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapQueryElements", args...)
+	return this.Fetch2Async("linear-swap-api/v1/swap_query_elements", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapApiV1SwapPriceLimit returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapApiV1SwapPriceLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapPriceLimit", args...)
+	return this.Fetch2Async("linear-swap-api/v1/swap_price_limit", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapExMarketDepth returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapExMarketDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketDepth", args...)
+	return this.Fetch2Async("linear-swap-ex/market/depth", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapExMarketBbo returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapExMarketBbo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketBbo", args...)
+	return this.Fetch2Async("linear-swap-ex/market/bbo", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapExMarketHistoryKline returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapExMarketHistoryKline(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketHistoryKline", args...)
+	return this.Fetch2Async("linear-swap-ex/market/history/kline", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline", args...)
+	return this.Fetch2Async("index/market/history/linear_swap_mark_price_kline", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapExMarketDetailMerged returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapExMarketDetailMerged(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketDetailMerged", args...)
+	return this.Fetch2Async("linear-swap-ex/market/detail/merged", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapExMarketDetailBatchMerged returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapExMarketDetailBatchMerged(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketDetailBatchMerged", args...)
+	return this.Fetch2Async("linear-swap-ex/market/detail/batch_merged", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetV2LinearSwapExMarketDetailBatchMerged returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetV2LinearSwapExMarketDetailBatchMerged(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetV2LinearSwapExMarketDetailBatchMerged", args...)
+	return this.Fetch2Async("v2/linear-swap-ex/market/detail/batch_merged", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapExMarketTrade returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapExMarketTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketTrade", args...)
+	return this.Fetch2Async("linear-swap-ex/market/trade", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapExMarketHistoryTrade returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapExMarketHistoryTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketHistoryTrade", args...)
+	return this.Fetch2Async("linear-swap-ex/market/history/trade", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund", args...)
+	return this.Fetch2Async("swap-api/v1/linear-swap-api/v1/swap_insurance_fund", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapApiV1SwapAdjustfactor returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapApiV1SwapAdjustfactor(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapAdjustfactor", args...)
+	return this.Fetch2Async("linear-swap-api/v1/swap_adjustfactor", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapApiV1SwapCrossAdjustfactor returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapApiV1SwapCrossAdjustfactor(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapCrossAdjustfactor", args...)
+	return this.Fetch2Async("linear-swap-api/v1/swap_cross_adjustfactor", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapApiV1SwapHisOpenInterest returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapApiV1SwapHisOpenInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapHisOpenInterest", args...)
+	return this.Fetch2Async("linear-swap-api/v1/swap_his_open_interest", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapApiV1SwapLadderMargin returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapApiV1SwapLadderMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapLadderMargin", args...)
+	return this.Fetch2Async("linear-swap-api/v1/swap_ladder_margin", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapApiV1SwapCrossLadderMargin returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapApiV1SwapCrossLadderMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapCrossLadderMargin", args...)
+	return this.Fetch2Async("linear-swap-api/v1/swap_cross_ladder_margin", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapApiV1SwapApiState returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapApiV1SwapApiState(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapApiState", args...)
+	return this.Fetch2Async("linear-swap-api/v1/swap_api_state", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapApiV1SwapEliteAccountRatio returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapApiV1SwapEliteAccountRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapEliteAccountRatio", args...)
+	return this.Fetch2Async("linear-swap-api/v1/swap_elite_account_ratio", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapApiV1SwapElitePositionRatio returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapApiV1SwapElitePositionRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapElitePositionRatio", args...)
+	return this.Fetch2Async("linear-swap-api/v1/swap_elite_position_ratio", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapApiV1SwapSettlementRecords returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapApiV1SwapSettlementRecords(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapSettlementRecords", args...)
+	return this.Fetch2Async("linear-swap-api/v1/swap_settlement_records", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapApiV3SwapLiquidationOrders returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapApiV3SwapLiquidationOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapApiV3SwapLiquidationOrders", args...)
+	return this.Fetch2Async("linear-swap-api/v3/swap_liquidation_orders", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline", args...)
+	return this.Fetch2Async("index/market/history/linear_swap_premium_index_kline", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetIndexMarketHistoryLinearSwapEstimatedRateKline returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetIndexMarketHistoryLinearSwapEstimatedRateKline(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetIndexMarketHistoryLinearSwapEstimatedRateKline", args...)
+	return this.Fetch2Async("index/market/history/linear_swap_estimated_rate_kline", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetIndexMarketHistoryLinearSwapBasis returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetIndexMarketHistoryLinearSwapBasis(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetIndexMarketHistoryLinearSwapBasis", args...)
+	return this.Fetch2Async("index/market/history/linear_swap_basis", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetLinearSwapApiV1SwapEstimatedSettlementPrice returns a channel that yields a JSON object.
 func (this *Htx) ContractPublicGetLinearSwapApiV1SwapEstimatedSettlementPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapEstimatedSettlementPrice", args...)
+	return this.Fetch2Async("linear-swap-api/v1/swap_estimated_settlement_price", []string{"contract", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPublicGetV5MarketFundingRate returns a channel that yields a JSON object.
@@ -1599,22 +1599,22 @@ func (this *Htx) ContractPublicGetV5MarketPriceLimit(args ...any) <-chan any {
 
 // ContractPrivateGetApiV1ContractSubAuthList returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivateGetApiV1ContractSubAuthList(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetApiV1ContractSubAuthList", args...)
+	return this.Fetch2Async("api/v1/contract_sub_auth_list", []string{"contract", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivateGetApiV1ContractApiTradingStatus returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivateGetApiV1ContractApiTradingStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetApiV1ContractApiTradingStatus", args...)
+	return this.Fetch2Async("api/v1/contract_api_trading_status", []string{"contract", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivateGetSwapApiV1SwapSubAuthList returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivateGetSwapApiV1SwapSubAuthList(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetSwapApiV1SwapSubAuthList", args...)
+	return this.Fetch2Async("swap-api/v1/swap_sub_auth_list", []string{"contract", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivateGetSwapApiV1SwapApiTradingStatus returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivateGetSwapApiV1SwapApiTradingStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetSwapApiV1SwapApiTradingStatus", args...)
+	return this.Fetch2Async("swap-api/v1/swap_api_trading_status", []string{"contract", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivateGetV5AccountAssetMode returns a channel that yields a JSON object.
@@ -1714,587 +1714,587 @@ func (this *Htx) ContractPrivateGetV5AlgoOrderHistory(args ...any) <-chan any {
 
 // ContractPrivateGetApiV6CopyTradingTraderInstruments returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivateGetApiV6CopyTradingTraderInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetApiV6CopyTradingTraderInstruments", args...)
+	return this.Fetch2Async("api/v6/copyTrading/trader/instruments", []string{"contract", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // ContractPrivateGetApiV6CopyTradingTraderStatistics returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivateGetApiV6CopyTradingTraderStatistics(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetApiV6CopyTradingTraderStatistics", args...)
+	return this.Fetch2Async("api/v6/copyTrading/trader/statistics", []string{"contract", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // ContractPrivateGetApiV6CopyTradingTraderProfitSharingHistory returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivateGetApiV6CopyTradingTraderProfitSharingHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetApiV6CopyTradingTraderProfitSharingHistory", args...)
+	return this.Fetch2Async("api/v6/copyTrading/trader/profit-sharing-history", []string{"contract", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // ContractPrivateGetApiV6CopyTradingTraderProfitSharingHistorySummary returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivateGetApiV6CopyTradingTraderProfitSharingHistorySummary(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetApiV6CopyTradingTraderProfitSharingHistorySummary", args...)
+	return this.Fetch2Async("api/v6/copyTrading/trader/profit-sharing-history-summary", []string{"contract", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // ContractPrivateGetApiV6CopyTradingTraderUnrealizedProfitSharingSummary returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivateGetApiV6CopyTradingTraderUnrealizedProfitSharingSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetApiV6CopyTradingTraderUnrealizedProfitSharingSummary", args...)
+	return this.Fetch2Async("api/v6/copyTrading/trader/unrealized-profit-sharing-summary", []string{"contract", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // ContractPrivateGetApiV6CopyTradingTraderFollowers returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivateGetApiV6CopyTradingTraderFollowers(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetApiV6CopyTradingTraderFollowers", args...)
+	return this.Fetch2Async("api/v6/copyTrading/trader/followers", []string{"contract", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // ContractPrivatePostApiV1ContractBalanceValuation returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractBalanceValuation(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractBalanceValuation", args...)
+	return this.Fetch2Async("api/v1/contract_balance_valuation", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractAccountInfo returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractAccountInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractAccountInfo", args...)
+	return this.Fetch2Async("api/v1/contract_account_info", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractPositionInfo returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractPositionInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractPositionInfo", args...)
+	return this.Fetch2Async("api/v1/contract_position_info", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractSubAuth returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractSubAuth(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractSubAuth", args...)
+	return this.Fetch2Async("api/v1/contract_sub_auth", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractSubAccountList returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractSubAccountList(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractSubAccountList", args...)
+	return this.Fetch2Async("api/v1/contract_sub_account_list", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractSubAccountInfoList returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractSubAccountInfoList(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractSubAccountInfoList", args...)
+	return this.Fetch2Async("api/v1/contract_sub_account_info_list", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractSubAccountInfo returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractSubAccountInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractSubAccountInfo", args...)
+	return this.Fetch2Async("api/v1/contract_sub_account_info", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractSubPositionInfo returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractSubPositionInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractSubPositionInfo", args...)
+	return this.Fetch2Async("api/v1/contract_sub_position_info", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractFinancialRecord returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractFinancialRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractFinancialRecord", args...)
+	return this.Fetch2Async("api/v1/contract_financial_record", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractFinancialRecordExact returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractFinancialRecordExact(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractFinancialRecordExact", args...)
+	return this.Fetch2Async("api/v1/contract_financial_record_exact", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractUserSettlementRecords returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractUserSettlementRecords(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractUserSettlementRecords", args...)
+	return this.Fetch2Async("api/v1/contract_user_settlement_records", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractOrderLimit returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractOrderLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractOrderLimit", args...)
+	return this.Fetch2Async("api/v1/contract_order_limit", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractFee returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractFee(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractFee", args...)
+	return this.Fetch2Async("api/v1/contract_fee", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractTransferLimit returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractTransferLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractTransferLimit", args...)
+	return this.Fetch2Async("api/v1/contract_transfer_limit", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractPositionLimit returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractPositionLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractPositionLimit", args...)
+	return this.Fetch2Async("api/v1/contract_position_limit", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractAccountPositionInfo returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractAccountPositionInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractAccountPositionInfo", args...)
+	return this.Fetch2Async("api/v1/contract_account_position_info", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractMasterSubTransfer returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractMasterSubTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractMasterSubTransfer", args...)
+	return this.Fetch2Async("api/v1/contract_master_sub_transfer", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractMasterSubTransferRecord returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractMasterSubTransferRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractMasterSubTransferRecord", args...)
+	return this.Fetch2Async("api/v1/contract_master_sub_transfer_record", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractAvailableLevelRate returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractAvailableLevelRate(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractAvailableLevelRate", args...)
+	return this.Fetch2Async("api/v1/contract_available_level_rate", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV3ContractFinancialRecord returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV3ContractFinancialRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV3ContractFinancialRecord", args...)
+	return this.Fetch2Async("api/v3/contract_financial_record", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV3ContractFinancialRecordExact returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV3ContractFinancialRecordExact(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV3ContractFinancialRecordExact", args...)
+	return this.Fetch2Async("api/v3/contract_financial_record_exact", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractCancelAfter returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractCancelAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractCancelAfter", args...)
+	return this.Fetch2Async("api/v1/contract-cancel-after", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractOrder returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractOrder", args...)
+	return this.Fetch2Async("api/v1/contract_order", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractBatchorder returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractBatchorder(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractBatchorder", args...)
+	return this.Fetch2Async("api/v1/contract_batchorder", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractCancel returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractCancel", args...)
+	return this.Fetch2Async("api/v1/contract_cancel", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractCancelall returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractCancelall(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractCancelall", args...)
+	return this.Fetch2Async("api/v1/contract_cancelall", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractSwitchLeverRate returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractSwitchLeverRate(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractSwitchLeverRate", args...)
+	return this.Fetch2Async("api/v1/contract_switch_lever_rate", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
 }
 
 // ContractPrivatePostApiV1LightningClosePosition returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1LightningClosePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1LightningClosePosition", args...)
+	return this.Fetch2Async("api/v1/lightning_close_position", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractOrderInfo returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractOrderInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractOrderInfo", args...)
+	return this.Fetch2Async("api/v1/contract_order_info", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractOrderDetail returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractOrderDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractOrderDetail", args...)
+	return this.Fetch2Async("api/v1/contract_order_detail", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractOpenorders returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractOpenorders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractOpenorders", args...)
+	return this.Fetch2Async("api/v1/contract_openorders", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractHisorders returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractHisorders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractHisorders", args...)
+	return this.Fetch2Async("api/v1/contract_hisorders", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractHisordersExact returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractHisordersExact(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractHisordersExact", args...)
+	return this.Fetch2Async("api/v1/contract_hisorders_exact", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractMatchresults returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractMatchresults(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractMatchresults", args...)
+	return this.Fetch2Async("api/v1/contract_matchresults", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractMatchresultsExact returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractMatchresultsExact(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractMatchresultsExact", args...)
+	return this.Fetch2Async("api/v1/contract_matchresults_exact", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV3ContractHisorders returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV3ContractHisorders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV3ContractHisorders", args...)
+	return this.Fetch2Async("api/v3/contract_hisorders", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV3ContractHisordersExact returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV3ContractHisordersExact(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV3ContractHisordersExact", args...)
+	return this.Fetch2Async("api/v3/contract_hisorders_exact", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV3ContractMatchresults returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV3ContractMatchresults(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV3ContractMatchresults", args...)
+	return this.Fetch2Async("api/v3/contract_matchresults", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV3ContractMatchresultsExact returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV3ContractMatchresultsExact(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV3ContractMatchresultsExact", args...)
+	return this.Fetch2Async("api/v3/contract_matchresults_exact", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractTriggerOrder returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractTriggerOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractTriggerOrder", args...)
+	return this.Fetch2Async("api/v1/contract_trigger_order", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractTriggerCancel returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractTriggerCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractTriggerCancel", args...)
+	return this.Fetch2Async("api/v1/contract_trigger_cancel", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractTriggerCancelall returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractTriggerCancelall(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractTriggerCancelall", args...)
+	return this.Fetch2Async("api/v1/contract_trigger_cancelall", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractTriggerOpenorders returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractTriggerOpenorders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractTriggerOpenorders", args...)
+	return this.Fetch2Async("api/v1/contract_trigger_openorders", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractTriggerHisorders returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractTriggerHisorders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractTriggerHisorders", args...)
+	return this.Fetch2Async("api/v1/contract_trigger_hisorders", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractTpslOrder returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractTpslOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractTpslOrder", args...)
+	return this.Fetch2Async("api/v1/contract_tpsl_order", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractTpslCancel returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractTpslCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractTpslCancel", args...)
+	return this.Fetch2Async("api/v1/contract_tpsl_cancel", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractTpslCancelall returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractTpslCancelall(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractTpslCancelall", args...)
+	return this.Fetch2Async("api/v1/contract_tpsl_cancelall", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractTpslOpenorders returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractTpslOpenorders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractTpslOpenorders", args...)
+	return this.Fetch2Async("api/v1/contract_tpsl_openorders", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractTpslHisorders returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractTpslHisorders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractTpslHisorders", args...)
+	return this.Fetch2Async("api/v1/contract_tpsl_hisorders", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractRelationTpslOrder returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractRelationTpslOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractRelationTpslOrder", args...)
+	return this.Fetch2Async("api/v1/contract_relation_tpsl_order", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractTrackOrder returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractTrackOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractTrackOrder", args...)
+	return this.Fetch2Async("api/v1/contract_track_order", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractTrackCancel returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractTrackCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractTrackCancel", args...)
+	return this.Fetch2Async("api/v1/contract_track_cancel", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractTrackCancelall returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractTrackCancelall(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractTrackCancelall", args...)
+	return this.Fetch2Async("api/v1/contract_track_cancelall", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractTrackOpenorders returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractTrackOpenorders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractTrackOpenorders", args...)
+	return this.Fetch2Async("api/v1/contract_track_openorders", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostApiV1ContractTrackHisorders returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV1ContractTrackHisorders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV1ContractTrackHisorders", args...)
+	return this.Fetch2Async("api/v1/contract_track_hisorders", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapBalanceValuation returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapBalanceValuation(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapBalanceValuation", args...)
+	return this.Fetch2Async("swap-api/v1/swap_balance_valuation", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapAccountInfo returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapAccountInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapAccountInfo", args...)
+	return this.Fetch2Async("swap-api/v1/swap_account_info", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapPositionInfo returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapPositionInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapPositionInfo", args...)
+	return this.Fetch2Async("swap-api/v1/swap_position_info", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapAccountPositionInfo returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapAccountPositionInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapAccountPositionInfo", args...)
+	return this.Fetch2Async("swap-api/v1/swap_account_position_info", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapSubAuth returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapSubAuth(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSubAuth", args...)
+	return this.Fetch2Async("swap-api/v1/swap_sub_auth", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapSubAccountList returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapSubAccountList(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSubAccountList", args...)
+	return this.Fetch2Async("swap-api/v1/swap_sub_account_list", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapSubAccountInfoList returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapSubAccountInfoList(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSubAccountInfoList", args...)
+	return this.Fetch2Async("swap-api/v1/swap_sub_account_info_list", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapSubAccountInfo returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapSubAccountInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSubAccountInfo", args...)
+	return this.Fetch2Async("swap-api/v1/swap_sub_account_info", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapSubPositionInfo returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapSubPositionInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSubPositionInfo", args...)
+	return this.Fetch2Async("swap-api/v1/swap_sub_position_info", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapFinancialRecord returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapFinancialRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapFinancialRecord", args...)
+	return this.Fetch2Async("swap-api/v1/swap_financial_record", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapFinancialRecordExact returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapFinancialRecordExact(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapFinancialRecordExact", args...)
+	return this.Fetch2Async("swap-api/v1/swap_financial_record_exact", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapUserSettlementRecords returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapUserSettlementRecords(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapUserSettlementRecords", args...)
+	return this.Fetch2Async("swap-api/v1/swap_user_settlement_records", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapAvailableLevelRate returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapAvailableLevelRate(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapAvailableLevelRate", args...)
+	return this.Fetch2Async("swap-api/v1/swap_available_level_rate", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapOrderLimit returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapOrderLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapOrderLimit", args...)
+	return this.Fetch2Async("swap-api/v1/swap_order_limit", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapFee returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapFee(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapFee", args...)
+	return this.Fetch2Async("swap-api/v1/swap_fee", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapTransferLimit returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapTransferLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTransferLimit", args...)
+	return this.Fetch2Async("swap-api/v1/swap_transfer_limit", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapPositionLimit returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapPositionLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapPositionLimit", args...)
+	return this.Fetch2Async("swap-api/v1/swap_position_limit", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapMasterSubTransfer returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapMasterSubTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapMasterSubTransfer", args...)
+	return this.Fetch2Async("swap-api/v1/swap_master_sub_transfer", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapMasterSubTransferRecord returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapMasterSubTransferRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapMasterSubTransferRecord", args...)
+	return this.Fetch2Async("swap-api/v1/swap_master_sub_transfer_record", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV3SwapFinancialRecord returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV3SwapFinancialRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapFinancialRecord", args...)
+	return this.Fetch2Async("swap-api/v3/swap_financial_record", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV3SwapFinancialRecordExact returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV3SwapFinancialRecordExact(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapFinancialRecordExact", args...)
+	return this.Fetch2Async("swap-api/v3/swap_financial_record_exact", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapCancelAfter returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapCancelAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapCancelAfter", args...)
+	return this.Fetch2Async("swap-api/v1/swap-cancel-after", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapOrder returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapOrder", args...)
+	return this.Fetch2Async("swap-api/v1/swap_order", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapBatchorder returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapBatchorder(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapBatchorder", args...)
+	return this.Fetch2Async("swap-api/v1/swap_batchorder", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapCancel returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapCancel", args...)
+	return this.Fetch2Async("swap-api/v1/swap_cancel", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapCancelall returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapCancelall(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapCancelall", args...)
+	return this.Fetch2Async("swap-api/v1/swap_cancelall", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapLightningClosePosition returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapLightningClosePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapLightningClosePosition", args...)
+	return this.Fetch2Async("swap-api/v1/swap_lightning_close_position", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapSwitchLeverRate returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapSwitchLeverRate(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSwitchLeverRate", args...)
+	return this.Fetch2Async("swap-api/v1/swap_switch_lever_rate", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
 }
 
 // ContractPrivatePostSwapApiV1SwapOrderInfo returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapOrderInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapOrderInfo", args...)
+	return this.Fetch2Async("swap-api/v1/swap_order_info", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapOrderDetail returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapOrderDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapOrderDetail", args...)
+	return this.Fetch2Async("swap-api/v1/swap_order_detail", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapOpenorders returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapOpenorders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapOpenorders", args...)
+	return this.Fetch2Async("swap-api/v1/swap_openorders", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapHisorders returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapHisorders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapHisorders", args...)
+	return this.Fetch2Async("swap-api/v1/swap_hisorders", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapHisordersExact returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapHisordersExact(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapHisordersExact", args...)
+	return this.Fetch2Async("swap-api/v1/swap_hisorders_exact", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapMatchresults returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapMatchresults(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapMatchresults", args...)
+	return this.Fetch2Async("swap-api/v1/swap_matchresults", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapMatchresultsExact returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapMatchresultsExact(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapMatchresultsExact", args...)
+	return this.Fetch2Async("swap-api/v1/swap_matchresults_exact", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV3SwapMatchresults returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV3SwapMatchresults(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapMatchresults", args...)
+	return this.Fetch2Async("swap-api/v3/swap_matchresults", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV3SwapMatchresultsExact returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV3SwapMatchresultsExact(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapMatchresultsExact", args...)
+	return this.Fetch2Async("swap-api/v3/swap_matchresults_exact", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV3SwapHisorders returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV3SwapHisorders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapHisorders", args...)
+	return this.Fetch2Async("swap-api/v3/swap_hisorders", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV3SwapHisordersExact returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV3SwapHisordersExact(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapHisordersExact", args...)
+	return this.Fetch2Async("swap-api/v3/swap_hisorders_exact", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapTriggerOrder returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapTriggerOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTriggerOrder", args...)
+	return this.Fetch2Async("swap-api/v1/swap_trigger_order", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapTriggerCancel returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapTriggerCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTriggerCancel", args...)
+	return this.Fetch2Async("swap-api/v1/swap_trigger_cancel", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapTriggerCancelall returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapTriggerCancelall(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTriggerCancelall", args...)
+	return this.Fetch2Async("swap-api/v1/swap_trigger_cancelall", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapTriggerOpenorders returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapTriggerOpenorders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTriggerOpenorders", args...)
+	return this.Fetch2Async("swap-api/v1/swap_trigger_openorders", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapTriggerHisorders returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapTriggerHisorders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTriggerHisorders", args...)
+	return this.Fetch2Async("swap-api/v1/swap_trigger_hisorders", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapTpslOrder returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapTpslOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTpslOrder", args...)
+	return this.Fetch2Async("swap-api/v1/swap_tpsl_order", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapTpslCancel returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapTpslCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTpslCancel", args...)
+	return this.Fetch2Async("swap-api/v1/swap_tpsl_cancel", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapTpslCancelall returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapTpslCancelall(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTpslCancelall", args...)
+	return this.Fetch2Async("swap-api/v1/swap_tpsl_cancelall", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapTpslOpenorders returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapTpslOpenorders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTpslOpenorders", args...)
+	return this.Fetch2Async("swap-api/v1/swap_tpsl_openorders", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapTpslHisorders returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapTpslHisorders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTpslHisorders", args...)
+	return this.Fetch2Async("swap-api/v1/swap_tpsl_hisorders", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapRelationTpslOrder returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapRelationTpslOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapRelationTpslOrder", args...)
+	return this.Fetch2Async("swap-api/v1/swap_relation_tpsl_order", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapTrackOrder returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapTrackOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTrackOrder", args...)
+	return this.Fetch2Async("swap-api/v1/swap_track_order", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapTrackCancel returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapTrackCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTrackCancel", args...)
+	return this.Fetch2Async("swap-api/v1/swap_track_cancel", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapTrackCancelall returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapTrackCancelall(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTrackCancelall", args...)
+	return this.Fetch2Async("swap-api/v1/swap_track_cancelall", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapTrackOpenorders returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapTrackOpenorders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTrackOpenorders", args...)
+	return this.Fetch2Async("swap-api/v1/swap_track_openorders", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostSwapApiV1SwapTrackHisorders returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostSwapApiV1SwapTrackHisorders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTrackHisorders", args...)
+	return this.Fetch2Async("swap-api/v1/swap_track_hisorders", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivatePostV5AccountAssetMode returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostV5AccountAssetMode(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostV5AccountAssetMode", args...)
+	return this.Fetch2Async("v5/account/asset_mode", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
 }
 
 // ContractPrivatePostV5TradeOrder returns a channel that yields a JSON object.
@@ -2369,25 +2369,25 @@ func (this *Htx) ContractPrivatePostV5AlgoCancelOrders(args ...any) <-chan any {
 
 // ContractPrivatePostApiV6CopyTradingTraderFollower returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV6CopyTradingTraderFollower(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV6CopyTradingTraderFollower", args...)
+	return this.Fetch2Async("api/v6/copyTrading/trader/follower", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // ContractPrivatePostApiV6CopyTradingTraderTransfer returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV6CopyTradingTraderTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV6CopyTradingTraderTransfer", args...)
+	return this.Fetch2Async("api/v6/copyTrading/trader/transfer", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // ContractPrivatePostApiV6CopyTradingTraderFollowerSettings returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV6CopyTradingTraderFollowerSettings(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV6CopyTradingTraderFollowerSettings", args...)
+	return this.Fetch2Async("api/v6/copyTrading/trader/follower-settings", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // ContractPrivatePostApiV6CopyTradingTraderConfig returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV6CopyTradingTraderConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV6CopyTradingTraderConfig", args...)
+	return this.Fetch2Async("api/v6/copyTrading/trader/config", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // ContractPrivatePostApiV6CopyTradingTraderApikey returns a channel that yields a JSON object.
 func (this *Htx) ContractPrivatePostApiV6CopyTradingTraderApikey(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostApiV6CopyTradingTraderApikey", args...)
+	return this.Fetch2Async("api/v6/copyTrading/trader/apikey", []string{"contract", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }

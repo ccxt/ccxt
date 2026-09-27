@@ -748,7 +748,7 @@ class coinbase extends Exchange {
         return $result;
     }
 
-    public function parse_account(mixed $account) {
+    public function parse_account(array $account): array {
         //
         // fetchAccountsV2
         //
@@ -956,11 +956,11 @@ class coinbase extends Exchange {
         return $this->parse_trades($buysData, null, $since, $limit);
     }
 
-    public function fetch_transactions_with_method(mixed $method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_transactions_with_method(string $method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_transactions_with_method(...))($method, $code, $since, $limit, $params);
     }
 
-    private function do_fetch_transactions_with_method(mixed $method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_transactions_with_method(string $method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
         $request = null;
         list($request, $params) = Async\await($this->prepare_account_request_with_currency_code($code, $limit, $params));
         if ($this->markets === null) {
@@ -1660,7 +1660,7 @@ class coinbase extends Exchange {
         $newMarkets = array();
         for ($i = 0; $i < count($result); $i++) {
             $market = $result[$i];
-            $info = $this->safe_value($market, 'info', array());
+            $info = $this->safe_dict($market, 'info', array());
             $realMarketIds = $this->safe_list($info, 'alias_to', array());
             $length = count($realMarketIds);
             if ($length > 0) {
@@ -1673,7 +1673,7 @@ class coinbase extends Exchange {
         return $newMarkets;
     }
 
-    public function parse_spot_market(mixed $market, mixed $feeTier): array {
+    public function parse_spot_market(array $market, array $feeTier): array {
         //
         //         {
         //             "product_id": "TONE-USD",
@@ -1770,7 +1770,7 @@ class coinbase extends Exchange {
         ));
     }
 
-    public function parse_contract_market(mixed $market, mixed $feeTier): array {
+    public function parse_contract_market(array $market, array $feeTier): array {
         // expiring
         //
         //        {
@@ -1967,7 +1967,7 @@ class coinbase extends Exchange {
         ));
     }
 
-    public function fetch_currencies_from_cache($params = array()) {
+    public function fetch_currencies_from_cache($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_currencies_from_cache(...))($params);
     }
 
@@ -2306,7 +2306,7 @@ class coinbase extends Exchange {
         return Async\await($this->fetch_ticker_v2($symbol, $params));
     }
 
-    public function fetch_ticker_v2(string $symbol, $params = array()) {
+    public function fetch_ticker_v2(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ticker_v2(...))($symbol, $params);
     }
 
@@ -2341,7 +2341,7 @@ class coinbase extends Exchange {
         return $this->parse_ticker($bidAskLast, $market);
     }
 
-    public function fetch_ticker_v3(string $symbol, $params = array()) {
+    public function fetch_ticker_v3(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ticker_v3(...))($symbol, $params);
     }
 
@@ -2521,7 +2521,7 @@ class coinbase extends Exchange {
         ), $market);
     }
 
-    public function parse_custom_balance(mixed $response, $params = array()) {
+    public function parse_custom_balance(array $response, $params = array()): array {
         $balances = $this->safe_list_2($response, 'data', 'accounts', array());
         $accounts = $this->safe_list($params, 'type', $this->options['accounts']);
         $v3Accounts = $this->safe_list($params, 'type', $this->options['v3Accounts']);
@@ -2742,14 +2742,14 @@ class coinbase extends Exchange {
         return $ledger;
     }
 
-    public function parse_ledger_entry_status(mixed $status) {
+    public function parse_ledger_entry_status(?string $status): ?string {
         $types = array(
             'completed' => 'ok',
         );
         return $this->safe_string($types, $status, $status);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array(
             'buy' => 'trade',
             'sell' => 'trade',
@@ -3074,11 +3074,11 @@ class coinbase extends Exchange {
         ), $currency);
     }
 
-    public function find_account_id(mixed $code, $params = array()) {
+    public function find_account_id(?string $code, $params = array()) {
         return Async\async(self::do_find_account_id(...))($code, $params);
     }
 
-    private function do_find_account_id(mixed $code, $params = array()) {
+    private function do_find_account_id(?string $code, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -3092,7 +3092,7 @@ class coinbase extends Exchange {
         return null;
     }
 
-    public function prepare_account_request(?int $limit = null, $params = array()) {
+    public function prepare_account_request(?int $limit = null, $params = array()): array {
         $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
         if ($accountId === null) {
             throw new ArgumentsRequired($this->id . ' prepareAccountRequest() method requires an account_id (or $accountId) parameter');
@@ -3106,7 +3106,7 @@ class coinbase extends Exchange {
         return $request;
     }
 
-    public function prepare_account_request_with_currency_code(?string $code = null, ?int $limit = null, $params = array()) {
+    public function prepare_account_request_with_currency_code(?string $code = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_prepare_account_request_with_currency_code(...))($code, $limit, $params);
     }
 
@@ -3131,7 +3131,7 @@ class coinbase extends Exchange {
         return array( $request, $params );
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): PromiseInterface {
         return Async\async(self::do_create_market_buy_order_with_cost(...))($symbol, $cost, $params);
     }
 
@@ -3157,7 +3157,7 @@ class coinbase extends Exchange {
         return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -3582,7 +3582,7 @@ class coinbase extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -3604,7 +3604,7 @@ class coinbase extends Exchange {
         return $this->safe_dict($orders, 0, array());
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
     }
 
@@ -3651,7 +3651,7 @@ class coinbase extends Exchange {
         return $this->parse_orders($orders, $market);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -3704,7 +3704,7 @@ class coinbase extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -3871,11 +3871,11 @@ class coinbase extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_orders_by_status(...))($status, $symbol, $since, $limit, $params);
     }
 
-    private function do_fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -4012,7 +4012,7 @@ class coinbase extends Exchange {
         return Async\await($this->fetch_orders_by_status('FILLED', $symbol, $since, $limit, $params));
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_canceled_orders(...))($symbol, $since, $limit, $params);
     }
 
@@ -4200,7 +4200,7 @@ class coinbase extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -4340,7 +4340,7 @@ class coinbase extends Exchange {
         return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'size');
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_bids_asks(...))($symbols, $params);
     }
 
@@ -4810,7 +4810,7 @@ class coinbase extends Exchange {
         return $this->parse_transaction($data);
     }
 
-    public function fetch_deposit_method_ids($params = array()) {
+    public function fetch_deposit_method_ids($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_deposit_method_ids(...))($params);
     }
 
@@ -4892,7 +4892,7 @@ class coinbase extends Exchange {
         return $this->parse_deposit_method_id($result);
     }
 
-    public function parse_deposit_method_ids(mixed $ids, $params = array()) {
+    public function parse_deposit_method_ids(array $ids, $params = array()): array {
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $this->extend($this->parse_deposit_method_id($ids[$i]), $params);
@@ -4901,7 +4901,7 @@ class coinbase extends Exchange {
         return $result;
     }
 
-    public function parse_deposit_method_id(mixed $depositId) {
+    public function parse_deposit_method_id(array $depositId): array {
         return array(
             'info' => $depositId,
             'id' => $this->safe_string($depositId, 'id'),
@@ -5172,7 +5172,7 @@ class coinbase extends Exchange {
         return $this->parse_positions($positions, $symbols);
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_position(...))($symbol, $params);
     }
 
@@ -5219,7 +5219,7 @@ class coinbase extends Exchange {
         return $this->parse_position($position, $market);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // {
         //     "product_id": "1r4njf84-0-0",
@@ -5539,11 +5539,11 @@ class coinbase extends Exchange {
         }
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $version = $api[0];
         $signed = $api[1] === 'private';
         $isV3 = $version === 'v3';

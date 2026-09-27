@@ -19,5 +19,5 @@ func TestImplodeParams() {
 	}
 	var expected string = "v2/watchlists/1m/BTC/USDT"
 	var result any = exchange.ImplodeParams(path, params)
-	assert(ccxt.IsEqual(result, expected), ccxt.Add(ccxt.Add(ccxt.Add("implodeParams did not produce the expected result: ", result), " != "), expected))
+	assert((result == expected), ccxt.Add(ccxt.Add(ccxt.Add("implodeParams did not produce the expected result: ", result), " != "), expected))
 }

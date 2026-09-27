@@ -869,7 +869,7 @@ class cex extends Exchange {
         return $this->parse_trading_fees($fees, true);
     }
 
-    public function parse_trading_fees(mixed $response, $useKeyAsId = false): array {
+    public function parse_trading_fees(array $response, ?bool $useKeyAsId = false): array {
         $result = array();
         $keys = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -1104,7 +1104,7 @@ class cex extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
@@ -1119,7 +1119,7 @@ class cex extends Exchange {
         return $this->fetch_orders_by_status('closed', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
@@ -1271,7 +1271,7 @@ class cex extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -1374,7 +1374,7 @@ class cex extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -1401,7 +1401,7 @@ class cex extends Exchange {
         return $this->parse_order($data);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open $orders in a market
          *
@@ -1522,7 +1522,7 @@ class cex extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $ledgerType = array(
             'deposit' => 'deposit',
             'withdraw' => 'withdrawal',
@@ -1811,7 +1811,7 @@ class cex extends Exchange {
         );
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {

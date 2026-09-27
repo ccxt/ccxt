@@ -11,7 +11,7 @@ import (
 )
 
 func (e *BaseExchange) base16ToBinary(str any) []byte {
-	hexStr := str.(string)
+	hexStr := derefScalar(str).(string)
 	bytes, err := hex.DecodeString(hexStr)
 	if err != nil {
 		return nil
@@ -42,7 +42,7 @@ func convertHexStringToByteArray(hexString string) ([]byte, error) {
 }
 
 func (e *BaseExchange) remove0xPrefix(str any) string {
-	s := str.(string)
+	s := derefScalar(str).(string)
 	if strings.HasPrefix(s, "0x") {
 		return s[2:]
 	}
@@ -62,7 +62,7 @@ func (e *BaseExchange) StringToBase64(pt any) string {
 }
 
 func stringToBase64(pt any) string {
-	plainText := pt.(string)
+	plainText := derefScalar(pt).(string)
 	return base64.StdEncoding.EncodeToString([]byte(plainText))
 }
 
@@ -75,7 +75,7 @@ func (e *BaseExchange) Base64ToBinary(pt any) []byte {
 }
 
 func base64ToBinary(pt any) []byte {
-	plainText := pt.(string)
+	plainText := derefScalar(pt).(string)
 	bytes, err := base64.StdEncoding.DecodeString(plainText)
 	if err != nil {
 		return nil
@@ -146,7 +146,7 @@ func (e *BaseExchange) base58ToBinary(input string) ([]byte, error) {
 
 // An error can be returned, but that would not conform to the unified interface.
 func (e *BaseExchange) Base58ToBinary(pt any) []byte {
-	plainText := pt.(string)
+	plainText := derefScalar(pt).(string)
 	// base58.Decode() only Bitcoin Aplhabet
 	b, err := e.base58ToBinary(plainText)
 	if err != nil {
@@ -279,15 +279,15 @@ func (e *BaseExchange) BinaryToString(buff any) string {
 }
 
 func (e *BaseExchange) Encode(data any) string {
-	return data.(string) // stub
+	return derefScalar(data).(string) // stub
 }
 
 func Encode(data any) string {
-	return data.(string) // stub
+	return derefScalar(data).(string) // stub
 }
 
 func (e *BaseExchange) Decode(data any) string {
-	return data.(string) // stub
+	return derefScalar(data).(string) // stub
 }
 
 // func (e *BaseExchange) IntToBase16(number any) string {
@@ -324,7 +324,8 @@ func (e *BaseExchange) Rawencode(params ...any) string {
 
 	var outList []string
 	for _, key := range keys {
-		value := parameters[key]
+		// pointer-carried scalars must serialise as the value they point at
+		value := derefScalar(parameters[key])
 		if boolVal, ok := value.(bool); ok {
 			value = strings.ToLower(fmt.Sprintf("%v", boolVal))
 		}
@@ -339,6 +340,7 @@ func (e *BaseExchange) Rawencode(params ...any) string {
 func (e *BaseExchange) UrlencodeWithArrayRepeat(parameters2 any) string {
 	parameters := parameters2.(map[string]any)
 	encodeValue := func(value any) string {
+		value = derefScalar(value)
 		if IsNumber(value) {
 			return url.QueryEscape(NumberToString(value))
 		}
@@ -366,7 +368,7 @@ func (e *BaseExchange) UrlencodeNested(parameters2 any) string {
 	// Define recursive function
 	var recurse func(any, string)
 	recurse = func(params any, prefix string) {
-		switch v := params.(type) {
+		switch v := derefScalar(params).(type) {
 		case map[string]any:
 			keys := make([]string, 0, len(v))
 			for k := range v {
@@ -446,7 +448,7 @@ func (e *BaseExchange) Urlencode(params ...any) string {
 
 	var queryString []string
 	for _, key := range keys {
-		value := parameters[key]
+		value := derefScalar(parameters[key])
 		encodedKey := url.QueryEscape(key)
 		finalValue := ""
 
@@ -470,7 +472,7 @@ func (e *BaseExchange) Urlencode(params ...any) string {
 }
 
 func (e *BaseExchange) EncodeURIComponent(str any) string {
-	s := str.(string)
+	s := derefScalar(str).(string)
 	var result bytes.Buffer
 	unreserved := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.~"
 	for _, symbol := range s {
@@ -488,6 +490,7 @@ func (e *BaseExchange) UrlencodeBase64(s any) string {
 }
 
 func Base64urlencode(s any) string {
+	s = derefScalar(s)
 	var str string
 	if stringVal, ok := s.(string); ok {
 		str = stringToBase64(stringVal)

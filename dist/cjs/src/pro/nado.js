@@ -1847,7 +1847,7 @@ class nado extends nado$1["default"] {
         }
         const id = this.safeString(message, 'id');
         const hasResult = ('result' in message);
-        const result = this.safeValue(message, 'result');
+        const result = this.safeDict(message, 'result');
         const method = this.safeString(result, 'method');
         if (method === 'pong') {
             // pong replies carry both 'id' and 'result' so they must be routed
@@ -1862,12 +1862,12 @@ class nado extends nado$1["default"] {
             return;
         }
         if ((id !== undefined) && hasResult) {
-            const authentication = this.safeValue(client.subscriptions, 'authentication:' + id);
+            const authentication = this.safeString(client.subscriptions, 'authentication:' + id);
             if (authentication !== undefined) {
                 this.handleAuthentication(client, message);
                 return;
             }
-            const subscription = this.safeValue(client.subscriptions, 'subscription:' + id);
+            const subscription = this.safeDict(client.subscriptions, 'subscription:' + id);
             if (subscription !== undefined) {
                 this.handleSubscription(client, message);
                 return;

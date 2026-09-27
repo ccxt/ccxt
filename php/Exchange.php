@@ -62,7 +62,7 @@ use function abs, array_change_key_case, array_filter, array_is_list, array_key_
     stripos, strlen, strpos, strtolower, strtotime, strtoupper, strtr, strval, substr, sys_get_temp_dir,
     time, trim, unpack, urldecode, urlencode, usleep, usort, var_export;
 
-$version = '4.5.78';
+$version = '4.5.84';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -81,10 +81,10 @@ const PAD_WITH_ZERO = 6;
 
 class BaseExchange {
 
-    const VERSION = '4.5.78';
+    const VERSION = '4.5.84';
 
     // this is updated by build/vss.js
-    public static $ccxt_version = '4.5.78';
+    public static $ccxt_version = '4.5.84';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -376,7 +376,6 @@ class BaseExchange {
         'bitflyer',
         'bitget',
         'bithumb',
-        'bitmex',
         'bitopro',
         'bitrue',
         'bitso',
@@ -393,6 +392,7 @@ class BaseExchange {
         'bullish',
         'bybit',
         'bybiteu',
+        'bybitid',
         'bydfi',
         'cex',
         'coinbase',
@@ -1606,7 +1606,6 @@ class BaseExchange {
     }
 
     public static function eddsa($request, $secret, $algorithm = 'ed25519') {
-        $curve = new EdDSA($algorithm);
         if (preg_match('/^-----BEGIN PRIVATE KEY-----\s(\S{64})\s-----END PRIVATE KEY-----$/', $secret, $match) >= 1) {
             // trim pem header from 48 bytes -> 32 bytes
             // in hex so 96 chars -> 64 chars
@@ -1614,7 +1613,15 @@ class BaseExchange {
         } else {
             $hex_secret = bin2hex($secret);
         }
-        $signature = $curve->sign(bin2hex(static::encode($request)), $hex_secret);
+        $message = static::encode($request);
+        $seed = hex2bin($hex_secret);
+        // libsodium produces the same RFC 8032 signature as the pure-PHP curve and is far faster
+        if (($algorithm === 'ed25519') && function_exists('sodium_crypto_sign_detached') && (strlen($seed) === SODIUM_CRYPTO_SIGN_SEEDBYTES)) {
+            $keypair = sodium_crypto_sign_seed_keypair($seed);
+            return static::binary_to_base64(sodium_crypto_sign_detached($message, sodium_crypto_sign_secretkey($keypair)));
+        }
+        $curve = new EdDSA($algorithm);
+        $signature = $curve->sign(bin2hex($message), $hex_secret);
         return static::binary_to_base64(static::base16_to_binary($signature->toHex()));
     }
 
@@ -1728,7 +1735,7 @@ class BaseExchange {
 
     public function load_lighter_library_helper($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex, $createClient = false) {
         if ($path == null || $path == '') {
-            throw new ExchangeError($this->id . ' load_lighter_library() requires a path to the lighter library. You can find it here https://github.com/elliottech/lighter-python/tree/main/lighter/signers. Please download the appropriate library for your system and provide the path to it.\nExample: exchange.options["libraryPath"] = "path/to/lighter-signer-linux-arm64.so"');
+            throw new ExchangeError($this->id . ' load_lighter_library() requires a path to the lighter library. The binaries this version of ccxt is built against are in the ccxt repository under "ts/src/test/static/binaries", they can also be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers. Please download the appropriate library for your system and provide the path to it, the binary has to match your ccxt version.\nExample: exchange.options["libraryPath"] = "path/to/lighter-signer-linux-arm64.so"');
         }
         $lighterSigner = Signer::getInstance($path);
 
@@ -1746,14 +1753,38 @@ class BaseExchange {
 
     public function lighter_create_client($signer, $chainId, $privateKey, $apiKeyIndex, $accountIndex) {
         $url = $this->implode_hostname($this->urls['api']['public']);
-        $signer->createClient(
+        $error = $signer->createClient(
             $url,
             $privateKey,
             $chainId,
             $apiKeyIndex,
             $accountIndex
         );
+        $this->check_lighter_signer_error('lighter_create_client', array( 'err' => $error ), array(
+            'api_key_index' => $apiKeyIndex,
+            'account_index' => $accountIndex,
+        ));
         return $signer;
+    }
+
+    public function check_lighter_signer_error($method, $result, $request = null) {
+        $error = (is_array($result) && array_key_exists('err', $result)) ? $result['err'] : null;
+        if (($error === null) || ($error === '')) {
+            return;
+        }
+        $message = $method . '() failed with error: ' . $error;
+        // the native signer keeps one client per (apiKeyIndex, accountIndex) pair, so this
+        // particular error means it was called with indices it has no client for. When the
+        // indices it reports are not the ones ccxt passed, the signer binary is not the one
+        // this version of ccxt binds against and the arguments are landing in the wrong slots
+        if (mb_strpos($error, 'client is not created for') !== false) {
+            $passed = '';
+            if ($request !== null) {
+                $passed = ' ccxt signed this request with apiKeyIndex: ' . $this->safe_string($request, 'api_key_index') . ' accountIndex: ' . $this->safe_string($request, 'account_index') . '.';
+            }
+            $message .= '.' . $passed . ' If those indices are not the ones reported above then the signer library set in options["libraryPath"] is not the one this version of ccxt binds against. The signer has to match this version of ccxt: use the binaries ccxt is tested against, in the ccxt repository under "ts/src/test/static/binaries", or upgrade ccxt if your binary is newer than it.';
+        }
+        throw new ExchangeError($message);
     }
 
     public function load_lighter_library($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex, $createClient = false) {
@@ -1783,11 +1814,14 @@ class BaseExchange {
             $this->safe_integer($request, 'integrator_account_index', 0),
             $this->safe_integer($request, 'integrator_taker_fee', 0),
             $this->safe_integer($request, 'integrator_maker_fee', 0),
+            $this->safe_integer($request, 'self_trade_behavior_mode', 0), // SelfTradeBehaviorExpireMaker
+            $this->safe_integer($request, 'self_trade_equality_mode', 0), // SelfTradeEqualityAccountIndex
             true, // skip nonce
             $request['nonce'],
             $request['api_key_index'],
             $request['account_index']
         );
+        $this->check_lighter_signer_error('lighter_sign_create_grouped_orders', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1806,11 +1840,14 @@ class BaseExchange {
             $this->safe_integer($request, 'integrator_account_index', 0),
             $this->safe_integer($request, 'integrator_taker_fee', 0),
             $this->safe_integer($request, 'integrator_maker_fee', 0),
+            $this->safe_integer($request, 'self_trade_behavior_mode', 0), // SelfTradeBehaviorExpireMaker
+            $this->safe_integer($request, 'self_trade_equality_mode', 0), // SelfTradeEqualityAccountIndex
             true, // skip nonce
             $request['nonce'],
             $request['api_key_index'],
             $request['account_index']
         );
+        $this->check_lighter_signer_error('lighter_sign_create_order', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1823,6 +1860,7 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
+        $this->check_lighter_signer_error('lighter_sign_cancel_order', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1836,6 +1874,7 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
+        $this->check_lighter_signer_error('lighter_sign_withdraw', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1846,6 +1885,7 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
+        $this->check_lighter_signer_error('lighter_sign_create_sub_account', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1853,11 +1893,13 @@ class BaseExchange {
         $result = $signer->signCancelAllOrders(
             $request['time_in_force'],
             $request['time'],
+            $this->safe_integer($request, 'cancel_all_market_index', 255), // NilMarketIndex, every market
             true, // skip nonce
             $request['nonce'],
             $request['api_key_index'],
             $request['account_index']
         );
+        $this->check_lighter_signer_error('lighter_sign_cancel_all_orders', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1871,11 +1913,15 @@ class BaseExchange {
             $this->safe_integer($request, 'integrator_account_index', 0),
             $this->safe_integer($request, 'integrator_taker_fee', 0),
             $this->safe_integer($request, 'integrator_maker_fee', 0),
+            $this->safe_integer($request, 'self_trade_behavior_mode', 0), // SelfTradeBehaviorExpireMaker
+            $this->safe_integer($request, 'self_trade_equality_mode', 0), // SelfTradeEqualityAccountIndex
             true, // skip nonce
             $request['nonce'],
+            $this->safe_integer($request, 'order_version', 0), // NilOrderVersion
             $request['api_key_index'],
             $request['account_index']
         );
+        $this->check_lighter_signer_error('lighter_sign_modify_order', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1893,6 +1939,7 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
+        $this->check_lighter_signer_error('lighter_sign_transfer', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1906,6 +1953,7 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
+        $this->check_lighter_signer_error('lighter_sign_update_leverage', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1915,7 +1963,9 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
-        return $result;
+        $this->check_lighter_signer_error('lighter_create_auth_token', $result, $request);
+        // createAuthToken() returns array( 'str' => token, 'err' => error ), callers expect the token
+        return $result['str'];
     }
 
     public function lighter_sign_update_margin($signer, $request) {
@@ -1928,6 +1978,7 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
+        $this->check_lighter_signer_error('lighter_sign_update_margin', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1944,11 +1995,13 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index'],
         );
+        $this->check_lighter_signer_error('lighter_sign_approve_integrator', $result, $request);
         return [$result['txType'], $result['txInfo'], $result['messageToSign']];
     }
 
     public function lighter_generate_api_key($signer) {
         $result = $signer->generateAPIKey();
+        $this->check_lighter_signer_error('lighter_generate_api_key', $result, null);
         return [$result['privateKey'], $result['publicKey']];
     }
 
@@ -1960,6 +2013,7 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index'],
         );
+        $this->check_lighter_signer_error('lighter_sign_change_pubkey', $result, $request);
         return [$result['txType'], $result['txInfo'], $result['messageToSign']];
     }
 
@@ -2304,9 +2358,9 @@ class BaseExchange {
     }
 
     public function precision_from_string($str) {
-        // support string formats like '1e-4'
+        // support string formats like '1e-4' and signed mantissas like '-8e-8'
         if (stripos($str, 'e') > -1) {
-            $numStr = preg_replace('/\d\.?\d*[eE]/', '', $str);
+            $numStr = preg_replace('/^[-+]?\d\.?\d*[eE]/', '', $str);
             return ((int)$numStr) * -1;
         }
         // support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
@@ -2997,6 +3051,14 @@ class BaseExchange {
     }
 
     public function unlock_id() {
+        return true;
+    }
+
+    public function lock_last_nonce() {
+        return true;
+    }
+
+    public function unlock_last_nonce() {
         return true;
     }
 
@@ -3717,7 +3779,7 @@ class BaseExchange {
         return array( $httpProxy, $httpsProxy, $socksProxy );
     }
 
-    public function check_ws_proxy_settings() {
+    public function check_ws_proxy_settings(): array {
         $usedProxies = array();
         $wsProxy = null;
         $wssProxy = null;
@@ -4383,7 +4445,7 @@ class BaseExchange {
         }
     }
 
-    public function features_mapper(mixed $initialFeatures, ?string $marketType, ?string $subType = null) {
+    public function features_mapper(array $initialFeatures, ?string $marketType, ?string $subType = null) {
         $featuresObj = ($subType !== null) ? $initialFeatures[$marketType][$subType] : $initialFeatures[$marketType];
         // if exchange does not have that market-type (eg. future>inverse)
         if ($featuresObj === null) {
@@ -6462,8 +6524,23 @@ class BaseExchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->seconds();
+    }
+
+    public function incrementing_nonce() {
+        /**
+         * @ignore
+         * returns a strictly-increasing nonce for venues that reject duplicate nonces per signer; the unit is whatever nonce () returns — the base default is seconds, so a venue that does not override nonce () gets a second-resolution counter that drifts ahead of wall clock under load, while venues needing milliseconds override nonce () as hyperliquid does. The counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes.
+         * @return {int} a strictly-increasing nonce in the unit returned by nonce ()
+         */
+        $currentNonce = $this->nonce();
+        $this->lock_last_nonce();
+        $lastNonce = $this->safe_integer($this->options, 'lastNonce', 0);
+        $result = ($currentNonce > $lastNonce) ? $currentNonce : $lastNonce + 1;
+        $this->options['lastNonce'] = $result;
+        $this->unlock_last_nonce();
+        return $result;
     }
 
     public function set_headers(mixed $headers) {
@@ -6931,7 +7008,7 @@ class BaseExchange {
         return true;
     }
 
-    public function oath() {
+    public function oath(): string {
         if ($this->twofa !== null) {
             return $this->totp($this->twofa);
         } else {
@@ -7003,7 +7080,11 @@ class BaseExchange {
         if (is_array($mapping) && array_key_exists($key ?? '', $mapping)) {
             return $mapping[$key];
         } else {
-            throw new NotSupported($this->id . ' ' . $key . ' does not have a value in mapping');
+            $keys = is_array($mapping) ? array_keys($mapping) : array();
+            // "mapping" must stay literal-final and the list must not be introduced with ": ":
+            // the php transpiler rewrites a param name inside string literals ("$mapping",
+            // "mapping->") and turns ": " after a non-space into " => ".
+            throw new NotSupported($this->id . ' ' . $key . ' does not have a value in mapping' . ', must be one of ' . implode(', ', $keys));
         }
     }
 

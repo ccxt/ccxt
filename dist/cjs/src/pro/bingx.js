@@ -257,21 +257,25 @@ class bingx extends bingx$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(message, 'data', {});
+        const data = this.safeDict(message, 'data', {});
         const marketId = this.safeString(data, 's');
         // const marketId = messageHash.split('@')[0];
         const isSwap = client.url.indexOf('swap') >= 0;
         const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        const ticker = this.parseWsTicker(data, market);
+        // the Coin-M stream is a distinct endpoint, so it identifies an inverse
+        // ticker even when the market id could not be resolved
+        const inverseUrl = this.safeString(this.urls['api']['ws'], 'inverse');
+        const isInverse = (inverseUrl !== undefined) && (client.url.indexOf(inverseUrl) === 0);
+        const ticker = this.parseWsTicker(data, market, isInverse);
         this.tickers[symbol] = ticker;
         client.resolve(ticker, this.getMessageHash('ticker', symbol));
         if (this.safeString(message, 'dataType') === 'all@ticker') {
             client.resolve(ticker, this.getMessageHash('ticker'));
         }
     }
-    parseWsTicker(message, market = undefined) {
+    parseWsTicker(message, market = undefined, isInverse = undefined) {
         //
         //     {
         //         "e": "24hTicker",
@@ -298,6 +302,11 @@ class bingx extends bingx$1["default"] {
         const marketId = this.safeString(message, 's');
         market = this.safeMarket(marketId, market);
         const close = this.safeString(message, 'c');
+        // Coin-M m is coin volume; v is contracts and q is already USD turnover.
+        // prefer the caller's stream-derived flag so an unresolved market id on
+        // the Coin-M endpoint does not silently fall back to the contract count
+        const inverse = (isInverse === undefined) ? (market['inverse'] === true) : isInverse;
+        const baseVolumeKey = inverse ? 'm' : 'v';
         return this.safeTicker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -316,7 +325,7 @@ class bingx extends bingx$1["default"] {
             'change': this.safeString(message, 'p'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString(message, 'v'),
+            'baseVolume': this.safeString(message, baseVolumeKey),
             'quoteVolume': this.safeString(message, 'q'),
             'info': message,
         }, market);
@@ -850,7 +859,7 @@ class bingx extends bingx$1["default"] {
             candles = [this.safeDict(data, 'K', {})];
         }
         const symbol = market['symbol'];
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         const rawTimeframe = dataType.split('_')[1];
         const marketOptions = this.safeDict(this.options, marketType);
         const timeframes = this.safeDict(marketOptions, 'timeframes', {});
@@ -912,8 +921,8 @@ class bingx extends bingx$1["default"] {
         if (url === undefined) {
             throw new errors.BadRequest(this.id + ' watchOHLCV is not supported for ' + marketType + ' markets.');
         }
-        const options = this.safeValue(this.options, marketType, {});
-        const timeframes = this.safeValue(options, 'timeframes', {});
+        const options = this.safeDict(this.options, marketType, {});
+        const timeframes = this.safeDict(options, 'timeframes', {});
         const rawTimeframe = this.safeString(timeframes, timeframe, timeframe);
         const messageHash = this.getMessageHash('ohlcv', market['symbol'], timeframe);
         const subscriptionHash = market['id'] + '@kline_' + rawTimeframe;
@@ -955,8 +964,8 @@ class bingx extends bingx$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const options = this.safeValue(this.options, market['type'], {});
-        const timeframes = this.safeValue(options, 'timeframes', {});
+        const options = this.safeDict(this.options, market['type'], {});
+        const timeframes = this.safeDict(options, 'timeframes', {});
         const rawTimeframe = this.safeString(timeframes, timeframe, timeframe);
         const subMessageHash = market['id'] + '@kline_' + rawTimeframe;
         const messageHash = 'unsubscribe::' + subMessageHash;
@@ -1175,7 +1184,7 @@ class bingx extends bingx$1["default"] {
     }
     async loadBalanceSnapshot(client, messageHash, type, subType) {
         const response = await this.fetchBalance({ 'type': type, 'subType': subType });
-        this.balance[type] = this.extend(response, this.safeValue(this.balance, type, {}));
+        this.balance[type] = this.extend(response, this.safeDict(this.balance, type, {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -1605,13 +1614,35 @@ class bingx extends bingx$1["default"] {
         //    }
         //
         const isSpot = ('dataType' in message);
-        const data = this.safeValue2(message, 'data', 'o', {});
+        const data = this.safeDict2(message, 'data', 'o', {});
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
         const stored = this.orders;
         const parsedOrder = this.parseOrder(data);
+        if (!isSpot) {
+            // The envelope T is the order update time; o.T is the trade time.
+            const updateTimestamp = this.safeInteger(message, 'T');
+            if ((updateTimestamp !== undefined) && (updateTimestamp > 0)) {
+                const orderId = this.safeString(parsedOrder, 'id');
+                if (orderId !== undefined) {
+                    // Linear scan bounded by ordersLimit (default 1000), avoiding cache-specific maps.
+                    // Match both id and symbol: several cached orders can share a symbol.
+                    for (let i = 0; i < stored.length; i++) {
+                        const previousOrder = stored[i];
+                        if ((previousOrder['id'] === orderId) && (previousOrder['symbol'] === parsedOrder['symbol'])) {
+                            const previousTimestamp = this.safeInteger(previousOrder, 'lastUpdateTimestamp');
+                            if ((previousTimestamp !== undefined) && (updateTimestamp < previousTimestamp)) {
+                                return;
+                            }
+                            break;
+                        }
+                    }
+                }
+                parsedOrder['lastUpdateTimestamp'] = updateTimestamp;
+            }
+        }
         stored.append(parsedOrder);
         const symbol = parsedOrder['symbol'];
         const spotHash = 'spot:order';
@@ -1788,7 +1819,7 @@ class bingx extends bingx$1["default"] {
             return;
         }
         if (dataType.indexOf('executionReport') >= 0) {
-            const data = this.safeValue(message, 'data', {});
+            const data = this.safeDict(message, 'data', {});
             const type = this.safeString(data, 'x');
             if (type === 'TRADE') {
                 this.handleMyTrades(client, message);
@@ -1803,14 +1834,14 @@ class bingx extends bingx$1["default"] {
         }
         if (e === 'ORDER_TRADE_UPDATE') {
             this.handleOrder(client, message);
-            const data = this.safeValue(message, 'o', {});
+            const data = this.safeDict(message, 'o', {});
             const type = this.safeString(data, 'x');
             const status = this.safeString(data, 'X');
             if ((type === 'TRADE') && (status === 'FILLED')) {
                 this.handleMyTrades(client, message);
             }
         }
-        const msgData = this.safeValue(message, 'data');
+        const msgData = this.safeDict(message, 'data');
         const msgEvent = this.safeString(msgData, 'e');
         if (msgEvent === '24hTicker') {
             this.handleTicker(client, message);

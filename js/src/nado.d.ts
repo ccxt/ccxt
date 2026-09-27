@@ -1,5 +1,5 @@
 import Exchange from './abstract/nado.js';
-import type { Balances, Currencies, Currency, Dict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, NullableDict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status, OpenInterest, OpenInterests } from './base/types.js';
 /**
  * @class nado
  * @augments Exchange
@@ -32,7 +32,7 @@ export default class nado extends Exchange {
      * @param {int} [params.id] client-provided request id, returned by the exchange in the response
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @ignore
@@ -46,7 +46,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the place_order execute
      */
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Dict>;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name nado#editOrder
@@ -71,7 +71,7 @@ export default class nado extends Exchange {
      * @param {float} [params.triggerPrice] not supported, editing trigger orders throws NotSupported, the same applies to params.stopPrice, params.stopLossPrice and params.takeProfitPrice
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @ignore
@@ -86,7 +86,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the cancel_and_place execute
      */
-    editOrderRequest(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Dict>;
+    editOrderRequest(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name nado#cancelOrder
@@ -100,7 +100,7 @@ export default class nado extends Exchange {
      * @param {int} [params.id] client-provided request id, returned by the exchange in the response
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name nado#cancelAllOrders
@@ -113,7 +113,7 @@ export default class nado extends Exchange {
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelAllOrders(symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @ignore
@@ -123,7 +123,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the cancel_product_orders execute
      */
-    cancelAllOrdersRequest(symbol?: Str, params?: {}): Promise<Dict>;
+    cancelAllOrdersRequest(symbol?: Str, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name nado#cancelOrders
@@ -138,7 +138,7 @@ export default class nado extends Exchange {
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelOrders(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @ignore
@@ -149,7 +149,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the cancel_orders execute
      */
-    cancelOrdersRequest(ids: string[], symbol?: Str, params?: {}): Promise<Dict>;
+    cancelOrdersRequest(ids: string[], symbol?: Str, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name nado#fetchOrder
@@ -160,7 +160,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name nado#fetchOrders
@@ -174,7 +174,7 @@ export default class nado extends Exchange {
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name nado#fetchOpenOrders
@@ -189,7 +189,7 @@ export default class nado extends Exchange {
      * @param {boolean} [params.trigger] whether the order is a trigger order
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name nado#fetchClosedOrders
@@ -205,7 +205,7 @@ export default class nado extends Exchange {
      * @param {boolean} [params.trigger] whether the order is a trigger order
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name nado#fetchCanceledOrders
@@ -217,7 +217,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name nado#fetchCanceledAndClosedOrders
@@ -229,7 +229,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchCanceledAndClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchCanceledAndClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name nado#fetchMyTrades
@@ -243,7 +243,7 @@ export default class nado extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name nado#fetchBalance
@@ -253,7 +253,7 @@ export default class nado extends Exchange {
      * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    fetchBalance(params?: {}): Promise<Balances>;
+    fetchBalance(params?: Dict): Promise<Balances>;
     /**
      * @method
      * @name nado#fetchDeposits
@@ -267,7 +267,7 @@ export default class nado extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest deposit to fetch
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     /**
      * @method
      * @name nado#fetchWithdrawals
@@ -281,8 +281,8 @@ export default class nado extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest withdrawal to fetch
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    queryTransactionsByEventType(eventType: string, transactionType: string, methodName: string, code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
+    queryTransactionsByEventType(eventType: string, transactionType: string, methodName: string, code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     /**
      * @method
      * @name nado#fetchPositions
@@ -293,7 +293,7 @@ export default class nado extends Exchange {
      * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
      * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     /**
      * @method
      * @name nado#fetchTime
@@ -302,7 +302,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<Int>;
+    fetchTime(params?: Dict): Promise<Int>;
     /**
      * @method
      * @name nado#fetchStatus
@@ -311,7 +311,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<Status>;
+    fetchStatus(params?: Dict): Promise<Status>;
     /**
      * @method
      * @name nado#fetchMarkets
@@ -322,7 +322,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: Dict): Promise<Market[]>;
     /**
      * @method
      * @name nado#fetchCurrencies
@@ -331,7 +331,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    fetchCurrencies(params?: {}): Promise<Currencies>;
+    fetchCurrencies(params?: Dict): Promise<Currencies>;
     /**
      * @method
      * @name nado#fetchTickers
@@ -341,7 +341,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name nado#fetchTicker
@@ -351,7 +351,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name nado#fetchFundingRate
@@ -375,7 +375,7 @@ export default class nado extends Exchange {
      * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
+    fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
     /**
      * @method
      * @name nado#fetchFundingRates
@@ -386,7 +386,7 @@ export default class nado extends Exchange {
      * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
      * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
+    fetchFundingRates(symbols?: Strings, params?: Dict): Promise<FundingRates>;
     /**
      * @method
      * @name nado#fetchOpenInterest
@@ -397,7 +397,7 @@ export default class nado extends Exchange {
      * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
+    fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
     /**
      * @method
      * @name nado#fetchOpenInterests
@@ -408,7 +408,7 @@ export default class nado extends Exchange {
      * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
      * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    fetchOpenInterests(symbols?: Strings, params?: {}): Promise<import("./base/types.js").OpenInterests>;
+    fetchOpenInterests(symbols?: Strings, params?: Dict): Promise<OpenInterests>;
     /**
      * @method
      * @name nado#fetchOrderBook
@@ -419,7 +419,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name nado#fetchTrades
@@ -432,7 +432,7 @@ export default class nado extends Exchange {
      * @param {int} [params.max_trade_id] max trade id to include in the result for pagination
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name nado#fetchOHLCV
@@ -446,7 +446,7 @@ export default class nado extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     parseTrade(trade: Dict, market?: Market): Trade;
     parseFundingRate(contract: any, market?: Market): FundingRate;
@@ -459,7 +459,7 @@ export default class nado extends Exchange {
         id: Str;
         amount: number | undefined;
     };
-    parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
+    parseOpenInterest(interest: any, market?: Market): OpenInterest;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseCurrency(rawCurrency: Dict): Currency;
     parseBalance(response: any): Balances;
@@ -469,24 +469,19 @@ export default class nado extends Exchange {
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderTimeInForce(timeInForce: Str): Str;
     convertToX18(value: Str): string | undefined;
-    parseX18(value: any): number | undefined;
-    createOrderNonce(recvWindow: any): string | undefined;
-    createOrderAppendix(isTriggerOrder: any, params?: {}): Str;
+    parseX18(value: Str): number | undefined;
+    createOrderNonce(recvWindow: Int): Str;
+    createOrderAppendix(isTriggerOrder: boolean, params?: Dict): Str;
     createSubaccount(walletAddress: Str, subaccount?: Str): string;
-    queryContracts(params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
+    queryContracts(params?: Dict): Promise<Dict>;
     orderVerifyingContract(productId: Int): string;
     padHex(value: string, length: Int, left?: boolean): string;
-    signOrder(order: any, productId: Int, chainId: any): string;
-    signCancellation(cancellation: any, chainId: any, endpointAddress: string): string;
-    signCancellationProducts(cancellation: any, chainId: any, endpointAddress: string): string;
-    signFetchTriggerOrders(tx: any, chainId: any, endpointAddress: any): string;
+    signOrder(order: Dict, productId: Int, chainId: Str): string;
+    signCancellation(cancellation: Dict, chainId: Str, endpointAddress: Str): string;
+    signCancellationProducts(cancellation: Dict, chainId: Str, endpointAddress: Str): string;
+    signFetchTriggerOrders(tx: Dict, chainId: Str, endpointAddress: Str): string;
     signHash(hash: string, privateKey: Str): string;
     removeMarketSuffix(marketId: Str): string | undefined;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
-        url: any;
-        method: string;
-        body: any;
-        headers: any;
-    };
+    sign(path: any, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

@@ -696,7 +696,7 @@ class bitflyer extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -733,7 +733,7 @@ class bitflyer extends Exchange {
         ));
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -929,7 +929,7 @@ class bitflyer extends Exchange {
         throw new OrderNotFound($this->id . ' No order found with $id ' . $id);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1152,7 +1152,7 @@ class bitflyer extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function parse_deposit_status(mixed $status) {
+    public function parse_deposit_status(?string $status): ?string {
         $statuses = array(
             'PENDING' => 'pending',
             'COMPLETED' => 'ok',
@@ -1160,7 +1160,7 @@ class bitflyer extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_withdrawal_status(mixed $status) {
+    public function parse_withdrawal_status(?string $status): ?string {
         $statuses = array(
             'PENDING' => 'pending',
             'COMPLETED' => 'ok',
@@ -1311,7 +1311,7 @@ class bitflyer extends Exchange {
         );
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $request = '/' . $this->version . '/';
         if ($api === 'private') {
             $request .= 'me/';

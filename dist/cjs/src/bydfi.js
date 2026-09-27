@@ -616,8 +616,7 @@ class bydfi extends bydfi$1["default"] {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        const timestamp = this.milliseconds();
-        const orderBook = this.parseOrderBook(data, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
+        const orderBook = this.parseOrderBook(data, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
         orderBook['nonce'] = this.safeInteger(data, 'lastUpdateId');
         return orderBook;
     }
@@ -2575,11 +2574,10 @@ class bydfi extends bydfi$1["default"] {
         return this.parseBalance(data);
     }
     parseBalance(response) {
-        const timestamp = this.milliseconds();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -2632,9 +2630,6 @@ class bydfi extends bydfi$1["default"] {
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest === true) {
-            const timestamp = this.milliseconds();
-            transfer['timestamp'] = timestamp;
-            transfer['datetime'] = this.iso8601(timestamp);
             transfer['currency'] = code;
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;

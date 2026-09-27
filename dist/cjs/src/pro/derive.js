@@ -49,7 +49,7 @@ class derive extends derive$1["default"] {
         });
     }
     requestId(url) {
-        const options = this.safeValue(this.options, 'requestId', {});
+        const options = this.safeDict(this.options, 'requestId', {});
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
         this.options['requestId'][url] = newValue;
@@ -603,8 +603,8 @@ class derive extends derive$1["default"] {
                     this.orders = new Cache.ArrayCacheBySymbolById(limit);
                 }
                 const cachedOrders = this.orders;
-                const orders = this.safeValue(cachedOrders.hashmap, symbol, {});
-                const order = (orderId === undefined) ? undefined : this.safeValue(orders, orderId);
+                const orders = this.safeDict(cachedOrders.hashmap, symbol, {});
+                const order = (orderId === undefined) ? undefined : this.safeDict(orders, orderId);
                 if (order !== undefined) {
                     const fee = this.safeValue(order, 'fee');
                     if (fee !== undefined) {
@@ -760,7 +760,7 @@ class derive extends derive$1["default"] {
         if ('id' in message) {
             const id = this.safeString(message, 'id');
             const subscriptionsById = this.indexBy(client.subscriptions, 'id');
-            const subscription = (id === undefined) ? {} : this.safeValue(subscriptionsById, id, {});
+            const subscription = (id === undefined) ? {} : this.safeDict(subscriptionsById, id, {});
             if ('method' in subscription) {
                 if (subscription['method'] === 'public/login') {
                     this.handleAuth(client, message);

@@ -509,10 +509,10 @@ export interface Transaction {
     tag: Str;
     tagFrom: Str;
     tagTo: Str;
-    type: 'deposit' | 'withdrawal' | Str;
+    type: 'deposit' | 'withdrawal' | 'transfer' | Str;
     amount: Num;
     currency: Str;
-    status: 'pending' | 'ok' | Str;
+    status: 'pending' | 'ok' | 'failed' | 'canceled' | Str;
     updated: Int;
     fee: Fee;
     network: Str;

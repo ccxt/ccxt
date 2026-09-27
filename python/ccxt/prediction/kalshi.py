@@ -372,7 +372,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
     async def fetch_outcomes(self, outcomeSymbols: list[str]) -> object:
         """
  @ignore
-        resolves several uncached outcomes at once — ticker-shaped ids are batched through the markets listing's tickers filter(100 per request); anything left unresolved(handle-shaped symbols, unknown tickers) falls back to the single fetch and its guidance-rich BadSymbol
+        resolves several uncached outcomes at once — ticker-shaped ids are batched through the markets listing's tickers filter (100 per request); anything left unresolved (handle-shaped symbols, unknown tickers) falls back to the single fetch and its guidance-rich BadSymbol
 
         https://docs.kalshi.com/api-reference/market/get-markets
 
@@ -761,9 +761,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
 
     def parse_prediction_open_interest(self, interest: dict, market: Market = None) -> PredictionOpenInterest:
         #
-        #     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open interest in contracts
+        #     { "ticker": "...", "open_interest_fp": "60802.01", "updated_time": "2026-04-09T10:32:47.890506Z", ... }   // the market object of GET /markets/{ticker}, open interest in contracts
         #
-        timestamp = self.milliseconds()
+        timestamp = self.parse8601(self.safe_string(interest, 'updated_time'))
         openInterest = self.safe_open_interest({
             'symbol': self.safe_symbol(None, market),
             'openInterestAmount': self.safe_number_2(interest, 'open_interest_fp', 'open_interest'),
@@ -846,7 +846,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         outcomeObj = self.safe_outcome(self.safe_string(marketAny, 'outcome'), marketAny)
         outcomeLabel = self.safe_string(market, 'label', self.safe_string(market['info'], 'outcomeLabel', 'YES')) if (market is not None and market is not None) else 'YES'
         isNo = outcomeLabel.upper() == 'NO'
-        now = self.milliseconds()
+        timestamp = self.parse8601(self.safe_string(raw, 'updated_time'))
         outcome = self.safe_string(outcomeObj, 'outcome')
         yesAsk = self.safe_number(raw, 'yes_ask_dollars')
         yesBid = self.safe_number(raw, 'yes_bid_dollars')
@@ -883,8 +883,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'outcomeId': self.safe_string_2(outcomeObj, 'outcomeId', 'id'),
             'label': self.safe_string(outcomeObj, 'label'),
             'market': self.safe_string_2(outcomeObj, 'market', 'outcome'),
-            'timestamp': now,
-            'datetime': self.iso8601(now),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
             'bid': bid,
@@ -915,7 +915,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :returns dict: a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
         """
         if outcomes is None:
-            raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch(discover them via fetchEvents())')
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())')
         # batch-resolve the uncached outcomes (one markets request per 100 tickers)
         await self.load_outcomes(outcomes)
         targets = []
@@ -999,7 +999,6 @@ class kalshi(PredictionExchange, ImplicitAPI):
         #     }
         #
         book = self.safe_value(response, 'orderbook_fp', response)
-        timestamp = self.milliseconds()
         # Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
         rawYes = self.safe_list(book, 'yes_dollars', [])
         rawNo = self.safe_list(book, 'no_dollars', [])
@@ -1024,7 +1023,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 noPrice = self.safe_number(rawNo[ai], 0)
                 price = self.parse_number(Precise.string_sub('1', self.number_to_string(noPrice))) if (noPrice is not None) else None
                 asks.append([price, self.safe_number(rawNo[ai], 1)])
-        return self.safe_prediction_order_book(self.sorted_orders(self.safe_string(outcomeObj, 'outcome', outcome), timestamp, bids, asks), outcomeObj)
+        return self.safe_prediction_order_book(self.sorted_orders(self.safe_string(outcomeObj, 'outcome', outcome), None, bids, asks), outcomeObj)
 
     def sorted_orders(self, outcome: Str, timestamp: Int, bids: list[object], asks: list[object]) -> PredictionOrderBook:
         """
@@ -1071,7 +1070,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             # hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
             tfKeys = list(self.timeframes.keys())
             supported = ', '.join(tfKeys)
-            raise BadRequest(self.id + ' fetchOHLCV() does not support the ' + timeframe + ' timeframe(supported: ' + supported + ')')
+            raise BadRequest(self.id + ' fetchOHLCV() does not support the ' + timeframe + ' timeframe (supported: ' + supported + ')')
         request = {
             'series_ticker': seriesTicker,
             'ticker': ticker,
@@ -1462,7 +1461,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
 
     async def fetch_settlements(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionSettlement]:
         """
-        fetches the user's settled(resolved) positions, with the collateral paid out and realized pnl
+        fetches the user's settled (resolved) positions, with the collateral paid out and realized pnl
 
         https://trading-api.readme.io/reference/getportfoliosettlements
 
@@ -1790,7 +1789,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         """
         # kalshi has no market orders — every order is a limit order and the price is required
         if price is None:
-            raise ArgumentsRequired(self.id + " createOrder() requires a price - kalshi has only limit orders(no market orders). For immediate execution pass an aggressive price with params {'time_in_force': 'immediate_or_cancel'}")
+            raise ArgumentsRequired(self.id + " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params {'time_in_force': 'immediate_or_cancel'}")
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
         ticker = self.safe_string(outcomeObj['info'], 'ticker')
@@ -1947,7 +1946,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
 
     async def fetch_events(self, params: fetchEventsParams = {}) -> list[PredictionEvent]:
         """
-        fetches kalshi events scoped by a search query, tag, category or series ticker — always live from the API, never from the local cache(it POPULATES the cache for later event()/outcome lookups). the scope decides the endpoint: a free-text `query` hits kalshi's ranked search endpoint and the top `limit` matches are fetched canonically; `tags`/`category` resolve to series via the /series listing then fetch their events; `series_ticker` is used verbatim. `limit` bounds how many events are actually fetched(broad scopes stop early), and any other param is forwarded straight to the /events endpoint.
+        fetches kalshi events scoped by a search query, tag, category or series ticker — always live from the API, never from the local cache(it POPULATES the cache for later event()/outcome lookups). the scope decides the endpoint: a free-text `query` hits kalshi's ranked search endpoint and the top `limit` matches are fetched canonically; `tags`/`category` resolve to series via the /series listing then fetch their events; `series_ticker` is used verbatim. `limit` bounds how many events are actually fetched (broad scopes stop early), and any other param is forwarded straight to the /events endpoint.
 
         https://docs.kalshi.com/api-reference/events/get-events
 
@@ -2025,7 +2024,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
     async def fetch_events_by_query(self, queries: list[str], limit: Int, rest={}) -> list[object]:
         """
  @ignore
-        resolves free-text queries to ranked event tickers via kalshi's search endpoint, then fetches the top `limit` events canonically(with nested markets)
+        resolves free-text queries to ranked event tickers via kalshi's search endpoint, then fetches the top `limit` events canonically (with nested markets)
         :param str[] queries: free-text search strings
         :param int [limit]: max number of events to fetch
         :param dict [rest]: extra params forwarded verbatim to the events endpoint

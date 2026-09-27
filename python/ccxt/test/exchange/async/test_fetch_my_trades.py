@@ -21,6 +21,6 @@ async def test_fetch_my_trades(exchange, skipped_properties, symbol):
     test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, trades, symbol)
     now = exchange.milliseconds()
     for i in range(0, len(trades)):
-        test_trade(exchange, skipped_properties, method, trades[i], symbol, now)
+        test_trade(exchange, skipped_properties, method, trades[i], symbol, now, False)
     test_shared_methods.assert_timestamp_order(exchange, method, symbol, trades)
     return True

@@ -171,7 +171,7 @@ func (this *BaseExchange) OmitMap(aa any, k any) any {
 		// keys = []string{k.(string)}
 	case []any:
 		for _, v := range k.([]any) {
-			keys = append(keys, v.(string))
+			keys = append(keys, derefScalar(v).(string))
 		}
 	}
 
@@ -202,7 +202,7 @@ func (this *BaseExchange) OmitN(aa any, keys []any) any {
 // contains checks if a slice contains a specific element.
 func (this *BaseExchange) Contains(slice []any, elem string) bool {
 	for _, s := range slice {
-		if s.(string) == elem {
+		if derefScalar(s).(string) == elem {
 			return true
 		}
 	}
@@ -210,6 +210,8 @@ func (this *BaseExchange) Contains(slice []any, elem string) bool {
 }
 
 func (this *BaseExchange) ToArray(a any) []any {
+	// SafeList and friends can hand over a typed pointer
+	a = derefScalar(a)
 	if a == nil {
 		return nil
 	}
@@ -246,7 +248,9 @@ func (this *BaseExchange) ToArray(a any) []any {
 
 // arrayConcat concatenates two slices. Elements are copied through reflection so any slice type
 // works (e.g. ObjectKeys returns []string in Go, which a direct .([]any) assertion would panic on).
-func (this *BaseExchange) ArrayConcat(aa, bb any) any {
+// TS `arrayConcat (a: any[], b: any[])` is always an array, so the Go twin reports `[]any`
+// instead of boxing it back into `any` (nil when an operand is not a slice, as before).
+func (this *BaseExchange) ArrayConcat(aa, bb any) []any {
 	if aa != nil && bb != nil && reflect.TypeOf(aa).Kind() == reflect.Slice && reflect.TypeOf(bb).Kind() == reflect.Slice {
 		va := reflect.ValueOf(aa)
 		vb := reflect.ValueOf(bb)
@@ -289,7 +293,7 @@ func (this *BaseExchange) Aggregate(bidasks any) []any {
 }
 
 func (this *BaseExchange) ExtractParams(str2 any) []any {
-	str := str2.(string)
+	str := derefScalar(str2).(string)
 	// Compile the regular expression
 	regex := regexp.MustCompile(`\{([^\}]+)\}`)
 

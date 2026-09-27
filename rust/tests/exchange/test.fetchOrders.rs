@@ -10,16 +10,16 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchOrders(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchOrders".to_string());
+    let mut method: Value = Value::Str("fetchOrders".into());
     let mut orders: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_orders", vec![symbol.clone()]).await;
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_array(&orders)))));
+    assert!(ccxt::runtime::is_true(&((matches!(&orders, Value::Arr(_))))));
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), orders.clone(), symbol.clone()]);
     let mut now: Value = exchange.milliseconds();
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1465: bool = true;
-        while { if !__for_first_1465 { i = add(&i, &Value::Int(1)); } __for_first_1465 = false; is_less_than(&i, &get_array_length(&orders)) } {
-        testOrder(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&orders, &i), symbol.clone(), now.clone());
+        let mut __for_first_1538: bool = true;
+        while { if !__for_first_1538 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1538 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        testOrder(exchange.clone(), skippedProperties.clone(), method.clone(), orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone());
     }
     }
     crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol.clone(), orders.clone()]);

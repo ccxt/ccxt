@@ -19,6 +19,8 @@ public partial class BaseExchange
 
     protected readonly object idLock = new object();
 
+    protected readonly object lastNonceLock = new object();
+
     public BaseExchange(object userConfig2 = null)
     {
         var userConfig = (dict)userConfig2;
@@ -159,6 +161,27 @@ public partial class BaseExchange
 
     public async virtual Task<object> fetch(object url2, object method2 = null, object headers2 = null, object body2 = null)
     {
+
+        if (fetchResponseByUrl != null)
+        {
+            var mockUrl = Convert.ToString(url2);
+            var byUrl = fetchResponseByUrl as dict;
+            object firstBody = null;
+            var isFirst = true;
+            foreach (var entry in byUrl)
+            {
+                if (isFirst)
+                {
+                    firstBody = entry.Value;
+                    isFirst = false;
+                }
+                if (mockUrl.Contains(entry.Key))
+                {
+                    return entry.Value;
+                }
+            }
+            return firstBody;
+        }
 
         if (fetchResponse != null)
         {
@@ -1477,6 +1500,16 @@ public partial class BaseExchange
     public void unlockId()
     {
         Monitor.Exit(this.idLock);
+    }
+
+    public void lockLastNonce()
+    {
+        Monitor.Enter(this.lastNonceLock);
+    }
+
+    public void unlockLastNonce()
+    {
+        Monitor.Exit(this.lastNonceLock);
     }
 
 

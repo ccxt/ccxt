@@ -252,6 +252,12 @@
 
 - [Order Book Extra Level Depth Param](./examples/ts/order-book-extra-level-depth-param.md)
 
+- [Order Router Custom Plan](./examples/ts/order-router-custom-plan.md)
+
+- [Order Router Stream](./examples/ts/order-router-stream.md)
+
+- [Order Router](./examples/ts/order-router.md)
+
 - [Phemex Create Order Position With Takeprofit Stoploss](./examples/ts/phemex-create-order-position-with-takeprofit-stoploss.md)
 
 - [Poll Ohlcv](./examples/ts/poll-ohlcv.md)

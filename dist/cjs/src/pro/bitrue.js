@@ -134,7 +134,7 @@ class bitrue extends bitrue$1["default"] {
         //      "u": 2285311
         //    }
         //
-        const balances = this.safeValue(message, 'B', []);
+        const balances = this.safeList(message, 'B', []);
         this.parseWSBalances(balances);
         const messageHash = 'balance';
         client.resolve(this.balance, messageHash);
@@ -391,7 +391,7 @@ class bitrue extends bitrue$1["default"] {
         }
         const symbol = market['symbol'];
         const timestamp = this.safeInteger(message, 'ts');
-        const tick = this.safeValue(message, 'tick', {});
+        const tick = this.safeDict(message, 'tick', {});
         let parseable = tick;
         if (isFutures) {
             const rawAsks = this.safeList(tick, 'asks', []);
@@ -520,7 +520,7 @@ class bitrue extends bitrue$1["default"] {
             return;
         }
         const symbol = market['symbol'];
-        const tick = this.safeValue(message, 'tick', {});
+        const tick = this.safeDict(message, 'tick', {});
         const data = this.safeList(tick, 'data', []);
         let appended = false;
         let stored = this.safeValue(this.trades, symbol);
@@ -638,7 +638,7 @@ class bitrue extends bitrue$1["default"] {
         const wsInterval = this.safeString(parts, 4);
         const futuresTimeframes = this.safeDict(this.options, 'futuresTimeframes', {});
         const timeframe = this.findTimeframe(wsInterval, futuresTimeframes);
-        const tick = this.safeValue(message, 'tick');
+        const tick = this.safeDict(message, 'tick');
         if (tick === undefined) {
             return;
         }
@@ -726,7 +726,7 @@ class bitrue extends bitrue$1["default"] {
             return;
         }
         const symbol = market['symbol'];
-        const tick = this.safeValue(message, 'tick');
+        const tick = this.safeDict(message, 'tick');
         if (tick === undefined) {
             return;
         }
@@ -834,7 +834,7 @@ class bitrue extends bitrue$1["default"] {
         }
     }
     async authenticate(params = {}) {
-        const listenKey = this.safeValue(this.options, 'listenKey');
+        const listenKey = this.safeString(this.options, 'listenKey');
         if (listenKey === undefined) {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: the key rides the
@@ -866,7 +866,7 @@ class bitrue extends bitrue$1["default"] {
                 //         }
                 //     }
                 //
-                const data = this.safeValue(response, 'data', {});
+                const data = this.safeDict(response, 'data', {});
                 const key = this.safeString(data, 'listenKey');
                 if (key === undefined) {
                     // reject instead of caching an empty credential, so

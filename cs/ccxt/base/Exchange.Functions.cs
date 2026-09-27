@@ -58,7 +58,7 @@ public partial class BaseExchange
 
 
     // list params (e.g. batch-order bodies) flow through fetch2 into omit and must
-    // pass through untouched, so these overloads stay object-returning
+    // pass through untouched, so the object-receiver overloads stay object-returning
     public object omit(object a, params object[] parameters)
     {
         var keys = new List<object>();
@@ -99,11 +99,19 @@ public partial class BaseExchange
         return outDict;
     }
 
-    public object omit(dict a, string key)
+    // A Dictionary<string, object> receiver can never be the pass-through above (the concrete
+    // class implements no IList, and no box reaching omit derives from it): both dict-receiver
+    // overloads hand back the fresh outDict, the object key form through the same object path.
+    public dict omit(dict a, string key)
     {
         var keys = new List<object>();
         keys.Add(key);
         return omit(a, keys);
+    }
+
+    public dict omit(dict a, object k)
+    {
+        return (dict)omit((object)a, k);
     }
 
     public IList<object> toArray(object a)

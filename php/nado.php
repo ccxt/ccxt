@@ -1165,7 +1165,7 @@ class nado extends Exchange {
         return $this->parse_orders($closedOrders, $market, $since, $limit);
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple canceled trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
          *
@@ -1971,7 +1971,7 @@ class nado extends Exchange {
         return $this->parse_funding_rates($rates, $symbols);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): array {
         /**
          * retrieves the open interest of a contract trading pair
          *
@@ -2016,7 +2016,7 @@ class nado extends Exchange {
         return $this->parse_open_interest($data, $market);
     }
 
-    public function fetch_open_interests(?array $symbols = null, $params = array()) {
+    public function fetch_open_interests(?array $symbols = null, $params = array()): array {
         /**
          * retrieves the open $interests of some currencies
          *
@@ -2399,7 +2399,7 @@ class nado extends Exchange {
         );
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         //     {
         //         "product_id": 1,
@@ -2898,14 +2898,14 @@ class nado extends Exchange {
         return Precise::string_div(Precise::string_mul($value, '1000000000000000000'), '1', 0);
     }
 
-    public function parse_x18(mixed $value) {
+    public function parse_x18(?string $value) {
         if ($value === null) {
             return null;
         }
         return $this->parse_number(Precise::string_div($value, '1000000000000000000'));
     }
 
-    public function create_order_nonce(mixed $recvWindow) {
+    public function create_order_nonce(?int $recvWindow): ?string {
         $expires = $this->sum($this->milliseconds(), $recvWindow);
         $highBits = Precise::string_mul($this->number_to_string($expires), '1048576');
         // the exchange defines the nonce to be the recv time moved left by 20 bits
@@ -2915,7 +2915,7 @@ class nado extends Exchange {
         return Precise::string_add($highBits, $this->number_to_string($entropy));
     }
 
-    public function create_order_appendix(mixed $isTriggerOrder, $params = array()) {
+    public function create_order_appendix(bool $isTriggerOrder, $params = array()): ?string {
         // | value   | builder | builder fee rate | reserved | trigger | reduce only | order type | isolated | version |
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
@@ -2970,7 +2970,7 @@ class nado extends Exchange {
         return '0x' . $address . $this->pad_hex($encoded, 24, false);
     }
 
-    public function query_contracts($params = array()) {
+    public function query_contracts($params = array()): array {
         $cachedContracts = $this->safe_dict($this->options, 'gatewayContracts');
         if ($cachedContracts !== null) {
             return $cachedContracts;
@@ -2988,7 +2988,7 @@ class nado extends Exchange {
         return '0x' . $this->pad_hex($this->int_to_base16($productId), 40);
     }
 
-    public function pad_hex(string $value, ?int $length, $left = true) {
+    public function pad_hex(string $value, ?int $length, bool $left = true): string {
         if ($length === null) {
             throw new ArgumentsRequired($this->id . ' padHex() requires length');
         }
@@ -3001,7 +3001,7 @@ class nado extends Exchange {
         return mb_substr($padded, 0, $length - 0);
     }
 
-    public function sign_order(mixed $order, ?int $productId, mixed $chainId) {
+    public function sign_order(array $order, ?int $productId, ?string $chainId): string {
         $domain = array(
             'name' => 'Nado',
             'version' => '0.0.1',
@@ -3023,7 +3023,7 @@ class nado extends Exchange {
         return $this->sign_hash($hash, $this->privateKey);
     }
 
-    public function sign_cancellation(mixed $cancellation, mixed $chainId, string $endpointAddress) {
+    public function sign_cancellation(array $cancellation, ?string $chainId, ?string $endpointAddress): string {
         $domain = array(
             'name' => 'Nado',
             'version' => '0.0.1',
@@ -3043,7 +3043,7 @@ class nado extends Exchange {
         return $this->sign_hash($hash, $this->privateKey);
     }
 
-    public function sign_cancellation_products(mixed $cancellation, mixed $chainId, string $endpointAddress) {
+    public function sign_cancellation_products(array $cancellation, ?string $chainId, ?string $endpointAddress): string {
         $domain = array(
             'name' => 'Nado',
             'version' => '0.0.1',
@@ -3062,7 +3062,7 @@ class nado extends Exchange {
         return $this->sign_hash($hash, $this->privateKey);
     }
 
-    public function sign_fetch_trigger_orders(mixed $tx, mixed $chainId, mixed $endpointAddress) {
+    public function sign_fetch_trigger_orders(array $tx, ?string $chainId, ?string $endpointAddress): string {
         $domain = array(
             'name' => 'Nado',
             'version' => '0.0.1',
@@ -3101,7 +3101,7 @@ class nado extends Exchange {
         return $marketId;
     }
 
-    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $endpoint = $api[0];
         if (gettype($api) === 'string') {
             $endpoint = $api;

@@ -1,5 +1,5 @@
 import Exchange from './abstract/delta.js';
-import type { Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketInterface, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL, Status } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketInterface, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, OpenInterest, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL, Status } from './base/types.js';
 /**
  * @class delta
  * @augments Exchange
@@ -15,7 +15,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<Int>;
+    fetchTime(params?: Dict): Promise<Int>;
     /**
      * @method
      * @name delta#fetchStatus
@@ -23,7 +23,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<Status>;
+    fetchStatus(params?: Dict): Promise<Status>;
     /**
      * @method
      * @name delta#fetchCurrencies
@@ -32,10 +32,10 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    fetchCurrencies(params?: {}): Promise<Currencies>;
+    fetchCurrencies(params?: Dict): Promise<Currencies>;
     parseCurrency(rawCurrency: Dict): CurrencyInterface;
     loadMarkets(reload?: boolean, params?: {}): Promise<import("./base/types.js").Dictionary<Market>>;
-    indexByStringifiedNumericId(input: any): Dict | undefined;
+    indexByStringifiedNumericId(input: NullableDict): Dict | undefined;
     /**
      * @method
      * @name delta#fetchMarkets
@@ -44,7 +44,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: Dict): Promise<Market[]>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -55,7 +55,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name delta#fetchTickers
@@ -65,7 +65,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name delta#fetchOrderBook
@@ -76,7 +76,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -89,7 +89,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
@@ -104,7 +104,7 @@ export default class delta extends Exchange {
      * @param {string} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     parseBalance(response: any): Balances;
     /**
      * @method
@@ -114,7 +114,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    fetchBalance(params?: {}): Promise<Balances>;
+    fetchBalance(params?: Dict): Promise<Balances>;
     /**
      * @method
      * @name delta#fetchPosition
@@ -124,7 +124,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPosition(symbol: string, params?: {}): Promise<Position>;
+    fetchPosition(symbol: string, params?: Dict): Promise<Position>;
     /**
      * @method
      * @name delta#fetchPositions
@@ -134,7 +134,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
     parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
@@ -152,7 +152,7 @@ export default class delta extends Exchange {
      * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name delta#editOrder
@@ -167,7 +167,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name delta#cancelOrder
@@ -178,7 +178,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name delta#cancelAllOrders
@@ -188,7 +188,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelAllOrders(symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name delta#fetchOrder
@@ -201,7 +201,7 @@ export default class delta extends Exchange {
      * @param {string} [params.clientOrderId] client order id of the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name delta#fetchOpenOrders
@@ -213,7 +213,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name delta#fetchClosedOrders
@@ -225,8 +225,8 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchOrdersWithMethod(method: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    fetchOrdersWithMethod(method: any, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name delta#fetchMyTrades
@@ -238,7 +238,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name delta#fetchLedger
@@ -250,7 +250,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     /**
@@ -262,7 +262,7 @@ export default class delta extends Exchange {
      * @param {string} [params.network] unified network code
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     /**
      * @method
@@ -283,7 +283,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
+    fetchFundingRates(symbols?: Strings, params?: Dict): Promise<FundingRates>;
     parseFundingRate(contract: any, market?: Market): FundingRate;
     /**
      * @method
@@ -295,7 +295,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    addMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     /**
      * @method
      * @name delta#reduceMargin
@@ -306,8 +306,8 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
-    modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
+    reduceMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: any, type: any, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
      * @method
@@ -318,8 +318,8 @@ export default class delta extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
+    fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
+    parseOpenInterest(interest: any, market?: Market): OpenInterest;
     /**
      * @method
      * @name delta#fetchLeverage
@@ -329,7 +329,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    fetchLeverage(symbol: string, params?: Dict): Promise<Leverage>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
     /**
      * @method
@@ -341,7 +341,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
+    setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name delta#fetchSettlementHistory
@@ -353,15 +353,9 @@ export default class delta extends Exchange {
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Dict[]>;
-    parseSettlement(settlement: any, market: any): {
-        info: any;
-        symbol: string;
-        price: Num;
-        timestamp: number | undefined;
-        datetime: Str;
-    };
-    parseSettlements(settlements: any, market: any): Dict[];
+    fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
+    parseSettlement(settlement: Dict, market: any): Dict;
+    parseSettlements(settlements: any[], market: any): Dict[];
     /**
      * @method
      * @name delta#fetchGreeks
@@ -371,7 +365,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
-    fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
+    fetchGreeks(symbol: string, params?: Dict): Promise<Greeks>;
     parseGreeks(greeks: Dict, market?: Market): Greeks;
     /**
      * @method
@@ -382,7 +376,7 @@ export default class delta extends Exchange {
      * @param {int} [params.user_id] the users id
      * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    closeAllPositions(params?: {}): Promise<Position[]>;
+    closeAllPositions(params?: Dict): Promise<Position[]>;
     /**
      * @method
      * @name delta#fetchMarginMode
@@ -392,7 +386,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
+    fetchMarginMode(symbol: string, params?: Dict): Promise<MarginMode>;
     parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     /**
      * @method
@@ -405,7 +399,7 @@ export default class delta extends Exchange {
      * @param {string} params.subaccount_user_id the user id of the subaccount
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name delta#fetchOption
@@ -415,7 +409,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
-    fetchOption(symbol: string, params?: {}): Promise<Option>;
+    fetchOption(symbol: string, params?: Dict): Promise<Option>;
     parseOption(chain: Dict, currency?: Currency, market?: Market): Option;
     /**
      * @method
@@ -426,13 +420,8 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
-    fetchPositionsADLRank(symbols?: Strings, params?: {}): Promise<ADL[]>;
+    fetchPositionsADLRank(symbols?: Strings, params?: Dict): Promise<ADL[]>;
     parseADLRank(info: Dict, market?: Market): ADL;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
-        url: string;
-        method: string;
-        body: any;
-        headers: Dict;
-    };
+    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

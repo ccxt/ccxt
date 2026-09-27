@@ -690,7 +690,7 @@ class coinsph extends Exchange {
         ));
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, mixed $config = array()) {
         if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {
             return $config['noSymbol'];
         } elseif ((is_array($config) && array_key_exists('noSymbolAndNoSymbols' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params)) && !(is_array($params) && array_key_exists('symbols' ?? '', $params))) {
@@ -844,9 +844,9 @@ class coinsph extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $limits = $this->index_by($this->safe_list($market, 'filters', array()), 'filterType');
-            $amountLimits = $this->safe_value($limits, 'LOT_SIZE', array());
-            $priceLimits = $this->safe_value($limits, 'PRICE_FILTER', array());
-            $costLimits = $this->safe_value($limits, 'NOTIONAL', array());
+            $amountLimits = $this->safe_dict($limits, 'LOT_SIZE', array());
+            $priceLimits = $this->safe_dict($limits, 'PRICE_FILTER', array());
+            $costLimits = $this->safe_dict($limits, 'NOTIONAL', array());
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -1237,7 +1237,7 @@ class coinsph extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1274,7 +1274,7 @@ class coinsph extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
     }
 
@@ -1449,7 +1449,7 @@ class coinsph extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1485,7 +1485,7 @@ class coinsph extends Exchange {
             'type' => $orderType,
             'side' => $orderSide,
         );
-        $options = $this->safe_value($this->options, 'createOrder', array());
+        $options = $this->safe_dict($this->options, 'createOrder', array());
         $newOrderRespType = $this->safe_value($options, 'newOrderRespType', array());
         // if limit order
         if ($orderType === 'LIMIT' || $orderType === 'STOP_LOSS_LIMIT' || $orderType === 'TAKE_PROFIT_LIMIT' || $orderType === 'LIMIT_MAKER') {
@@ -1571,7 +1571,7 @@ class coinsph extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -1667,7 +1667,7 @@ class coinsph extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1697,7 +1697,7 @@ class coinsph extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -1830,7 +1830,7 @@ class coinsph extends Exchange {
         ), $market);
     }
 
-    public function parse_order_side(mixed $status) {
+    public function parse_order_side(?string $status) {
         $statuses = array(
             'BUY' => 'buy',
             'SELL' => 'sell',
@@ -1841,7 +1841,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function encode_order_side(mixed $status) {
+    public function encode_order_side(?string $status) {
         $statuses = array(
             'buy' => 'BUY',
             'sell' => 'SELL',
@@ -1852,7 +1852,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(mixed $status) {
+    public function parse_order_type(?string $status) {
         $statuses = array(
             'MARKET' => 'market',
             'LIMIT' => 'limit',
@@ -1868,7 +1868,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function encode_order_type(mixed $status) {
+    public function encode_order_type(?string $status) {
         $statuses = array(
             'market' => 'MARKET',
             'limit' => 'LIMIT',
@@ -1899,7 +1899,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_time_in_force(mixed $status) {
+    public function parse_order_time_in_force(?string $status) {
         $statuses = array(
             'GTC' => 'GTC',
             'FOK' => 'FOK',
@@ -2027,7 +2027,7 @@ class coinsph extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        $options = $this->safe_value($this->options, 'withdraw');
+        $options = $this->safe_dict($this->options, 'withdraw');
         $warning = $this->safe_bool($options, 'warning', true);
         if ($warning === true) {
             throw new InvalidAddress($this->id . " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
@@ -2376,7 +2376,7 @@ class coinsph extends Exchange {
         }
     }
 
-    public function parse_array_param(mixed $array, mixed $key) {
+    public function parse_array_param(mixed $array, string $key): string {
         $stringifiedArray = $this->json($array);
         $stringifiedArray = str_replace('[', '%5B', $stringifiedArray);
         $stringifiedArray = str_replace(']', '%5D', $stringifiedArray);
@@ -2384,7 +2384,7 @@ class coinsph extends Exchange {
         return $urlEncodedParam;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api'][$api];
         $query = $this->omit($params, $this->extract_params($path));
         $endpoint = $this->implode_params($path, $params);

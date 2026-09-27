@@ -653,7 +653,7 @@ class backpack extends backpack$1["default"] {
         }
         const trades = await this.watchPublic(topics, messageHashes, params);
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }

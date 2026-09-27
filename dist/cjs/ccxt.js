@@ -7,6 +7,7 @@ require('./_virtual/index.cjs.js');
 var Exchange = require('./src/base/Exchange.js');
 var PredictionExchange = require('./src/base/PredictionExchange.js');
 var Precise = require('./src/base/Precise.js');
+var OrderRouter = require('./src/base/OrderRouter.js');
 var functions = require('./src/base/functions.js');
 var errors = require('./src/base/errors.js');
 var alpaca = require('./src/alpaca.js');
@@ -27,7 +28,6 @@ var bitfinex = require('./src/bitfinex.js');
 var bitflyer = require('./src/bitflyer.js');
 var bitget = require('./src/bitget.js');
 var bithumb = require('./src/bithumb.js');
-var bitmex = require('./src/bitmex.js');
 var bitopro = require('./src/bitopro.js');
 var bitrue = require('./src/bitrue.js');
 var bitso = require('./src/bitso.js');
@@ -44,6 +44,7 @@ var btse = require('./src/btse.js');
 var bullish = require('./src/bullish.js');
 var bybit = require('./src/bybit.js');
 var bybiteu = require('./src/bybiteu.js');
+var bybitid = require('./src/bybitid.js');
 var bydfi = require('./src/bydfi.js');
 var cex = require('./src/cex.js');
 var coinbase = require('./src/coinbase.js');
@@ -126,7 +127,6 @@ var bingx$1 = require('./src/pro/bingx.js');
 var bitfinex$1 = require('./src/pro/bitfinex.js');
 var bitget$1 = require('./src/pro/bitget.js');
 var bithumb$1 = require('./src/pro/bithumb.js');
-var bitmex$1 = require('./src/pro/bitmex.js');
 var bitopro$1 = require('./src/pro/bitopro.js');
 var bitrue$1 = require('./src/pro/bitrue.js');
 var bitstamp$1 = require('./src/pro/bitstamp.js');
@@ -137,6 +137,7 @@ var blofin$1 = require('./src/pro/blofin.js');
 var bullish$1 = require('./src/pro/bullish.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var bybiteu$1 = require('./src/pro/bybiteu.js');
+var bybitid$1 = require('./src/pro/bybitid.js');
 var bydfi$1 = require('./src/pro/bydfi.js');
 var cex$1 = require('./src/pro/cex.js');
 var coinbase$1 = require('./src/pro/coinbase.js');
@@ -196,10 +197,12 @@ var limitless = require('./src/prediction/limitless.js');
 var myriad = require('./src/prediction/myriad.js');
 var opinion = require('./src/prediction/opinion.js');
 var polymarket = require('./src/prediction/polymarket.js');
+var predictfun = require('./src/prediction/predictfun.js');
+var sxbet = require('./src/prediction/sxbet.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.78';
+const version = '4.5.84';
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
@@ -219,7 +222,6 @@ const exchanges = {
     'bitflyer': bitflyer["default"],
     'bitget': bitget["default"],
     'bithumb': bithumb["default"],
-    'bitmex': bitmex["default"],
     'bitopro': bitopro["default"],
     'bitrue': bitrue["default"],
     'bitso': bitso["default"],
@@ -236,6 +238,7 @@ const exchanges = {
     'bullish': bullish["default"],
     'bybit': bybit["default"],
     'bybiteu': bybiteu["default"],
+    'bybitid': bybitid["default"],
     'bydfi': bydfi["default"],
     'cex': cex["default"],
     'coinbase': coinbase["default"],
@@ -320,7 +323,6 @@ const pro = {
     'bitfinex': bitfinex$1["default"],
     'bitget': bitget$1["default"],
     'bithumb': bithumb$1["default"],
-    'bitmex': bitmex$1["default"],
     'bitopro': bitopro$1["default"],
     'bitrue': bitrue$1["default"],
     'bitstamp': bitstamp$1["default"],
@@ -331,6 +333,7 @@ const pro = {
     'bullish': bullish$1["default"],
     'bybit': bybit$1["default"],
     'bybiteu': bybiteu$1["default"],
+    'bybitid': bybitid$1["default"],
     'bydfi': bydfi$1["default"],
     'cex': cex$1["default"],
     'coinbase': coinbase$1["default"],
@@ -395,19 +398,22 @@ const prediction = {
     'myriad': myriad["default"],
     'opinion': opinion["default"],
     'polymarket': polymarket["default"],
+    'predictfun': predictfun["default"],
+    'sxbet': sxbet["default"],
 };
 prediction.exchanges = Object.keys(prediction);
 // the namespace's `Exchange` alias must be the prediction base, not the crypto Exchange —
 // prediction instances are `instanceof PredictionExchange`, NOT `instanceof Exchange` (siblings)
 prediction['Exchange'] = PredictionExchange["default"];
 //-----------------------------------------------------------------------------
-const ccxt = Object.assign({ version, Exchange: Exchange["default"], BaseExchange: Exchange.BaseExchange, PredictionExchange: PredictionExchange["default"], Precise: Precise["default"], 'exchanges': Object.keys(exchanges), 'pro': pro, 'prediction': prediction }, exchanges, functions, errors);
+const ccxt = Object.assign({ version, Exchange: Exchange["default"], BaseExchange: Exchange.BaseExchange, PredictionExchange: PredictionExchange["default"], Precise: Precise["default"], OrderRouter: OrderRouter["default"], 'exchanges': Object.keys(exchanges), 'pro': pro, 'prediction': prediction }, exchanges, functions, errors);
 //-----------------------------------------------------------------------------
 
 exports.BaseExchange = Exchange.BaseExchange;
 exports.Exchange = Exchange["default"];
 exports.PredictionExchange = PredictionExchange["default"];
 exports.Precise = Precise["default"];
+exports.OrderRouter = OrderRouter["default"];
 exports.functions = functions;
 exports.AccountNotEnabled = errors.AccountNotEnabled;
 exports.AccountSuspended = errors.AccountSuspended;
@@ -469,7 +475,6 @@ exports.bitfinex = bitfinex["default"];
 exports.bitflyer = bitflyer["default"];
 exports.bitget = bitget["default"];
 exports.bithumb = bithumb["default"];
-exports.bitmex = bitmex["default"];
 exports.bitopro = bitopro["default"];
 exports.bitrue = bitrue["default"];
 exports.bitso = bitso["default"];
@@ -486,6 +491,7 @@ exports.btse = btse["default"];
 exports.bullish = bullish["default"];
 exports.bybit = bybit["default"];
 exports.bybiteu = bybiteu["default"];
+exports.bybitid = bybitid["default"];
 exports.bydfi = bydfi["default"];
 exports.cex = cex["default"];
 exports.coinbase = coinbase["default"];

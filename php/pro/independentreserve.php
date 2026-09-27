@@ -72,7 +72,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //    {
         //        "Channel": "ticker-btc-usd",
@@ -91,7 +91,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         //        "Event": "Trade"
         //    }
         //
-        $data = $this->safe_value($message, 'Data', array());
+        $data = $this->safe_dict($message, 'Data', array());
         $marketId = $this->safe_string($data, 'Pair');
         $symbol = $this->safe_symbol($marketId, null, '-');
         $messageHash = 'trades:' . $symbol;
@@ -107,7 +107,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         $client->resolve($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //    {
         //        "TradeGuid": "2f316718-0d0b-4e33-a30c-c2c06f3cfb34",
@@ -169,7 +169,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //    {
         //        "Channel": "orderbook/1/eth/aud",
@@ -206,7 +206,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         $symbol = $base . '/' . $quote;
         $orderBook = $this->safe_dict($message, 'Data', array());
         $messageHash = 'orderbook:' . $symbol . ':' . $depth;
-        $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
+        $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
         $receivedSnapshot = $this->safe_bool($subscription, 'receivedSnapshot', false);
         $timestamp = $this->safe_integer($message, 'Time');
         // let orderbook = this.safeValue (this.orderbooks, symbol);
@@ -262,7 +262,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         }
     }
 
-    public function value_to_checksum(mixed $value) {
+    public function value_to_checksum(?float $value): string {
         // toFixed returns a zero-padded *string* in js but a *number* in
         // go/c#/java, dropping trailing zeros. decimalToPrecision with
         // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
@@ -285,7 +285,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         }
     }
 
-    public function handle_heartbeat(Client $client, mixed $message) {
+    public function handle_heartbeat(Client $client, array $message): array {
         //
         //    {
         //        "Time": 1676156208182,
@@ -295,7 +295,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         return $message;
     }
 
-    public function handle_subscriptions(Client $client, mixed $message) {
+    public function handle_subscriptions(Client $client, array $message): array {
         //
         //    {
         //        "Data": [ "ticker-btc-sgd" ],
@@ -306,7 +306,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         return $message;
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $event = $this->safe_string($message, 'Event');
         $handlers = array(
             'Subscriptions' => array($this, 'handle_subscriptions'),

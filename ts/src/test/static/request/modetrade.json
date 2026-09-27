@@ -328,11 +328,31 @@
         ],
         "fetchLedger": [
             {
-                "description": "fetch ledger",
+                "description": "fetch ledger filtered by code",
                 "method": "fetchLedger",
-                "url": "https://api-evm.orderly.org/v1/asset/history?balance_token=USDC",
+                "url": "https://api-evm.orderly.org/v1/asset/history?token=USDC",
                 "input": [
                     "USDC"
+                ]
+            },
+            {
+                "description": "fetch ledger with a limit",
+                "method": "fetchLedger",
+                "url": "https://api-evm.orderly.org/v1/asset/history?size=30",
+                "input": [
+                    null,
+                    null,
+                    30
+                ]
+            },
+            {
+                "description": "fetch ledger filtered by code with a limit",
+                "method": "fetchLedger",
+                "url": "https://api-evm.orderly.org/v1/asset/history?size=30&token=USDC",
+                "input": [
+                    "USDC",
+                    null,
+                    30
                 ]
             }
         ],

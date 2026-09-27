@@ -14,7 +14,7 @@ export default class blofin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: Dict): Promise<Market[]>;
     parseMarket(market: Dict): Market;
     /**
      * @method
@@ -26,7 +26,7 @@ export default class blofin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -37,7 +37,7 @@ export default class blofin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name blofin#fetchMarkPrice
@@ -48,7 +48,7 @@ export default class blofin extends Exchange {
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
+    fetchMarkPrice(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name blofin#fetchTickers
@@ -58,7 +58,7 @@ export default class blofin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -72,7 +72,7 @@ export default class blofin extends Exchange {
      * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
@@ -88,7 +88,7 @@ export default class blofin extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name blofin#fetchFundingRateHistory
@@ -102,7 +102,7 @@ export default class blofin extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
+    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
     parseFundingRate(contract: any, market?: Market): FundingRate;
     /**
      * @method
@@ -114,9 +114,9 @@ export default class blofin extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
-    parseBalanceByType(response: any): Balances;
+    parseBalanceByType(response: Dict): Balances;
     parseBalance(response: any): Balances;
-    parseFundingBalance(response: any): Balances;
+    parseFundingBalance(response: Dict): Balances;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     /**
      * @method
@@ -128,8 +128,8 @@ export default class blofin extends Exchange {
      * @param {string} [params.accountType] the type of account to fetch the balance for, either 'funding' or 'futures'  or 'copy_trading' or 'earn'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    fetchBalance(params?: {}): Promise<Balances>;
-    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
+    fetchBalance(params?: Dict): Promise<Balances>;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
     parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
@@ -163,7 +163,7 @@ export default class blofin extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
-    createTpslOrderRequest(symbol: Str, type: Str, side: Str, amount?: Num, price?: Num, params?: {}): any;
+    createTpslOrderRequest(symbol: Str, type: Str, side: Str, amount?: Num, price?: Num, params?: Dict): Dict;
     /**
      * @method
      * @name blofin#cancelOrder
@@ -177,7 +177,7 @@ export default class blofin extends Exchange {
      * @param {boolean} [params.tpsl] True if cancelling a tpsl order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name blofin#createOrders
@@ -187,7 +187,7 @@ export default class blofin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    createOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name blofin#fetchOpenOrders
@@ -203,7 +203,7 @@ export default class blofin extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name blofin#fetchMyTrades
@@ -219,7 +219,7 @@ export default class blofin extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name blofin#fetchDeposits
@@ -233,7 +233,7 @@ export default class blofin extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     /**
      * @method
      * @name blofin#fetchWithdrawals
@@ -247,7 +247,27 @@ export default class blofin extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
+    networkCodeToChainId(networkCode: string): Str;
+    chainIdToNetworkCode(chainId: Str): Str;
+    /**
+     * @method
+     * @name blofin#withdraw
+     * @description make a withdrawal
+     * @see https://docs.blofin.com/index.html#withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
+     * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
+     * @param {string} tag additional identifier (memo / payment id) required by certain networks
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
+     * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
+     * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
+     * @param {string} [params.areaCode] area code for the phone number, required when address is a phone number
+     * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name blofin#fetchLedger
@@ -262,11 +282,11 @@ export default class blofin extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionWithdrawalStatus(status: Str): Str;
     parseTransactionDepositStatus(status: Str): Str;
-    parseLedgerEntryType(type: any): string;
+    parseLedgerEntryType(type: Str): Str;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     parseIds(ids: any): any;
     /**
@@ -280,7 +300,7 @@ export default class blofin extends Exchange {
      * @param {boolean} [params.trigger] whether the order is a stop/trigger order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelOrders(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name blofin#transfer
@@ -293,7 +313,7 @@ export default class blofin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     /**
      * @method
@@ -305,7 +325,7 @@ export default class blofin extends Exchange {
      * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPosition(symbol: string, params?: {}): Promise<Position>;
+    fetchPosition(symbol: string, params?: Dict): Promise<Position>;
     /**
      * @method
      * @name blofin#fetchPositions
@@ -316,7 +336,7 @@ export default class blofin extends Exchange {
      * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     /**
      * @method
      * @name blofin#fetchPositionsHistory
@@ -331,7 +351,7 @@ export default class blofin extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
     /**
      * @method
@@ -343,7 +363,7 @@ export default class blofin extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    fetchLeverages(symbols?: Strings, params?: {}): Promise<Leverages>;
+    fetchLeverages(symbols?: Strings, params?: Dict): Promise<Leverages>;
     /**
      * @method
      * @name blofin#fetchLeverage
@@ -354,7 +374,7 @@ export default class blofin extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    fetchLeverage(symbol: string, params?: Dict): Promise<Leverage>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
     /**
      * @method
@@ -368,7 +388,7 @@ export default class blofin extends Exchange {
      * @param {string} [params.positionSide] 'long' or 'short' - required for hedged mode in isolated margin
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
+    setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name blofin#closePosition
@@ -386,7 +406,7 @@ export default class blofin extends Exchange {
      * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
+    closePosition(symbol: string, side?: OrderSide, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name blofin#fetchClosedOrders
@@ -401,7 +421,7 @@ export default class blofin extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name blofin#fetchMarginMode
@@ -411,7 +431,7 @@ export default class blofin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
+    fetchMarginMode(symbol: string, params?: Dict): Promise<MarginMode>;
     parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     /**
      * @method
@@ -423,7 +443,7 @@ export default class blofin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name blofin#fetchPositionMode
@@ -433,7 +453,7 @@ export default class blofin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    fetchPositionMode(symbol?: Str, params?: {}): Promise<PositionModeInfo>;
+    fetchPositionMode(symbol?: Str, params?: Dict): Promise<PositionModeInfo>;
     /**
      * @method
      * @name blofin#setPositionMode
@@ -444,7 +464,7 @@ export default class blofin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<Dict>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name blofin#fetchPositionsADLRank
@@ -454,13 +474,8 @@ export default class blofin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
-    fetchPositionsADLRank(symbols?: Strings, params?: {}): Promise<ADL[]>;
+    fetchPositionsADLRank(symbols?: Strings, params?: Dict): Promise<ADL[]>;
     parseADLRank(info: Dict, market?: Market): ADL;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
-        url: string;
-        method: string;
-        body: Str;
-        headers: NullableDict;
-    };
+    sign(path: any, api?: string, method?: any, params?: Dict, headers?: NullableDict, body?: Str): Dict;
 }

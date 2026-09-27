@@ -35,6 +35,17 @@ class okx extends okx$1["default"] {
                 'watchPositions': true,
                 'watchFundingRate': true,
                 'watchFundingRates': true,
+                'unWatchTicker': true,
+                'unWatchTickers': true,
+                'unWatchOHLCV': true,
+                'unWatchOHLCVForSymbols': true,
+                'unWatchOrderBook': true,
+                'unWatchOrderBookForSymbols': true,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
+                'unWatchMyTrades': false,
+                'unWatchOrders': false,
+                'unWatchPositions': false,
                 'createOrderWs': true,
                 'editOrderWs': true,
                 'cancelOrderWs': true,
@@ -228,7 +239,7 @@ class okx extends okx$1["default"] {
         const url = this.getUrl(channel, access);
         const trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
@@ -318,7 +329,7 @@ class okx extends okx$1["default"] {
         //         ]
         //     }
         //
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
         const marketId = this.safeString(arg, 'instId');
         const symbol = this.safeSymbol(marketId);
@@ -586,12 +597,16 @@ class okx extends okx$1["default"] {
         //         ]
         //     }
         //
-        this.handleBidAsk(client, message);
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const marketId = this.safeString(arg, 'instId');
         const market = this.safeMarket(marketId, undefined, '-');
         const symbol = market['symbol'];
         const channel = this.safeString(arg, 'channel');
+        if (channel === 'tickers') {
+            // of the five feeds routed here, only the plain one carries bidPx/askPx —
+            // mark-price and index frames lack them and must not overwrite the bid-ask cache
+            this.handleBidAsk(client, message);
+        }
         const data = this.safeList(message, 'data', []);
         const newTickers = {};
         for (let i = 0; i < data.length; i++) {
@@ -845,7 +860,7 @@ class okx extends okx$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const isTrigger = this.safeValue2(params, 'stop', 'trigger', false);
+        const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
         params = this.omit(params, ['stop', 'trigger']);
         const accessType = (isTrigger === true) ? 'business' : 'private';
         await this.authenticate({ 'access': accessType });
@@ -1158,7 +1173,7 @@ class okx extends okx$1["default"] {
         //         ]
         //     }
         //
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
         if (channel === undefined) {
             return;
@@ -1172,8 +1187,8 @@ class okx extends okx$1["default"] {
         const timeframe = this.findTimeframe(interval);
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseOHLCV(data[i], market);
-            this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-            let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+            this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+            let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 stored = new Cache.ArrayCacheByTimestamp(limit);
@@ -1371,8 +1386,8 @@ class okx extends okx$1["default"] {
         //         "seqId": 123457
         //     }
         //
-        const asks = this.safeValue(message, 'asks', []);
-        const bids = this.safeValue(message, 'bids', []);
+        const asks = this.safeList(message, 'asks', []);
+        const bids = this.safeList(message, 'bids', []);
         const storedAsks = orderbook['asks'];
         const storedBids = orderbook['bids'];
         this.handleDeltas(storedAsks, asks);
@@ -1392,6 +1407,7 @@ class okx extends okx$1["default"] {
                 delete this.orderbooks[symbol];
             }
             client.reject(error, messageHash);
+            return orderbook;
         }
         const timestamp = this.safeInteger(message, 'ts');
         orderbook['nonce'] = seqId;
@@ -1508,7 +1524,10 @@ class okx extends okx$1["default"] {
                 const orderbook = this.orderBook({}, limit);
                 this.orderbooks[symbol] = orderbook;
                 orderbook['symbol'] = symbol;
-                this.handleOrderBookMessage(client, update, orderbook, messageHash);
+                this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
+                if (!(messageHash in client.subscriptions)) {
+                    break;
+                }
                 client.resolve(orderbook, messageHash);
             }
         }
@@ -1518,6 +1537,11 @@ class okx extends okx$1["default"] {
                 for (let i = 0; i < data.length; i++) {
                     const update = data[i];
                     this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
+                    if (!(messageHash in client.subscriptions)) {
+                        // a nonce gap rejected the future and always cleared the subscription entry, while the book
+                        // removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+                        break;
+                    }
                     client.resolve(orderbook, messageHash);
                 }
             }
@@ -1688,7 +1712,7 @@ class okx extends okx$1["default"] {
         //         ]
         //     }
         //
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
         const balance = this.parseTradingBalance(message);
         const newBalance = this.deepExtend(this.balance, balance);
@@ -1696,7 +1720,7 @@ class okx extends okx$1["default"] {
         client.resolve(this.balance, channel);
     }
     orderToTrade(order, market = undefined) {
-        const info = this.safeValue(order, 'info', {});
+        const info = this.safeDict(order, 'info', {});
         const timestamp = this.safeInteger(info, 'fillTime');
         const feeMarketId = this.safeString(info, 'fillFeeCcy');
         const isTaker = this.safeString(info, 'execType', '') === 'T';
@@ -1886,7 +1910,7 @@ class okx extends okx$1["default"] {
         //        }]
         //    }
         //
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const marketId = this.safeString(arg, 'instId');
         const market = this.safeMarket(marketId, undefined, '-');
         const symbol = market['symbol'];
@@ -1934,7 +1958,7 @@ class okx extends okx$1["default"] {
         let type = undefined;
         // By default, receive order updates from any instrument type
         [type, params] = this.handleOptionAndParams(params, 'watchOrders', 'type', 'ANY');
-        const isTrigger = this.safeValue2(params, 'stop', 'trigger', false);
+        const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
         params = this.omit(params, ['stop', 'trigger']);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -2027,7 +2051,7 @@ class okx extends okx$1["default"] {
         //     }
         //
         this.handleMyTrades(client, message);
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
         const orders = this.safeList(message, 'data', []);
         const ordersLength = orders.length;
@@ -2109,7 +2133,7 @@ class okx extends okx$1["default"] {
         //         ]
         //     }
         //
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
         const rawOrders = this.safeList(message, 'data', []);
         const filteredOrders = [];
@@ -2219,7 +2243,7 @@ class okx extends okx$1["default"] {
         //    }
         //
         const messageHash = this.safeString(message, 'id');
-        let args = this.safeValue(message, 'data', []);
+        let args = this.safeList(message, 'data', []);
         // filter out partial errors
         args = this.filterBy(args, 'sCode', '0');
         // if empty means request failed and handle error
@@ -2402,7 +2426,7 @@ class okx extends okx$1["default"] {
         //    }
         //
         const messageHash = this.safeString(message, 'id');
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         client.resolve(data, messageHash);
     }
     handleSubscriptionStatus(client, message) {
@@ -2442,7 +2466,7 @@ class okx extends okx$1["default"] {
                 if (errorCode !== '1') {
                     this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
                 }
-                let messageString = this.safeValue(message, 'msg');
+                let messageString = this.safeString(message, 'msg');
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException(this.exceptions['broad'], messageString, feedback);
                 }
@@ -2454,7 +2478,7 @@ class okx extends okx$1["default"] {
                         if (errorCode !== undefined) {
                             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
                         }
-                        messageString = this.safeValue(d, 'sMsg');
+                        messageString = this.safeString(d, 'sMsg');
                         if (messageString !== undefined) {
                             this.throwBroadlyMatchedException(this.exceptions['broad'], messageString, feedback);
                         }
@@ -2555,7 +2579,7 @@ class okx extends okx$1["default"] {
             }
         }
         else {
-            const arg = this.safeValue(message, 'arg', {});
+            const arg = this.safeDict(message, 'arg', {});
             const channel = this.safeString(arg, 'channel');
             if (channel === undefined) {
                 return;

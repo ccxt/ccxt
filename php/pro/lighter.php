@@ -7,6 +7,8 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\NotSupported;
+use ccxt\UnsubscribeError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -77,11 +79,11 @@ class lighter extends \ccxt\async\lighter {
         return $hash;
     }
 
-    public function subscribe_public(mixed $messageHash, $params = array()) {
+    public function subscribe_public(string $messageHash, $params = array()) {
         return Async\async(self::do_subscribe_public(...))($messageHash, $params);
     }
 
-    private function do_subscribe_public(mixed $messageHash, $params = array()) {
+    private function do_subscribe_public(string $messageHash, $params = array()) {
         $url = $this->urls['api']['ws'];
         $request = array(
             'type' => 'subscribe',
@@ -93,11 +95,11 @@ class lighter extends \ccxt\async\lighter {
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
     }
 
-    public function subscribe_public_multiple(mixed $messageHashes, $params = array()) {
+    public function subscribe_public_multiple(array $messageHashes, $params = array()) {
         return Async\async(self::do_subscribe_public_multiple(...))($messageHashes, $params);
     }
 
-    private function do_subscribe_public_multiple(mixed $messageHashes, $params = array()) {
+    private function do_subscribe_public_multiple(array $messageHashes, $params = array()) {
         $url = $this->urls['api']['ws'];
         $request = array(
             'type' => 'subscribe',
@@ -109,11 +111,11 @@ class lighter extends \ccxt\async\lighter {
         return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscription));
     }
 
-    public function unsubscribe(mixed $messageHash, $params = array()) {
+    public function unsubscribe(string $messageHash, $params = array()) {
         return Async\async(self::do_unsubscribe(...))($messageHash, $params);
     }
 
-    private function do_unsubscribe(mixed $messageHash, $params = array()) {
+    private function do_unsubscribe(string $messageHash, $params = array()) {
         $url = $this->urls['api']['ws'];
         $request = array(
             'type' => 'unsubscribe',
@@ -125,11 +127,11 @@ class lighter extends \ccxt\async\lighter {
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
     }
 
-    public function subscribe_private(mixed $messageHash, $params = array()) {
+    public function subscribe_private(string $messageHash, $params = array()) {
         return Async\async(self::do_subscribe_private(...))($messageHash, $params);
     }
 
-    private function do_subscribe_private(mixed $messageHash, $params = array()) {
+    private function do_subscribe_private(string $messageHash, $params = array()) {
         Async\await($this->preLoadLighterLibrary());
         $params['auth'] = $this->createAuth($params);
         return Async\await($this->subscribe_public($messageHash, $params));
@@ -147,7 +149,7 @@ class lighter extends \ccxt\async\lighter {
         }
     }
 
-    public function handle_order_book_message(Client $client, mixed $message, mixed $orderbook) {
+    public function handle_order_book_message(Client $client, array $message, mixed $orderbook) {
         $data = $this->safe_dict($message, 'order_book', array());
         $this->handle_deltas($orderbook['asks'], $this->safe_list($data, 'asks', array()));
         $this->handle_deltas($orderbook['bids'], $this->safe_list($data, 'bids', array()));
@@ -158,7 +160,7 @@ class lighter extends \ccxt\async\lighter {
         return $orderbook;
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // {
         //     "channel": "order_book:0",
@@ -226,6 +228,7 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $request = array(
             'channel' => 'order_book/' . $market['id'],
         );
@@ -252,14 +255,16 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $request = array(
             'channel' => 'order_book/' . $market['id'],
         );
-        $messageHash = $this->get_message_hash('unsubscribe', $symbol);
+        $subMessageHash = $this->get_message_hash('orderbook', $symbol);
+        $messageHash = 'unsubscribe:' . $subMessageHash;
         return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         // watchTicker
         //     {
@@ -344,7 +349,7 @@ class lighter extends \ccxt\async\lighter {
          *
          * @see https://apidocs.lighter.xyz/docs/websocket-reference#$market-stats
          *
-         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
@@ -352,6 +357,10 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        if ($market['swap'] !== true) {
+            throw new NotSupported($this->id . ' watchTicker() is only supported for swap markets');
+        }
         $request = array(
             'channel' => 'market_stats/' . $market['id'],
         );
@@ -369,7 +378,7 @@ class lighter extends \ccxt\async\lighter {
          *
          * @see https://apidocs.lighter.xyz/docs/websocket-reference#$market-stats
          *
-         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
@@ -377,10 +386,15 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        if ($market['swap'] !== true) {
+            throw new NotSupported($this->id . ' unWatchTicker() is only supported for swap markets');
+        }
         $request = array(
             'channel' => 'market_stats/' . $market['id'],
         );
-        $messageHash = $this->get_message_hash('unsubscribe', $symbol);
+        $subMessageHash = $this->get_message_hash('ticker', $symbol);
+        $messageHash = 'unsubscribe:' . $subMessageHash;
         return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
     }
 
@@ -394,15 +408,18 @@ class lighter extends \ccxt\async\lighter {
          * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
          *
          * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @param {string[]} [$symbols] unified $symbol of the market to fetch the ticker for
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbols = $this->market_symbols($symbols, null, true, true);
+        $firstMarket = $this->get_market_from_symbols($symbols);
+        if (($firstMarket !== null) && ($firstMarket['swap'] !== true)) {
+            throw new NotSupported($this->id . ' watchTickers() is only supported for swap markets');
+        }
         $request = array(
             'channel' => 'market_stats/all',
         );
@@ -438,17 +455,23 @@ class lighter extends \ccxt\async\lighter {
          *
          * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
          *
-         * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $symbols = $this->market_symbols($symbols, null, true, true);
+        $firstMarket = $this->get_market_from_symbols($symbols);
+        if (($firstMarket !== null) && ($firstMarket['swap'] !== true)) {
+            throw new NotSupported($this->id . ' unWatchTickers() is only supported for swap markets');
+        }
         $request = array(
             'channel' => 'market_stats/all',
         );
-        $messageHash = $this->get_message_hash('unsubscribe');
+        $subMessageHash = $this->get_message_hash('ticker');
+        $messageHash = 'unsubscribe:' . $subMessageHash;
         return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
     }
 
@@ -504,7 +527,7 @@ class lighter extends \ccxt\async\lighter {
         return $this->un_watch_tickers($symbols, $params);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "trade_id": 526801155,
@@ -556,7 +579,7 @@ class lighter extends \ccxt\async\lighter {
         ), $market);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
         //         "channel": "trade:0",
@@ -669,11 +692,12 @@ class lighter extends \ccxt\async\lighter {
         $request = array(
             'channel' => 'trade/' . $market['id'],
         );
-        $messageHash = $this->get_message_hash('unsubscribe', $symbol);
+        $subMessageHash = $this->get_message_hash('trade', $market['symbol']);
+        $messageHash = 'unsubscribe:' . $subMessageHash;
         return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
     }
 
-    public function parse_ws_order_trade(array $trade, ?array $market = null) {
+    public function parse_ws_order_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "trade_id": 526801155,
@@ -877,26 +901,25 @@ class lighter extends \ccxt\async\lighter {
          *
          * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
          *
-         * @param {string} [$symbol] unified $market $symbol
+         * @param {string} [$symbol] not supported by lighter.unWatchMyTrades, the account trades channel covers every market
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         * @param {string} [$params->accountIndex] account index
+         * @return {any} status of the unwatch $request
          */
+        if ($symbol !== null) {
+            throw new NotSupported($this->id . ' unWatchMyTrades() does not support a $symbol argument, the account trades channel covers every market, unWatch from all markets only');
+        }
         $accountIndex = null;
         list($accountIndex, $params) = Async\await($this->handleAccountIndex($params, 'unWatchMyTrades', 'accountIndex', 'account_index'));
-        $messageHash = $this->get_message_hash('unsubscribe', 'myTrades');
-        if ($symbol !== null) {
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = $this->get_message_hash('unsubscribe', $symbol);
-        }
+        $subMessageHash = $this->get_message_hash('myTrades');
+        $messageHash = 'unsubscribe:' . $subMessageHash;
         $request = array(
-            'channel' => 'account_all_trades/' . $accountIndex,
+            'channel' => 'account_all_trades/' . $this->number_to_string($accountIndex),
         );
         return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
     }
 
-    public function parse_ws_liquidation(mixed $liquidation, ?array $market = null) {
+    public function parse_ws_liquidation(array $liquidation, ?array $market = null) {
         //
         //     {
         //         "trade_id": 526801155,
@@ -950,7 +973,7 @@ class lighter extends \ccxt\async\lighter {
         ));
     }
 
-    public function handle_liquidation(Client $client, mixed $message) {
+    public function handle_liquidation(Client $client, array $message) {
         //
         //     {
         //         "channel": "trade:0",
@@ -1218,17 +1241,18 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $accountIndex = null;
-        list($accountIndex, $params) = Async\await($this->handleAccountIndex($params, 'watchOrders', 'accountIndex', 'account_index'));
-        $messageHash = null;
+        list($accountIndex, $params) = Async\await($this->handleAccountIndex($params, 'unWatchOrders', 'accountIndex', 'account_index'));
+        $subMessageHash = null;
         $request = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $messageHash = $this->get_message_hash('orders', $market['symbol']);
+            $subMessageHash = $this->get_message_hash('orders', $market['symbol']);
             $request['channel'] = 'account_orders/' . $market['id'] . '/' . $this->number_to_string($accountIndex);
         } else {
-            $messageHash = $this->get_message_hash('orders');
+            $subMessageHash = $this->get_message_hash('orders');
             $request['channel'] = 'account_all_orders/' . $this->number_to_string($accountIndex);
         }
+        $messageHash = 'unsubscribe:' . $subMessageHash;
         return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
     }
 
@@ -1359,7 +1383,7 @@ class lighter extends \ccxt\async\lighter {
         return $this->parse_orders(array( $rawMessage ));
     }
 
-    public function handle_ws_sendtx_api(Client $client, mixed $message) {
+    public function handle_ws_sendtx_api(Client $client, array $message) {
         //
         //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
         //
@@ -1464,7 +1488,7 @@ class lighter extends \ccxt\async\lighter {
         return true;
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         if (!$this->handle_error_message($client, $message)) {
             return;
         }
@@ -1475,6 +1499,10 @@ class lighter extends \ccxt\async\lighter {
         }
         if ($type === 'jsonapi/sendtx') {
             $this->handle_ws_sendtx_api($client, $message);
+            return;
+        }
+        if ($type === 'unsubscribed') {
+            $this->handle_un_subscription($client, $message);
             return;
         }
         $channel = $this->safe_string($message, 'channel', '');
@@ -1515,37 +1543,137 @@ class lighter extends \ccxt\async\lighter {
         }
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message): array {
         //
         //     {
         //         "session_id": "8d354239-80e0-4b77-8763-87b6fef2f768",
         //         "type": "connected"
         //     }
         //
+        return $message;
+    }
+
+    public function handle_un_subscription(Client $client, array $message) {
+        //
         //     {
         //         "type": "unsubscribed",
         //         "channel": "order_book:0"
         //     }
         //
-        $type = $this->safe_string($message, 'type', '');
-        $id = $this->safe_string($message, 'session_id');
-        $subscriptionsById = $this->index_by($client->subscriptions, 'id');
-        $subscription = $this->safe_dict($subscriptionsById, $id, array());
-        if ($type === 'unsubscribed') {
-            $this->handle_un_subscription($client, $subscription);
+        // the venue keys every ack by the channel name plus one id segment, whatever the
+        // subscribe arity was: "account_orders/{marketId}/{accountIndex}" acks and errors as
+        // "account_orders:{marketId}", so parts[1] is the market id on every family below
+        //
+        $channel = $this->safe_string($message, 'channel', '');
+        $parts = explode(':', $channel);
+        $name = $this->safe_string($parts, 0, '');
+        $channelId = $this->safe_string($parts, 1);
+        if ($name === 'order_book') {
+            $this->handle_order_book_un_subscription($client, $channelId);
+        } elseif ($name === 'market_stats') {
+            $this->handle_ticker_un_subscription($client, $channelId);
+        } elseif ($name === 'trade') {
+            $this->handle_trades_un_subscription($client, $channelId);
+        } elseif ($name === 'account_all_trades') {
+            $this->handle_my_trades_un_subscription($client);
+        } elseif ($name === 'account_orders') {
+            $this->handle_orders_un_subscription($client, $channelId);
+        } elseif ($name === 'account_all_orders') {
+            $this->handle_all_orders_un_subscription($client);
         }
-        return $message;
     }
 
-    public function handle_un_subscription(Client $client, array $subscription) {
-        $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
-        $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
-        for ($i = 0; $i < count($messageHashes); $i++) {
-            $unsubHash = $messageHashes[$i];
-            $subHash = $subMessageHashes[$i];
-            $this->clean_unsubscription($client, $subHash, $unsubHash);
+    public function handle_order_book_un_subscription(Client $client, ?string $marketId) {
+        $symbol = $this->safe_symbol($marketId);
+        $subMessageHash = $this->get_message_hash('orderbook', $symbol);
+        $messageHash = 'unsubscribe:' . $subMessageHash;
+        $this->clean_unsubscription($client, $subMessageHash, $messageHash);
+        if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
+            unset($this->orderbooks[$symbol]);
         }
-        $this->clean_cache($subscription);
+    }
+
+    public function handle_ticker_un_subscription(Client $client, ?string $marketId) {
+        if ($marketId === 'all') {
+            // a ticker hash is served by the one wire channel that created its subscription
+            // record, so sweep by owner instead of by name prefix: a ticker::<symbol> hash
+            // owned by a live market_stats/<marketId> channel must survive this ack. deleting
+            // it here would make the next watchTicker re-subscribe a channel the venue still
+            // considers subscribed, and its "30003 Already Subscribed" frame carries no id,
+            // so handleErrorMessage rejects every future on the socket
+            $subscriptionHashes = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+            for ($i = 0; $i < count($subscriptionHashes); $i++) {
+                $subscriptionHash = $subscriptionHashes[$i];
+                if (str_starts_with($subscriptionHash, 'ticker')) {
+                    $subscription = $this->safe_dict($client->subscriptions, $subscriptionHash);
+                    $subscriptionParams = $this->safe_dict($subscription, 'params');
+                    $subscribedChannel = $this->safe_string($subscriptionParams, 'channel');
+                    if ($subscribedChannel === 'market_stats/all') {
+                        unset($client->subscriptions[$subscriptionHash]);
+                        if (is_array($client->futures) && array_key_exists($subscriptionHash ?? '', $client->futures)) {
+                            $error = new UnsubscribeError($this->id . ' ' . $subscriptionHash);
+                            $client->reject($error, $subscriptionHash);
+                        }
+                    }
+                }
+            }
+            $allMessageHash = 'unsubscribe:' . $this->get_message_hash('ticker');
+            if (is_array($client->subscriptions) && array_key_exists($allMessageHash ?? '', $client->subscriptions)) {
+                unset($client->subscriptions[$allMessageHash]);
+            }
+            $client->resolve(true, $allMessageHash);
+            $tickersStructure = array(
+                'topic' => 'ticker',
+            );
+            $this->clean_cache($tickersStructure);
+            return;
+        }
+        $symbol = $this->safe_symbol($marketId);
+        $subMessageHash = $this->get_message_hash('ticker', $symbol);
+        $messageHash = 'unsubscribe:' . $subMessageHash;
+        $this->clean_unsubscription($client, $subMessageHash, $messageHash);
+        if (is_array($this->tickers) && array_key_exists($symbol ?? '', $this->tickers)) {
+            unset($this->tickers[$symbol]);
+        }
+    }
+
+    public function handle_trades_un_subscription(Client $client, ?string $marketId) {
+        $symbol = $this->safe_symbol($marketId);
+        $subMessageHash = $this->get_message_hash('trade', $symbol);
+        $messageHash = 'unsubscribe:' . $subMessageHash;
+        $this->clean_unsubscription($client, $subMessageHash, $messageHash);
+        if (is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades)) {
+            unset($this->trades[$symbol]);
+        }
+    }
+
+    public function handle_my_trades_un_subscription(Client $client) {
+        // one account-wide channel feeds the plural hash and every per-symbol hash
+        $messageHash = 'unsubscribe:' . $this->get_message_hash('myTrades');
+        $this->clean_unsubscription($client, 'myTrades', $messageHash, true);
+        $myTradesStructure = array(
+            'topic' => 'myTrades',
+        );
+        $this->clean_cache($myTradesStructure);
+    }
+
+    public function handle_orders_un_subscription(Client $client, ?string $marketId) {
+        $symbol = $this->safe_symbol($marketId);
+        $subMessageHash = $this->get_message_hash('orders', $symbol);
+        $messageHash = 'unsubscribe:' . $subMessageHash;
+        $this->clean_unsubscription($client, $subMessageHash, $messageHash);
+    }
+
+    public function handle_all_orders_un_subscription(Client $client) {
+        // only the plural hash is awaited on this channel, per-symbol order hashes
+        // belong to the account_orders/<marketId> channels and stay untouched here
+        $subMessageHash = $this->get_message_hash('orders');
+        $messageHash = 'unsubscribe:' . $subMessageHash;
+        $this->clean_unsubscription($client, $subMessageHash, $messageHash);
+        $ordersStructure = array(
+            'topic' => 'orders',
+        );
+        $this->clean_cache($ordersStructure);
     }
 
     public function handle_ping(Client $client, mixed $message) {

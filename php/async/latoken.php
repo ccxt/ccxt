@@ -358,7 +358,7 @@ class latoken extends Exchange {
         ));
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
@@ -622,7 +622,7 @@ class latoken extends Exchange {
         $maxTimestamp = null;
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $types = $this->safe_value($this->options, 'types', array());
+        $types = $this->safe_dict($this->options, 'types', array());
         $accountType = $this->safe_string($types, $type, $type);
         $balancesByType = $this->group_by($response, 'type');
         $balances = $this->safe_list($balancesByType, $accountType, array());
@@ -898,7 +898,7 @@ class latoken extends Exchange {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'quantity');
         $costString = $this->safe_string($trade, 'cost');
-        $makerBuyer = $this->safe_value($trade, 'makerBuyer');
+        $makerBuyer = $this->safe_bool($trade, 'makerBuyer');
         $side = $this->safe_string($trade, 'direction');
         if ($side === null) {
             $side = ($makerBuyer === true) ? 'sell' : 'buy';
@@ -1002,7 +1002,7 @@ class latoken extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
-        $options = $this->safe_value($this->options, 'fetchTradingFee', array());
+        $options = $this->safe_dict($this->options, 'fetchTradingFee', array());
         $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateTradingFee');
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $params = $this->omit($params, 'method');
@@ -1079,7 +1079,7 @@ class latoken extends Exchange {
         );
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1148,7 +1148,7 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(mixed $status) {
+    public function parse_order_type(?string $status): ?string {
         $statuses = array(
             'ORDER_TYPE_MARKET' => 'market',
             'ORDER_TYPE_LIMIT' => 'limit',
@@ -1294,7 +1294,7 @@ class latoken extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
         $params = $this->omit($params, 'stop');
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         $market = $this->market($symbol);
@@ -1362,7 +1362,7 @@ class latoken extends Exchange {
             // 'limit': limit, // default '100'
         );
         $market = null;
-        $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100
@@ -1408,7 +1408,7 @@ class latoken extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -1431,7 +1431,7 @@ class latoken extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         if ($isTrigger === true) {
             $response = Async\await($this->privateGetAuthStopOrderGetOrderId($this->extend($request, $params)));
@@ -1461,7 +1461,7 @@ class latoken extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1531,7 +1531,7 @@ class latoken extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1554,7 +1554,7 @@ class latoken extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         if ($isTrigger === true) {
             $response = Async\await($this->privatePostAuthStopOrderCancel($this->extend($request, $params)));
@@ -1573,7 +1573,7 @@ class latoken extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -1597,7 +1597,7 @@ class latoken extends Exchange {
             // 'quote': market['quoteId'],
         );
         $market = null;
-        $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1628,7 +1628,7 @@ class latoken extends Exchange {
         );
     }
 
-    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_transactions(...))($code, $since, $limit, $params);
     }
 
@@ -1763,7 +1763,7 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction_type(mixed $type) {
+    public function parse_transaction_type(?string $type): ?string {
         $types = array(
             'TRANSACTION_TYPE_DEPOSIT' => 'deposit',
             'TRANSACTION_TYPE_WITHDRAWAL' => 'withdrawal',
@@ -1937,7 +1937,7 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $request = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $requestString = $request;
         $query = $this->omit($params, $this->extract_params($path));

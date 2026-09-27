@@ -66,11 +66,11 @@ class p2b extends \ccxt\async\p2b {
         ));
     }
 
-    public function subscribe(string $name, string $messageHash, mixed $request, $params = array()) {
+    public function subscribe(string $name, string $messageHash, array $request, $params = array()) {
         return Async\async(self::do_subscribe(...))($name, $messageHash, $request, $params);
     }
 
-    private function do_subscribe(string $name, string $messageHash, mixed $request, $params = array()) {
+    private function do_subscribe(string $name, string $messageHash, array $request, $params = array()) {
         /**
          * @ignore
          * connects to a websocket channel
@@ -110,7 +110,7 @@ class p2b extends \ccxt\async\p2b {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $timeframes = $this->safe_value($this->options, 'timeframes', array());
+        $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $channel = $this->safe_integer($timeframes, $timeframe);
         if ($channel === null) {
             throw new BadRequest($this->id . ' watchOHLCV cannot take a $timeframe of ' . $timeframe);
@@ -250,7 +250,7 @@ class p2b extends \ccxt\async\p2b {
         $query = $this->extend($subscribe, $params);
         $trades = Async\await($this->watch_multiple($url, $messageHashes, $query, $messageHashes));
         if ($this->newUpdates) {
-            $first = $this->safe_value($trades, 0);
+            $first = $this->safe_dict($trades, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limit = $trades->getLimit($tradeSymbol, $limit);
         }
@@ -292,7 +292,7 @@ class p2b extends \ccxt\async\p2b {
         return $orderbook->limit();
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message): array {
         //
         //    {
         //        "method": "kline.update",
@@ -337,7 +337,7 @@ class p2b extends \ccxt\async\p2b {
         return $message;
     }
 
-    public function handle_trade(Client $client, mixed $message) {
+    public function handle_trade(Client $client, array $message): array {
         //
         //    {
         //        "method": "deals.update",
@@ -378,7 +378,7 @@ class p2b extends \ccxt\async\p2b {
         return $message;
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message): array {
         //
         // state
         //
@@ -435,7 +435,7 @@ class p2b extends \ccxt\async\p2b {
         return $message;
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //    {
         //        "method": "depth.update",
@@ -463,7 +463,7 @@ class p2b extends \ccxt\async\p2b {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $messageHash = 'orderbook::' . $market['symbol'];
-        $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
+        $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
         $limit = $this->safe_integer($subscription, 'limit');
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
@@ -479,7 +479,7 @@ class p2b extends \ccxt\async\p2b {
         }
         if ($bids !== null) {
             for ($i = 0; $i < count($bids); $i++) {
-                $bid = $this->safe_value($bids, $i);
+                $bid = $this->safe_list($bids, $i);
                 $price = $this->safe_number($bid, 0);
                 $amount = $this->safe_number($bid, 1);
                 $bookSide = $orderbook['bids'];
@@ -488,7 +488,7 @@ class p2b extends \ccxt\async\p2b {
         }
         if ($asks !== null) {
             for ($i = 0; $i < count($asks); $i++) {
-                $ask = $this->safe_value($asks, $i);
+                $ask = $this->safe_list($asks, $i);
                 $price = $this->safe_number($ask, 0);
                 $amount = $this->safe_number($ask, 1);
                 $bookside = $orderbook['asks'];
@@ -499,7 +499,7 @@ class p2b extends \ccxt\async\p2b {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         if ($this->handle_error_message($client, $message) === true) {
             return;
         }
@@ -522,7 +522,7 @@ class p2b extends \ccxt\async\p2b {
         }
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         $error = $this->safe_string($message, 'error');
         if ($error !== null) {
             throw new ExchangeError($this->id . ' $error => ' . $this->json($error));
@@ -530,7 +530,7 @@ class p2b extends \ccxt\async\p2b {
         return false;
     }
 
-    public function ping(Client $client) {
+    public function ping(Client $client): array {
         /**
          * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#ping
          * @param $client
@@ -542,7 +542,7 @@ class p2b extends \ccxt\async\p2b {
         );
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         //
         //    {
         //        error: null,

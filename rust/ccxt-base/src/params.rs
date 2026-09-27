@@ -56,7 +56,7 @@ impl Params {
 
     /// Set a string parameter.
     pub fn with_str(mut self, key: &str, value: &str) -> Self {
-        self.entries.insert(key.to_string(), Value::Str(value.to_string()));
+        self.entries.insert(key.to_string(), Value::Str(value.to_string().into()));
         self
     }
 
@@ -80,7 +80,7 @@ impl Params {
 
     /// Set a list-of-strings parameter (e.g. a batch of client order ids).
     pub fn with_strs(mut self, key: &str, values: &[&str]) -> Self {
-        let list: Vec<Value> = values.iter().map(|s| Value::Str((*s).to_string())).collect();
+        let list: Vec<Value> = values.iter().map(|s| Value::Str((*s).to_string().into())).collect();
         self.entries.insert(key.to_string(), Value::Arr(std::sync::Arc::new(list)));
         self
     }
@@ -88,8 +88,8 @@ impl Params {
     /// Set a nested parameter from a JSON literal, for the rare venue that
     /// wants a structured object. Invalid JSON is stored as a plain string.
     pub fn with_json(mut self, key: &str, json: &str) -> Self {
-        let parsed = crate::runtime::json_parse(&Value::Str(json.to_string()));
-        let v = if matches!(parsed, Value::Null) { Value::Str(json.to_string()) } else { parsed };
+        let parsed = crate::runtime::json_parse(&Value::Str(json.to_string().into()));
+        let v = if matches!(parsed, Value::Null) { Value::Str(json.to_string().into()) } else { parsed };
         self.entries.insert(key.to_string(), v);
         self
     }
@@ -280,7 +280,7 @@ impl Config {
 
     /// Set an arbitrary top-level property.
     pub fn set_str(mut self, key: &str, v: &str) -> Self {
-        self.top.insert(key.to_string(), Value::Str(v.to_string()));
+        self.top.insert(key.to_string(), Value::Str(v.to_string().into()));
         self
     }
     pub fn set_int(mut self, key: &str, v: i64) -> Self {
@@ -323,7 +323,7 @@ impl Config {
 
     /// Set a flat entry under `options`. The key is taken literally.
     pub fn option_str(self, key: &str, v: &str) -> Self {
-        self.option_value(key, Value::Str(v.to_string()))
+        self.option_value(key, Value::Str(v.to_string().into()))
     }
     pub fn option_int(self, key: &str, v: i64) -> Self {
         self.option_value(key, Value::Int(v))
@@ -335,7 +335,7 @@ impl Config {
         self.option_value(key, Value::Bool(v))
     }
     pub fn option_strs(self, key: &str, values: &[&str]) -> Self {
-        let list: Vec<Value> = values.iter().map(|s| Value::Str((*s).to_string())).collect();
+        let list: Vec<Value> = values.iter().map(|s| Value::Str((*s).to_string().into())).collect();
         self.option_value(key, Value::Arr(std::sync::Arc::new(list)))
     }
 

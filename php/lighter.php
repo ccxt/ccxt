@@ -452,7 +452,7 @@ class lighter extends Exchange {
         return $this->options['auths'][$strAccountIndex][$strApiKeyIndex]['lighterPrivateKey'];
     }
 
-    public function pre_load_lighter_library($params = array()) {
+    public function pre_load_lighter_library($params = array()): bool {
         /**
          * if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -539,7 +539,7 @@ class lighter extends Exchange {
         return array( $this->parse_to_int($accountIndex), $params );
     }
 
-    public function create_sub_account(string $name, $params = array()) {
+    public function create_sub_account(string $name, $params = array()): array {
         $apiKeyIndex = null;
         list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'createSubAccount', 'apiKeyIndex', 'api_key_index');
         $accountIndex = null;
@@ -561,7 +561,7 @@ class lighter extends Exchange {
         return $this->publicPostSendTx($request);
     }
 
-    public function create_auth($params = array()) {
+    public function create_auth($params = array()): ?string {
         // don't omit [accountIndex, apiKeyIndex], request may need them
         $apiKeyIndex = $this->safe_string_2($params, 'apiKeyIndex', 'api_key_index');
         if ($apiKeyIndex === null) {
@@ -660,7 +660,7 @@ class lighter extends Exchange {
         return true;
     }
 
-    public function approve_builder_fee(float $builder, float $takerFeeRate, float $makerFeeRate, float $accountIndex, float $apiKeyIndex, $params = array()) {
+    public function approve_builder_fee(float $builder, float $takerFeeRate, float $makerFeeRate, float $accountIndex, float $apiKeyIndex, $params = array()): array {
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
         $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params);
@@ -770,8 +770,8 @@ class lighter extends Exchange {
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);
         $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
-        $stopLoss = $this->safe_value($params, 'stopLoss');
-        $takeProfit = $this->safe_value($params, 'takeProfit');
+        $stopLoss = $this->safe_dict($params, 'stopLoss');
+        $takeProfit = $this->safe_dict($params, 'takeProfit');
         $hasStopLoss = ($stopLoss !== null);
         $hasTakeProfit = ($takeProfit !== null);
         $isConditional = (($stopLossPrice !== null) || ($takeProfitPrice !== null));
@@ -886,7 +886,7 @@ class lighter extends Exchange {
         return $orders;
     }
 
-    public function fetch_nonce(mixed $accountIndex, mixed $apiKeyIndex, $params = array()) {
+    public function fetch_nonce(mixed $accountIndex, mixed $apiKeyIndex, $params = array()): ?int {
         if (($accountIndex === null) || ($apiKeyIndex === null)) {
             throw new ArgumentsRequired($this->id . ' fetchNonce() requires $accountIndex and $apiKeyIndex->');
         }
@@ -953,7 +953,7 @@ class lighter extends Exchange {
         return array( $txType, $txInfo, $order, $market );
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade $order
          * @param {string} $symbol unified $symbol of the $market to create an $order in
@@ -1868,7 +1868,7 @@ class lighter extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): array {
         /**
          * fetch data on an open position
          *
@@ -1967,7 +1967,7 @@ class lighter extends Exchange {
         return $this->parse_positions($allPositions, $symbols);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         //     {
         //         "market_id": 0,
@@ -2090,7 +2090,7 @@ class lighter extends Exchange {
         return $this->parse_accounts($accounts, $params);
     }
 
-    public function parse_account(mixed $account) {
+    public function parse_account(array $account): array {
         //
         //     {
         //         "code": "0",
@@ -2886,7 +2886,7 @@ class lighter extends Exchange {
         return $this->parse_transaction($response);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all trades made by the user
          *
@@ -3045,7 +3045,7 @@ class lighter extends Exchange {
         ), $market);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): array {
         /**
          * set the level of $leverage for a market
          * @param {float} $leverage the rate of $leverage
@@ -3067,7 +3067,7 @@ class lighter extends Exchange {
         return $this->modify_leverage_and_margin_mode($leverage, $marginMode, $symbol, $params);
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()): array {
         /**
          * set margin mode to 'cross' or 'isolated'
          * @param {string} $marginMode 'cross' or 'isolated'
@@ -3089,7 +3089,7 @@ class lighter extends Exchange {
         return $this->modify_leverage_and_margin_mode($leverage, $marginMode, $symbol, $params);
     }
 
-    public function modify_leverage_and_margin_mode(int $leverage, string $marginMode, ?string $symbol = null, $params = array()) {
+    public function modify_leverage_and_margin_mode(int $leverage, string $marginMode, ?string $symbol = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -3159,7 +3159,7 @@ class lighter extends Exchange {
         return array( $txType, $txInfo, $market );
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -3201,7 +3201,7 @@ class lighter extends Exchange {
         return array( $txType, $txInfo );
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders
          * @param {string} [$symbol] unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
@@ -3219,7 +3219,7 @@ class lighter extends Exchange {
         return $this->parse_orders(array( $response ));
     }
 
-    public function cancel_all_orders_after(?int $timeout, $params = array()) {
+    public function cancel_all_orders_after(?int $timeout, $params = array()): array {
         /**
          * dead man's switch, cancel all orders after the given $timeout
          * @param {number} $timeout time in milliseconds, 0 represents cancel the timer

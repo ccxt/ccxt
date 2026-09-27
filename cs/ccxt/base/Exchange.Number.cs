@@ -30,7 +30,7 @@ public partial class BaseExchange
     // Cached on first use: `Regex.Replace (input, pattern, ...)` goes through the static
     // Regex cache (bounded, guarded lookup) on every call. A `static readonly Regex` runs
     // the exact same pattern with the exact same options and skips that lookup entirely.
-    private static readonly Regex exponentPrefixRegex = new Regex(@"\d\.?\d*[eE]", RegexOptions.None);
+    private static readonly Regex exponentPrefixRegex = new Regex(@"^[-+]?\d\.?\d*[eE]", RegexOptions.None);
 
     public object precisionConstants = new
     {

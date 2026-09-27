@@ -91,7 +91,7 @@ class weex(ccxt.async_support.weex):
         self.unlock_id()
         return self.number_to_string(requestId)
 
-    async def subscribe_public(self, messageHashes: object, channels: object, isContract=False, params={}, subscription={}):
+    async def subscribe_public(self, messageHashes: list[str], channels: Strings, isContract: bool = False, params: dict = {}, subscription: dict = {}):
         id = self.request_id()
         method = 'SUBSCRIBE'
         unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
@@ -107,7 +107,7 @@ class weex(ccxt.async_support.weex):
         url = self.urls['api']['ws'][type] + '/public'
         return await self.watch_multiple(url, messageHashes, self.deep_extend(message, params), messageHashes, subscription)
 
-    async def subscribe_private(self, messageHash: object, subscribeHash: object, channel: object, isContract=False, params: object = {}, subscription={}):
+    async def subscribe_private(self, messageHash: str, subscribeHash: str, channel: Str, isContract: bool = False, params: dict = {}, subscription: dict = {}):
         type = 'contract' if isContract else 'spot'
         url = self.urls['api']['ws'][type] + '/private'
         self.authenticate(url)
@@ -124,7 +124,7 @@ class weex(ccxt.async_support.weex):
         subscription = self.extend(subscription, {'id': id})
         return await self.watch(url, messageHash, self.deep_extend(message, params), subscribeHash, subscription)
 
-    def authenticate(self, url: object):
+    def authenticate(self, url: str):
         self.check_required_credentials()
         if (self.clients is not None) and (url in self.clients):
             return
@@ -161,7 +161,7 @@ class weex(ccxt.async_support.weex):
         }
         self.extend_exchange_options(defaultOptions)
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -179,7 +179,7 @@ class weex(ccxt.async_support.weex):
         tickers = await self.watch_tickers([symbol], params)
         return tickers[symbol]
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -263,7 +263,7 @@ class weex(ccxt.async_support.weex):
         }
         return await self.subscribe_public(unSubHashes, channels, isContract, params, subscription)
 
-    def handle_ticker(self, client: Client, message: object):
+    def handle_ticker(self, client: Client, message: dict):
         #
         #     {
         #         "e": "ticker",
@@ -347,7 +347,7 @@ class weex(ccxt.async_support.weex):
             'info': ticker,
         }, market)
 
-    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -362,7 +362,7 @@ class weex(ccxt.async_support.weex):
         """
         return self.watch_trades_for_symbols([symbol], since, limit, params)
 
-    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a list of symbols
 
@@ -392,7 +392,7 @@ class weex(ccxt.async_support.weex):
             channels.append(channelName)
         trades = await self.subscribe_public(messageHashes, channels, isContract, params)
         if self.newUpdates:
-            first = self.safe_value(trades, 0)
+            first = self.safe_dict(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
@@ -448,7 +448,7 @@ class weex(ccxt.async_support.weex):
         }
         return await self.subscribe_public(unSubHashes, channels, isContract, params, subscription)
 
-    def handle_trade(self, client: Client, message: object):
+    def handle_trade(self, client: Client, message: dict):
         #
         #     {
         #         "e": "trade",
@@ -488,7 +488,7 @@ class weex(ccxt.async_support.weex):
         self.trades[symbol] = tradesArray
         client.resolve(tradesArray, messageHash)
 
-    def parse_ws_trade(self, trade: object, market: Market = None):
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     {
         #         "T": 1776089287762,
@@ -523,7 +523,7 @@ class weex(ccxt.async_support.weex):
             'fee': None,
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -543,7 +543,7 @@ class weex(ccxt.async_support.weex):
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, extendedParams)
         return result[symbol][timeframe]
 
-    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params={}):
+    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params: dict = {}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -652,7 +652,7 @@ class weex(ccxt.async_support.weex):
         }
         return await self.subscribe_public(unSubHashes, channels, isContract, params, subscription)
 
-    def handle_ohlcv(self, client: Client, message: object):
+    def handle_ohlcv(self, client: Client, message: dict):
         #
         #     {
         #         e: 'kline',
@@ -729,7 +729,7 @@ class weex(ccxt.async_support.weex):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -746,7 +746,7 @@ class weex(ccxt.async_support.weex):
         })
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
-    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -839,7 +839,7 @@ class weex(ccxt.async_support.weex):
         }
         return await self.subscribe_public(unSubHashes, channels, isContract, params, subscription)
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         #     {
         #         "e": "depth",
@@ -887,7 +887,7 @@ class weex(ccxt.async_support.weex):
         bidAsk = self.parse_order_book_bid_ask(delta)
         bookside.storeArray(bidAsk)
 
-    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches best bid & ask for spot symbols
 
@@ -956,7 +956,7 @@ class weex(ccxt.async_support.weex):
         }
         return await self.subscribe_public(unSubHashes, channels, False, params, subscription)
 
-    def handle_bid_ask(self, client: Client, message: object):
+    def handle_bid_ask(self, client: Client, message: dict):
         #
         #     {
         #         "e": "bookTicker",
@@ -979,7 +979,7 @@ class weex(ccxt.async_support.weex):
         messageHash = 'bidask::' + symbol
         client.resolve(ticker, messageHash)
 
-    def parse_ws_bid_ask(self, message: object, market: Market = None):
+    def parse_ws_bid_ask(self, message: dict, market: Market = None) -> Ticker:
         timestamp = self.safe_integer(message, 'E')
         symbol = None if (market is None) else market['symbol']
         return self.safe_ticker({
@@ -993,7 +993,7 @@ class weex(ccxt.async_support.weex):
             'info': message,
         }, market)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
@@ -1055,7 +1055,7 @@ class weex(ccxt.async_support.weex):
         }
         return await self.subscribe_private(unSubHash, unSubHash, channel, isContract, params, subscription)
 
-    def handle_my_trades(self, client: Client, message: object):
+    def handle_my_trades(self, client: Client, message: dict):
         #
         # spot
         #     {
@@ -1126,7 +1126,7 @@ class weex(ccxt.async_support.weex):
             client.resolve(trades, symbolMessageHash)
         client.resolve(trades, messageHash)
 
-    def parse_ws_my_trade(self, trade: object, market: Market = None):
+    def parse_ws_my_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # spot
         #     {
@@ -1183,7 +1183,7 @@ class weex(ccxt.async_support.weex):
             'fee': fee,
         })
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -1244,7 +1244,7 @@ class weex(ccxt.async_support.weex):
         }
         return await self.subscribe_private(unSubHash, unSubHash, channel, isContract, params, subscription)
 
-    def handle_orders(self, client: Client, message: object):
+    def handle_orders(self, client: Client, message: dict):
         #
         #     {
         #         "e": "orders",
@@ -1316,7 +1316,7 @@ class weex(ccxt.async_support.weex):
             client.resolve(orders, symbolMessageHash)
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order: object, market: Market = None):
+    def parse_ws_order(self, order: dict, market: Market = None) -> Order:
         #
         # spot
         #     {
@@ -1462,7 +1462,7 @@ class weex(ccxt.async_support.weex):
             'info': order,
         }, market)
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -1491,7 +1491,7 @@ class weex(ccxt.async_support.weex):
         messageHash = type + ':' + 'balance'
         return await self.subscribe_private(messageHash, type, 'account', isContract, params)
 
-    def set_balance_cache(self, client: Client, type: object):
+    def set_balance_cache(self, client: Client, type: str):
         if (type in client.subscriptions) and (type in self.balance):
             return
         options = self.safe_dict(self.options, 'watchBalance')
@@ -1504,19 +1504,19 @@ class weex(ccxt.async_support.weex):
         else:
             self.balance[type] = {}
 
-    async def load_balance_snapshot(self, client: Client, messageHash: object, type: object):
+    async def load_balance_snapshot(self, client: Client, messageHash: str, type: str):
         params = {
             'type': type,
         }
         response = await self.fetch_balance(params)
-        self.balance[type] = self.extend(response, self.safe_value(self.balance, type, {}))
+        self.balance[type] = self.extend(response, self.safe_dict(self.balance, type, {}))
         # don't remove the future from the .futures cache
         if messageHash in client.futures:
             future = client.futures[messageHash]
             future.resolve()
             client.resolve(self.balance[type], type + ':balance')
 
-    def handle_balance(self, client: Client, message: object):
+    def handle_balance(self, client: Client, message: dict):
         #
         # spot
         #     {
@@ -1599,7 +1599,7 @@ class weex(ccxt.async_support.weex):
         self.balance[accountType] = self.safe_balance(self.balance[accountType])
         client.resolve(self.balance[accountType], messageHash)
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
 
         https://www.weex.com/api-doc/contract/Websocket/private/Positions-Channel
@@ -1644,7 +1644,7 @@ class weex(ccxt.async_support.weex):
         else:
             self.positions = ArrayCacheBySymbolById()
 
-    async def load_positions_snapshot(self, client: Client, messageHash: object, params: object):
+    async def load_positions_snapshot(self, client: Client, messageHash: str, params: object):
         positions = await self.fetch_positions(None, params)
         self.positions = ArrayCacheBySymbolById()
         cache = self.positions
@@ -1680,7 +1680,7 @@ class weex(ccxt.async_support.weex):
         }
         return await self.subscribe_private(unSubHash, unSubHash, channel, True, params, subscription)
 
-    def handle_positions(self, client: object, message: object):
+    def handle_positions(self, client: Client, message: dict):
         #
         #     {
         #         "e": "positions",
@@ -1740,11 +1740,11 @@ class weex(ccxt.async_support.weex):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, 'positions')
 
-    def parse_ws_position(self, position: object, market: Market = None):
+    def parse_ws_position(self, position: dict, market: Market = None) -> Position:
         # same as REST api
         return self.parse_position(position, market)
 
-    def get_market_from_client_and_message(self, client: Client, message: object):
+    def get_market_from_client_and_message(self, client: Client, message: dict) -> Market:
         url = client.url
         marketType = 'spot'
         if url.find('contract') >= 0:
@@ -1753,7 +1753,7 @@ class weex(ccxt.async_support.weex):
         market = self.safe_market(marketId, None, None, marketType)
         return market
 
-    async def pong(self, client: Client, message: object):
+    async def pong(self, client: Client, message: dict):
         #
         #     { "event": "ping", "time": "1776078750000" } - public
         #
@@ -1765,10 +1765,10 @@ class weex(ccxt.async_support.weex):
         }
         await client.send(response)
 
-    def handle_ping(self, client: Client, message: object):
+    def handle_ping(self, client: Client, message: dict):
         self.spawn(self.pong, client, message)
 
-    def handle_subscription_status(self, client: Client, message: object):
+    def handle_subscription_status(self, client: Client, message: dict) -> dict:
         #
         #     { "result": true, "id": 2 }
         #
@@ -1787,7 +1787,7 @@ class weex(ccxt.async_support.weex):
             self.clean_cache(subscription)
         return message
 
-    def handle_error_message(self, client: Client, message: object) -> bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #     {
         #         "result": false,
@@ -1808,7 +1808,7 @@ class weex(ccxt.async_support.weex):
                 return True
         return False
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         #
         #     { "id": "5", "method": "PONG" }
         #

@@ -153,6 +153,12 @@ class hyperliquid extends Exchange {
         $this->options['sandboxMode'] = $enabled;
     }
 
+    public function nonce(): float {
+        // the venue nonce is a millisecond timestamp and must be strictly increasing per signer
+        // incrementingNonce () reads this and bumps past the previous value when two signed actions share a millisecond
+        return $this->milliseconds();
+    }
+
     public function outcome_encoding(float $outcomeId, float $side): float {
         /**
          * @ignore
@@ -695,7 +701,7 @@ class hyperliquid extends Exchange {
                 continue;
             }
             // Build minimal ticker from mid price
-            $ticker = $this->parse_prediction_ticker(array( 'levels' => array( array(), array() ), 'mid' => $mid, 'time' => $this->milliseconds() ), $outcomeObj);
+            $ticker = $this->parse_prediction_ticker(array( 'levels' => array( array(), array() ), 'mid' => $mid ), $outcomeObj);
             $tickers[$outcomeHandle] = $ticker;
         }
         return $tickers;
@@ -719,8 +725,7 @@ class hyperliquid extends Exchange {
         //         "time": 1704290104840
         //     }
         //
-        $now = $this->milliseconds();
-        $timestamp = $this->safe_integer($raw, 'time', $now);
+        $timestamp = $this->safe_integer($raw, 'time');
         // the 2nd arg carries the outcome object (callers pass the resolved outcome)
         $mkt = $this->safe_outcome(null, $market);
         $outcome = $this->safe_string($mkt, 'outcome');
@@ -1236,7 +1241,7 @@ class hyperliquid extends Exchange {
         $marketSymbol = $this->safe_string($outcomeObj, 'market');
         $market = $this->market($marketSymbol);
         $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $isBuy = (strtoupper($side) === 'BUY');
         $isMarket = (strtoupper($type) === 'MARKET');
         $assetId = $this->safe_integer($outcomeInfo, 'assetId');
@@ -1335,8 +1340,8 @@ class hyperliquid extends Exchange {
             'id' => $oid,
             'clientOrderId' => $clientOrderId,
             'info' => $response,
-            'timestamp' => $nonce,
-            'datetime' => $this->iso8601($nonce),
+            'timestamp' => null,
+            'datetime' => null,
             'status' => $orderStatus,
             'outcome' => $this->safe_string($outcomeObj, 'outcome', $outcome),
             'outcomeId' => $this->safe_string($outcomeObj, 'id'),
@@ -1399,7 +1404,7 @@ class hyperliquid extends Exchange {
         $outcomeObj = $this->outcome($outcome);
         $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
         $assetId = $this->safe_integer($outcomeInfo, 'assetId');
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $clientOrderId = $this->safe_value_2($params, 'clientOrderId', 'client_id');
         $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
         $cancelReq = array();
@@ -1463,8 +1468,8 @@ class hyperliquid extends Exchange {
                 'outcomeId' => $this->safe_string($outcomeObj, 'id'),
                 'label' => $this->safe_string($outcomeObj, 'label'),
                 'market' => $this->safe_string($outcomeObj, 'market'),
-                'timestamp' => $this->milliseconds(),
-                'datetime' => $this->iso8601($this->milliseconds()),
+                'timestamp' => null,
+                'datetime' => null,
             );
             $orders[] = $this->safe_prediction_order($order);
         }
@@ -2183,7 +2188,7 @@ class hyperliquid extends Exchange {
          * @param {string} $maxFeeRate the maximum $builder fee rate to approve, e.g. '0%'
          * @return {array} the raw exchange response
          */
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $payload = array(
             'hyperliquidChain' => ($isSandboxMode === true) ? 'Testnet' : 'Mainnet',

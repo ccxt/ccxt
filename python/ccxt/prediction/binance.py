@@ -718,7 +718,7 @@ class binance(PredictionExchange, ImplicitAPI):
     def parse_prediction_ticker(self, raw: dict, market: Market = None) -> PredictionTicker:
         """
  @ignore
-        parses a last-trade-price response into a unified ticker object; the venue quotes the market's primary(YES) token, so a NO outcome mirrors as 1 - price
+        parses a last-trade-price response into a unified ticker object; the venue quotes the market's primary (YES) token, so a NO outcome mirrors as 1 - price
         :param dict raw: the raw last-trade-price object
         :param dict [market]: the outcome object the ticker belongs to
         :returns dict: a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
@@ -745,14 +745,13 @@ class binance(PredictionExchange, ImplicitAPI):
                 last = self.parse_number(Precise.string_sub('1', lastString))
             else:
                 last = self.parse_number(lastString)
-        now = self.milliseconds()
         return self.safe_prediction_ticker({
             'outcome': self.safe_string(outcomeObj, 'outcome'),
             'outcomeId': self.safe_string_2(outcomeObj, 'outcomeId', 'id'),
             'label': self.safe_string(outcomeObj, 'label'),
             'market': self.safe_string(outcomeObj, 'market'),
-            'timestamp': now,
-            'datetime': self.iso8601(now),
+            'timestamp': None,
+            'datetime': None,
             'high': None,
             'low': None,
             'bid': None,
@@ -783,7 +782,7 @@ class binance(PredictionExchange, ImplicitAPI):
         :returns dict: a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
         """
         if outcomes is None:
-            raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch(discover them via fetchEvents())')
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())')
         await self.load_outcomes(outcomes)
         responsesByMarketId = {}
         result = {}
@@ -1129,7 +1128,7 @@ class binance(PredictionExchange, ImplicitAPI):
 
     async def fetch_positions(self, outcomes: Strings = None, params={}) -> list[PredictionPosition]:
         """
-        fetches the user's outcome positions; outcome positions are spot token balances under the "+<encoding>" coin form(size and entry notional), the value/entry/mark price/pnl are computed from the current mid prices
+        fetches the user's outcome positions; outcome positions are spot token balances under the "+<encoding>" coin form (size and entry notional), the value/entry/mark price/pnl are computed from the current mid prices
 
         https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/position#query-positions
 
@@ -1624,7 +1623,7 @@ class binance(PredictionExchange, ImplicitAPI):
         timeInForce = self.safe_string_upper(params, 'timeInForce', defaultTif)
         accountType = self.safe_string(params, 'accountType')
         if accountType is None:
-            raise ArgumentsRequired(self.id + ' createOrder requires accountType(SPOT, FUNDING)')
+            raise ArgumentsRequired(self.id + ' createOrder requires accountType (SPOT, FUNDING)')
         params = self.omit(params, ['timeInForce', 'accountType', 'cost'])
         quoteRequest = self.extend(commonRequest, {
             'tokenId': outcomeObj['id'],
@@ -1758,8 +1757,8 @@ class binance(PredictionExchange, ImplicitAPI):
                 'outcomeId': self.safe_string(outcomeObj, 'id'),
                 'label': self.safe_string(outcomeObj, 'label'),
                 'market': self.safe_string(outcomeObj, 'market'),
-                'timestamp': self.milliseconds(),
-                'datetime': self.iso8601(self.milliseconds()),
+                'timestamp': None,
+                'datetime': None,
             }
             orders.append(self.safe_prediction_order(order))
         return orders

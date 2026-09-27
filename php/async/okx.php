@@ -1517,7 +1517,7 @@ class okx extends Exchange {
         return $this->safe_string($exchangeTypes, $type, $type);
     }
 
-    public function create_expired_option_market(string $symbol) {
+    public function create_expired_option_market(string $symbol): array {
         // support expired option contracts
         $quote = 'USD';
         $optionParts = explode('-', $symbol);
@@ -1758,7 +1758,7 @@ class okx extends Exchange {
         return $result;
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
@@ -2865,7 +2865,7 @@ class okx extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -2943,7 +2943,7 @@ class okx extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function parse_balance_by_type(mixed $type, mixed $response) {
+    public function parse_balance_by_type(?string $type, array $response): array {
         if ($type === 'funding') {
             return $this->parse_funding_balance($response);
         } else {
@@ -2951,7 +2951,7 @@ class okx extends Exchange {
         }
     }
 
-    public function parse_trading_balance(mixed $response) {
+    public function parse_trading_balance(array $response): array {
         $result = array( 'info' => $response );
         $data = $this->safe_list($response, 'data', array());
         $first = $this->safe_dict($data, 0, array());
@@ -2981,7 +2981,7 @@ class okx extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_funding_balance(mixed $response) {
+    public function parse_funding_balance(array $response): array {
         $result = array( 'info' => $response );
         $data = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
@@ -3213,7 +3213,7 @@ class okx extends Exchange {
         return $this->parse_balance_by_type($marketType, $response);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): PromiseInterface {
         return Async\async(self::do_create_market_buy_order_with_cost(...))($symbol, $cost, $params);
     }
 
@@ -3242,7 +3242,7 @@ class okx extends Exchange {
         return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $this->extend($req, $params)));
     }
 
-    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()): PromiseInterface {
         return Async\async(self::do_create_market_sell_order_with_cost(...))($symbol, $cost, $params);
     }
 
@@ -3271,7 +3271,7 @@ class okx extends Exchange {
         return Async\await($this->create_order($symbol, 'market', 'sell', $cost, null, $this->extend($req, $params)));
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -3325,8 +3325,8 @@ class okx extends Exchange {
         $slOrdPx = $this->safe_number($params, 'slOrdPx', $price);
         $slTriggerPxType = $this->safe_string($params, 'slTriggerPxType', 'last');
         $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
-        $stopLoss = $this->safe_value($params, 'stopLoss');
-        $takeProfit = $this->safe_value($params, 'takeProfit');
+        $stopLoss = $this->safe_dict($params, 'stopLoss');
+        $takeProfit = $this->safe_dict($params, 'takeProfit');
         $hasStopLoss = ($stopLoss !== null);
         $hasTakeProfit = ($takeProfit !== null);
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRatio');
@@ -3581,7 +3581,7 @@ class okx extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -3653,7 +3653,7 @@ class okx extends Exchange {
         return $order;
     }
 
-    public function create_orders(array $orders, $params = array()) {
+    public function create_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(self::do_create_orders(...))($orders, $params);
     }
 
@@ -3679,8 +3679,8 @@ class okx extends Exchange {
             }
             $type = $this->safe_string($rawOrder, 'type', '');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
@@ -3713,7 +3713,7 @@ class okx extends Exchange {
         return $this->parse_orders($data);
     }
 
-    public function edit_order_request(string $id, ?string $symbol, mixed $type, mixed $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order_request(string $id, ?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         $market = $this->market($symbol);
         $request = array(
             'instId' => $market['id'],
@@ -3742,8 +3742,8 @@ class okx extends Exchange {
         $takeProfitTriggerPrice = $this->safe_number_2($params, 'takeProfitPrice', 'newTpTriggerPx');
         $takeProfitPrice = $this->safe_number($params, 'newTpOrdPx');
         $takeProfitTriggerPriceType = $this->safe_string($params, 'newTpTriggerPxType', 'last');
-        $stopLoss = $this->safe_value($params, 'stopLoss');
-        $takeProfit = $this->safe_value($params, 'takeProfit');
+        $stopLoss = $this->safe_dict($params, 'stopLoss');
+        $takeProfit = $this->safe_dict($params, 'takeProfit');
         $hasStopLoss = ($stopLoss !== null);
         $hasTakeProfit = ($takeProfit !== null);
         if ($isAlgoOrder) {
@@ -3807,7 +3807,7 @@ class okx extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -3881,7 +3881,7 @@ class okx extends Exchange {
         return $order;
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -3902,9 +3902,9 @@ class okx extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
-        $trigger = $this->safe_value_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $trailing = $this->safe_bool($params, 'trailing', false);
-        $isTrigger = ($trigger !== null) && ($trigger !== false);
+        $isTrigger = ($trigger === true);
         if ($isTrigger || ($trailing === true)) {
             $orderInner = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
             return $this->safe_dict($orderInner, 0);
@@ -3945,7 +3945,7 @@ class okx extends Exchange {
         }
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
     }
 
@@ -3963,7 +3963,6 @@ class okx extends Exchange {
          * @param {boolean} [$params->trailing] set to true if you want to cancel $trailing orders
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
@@ -3977,9 +3976,9 @@ class okx extends Exchange {
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $clientOrderIds = $this->parse_ids($this->safe_value_2($params, 'clOrdId', 'clientOrderId'));
         $algoIds = $this->parse_ids($this->safe_value($params, 'algoId'));
-        $trigger = $this->safe_value_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $trailing = $this->safe_bool($params, 'trailing', false);
-        $isTrigger = ($trigger !== null) && ($trigger !== false);
+        $isTrigger = ($trigger === true);
         if ($isTrigger || ($trailing === true)) {
             $method = 'privatePostTradeCancelAlgos';
         }
@@ -3994,7 +3993,7 @@ class okx extends Exchange {
                 }
             }
             for ($i = 0; $i < count($ids); $i++) {
-                if (($trailing === true) || ($trigger !== null)) {
+                if (($trailing === true) || $isTrigger) {
                     $request[] = array(
                         'algoId' => $ids[$i],
                         'instId' => $market['id'],
@@ -4008,7 +4007,7 @@ class okx extends Exchange {
             }
         } else {
             for ($i = 0; $i < count($clientOrderIds); $i++) {
-                if (($trailing === true) || ($trigger !== null)) {
+                if (($trailing === true) || $isTrigger) {
                     $request[] = array(
                         'instId' => $market['id'],
                         'algoClOrdId' => $clientOrderIds[$i],
@@ -4063,7 +4062,7 @@ class okx extends Exchange {
         return $this->parse_orders($ordersData, $market, null, null, $orderParams);
     }
 
-    public function cancel_orders_for_symbols(array $orders, $params = array()) {
+    public function cancel_orders_for_symbols(array $orders, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders_for_symbols(...))($orders, $params);
     }
 
@@ -4153,7 +4152,7 @@ class okx extends Exchange {
         return $this->parse_orders($ordersData, null, null, null, $params);
     }
 
-    public function cancel_all_orders_after(?int $timeout, $params = array()) {
+    public function cancel_all_orders_after(?int $timeout, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders_after(...))($timeout, $params);
     }
 
@@ -4497,7 +4496,7 @@ class okx extends Exchange {
         ), $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -4531,8 +4530,8 @@ class okx extends Exchange {
         $options = $this->safe_dict($this->options, 'fetchOrder', array());
         $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrder');
         $method = $this->safe_string($params, 'method', $defaultMethod);
-        $trigger = $this->safe_value_2($params, 'stop', 'trigger');
-        $isTrigger = ($trigger !== null) && ($trigger !== false);
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
+        $isTrigger = ($trigger === true);
         if ($isTrigger) {
             $method = 'privateGetTradeOrderAlgo';
             if ($clientOrderId !== null) {
@@ -4709,15 +4708,15 @@ class okx extends Exchange {
         $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrdersPending');
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $ordType = $this->safe_string($params, 'ordType');
-        $trigger = $this->safe_value_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $trailing = $this->safe_bool($params, 'trailing', false);
-        $isTrigger = ($trigger !== null) && ($trigger !== false);
+        $isTrigger = ($trigger === true);
         if (($trailing === true) || $isTrigger || (($ordType !== null) && (is_array($algoOrderTypes) && array_key_exists($ordType ?? '', $algoOrderTypes)))) {
             $method = 'privateGetTradeOrdersAlgoPending';
         }
         if ($trailing === true) {
             $request['ordType'] = 'move_order_stop';
-        } elseif (($trigger !== null) && ($ordType === null)) {
+        } elseif ($isTrigger && ($ordType === null)) {
             $request['ordType'] = 'trigger';
         }
         $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'trailing' ));
@@ -4826,7 +4825,7 @@ class okx extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_canceled_orders(...))($symbol, $since, $limit, $params);
     }
 
@@ -4879,9 +4878,9 @@ class okx extends Exchange {
         $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrdersHistory');
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $ordType = $this->safe_string($params, 'ordType');
-        $trigger = $this->safe_value_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $trailing = $this->safe_bool($params, 'trailing', false);
-        $isTrigger = ($trigger !== null) && ($trigger !== false);
+        $isTrigger = ($trigger === true);
         if ($trailing === true) {
             $method = 'privateGetTradeOrdersAlgoHistory';
             $request['ordType'] = 'move_order_stop';
@@ -5209,7 +5208,7 @@ class okx extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -5288,7 +5287,7 @@ class okx extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit, $query);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
     }
 
@@ -5444,7 +5443,7 @@ class okx extends Exchange {
         return $this->parse_ledger($data, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array(
             '1' => 'transfer', // transfer
             '2' => 'trade', // trade
@@ -6457,7 +6456,7 @@ class okx extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $this->market_symbols($symbols), false);
     }
 
-    public function fetch_positions_for_symbol(string $symbol, $params = array()) {
+    public function fetch_positions_for_symbol(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_positions_for_symbol(...))($symbol, $params);
     }
 
@@ -6475,7 +6474,7 @@ class okx extends Exchange {
         return Async\await($this->fetch_positions(array( $symbol ), $params));
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         //     {
         //        "adl": "3",
@@ -6922,7 +6921,7 @@ class okx extends Exchange {
         return $this->parse_transfers($transfers, $currency, $since, $limit, $params);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $isArray = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
@@ -7045,7 +7044,7 @@ class okx extends Exchange {
         );
     }
 
-    public function parse_funding_interval(mixed $interval) {
+    public function parse_funding_interval(?string $interval): ?string {
         $intervals = array(
             '3600000' => '1h',
             '7200000' => '2h',
@@ -7174,7 +7173,7 @@ class okx extends Exchange {
         return $this->parse_funding_rates($data, $symbols);
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -7347,7 +7346,7 @@ class okx extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_set_leverage(...))($leverage, $symbol, $params);
     }
 
@@ -7452,7 +7451,7 @@ class okx extends Exchange {
         );
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_set_position_mode(...))($hedged, $symbol, $params);
     }
 
@@ -7491,7 +7490,7 @@ class okx extends Exchange {
         return $response;
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_set_margin_mode(...))($marginMode, $symbol, $params);
     }
 
@@ -7548,7 +7547,7 @@ class okx extends Exchange {
         return $response;
     }
 
-    public function fetch_cross_borrow_rates($params = array()): PromiseInterface {
+    public function fetch_cross_borrow_rates($params = array()) {
         return Async\async(self::do_fetch_cross_borrow_rates(...))($params);
     }
 
@@ -7651,7 +7650,7 @@ class okx extends Exchange {
         );
     }
 
-    public function parse_borrow_rate_histories(mixed $response, mixed $codes, mixed $since, mixed $limit) {
+    public function parse_borrow_rate_histories(array $response, ?array $codes, ?int $since, ?int $limit): array {
         //
         //    [
         //        {
@@ -7686,7 +7685,7 @@ class okx extends Exchange {
         return $borrowRateHistories;
     }
 
-    public function fetch_borrow_rate_histories(?array $codes = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_borrow_rate_histories(?array $codes = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_borrow_rate_histories(...))($codes, $since, $limit, $params);
     }
 
@@ -8233,7 +8232,7 @@ class okx extends Exchange {
         return $this->parse_margin_loan($loan, $currency);
     }
 
-    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
+    public function parse_margin_loan(array $info, ?array $currency = null): array {
         //
         //     {
         //         "amt": "102",
@@ -8257,7 +8256,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interest(...))($symbol, $params);
     }
 
@@ -8370,11 +8369,11 @@ class okx extends Exchange {
         return $this->parse_open_interests($data, $symbols);
     }
 
-    public function fetch_open_interest_history(string $symbol, $timeframe = '1d', ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_open_interest_history(string $symbol, string $timeframe = '1d', ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(self::do_fetch_open_interest_history(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    private function do_fetch_open_interest_history(string $symbol, $timeframe = '1d', ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_open_interest_history(string $symbol, string $timeframe = '1d', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * Retrieves the open interest history of a $currency
          *
@@ -8446,7 +8445,7 @@ class okx extends Exchange {
         return $this->parse_open_interests_history($data, null, $since, $limit);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         // fetchOpenInterestHistory
         //
@@ -8581,7 +8580,7 @@ class okx extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes);
     }
 
-    public function parse_deposit_withdraw_fees(mixed $response, ?array $codes = null, mixed $currencyIdKey = null) {
+    public function parse_deposit_withdraw_fees(mixed $response, ?array $codes = null, ?string $currencyIdKey = null): mixed {
         //
         // [
         //   {
@@ -8713,7 +8712,7 @@ class okx extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function parse_settlement(mixed $settlement, mixed $market) {
+    public function parse_settlement(array $settlement, array $market): array {
         //
         //     {
         //         "insId": "BTC-USD-230521-28500-P",
@@ -8731,7 +8730,7 @@ class okx extends Exchange {
         );
     }
 
-    public function parse_settlements(mixed $settlements, mixed $market) {
+    public function parse_settlements(array $settlements, array $market): array {
         //
         //     {
         //         "details": [

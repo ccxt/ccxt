@@ -4,7 +4,6 @@ import testCurrency from './base/test.currency.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 import type { Dict } from '../../base/types.js';
 
-
 async function testFetchCurrencies (exchange: Exchange, skippedProperties: object) {
     const method = 'fetchCurrencies';
     const currencies = await exchange.fetchCurrencies ();

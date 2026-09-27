@@ -75,6 +75,14 @@ func SetFetchResponse(exchange ccxt.ICoreExchange, response any) ccxt.ICoreExcha
 	return exchange
 }
 
+// SetFetchResponseByUrl serves a body per url fragment for methods that call
+// several endpoints; one shared body cannot cover two endpoints of different
+// declared shapes.
+func SetFetchResponseByUrl(exchange ccxt.ICoreExchange, responsesByUrl any) ccxt.ICoreExchange {
+	exchange.SetFetchResponseByUrl(responsesByUrl)
+	return exchange
+}
+
 // wsClientProvider is satisfied by every core exchange through the embedded
 // BaseExchange — used by the static ws tests to reach the ws client
 type wsClientProvider interface {

@@ -193,20 +193,20 @@ public partial class BaseTest
             IDictionary<string, object> dictObject = exchange.safeDict(inputDict, "dict");
             Assert(equals(dictObject, compareDict));
             IDictionary<string, object> listObject = exchange.safeDict(inputDict, "list");
-            Assert(isEqual(listObject, null));
+            Assert((listObject == null));
             Assert(isEqual(exchange.safeDict(inputList, 1), null));
             // safeDict2
             dictObject = exchange.safeDict2(inputDict, "a", "dict");
             Assert(equals(dictObject, compareDict));
             listObject = exchange.safeDict2(inputDict, "a", "list");
-            Assert(isEqual(listObject, null));
+            Assert((listObject == null));
             // @ts-expect-error
             Assert(isEqual(exchange.safeDict2(inputList, 2, 1), null));
             // safeDictN
             dictObject = exchange.safeDictN(inputDict, new List<object>() {"a", "b", "dict"});
             Assert(equals(dictObject, compareDict));
             listObject = exchange.safeDictN(inputDict, new List<object>() {"a", "b", "list"});
-            Assert(isEqual(listObject, null));
+            Assert((listObject == null));
             Assert(isEqual(exchange.safeDictN(inputList, new List<object>() {3, 2, 1}), null));
         }
         public void testSafeList()
@@ -321,28 +321,28 @@ public partial class BaseTest
             List<object> inputList = new List<object>() {"Hi", 2};
             // safeFloat
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloat(inputDict, "i"), parseFloat(1)));
+            Assert(isEqual(exchange.safeFloat(inputDict, "i"), 1.0));
             Assert(isEqual(exchange.safeFloat(inputDict, "f"), 0.123));
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloat(inputDict, "strNumber"), parseFloat(3)));
+            Assert(isEqual(exchange.safeFloat(inputDict, "strNumber"), 3.0));
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloat(inputList, 1), parseFloat(2)));
+            Assert(isEqual(exchange.safeFloat(inputList, 1), 2.0));
             // safeFloat2
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloat2(inputDict, "a", "i"), parseFloat(1)));
+            Assert(isEqual(exchange.safeFloat2(inputDict, "a", "i"), 1.0));
             Assert(isEqual(exchange.safeFloat2(inputDict, "a", "f"), 0.123));
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloat2(inputDict, "a", "strNumber"), parseFloat(3)));
+            Assert(isEqual(exchange.safeFloat2(inputDict, "a", "strNumber"), 3.0));
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloat2(inputList, 2, 1), parseFloat(2)));
+            Assert(isEqual(exchange.safeFloat2(inputList, 2, 1), 2.0));
             // safeFloatN
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "i"}), parseFloat(1)));
+            Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "i"}), 1.0));
             Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "f"}), 0.123));
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "strNumber"}), parseFloat(3)));
+            Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "strNumber"}), 3.0));
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloatN(inputList, new List<object>() {3, 2, 1}), parseFloat(2)));
+            Assert(isEqual(exchange.safeFloatN(inputList, new List<object>() {3, 2, 1}), 2.0));
             // safeFloat - negative paths (missing key, empty string, non-numeric string, undefined container)
             Assert(isEqual(exchange.safeFloat(inputDict, "nonexistent"), null), "safeFloat failed for missing key");
             Assert(isEqual(exchange.safeFloat(inputDict, "nonexistent", 5), 5), "safeFloat failed for missing key with default");
@@ -430,13 +430,13 @@ public partial class BaseTest
                 { "id", "order1" },
                 { "price", 50000 },
             });
-            Assert(isGreaterThan(getArrayLength(arrayCache), 0));
+            Assert(getArrayLength(arrayCache) > 0);
             // Test cache types - ArrayCacheByTimestamp
             var arrayCacheByTimestamp = new ArrayCacheByTimestamp(100);
             arrayCacheByTimestamp.append(new List<object>() {1000, 50000, 1, 2, 3});
             object arrayCacheByTimestampData = exchange.safeValue(arrayCacheByTimestamp, "Data");
-            object cacheByTimestampData = ((bool) isTrue(!isEqual(arrayCacheByTimestampData, null))) ? arrayCacheByTimestampData : arrayCacheByTimestamp;
-            Assert(isGreaterThan(getArrayLength(cacheByTimestampData), 0));
+            object cacheByTimestampData = (arrayCacheByTimestampData != null) ? arrayCacheByTimestampData : arrayCacheByTimestamp;
+            Assert(getArrayLength(cacheByTimestampData) > 0);
             // Test cache types - ArrayCacheBySymbolById
             var arrayCacheBySymbolById = new ArrayCacheBySymbolById(100);
             arrayCacheBySymbolById.append(new Dictionary<string, object>() {
@@ -449,8 +449,8 @@ public partial class BaseTest
             Assert(!isEqual(getValue(arrayCacheBySymbolByIdHashmap, "ETH/USDT"), null));
             Assert(!isEqual(getValue(getValue(arrayCacheBySymbolByIdHashmap, "ETH/USDT"), "order2"), null));
             object arrayCacheBySymbolByIdData = exchange.safeValue(arrayCacheBySymbolById, "Data");
-            object cacheBySymbolByIdData = ((bool) isTrue(!isEqual(arrayCacheBySymbolByIdData, null))) ? arrayCacheBySymbolByIdData : arrayCacheBySymbolById;
-            Assert(isGreaterThan(getArrayLength(cacheBySymbolByIdData), 0));
+            object cacheBySymbolByIdData = (arrayCacheBySymbolByIdData != null) ? arrayCacheBySymbolByIdData : arrayCacheBySymbolById;
+            Assert(getArrayLength(cacheBySymbolByIdData) > 0);
             // Test cache types - ArrayCacheBySymbolBySide
             var arrayCacheBySymbolBySide = new ArrayCacheBySymbolBySide();
             arrayCacheBySymbolBySide.append(new Dictionary<string, object>() {
@@ -462,8 +462,8 @@ public partial class BaseTest
             object arrayCacheBySymbolBySideHashmap = arrayCacheBySymbolBySide.hashmap;
             Assert(!isEqual(getValue(arrayCacheBySymbolBySideHashmap, "BNB/USDT"), null));
             object arrayCacheBySymbolBySideData = exchange.safeValue(arrayCacheBySymbolBySide, "Data");
-            object cacheBySymbolBySideData = ((bool) isTrue(!isEqual(arrayCacheBySymbolBySideData, null))) ? arrayCacheBySymbolBySideData : arrayCacheBySymbolBySide;
-            Assert(isGreaterThan(getArrayLength(cacheBySymbolBySideData), 0));
+            object cacheBySymbolBySideData = (arrayCacheBySymbolBySideData != null) ? arrayCacheBySymbolBySideData : arrayCacheBySymbolBySide;
+            Assert(getArrayLength(cacheBySymbolBySideData) > 0);
             // Test map[string]map[string]interface{} (ArrayCache.hashmap)
             // Use direct property access for object attributes
             object arrayCacheHashmapDirect = arrayCache.hashmap;
@@ -475,15 +475,15 @@ public partial class BaseTest
                 { "ETH/USDT", arrayCacheBySymbolById },
             };
             object stored = exchange.safeValue(tradesMap, "BTC/USDT");
-            Assert(!isEqual(stored, null));
+            Assert((stored != null));
             // Use direct property access for hashmap (object attribute)
             object retrievedArrayCacheHashmap = ((stored as ArrayCache).hashmap);
-            Assert(!isEqual(retrievedArrayCacheHashmap, null));
+            Assert((retrievedArrayCacheHashmap != null));
             object retrievedArrayCacheBySymbolById = exchange.safeValue(tradesMap, "ETH/USDT");
-            Assert(!isEqual(retrievedArrayCacheBySymbolById, null));
+            Assert((retrievedArrayCacheBySymbolById != null));
             // Use direct property access for hashmap (object attribute)
             object retrievedArrayCacheBySymbolByIdHashmap = ((retrievedArrayCacheBySymbolById as ArrayCacheBySymbolById).hashmap);
-            Assert(!isEqual(retrievedArrayCacheBySymbolByIdHashmap, null));
+            Assert((retrievedArrayCacheBySymbolByIdHashmap != null));
             Assert(isEqual(exchange.safeValue(tradesMap, "NONEXISTENT"), null));
             // Test map[string]*ArrayCacheByTimestamp (Ohlcvs inner structure)
             Dictionary<string, object> ohlcvInnerMap = new Dictionary<string, object>() {
@@ -491,10 +491,10 @@ public partial class BaseTest
                 { "5m", new ArrayCacheByTimestamp(100) },
             };
             object retrievedArrayCacheByTimestamp = exchange.safeValue(ohlcvInnerMap, "1m");
-            Assert(!isEqual(retrievedArrayCacheByTimestamp, null));
+            Assert((retrievedArrayCacheByTimestamp != null));
             // Use direct property access for object attributes
             object retrievedArrayCacheByTimestampHashmap = ((retrievedArrayCacheByTimestamp as ArrayCacheByTimestamp).hashmap);
-            Assert(!isEqual(retrievedArrayCacheByTimestampHashmap, null));
+            Assert((retrievedArrayCacheByTimestampHashmap != null));
             Assert(!isEqual(exchange.safeValue(ohlcvInnerMap, "5m"), null));
             Assert(isEqual(exchange.safeValue(ohlcvInnerMap, "NONEXISTENT"), null));
             // Test map[string]*ArrayCacheBySymbolBySide
@@ -502,9 +502,9 @@ public partial class BaseTest
                 { "BTC/USDT", arrayCacheBySymbolBySide },
             };
             object retrievedArrayCacheBySymbolBySide = exchange.safeValue(cacheBySideMap, "BTC/USDT");
-            Assert(!isEqual(retrievedArrayCacheBySymbolBySide, null));
+            Assert((retrievedArrayCacheBySymbolBySide != null));
             object retrievedArrayCacheBySymbolBySideHashmap = ((retrievedArrayCacheBySymbolBySide as ArrayCacheBySymbolBySide).hashmap);
-            Assert(!isEqual(retrievedArrayCacheBySymbolBySideHashmap, null));
+            Assert((retrievedArrayCacheBySymbolBySideHashmap != null));
             Assert(isEqual(exchange.safeValue(cacheBySideMap, "NONEXISTENT"), null));
         }
         public void testSafeMethods()
