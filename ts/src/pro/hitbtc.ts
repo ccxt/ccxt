@@ -356,7 +356,7 @@ export default class hitbtc extends hitbtcRest {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols);
-        const options = this.safeDict (this.options, 'watchTicker');
+        const options = this.safeDict (this.options, 'watchTickers');
         const defaultMethod = this.safeString (options, 'method', 'ticker/{speed}/batch');
         const method = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
         const speedValue = this.safeString (params, 'speed', '1s'); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
