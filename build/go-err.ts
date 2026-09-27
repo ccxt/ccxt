@@ -346,7 +346,12 @@ export function goErrValuePass (content: string, stats?: GoErrStats): string {
         cursor = end;
         fnRe.lastIndex = end;
     }
-    return goErrRetypeChans (out + content.substring (cursor), q);
+    const res = goErrRetypeChans (out + content.substring (cursor), q);
+    // non-ccxt packages that newly reference ccxt.AsyncResult need the import
+    if (q !== '' && res.indexOf ('ccxt.') >= 0 && !/"github\.com\/ccxt\/ccxt\/go\/v4"/.test (res)) {
+        return res.replace (/^(package \w+\n)/m, '$1\nimport "github.com/ccxt/ccxt/go/v4"\n');
+    }
+    return res;
 }
 
 export function goErrSelfTest (): string[] {
