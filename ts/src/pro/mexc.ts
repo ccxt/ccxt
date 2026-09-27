@@ -521,7 +521,7 @@ export default class mexc extends mexcRest {
     async watchSpotPrivate (channel: string, messageHash: string, params: Dict = {}) {
         this.checkRequiredCredentials ();
         const listenKey = await this.authenticate (channel);
-        const url = this.urls['api']['ws']['spot'] + '?listenKey=' + listenKey;
+        const url = this.urls['api']['ws']['spot'] + '?' + 'listenKey=' + listenKey; // split so the php transpiler does not turn it into '?$listenKey='
         const request: Dict = {
             'method': 'SUBSCRIPTION',
             'params': [ channel ],
@@ -2070,7 +2070,7 @@ export default class mexc extends mexcRest {
             const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, listenKey, params);
         } catch (error) {
-            const url = this.urls['api']['ws']['spot'] + '?listenKey=' + listenKey;
+            const url = this.urls['api']['ws']['spot'] + '?' + 'listenKey=' + listenKey; // split so the php transpiler does not turn it into '?$listenKey='
             const client = this.client (url);
             this.options['listenKey'] = undefined;
             client.reject (error);
