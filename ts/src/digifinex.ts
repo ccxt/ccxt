@@ -2077,7 +2077,7 @@ export default class digifinex extends Exchange {
      * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol, required for swap markets
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the request body is an array)
      * @param {string} [params.type] 'spot', 'margin' or 'swap', defaults to the type of the symbol's market or options.defaultType
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2095,6 +2095,10 @@ export default class digifinex extends Exchange {
             if (market === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument for swap markets');
             }
+            const numIds = ids.length;
+            if (numIds > 20) {
+                throw new BadRequest (this.id + ' cancelOrders() accepts up to 20 ids for swap markets');
+            }
             const marketId = market['id'];
             const ordersRequests: Dict[] = [];
             for (let i = 0; i < ids.length; i++) {
@@ -2104,7 +2108,7 @@ export default class digifinex extends Exchange {
                     'order_id': orderId,
                 });
             }
-            const swapResponse = await this.privateSwapPostTradeBatchCancelOrder (ordersRequests);
+            const swapResponse = await this.privateSwapPostTradeBatchCancelOrder (ordersRequests); // don't extend with params, otherwise the array body is turned into an object
             //
             //     {
             //         "code": 0,
@@ -2114,15 +2118,18 @@ export default class digifinex extends Exchange {
             //         ]
             //     }
             //
+            // ids that were not canceled are absent from data
             const data = this.safeList (swapResponse, 'data', []);
             const result: Order[] = [];
-            for (let i = 0; i < data.length; i++) {
-                const canceledId = data[i];
+            for (let i = 0; i < ids.length; i++) {
+                const orderId = ids[i];
+                const isCanceled = this.inArray (orderId, data);
+                const status = (isCanceled) ? 'canceled' : 'failed';
                 result.push (this.safeOrder ({
-                    'info': canceledId,
-                    'id': canceledId,
+                    'info': orderId,
+                    'id': orderId,
                     'symbol': market['symbol'],
-                    'status': 'canceled',
+                    'status': status,
                 }));
             }
             return result;
@@ -2248,20 +2255,17 @@ export default class digifinex extends Exchange {
                     type = 'market';
                 }
             }
+            // 1 open long, 2 open short, 3 close long, 4 close short
             if (side === '1') {
-                // side = 'open long';
                 side = 'buy';
                 reduceOnly = false;
             } else if (side === '2') {
-                // side = 'open short';
                 side = 'sell';
                 reduceOnly = false;
             } else if (side === '3') {
-                // side = 'close long';
                 side = 'sell';
                 reduceOnly = true;
             } else if (side === '4') {
-                // side = 'close short';
                 side = 'buy';
                 reduceOnly = true;
             }
