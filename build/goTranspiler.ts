@@ -2680,6 +2680,7 @@ function formatGoSource (filePath: string, content: string): string {
     content = goNativeArithmetic (content);
     content = goNativeStringAdds (content);
     content = goChanCarrierPass (content);
+    content = g10kLenNative (content);
     return goGofmtSplicedText (content);
 }
 
@@ -8533,7 +8534,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ());
+        const problems = g10kArithSelfTest ().concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -10964,5 +10965,95 @@ function g10kStrSelfTest (): string[] {
     ok (f ('\tvar t *string = this.SafeString(m, "k", "")\n\treturn PadEnd(t, 6, "0")\n').indexOf ('(*t + strings.Repeat("0", max(6-len(*t), 0)))[:6]') >= 0, 'PadEnd goes native');
     ok (f ('\tvar t *string = this.SafeString(m, "k", "")\n\treturn Split(t, ".")\n').indexOf ('import "strings"') >= 0, 'import added');
     ok (g10kStrNativeStringHelpers ('x/exchange_foo.go', hdr + 'func f() any {\n\treturn Trim(ks[0])\n}\n').indexOf ('Trim(ks[0])') >= 0, 'base file untouched');
+    return problems;
+}
+
+// ===== G10K-len: native len() on block-scoped typed operands =====
+// A GetArrayLength/GetLength operand whose nearest in-scope declaration is a slice/string (or a
+// never-nil *string) reads natively; any rebinding form (:=, range, closure param, &x) keeps the helper.
+function g10kLenDeclType (lines: string[], at: number, name: string): string | undefined {
+    const indent = (l: string) => (/^\t*/.exec (l) as RegExpExecArray)[0].length;
+    let min = indent (lines[at]);
+    const decl = new RegExp ('^\\t*var ' + name + ' ([\\w*.\\[\\]]+)(?: =|$)');
+    for (let k = at - 1; k >= 0; k--) {
+        const l = lines[k];
+        if (l.trim () === '') {
+            continue;
+        }
+        if (/^func /.test (l)) {
+            const p = l.match (new RegExp ('[(,]\\s*' + name + ' ([\\w*.\\[\\]]+)\\s*[,)]'));
+            return p ? p[1] : undefined;
+        }
+        const i = indent (l);
+        if (i < min) {
+            min = i;
+        }
+        const d = (i <= min) ? decl.exec (l) : null;
+        if (d) {
+            return d[1];
+        }
+    }
+    return undefined;
+}
+
+function g10kLenFunc (fn: string): string {
+    const nameRe = '(\\w+)';
+    const call = new RegExp ('(?<![\\w.])(?:ccxt\\.)?(GetArrayLength|GetLength)\\((?:\\(' + nameRe + '\\)|' + nameRe + ')\\)', 'g');
+    if (!/(?:GetArrayLength|GetLength)\(/.test (fn)) {
+        return fn;
+    }
+    const lines = fn.split ('\n');
+    const rebinds = (n: string) => new RegExp ('(?<![.\\w])' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|&' + n + '\\b|\\bfunc\\b[^{\\n]*[(,]\\s*' + n + ' ').test (fn.substring (fn.indexOf ('\n', 1) + 1));
+    const slices = [ '[]any', '[]string', '[]int64', '[]float64', '[]bool', '[]int', '[][]any', '[]map[string]any', 'string' ];
+    for (let k = 0; k < lines.length; k++) {
+        lines[k] = lines[k].replace (call, ((m: string, h: string, xp: string, xb: string, at: number, line: string) => {
+            const x = xp || xb;
+            if (((line.substring (0, at).match (/(?<!\\)"/g) || []).length % 2) === 1 || /^\s*\/\//.test (line) || rebinds (x)) {
+                return m;
+            }
+            const t = g10kLenDeclType (lines, k, x);
+            if (t === undefined) {
+                return m;
+            }
+            if (h === 'GetArrayLength' && slices.includes (t)) {
+                return 'len(' + x + ')';
+            }
+            if (h === 'GetLength' && t !== 'string' && t !== '*string' && !t.startsWith ('[]')) {
+                return m;
+            }
+            if (h === 'GetLength' && (slices.includes (t))) {
+                return 'len(' + x + ')';
+            }
+            if (t !== '*string') {
+                return m;
+            }
+            const guard = new RegExp ('\\(' + x + ' != nil\\) && \\($|\\(' + x + ' == nil\\) \\|\\| \\($').test (line.substring (0, at));
+            return (guard || goG14NonNilStringPtr (fn, x)) ? 'len(*' + x + ')' : m;
+        }) as any);
+    }
+    // ClientInterface.GetUrl() is declared `string`; the assertion panics the same either way
+    return lines.join ('\n').replace (/(?<![\w.])(?:ccxt\.)?GetLength\((\w+\.\(ccxt\.ClientInterface\)\.GetUrl\(\))\)/g, 'len($1)');
+}
+
+function g10kLenNative (content: string): string {
+    if (!/(?:GetArrayLength|GetLength)\(/.test (content)) {
+        return content;
+    }
+    return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => g10kLenFunc (fn)) as any);
+}
+
+function g10kLenSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, m: string) => { if (!c) { problems.push ('G10K-len: ' + m); } };
+    const f = (sig: string, body: string) => g10kLenNative ('\nfunc (this *X) M(' + sig + ') any {\n' + body + '\treturn nil\n}\n');
+    ok (f ('', '\tvar c *string = this.SafeString(o, "k")\n\tif (c == nil) || (ccxt.GetLength(c) == 0) {\n\t}\n').includes ('(c == nil) || (len(*c) == 0)'), 'nil-or guard');
+    ok (f ('', '\tvar c *string = this.SafeString(o, "k")\n\tif (c != nil) || (GetLength(c) == 0) {\n\t}\n').includes ('GetLength(c)'), 'wrong guard keeps helper');
+    ok (f ('', '\tvar e *string = this.SafeString(o, "m", "")\n\tif GetLength(e) > 0 {\n\t}\n').includes ('len(*e) > 0'), 'defaulted SafeString');
+    ok (f ('', '\tvar e *string = this.SafeString(o, "m")\n\tif GetLength(e) > 0 {\n\t}\n').includes ('GetLength(e)'), 'nullable keeps helper');
+    ok (f ('', '\tif a {\n\t\tvar d []any = SafeListTyped(m, "d")\n\t\t_ = d\n\t} else {\n\t\tvar d any = this.SafeValue(m, "d")\n\t\tn := GetArrayLength(d)\n\t}\n').includes ('GetArrayLength(d)'), 'sibling block any keeps helper');
+    ok (f ('', '\tif a {\n\t\tvar d []any = SafeListTyped(m, "d")\n\t\tn := GetArrayLength(d)\n\t}\n').includes ('n := len(d)'), 'block []any');
+    ok (f ('s []string', '\tfor _, s := range t {\n\t\tn := GetArrayLength(s)\n\t}\n').includes ('GetArrayLength(s)'), 'range rebind keeps helper');
+    ok (f ('', '\tvar u int = ccxt.GetLength(client.(ccxt.ClientInterface).GetUrl())\n').includes ('len(client.(ccxt.ClientInterface).GetUrl())'), 'GetUrl string');
+    ok (f ('', '\tvar s string = "GetLength(x)"\n').includes ('"GetLength(x)"'), 'string literal untouched');
     return problems;
 }
