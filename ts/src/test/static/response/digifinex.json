@@ -651,6 +651,93 @@
                 }
             }
         ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder - swap, canceled open long order",
+                "method": "fetchOrder",
+                "input": [
+                    "2104194414527123456",
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "data": {
+                        "order_id": "2104194414527123456",
+                        "instrument_id": "OETHUSDTPERP",
+                        "margin_mode": "crossed",
+                        "contract_val": "0.001",
+                        "type": 1,
+                        "order_type": 0,
+                        "price": "1600",
+                        "size": "1",
+                        "filled_qty": "0",
+                        "price_avg": "0",
+                        "fee": "0",
+                        "state": -1,
+                        "leverage": "20",
+                        "turnover": "0",
+                        "close_profit": "0",
+                        "has_stop": 0,
+                        "insert_time": 1790514018155,
+                        "time_stamp": 1790514031891
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "order_id": "2104194414527123456",
+                        "instrument_id": "OETHUSDTPERP",
+                        "margin_mode": "crossed",
+                        "contract_val": "0.001",
+                        "type": 1,
+                        "order_type": 0,
+                        "price": "1600",
+                        "size": "1",
+                        "filled_qty": "0",
+                        "price_avg": "0",
+                        "fee": "0",
+                        "state": -1,
+                        "leverage": "20",
+                        "turnover": "0",
+                        "close_profit": "0",
+                        "has_stop": 0,
+                        "insert_time": 1790514018155,
+                        "time_stamp": 1790514031891
+                    },
+                    "id": "2104194414527123456",
+                    "clientOrderId": null,
+                    "timestamp": 1790514018155,
+                    "datetime": "2026-09-27T13:00:18.155Z",
+                    "lastTradeTimestamp": 1790514031891,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 1600,
+                    "triggerPrice": null,
+                    "reduceOnly": false,
+                    "amount": 1,
+                    "filled": 0,
+                    "remaining": 1,
+                    "cost": 0,
+                    "average": null,
+                    "status": "canceled",
+                    "fee": {
+                        "cost": 0
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "cost": 0
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "cancel order - swap",

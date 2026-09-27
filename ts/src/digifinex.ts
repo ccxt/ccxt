@@ -2108,6 +2108,7 @@ export default class digifinex extends Exchange {
 
     parseOrderStatus (status: Str) {
         const statuses: Dict = {
+            '-1': 'canceled', // swap
             '0': 'open',
             '1': 'open', // partially filled
             '2': 'closed',
@@ -2185,6 +2186,7 @@ export default class digifinex extends Exchange {
         let lastTradeTimestamp: Int = undefined;
         let timeInForce: Str = undefined;
         let type: Str = undefined;
+        let reduceOnly: Bool = undefined;
         let side = this.safeString (order, 'type');
         const marketId = this.safeString2 (order, 'symbol', 'instrument_id');
         const symbol = this.safeSymbol (marketId, market);
@@ -2206,13 +2208,21 @@ export default class digifinex extends Exchange {
                 }
             }
             if (side === '1') {
-                side = 'open long';
+                // side = 'open long';
+                side = 'buy';
+                reduceOnly = false;
             } else if (side === '2') {
-                side = 'open short';
+                // side = 'open short';
+                side = 'sell';
+                reduceOnly = false;
             } else if (side === '3') {
-                side = 'close long';
+                // side = 'close long';
+                side = 'sell';
+                reduceOnly = true;
             } else if (side === '4') {
-                side = 'close short';
+                // side = 'close short';
+                side = 'buy';
+                reduceOnly = true;
             }
             timestamp = this.safeInteger (order, 'insert_time');
             lastTradeTimestamp = this.safeInteger (order, 'time_stamp');
@@ -2244,6 +2254,7 @@ export default class digifinex extends Exchange {
             'side': side,
             'price': this.safeNumber (order, 'price'),
             'triggerPrice': undefined,
+            'reduceOnly': reduceOnly,
             'amount': this.safeNumber2 (order, 'amount', 'size'),
             'filled': this.safeNumber2 (order, 'executed_amount', 'filled_qty'),
             'remaining': undefined,
