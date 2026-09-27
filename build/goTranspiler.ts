@@ -2672,6 +2672,7 @@ function formatGoSource (filePath: string, content: string): string {
     content = nativeTupleHolderReads (content);
     content = nativeAsyncTupleHolderReads (content);
     content = nativeTypedContainerAccess (g10kAddElemRetypeMapLocals (content));
+    content = g10kInopClientMaps (content);
     content = h2kG13NativeKeysAndRemove (content);
     content = g10kTypepredIsArray (content);
     content = nativeDerefArgMapReads (content);
@@ -8535,7 +8536,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ());
+        const problems = g10kArithSelfTest ().concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -11127,5 +11128,87 @@ function g10kTypepredSelfTest (): string[] {
     ok (f ('\tvar a any = this.SafeList(r, "x")\n\tif (a != nil) && IsArray(a) {\n\t}\n').includes ('IsArray(a)'), 'guarded keeps');
     ok (f ('\tvar d any = this.SafeDict(r, "x", map[string]any{})\n\tif ccxt.IsArray(d) {\n\t}\n').includes ('if false {'), 'SafeDict');
     ok (f ('\tvar d any = this.SafeDict(r, "x", r)\n\tif IsArray(d) {\n\t}\n').includes ('IsArray(d)'), 'SafeDict any default keeps');
+    return problems;
+}
+
+// ===== G10K-inop: InOp on a client's map[string]any accessor -> `if _, ok := m[k]; ok {` =====
+// GetFutures()/GetRejections() are statically map[string]any: a nil map reads ok=false like the helper.
+// Only a lone InOp in an if condition with a string key; any other shape keeps the helper.
+function g10kInopClientMaps (content: string): string {
+    if (!/InOp\(client\.\((?:ccxt\.)?ClientInterface\)\.Get(?:Futures|Rejections)\(\)/.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    let start = -1;
+    let maskedFunc = '';
+    let offsets: number[] = [];
+    for (let k = 0; k < lines.length; k++) {
+        if (lines[k].startsWith ('func ')) {
+            start = k;
+            let end = k;
+            while ((end < lines.length) && (lines[end] !== '}')) {
+                end++;
+            }
+            maskedFunc = masked.slice (k, end + 1).join ('\n');
+            offsets = [];
+            let o = 0;
+            for (let j = k; (j <= end) && (j < lines.length); j++) {
+                offsets.push (o);
+                o += masked[j].length + 1;
+            }
+            continue;
+        }
+        if (lines[k] === '}') {
+            start = -1;
+            continue;
+        }
+        if ((start < 0) || /\bok\b/.test (maskedFunc)) {
+            continue;
+        }
+        const cond = /^(\s*(?:\} else )?if )([^;{}]*) \{$/.exec (masked[k]);
+        const calls = [ ...masked[k].matchAll (/(?<![\w.])(?:ccxt\.)?InOp\(/g) ];
+        if ((cond === null) || (calls.length !== 1)) {
+            continue;
+        }
+        const at = calls[0].index;
+        const call = /^(?:ccxt\.)?InOp\((client\.\((?:ccxt\.)?ClientInterface\)\.Get(?:Futures|Rejections)\(\)), (\w+|"[^"\\\n]*")\)/.exec (lines[k].substring (at));
+        if ((call === null) || (goMapWriteGroupEnd (masked[k], at + call[0].indexOf ('(')) !== at + call[0].length)) {
+            continue;
+        }
+        const [ all, recv, key ] = call;
+        if (!key.startsWith ('"')) {
+            const decl = goAccessSingleDeclaration (maskedFunc, lines[start], key);
+            if ((decl === undefined) || (decl.type !== 'string') || ((decl.index !== undefined) && (decl.index >= offsets[k - start]))) {
+                continue;
+            }
+        }
+        let rest = lines[k].substring (cond[1].length, at) + 'ok' + lines[k].substring (at + all.length);
+        rest = rest.replace (/(^|[^\w)\]])\(ok\)/g, '$1ok');
+        lines[k] = cond[1] + '_, ok := ' + recv + '[' + key + ']; ' + rest;
+        masked[k] = lines[k];
+    }
+    return lines.join ('\n');
+}
+
+function g10kInopSelfTest (): string[] {
+    const problems: string[] = [];
+    const f = (body: string) => g10kInopClientMaps ('func (this *X) H(client any, p any) {\n' + body + '}\n');
+    const hit = f ('\tvar h string = \"a\"\n\tif !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), h)) {\n\t}\n');
+    if (!hit.includes ('\tif _, ok := client.(ccxt.ClientInterface).GetFutures()[h]; !ok {')) {
+        problems.push ('g10k-inop: string key not converted: ' + hit);
+    }
+    if (!f ('\tif ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), p) {\n\t}\n').includes ('InOp(')) {
+        problems.push ('g10k-inop: any key must keep InOp');
+    }
+    if (!f ('\tif ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), \"a\") {\n\t}\n').includes ('InOp(')) {
+        problems.push ('g10k-inop: sync.Map accessor must keep InOp');
+    }
+    if (!f ('\tvar h string = \"a\"\n\tif ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), h) || ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), \"b\") {\n\t}\n').includes ('InOp(')) {
+        problems.push ('g10k-inop: two calls must keep InOp');
+    }
     return problems;
 }
