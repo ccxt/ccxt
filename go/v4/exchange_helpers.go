@@ -2381,11 +2381,46 @@ func IsInstance(value any, typ any) bool {
 		}
 	}
 
+	if ccxtErr, ok := value.(*Error); ok && ccxtErr != nil {
+		return errorTypeIs(ccxtErr.Type, errorFuncName(typ))
+	}
+
 	valueType := reflect.TypeOf(value)
 	typeType := reflect.TypeOf(typ)
 
 	// Compare the two types
 	return valueType == typeType
+}
+
+// errorFuncName is the last segment of an error constructor's name ("" for non-funcs).
+func errorFuncName(typ any) string {
+	value := reflect.ValueOf(typ)
+	if value.Kind() != reflect.Func {
+		return ""
+	}
+	parts := strings.Split(runtime.FuncForPC(value.Pointer()).Name(), ".")
+	return parts[len(parts)-1]
+}
+
+// errorTypeIs reports whether typ is name or descends from it via ErrorParents.
+func errorTypeIs(typ ErrorType, name string) bool {
+	if name == "" {
+		return false
+	}
+	if name == "BaseError" {
+		return true
+	}
+	for current, seen := typ, 0; seen <= len(ErrorParents); seen++ {
+		if string(current) == name {
+			return true
+		}
+		parent, ok := ErrorParents[current]
+		if !ok {
+			return false
+		}
+		current = parent
+	}
+	return false
 }
 
 func Slice(str2 any, idx1 any, idx2 any) string {
@@ -2427,93 +2462,93 @@ func Slice(str2 any, idx1 any, idx2 any) string {
 
 type Task func() any
 
-func PromiseAll(tasksInterface any) <-chan any {
+func PromiseAll(tasksInterface any) <-chan AsyncResult[any] {
 	return promiseAll(tasksInterface)
 }
 
-func promiseAll(tasksInterface any) <-chan any {
-	ch := make(chan any)
-	panicChan := make(chan any, 1) // Separate channel for panics
-	var once sync.Once             // Ensure only one message is sent to ch
+// promiseAll awaits every task; the first failing task by index fails the whole call.
+func promiseAll(tasksInterface any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any])
 
 	go func() {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
-		// Ensure tasksInterface is a slice of channels (<-chan any)
 		tasks, ok := tasksInterface.([]any)
 		if !ok {
-			ch <- nil // Return nil if the input is not a slice of interfaces
+			ch <- AsyncResult[any]{} // not a slice of tasks: nil, as before
 			return
 		}
 
 		results := make([]any, len(tasks))
+		failures := make([]error, len(tasks))
 		var wg sync.WaitGroup
-		var resultsLock sync.Mutex
-
 		wg.Add(len(tasks))
 
 		for i, task := range tasks {
 			go func(i int, task any) {
 				defer wg.Done()
-
-				// Capture panic and send to panicChan directly
 				defer func() {
-					if r := recover(); r != nil {
-						if r != "break" {
-							once.Do(func() { ch <- "panic:" + ToString(r) })
-						}
+					if r := recover(); r != nil && r != "break" {
+						failures[i] = RecoveredError(r)
 					}
 				}()
-
-				// Await the task. A task is normally a `<-chan any` -- either a core
-				// called directly, or `Spawn(...).Await()` for a call that was started
-				// concurrently. A bare `*Future` (a Spawn result that was not awaited)
-				// is accepted too: without this case it fell into the default below and
-				// was silently recorded as nil, losing the value with no error.
-				var result any
-				switch typedTask := task.(type) {
-				case <-chan any:
-					result = <-typedTask
-				case chan any:
-					result = <-typedTask
-				case *Future:
-					result = <-typedTask.Await()
-				default:
-					// a typed implicit-API channel yields its raw response (EndpointResult.Boxed)
-					result = receiveBoxedEndpoint(task)
-				}
-				resultsLock.Lock()
-				results[i] = result
-				resultsLock.Unlock()
+				results[i], failures[i] = awaitOutcome(task)
 			}(i, task)
 		}
 
-		// Wait for all tasks to complete
 		wg.Wait()
-		close(panicChan)
-
-		// If no panics occurred, send the results
-		once.Do(func() { ch <- results })
+		for _, err := range failures {
+			if err != nil {
+				ch <- AsyncResult[any]{Err: err}
+				return
+			}
+		}
+		ch <- AsyncResult[any]{Value: results}
 	}()
 
 	return ch
 }
 
-var boxedEndpointType = reflect.TypeOf((*interface{ Boxed() any })(nil)).Elem()
+// AsyncOutcome is one async result as reflective consumers see it: its boxed value and its failure.
+type AsyncOutcome interface {
+	Boxed() any
+	Failure() error
+}
 
-// receiveBoxedEndpoint receives one EndpointResult[T] from a typed endpoint channel and returns its Raw;
-// anything else is not awaitable and reads nil, as before.
-func receiveBoxedEndpoint(task any) any {
+var asyncOutcomeType = reflect.TypeOf((*AsyncOutcome)(nil)).Elem()
+
+// awaitOutcome receives one result from an async core channel or a *Future; anything else reads nil.
+func awaitOutcome(task any) (any, error) {
+	switch typedTask := task.(type) {
+	case <-chan AsyncResult[any]:
+		r := <-typedTask
+		return r.Value, r.Err
+	case chan AsyncResult[any]:
+		r := <-typedTask
+		return r.Value, r.Err
+	case *Future:
+		r := <-typedTask.Await()
+		return r.Value, r.Err
+	}
+	if outcome, ok := receiveOutcome(task); ok && outcome != nil {
+		return outcome.Boxed(), outcome.Failure()
+	}
+	return nil, nil
+}
+
+// receiveOutcome receives once from a channel whose element implements AsyncOutcome;
+// ok is false when task is not such a channel, outcome is nil when it was closed empty.
+func receiveOutcome(task any) (AsyncOutcome, bool) {
 	rv := reflect.ValueOf(task)
-	if !rv.IsValid() || rv.Kind() != reflect.Chan || rv.Type().ChanDir()&reflect.RecvDir == 0 || !rv.Type().Elem().Implements(boxedEndpointType) {
-		return nil
+	if !rv.IsValid() || rv.Kind() != reflect.Chan || rv.IsNil() || rv.Type().ChanDir()&reflect.RecvDir == 0 || !rv.Type().Elem().Implements(asyncOutcomeType) {
+		return nil, false
 	}
-	v, ok := rv.Recv()
-	if !ok {
-		return nil
+	v, received := rv.Recv()
+	if !received {
+		return nil, true
 	}
-	return v.Interface().(interface{ Boxed() any }).Boxed()
+	return v.Interface().(AsyncOutcome), true
 }
 
 func ParseInt(number any) int64 {
@@ -2950,7 +2985,7 @@ func setDefaults(p any) {
 // name is the typed sync method. Mirrors GO_ASYNC_SUFFIX in build/goTranspiler.ts.
 const asyncMethodSuffix = "Async"
 
-func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...any) <-chan any {
+func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...any) <-chan AsyncResult[any] {
 	name := Capitalize(name2)
 	// baseValue := reflect.ValueOf(itf)
 	// baseType := baseValue.Type()
@@ -2958,13 +2993,13 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 	// 	this.cacheLoaded = true
 	// 	this.WarmUpCache()
 	// }
-	ch := make(chan any)
+	ch := make(chan AsyncResult[any])
 	go func() {
 
 		// Error handling
 		defer func() {
 			if r := recover(); r != nil {
-				ch <- fmt.Sprintf("panic:%v:%v:%v", getCallerName(), name2, r)
+				ch <- AsyncResult[any]{Err: RecoveredError(r)}
 				close(ch)
 			}
 		}()
@@ -3047,18 +3082,19 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 						break // result channel is closed
 					}
 					out := val.Interface()
-					if boxed, isBoxed := out.(interface{ Boxed() any }); isBoxed {
-						out = boxed.Boxed()
+					if outcome, isOutcome := out.(AsyncOutcome); isOutcome {
+						ch <- AsyncResult[any]{Value: outcome.Boxed(), Err: outcome.Failure()}
+					} else {
+						ch <- AsyncResult[any]{Value: out}
 					}
-					ch <- out // pass the value to the output channel
 				}
 				close(ch) // close the output channel after all values are received
 			}()
 			return
 		} else if len(res) > 0 {
-			ch <- res[0].Interface()
+			ch <- AsyncResult[any]{Value: res[0].Interface()}
 		} else {
-			ch <- nil
+			ch <- AsyncResult[any]{}
 		}
 
 		// ch <- nil // nught be causing a mem leak
@@ -3067,58 +3103,54 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 	return ch
 }
 
-// PanicOnError re-panics when msg carries a failure, and otherwise returns msg so a typed
-// receive can convert it in the same frame.
+// PanicOnError re-panics when msg carries a failure, and otherwise returns msg (an AsyncOutcome
+// returns its boxed value) so a typed receive can convert it in the same frame.
 func PanicOnError(msg any) any {
-	return panicOnErrorFrom(msg, getCallerName())
-}
-
-func panicOnErrorFrom(msg any, caller string) any {
-	checked := msg
-	if boxed, ok := msg.(interface{ Boxed() any }); ok {
-		// typed endpoint results are checked on their untyped payload
-		checked = boxed.Boxed()
+	if outcome, ok := msg.(AsyncOutcome); ok {
+		if err := outcome.Failure(); err != nil {
+			panic(err)
+		}
+		return outcome.Boxed()
 	}
-	switch v := checked.(type) {
-	case string:
-		if strings.HasPrefix(v, "panic:") {
-			stack := debug.Stack()[:300]
-			panicMsg := fmt.Sprintf("panic:%v:%v\nStack trace:\n%s", caller, v, stack)
-			panic(panicMsg)
-		}
-	case []any:
-		for _, item := range v {
-			if str, ok := item.(string); ok && strings.HasPrefix(str, "panic:") {
-				stack := debug.Stack()[:300]
-				panicMsg := fmt.Sprintf("%s\nStack trace:\n%s", str, stack)
-				panic(panicMsg)
-			} else if nestedSlice, ok := item.([]any); ok {
-				// Handle nested []any cases recursively
-				PanicOnError(nestedSlice)
-			}
-		}
-	case *Error:
-		stack := debug.Stack()[:300]
-		panicMsg := fmt.Sprintf("ccxt.Error:%v:%v\nStack trace:\n%s", caller, v, stack)
-		panic(panicMsg)
-	case error:
-		stack := debug.Stack()[:300]
-		panicMsg := fmt.Sprintf("error:%v:%v\nStack trace:\n%s", caller, v, stack)
-		panic(panicMsg)
-	default:
-		return msg
+	if err := failureOf(msg); err != nil {
+		panic(err)
 	}
 	return msg
 }
 
-// PanicMessage renders a recovered value into the same "panic:<msg>\nStack trace:\n<stack>"
-// string that ReturnPanicError pushes into an async core's channel, so that IsError,
-// CreateReturnError and PanicOnError recognise it downstream.
-//
-// It exists for recover sites that own a *Future instead of a `chan any` (Spawn), where the
-// blocking `ch <- panicMsg` of ReturnPanicError is not applicable. ReturnPanicError is left
-// byte-for-byte untouched on purpose: legacy unbuffered cores rely on that send blocking.
-// Keep the two formatters in sync.
+// failureOf is the error msg carries: an error value, a legacy "panic:" string, or the
+// first such element (index order, nested []any included) of a []any; nil otherwise.
+func failureOf(msg any) error {
+	switch v := msg.(type) {
+	case error:
+		return v
+	case string:
+		if strings.HasPrefix(v, "panic:") {
+			return RecoveredError(v)
+		}
+	case []any:
+		for _, item := range v {
+			if err := failureOf(item); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// RecoveredError turns a recovered panic value into the error an async result carries:
+// errors pass through unchanged, legacy "panic:" strings are parsed, anything else keeps its message.
+func RecoveredError(r any) error {
+	if err, ok := r.(error); ok {
+		return err
+	}
+	if s, ok := r.(string); ok && IsError(s) {
+		return CreateReturnError(s)
+	}
+	return NewError("Exception", ToString(r), string(debug.Stack()))
+}
+
+// PanicMessage renders a recovered value into the legacy "panic:<msg>\nStack trace:\n<stack>" string.
 func PanicMessage(r any) string {
 	stack := debug.Stack()
 	strErr := ToString(r)
@@ -3128,36 +3160,39 @@ func PanicMessage(r any) string {
 	return fmt.Sprintf("%s\nStack trace:\n%s", strErr, stack)
 }
 
-func ReturnPanicError(ch chan any) {
+// ReturnPanicError is deferred by async cores: a panic becomes {Err}, "break" sends nothing.
+func ReturnPanicError(ch chan AsyncResult[any]) {
 	// https://stackoverflow.com/questions/72651899/why-golang-can-not-recover-from-a-panic-in-a-function-called-by-the-defer-functi
 	if r := recover(); r != nil {
 		if r != "break" {
-			stack := debug.Stack()
-			strErr := ToString(r)
-			var panicMsg string
-			if !strings.HasPrefix(strErr, "panic:") {
-				panicMsg = fmt.Sprintf("panic:%s\nStack trace:\n%s", strErr, stack)
-			} else {
-				panicMsg = fmt.Sprintf("%s\nStack trace:\n%s", strErr, stack)
-			}
-			ch <- panicMsg
+			ch <- AsyncResult[any]{Err: RecoveredError(r)}
 		}
 	}
 }
 
-// AsyncResult is one received async-core value converted to T; Err is set (and Value zero) on failure.
+// AsyncResult is one async-core outcome: Value on success, Err (Value zero) on failure.
 type AsyncResult[T any] struct {
 	Value T
 	Err   error
 }
 
+// Boxed returns the value for reflective and forwarding consumers.
+func (r AsyncResult[T]) Boxed() any {
+	return r.Value
+}
+
+// Failure returns the carried error, nil on success.
+func (r AsyncResult[T]) Failure() error {
+	return r.Err
+}
+
 // AwaitResult receives once from an async core; on success conv builds the typed Value.
-func AwaitResult[T any](conv func(any) T, ch <-chan any) AsyncResult[T] {
-	v := <-ch
-	if IsError(v) {
-		return AsyncResult[T]{Err: CreateReturnError(v)}
+func AwaitResult[T any](conv func(any) T, ch <-chan AsyncResult[any]) AsyncResult[T] {
+	r := <-ch
+	if r.Err != nil {
+		return AsyncResult[T]{Err: r.Err}
 	}
-	return AsyncResult[T]{Value: conv(v)}
+	return AsyncResult[T]{Value: conv(r.Value)}
 }
 
 // AssertAs is the checked type assertion as a converter value.
@@ -3171,10 +3206,11 @@ func Untyped(v any) any {
 }
 
 // EndpointResult carries one implicit-API response: Raw is exactly what Fetch2Async
-// delivered (the response or a "panic:..." string), Value its typed view (zero on shape mismatch).
+// delivered, Value its typed view (zero on shape mismatch), Err the failure.
 type EndpointResult[T any] struct {
 	Value T
 	Raw   any
+	Err   error
 }
 
 // Boxed returns the untyped response for reflective and forwarding consumers.
@@ -3182,17 +3218,21 @@ func (r EndpointResult[T]) Boxed() any {
 	return r.Raw
 }
 
-// Checked is PanicOnError(r.Raw) followed by the typed view: Value is endpointValue(Raw).
+// Failure returns the carried error, nil on success.
+func (r EndpointResult[T]) Failure() error {
+	return r.Err
+}
+
+// Checked panics with the carried error, else returns the typed view.
 func (r EndpointResult[T]) Checked() T {
-	panicOnErrorFrom(r.Raw, getCallerName())
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	return r.Value
 }
 
 func endpointValue[T any](raw any) T {
 	var out T
-	if s, ok := raw.(string); ok && strings.HasPrefix(s, "panic:") {
-		return out
-	}
 	switch p := any(&out).(type) {
 	case *map[string]any:
 		*p = MapTyped(raw)
@@ -3210,49 +3250,41 @@ func endpointValue[T any](raw any) T {
 	return out
 }
 
-// Fetch2Result relays the single Fetch2Async value unchanged in Raw, adding its typed view.
+// Fetch2Result relays the single Fetch2Async outcome unchanged in Raw/Err, adding its typed view.
 func Fetch2Result[T any](this interface {
-	Fetch2Async(path any, optionalArgs ...any) <-chan any
+	Fetch2Async(path any, optionalArgs ...any) <-chan AsyncResult[any]
 }, path any, optionalArgs ...any) <-chan EndpointResult[T] {
 	out := make(chan EndpointResult[T], 1)
 	in := this.Fetch2Async(path, optionalArgs...)
 	go func() {
 		defer close(out)
 		defer ReturnPanicErrorT(out)
-		raw, ok := <-in
+		v, ok := <-in
 		if !ok {
 			return
 		}
-		out <- EndpointResult[T]{Value: endpointValue[T](raw), Raw: raw}
+		out <- EndpointResult[T]{Value: endpointValue[T](v.Value), Raw: v.Value, Err: v.Err}
 	}()
 	return out
 }
 
 // EndpointRaw adapts a typed endpoint channel to the boxed channel PromiseAll and any-typed holders expect.
-func EndpointRaw[T any](in <-chan EndpointResult[T]) <-chan any {
-	out := make(chan any, 1)
+func EndpointRaw[T any](in <-chan EndpointResult[T]) <-chan AsyncResult[any] {
+	out := make(chan AsyncResult[any], 1)
 	go func() {
 		defer close(out)
 		if r, ok := <-in; ok {
-			out <- r.Raw
+			out <- AsyncResult[any]{Value: r.Raw, Err: r.Err}
 		}
 	}()
 	return out
 }
 
-// ReturnPanicErrorT is ReturnPanicError for an EndpointResult channel; keep the two formatters in sync.
+// ReturnPanicErrorT is ReturnPanicError for an EndpointResult channel.
 func ReturnPanicErrorT[T any](ch chan EndpointResult[T]) {
 	if r := recover(); r != nil {
 		if r != "break" {
-			stack := debug.Stack()
-			strErr := ToString(r)
-			var panicMsg string
-			if !strings.HasPrefix(strErr, "panic:") {
-				panicMsg = fmt.Sprintf("panic:%s\nStack trace:\n%s", strErr, stack)
-			} else {
-				panicMsg = fmt.Sprintf("%s\nStack trace:\n%s", strErr, stack)
-			}
-			ch <- EndpointResult[T]{Raw: panicMsg}
+			ch <- EndpointResult[T]{Err: RecoveredError(r)}
 		}
 	}
 }

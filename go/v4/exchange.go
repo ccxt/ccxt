@@ -15,7 +15,6 @@ import (
 	"net/url"
 	"reflect"
 	"regexp"
-	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
@@ -35,7 +34,7 @@ type BaseExchange struct {
 	loadMu                 sync.Mutex
 	marketsLoading         bool
 	marketsLoaded          bool
-	loadMarketsSubscribers []chan any
+	loadMarketsSubscribers []chan AsyncResult[any]
 	Itf                    any
 	DerivedExchange        IDerivedExchange
 	methodCache            sync.Map
@@ -411,19 +410,19 @@ func (this *BaseExchange) InitThrottler() {
   - @param {object} params - Additional exchange-specific parameters for the request.
   - @throws An error if the markets cannot be loaded or prepared.
 */
-func (this *BaseExchange) LoadMarketsAsync(params ...any) <-chan any {
+func (this *BaseExchange) LoadMarketsAsync(params ...any) <-chan AsyncResult[any] {
 	reload := GetArg(params, 0, false).(bool)
 	this.loadMu.Lock()
 
 	if this.marketsLoaded && !reload {
-		out := make(chan any, 1)
-		out <- this.Markets
+		out := make(chan AsyncResult[any], 1)
+		out <- AsyncResult[any]{Value: this.Markets}
 		close(out)
 		this.loadMu.Unlock()
 		return out
 	}
 
-	ch := make(chan any, 1)
+	ch := make(chan AsyncResult[any], 1)
 	this.loadMarketsSubscribers = append(this.loadMarketsSubscribers, ch)
 
 	if !this.marketsLoading || reload {
@@ -442,16 +441,14 @@ func (this *BaseExchange) LoadMarketsAsync(params ...any) <-chan any {
 	return ch
 }
 
-func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan any {
-	ch := make(chan any)
+func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any])
 
 	go func() {
 		defer close(ch)
 		defer func() {
 			if r := recover(); r != nil {
-				stack := debug.Stack()
-				panicMsg := fmt.Sprintf("panic: %v\nStack trace:\n%s", r, stack)
-				ch <- panicMsg
+				ch <- AsyncResult[any]{Err: RecoveredError(r)}
 			}
 		}()
 		reload := GetArg(params, 0, false).(bool)
@@ -463,10 +460,10 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan any {
 					this.MarketsMutex.Lock()
 					result := this.SetMarkets(this.Markets, nil)
 					this.MarketsMutex.Unlock()
-					ch <- result
+					ch <- AsyncResult[any]{Value: result}
 					return
 				}
-				ch <- this.Markets
+				ch <- AsyncResult[any]{Value: this.Markets}
 				return
 			}
 		}
@@ -474,15 +471,18 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan any {
 		var currencies any = nil
 		hasFetchCurrencies := this.Has["fetchCurrencies"]
 		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
-			currencies = <-this.DerivedExchange.FetchCurrenciesAsync(params)
+			currencies = (<-this.DerivedExchange.FetchCurrenciesAsync(params)).Value
 			// this.cachedCurrenciesMutex.Lock()
 			// this.Options["cachedCurrencies"] = currencies
 			this.Options.Store("cachedCurrencies", currencies)
 			// this.cachedCurrenciesMutex.Unlock()
 		}
 
-		markets := <-this.DerivedExchange.FetchMarketsAsync(params)
-		PanicOnError(markets)
+		fetched := <-this.DerivedExchange.FetchMarketsAsync(params)
+		if fetched.Err != nil {
+			panic(fetched.Err)
+		}
+		markets := fetched.Value
 
 		// this.cachedCurrenciesMutex.Lock()
 		// delete(this.Options, "cachedCurrencies")
@@ -503,14 +503,14 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan any {
 		}
 		this.MarketsMutex.Unlock()
 
-		ch <- result
+		ch <- AsyncResult[any]{Value: result}
 	}()
 	return ch
 }
 
-func (this *BaseExchange) Throttle(cost any) <-chan any {
+func (this *BaseExchange) Throttle(cost any) <-chan bool {
 	// to do
-	ch := make(chan any)
+	ch := make(chan bool)
 	go func() {
 		defer close(ch)
 		task := <-this.Throttler.Throttle(cost)
@@ -519,8 +519,8 @@ func (this *BaseExchange) Throttle(cost any) <-chan any {
 	return ch
 }
 
-func (this *BaseExchange) FetchMarketsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
+func (this *BaseExchange) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any])
 	go func() any {
 		// defer close(ch)
 		// markets := <-this.callInternal("fetchMarkets", optionalArgs)
@@ -530,8 +530,8 @@ func (this *BaseExchange) FetchMarketsAsync(optionalArgs ...any) <-chan any {
 	return ch
 }
 
-func (this *BaseExchange) FetchCurrenciesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
+func (this *BaseExchange) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any])
 	go func() any {
 		defer close(ch)
 		// markets := <-this.callInternal("fetchCurrencies", optionalArgs)
@@ -572,18 +572,12 @@ func (this *BaseExchange) Log(args ...any) {
 	fmt.Println(args...)
 }
 
-func (this *BaseExchange) callEndpoint(endpoint2 any, parameters any) <-chan any {
-	ch := make(chan any)
+func (this *BaseExchange) callEndpoint(endpoint2 any, parameters any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any])
 
 	go func() {
 		defer close(ch)
-		defer func() {
-			if r := recover(); r != nil {
-				stack := debug.Stack()
-				panicMsg := fmt.Sprintf("panic: %v\nStack trace:\n%s", r, stack)
-				ch <- panicMsg
-			}
-		}()
+		defer ReturnPanicError(ch)
 
 		endpoint := endpoint2.(string)
 		if val, ok := this.TransformedApi[endpoint]; ok {
@@ -598,11 +592,9 @@ func (this *BaseExchange) callEndpoint(endpoint2 any, parameters any) <-chan any
 					cost = parsed
 				}
 			}
-			res := <-this.Fetch2Async(path, api, method, parameters, map[string]any{}, nil, map[string]any{"cost": cost})
-			PanicOnError(res)
-			ch <- res
+			ch <- <-this.Fetch2Async(path, api, method, parameters, map[string]any{}, nil, map[string]any{"cost": cost})
 		} else {
-			ch <- nil
+			ch <- AsyncResult[any]{}
 		}
 	}()
 	return ch
@@ -802,7 +794,7 @@ func optionMethodLabel(methodName any) string {
 	return ToString(methodName) + "()"
 }
 
-func (this *BaseExchange) CallDynamically(name2 any, args ...any) <-chan any {
+func (this *BaseExchange) CallDynamically(name2 any, args ...any) <-chan AsyncResult[any] {
 	return this.callInternal(name2.(string), args...)
 }
 
@@ -1134,28 +1126,19 @@ func (this *BaseExchange) IsEmpty(a any) bool {
 	}
 }
 
-func (this *BaseExchange) CallInternal(name2 string, args ...any) <-chan any {
+func (this *BaseExchange) CallInternal(name2 string, args ...any) <-chan AsyncResult[any] {
 	return this.callInternal(name2, args...)
 }
 
-func (this *BaseExchange) callInternal(name2 string, args ...any) <-chan any {
-	ch := make(chan any)
+func (this *BaseExchange) callInternal(name2 string, args ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any])
 	go func() {
 		defer close(ch)
-		defer func() {
-			if r := recover(); r != nil {
-				if r != "break" {
-					stack := debug.Stack()
-					panicMsg := fmt.Sprintf("panic: %v\nStack trace:\n%s", r, stack)
-					ch <- panicMsg
-				}
-			}
-		}()
+		defer ReturnPanicError(ch)
 
 		this.WarmUpCache()
 
-		res := <-CallInternalMethod(&this.methodCache, this.Itf, name2, args...)
-		ch <- res
+		ch <- <-CallInternalMethod(&this.methodCache, this.Itf, name2, args...)
 	}()
 	// res := <-CallInternalMethod(this.Itf, name2, args...)
 	// return res
@@ -1495,54 +1478,38 @@ func parseStarknetBigInt(value any) *big.Int {
 	return nil
 }
 
-func (this *BaseExchange) GetZKContractSignatureObjAsync(seed any, params any) <-chan any {
-	ch := make(chan any)
+func (this *BaseExchange) GetZKContractSignatureObjAsync(seed any, params any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any])
 
 	go func() {
 		defer close(ch)
-		defer func() {
-			if r := recover(); r != nil {
-				stack := debug.Stack()
-				panicMsg := fmt.Sprintf("panic: %v\nStack trace:\n%s", r, stack)
-				ch <- panicMsg
-			}
-		}()
+		defer ReturnPanicError(ch)
 
-		ch <- "panic:" + "Apex currently does not support create order in Go language"
+		ch <- AsyncResult[any]{Err: Exception("Apex currently does not support create order in Go language")}
 	}()
 	return ch
 }
 
-func (this *BaseExchange) GetZKTransferSignatureObjAsync(seed any, params any) <-chan any {
-	ch := make(chan any)
+func (this *BaseExchange) GetZKTransferSignatureObjAsync(seed any, params any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any])
 
 	go func() {
 		defer close(ch)
-		defer func() {
-			if r := recover(); r != nil {
-				stack := debug.Stack()
-				panicMsg := fmt.Sprintf("panic: %v\nStack trace:\n%s", r, stack)
-				ch <- panicMsg
-			}
-		}()
+		defer ReturnPanicError(ch)
 
-		ch <- "panic:" + "Apex currently does not support transfer asset in Go language"
+		ch <- AsyncResult[any]{Err: Exception("Apex currently does not support transfer asset in Go language")}
 	}()
 	return ch
 }
 
-func (this *BaseExchange) LoadDydxProtosAsync() <-chan any {
-	ch := make(chan any)
+func (this *BaseExchange) LoadDydxProtosAsync() <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any])
 
 	go func() {
 		defer close(ch)
-		defer func() {
-			if r := recover(); r != nil {
-				ch <- "panic:" + ToString(r)
-			}
-		}()
+		defer ReturnPanicError(ch)
 
-		ch <- "panic:" + "Dydx currently does not support transfer asset in Go language"
+		ch <- AsyncResult[any]{Err: Exception("Dydx currently does not support transfer asset in Go language")}
 	}()
 	return ch
 }
@@ -1644,18 +1611,13 @@ func (this *BaseExchange) UpdateProxySettings() {
 	}
 }
 
-func (this *BaseExchange) callEndpointAsync(endpointName string, args ...any) <-chan any {
+func (this *BaseExchange) callEndpointAsync(endpointName string, args ...any) <-chan AsyncResult[any] {
 	parameters := GetArg(args, 0, nil)
-	ch := make(chan any)
+	ch := make(chan AsyncResult[any])
 	go func() {
 		defer close(ch)
-		defer func() {
-			if r := recover(); r != nil {
-				ch <- "panic:" + ToString(r)
-			}
-		}()
+		defer ReturnPanicError(ch)
 		ch <- (<-this.callEndpoint(endpointName, parameters))
-		PanicOnError(ch)
 	}()
 	return ch
 }
@@ -1663,7 +1625,7 @@ func (this *BaseExchange) callEndpointAsync(endpointName string, args ...any) <-
 // CallEndpointAsync is the exported pass-through used by implicit-API files that are
 // generated into sibling packages (e.g. go/v4/prediction) and therefore cannot reach
 // the unexported callEndpointAsync
-func (this *BaseExchange) CallEndpointAsync(endpointName string, args ...any) <-chan any {
+func (this *BaseExchange) CallEndpointAsync(endpointName string, args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync(endpointName, args...)
 }
 
@@ -1675,7 +1637,7 @@ func (this *BaseExchange) CallEndpointAsync(endpointName string, args ...any) <-
 //   - [message]      subscribe payload (optional)
 //   - [subscribeHash] key for "subscriptions" map (optional)
 //   - [subscription]  arbitrary value stored in subscriptions (optional)
-func (this *BaseExchange) Watch(args ...any) <-chan any {
+func (this *BaseExchange) Watch(args ...any) <-chan AsyncResult[any] {
 
 	// generated WS code passes pointer-carried strings; a bare assertion would
 	// silently yield "" (an empty url is reported as a malformed ws/wss URL)
@@ -1754,8 +1716,7 @@ func (this *BaseExchange) Watch(args ...any) <-chan any {
 	// (connection established successfully)
 	if clientSubscription == nil {
 		go func() {
-			result := <-connected.Await()
-			if err, ok := result.(error); ok {
+			if err := (<-connected.Await()).Err; err != nil {
 				client.Subscriptions.Delete(subscribeHash.(string))
 				future.Reject(err)
 				return
@@ -1774,8 +1735,7 @@ func (this *BaseExchange) Watch(args ...any) <-chan any {
 						}
 					}
 				}
-				sendFutureChannel := <-client.SendAsync(message)
-				if err, ok := sendFutureChannel.(error); ok {
+				if err := (<-client.SendAsync(message)).Err; err != nil {
 					client.OnError(err)
 					client.Subscriptions.Delete(subscribeHash.(string))
 				}
@@ -1982,7 +1942,7 @@ func (this *BaseExchange) getWsProxy() string {
 	return proxyUrl
 }
 
-func (this *BaseExchange) WatchMultiple(args ...any) <-chan any {
+func (this *BaseExchange) WatchMultiple(args ...any) <-chan AsyncResult[any] {
 	url, _ := derefScalar(args[0]).(string)
 	var messageHashes []string
 
@@ -2053,7 +2013,7 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan any {
 			if hashStr, ok := derefScalar(subscribeHash).(string); ok {
 				var subValue any = subscription
 				if subscription == nil {
-					subValue = make(chan any)
+					subValue = make(chan AsyncResult[any])
 				}
 				// atomically register the subscription; only track it as missing if it was newly added
 				if _, loaded := client.Subscriptions.LoadOrStore(hashStr, subValue); !loaded {
@@ -2085,8 +2045,7 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan any {
 	// (connection established successfully)
 	if subscribeHashes == nil || len(missingSubscriptions) > 0 {
 		go func() {
-			result := <-connected.Await()
-			if err, ok := result.(error); ok {
+			if err := (<-connected.Await()).Err; err != nil {
 				for _, subscribeHash := range missingSubscriptions {
 					client.Subscriptions.Delete(subscribeHash)
 				}
@@ -2106,8 +2065,7 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan any {
 						}
 					}
 				}
-				sendFutureChannel := <-client.SendAsync(message)
-				if err, ok := sendFutureChannel.(error); ok {
+				if err := (<-client.SendAsync(message)).Err; err != nil {
 					for _, subscribeHash := range missingSubscriptions {
 						client.Subscriptions.Delete(subscribeHash)
 					}
@@ -2120,19 +2078,8 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan any {
 }
 
 // Spawn starts an async call on its own goroutine and hands back a *Future.
-//
-// The spawned goroutine is the ROOT of its own stack: anything that escapes the closure
-// below has no caller left to recover it and takes the whole process down. That became
-// reachable once async cores were flattened to run inline on the calling goroutine: a core
-// recovers its own body panic via `defer ReturnPanicError(ch)` and pushes the "panic:…"
-// string into its channel, and the awaiting site's PanicOnError re-panics it -- on THIS
-// goroutine when the awaiting site is Spawn. `panic(NotSupported(grvt signIn() …))` in the
-// request tests killed the test binary that way.
-//
-// So recover here and hand the panic to the waiters exactly as a flattened core would:
-// resolve the Future with the "panic:…" string that IsError / CreateReturnError /
-// PanicOnError already understand. The awaiting goroutine still sees the failure (and its
-// own recover chain turns it into an error), nothing hangs, and the process survives.
+// The goroutine is the root of its stack, so every panic is recovered here and rejects the
+// Future with the error value ("break" resolves nil); a failed outcome rejects with its Err.
 func (this *BaseExchange) Spawn(method any, args ...any) *Future {
 	future := NewFuture()
 
@@ -2144,43 +2091,45 @@ func (this *BaseExchange) Spawn(method any, args ...any) *Future {
 					future.Resolve(nil)
 					return
 				}
-				future.Resolve(PanicMessage(r))
+				future.Reject(RecoveredError(r))
 			}
 		}()
-		// A blind `.(<-chan any)` type assert panics whenever the callee is not an async
-		// core -- notably a void handler, where CallDynamically returns nil. Switch instead
-		// so those resolve cleanly rather than relying on the recover above. The nil checks
-		// matter as well: a typed-nil channel satisfies the case but blocks forever on
-		// receive, so treat "no channel" as "nothing to await" instead of hanging a waiter.
+		// a void or synchronous callee returns no channel: its value (nil included) passes through;
+		// a typed-nil channel is "nothing to await" rather than a receive that blocks forever
 		var response any
+		var failure error
 		switch awaited := CallDynamically(method, args...).(type) {
-		case <-chan any:
+		case <-chan AsyncResult[any]:
 			if awaited != nil {
-				response = <-awaited
+				r := <-awaited
+				response, failure = r.Value, r.Err
 			}
-		case chan any:
+		case chan AsyncResult[any]:
 			if awaited != nil {
-				response = <-awaited
+				r := <-awaited
+				response, failure = r.Value, r.Err
 			}
 		case *Future:
 			if awaited != nil {
-				response = <-awaited.Await()
+				r := <-awaited.Await()
+				response, failure = r.Value, r.Err
 			}
 		default:
-			// a typed core's <-chan EndpointResult[T] resolves to its boxed payload, like callInternal
+			// typed cores (<-chan EndpointResult[T]) yield their boxed payload and failure
 			if v := reflect.ValueOf(awaited); v.Kind() == reflect.Chan && !v.IsNil() {
 				if val, ok := v.Recv(); ok {
 					response = val.Interface()
-					if boxed, isBoxed := response.(interface{ Boxed() any }); isBoxed {
-						response = boxed.Boxed()
+					if outcome, isOutcome := response.(AsyncOutcome); isOutcome {
+						response, failure = outcome.Boxed(), outcome.Failure()
 					}
 				}
 			} else {
-				// void or synchronous callee: nothing to await, pass the value through (nil included)
 				response = awaited
 			}
 		}
-		if err, ok := response.(error); ok {
+		if failure != nil {
+			future.Reject(failure)
+		} else if err, ok := response.(error); ok {
 			future.Reject(err)
 		} else {
 			future.Resolve(response)
@@ -2210,7 +2159,7 @@ func (this *BaseExchange) Delay(timeout any, method any, args ...any) {
 // LoadOrderBook lives on *Exchange (not *BaseExchange): it calls FetchRestOrderBookSafe, one of the
 // 62 symbol-based methods that hang off *Exchange. Only regular WS venues (whose core embeds Exchange)
 // use it; prediction venues embed BaseExchange and never call it.
-func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any, optionalArgs ...any) <-chan any {
+func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
 	// generated callers pass typed pointer locals (*string symbol, *int64 limit); the
 	// `.(string)` assertions below need the plain values, and a panic here would be
 	// swallowed by Spawn and leave the watch future unresolved
@@ -2223,7 +2172,11 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 	if stored, exists := this.Orderbooks.Load(symbol.(string)); exists {
 		orderBookInterface := stored.(OrderBookInterface)
 		for tries < maxRetries.(int) {
-			orderBook := <-this.FetchRestOrderBookSafeAsync(symbol, limit, params)
+			fetched := <-this.FetchRestOrderBookSafeAsync(symbol, limit, params)
+			if fetched.Err != nil {
+				panic(fetched.Err)
+			}
+			orderBook := fetched.Value
 			cache := (*orderBookInterface.GetCache()).([]any)
 			index := ToFloat64(this.DerivedExchange.GetCacheIndex(orderBook, cache))
 			if index >= 0 {
@@ -2267,7 +2220,7 @@ func (this *BaseExchange) Close(cleanInstanceData ...any) []error {
 	errs := make([]error, 0)
 	for _, c := range clients {
 		if future := c.Close(); future != nil {
-			if errVal, ok := (<-future.Await()).(error); ok {
+			if errVal := (<-future.Await()).Err; errVal != nil {
 				errs = append(errs, errVal)
 			}
 
@@ -2360,8 +2313,8 @@ func (this *BaseExchange) UnlockLastNonce() bool {
 
 // FetchOutcome is a default stub so every exchange satisfies IDerivedExchange.
 // Prediction exchanges override it (kalshi resolves a single outcome on demand).
-func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan any {
-	ch := make(chan any)
+func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any])
 	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
@@ -2374,8 +2327,8 @@ func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan any {
 // FetchOutcomes is a default stub so every exchange satisfies IDerivedExchange.
 // The prediction base provides the real fallback (a per-outcome fetchOutcome loop) and
 // kalshi/polymarket override it with batched by-id requests.
-func (this *BaseExchange) FetchOutcomesAsync(outcomeSymbols any) <-chan any {
-	ch := make(chan any)
+func (this *BaseExchange) FetchOutcomesAsync(outcomeSymbols any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any])
 	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
@@ -2395,8 +2348,8 @@ func (this *BaseExchange) SignEvmTransaction(tx any, privateKey any) any {
 
 // FetchEvents is a default stub so every exchange satisfies IDerivedExchange.
 // Prediction exchanges (PredictionExchange and its derivatives) override it.
-func (this *BaseExchange) FetchEventsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
+func (this *BaseExchange) FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any])
 	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)

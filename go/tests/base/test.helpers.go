@@ -448,7 +448,7 @@ func Slice(str2 interface{}, idx1 interface{}, idx2 interface{}) string {
 	return ccxt.Slice(str2, idx1, idx2)
 }
 
-func promiseAll(tasksInterface interface{}) <-chan interface{} {
+func promiseAll(tasksInterface interface{}) <-chan ccxt.AsyncResult[any] {
 	return ccxt.PromiseAll(tasksInterface)
 }
 
@@ -496,7 +496,7 @@ func Capitalize(s string) string {
 	return ccxt.Capitalize(s)
 }
 
-func CallInternalMethod(cache *sync.Map, itf interface{}, name2 string, args ...interface{}) <-chan interface{} {
+func CallInternalMethod(cache *sync.Map, itf interface{}, name2 string, args ...interface{}) <-chan ccxt.AsyncResult[any] {
 	return ccxt.CallInternalMethod(cache, itf, name2, args...)
 }
 
@@ -516,17 +516,16 @@ func Print(v ...interface{}) {
 	fmt.Println(v...)
 }
 
-func ReturnPanicError(ch chan interface{}) {
-	// recover() only stops a panic when called directly by the deferred function —
-	// delegating to ccxt.ReturnPanicError made its recover() a nested call that
-	// returned nil, so any panic in a test goroutine killed the whole binary
+func ReturnPanicError(ch chan ccxt.AsyncResult[any]) {
+	// recover() only stops a panic when called directly by the deferred function,
+	// so this cannot delegate to ccxt.ReturnPanicError
 	if r := recover(); r != nil {
 		if r != "break" {
-			ch <- ccxt.PanicMessage(r)
+			ch <- ccxt.AsyncResult[any]{Err: ccxt.RecoveredError(r)}
 		}
 	}
 }
 
-func callDynamically(name2 interface{}, args ...interface{}) <-chan interface{} {
+func callDynamically(name2 interface{}, args ...interface{}) <-chan ccxt.AsyncResult[any] {
 	panic("not implemented")
 }

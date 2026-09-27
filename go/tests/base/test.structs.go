@@ -65,9 +65,9 @@ func TestStructs() {
 	TestExchangeStruct(reflect.TypeOf(myokx).Elem(), restLinks["myokx"])
 
 	// both method flavours are reachable on the one struct, and the derived venue promotes them
-	var _ func(...any) <-chan any = binance.FetchTimeAsync
+	var _ func(...any) <-chan ccxt.AsyncResult[any] = binance.FetchTimeAsync
 	var _ func(...any) (int64, error) = binance.FetchTime
-	var _ func(...any) <-chan any = binanceusdm.FetchTimeAsync
+	var _ func(...any) <-chan ccxt.AsyncResult[any] = binanceusdm.FetchTimeAsync
 	var _ func(...any) (int64, error) = binanceusdm.FetchTime
 
 	//test WS structs

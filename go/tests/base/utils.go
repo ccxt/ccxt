@@ -314,9 +314,9 @@ func CallMethodSync(testFiles2 any, methodName2 any, exchange any, skippedProper
 // 	return nil
 // }
 
-func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties any, args2 any) <-chan any {
+func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties any, args2 any) <-chan ccxt.AsyncResult[any] {
 	// Create the return channel
-	ch := make(chan any, 1)
+	ch := make(chan ccxt.AsyncResult[any], 1)
 
 	go func() {
 		defer close(ch)
@@ -336,7 +336,7 @@ func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties
 		// Retrieve the function from testFiles
 		method, exists := testFiles[methodName]
 		if !exists {
-			ch <- fmt.Errorf("panic:method %s not found in testFiles", methodName)
+			ch <- ccxt.AsyncResult[any]{Err: fmt.Errorf("panic:method %s not found in testFiles", methodName)}
 			return
 		}
 
@@ -344,7 +344,7 @@ func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties
 		methodVal := reflect.ValueOf(method)
 		if methodVal.Kind() != reflect.Func {
 			// Return an error if the item is not a function
-			ch <- fmt.Errorf("%s is not a function", methodName)
+			ch <- ccxt.AsyncResult[any]{Err: fmt.Errorf("%s is not a function", methodName)}
 			return
 		}
 
@@ -356,7 +356,7 @@ func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties
 
 		// Check if the number of arguments matches the function's requirements
 		if methodVal.Type().NumIn() != len(in) {
-			ch <- fmt.Errorf("panic:method %s requires %d arguments, but %d were provided", methodName, methodVal.Type().NumIn(), len(in))
+			ch <- ccxt.AsyncResult[any]{Err: fmt.Errorf("panic:method %s requires %d arguments, but %d were provided", methodName, methodVal.Type().NumIn(), len(in))}
 			return
 		}
 
@@ -370,14 +370,18 @@ func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties
 				if !ok {
 					break // result channel is closed
 				}
-				ch <- val.Interface() // pass the value to the output channel
+				if outcome, isOutcome := val.Interface().(ccxt.AsyncOutcome); isOutcome {
+					ch <- ccxt.AsyncResult[any]{Value: outcome.Boxed(), Err: outcome.Failure()}
+				} else {
+					ch <- ccxt.AsyncResult[any]{Value: val.Interface()}
+				}
 			}
 			// close(ch) // close the output channel after all values are received
 			return
 		} else if len(res) > 0 {
-			ch <- res[0].Interface()
+			ch <- ccxt.AsyncResult[any]{Value: res[0].Interface()}
 		} else {
-			ch <- nil
+			ch <- ccxt.AsyncResult[any]{}
 		}
 	}()
 
@@ -442,24 +446,16 @@ func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties
 // }
 
 // callExchangeMethodDynamically function to call exchange methods dynamically
-func CallExchangeMethodDynamically(exchange any, methodName2 any, args2 any) <-chan any {
+func CallExchangeMethodDynamically(exchange any, methodName2 any, args2 any) <-chan ccxt.AsyncResult[any] {
 	arg := args2.([]any)
-	ch := make(chan any)
+	ch := make(chan ccxt.AsyncResult[any])
 	go func() {
 		defer close(ch)
-		defer func() {
-			if r := recover(); r != nil {
-				if r != "break" {
-					ch <- "panic:" + ToString(r)
-				}
-			}
-		}()
+		defer ReturnPanicError(ch)
 		exchangeType := exchange.(ccxt.ICoreExchange)
 		exchangeType.WarmUpCache()
 		arg = coerceArgs(exchange, methodName2.(string), arg)
-		res := <-CallInternalMethod(exchangeType.GetCache(), exchange, methodName2.(string), arg...)
-		PanicOnError(res)
-		ch <- res
+		ch <- <-CallInternalMethod(exchangeType.GetCache(), exchange, methodName2.(string), arg...)
 	}()
 	return ch
 }

@@ -5670,7 +5670,8 @@ ${caseStatements.join('\n')}
 ${constStatements.join('\n')}
 )`;
 
-        const goBodyIntellisense = 'package ccxt\n' + this.createGeneratedHeader().join('\n') + '\n' + goErrors.join ('\n') + '\n' + functionDecl + '\n\n' + constDecl + '\n';
+        const goBodyIntellisense = 'package ccxt\n' + this.createGeneratedHeader().join('\n') + '\n' + goErrors.join ('\n') + '\n' + functionDecl + '\n\n' + constDecl + '\n'
+            + g10kErrARtErrorParentsDecl (root);
         if (fs.existsSync (ERRORS_FILE)) {
             log.bright.cyan (message, (ERRORS_FILE as any).yellow);
             overwriteFileAndFolder (ERRORS_FILE, goBodyIntellisense);
@@ -11540,4 +11541,20 @@ function g10kMiscSelfTest (): string[] {
     ok (f ('', '\tif EvalTruthy(this.SafeBool(m, \"k\")) {\n\t}\n').includes ('EvalTruthy(this.SafeBool(m, "k"))'), 'nullable SafeBool kept');
     ok (f ('', '\tif EvalTruthy(this.SafeBool(m, \"k\", d)) {\n\t}\n').includes ('EvalTruthy('), 'non-literal default kept');
     return problems;
+}
+
+// ===== G10K-err-a-rt: ErrorParents map for hierarchy-aware IsInstance =====
+// Emits `var ErrorParents = map[ErrorType]ErrorType{...}` (gofmt-aligned); top-level classes map to "BaseError".
+function g10kErrARtErrorParentsDecl (root: any): string {
+    const pairs: [string, string][] = [];
+    const walk = (map: any, parent: string) => {
+        for (const key in map) {
+            pairs.push ([ key, parent ]);
+            walk (map[key], key);
+        }
+    };
+    walk (root, 'BaseError');
+    const keyColumn = Math.max (...pairs.map (([ name ]) => name.length + 3)) + 1;
+    const lines = pairs.map (([ name, parent ]) => `\t${(JSON.stringify (name) + ':').padEnd (keyColumn)}${JSON.stringify (parent)},`);
+    return '\nvar ErrorParents = map[ErrorType]ErrorType{\n' + lines.join ('\n') + '\n}\n';
 }
