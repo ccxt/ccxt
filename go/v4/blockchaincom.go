@@ -397,7 +397,10 @@ func (this *Blockchaincom) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 		var minOrderSizeScaleString *string = this.SafeString(market, "min_order_size_scale")
 		var minOrderSizeScalePrecisionString any = this.ParsePrecision(minOrderSizeScaleString)
 		var minOrderSizePreciseString *string = Precise.StringMul(minOrderSizeString, minOrderSizeScalePrecisionString)
-		var minOrderSize *float64 = Float64PtrTyped(this.ParseNumber(minOrderSizePreciseString))
+		var minOrderSize *float64
+		if derefNum, isNum := this.ParseNumber(minOrderSizePreciseString).(float64); isNum {
+			minOrderSize = &derefNum
+		}
 		// maximum order size
 		var maxOrderSize any = nil
 		var maxOrderSizeRaw *string = this.SafeString(market, "max_order_size")

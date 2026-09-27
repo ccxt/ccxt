@@ -705,8 +705,14 @@ func (this *Bit2c) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		var fee map[string]any = SafeMapTyped(fees, marketId)
 		var makerString *string = this.SafeString(fee, "FeeMaker")
 		var takerString *string = this.SafeString(fee, "FeeTaker")
-		var maker *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(makerString, "100")))
-		var taker *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(takerString, "100")))
+		var maker *float64
+		if derefNum, isNum := this.ParseNumber(Precise.StringDiv(makerString, "100")).(float64); isNum {
+			maker = &derefNum
+		}
+		var taker *float64
+		if derefNum, isNum := this.ParseNumber(Precise.StringDiv(takerString, "100")).(float64); isNum {
+			taker = &derefNum
+		}
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       fee,
 			"symbol":     symbol,

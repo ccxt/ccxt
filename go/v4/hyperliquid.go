@@ -2837,7 +2837,11 @@ func (this *Hyperliquid) CreateOrderRequest(symbol any, typeVar any, side any, a
 		}()
 		px = DerefScalar(this.PriceToPrecision(symbol, px)) // round after adding slippage
 	} else {
-		px = DerefScalar(this.PriceToPrecision(symbol, price))
+		if derefPtr := this.PriceToPrecision(symbol, price); derefPtr != nil {
+			px = *derefPtr
+		} else {
+			px = nil
+		}
 	}
 	var sz *string = this.AmountToPrecision(symbol, amount)
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly", false)
@@ -3509,7 +3513,10 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) any 
 		var isTrigger bool = ((stopLossPrice != nil) || (takeProfitPrice != nil))
 		var reduceOnly *bool = this.SafeBool(orderParams, "reduceOnly", false)
 		orderParams = this.Omit(orderParams, []any{"slippage", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "clientOrderId", "client_id", "postOnly", "reduceOnly"})
-		var px any = DerefScalar(this.NumberToString(price))
+		var px any
+		if derefPtr := this.NumberToString(price); derefPtr != nil {
+			px = *derefPtr
+		}
 		if isMarket {
 			px = func() any {
 				if isBuy {
@@ -5232,7 +5239,10 @@ func (this *Hyperliquid) transferBody(ch chan any, code string, amount any, from
 		if !this.InArray(toAccount, []any{"spot", "swap", "perp"}) {
 			panic(NotSupported(this.Id + " transfer() only support spot <> swap transfer"))
 		}
-		var strAmount any = DerefScalar(this.NumberToString(amount))
+		var strAmount any
+		if derefPtr := this.NumberToString(amount); derefPtr != nil {
+			strAmount = *derefPtr
+		}
 		var vaultAddress any = DerefScalar(this.SafeString2(params, "vaultAddress", "subAccountAddress"))
 		if !IsEqual(vaultAddress, nil) {
 			vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -6312,7 +6322,11 @@ func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any,
 	var error *string = this.SafeString(response, "error")
 	var message any = nil
 	if status != nil && *status == "err" {
-		message = DerefScalar(this.SafeString(response, "response"))
+		if derefPtr := this.SafeString(response, "response"); derefPtr != nil {
+			message = *derefPtr
+		} else {
+			message = nil
+		}
 	} else if status != nil && *status == "unknownOid" {
 		panic(OrderNotFound(this.Id + " " + body))
 	} else if error != nil {

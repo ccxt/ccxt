@@ -474,7 +474,10 @@ func (this *Bybit) watchTickerBody(ch chan any, symbol string, optionalArgs ...a
 	ccxt.PanicOnError(url)
 	var paramsValue any = this.CleanParams(params)
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
-	var topic any = ccxt.DerefScalar(this.SafeString(options, "name", "tickers"))
+	var topic any
+	if derefPtr := this.SafeString(options, "name", "tickers"); derefPtr != nil {
+		topic = *derefPtr
+	}
 	if (market["spot"] != true) && (topic != "tickers") {
 		panic(ccxt.BadRequest(this.Id + " watchTicker() only supports name tickers for contract markets"))
 	}
@@ -1709,7 +1712,11 @@ func (this *Bybit) ParseWsTrade(trade any, optionalArgs ...any) any {
 		marketType = "contract"
 	}
 	if market != nil {
-		marketType = ccxt.DerefScalar(this.SafeString(market, "type"))
+		if derefPtr := this.SafeString(market, "type"); derefPtr != nil {
+			marketType = *derefPtr
+		} else {
+			marketType = nil
+		}
 	}
 	var marketId *string = this.SafeString(trade, "s")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)

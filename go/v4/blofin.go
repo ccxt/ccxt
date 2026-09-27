@@ -1229,7 +1229,10 @@ func (this *Blofin) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	if isSpot {
 		var spotSymbol any = Add(Add(marketResolved["base"], "/"), marketResolved["quote"])
-		var cost *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMul(price, amount)))
+		var cost *float64
+		if derefNum, isNum := this.ParseNumber(Precise.StringMul(price, amount)).(float64); isNum {
+			cost = &derefNum
+		}
 		var result map[string]any = map[string]any{
 			"info":         trade,
 			"timestamp":    timestamp,
@@ -3318,7 +3321,10 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 	var contractsAbs *string = Precise.StringAbs(pos)
 	var side *string = this.SafeString(position, "positionSide")
 	var hedged bool = (side == nil || *side != "net")
-	var contracts *float64 = Float64PtrTyped(this.ParseNumber(contractsAbs))
+	var contracts *float64
+	if derefNum, isNum := this.ParseNumber(contractsAbs).(float64); isNum {
+		contracts = &derefNum
+	}
 	if pos != nil {
 		if side != nil && *side == "net" {
 			if Precise.StringGt(pos, "0") {
@@ -3337,7 +3343,10 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 	if marketResolved["inverse"] == true {
 		notionalString = Precise.StringDiv(Precise.StringMul(contractsAbs, contractSizeString), markPriceString)
 	}
-	var notional *float64 = Float64PtrTyped(this.ParseNumber(notionalString))
+	var notional *float64
+	if derefNum, isNum := this.ParseNumber(notionalString).(float64); isNum {
+		notional = &derefNum
+	}
 	var marginMode *string = this.SafeString(position, "marginMode")
 	var initialMarginString *string = nil
 	var entryPriceString *string = this.SafeString2(position, "averagePrice", "openAveragePrice")
@@ -3353,7 +3362,10 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 		collateralString = this.SafeString(position, "margin")
 	}
 	var maintenanceMarginString *string = this.SafeString(position, "maintenanceMargin")
-	var maintenanceMargin *float64 = Float64PtrTyped(this.ParseNumber(maintenanceMarginString))
+	var maintenanceMargin *float64
+	if derefNum, isNum := this.ParseNumber(maintenanceMarginString).(float64); isNum {
+		maintenanceMargin = &derefNum
+	}
 	var maintenanceMarginPercentageString *string = Precise.StringDiv(maintenanceMarginString, notionalString)
 	if initialMarginPercentage == nil {
 		initialMarginPercentage = this.ParseNumber(Precise.StringDiv(initialMarginString, notionalString, 4))
@@ -3362,12 +3374,21 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 		initialMarginString = Precise.StringMul(initialMarginPercentageString, notionalString)
 	}
 	var rounder string = "0.00005" // round to closest 0.01%
-	var maintenanceMarginPercentage *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(Precise.StringAdd(maintenanceMarginPercentageString, rounder), "1", 4)))
+	var maintenanceMarginPercentage *float64
+	if derefNum, isNum := this.ParseNumber(Precise.StringDiv(Precise.StringAdd(maintenanceMarginPercentageString, rounder), "1", 4)).(float64); isNum {
+		maintenanceMarginPercentage = &derefNum
+	}
 	var liquidationPrice *float64 = this.SafeNumber(position, "liquidationPrice")
 	var percentageString *string = this.SafeString(position, "unrealizedPnlRatio")
-	var percentage *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMul(percentageString, "100")))
+	var percentage *float64
+	if derefNum, isNum := this.ParseNumber(Precise.StringMul(percentageString, "100")).(float64); isNum {
+		percentage = &derefNum
+	}
 	var timestamp *int64 = this.SafeInteger(position, "updateTime")
-	var marginRatio *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(maintenanceMarginString, collateralString, 4)))
+	var marginRatio *float64
+	if derefNum, isNum := this.ParseNumber(Precise.StringDiv(maintenanceMarginString, collateralString, 4)).(float64); isNum {
+		marginRatio = &derefNum
+	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,

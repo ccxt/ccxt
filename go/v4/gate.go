@@ -2266,7 +2266,10 @@ func (this *Gate) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		var takerPercent *string = this.SafeString(market, "fee")
 		var makerPercent *string = this.SafeString(market, "maker_fee_rate", takerPercent)
-		var amountPrecision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(market, "amount_precision"))))
+		var amountPrecision *float64
+		if derefNum, isNum := this.ParseNumber(this.ParsePrecision(this.SafeString(market, "amount_precision"))).(float64); isNum {
+			amountPrecision = &derefNum
+		}
 		var tradeStatus *string = this.SafeString(market, "trade_status")
 		var marginStatus *int64 = this.SafeInteger(market, "status", 1) // 0 disabled, 1 enabled
 		var leverage *float64 = this.SafeNumber(market, "leverage")
@@ -3684,7 +3687,11 @@ func (this *Gate) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any
 		}
 		var withdrawFixOnChains map[string]any = SafeMapTyped(entry, "withdraw_fix_on_chains")
 		if withdrawFixOnChains == nil {
-			withdrawFees = DerefScalar(this.SafeNumber(entry, "withdraw_fix"))
+			if derefPtr := this.SafeNumber(entry, "withdraw_fix"); derefPtr != nil {
+				withdrawFees = *derefPtr
+			} else {
+				withdrawFees = nil
+			}
 		} else {
 			var networkIds []string = nil
 			if withdrawFixOnChains != nil {
@@ -4078,7 +4085,10 @@ func (this *Gate) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	//         "update": 1634350208.724
 	//     }
 	//
-	var timestamp any = DerefScalar(this.SafeInteger(response, "current"))
+	var timestamp any
+	if derefPtr := this.SafeInteger(response, "current"); derefPtr != nil {
+		timestamp = *derefPtr
+	}
 	if timestamp == nil {
 		panic(ExchangeError(this.Id + " method() missing timestamp"))
 	}
@@ -6383,7 +6393,11 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 						}
 						return 2
 					}()
-					triggerOrderPrice = DerefScalar(this.PriceToPrecision(symbol, stopLossPrice))
+					if derefPtr := this.PriceToPrecision(symbol, stopLossPrice); derefPtr != nil {
+						triggerOrderPrice = *derefPtr
+					} else {
+						triggerOrderPrice = nil
+					}
 				} else if isTakeProfitOrder {
 					rule = func() int {
 						if IsEqual(side, "buy") {
@@ -6391,7 +6405,11 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 						}
 						return 1
 					}()
-					triggerOrderPrice = DerefScalar(this.PriceToPrecision(symbol, takeProfitPrice))
+					if derefPtr := this.PriceToPrecision(symbol, takeProfitPrice); derefPtr != nil {
+						triggerOrderPrice = *derefPtr
+					} else {
+						triggerOrderPrice = nil
+					}
 				}
 				var priceType *int64 = this.SafeInteger(query, "price_type", 0)
 				if (priceType == nil || *priceType < 0) || (priceType != nil && *priceType > 2) {
@@ -6448,7 +6466,11 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 						}
 						return "<="
 					}()
-					triggerOrderPrice = DerefScalar(this.PriceToPrecision(symbol, stopLossPrice))
+					if derefPtr := this.PriceToPrecision(symbol, stopLossPrice); derefPtr != nil {
+						triggerOrderPrice = *derefPtr
+					} else {
+						triggerOrderPrice = nil
+					}
 				} else if isTakeProfitOrder {
 					rule = func() string {
 						if IsEqual(side, "buy") {
@@ -6456,7 +6478,11 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 						}
 						return ">="
 					}()
-					triggerOrderPrice = DerefScalar(this.PriceToPrecision(symbol, takeProfitPrice))
+					if derefPtr := this.PriceToPrecision(symbol, takeProfitPrice); derefPtr != nil {
+						triggerOrderPrice = *derefPtr
+					} else {
+						triggerOrderPrice = nil
+					}
 				}
 				AddElementToObject(request, "trigger", map[string]any{
 					"price":      this.PriceToPrecision(symbol, triggerOrderPrice),
@@ -6890,7 +6916,10 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) any {
 	var remainingString *string = this.SafeString(order, "left")
 	var cost *string = this.SafeString(order, "filled_total")
 	var triggerPrice *float64 = this.SafeNumber(trigger, "price")
-	var average any = DerefScalar(this.SafeNumber2(order, "avg_deal_price", "fill_price"))
+	var average any
+	if derefPtr := this.SafeNumber2(order, "avg_deal_price", "fill_price"); derefPtr != nil {
+		average = *derefPtr
+	}
 	if (triggerPrice != nil) && (triggerPrice == nil || *triggerPrice != 0) {
 		remainingString = amount
 		cost = SafeStringPtr("0")
@@ -10230,7 +10259,10 @@ func (this *Gate) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	}
 	var balanceString *string = this.SafeString(item, "balance")
 	var changeString *string = this.SafeString(item, "change")
-	var before *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringSub(balanceString, changeString)))
+	var before *float64
+	if derefNum, isNum := this.ParseNumber(Precise.StringSub(balanceString, changeString)).(float64); isNum {
+		before = &derefNum
+	}
 	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,
 		"id":               this.SafeString(item, "id"),

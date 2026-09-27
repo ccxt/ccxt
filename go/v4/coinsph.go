@@ -1800,7 +1800,10 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol string, typeVar string,
 	var market map[string]any = this.Market(symbol)
 	var testOrder *bool = this.SafeBool(params, "test", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, "test")
-	var orderType any = DerefScalar(this.SafeString(paramsOmitted, "type", typeVar))
+	var orderType any
+	if derefPtr := this.SafeString(paramsOmitted, "type", typeVar); derefPtr != nil {
+		orderType = *derefPtr
+	}
 	orderType = this.EncodeOrderType(orderType)
 	var paramsType map[string]any = this.OmitDict(paramsOmitted, "type")
 	var paramsQuote any = nil

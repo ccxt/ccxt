@@ -208,7 +208,10 @@ func (this *Hitbtc) subscribePrivateBody(ch chan any, name any, optionalArgs ...
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
 	var splitName []string = ccxt.Split(name, "_subscribe")
-	var messageHash any = ccxt.DerefScalar(this.SafeString(splitName, 0, ""))
+	var messageHash any
+	if derefPtr := this.SafeString(splitName, 0, ""); derefPtr != nil {
+		messageHash = *derefPtr
+	}
 	if symbol != nil {
 		messageHash = ccxt.Add(ccxt.Add(messageHash, "::"), symbol)
 	}

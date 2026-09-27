@@ -927,7 +927,11 @@ func (this *Backpack) ParseMarket(market any) any {
 		typeVar = SafeStringPtr("swap")
 		linear = true
 		inverse = false
-		settleId = DerefScalar(this.SafeString(market, "quoteSymbol"))
+		if derefPtr := this.SafeString(market, "quoteSymbol"); derefPtr != nil {
+			settleId = *derefPtr
+		} else {
+			settleId = nil
+		}
 		settle = this.SafeCurrencyCode(settleId)
 		symbol = Add(symbol, Add(":", settle))
 		contractSize = 1

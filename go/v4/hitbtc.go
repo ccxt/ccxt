@@ -921,7 +921,11 @@ func (this *Hitbtc) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		if contract {
 			contractSize = this.ParseNumber("1")
 			settleId = feeCurrencyId
-			settle = DerefScalar(this.SafeCurrencyCode(settleId))
+			if derefPtr := this.SafeCurrencyCode(settleId); derefPtr != nil {
+				settle = *derefPtr
+			} else {
+				settle = nil
+			}
 			linear = ((quote != nil) && (IsEqual(quote, settle)))
 			inverse = !(linear == true)
 			symbol = Add(Add(symbol, ":"), settle)
@@ -934,8 +938,14 @@ func (this *Hitbtc) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		var lotString *string = this.SafeString(market, "quantity_increment")
 		var stepString *string = this.SafeString(market, "tick_size")
-		var lot *float64 = Float64PtrTyped(this.ParseNumber(lotString))
-		var step *float64 = Float64PtrTyped(this.ParseNumber(stepString))
+		var lot *float64
+		if derefNum, isNum := this.ParseNumber(lotString).(float64); isNum {
+			lot = &derefNum
+		}
+		var step *float64
+		if derefNum, isNum := this.ParseNumber(stepString).(float64); isNum {
+			step = &derefNum
+		}
 		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         symbol,
@@ -1076,7 +1086,10 @@ func (this *Hitbtc) ParseCurrency(currency any) any {
 			return nil
 		}()
 		var networkId *string = this.SafeString2(rawNetwork, "protocol", "network")
-		var networkCode any = DerefScalar(this.NetworkIdToCode(networkId, code))
+		var networkCode any
+		if derefPtr := this.NetworkIdToCode(networkId, code); derefPtr != nil {
+			networkCode = *derefPtr
+		}
 		networkCode = func() any {
 			if networkCode != nil {
 				return ToUpper(networkCode)
@@ -4306,7 +4319,10 @@ func (this *Hitbtc) modifyMarginHelperBody(ch chan any, symbol string, amount an
 	//         "positions": null
 	//     }
 	//
-	var parsedAmount *float64 = Float64PtrTyped(this.ParseNumber(amountValue))
+	var parsedAmount *float64
+	if derefNum, isNum := this.ParseNumber(amountValue).(float64); isNum {
+		parsedAmount = &derefNum
+	}
 
 	ch <- this.Extend(this.ParseMarginModification(response, market), map[string]any{
 		"amount": parsedAmount,
@@ -4660,7 +4676,10 @@ func (this *Hitbtc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		var networkEntry map[string]any = SafeMapTyped(networks, j)
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var code *string = this.SafeString(currency, "code")
-		var networkCode any = DerefScalar(this.NetworkIdToCode(networkId, code))
+		var networkCode any
+		if derefPtr := this.NetworkIdToCode(networkId, code); derefPtr != nil {
+			networkCode = *derefPtr
+		}
 		networkCode = func() any {
 			if networkCode != nil {
 				return ToUpper(networkCode)

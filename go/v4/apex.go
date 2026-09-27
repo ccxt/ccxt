@@ -802,8 +802,14 @@ func (this *Apex) ParseMarket(market any) any {
 	}
 	var symbol string = *baseId + "/" + *quote + ":" + *settle
 	var expiry int = 0
-	var takerFee *float64 = Float64PtrTyped(this.ParseNumber("0.0002"))
-	var makerFee *float64 = Float64PtrTyped(this.ParseNumber("0.0005"))
+	var takerFee *float64
+	if derefNum, isNum := this.ParseNumber("0.0002").(float64); isNum {
+		takerFee = &derefNum
+	}
+	var makerFee *float64
+	if derefNum, isNum := this.ParseNumber("0.0005").(float64); isNum {
+		makerFee = &derefNum
+	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":           id,
 		"id2":          id2,
@@ -1677,7 +1683,11 @@ func (this *Apex) createOrderBody(ch chan any, symbol string, typeVar string, si
 	var orderSize *string = this.AmountToPrecision(symbol, amount)
 	var orderPrice any = "0"
 	if price != nil {
-		orderPrice = DerefScalar(this.PriceToPrecision(symbol, price))
+		if derefPtr := this.PriceToPrecision(symbol, price); derefPtr != nil {
+			orderPrice = *derefPtr
+		} else {
+			orderPrice = nil
+		}
 	}
 	var fees map[string]any = SafeMapTyped(this.Fees, "swap")
 	var taker *string = this.SafeString(fees, "taker", "0.0005")
@@ -1891,7 +1901,10 @@ func (this *Apex) transferBody(ch chan any, code string, amount any, fromAccount
 		PanicOnError(response)
 		var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 		var currentTime int64 = this.Milliseconds()
-		var parsedAmount *float64 = Float64PtrTyped(this.ParseNumber(amount))
+		var parsedAmount *float64
+		if derefNum, isNum := this.ParseNumber(amount).(float64); isNum {
+			parsedAmount = &derefNum
+		}
 
 		ch <- this.Extend(this.ParseTransfer(data, this.Currency(code)), map[string]any{
 			"timestamp":   currentTime,

@@ -439,11 +439,19 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 	var optionType *string = nil
 	if GetIndexOf(symbol, "/") > -1 {
 		base = this.SafeString(symbolBase, 0)
-		expiry = DerefScalar(this.SafeString(optionParts, 1))
+		if derefPtr := this.SafeString(optionParts, 1); derefPtr != nil {
+			expiry = *derefPtr
+		} else {
+			expiry = nil
+		}
 		optionType = this.SafeString(optionParts, 3)
 	} else {
 		base = this.SafeString(optionParts, 1)
-		expiry = DerefScalar(this.SafeString(optionParts, 3))
+		if derefPtr := this.SafeString(optionParts, 3); derefPtr != nil {
+			expiry = *derefPtr
+		} else {
+			expiry = nil
+		}
 		optionType = this.SafeString(optionParts, 0)
 	}
 	if !IsEqual(expiry, nil) {

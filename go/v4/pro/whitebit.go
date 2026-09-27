@@ -629,7 +629,11 @@ func (this *Whitebit) ParseWsTrade(trade any, optionalArgs ...any) any {
 		var feeCurrencyId *string = this.SafeString(trade, 10)
 		var feeCurrencyCode any = nil
 		if feeCurrencyId != nil {
-			feeCurrencyCode = ccxt.DerefScalar(this.SafeCurrencyCode(feeCurrencyId))
+			if derefPtr := this.SafeCurrencyCode(feeCurrencyId); derefPtr != nil {
+				feeCurrencyCode = *derefPtr
+			} else {
+				feeCurrencyCode = nil
+			}
 		} else {
 			feeCurrencyCode = marketResolved["quote"]
 		}

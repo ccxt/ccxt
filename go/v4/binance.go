@@ -4885,7 +4885,11 @@ func (this *Binance) ParseCurrency(rawCurrency any) any {
 		var withdrawPrecision any = this.OmitZero(this.SafeString2(networkItem, "withdrawIntegerMultiple", "withdrawInternalMin"))
 		// zero values happen only on fiat or leveraged(ETF) tokens: https://t.me/binance_api_english/393075
 		if IsEqual(withdrawPrecision, nil) && (isFiat != nil && *isFiat == true) {
-			withdrawPrecision = DerefScalar(this.SafeString(this.Options, "defaultFiatWithdrawPrecision"))
+			if derefPtr := this.SafeString(this.Options, "defaultFiatWithdrawPrecision"); derefPtr != nil {
+				withdrawPrecision = *derefPtr
+			} else {
+				withdrawPrecision = nil
+			}
 		}
 		if networkCode != nil {
 			networks[*networkCode] = map[string]any{
@@ -8798,7 +8802,10 @@ func (this *Binance) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var postOnly bool = (typeVar != nil && *typeVar == "limit_maker") || (timeInForce != nil && *timeInForce == "PO")
 	var stopPriceString *string = this.SafeString2(order, "stopPrice", "triggerPrice")
-	var triggerPrice *float64 = Float64PtrTyped(this.ParseNumber(this.OmitZero(stopPriceString)))
+	var triggerPrice *float64
+	if derefNum, isNum := this.ParseNumber(this.OmitZero(stopPriceString)).(float64); isNum {
+		triggerPrice = &derefNum
+	}
 	var feeCost *float64 = this.SafeNumber(order, "fee")
 	var fee map[string]any = nil
 	if feeCost != nil {
@@ -9210,7 +9217,11 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 				priceRequiredForTrailing = false
 			}
 			if trailingTriggerPrice != nil {
-				stopPrice = DerefScalar(this.PriceToPrecision(symbol, trailingTriggerPrice))
+				if derefPtr := this.PriceToPrecision(symbol, trailingTriggerPrice); derefPtr != nil {
+					stopPrice = *derefPtr
+				} else {
+					stopPrice = nil
+				}
 			}
 			var trailingPercentConverted *string = Precise.StringMul(trailingPercent, "100")
 			request["trailingDelta"] = trailingPercentConverted
@@ -9375,7 +9386,11 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 					var priceString *string = this.NumberToString(price)
 					notional = Precise.StringMul(amountString, priceString)
 				} else {
-					notional = DerefScalar(this.NumberToString(amount))
+					if derefPtr := this.NumberToString(amount); derefPtr != nil {
+						notional = *derefPtr
+					} else {
+						notional = nil
+					}
 				}
 				if precision == nil {
 					request["notional"] = notional
@@ -11764,9 +11779,18 @@ func (this *Binance) ParseDustTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var id any = nil
-	var amount *float64 = Float64PtrTyped(this.ParseNumber(amountString))
-	var price *float64 = Float64PtrTyped(this.ParseNumber(priceString))
-	var cost *float64 = Float64PtrTyped(this.ParseNumber(costString))
+	var amount *float64
+	if derefNum, isNum := this.ParseNumber(amountString).(float64); isNum {
+		amount = &derefNum
+	}
+	var price *float64
+	if derefNum, isNum := this.ParseNumber(priceString).(float64); isNum {
+		price = &derefNum
+	}
+	var cost *float64
+	if derefNum, isNum := this.ParseNumber(costString).(float64); isNum {
+		cost = &derefNum
+	}
 	var typeVar any = nil
 	var takerOrMaker any = nil
 	return map[string]any{
@@ -12287,8 +12311,16 @@ func (this *Binance) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var accountsById map[string]any = SafeMapTyped(this.Options, "accountsById")
 	if typeVar != nil {
 		var parts []string = strings.Split(*typeVar, "_")
-		fromAccount = DerefScalar(this.SafeString(parts, 0))
-		toAccount = DerefScalar(this.SafeString(parts, 1))
+		if derefPtr := this.SafeString(parts, 0); derefPtr != nil {
+			fromAccount = *derefPtr
+		} else {
+			fromAccount = nil
+		}
+		if derefPtr := this.SafeString(parts, 1); derefPtr != nil {
+			toAccount = *derefPtr
+		} else {
+			toAccount = nil
+		}
 		fromAccount = DerefScalar(this.SafeString(accountsById, fromAccount, fromAccount))
 		toAccount = DerefScalar(this.SafeString(accountsById, toAccount, toAccount))
 	}
@@ -12296,8 +12328,16 @@ func (this *Binance) ParseTransfer(transfer any, optionalArgs ...any) any {
 	if walletType != nil {
 		var payer map[string]any = SafeMapTyped(transfer, "payerInfo")
 		var receiver map[string]any = SafeMapTyped(transfer, "receiverInfo")
-		fromAccount = DerefScalar(this.SafeString(payer, "accountId"))
-		toAccount = DerefScalar(this.SafeString(receiver, "accountId"))
+		if derefPtr := this.SafeString(payer, "accountId"); derefPtr != nil {
+			fromAccount = *derefPtr
+		} else {
+			fromAccount = nil
+		}
+		if derefPtr := this.SafeString(receiver, "accountId"); derefPtr != nil {
+			toAccount = *derefPtr
+		} else {
+			toAccount = nil
+		}
 	}
 	var timestamp *int64 = this.SafeInteger2(transfer, "timestamp", "transactionTime")
 	var status *string = this.ParseTransferStatus(this.SafeString(transfer, "status"))
@@ -13843,7 +13883,10 @@ func (this *Binance) ParseAccountPosition(position map[string]any, optionalArgs 
 		return nil
 	}()
 	var initialMarginString *string = this.SafeString(position, "initialMargin")
-	var initialMargin *float64 = Float64PtrTyped(this.ParseNumber(initialMarginString))
+	var initialMargin *float64
+	if derefNum, isNum := this.ParseNumber(initialMarginString).(float64); isNum {
+		initialMargin = &derefNum
+	}
 	var initialMarginPercentageString *string = nil
 	if leverageString != nil {
 		initialMarginPercentageString = Precise.StringDiv("1", leverageString, 8)
@@ -13858,12 +13901,21 @@ func (this *Binance) ParseAccountPosition(position map[string]any, optionalArgs 
 	// as oppose to notionalValue
 	var usdm bool = (func() bool { _, ok := position["notional"]; return ok }())
 	var maintenanceMarginString *string = this.SafeString(position, "maintMargin")
-	var maintenanceMargin *float64 = Float64PtrTyped(this.ParseNumber(maintenanceMarginString))
+	var maintenanceMargin *float64
+	if derefNum, isNum := this.ParseNumber(maintenanceMarginString).(float64); isNum {
+		maintenanceMargin = &derefNum
+	}
 	var entryPriceString *string = this.SafeString(position, "entryPrice")
-	var entryPrice *float64 = Float64PtrTyped(this.ParseNumber(entryPriceString))
+	var entryPrice *float64
+	if derefNum, isNum := this.ParseNumber(entryPriceString).(float64); isNum {
+		entryPrice = &derefNum
+	}
 	var notionalString *string = this.SafeString2(position, "notional", "notionalValue")
 	var notionalStringAbs *string = Precise.StringAbs(notionalString)
-	var notional *float64 = Float64PtrTyped(this.ParseNumber(notionalStringAbs))
+	var notional *float64
+	if derefNum, isNum := this.ParseNumber(notionalStringAbs).(float64); isNum {
+		notional = &derefNum
+	}
 	var contractsString *string = this.SafeString(position, "positionAmt")
 	var contractsStringAbs *string = Precise.StringAbs(contractsString)
 	if contractsString == nil {
@@ -13872,7 +13924,10 @@ func (this *Binance) ParseAccountPosition(position map[string]any, optionalArgs 
 		contractsString = Precise.StringDiv(entryNotional, contractSizeNew)
 		contractsStringAbs = Precise.StringDiv(Precise.StringAdd(contractsString, "0.5"), "1", 0)
 	}
-	var contracts *float64 = Float64PtrTyped(this.ParseNumber(contractsStringAbs))
+	var contracts *float64
+	if derefNum, isNum := this.ParseNumber(contractsStringAbs).(float64); isNum {
+		contracts = &derefNum
+	}
 	var leverageBrackets map[string]any = SafeMapTyped(this.Options, "leverageBrackets")
 	var leverageBracket []any = SafeListTyped(leverageBrackets, symbol)
 	var maintenanceMarginPercentageString *string = nil
@@ -13888,9 +13943,15 @@ func (this *Binance) ParseAccountPosition(position map[string]any, optionalArgs 
 		}
 		maintenanceMarginPercentageString = this.SafeString(bracket, 1)
 	}
-	var maintenanceMarginPercentage *float64 = Float64PtrTyped(this.ParseNumber(maintenanceMarginPercentageString))
+	var maintenanceMarginPercentage *float64
+	if derefNum, isNum := this.ParseNumber(maintenanceMarginPercentageString).(float64); isNum {
+		maintenanceMarginPercentage = &derefNum
+	}
 	var unrealizedPnlString *string = this.SafeString(position, "unrealizedProfit")
-	var unrealizedPnl *float64 = Float64PtrTyped(this.ParseNumber(unrealizedPnlString))
+	var unrealizedPnl *float64
+	if derefNum, isNum := this.ParseNumber(unrealizedPnlString).(float64); isNum {
+		unrealizedPnl = &derefNum
+	}
 	var timestamp *int64 = this.SafeInteger(position, "updateTime")
 	if timestamp != nil && *timestamp == 0 {
 		timestamp = nil
@@ -13912,7 +13973,10 @@ func (this *Binance) ParseAccountPosition(position map[string]any, optionalArgs 
 		walletBalance = this.SafeString(position, "crossWalletBalance")
 		collateralString = this.SafeString(position, "crossMargin")
 	}
-	var collateral *float64 = Float64PtrTyped(this.ParseNumber(collateralString))
+	var collateral *float64
+	if derefNum, isNum := this.ParseNumber(collateralString).(float64); isNum {
+		collateral = &derefNum
+	}
 	var marginRatio any = nil
 	var side *string = nil
 	var percentage any = nil
@@ -14120,13 +14184,25 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 		}
 		maintenanceMarginPercentageString = this.SafeString(bracket, 1)
 	}
-	var notional *float64 = Float64PtrTyped(this.ParseNumber(notionalStringAbs))
+	var notional *float64
+	if derefNum, isNum := this.ParseNumber(notionalStringAbs).(float64); isNum {
+		notional = &derefNum
+	}
 	var contractsAbs *string = Precise.StringAbs(this.SafeString(position, "positionAmt"))
-	var contracts *float64 = Float64PtrTyped(this.ParseNumber(contractsAbs))
+	var contracts *float64
+	if derefNum, isNum := this.ParseNumber(contractsAbs).(float64); isNum {
+		contracts = &derefNum
+	}
 	var unrealizedPnlString *string = this.SafeString(position, "unRealizedProfit")
-	var unrealizedPnl *float64 = Float64PtrTyped(this.ParseNumber(unrealizedPnlString))
+	var unrealizedPnl *float64
+	if derefNum, isNum := this.ParseNumber(unrealizedPnlString).(float64); isNum {
+		unrealizedPnl = &derefNum
+	}
 	var liquidationPriceString any = this.OmitZero(this.SafeString(position, "liquidationPrice"))
-	var liquidationPrice *float64 = Float64PtrTyped(this.ParseNumber(liquidationPriceString))
+	var liquidationPrice *float64
+	if derefNum, isNum := this.ParseNumber(liquidationPriceString).(float64); isNum {
+		liquidationPrice = &derefNum
+	}
 	var collateralString any = nil
 	var marginMode *string = this.SafeString(position, "marginType")
 	if (marginMode == nil) && (isolatedMarginString != nil) {
@@ -14144,7 +14220,10 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 		side = SafeStringPtr("short")
 	}
 	var entryPriceString *string = this.SafeString(position, "entryPrice")
-	var entryPrice *float64 = Float64PtrTyped(this.ParseNumber(entryPriceString))
+	var entryPrice *float64
+	if derefNum, isNum := this.ParseNumber(entryPriceString).(float64); isNum {
+		entryPrice = &derefNum
+	}
 	var contractSize *float64 = this.SafeNumber(marketResolved, "contractSize")
 	var contractSizeString *string = this.NumberToString(contractSize)
 	// as oppose to notionalValue
@@ -14187,7 +14266,11 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 			}
 		}
 	} else {
-		collateralString = DerefScalar(this.SafeString(position, "isolatedMargin"))
+		if derefPtr := this.SafeString(position, "isolatedMargin"); derefPtr != nil {
+			collateralString = *derefPtr
+		} else {
+			collateralString = nil
+		}
 	}
 	collateralString = func() any {
 		if IsEqual(collateralString, nil) {
@@ -14195,19 +14278,28 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 		}
 		return collateralString
 	}()
-	var collateral *float64 = Float64PtrTyped(this.ParseNumber(collateralString))
+	var collateral *float64
+	if derefNum, isNum := this.ParseNumber(collateralString).(float64); isNum {
+		collateral = &derefNum
+	}
 	var markPrice *float64 = Float64PtrTyped(this.ParseNumber(this.OmitZero(this.SafeString(position, "markPrice"))))
 	var timestamp *int64 = this.SafeInteger(position, "updateTime")
 	if timestamp != nil && *timestamp == 0 {
 		timestamp = nil
 	}
-	var maintenanceMarginPercentage *float64 = Float64PtrTyped(this.ParseNumber(maintenanceMarginPercentageString))
+	var maintenanceMarginPercentage *float64
+	if derefNum, isNum := this.ParseNumber(maintenanceMarginPercentageString).(float64); isNum {
+		maintenanceMarginPercentage = &derefNum
+	}
 	var maintenanceMarginString *string = Precise.StringMul(maintenanceMarginPercentageString, notionalStringAbs)
 	if maintenanceMarginString == nil {
 		// for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
 		maintenanceMarginString = this.SafeString(position, "maintMargin")
 	}
-	var maintenanceMargin *float64 = Float64PtrTyped(this.ParseNumber(maintenanceMarginString))
+	var maintenanceMargin *float64
+	if derefNum, isNum := this.ParseNumber(maintenanceMarginString).(float64); isNum {
+		maintenanceMargin = &derefNum
+	}
 	var initialMarginString *string = nil
 	var initialMarginPercentageString *string = nil
 	var leverageString any = this.OmitZero(this.SafeString(position, "leverage")) // portfolio-margin accounts may return leverage "0", see #29244
@@ -14228,8 +14320,16 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var marginRatio *float64 = nil
 	var percentage *float64 = nil
 	if !Precise.StringEquals(collateralString, "0") {
-		marginRatio = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(Precise.StringAdd(Precise.StringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4)))
-		percentage = Float64PtrTyped(this.ParseNumber(Precise.StringMul(Precise.StringDiv(unrealizedPnlString, initialMarginString, 4), "100")))
+		if derefNum, isNum := this.ParseNumber(Precise.StringDiv(Precise.StringAdd(Precise.StringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4)).(float64); isNum {
+			marginRatio = &derefNum
+		} else {
+			marginRatio = nil
+		}
+		if derefNum, isNum := this.ParseNumber(Precise.StringMul(Precise.StringDiv(unrealizedPnlString, initialMarginString, 4), "100")).(float64); isNum {
+			percentage = &derefNum
+		} else {
+			percentage = nil
+		}
 	}
 	var positionSide *string = this.SafeString(position, "positionSide")
 	var hedged bool = (positionSide == nil || *positionSide != "BOTH")

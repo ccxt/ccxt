@@ -805,13 +805,25 @@ func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 	var base any = nil
 	var expiry any = nil
 	if GetIndexOf(symbol, "/") > -1 {
-		base = DerefScalar(this.SafeString(symbolBase, 0))
-		expiry = DerefScalar(this.SafeString(optionParts, 1))
+		if derefPtr := this.SafeString(symbolBase, 0); derefPtr != nil {
+			base = *derefPtr
+		} else {
+			base = nil
+		}
+		if derefPtr := this.SafeString(optionParts, 1); derefPtr != nil {
+			expiry = *derefPtr
+		} else {
+			expiry = nil
+		}
 		if GetIndexOf(symbol, "USDC") > -1 {
 			base = Add(base, "_USDC")
 		}
 	} else {
-		base = DerefScalar(this.SafeString(optionParts, 0))
+		if derefPtr := this.SafeString(optionParts, 0); derefPtr != nil {
+			base = *derefPtr
+		} else {
+			base = nil
+		}
 		expiry = this.ConvertMarketIdExpireDate(this.SafeString(optionParts, 1))
 	}
 	if GetIndexOf(symbol, "USDC") > -1 {

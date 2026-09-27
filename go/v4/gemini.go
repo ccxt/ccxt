@@ -738,7 +738,10 @@ func (this *Gemini) ParseCurrency(rawCurrency any) any {
 	if isFiat {
 		typeVar = "fiat"
 	}
-	var precision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, 5))))
+	var precision *float64
+	if derefNum, isNum := this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, 5))).(float64); isNum {
+		precision = &derefNum
+	}
 	var networks map[string]any = map[string]any{}
 	var networkId *string = this.SafeString(rawCurrency, 9)
 	var networkCode *string = nil
@@ -1187,9 +1190,21 @@ func (this *Gemini) ParseMarket(response any) any {
 		tickSize = DerefScalar(this.SafeNumber(response, "quote_increment"))  // this is tick-size actually
 		minSize = this.SafeNumber(response, "min_order_size")
 		status = this.ParseMarketActive(this.SafeString(response, "status"))
-		baseId = DerefScalar(this.SafeString(response, "base_currency"))
-		quoteId = DerefScalar(this.SafeString(response, "quote_currency"))
-		settleId = DerefScalar(this.SafeString(response, "contract_price_currency"))
+		if derefPtr := this.SafeString(response, "base_currency"); derefPtr != nil {
+			baseId = *derefPtr
+		} else {
+			baseId = nil
+		}
+		if derefPtr := this.SafeString(response, "quote_currency"); derefPtr != nil {
+			quoteId = *derefPtr
+		} else {
+			quoteId = nil
+		}
+		if derefPtr := this.SafeString(response, "contract_price_currency"); derefPtr != nil {
+			settleId = *derefPtr
+		} else {
+			settleId = nil
+		}
 	} else {
 		// if no detailed API was called, then parse either string or array
 		if isString {
@@ -1862,8 +1877,14 @@ func (this *Gemini) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var takerBps *string = this.SafeString(response, "api_taker_fee_bps")
 	var makerString *string = Precise.StringDiv(makerBps, "10000")
 	var takerString *string = Precise.StringDiv(takerBps, "10000")
-	var maker *float64 = Float64PtrTyped(this.ParseNumber(makerString))
-	var taker *float64 = Float64PtrTyped(this.ParseNumber(takerString))
+	var maker *float64
+	if derefNum, isNum := this.ParseNumber(makerString).(float64); isNum {
+		maker = &derefNum
+	}
+	var taker *float64
+	if derefNum, isNum := this.ParseNumber(takerString).(float64); isNum {
+		taker = &derefNum
+	}
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {

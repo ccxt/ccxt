@@ -1061,7 +1061,11 @@ func (this *Hibachi) CreateOrderRequest(nonce any, symbol any, typeVar any, side
 	}
 	var priceInternal any = ""
 	if (price != nil) && (price == nil || *price != 0) {
-		priceInternal = DerefScalar(this.PriceToPrecision(symbol, price))
+		if derefPtr := this.PriceToPrecision(symbol, price); derefPtr != nil {
+			priceInternal = *derefPtr
+		} else {
+			priceInternal = nil
+		}
 	}
 	var message any = this.OrderMessage(market, nonce, feeRate, typeVar, side, amount, price)
 	var signature string = this.SignMessage(message, this.PrivateKey)
@@ -2362,7 +2366,11 @@ func (this *Hibachi) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		} else {
 			direction = "in"
 		}
-		amount = Float64PtrTyped(this.ParseNumber(amountStr))
+		if derefNum, isNum := this.ParseNumber(amountStr).(float64); isNum {
+			amount = &derefNum
+		} else {
+			amount = nil
+		}
 		fee = map[string]any{
 			"currency": "USDT",
 			"cost":     this.SafeNumber(item, "fee"),
@@ -2822,7 +2830,11 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["contractId"] = market["numericId"]
-		symbolResolved = DerefScalar(this.SafeString(market, "symbol"))
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 	}
 	if since != nil {
 		request["startTime"] = this.ParseToInt(float64(*since) / 1000)

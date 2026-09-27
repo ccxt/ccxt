@@ -2426,8 +2426,16 @@ func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {
 	var base any = nil
 	var expiry any = nil
 	if GetIndexOf(symbol, "/") > -1 {
-		base = DerefScalar(this.SafeString(symbolBase, 0))
-		expiry = DerefScalar(this.SafeString(optionParts, 1))
+		if derefPtr := this.SafeString(symbolBase, 0); derefPtr != nil {
+			base = *derefPtr
+		} else {
+			base = nil
+		}
+		if derefPtr := this.SafeString(optionParts, 1); derefPtr != nil {
+			expiry = *derefPtr
+		} else {
+			expiry = nil
+		}
 		var symbolQuoteAndSettle *string = this.SafeString(symbolBase, 1)
 		if symbolQuoteAndSettle == nil {
 			panic(ExchangeError(this.Id + " createExpiredOptionMarket() missing symbolQuoteAndSettle"))
@@ -2437,7 +2445,11 @@ func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {
 		quote = quoteAndSettle
 		settle = quoteAndSettle
 	} else {
-		base = DerefScalar(this.SafeString(optionParts, 0))
+		if derefPtr := this.SafeString(optionParts, 0); derefPtr != nil {
+			base = *derefPtr
+		} else {
+			base = nil
+		}
 		expiry = this.ConvertMarketIdExpireDate(this.SafeString(optionParts, 1))
 		if EndsWith(symbol, "-USDT") {
 			quote = SafeStringPtr("USDT")
@@ -2962,8 +2974,14 @@ func (this *Bybit) fetchSpotMarketsBody(ch chan any, params any) any {
 	var responseResult map[string]any = SafeMapTyped(response, "result")
 	var markets []any = SafeListTyped(responseResult, "list")
 	var result []any = []any{}
-	var takerFee *float64 = Float64PtrTyped(this.ParseNumber("0.001"))
-	var makerFee *float64 = Float64PtrTyped(this.ParseNumber("0.001"))
+	var takerFee *float64
+	if derefNum, isNum := this.ParseNumber("0.001").(float64); isNum {
+		takerFee = &derefNum
+	}
+	var makerFee *float64
+	if derefNum, isNum := this.ParseNumber("0.001").(float64); isNum {
+		makerFee = &derefNum
+	}
 	for i := 0; i < len(markets); i++ {
 		var market any = func() any {
 			if i >= 0 && i < len(markets) {
@@ -3204,7 +3222,10 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan EndpointResult[[]any], optiona
 			if inverse {
 				return this.SafeNumber2(lotSizeFilter, "minTradingQty", "minOrderQty")
 			}
-			return Float64PtrTyped(this.ParseNumber("1"))
+			if derefNum, isNum := this.ParseNumber("1").(float64); isNum {
+				return &derefNum
+			}
+			return nil
 		}()
 		var parsedMarket any = this.SafeMarketStructure(map[string]any{
 			"id":             id,
@@ -4435,7 +4456,11 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) any {
 		}()
 	}
 	if market != nil {
-		marketType = DerefScalar(this.SafeString(market, "type"))
+		if derefPtr := this.SafeString(market, "type"); derefPtr != nil {
+			marketType = *derefPtr
+		} else {
+			marketType = nil
+		}
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
@@ -10306,7 +10331,11 @@ func (this *Bybit) ParseTradingFee(fee any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(fee, "symbol")
 	var defaultType any = "contract"
 	if market != nil {
-		defaultType = DerefScalar(this.SafeString(market, "type"))
+		if derefPtr := this.SafeString(market, "type"); derefPtr != nil {
+			defaultType = *derefPtr
+		} else {
+			defaultType = nil
+		}
 	}
 	var symbol *string = this.SafeSymbol(marketId, market, nil, defaultType)
 	return map[string]any{
@@ -11444,7 +11473,10 @@ func (this *Bybit) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 		var tier map[string]any = SafeMapTyped(info, i)
 		var marketId *string = this.SafeString(info, "symbol")
 		var marketResolved map[string]any = this.SafeMarket(marketId)
-		var minNotional *float64 = Float64PtrTyped(this.ParseNumber("0"))
+		var minNotional *float64
+		if derefNum, isNum := this.ParseNumber("0").(float64); isNum {
+			minNotional = &derefNum
+		}
 		if i != 0 {
 			minNotional = this.SafeNumber(GetValue(info, i-1), "riskLimitValue")
 		}

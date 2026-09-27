@@ -281,7 +281,11 @@ func (this *Deepcoin) authenticateBody(ch chan any, optionalArgs ...any) any {
 			}
 			if response != nil {
 				var data map[string]any = ccxt.SafeMapTyped(response, "data")
-				listenKey = ccxt.DerefScalar(this.SafeString(data, "listenkey"))
+				if derefPtr := this.SafeString(data, "listenkey"); derefPtr != nil {
+					listenKey = *derefPtr
+				} else {
+					listenKey = nil
+				}
 				if listenKey == nil {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
 				}
@@ -442,8 +446,14 @@ func (this *Deepcoin) ParseWsTicker(ticker map[string]any, optionalArgs ...any) 
 	var last *float64 = this.SafeNumber(ticker, "N")
 	var bid *float64 = this.SafeNumber(ticker, "BP1")
 	var ask *float64 = this.SafeNumber(ticker, "AP1")
-	var baseVolume any = ccxt.DerefScalar(this.SafeNumber(ticker, "V"))
-	var quoteVolume any = ccxt.DerefScalar(this.SafeNumber(ticker, "T"))
+	var baseVolume any
+	if derefPtr := this.SafeNumber(ticker, "V"); derefPtr != nil {
+		baseVolume = *derefPtr
+	}
+	var quoteVolume any
+	if derefPtr := this.SafeNumber(ticker, "T"); derefPtr != nil {
+		quoteVolume = *derefPtr
+	}
 	if *this.SafeBool(market, "inverse", false) {
 		var temp any = baseVolume
 		baseVolume = quoteVolume

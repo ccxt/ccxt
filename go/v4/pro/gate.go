@@ -589,7 +589,11 @@ func (this *Gate) fetchOrdersByStatusWsBody(ch chan any, status string, optional
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 		if ccxt.GetValue(market, "swap") != true {
 			panic(ccxt.NotSupported(this.Id + " fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets"))
 		}

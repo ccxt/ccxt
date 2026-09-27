@@ -296,9 +296,15 @@ func (this *Btcbox) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var symbol string = *baseCurr + "/" + *quote
 		var fee *float64 = func() *float64 {
 			if id == "BTC" {
-				return Float64PtrTyped(this.ParseNumber("0.0005"))
+				if derefNum, isNum := this.ParseNumber("0.0005").(float64); isNum {
+					return &derefNum
+				}
+				return nil
 			}
-			return Float64PtrTyped(this.ParseNumber("0.0010"))
+			if derefNum, isNum := this.ParseNumber("0.0010").(float64); isNum {
+				return &derefNum
+			}
+			return nil
 		}()
 		var details map[string]any = SafeMapTyped(result2Data, id)
 		var tradeDetails map[string]any = SafeMapTyped(details, "trade")

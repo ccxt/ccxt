@@ -1820,7 +1820,10 @@ func (this *Limitless) fetchOHLCVBody(ch chan any, outcome string, optionalArgs 
 	for i := 0; i < ccxt.GetArrayLength(history); i++ {
 		var point map[string]any = ccxt.SafeMapTyped(history, i)
 		var pointPrice *float64 = this.SafeNumber(point, "price")
-		var pointTs any = ccxt.DerefScalar(this.SafeInteger(point, "timestamp"))
+		var pointTs any
+		if derefPtr := this.SafeInteger(point, "timestamp"); derefPtr != nil {
+			pointTs = *derefPtr
+		}
 		if ccxt.IsEqual(pointTs, nil) {
 			var tsString *string = this.SafeString(point, "timestamp")
 			pointTs = func() any {
@@ -2412,8 +2415,16 @@ func (this *Limitless) ParsePredictionOrder(order any, optionalArgs ...any) any 
 	if execution != nil {
 		rawStatus = this.SafeString(execution, "settlementStatus")
 		var totals map[string]any = ccxt.SafeMapTyped(execution, "totalsRaw")
-		cost = ccxt.DerefScalar(this.SafeString(totals, "usdGross"))
-		filled = ccxt.DerefScalar(this.SafeString(totals, "contractsGross"))
+		if derefPtr := this.SafeString(totals, "usdGross"); derefPtr != nil {
+			cost = *derefPtr
+		} else {
+			cost = nil
+		}
+		if derefPtr := this.SafeString(totals, "contractsGross"); derefPtr != nil {
+			filled = *derefPtr
+		} else {
+			filled = nil
+		}
 		var feeCurrency any = "USDC"
 		var feeCost *string = this.SafeString(totals, "usdFee")
 		if side != nil && *side == "buy" {
@@ -2593,9 +2604,17 @@ func (this *Limitless) createOrderBody(ch chan any, outcome string, typeVar stri
 	var usesSmartWallet bool = (tradeWalletOption != nil && *tradeWalletOption == "smartWallet")
 	var walletFromAccount any = nil
 	if usesSmartWallet {
-		walletFromAccount = ccxt.DerefScalar(this.SafeString(accountInfo, "smartWallet"))
+		if derefPtr := this.SafeString(accountInfo, "smartWallet"); derefPtr != nil {
+			walletFromAccount = *derefPtr
+		} else {
+			walletFromAccount = nil
+		}
 	} else {
-		walletFromAccount = ccxt.DerefScalar(this.SafeString(accountInfo, "account"))
+		if derefPtr := this.SafeString(accountInfo, "account"); derefPtr != nil {
+			walletFromAccount = *derefPtr
+		} else {
+			walletFromAccount = nil
+		}
 	}
 	var maker any = walletFromAccount
 	if this.WalletAddress != "" {
@@ -2659,7 +2678,10 @@ func (this *Limitless) createOrderBody(ch chan any, outcome string, typeVar stri
 		}(this)
 
 	}
-	var taker any = ccxt.DerefScalar(this.SafeString(this.Options, "nullAddress", "0x0000000000000000000000000000000000000000"))
+	var taker any
+	if derefPtr := this.SafeString(this.Options, "nullAddress", "0x0000000000000000000000000000000000000000"); derefPtr != nil {
+		taker = *derefPtr
+	}
 	var takerparamsValueVariable []any = this.HandleOptionAndParams(paramsValue, "createOrder", "taker", taker)
 	taker = ccxt.GetValue(takerparamsValueVariable, 0)
 	paramsValue = takerparamsValueVariable[1]
@@ -2889,8 +2911,14 @@ func (this *Limitless) SignEvmTransaction(tx any, privateKey any) any {
 	var payload *string = ccxt.SafeStringPtr(ccxt.Add("02", this.RlpEncodeList(fields)))
 	var hashHex any = this.Hash(this.Base16ToBinary(payload), ccxt.Keccak, "hex")
 	var signature map[string]any = ccxt.Ecdsa(hashHex, this.Remove0xPrefix(privateKey), ccxt.Secp256k1, nil)
-	var rHex any = ccxt.DerefScalar(this.SafeString(signature, "r"))
-	var sHex any = ccxt.DerefScalar(this.SafeString(signature, "s"))
+	var rHex any
+	if derefPtr := this.SafeString(signature, "r"); derefPtr != nil {
+		rHex = *derefPtr
+	}
+	var sHex any
+	if derefPtr := this.SafeString(signature, "s"); derefPtr != nil {
+		sHex = *derefPtr
+	}
 	rHex = this.PadHexToEven(rHex)
 	sHex = this.PadHexToEven(sHex)
 	var yParity *int64 = this.SafeInteger(signature, "v")

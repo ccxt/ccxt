@@ -2693,7 +2693,11 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan EndpointResult[[]any],
 		var inverse any = nil
 		// check if parsed market is contract
 		if contract {
-			id = DerefScalar(this.SafeString(market, "contract_code"))
+			if derefPtr := this.SafeString(market, "contract_code"); derefPtr != nil {
+				id = *derefPtr
+			} else {
+				id = nil
+			}
 			if id == nil {
 				panic(ExchangeError(this.Id + " method() missing id"))
 			}
@@ -2736,8 +2740,16 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan EndpointResult[[]any],
 			}
 		} else {
 			marketType = SafeStringPtr("spot")
-			baseId = DerefScalar(this.SafeString(market, "base-currency"))
-			quoteId = DerefScalar(this.SafeString(market, "quote-currency"))
+			if derefPtr := this.SafeString(market, "base-currency"); derefPtr != nil {
+				baseId = *derefPtr
+			} else {
+				baseId = nil
+			}
+			if derefPtr := this.SafeString(market, "quote-currency"); derefPtr != nil {
+				quoteId = *derefPtr
+			} else {
+				quoteId = nil
+			}
 			if IsEqual(quoteId, nil) {
 				panic(ExchangeError(this.Id + " method() missing quoteId"))
 			}
@@ -2762,7 +2774,11 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan EndpointResult[[]any],
 				symbol += ":" + *quote
 			}
 			if future {
-				expiry = DerefScalar(this.SafeInteger(market, "delivery_time"))
+				if derefPtr := this.SafeInteger(market, "delivery_time"); derefPtr != nil {
+					expiry = *derefPtr
+				} else {
+					expiry = nil
+				}
 				symbol += "-" + this.Yymmdd(expiry)
 			}
 		}
@@ -2792,7 +2808,11 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan EndpointResult[[]any],
 			var state *string = this.SafeString(market, "state")
 			active = (state != nil && *state == "online")
 		} else {
-			pricePrecision = DerefScalar(this.SafeNumber(market, "price_tick"))
+			if derefPtr := this.SafeNumber(market, "price_tick"); derefPtr != nil {
+				pricePrecision = *derefPtr
+			} else {
+				pricePrecision = nil
+			}
 			amountPrecision = this.ParseNumber("1") // other markets have step size of 1 contract
 			maker = this.ParseNumber("0.0002")
 			taker = this.ParseNumber("0.0005")
@@ -3019,7 +3039,10 @@ func (this *Htx) ParseTicker(ticker any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString2(ticker, "symbol", "contract_code")
-	var symbol any = DerefScalar(this.SafeSymbol(marketId, market))
+	var symbol any
+	if derefPtr := this.SafeSymbol(marketId, market); derefPtr != nil {
+		symbol = *derefPtr
+	}
 	symbol = this.TryGetSymbolFromFutureMarkets(symbol)
 	var timestamp *int64 = this.SafeInteger2(ticker, "ts", "quoteTime")
 	var bid *string = nil
@@ -3597,7 +3620,10 @@ func (this *Htx) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"ts", "created-at", "created_at", "create_date", "created_time"})
 	var order *string = this.SafeString2(trade, "order-id", "order_id")
 	var side any = DerefScalar(this.SafeString2(trade, "direction", "side"))
-	var typeVar any = DerefScalar(this.SafeString(trade, "type"))
+	var typeVar any
+	if derefPtr := this.SafeString(trade, "type"); derefPtr != nil {
+		typeVar = *derefPtr
+	}
 	if ((typeVar != nil)) && (GetIndexOf(typeVar, "-") >= 0) {
 		var typeParts []string = Split(typeVar, "-")
 		side = func() any {
@@ -6404,15 +6430,27 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) any {
 	var isLinearOrder bool = (contractCode != nil) && ((marketResolved != nil)) && (marketResolved["linear"] == true) && (marketResolved["spot"] != true)
 	var typeVar any = nil
 	if isLinearOrder == true {
-		typeVar = DerefScalar(this.SafeString(order, "type"))
+		if derefPtr := this.SafeString(order, "type"); derefPtr != nil {
+			typeVar = *derefPtr
+		} else {
+			typeVar = nil
+		}
 		if (IsEqual(typeVar, nil)) || (IsEqual(typeVar, "tp")) || (IsEqual(typeVar, "sl")) || (IsEqual(typeVar, "tpsl")) {
-			typeVar = DerefScalar(this.SafeString2(order, "tp_type", "sl_type"))
+			if derefPtr := this.SafeString2(order, "tp_type", "sl_type"); derefPtr != nil {
+				typeVar = *derefPtr
+			} else {
+				typeVar = nil
+			}
 		}
 		if IsEqual(typeVar, "0") {
 			typeVar = nil
 		}
 	} else {
-		typeVar = DerefScalar(this.SafeString(order, "order_price_type"))
+		if derefPtr := this.SafeString(order, "order_price_type"); derefPtr != nil {
+			typeVar = *derefPtr
+		} else {
+			typeVar = nil
+		}
 		var rawType *string = this.SafeString(order, "type")
 		if rawType != nil {
 			if func() int {
@@ -6458,7 +6496,11 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) any {
 		var feeCurrency any = nil
 		var feeCurrencyId *string = this.SafeString2(order, "fee_asset", "fee_currency")
 		if feeCurrencyId != nil {
-			feeCurrency = DerefScalar(this.SafeCurrencyCode(feeCurrencyId))
+			if derefPtr := this.SafeCurrencyCode(feeCurrencyId); derefPtr != nil {
+				feeCurrency = *derefPtr
+			} else {
+				feeCurrency = nil
+			}
 		} else {
 			feeCurrency = func() any {
 				if side == "sell" {
@@ -6476,7 +6518,11 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) any {
 	var trades any = this.SafeValue(order, "trades")
 	var reduceOnly any = nil
 	if isLinearOrder == true {
-		reduceOnly = DerefScalar(this.SafeBool(order, "reduce_only"))
+		if derefPtr := this.SafeBool(order, "reduce_only"); derefPtr != nil {
+			reduceOnly = *derefPtr
+		} else {
+			reduceOnly = nil
+		}
 	} else {
 		var reduceOnlyInteger *int64 = this.SafeInteger(order, "reduce_only")
 		if reduceOnlyInteger != nil {
@@ -8476,7 +8522,10 @@ func (this *Htx) ParseTransaction(transaction any, optionalArgs ...any) any {
 		feeCost = Precise.StringAbs(feeCost)
 	}
 	var networkId *string = this.SafeString(transaction, "chain")
-	var txHash any = DerefScalar(this.SafeString(transaction, "tx-hash"))
+	var txHash any
+	if derefPtr := this.SafeString(transaction, "tx-hash"); derefPtr != nil {
+		txHash = *derefPtr
+	}
 	if txHash == nil {
 		panic(ExchangeError(this.Id + " parseTransaction() missing txHash"))
 	}
@@ -10044,7 +10093,11 @@ func (this *Htx) ParsePosition(position any, optionalArgs ...any) any {
 	if maintenanceMarginLinear == nil {
 		maintenanceMarginPercentage = Precise.StringDiv(adjustmentFactor, leverage)
 		maintenanceMargin = Precise.StringMul(maintenanceMarginPercentage, notional)
-		maintenanceMarginPercentageResult = Float64PtrTyped(this.ParseNumber(maintenanceMarginPercentage))
+		if derefNum, isNum := this.ParseNumber(maintenanceMarginPercentage).(float64); isNum {
+			maintenanceMarginPercentageResult = &derefNum
+		} else {
+			maintenanceMarginPercentageResult = nil
+		}
 	} else {
 		maintenanceMargin = maintenanceMarginLinear
 	}

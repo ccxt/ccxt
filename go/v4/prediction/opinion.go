@@ -1336,7 +1336,11 @@ func (this *Opinion) createOrderBody(ch chan any, outcome string, typeVar string
 	}
 	var marketOrderPrice any = "0"
 	if isMarket && (sideStr == "SELL") {
-		marketOrderPrice = ccxt.DerefScalar(this.NumberToString(price))
+		if derefPtr := this.NumberToString(price); derefPtr != nil {
+			marketOrderPrice = *derefPtr
+		} else {
+			marketOrderPrice = nil
+		}
 	}
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var topicId *int64 = this.SafeInteger(info, "marketId")

@@ -1509,7 +1509,11 @@ func (this *Pacifica) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbolResolved)
 	}
 	var isTestnet bool = this.IsSandboxModeEnabled

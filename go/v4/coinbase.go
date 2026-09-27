@@ -2410,13 +2410,19 @@ func (this *Coinbase) ParseContractMarket(market any, feeTier map[string]any) an
 		if (takerFeeRate != nil) && (takerFeeRate == nil || *takerFeeRate != 0) {
 			return takerFeeRate
 		}
-		return Float64PtrTyped(this.ParseNumber("0.06"))
+		if derefNum, isNum := this.ParseNumber("0.06").(float64); isNum {
+			return &derefNum
+		}
+		return nil
 	}()
 	var maker *float64 = func() *float64 {
 		if (makerFeeRate != nil) && (makerFeeRate == nil || *makerFeeRate != 0) {
 			return makerFeeRate
 		}
-		return Float64PtrTyped(this.ParseNumber("0.04"))
+		if derefNum, isNum := this.ParseNumber("0.04").(float64); isNum {
+			return &derefNum
+		}
+		return nil
 	}()
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
@@ -5683,9 +5689,17 @@ func (this *Coinbase) ParseDepositAddress(depositAddress any, optionalArgs ...an
 	var currencyId any = nil
 	if addressLabel != nil {
 		var splitAddressLabel []string = strings.Split(*addressLabel, " ")
-		currencyId = DerefScalar(this.SafeString(splitAddressLabel, 0))
+		if derefPtr := this.SafeString(splitAddressLabel, 0); derefPtr != nil {
+			currencyId = *derefPtr
+		} else {
+			currencyId = nil
+		}
 	} else {
-		currencyId = DerefScalar(this.SafeString(depositAddress, "currency"))
+		if derefPtr := this.SafeString(depositAddress, "currency"); derefPtr != nil {
+			currencyId = *derefPtr
+		} else {
+			currencyId = nil
+		}
 	}
 	var addressInfo map[string]any = SafeMapTyped(depositAddress, "address_info")
 	return map[string]any{
@@ -6662,9 +6676,15 @@ func (this *Coinbase) ParsePortfolioDetails(portfolioData any) any {
 		}())
 		var currencyCode *string = this.SafeString(position, "asset", "Unknown")
 		var availableBalanceStr *string = this.SafeString(position, "available_to_trade_fiat", "0")
-		var availableBalance *float64 = Float64PtrTyped(this.ParseNumber(availableBalanceStr))
+		var availableBalance *float64
+		if derefNum, isNum := this.ParseNumber(availableBalanceStr).(float64); isNum {
+			availableBalance = &derefNum
+		}
 		var totalBalanceFiatStr *string = this.SafeString(position, "total_balance_fiat", "0")
-		var totalBalanceFiat *float64 = Float64PtrTyped(this.ParseNumber(totalBalanceFiatStr))
+		var totalBalanceFiat *float64
+		if derefNum, isNum := this.ParseNumber(totalBalanceFiatStr).(float64); isNum {
+			totalBalanceFiat = &derefNum
+		}
 		var holdAmount any = Subtract(totalBalanceFiat, availableBalance)
 		var costBasisDict map[string]any = SafeMapTyped(position, "cost_basis")
 		var costBasisStr *string = this.SafeString(costBasisDict, "value", "0")

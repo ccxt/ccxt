@@ -609,7 +609,11 @@ func (this *Cryptocom) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 	}
 	var messageHash any = "user.trade"
 	messageHash = func() any {
@@ -1141,7 +1145,11 @@ func (this *Cryptocom) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 	}
 	var messageHash any = "user.order"
 	messageHash = func() any {

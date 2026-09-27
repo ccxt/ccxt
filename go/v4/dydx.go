@@ -1705,10 +1705,18 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar string, side string, am
 		orderFlag = 32
 		if !IsEqual(stopLossPrice, nil) {
 			conditionalType = 1
-			conditionalOrderTriggerSubticks = DerefScalar(this.PriceToPrecision(symbol, stopLossPrice))
+			if derefPtr := this.PriceToPrecision(symbol, stopLossPrice); derefPtr != nil {
+				conditionalOrderTriggerSubticks = *derefPtr
+			} else {
+				conditionalOrderTriggerSubticks = nil
+			}
 		} else if !IsEqual(takeProfitPrice, nil) {
 			conditionalType = 2
-			conditionalOrderTriggerSubticks = DerefScalar(this.PriceToPrecision(symbol, takeProfitPrice))
+			if derefPtr := this.PriceToPrecision(symbol, takeProfitPrice); derefPtr != nil {
+				conditionalOrderTriggerSubticks = *derefPtr
+			} else {
+				conditionalOrderTriggerSubticks = nil
+			}
 		}
 		conditionalOrderTriggerSubticks = Precise.StringMul(conditionalOrderTriggerSubticks, priceScale)
 	}

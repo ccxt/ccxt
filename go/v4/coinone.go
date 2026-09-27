@@ -1292,10 +1292,18 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) any {
 	var base any = nil
 	var quote any = nil
 	if baseId != nil {
-		base = DerefScalar(this.SafeCurrencyCode(baseId))
+		if derefPtr := this.SafeCurrencyCode(baseId); derefPtr != nil {
+			base = *derefPtr
+		} else {
+			base = nil
+		}
 	}
 	if quoteId != nil {
-		quote = DerefScalar(this.SafeCurrencyCode(quoteId))
+		if derefPtr := this.SafeCurrencyCode(quoteId); derefPtr != nil {
+			quote = *derefPtr
+		} else {
+			quote = nil
+		}
 	}
 	var symbol any = nil
 	if (base != nil) && (quote != nil) {

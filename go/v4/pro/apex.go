@@ -359,7 +359,10 @@ func (this *Apex) GetWsPublicUrl() any {
 	// signing. CCXT's client manager keys clients by URL, so recomputing the
 	// timestamp on every watch* call would open a new connection each time.
 	// Cache it per exchange instance.
-	var url any = ccxt.DerefScalar(this.SafeString(this.Options, "wsPublicUrl"))
+	var url any
+	if derefPtr := this.SafeString(this.Options, "wsPublicUrl"); derefPtr != nil {
+		url = *derefPtr
+	}
 	if url == nil {
 		var timeStamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		url = ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "&timestamp="), timeStamp)
@@ -368,7 +371,10 @@ func (this *Apex) GetWsPublicUrl() any {
 	return url
 }
 func (this *Apex) GetWsPrivateUrl() any {
-	var url any = ccxt.DerefScalar(this.SafeString(this.Options, "wsPrivateUrl"))
+	var url any
+	if derefPtr := this.SafeString(this.Options, "wsPrivateUrl"); derefPtr != nil {
+		url = *derefPtr
+	}
 	if url == nil {
 		var timeStamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		url = ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "&timestamp="), timeStamp)
@@ -658,7 +664,10 @@ func (this *Apex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
-		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
+		var symbolString any
+		if derefPtr := this.SafeString(data, 0); derefPtr != nil {
+			symbolString = *derefPtr
+		}
 		var market map[string]any = this.Market(symbolString)
 		symbolString = market["id2"]
 		var unfiedTimeframe *string = this.SafeString(data, 1, "1")
