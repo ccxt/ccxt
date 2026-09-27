@@ -2530,6 +2530,9 @@ func awaitOutcome(task any) (any, error) {
 	case *Future:
 		r := <-typedTask.Await()
 		return r.Value, r.Err
+	case AsyncResult[any]:
+		// an already-received task (`<-core()` inside the list literal) keeps its error
+		return typedTask.Value, typedTask.Err
 	}
 	if outcome, ok := receiveOutcome(task); ok && outcome != nil {
 		return outcome.Boxed(), outcome.Failure()
