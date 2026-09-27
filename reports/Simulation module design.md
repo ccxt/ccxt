@@ -3,6 +3,21 @@
 Status: investigation draft, not an agreed API. All names (`ccxt.sim`, `ccxt.data`, …) are illustrative.
 Background research: [Trading simulation design research.md](./Trading%20simulation%20design%20research.md).
 
+## 0. For decision-makers
+
+**What we learned**
+- **Nobody combines what ccxt could.** Freqtrade, Jesse, NautilusTrader and hftbacktest each have their own strategy API and cover a handful of venues. No tool offers one strategy file across live, paper and backtest on 100+ exchanges, in seven languages, with keys staying on the user's machine.
+- **A Strategy class plus a live runner has no dependencies.** It can start now and ship first. Backtesting depends on data.
+- **Order-book history can't be backfilled.** If it isn't recorded, it's gone. Candles and trades can mostly be fetched after the fact.
+- **Storage is manageable (measured).** Candles and trades for every Binance spot and USD-M symbol take well under 1 TB a year. Full order books for every symbol bring it to roughly 7–10 TB a year (§5.4).
+- **Serving data is the legal risk.** Binance and Coinbase terms forbid redistributing their market data; Coinbase also forbids derived works. That makes a ccxt data API a licensing question. Vendors such as [Tardis.dev](https://tardis.dev) sell exactly this data, and a user's own Tardis subscription can plug into the simulator (§6, §7).
+
+**Decisions needed**
+1. **Build `ccxt.Strategy` and a live runner now?** One strategy file, a runner with guardrails, saved state, a journal and reconnects. It can later run unchanged in paper and backtest mode. No dependencies.
+2. **Start recording market data internally, via the order router?** For example, the top 20 pairs on the top 5 exchanges: roughly 1.5–3 TB a year per exchange. Legal should confirm internal storage is allowed.
+3. **Backtesting: start with a generalized market simulator?** Market-wide candles and trades with configurable fees and slippage. It avoids per-exchange licensing, and venue-specific backtests follow later (§11.1).
+4. **Data API: get legal review before committing.** Do it per exchange and per data type (candles and trades vs raw order books). Also decide whether to partner with a vendor such as Tardis.
+
 ## 1. Summary
 
 - **Core:** an in-process simulated exchange (`ccxt.sim.<exchange>`) that implements the same unified methods as the real exchange class, driven by a **virtual clock and event queue** that the simulator owns.
@@ -53,7 +68,7 @@ A useful fourth mode falls out of the design for free — **replay-paper**: run 
 
 - Pure logic (matcher, ledger, fee/funding/liquidation models, event queue, `ccxt.sim.<exchange>`) lives in `ts/src/` and transpiles to every language.
 - Anything touching the async runtime (virtual `sleep`, resolving `watch*` futures, throttler timers) is a small hand-written layer per language, following the `OrderRouter.ts` precedent and its determinism rules.
-- **Prerequisite:** a clock seam. Today `ts/src/base/functions/time.ts` hard-wires `Date.now`, and `throttle.ts` and `ws/Client.ts` read it directly. Phase 0 routes all of them through an injectable `exchange.clock`.
+- **Prerequisite:** a clock seam. Today `ts/src/base/functions/time.ts` hard-wires `Date.now`, and `throttle.ts` and `ws/Client.ts` read it directly. Workstream D0 (§11) routes all of them through an injectable `exchange.clock`; a live-only runner does not need it.
 
 ## 4. Clock and timing model
 
@@ -389,27 +404,66 @@ ccxt strategy compare paper-run-17 --against replay --json      # paper vs simul
 ccxt strategy promote paper-run-17 --to live --max-order-value 100   # → waits for human approval
 ```
 
-## 11. Phases
+## 11. Roadmap
 
-| Phase | Deliverable |
-|---|---|
-| 0. Clock seam | Injectable `exchange.clock` used by `Exchange`, throttler and WS `Client`; no live behaviour change |
-| 1. Data layer | `DataSource` interface; ccxt REST backfill; local Parquet store with manifests and `markets` snapshots; Binance dumps importer; ccxt.pro recorder |
-| 2. Backtest (bars + trades) | `ccxt.sim.<exchange>` with bar/trade fill models, ledger, fees, funding, tiered liquidation, time frontier, control API, reports |
-| 3. Paper + replay-paper | Same simulator on live `watch*` feeds, and on recordings |
-| 4. L2 + Tardis | Raw-frame replay into `handleMessage` (recordings and Tardis raw); Tardis CSV converter; L2 matcher, queue and latency models |
-| 5. Strategy + runner | `ccxt.Strategy` contract, `ccxt.run()` for all four modes, guardrails, state and journal, run manifests, `ccxt strategy` CLI |
-| 6. Loop + agents | Walk-forward, sweeps, purged CV, deflated Sharpe; promotion gates; live-vs-replay reconciliation and model calibration; champion/challenger; MCP tools with human-approved promotion |
-| 7. Premium | Optional local lockstep server; vendor partnerships (data only — no hosted runners or key custody) |
+### 11.1 Two backtesting paths
 
-Phase 5 can start as soon as phase 2 exists: a runner over backtest and live alone is already useful.
+The simulator needs data, but not necessarily data served by ccxt. Users can fetch candles and trades themselves through ccxt's REST backfill, from the exchange, so ccxt redistributes nothing. They can also bring recordings, exchange bulk files or their own Tardis key. Router recordings (B) and a ccxt data API (F) add what users can't get themselves: order-book history, longer histories, and convenience.
+
+| | Venue-specific simulator | Generalized market simulator |
+|---|---|---|
+| Data | That exchange's own trades, candles and order books | Market-wide data: a cross-venue composite or a representative venue |
+| Exchange rules | That venue's fees, precision, limits, funding and liquidation | Configurable fees, slippage and funding; can still borrow venue precision, limits and fees from ccxt market metadata |
+| Good for | Arbitrage, market making, venue-specific perpetual strategies, order-book-level fills | Candle-based strategies (trend, mean reversion, rotation), where the venue barely matters |
+| Legal | Per-exchange approval if ccxt serves the data; none if users fetch it themselves | Lighter: one dataset, or a licensed aggregate. Still check terms; Coinbase restricts derived works |
+| Honesty | "What would have happened on Binance" | "What would have happened in the market"; reports must say it's an approximation |
+
+Recommendation: ship the generalized simulator first. Add venue-specific backtests next, first on user-fetched data, then on ccxt-served data per exchange as legal approvals arrive. Both use the same simulator; only the data source changes.
+
+### 11.2 Workstreams
+
+| Workstream | What it is | Depends on | Legal gate? | Existing competitors / alternatives |
+|---|---|---|---|---|
+| **A. Business and legal** | Storage and serving rights per exchange and data tier; open-source vs paid split; vendor partnership | — | — | — |
+| **B. Router data recording** | Router records raw messages and daily market snapshots | — | Internal storage: confirm. Serving: yes | Tardis.dev, Crypto Lake, Kaiko, CoinAPI, Amberdata |
+| **C. Library data foundations** | REST backfill, recorder and replay, local store, market snapshots, Binance bulk-file importer | — | No (user side) | cryptofeed, tardis-node, Freqtrade `download-data`, Binance bulk files |
+| **E1. Strategy + live runner** | `ccxt.Strategy`, `ccxt.run()` in live and sandbox modes, guardrails, journal, state | — | No | Freqtrade, Hummingbot, OctoBot, NautilusTrader live; hosted bot platforms (e.g. 3Commas, Cryptohopper) that hold users' keys, unlike ccxt |
+| **M. Matcher and ledger** | Order matching, fees, balances, positions, funding, liquidation | — | No | Nautilus `SimulatedExchange`, OctoBot exchange simulator, Hummingbot paper connector |
+| **E2. Paper mode** | Runner plus the matcher on live feeds | E1, M | No | Freqtrade dry-run, Hummingbot paper trade, Alpaca/IBKR paper accounts, exchange testnets |
+| **D0. Clock seam** | Replaceable clock through `Exchange`, throttler and WS client | — | No | Nautilus `VirtualClock`, LEAN time frontier |
+| **D1. Generalized backtest** | Clock, matcher, market-wide data, configurable venue rules | D0, M, any data source | Lighter | TradingView strategy tester, Freqtrade, Jesse, vectorbt, Backtrader, LEAN |
+| **D2. Venue-specific backtest** | Same with a venue's own data and rules, up to order-book level | D0, M, C or F | Only if ccxt serves the data | NautilusTrader, hftbacktest, Hummingbot backtesting, Freqtrade (candles) |
+| **E3. Backtest mode in runner** | Same strategy file in backtest | E1, D1 or D2 | No | Freqtrade, Jesse, LEAN, Nautilus |
+| **F. Data API** | Historical data served by ccxt, as a simulator data source | A, B | **Yes** | Tardis.dev, Kaiko, CoinAPI, Amberdata, Crypto Lake, CCData/CryptoCompare; Binance bulk files |
+| **G. Optimization and agent loop** | Walk-forward, sweeps, promotion gates, live-vs-replay reconciliation, MCP tools | E3; better with F | No | Freqtrade hyperopt/FreqAI, VectorBT PRO, LEAN optimizer, MultiCharts walk-forward |
+
+### 11.3 Order
+
+```
+E1 strategy + live runner ─────────► E2 paper ──► E3 backtest mode ──► G optimization/agents
+M  matcher + ledger ───────────────┘               ▲
+D0 clock seam ──► D1 generalized backtest ─────────┤
+C  data foundations ──► D2 venue-specific backtest ─┘
+A legal/business ─┐
+B router recording ┴──► F data API ──► (extra data source for D1/D2)
+```
+
+1. **Now, in parallel:** A and B on the business side; E1, M, D0 and C on the library side. None depends on the others.
+2. **First release:** Strategy class plus live and sandbox runner (E1), then paper mode (E2).
+3. **Second release:** generalized backtest (D1) and backtest mode (E3). One strategy file then runs in every mode.
+4. **Third:** venue-specific backtest (D2), first on user-fetched data, then order-book level with latency and queue models.
+5. **When legal allows:** data API (F) per approved exchange and data tier. It improves D1 and D2 without code changes.
+6. **Then:** optimization and agent loop (G): walk-forward, promotion gates, nightly live-vs-replay reconciliation, MCP tools with human-approved promotion.
+
+Durations are not estimated here; they depend on team size.
 
 ## 12. Open questions
 
 1. Scope: new core module vs a separate `ccxt-sim` package first.
-2. Tardis redistribution terms and appetite for a partnership (§7).
-3. Old-format raw frames: keep versioned parsers, or rely on Tardis normalized data for older periods?
-4. Which exchange-specific `params` (post-only, reduce-only, TP/SL attached orders) the simulator supports in v1.
-5. Storage format per language (Parquet support is uneven in PHP).
-6. Should `ccxt.Strategy` and the runner live in every language, or start in TypeScript and Python only? The simulator core transpiles, but a long-running runner is more runtime-specific.
-7. Who owns the promotion gates' default thresholds, and should they be per strategy?
+2. Which data tiers a ccxt data API would cover, and whether it is paid (§0, §11).
+3. Tardis redistribution terms and appetite for a partnership (§7).
+4. Old-format raw frames: keep versioned parsers, or rely on Tardis normalized data for older periods?
+5. Which exchange-specific `params` (post-only, reduce-only, TP/SL attached orders) the simulator supports in v1.
+6. Storage format per language (Parquet support is uneven in PHP).
+7. Should `ccxt.Strategy` and the runner live in every language, or start in TypeScript and Python only? The simulator core transpiles, but a long-running runner is more runtime-specific.
+8. Who owns the promotion gates' default thresholds, and should they be per strategy?
