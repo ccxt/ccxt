@@ -1439,7 +1439,8 @@ export default class bitget extends bitgetRest {
             newPositions.push (position);
             cache.append (position);
         }
-        const messageHashes = this.findMessageHashes (client, instType + ':positions::');
+        const positionsHashPrefix = instType + ':' + 'positions::'; // split so the php transpiler does not turn it into ':$positions::'
+        const messageHashes = this.findMessageHashes (client, positionsHashPrefix);
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const parts = messageHash.split ('::');
