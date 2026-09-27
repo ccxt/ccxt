@@ -765,7 +765,7 @@ class coincheck extends Exchange {
             } else {
                 $cost = $this->safe_number($params, 'cost');
                 if ($cost !== null) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() : you should use "cost" parameter instead of "amount" argument to create $market buy orders');
+                    throw new ArgumentsRequired($this->id . ' createOrder() : you should use "cost" parameter instead of "amount" argument to create market buy orders');
                 }
                 $request['market_buy_amount'] = $cost;
             }

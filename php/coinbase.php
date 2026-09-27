@@ -809,7 +809,7 @@ class coinbase extends Exchange {
             }
         }
         if ($accountId === null) {
-            throw new ExchangeError($this->id . ' createDepositAddress() could not find the $account with matching currency $code ' . $code . ', specify an `account_id` extra param to target specific wallet');
+            throw new ExchangeError($this->id . ' createDepositAddress() could not find the account with matching currency code ' . $code . ', specify an `account_id` extra param to target specific wallet');
         }
         $request = array(
             'account_id' => $accountId,
@@ -2995,7 +2995,7 @@ class coinbase extends Exchange {
     public function prepare_account_request(?int $limit = null, $params = array()): array {
         $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
         if ($accountId === null) {
-            throw new ArgumentsRequired($this->id . ' prepareAccountRequest() method requires an account_id (or $accountId) parameter');
+            throw new ArgumentsRequired($this->id . ' prepareAccountRequest() method requires an account_id (or accountId) parameter');
         }
         $request = array(
             'account_id' => $accountId,
@@ -3011,7 +3011,7 @@ class coinbase extends Exchange {
         $paramsOmitted = $this->omit($params, array( 'account_id', 'accountId' ));
         if ($accountId === null) {
             if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' prepareAccountRequestWithCurrencyCode() method requires an account_id (or $accountId) parameter OR a currency $code argument');
+                throw new ArgumentsRequired($this->id . ' prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument');
             }
             $accountId = $this->find_account_id($code, $paramsOmitted);
             if ($accountId === null) {
@@ -3210,7 +3210,7 @@ class coinbase extends Exchange {
                     $total = $this->cost_to_precision($symbol, $cost);
                 } elseif ($createMarketBuyOrderRequiresPrice) {
                     if ($price === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for $market buy orders on spot markets to calculate the $total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                        throw new InvalidOrder($this->id . ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
@@ -4008,7 +4008,7 @@ class coinbase extends Exchange {
         if ($until !== null) {
             $request['end'] = $this->number_to_string($this->parse_to_int($until / 1000));
         } elseif ($since !== null) {
-            throw new ArgumentsRequired($this->id . ' fetchTrades() requires a `$until` parameter when you use `$since` argument');
+            throw new ArgumentsRequired($this->id . ' fetchTrades() requires a `until` parameter when you use `since` argument');
         }
         $response = null;
         list($usePrivate, $paramsUsePrivate) = $this->handle_option_bool_and_params($paramsUntil, 'fetchTrades', 'usePrivate', false);
@@ -4243,7 +4243,7 @@ class coinbase extends Exchange {
         $paramsOmitted = $this->omit($paramsWithdrawTag, array( 'account_id', 'accountId' ));
         if ($accountId === null) {
             if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' withdraw() requires an account_id (or $accountId) parameter OR a $currency $code argument');
+                throw new ArgumentsRequired($this->id . ' withdraw() requires an account_id (or accountId) parameter OR a currency code argument');
             }
             $accountId = $this->find_account_id($code, $paramsOmitted);
             if ($accountId === null) {
@@ -4488,11 +4488,11 @@ class coinbase extends Exchange {
         $paramsOmitted = $this->omit($params, array( 'account_id', 'accountId' ));
         if ($accountId === null) {
             if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' deposit() requires an account_id (or $accountId) parameter OR a currency $code argument');
+                throw new ArgumentsRequired($this->id . ' deposit() requires an account_id (or accountId) parameter OR a currency code argument');
             }
             $accountId = $this->find_account_id($code, $paramsOmitted);
             if ($accountId === null) {
-                throw new ExchangeError($this->id . ' deposit() could not find account $id for ' . $code);
+                throw new ExchangeError($this->id . ' deposit() could not find account id for ' . $code);
             }
         }
         $request = array(
@@ -4563,11 +4563,11 @@ class coinbase extends Exchange {
         $paramsOmitted = $this->omit($params, array( 'account_id', 'accountId' ));
         if ($accountId === null) {
             if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' fetchDeposit() requires an account_id (or $accountId) parameter OR a currency $code argument');
+                throw new ArgumentsRequired($this->id . ' fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument');
             }
             $accountId = $this->find_account_id($code, $paramsOmitted);
             if ($accountId === null) {
-                throw new ExchangeError($this->id . ' fetchDeposit() could not find account $id for ' . $code);
+                throw new ExchangeError($this->id . ' fetchDeposit() could not find account id for ' . $code);
             }
         }
         $request = array(
@@ -4779,11 +4779,11 @@ class coinbase extends Exchange {
             $this->load_markets();
         }
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchConvertTrade() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchConvertTrade() requires a code argument');
         }
         $toCode = $this->safe_string($params, 'toCode');
         if ($toCode === null) {
-            throw new ArgumentsRequired($this->id . ' fetchConvertTrade() requires a $toCode parameter');
+            throw new ArgumentsRequired($this->id . ' fetchConvertTrade() requires a toCode parameter');
         }
         $paramsOmitted = $this->omit($params, 'toCode');
         $request = array(
@@ -4898,7 +4898,7 @@ class coinbase extends Exchange {
             'product_id' => $market['id'],
         );
         if ($clientOrderId === null) {
-            throw new ArgumentsRequired($this->id . ' closePosition() requires a $clientOrderId parameter');
+            throw new ArgumentsRequired($this->id . ' closePosition() requires a clientOrderId parameter');
         }
         $request['client_order_id'] = $clientOrderId;
         $response = $this->v3PrivatePostBrokerageOrdersClosePosition($this->extend($request, $paramsOmitted));
@@ -4933,7 +4933,7 @@ class coinbase extends Exchange {
         } else {
             list($portfolio, $paramsPortfolio) = $this->handle_option_string_and_params($paramsMarketType, 'fetchPositions', 'portfolio');
             if ($portfolio === null) {
-                throw new ArgumentsRequired($this->id . ' fetchPositions() requires a "portfolio" value in $params (eg => dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()');
+                throw new ArgumentsRequired($this->id . ' fetchPositions() requires a "portfolio" value in params (eg => dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()');
             }
             $request = array(
                 'portfolio_uuid' => $portfolio,
@@ -4974,7 +4974,7 @@ class coinbase extends Exchange {
         } else {
             list($portfolio, $paramsPortfolio) = $this->handle_option_string_and_params($params, 'fetchPositions', 'portfolio');
             if ($portfolio === null) {
-                throw new ArgumentsRequired($this->id . ' fetchPosition() requires a "portfolio" value in $params (eg => dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()');
+                throw new ArgumentsRequired($this->id . ' fetchPosition() requires a "portfolio" value in params (eg => dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()');
             }
             $request = array(
                 'symbol' => $market['id'],
@@ -5495,7 +5495,7 @@ class coinbase extends Exchange {
         }
         $advancedTrade = $this->safe_bool($this->options, 'advanced');
         if (!(is_array($response) && array_key_exists('data' ?? '', $response)) && ($advancedTrade !== true)) {
-            throw new ExchangeError($this->id . ' failed due to a malformed $response ' . $this->json($response));
+            throw new ExchangeError($this->id . ' failed due to a malformed response ' . $this->json($response));
         }
         return null;
     }

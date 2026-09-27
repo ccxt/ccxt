@@ -579,7 +579,7 @@ class bittrade extends Exchange {
         $markets = $this->safe_list($response, 'data', array());
         $numMarkets = count($markets);
         if ($numMarkets < 1) {
-            throw new NetworkError($this->id . ' fetchMarkets() returned empty $response => ' . $this->json($markets));
+            throw new NetworkError($this->id . ' fetchMarkets() returned empty response => ' . $this->json($markets));
         }
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
@@ -593,7 +593,7 @@ class bittrade extends Exchange {
             }
             $state = $this->safe_string($market, 'state');
             $leverageRatio = $this->safe_string($market, 'leverage-ratio', '1');
-            $superLeverageRatio = $this->safe_string($market, 'super-$margin-leverage-ratio', '1');
+            $superLeverageRatio = $this->safe_string($market, 'super-margin-leverage-ratio', '1');
             $margin = Precise::string_gt($leverageRatio, '1') || Precise::string_gt($superLeverageRatio, '1');
             $fee = ($base === 'OMG') ? $this->parse_number('0') : $this->parse_number('0.002');
             if ($baseId === null) {
@@ -789,7 +789,7 @@ class bittrade extends Exchange {
         //
         if (is_array($response) && array_key_exists('tick' ?? '', $response)) {
             if (($response['tick'] === null) || ($response['tick'] === null)) {
-                throw new BadSymbol($this->id . ' fetchOrderBook() returned empty $response => ' . $this->json($response));
+                throw new BadSymbol($this->id . ' fetchOrderBook() returned empty response => ' . $this->json($response));
             }
             $tick = $this->safe_dict($response, 'tick');
             $timestamp = $this->safe_integer($tick, 'ts', $this->safe_integer($response, 'ts'));
@@ -797,7 +797,7 @@ class bittrade extends Exchange {
             $result['nonce'] = $this->safe_integer($tick, 'version');
             return $result;
         }
-        throw new ExchangeError($this->id . ' fetchOrderBook() returned unrecognized $response => ' . $this->json($response));
+        throw new ExchangeError($this->id . ' fetchOrderBook() returned unrecognized response => ' . $this->json($response));
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -1431,7 +1431,7 @@ class bittrade extends Exchange {
 
     private function do_fetch_open_orders_v1(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrdersV1() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrdersV1() requires a symbol argument');
         }
         return Async\await($this->fetch_orders_by_states('pre-submitted,submitted,partial-filled', $symbol, $since, $limit, $params));
     }
@@ -1567,7 +1567,7 @@ class bittrade extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($order, 'created-at');
-        $clientOrderId = $this->safe_string($order, 'client-$order-id');
+        $clientOrderId = $this->safe_string($order, 'client-order-id');
         $amount = $this->safe_string($order, 'amount');
         $filled = $this->safe_string_2($order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
         $price = $this->safe_string($order, 'price');
@@ -1678,7 +1678,7 @@ class bittrade extends Exchange {
                 $quoteAmount = $this->amount_to_precision($symbol, $cost);
             } elseif ($createMarketBuyOrderRequiresPrice) {
                 if ($price === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                    throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                 } else {
                     // despite that cost = amount * price is in quote currency and should have quote precision
                     // the exchange API requires the cost supplied in 'amount' to be of base precision
@@ -1866,7 +1866,7 @@ class bittrade extends Exchange {
                 'info' => $order,
                 'id' => $this->safe_string_2($order, 'order-id', 'order_id'),
                 'status' => 'failed',
-                'clientOrderId' => $this->safe_string($order, 'client-$order-id'),
+                'clientOrderId' => $this->safe_string($order, 'client-order-id'),
             ));
         }
         return $result;

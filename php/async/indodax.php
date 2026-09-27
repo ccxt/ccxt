@@ -924,7 +924,7 @@ class indodax extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1007,7 +1007,7 @@ class indodax extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1065,7 +1065,7 @@ class indodax extends Exchange {
                     $quoteAmount = $this->cost_to_precision($symbol, $cost);
                 } else {
                     if ($price === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price).');
+                        throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).');
                     }
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
@@ -1085,7 +1085,7 @@ class indodax extends Exchange {
         }
         if ($priceIsRequired) {
             if ($price === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for a ' . $type . ' order');
+                throw new InvalidOrder($this->id . ' createOrder() requires a price argument for a ' . $type . ' order');
             }
             $request['price'] = $price;
         }
@@ -1117,7 +1117,7 @@ class indodax extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         $side = $this->safe_string($params, 'side');
         if ($side === null) {
@@ -1655,7 +1655,7 @@ class indodax extends Exchange {
         if ($this->safe_integer($response, 'success', 0) === 1) {
             // { success: 1, return: { orders: [] }}
             if (!(is_array($response) && array_key_exists('return' ?? '', $response))) {
-                throw new ExchangeError($this->id . ' => malformed $response => ' . $this->json($response));
+                throw new ExchangeError($this->id . ' => malformed response => ' . $this->json($response));
             } else {
                 return null;
             }

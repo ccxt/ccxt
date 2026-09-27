@@ -1002,7 +1002,7 @@ class btcmarkets extends Exchange {
         }
         if ($priceIsRequired) {
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for a ' . $type . 'order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for a ' . $type . 'order');
             } else {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
@@ -1010,7 +1010,7 @@ class btcmarkets extends Exchange {
         if ($triggerPriceIsRequired) {
             $triggerPrice = $this->safe_number($params, 'triggerPrice');
             if ($triggerPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice parameter for a ' . $type . 'order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a triggerPrice parameter for a ' . $type . 'order');
             } else {
                 $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             }

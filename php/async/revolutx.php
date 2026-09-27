@@ -628,7 +628,7 @@ class revolutx extends Exchange {
         $tickers = Async\await($this->fetch_tickers(array( $symbol ), $params));
         $ticker = $this->safe_dict($tickers, $symbol);
         if ($ticker === null) {
-            throw new ExchangeError($this->id . ' fetchTicker() could not find $ticker for $symbol ' . $symbol);
+            throw new ExchangeError($this->id . ' fetchTicker() could not find ticker for symbol ' . $symbol);
         }
         return $ticker;
     }
@@ -1037,10 +1037,10 @@ class revolutx extends Exchange {
             $orderConfiguration['limit'] = $limitConfig;
         } elseif ($type === 'market') {
             if ($timeInForce !== null) {
-                throw new InvalidOrder($this->id . ' createOrder() $timeInForce is only supported for limit orders');
+                throw new InvalidOrder($this->id . ' createOrder() timeInForce is only supported for limit orders');
             }
             if ($executionInstructions !== null) {
-                throw new InvalidOrder($this->id . ' createOrder() $executionInstructions are only supported for limit orders');
+                throw new InvalidOrder($this->id . ' createOrder() executionInstructions are only supported for limit orders');
             }
             $marketConfig = array();
             if ($cost !== null) {
@@ -1050,7 +1050,7 @@ class revolutx extends Exchange {
             }
             $orderConfiguration['market'] = $marketConfig;
         } else {
-            throw new InvalidOrder($this->id . ' createOrder() does not support $order $type ' . $type);
+            throw new InvalidOrder($this->id . ' createOrder() does not support order type ' . $type);
         }
         $request = array(
             'client_order_id' => $clientOrderId,
@@ -1387,7 +1387,7 @@ class revolutx extends Exchange {
             Async\await($this->load_markets());
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol parameter');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol parameter');
         }
         $market = $this->market($symbol);
         $request = array(

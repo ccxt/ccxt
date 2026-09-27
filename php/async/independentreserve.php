@@ -1114,7 +1114,7 @@ class independentreserve extends Exchange {
         }
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         if ($networkCode !== null) {
-            throw new BadRequest($this->id . ' withdraw () does not accept $params["networkCode"]');
+            throw new BadRequest($this->id . ' withdraw () does not accept params["networkCode"]');
         }
         $response = Async\await($this->privatePostWithdrawDigitalCurrency($this->extend($request, $paramsNetworkCode)));
         //

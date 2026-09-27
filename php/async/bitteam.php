@@ -1188,7 +1188,7 @@ class bitteam extends Exchange {
         );
         if ($type === 'limit') {
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for a ' . $type . ' order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for a ' . $type . ' order');
             } else {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
@@ -2554,7 +2554,7 @@ class bitteam extends Exchange {
                 if (mb_strpos($url, '/cmc/orderbook/') !== false) {
                     $parts = explode('/cmc/orderbook/', $url);
                     $symbolId = $this->safe_string($parts, 1);
-                    throw new BadSymbol($this->id . ' $symbolId ' . $symbolId . ' not found');
+                    throw new BadSymbol($this->id . ' symbolId ' . $symbolId . ' not found');
                 }
             }
             $feedback = $this->id . ' ' . $body;

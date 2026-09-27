@@ -500,6 +500,17 @@ class btcturk extends Exchange {
         $symbol = $marketResolved['symbol'];
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $last = $this->safe_string($ticker, 'last');
+        $open = $this->safe_string($ticker, 'open');
+        $change = $this->safe_string($ticker, 'daily');
+        $percentage = $this->safe_string($ticker, 'dailyPercent');
+        $average = $this->safe_string($ticker, 'average');
+        if (($open !== null) && ($last !== null) && !Precise::string_eq($open, '0')) {
+            // The reported daily fields can disagree with last - open.
+            // Let safeTicker derive the unified change, percentage and average from these prices.
+            $change = null;
+            $percentage = null;
+            $average = null;
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -511,13 +522,13 @@ class btcturk extends Exchange {
             'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_string($ticker, 'open'),
+            'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_string($ticker, 'daily'),
-            'percentage' => $this->safe_string($ticker, 'dailyPercent'),
-            'average' => $this->safe_string($ticker, 'average'),
+            'change' => $change,
+            'percentage' => $percentage,
+            'average' => $average,
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
@@ -726,7 +737,7 @@ class btcturk extends Exchange {
         $limitResolved = ($limitDefaulted !== null) ? min($limitDefaulted, 11000) : null; // max 11000 candles diapason can be covered
         if ($limitResolved !== null) {
             if ($timeframe === '1y') { // difficult with leap years
-                throw new BadRequest($this->id . ' fetchOHLCV () does not accept a $limit parameter when $timeframe == "1y"');
+                throw new BadRequest($this->id . ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
             $seconds = $this->parse_timeframe($timeframe);
             $limitSeconds = $seconds * ($limitResolved - 1);

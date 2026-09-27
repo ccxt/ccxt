@@ -1687,7 +1687,7 @@ class htx extends Exchange {
         $markets = $this->safe_list($response, 'data', array());
         $numMarkets = count($markets);
         if ($numMarkets < 1) {
-            throw new OperationFailed($this->id . ' fetchMarkets() returned an empty $response => ' . $this->json($response));
+            throw new OperationFailed($this->id . ' fetchMarkets() returned an empty response => ' . $this->json($response));
         }
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
@@ -2167,10 +2167,10 @@ class htx extends Exchange {
                 } elseif ($swap) {
                     $response = $this->contractPublicGetSwapExMarketDetailBatchMerged($this->extend($request, $paramsSubType));
                 } else {
-                    throw new NotSupported($this->id . ' fetchTickers() you have to set $params["type"] to either "swap" or "future" for $inverse contracts');
+                    throw new NotSupported($this->id . ' fetchTickers() you have to set params["type"] to either "swap" or "future" for inverse contracts');
                 }
             } else {
-                throw new NotSupported($this->id . ' fetchTickers() you have to set $params["subType"] to either "linear" or "inverse" for contracts');
+                throw new NotSupported($this->id . ' fetchTickers() you have to set params["subType"] to either "linear" or "inverse" for contracts');
             }
         } else {
             $response = $this->spotPublicGetMarketTickers($this->extend($request, $paramsSubType));
@@ -2395,7 +2395,7 @@ class htx extends Exchange {
             if ($limit !== null) {
                 // Valid depths are 5, 10, 20 or empty https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
                 if (($limit !== 5) && ($limit !== 10) && ($limit !== 20) && ($limit !== 150)) {
-                    throw new BadRequest($this->id . ' fetchOrderBook() $limit argument must be null, 5, 10, 20, or 150, default is 150');
+                    throw new BadRequest($this->id . ' fetchOrderBook() limit argument must be null, 5, 10, 20, or 150, default is 150');
                 }
                 // only set the depth if it is not 150
                 // 150 is the implicit default on the exchange side for step0 and no orderbook aggregation
@@ -2438,7 +2438,7 @@ class htx extends Exchange {
         }
         if (is_array($response) && array_key_exists('tick' ?? '', $response)) {
             if (($response['tick'] === null) || ($response['tick'] === null)) {
-                throw new BadSymbol($this->id . ' fetchOrderBook() returned empty $response => ' . $this->json($response));
+                throw new BadSymbol($this->id . ' fetchOrderBook() returned empty response => ' . $this->json($response));
             }
             $tick = $this->safe_dict($response, 'tick');
             $timestamp = $this->safe_integer($tick, 'ts', $this->safe_integer($response, 'ts'));
@@ -2446,7 +2446,7 @@ class htx extends Exchange {
             $result['nonce'] = $this->safe_integer($tick, 'version');
             return $result;
         }
-        throw new ExchangeError($this->id . ' fetchOrderBook() returned unrecognized $response => ' . $this->json($response));
+        throw new ExchangeError($this->id . ' fetchOrderBook() returned unrecognized response => ' . $this->json($response));
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -2734,7 +2734,7 @@ class htx extends Exchange {
             $response = $this->spotPrivateGetV1OrderMatchresults($this->extend($request, $paramsUntil));
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
             }
             if ($since !== null) {
                 $request['start_time'] = $since;
@@ -3403,7 +3403,7 @@ class htx extends Exchange {
         }
         list($isUnifiedAccount, $paramsUnified) = $this->handle_option_bool_and_params_2($params, 'fetchBalance', 'unified', 'uta', false);
         if ($isUnifiedAccount) {
-            throw new NotSupported($this->id . ' fetchBalance() unified $account has been deprecated on htx');
+            throw new NotSupported($this->id . ' fetchBalance() unified account has been deprecated on htx');
         }
         list($type, $paramsType) = $this->handle_market_type_and_params('fetchBalance', null, $paramsUnified);
         list($subTypeOption, $paramsSubType) = $this->handle_option_string_and_params_2($paramsType, 'fetchBalance', 'defaultSubType', 'subType');
@@ -3742,7 +3742,7 @@ class htx extends Exchange {
                     $response = $this->contractPrivateGetV5AlgoOrder($this->extend($request, $paramsClientOrderId));
                 } else {
                     if ($symbol === null) {
-                        throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+                        throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
                     }
                     $request['contract_code'] = $this->safe_string($market, 'id');
                     list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('fetchOrder', $paramsClientOrderId);
@@ -3893,7 +3893,7 @@ class htx extends Exchange {
         $method = $this->safe_string($this->options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders'); // spot_private_get_v1_order_history
         if ($method === 'spot_private_get_v1_order_orders') {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+                throw new ArgumentsRequired($this->id . ' fetchOrders() requires a symbol argument');
             }
         }
         if ($this->markets === null) {
@@ -3975,7 +3975,7 @@ class htx extends Exchange {
 
     public function fetch_contract_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchContractOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchContractOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -4129,7 +4129,7 @@ class htx extends Exchange {
 
     public function fetch_closed_contract_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchClosedContractOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchClosedContractOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -4187,7 +4187,7 @@ class htx extends Exchange {
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
         $contract = ($marketType === 'swap') || ($marketType === 'future');
         if ($contract && ($symbol === null)) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument for ' . $marketType . ' orders');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a symbol argument for ' . $marketType . ' orders');
         }
         if ($contract) {
             return $this->fetch_contract_orders($symbol, $since, $limit, $paramsMarketType);
@@ -4231,7 +4231,7 @@ class htx extends Exchange {
             return $this->fetch_spot_orders_by_states('partial-canceled,canceled', $symbol, $since, $limit, $paramsMarketType);
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires a $symbol argument for ' . $marketType . ' orders');
+                throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires a symbol argument for ' . $marketType . ' orders');
             }
             $request = array();
             if ($this->safe_bool($market, 'linear', false)) {
@@ -5041,10 +5041,10 @@ class htx extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($trailingPercent === null) {
-            throw new ArgumentsRequired($this->id . ' createTrailingPercentOrder() requires a $trailingPercent argument');
+            throw new ArgumentsRequired($this->id . ' createTrailingPercentOrder() requires a trailingPercent argument');
         }
         if ($trailingTriggerPrice === null) {
-            throw new ArgumentsRequired($this->id . ' createTrailingPercentOrder() requires a $trailingTriggerPrice argument');
+            throw new ArgumentsRequired($this->id . ' createTrailingPercentOrder() requires a trailingTriggerPrice argument');
         }
         $params['trailingPercent'] = $trailingPercent;
         $params['trailingTriggerPrice'] = $trailingTriggerPrice;
@@ -5066,10 +5066,10 @@ class htx extends Exchange {
          * @return {array} $request to be sent to the exchange
          */
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -5097,7 +5097,7 @@ class htx extends Exchange {
         if ($triggerPrice === null) {
             $stopOrderTypes = $this->safe_dict($options, 'stopOrderTypes', array());
             if (is_array($stopOrderTypes) && array_key_exists($orderType ?? '', $stopOrderTypes)) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice for a trigger order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a triggerPrice for a trigger order');
             }
         } else {
             $defaultOperator = 'gte';
@@ -5153,7 +5153,7 @@ class htx extends Exchange {
                 $quoteAmount = $this->amount_to_precision($symbol, $cost);
             } elseif ($createMarketBuyOrderRequiresPrice) {
                 if ($price === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                    throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                 } else {
                     // despite that cost = amount * price is in quote currency and should have quote precision
                     // the exchange API requires the cost supplied in 'amount' to be of base precision
@@ -5182,10 +5182,10 @@ class htx extends Exchange {
 
     public function create_contract_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         /**
          * @ignore
@@ -5446,7 +5446,7 @@ class htx extends Exchange {
             } elseif ($market['inverse'] === true) {
                 $offset = $this->safe_string($params, 'offset');
                 if ($offset === null) {
-                    throw new ArgumentsRequired($this->id . ' createOrder () requires an extra parameter $params["offset"] to be set to "open" or "close" when placing orders in inverse markets');
+                    throw new ArgumentsRequired($this->id . ' createOrder () requires an extra parameter params["offset"] to be set to "open" or "close" when placing orders in inverse markets');
                 }
                 if ($market['swap'] === true) {
                     if ($isTrigger) {
@@ -5608,7 +5608,7 @@ class htx extends Exchange {
                 $symbol = $marketId;
             } else {
                 if ($symbol !== $marketId) {
-                    throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same symbol');
+                    throw new BadRequest($this->id . ' createOrders() requires all orders to have the same symbol');
                 }
             }
             $type = $this->safe_string($rawOrder, 'type');
@@ -5623,7 +5623,7 @@ class htx extends Exchange {
                     $marginMode = $currentMarginMode;
                 } else {
                     if ($marginMode !== $currentMarginMode) {
-                        throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same margin mode (isolated or cross)');
+                        throw new BadRequest($this->id . ' createOrders() requires all orders to have the same margin mode (isolated or cross)');
                     }
                 }
             }
@@ -5790,7 +5790,7 @@ class htx extends Exchange {
             }
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
             }
             $clientOrderId = $this->safe_string_n($query, array( 'client_order_id', 'clientOrderId', 'algo_client_order_id' ));
             if (!($isLinear && (($trigger === true) || ($stopLossTakeProfit === true) || ($trailing === true)))) {
@@ -5971,7 +5971,7 @@ class htx extends Exchange {
             $response = $this->spotPrivatePostV1OrderOrdersBatchcancel($this->extend($request, $query));
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument');
             }
             $clientOrderIds = $this->safe_value_2($query, 'client_order_id', 'clientOrderId');
             $clientOrderIds = $this->safe_value_2($query, 'client_order_ids', 'clientOrderIds', $clientOrderIds);
@@ -6185,7 +6185,7 @@ class htx extends Exchange {
                 'info' => $order,
                 'id' => $this->safe_string_2($order, 'order-id', 'order_id'),
                 'status' => 'failed',
-                'clientOrderId' => $this->safe_string($order, 'client-$order-id'),
+                'clientOrderId' => $this->safe_string($order, 'client-order-id'),
             ));
         }
         return $result;
@@ -6250,7 +6250,7 @@ class htx extends Exchange {
             );
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument');
             }
             if ($this->safe_bool($market, 'future', false)) {
                 $request['symbol'] = $this->safe_string($market, 'settleId');
@@ -6774,7 +6774,7 @@ class htx extends Exchange {
                 $targetNetwork = $this->safe_dict($currency['networks'], $networkCode, array());
                 $fee = $this->safe_number($targetNetwork, 'fee');
                 if ($fee === null) {
-                    throw new ArgumentsRequired($this->id . ' withdraw() function can not find withdraw $fee for chosen network. You need to re-load markets with "exchange.loadMarkets(true)", or provide the "fee" parameter');
+                    throw new ArgumentsRequired($this->id . ' withdraw() function can not find withdraw fee for chosen network. You need to re-load markets with "exchange.loadMarkets(true)", or provide the "fee" parameter');
                 }
             }
             // fee needs to be deducted from whole amount
@@ -7130,7 +7130,7 @@ class htx extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
@@ -7402,11 +7402,11 @@ class htx extends Exchange {
         );
         $response = null;
         if ($subType === 'linear') {
-            throw new NotSupported($this->id . ' fetchFundingRates() not support this $market type');
+            throw new NotSupported($this->id . ' fetchFundingRates() not support this market type');
         } elseif ($subType === 'inverse') {
             $response = $this->contractPublicGetSwapApiV1SwapBatchFundingRate($this->extend($request, $paramsSubType));
         } else {
-            throw new NotSupported($this->id . ' fetchFundingRates() not support this $market type');
+            throw new NotSupported($this->id . ' fetchFundingRates() not support this market type');
         }
         //
         //     {
@@ -7874,7 +7874,7 @@ class htx extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -7913,7 +7913,7 @@ class htx extends Exchange {
             } elseif ($marketType === 'swap') {
                 $response = $this->contractPrivatePostSwapApiV1SwapSwitchLeverRate($this->extend($request, $query));
             } else {
-                throw new NotSupported($this->id . ' setLeverage() not support this $market type');
+                throw new NotSupported($this->id . ' setLeverage() not support this market type');
             }
             //
             // future
@@ -8198,7 +8198,7 @@ class htx extends Exchange {
             } elseif ($marketType === 'swap') {
                 $response = $this->contractPrivatePostSwapApiV1SwapPositionInfo($paramsMarketType);
             } else {
-                throw new NotSupported($this->id . ' fetchPositions() not support this $market type');
+                throw new NotSupported($this->id . ' fetchPositions() not support this market type');
             }
             //
             // future
@@ -8335,7 +8335,7 @@ class htx extends Exchange {
             } elseif ($marketType === 'swap') {
                 $response = $this->contractPrivatePostSwapApiV1SwapAccountPositionInfo($this->extend($request, $query));
             } else {
-                throw new NotSupported($this->id . ' setLeverage() not support this $market type');
+                throw new NotSupported($this->id . ' setLeverage() not support this market type');
             }
             //
             // future, swap
@@ -9225,7 +9225,7 @@ class htx extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=settlement-history-structure settlement history objects~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchSettlementHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchSettlementHistory() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $request = array();
@@ -9745,7 +9745,7 @@ class htx extends Exchange {
         $market = $this->market($symbol);
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($market['contract'] !== true) {
-            throw new BadRequest($this->id . ' closePosition() $symbol supports contract markets only');
+            throw new BadRequest($this->id . ' closePosition() symbol supports contract markets only');
         }
         $request = array(
             'contract_code' => $market['id'],
@@ -9774,7 +9774,7 @@ class htx extends Exchange {
             $this->check_required_argument('closePosition', $side, 'side');
             $amount = $this->safe_string_2($paramsOmitted, 'volume', 'amount');
             if ($amount === null) {
-                throw new ArgumentsRequired($this->id . ' closePosition () requires an extra argument $params["amount"] for inverse markets');
+                throw new ArgumentsRequired($this->id . ' closePosition () requires an extra argument params["amount"] for inverse markets');
             }
             $request['volume'] = $this->amount_to_precision($symbol, $amount);
             $request['direction'] = $side;
@@ -9986,7 +9986,7 @@ class htx extends Exchange {
                 //     }
                 //
             } else {
-                throw new NotSupported($this->id . ' fetchPositionsADLRank() not support this $market type');
+                throw new NotSupported($this->id . ' fetchPositionsADLRank() not support this market type');
             }
         }
         $data = $this->safe_list($response, 'data', array());

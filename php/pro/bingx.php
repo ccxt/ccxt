@@ -1498,7 +1498,7 @@ class bingx extends \ccxt\async\bingx {
             $newPositions[] = $position;
             $cache->append($position);
         }
-        $messageHashes = $this->find_message_hashes($client, 'swap:$positions::');
+        $messageHashes = $this->find_message_hashes($client, 'swap:positions::');
         for ($i = 0; $i < count($messageHashes); $i++) {
             $messageHash = $messageHashes[$i];
             $parts = explode('::', $messageHash);
@@ -1554,7 +1554,7 @@ class bingx extends \ccxt\async\bingx {
                 if ($baseUrl === null) {
                     continue;
                 }
-                $url = $baseUrl . '?$listenKey=' . $listenKey;
+                $url = $baseUrl . '?listenKey=' . $listenKey;
                 $client = $this->client($url);
                 $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
                 for ($j = 0; $j < count($messageHashes); $j++) {
@@ -1649,7 +1649,7 @@ class bingx extends \ccxt\async\bingx {
                 )));
             }
         } catch (Exception $e) {
-            $error = new NetworkError($this->id . ' pong failed with $error ' . $this->exception_message($e));
+            $error = new NetworkError($this->id . ' pong failed with error ' . $this->exception_message($e));
             $client->reset($error);
         }
     }
@@ -1984,7 +1984,16 @@ class bingx extends \ccxt\async\bingx {
             $data = $this->safe_dict($message, 'o', array());
             $type = $this->safe_string($data, 'x');
             $status = $this->safe_string($data, 'X');
-            if (($type === 'TRADE') && ($status === 'FILLED')) {
+            $isExecution = ($status === 'FILLED');
+            if (($type === 'TRADE') && ($status === 'PARTIALLY_FILLED')) {
+                $marketId = $this->safe_string($data, 's');
+                $market = $this->safe_market($marketId, null, '-', 'swap');
+                // parseTrade gates its `l`/`L` last-fill preference on the same
+                // `market['linear'] === true`, so an unresolved market id must be skipped here:
+                // delivering it would report the order aggregate `q`/`p` as a single fill.
+                $isExecution = ($market['linear'] === true) && ($this->safe_string($data, 'l') !== null) && ($this->safe_string($data, 'L') !== null);
+            }
+            if (($type === 'TRADE') && $isExecution) {
                 $this->handle_my_trades($client, $message);
             }
         }

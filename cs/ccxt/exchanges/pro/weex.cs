@@ -404,7 +404,7 @@ public partial class weex : ccxt.weex
             { "last", close },
             { "previousClose", this.safeString(ticker, "x") },
             { "change", this.safeString(ticker, "p") },
-            { "percentage", this.safeString(ticker, "P") },
+            { "percentage", Precise.stringMul(this.safeString(ticker, "P"), "100") },
             { "average", this.safeString(ticker, "w") },
             { "baseVolume", this.safeString(ticker, "v") },
             { "quoteVolume", this.safeString(ticker, "q") },

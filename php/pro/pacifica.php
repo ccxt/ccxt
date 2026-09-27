@@ -131,9 +131,9 @@ class pacifica extends \ccxt\async\pacifica {
         $wsRequest = $this->wrap_as_post_action($operationType, $request);
         $requestId = $this->safe_string($wsRequest, 'id');
         if ($operationType === 'create_stop_order') {
-            throw new NotSupported($this->id . ' createOrderWs() do not support stop $order $type of $order-> Check provided arguments correctly!');
+            throw new NotSupported($this->id . ' createOrderWs() do not support stop order type of order. Check provided arguments correctly!');
         } elseif ($operationType === 'set_position_tpsl') {
-            throw new NotSupported($this->id . ' createOrderWs() do not support set position tpsl $type of $order-> Check provided arguments correctly!');
+            throw new NotSupported($this->id . ' createOrderWs() do not support set position tpsl type of order. Check provided arguments correctly!');
         }
         $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
         //
@@ -359,7 +359,7 @@ class pacifica extends \ccxt\async\pacifica {
             Async\await($this->load_markets());
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrderWs() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrderWs() requires a symbol argument');
         }
         $request = $this->cancel_order_request($id, $symbol, $params);
         $isTestnet = $this->isSandboxModeEnabled;
@@ -772,7 +772,7 @@ class pacifica extends \ccxt\async\pacifica {
             Async\await($this->load_markets());
         }
         if ($symbol !== null) {
-            throw new NotSupported($this->id . ' unWatchMyTrades does not support a $symbol argument, unWatch from all markets only');
+            throw new NotSupported($this->id . ' unWatchMyTrades does not support a symbol argument, unWatch from all markets only');
         }
         list($userAddress, $paramsOriginAndSingleAddress) = $this->handleOriginAndSingleAddress('unWatchMyTrades', $params);
         $messageHash = 'unsubscribe:myTrades';
@@ -1306,7 +1306,7 @@ class pacifica extends \ccxt\async\pacifica {
             Async\await($this->load_markets());
         }
         if ($symbol !== null) {
-            throw new NotSupported($this->id . ' unWatchOrders() does not support a $symbol argument, unWatch from all markets only');
+            throw new NotSupported($this->id . ' unWatchOrders() does not support a symbol argument, unWatch from all markets only');
         }
         $messageHash = 'unsubscribe:order';
         $isTestnet = $this->isSandboxModeEnabled;

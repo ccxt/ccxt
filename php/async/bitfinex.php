@@ -1021,7 +1021,7 @@ class bitfinex extends Exchange {
         $accountType = $this->safe_string($accountsByType, $requestedType, $requestedType);
         if ($accountType === null) {
             $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' fetchBalance() $type parameter must be one of ' . implode(', ', $keys));
+            throw new ExchangeError($this->id . ' fetchBalance() type parameter must be one of ' . implode(', ', $keys));
         }
         $isDerivative = $requestedType === 'derivatives';
         $query = $this->omit($params, 'type');
@@ -1079,12 +1079,12 @@ class bitfinex extends Exchange {
         $fromId = $this->safe_string($accountsByType, $fromAccount);
         if ($fromId === null) {
             $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ArgumentsRequired($this->id . ' transfer() $fromAccount must be one of ' . implode(', ', $keys));
+            throw new ArgumentsRequired($this->id . ' transfer() fromAccount must be one of ' . implode(', ', $keys));
         }
         $toId = $this->safe_string($accountsByType, $toAccount);
         if ($toId === null) {
             $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ArgumentsRequired($this->id . ' transfer() $toAccount must be one of ' . implode(', ', $keys));
+            throw new ArgumentsRequired($this->id . ' transfer() toAccount must be one of ' . implode(', ', $keys));
         }
         $currency = $this->currency($code);
         $fromCurrencyId = $this->convert_derivatives_id($currency, $fromAccount);
@@ -1806,10 +1806,10 @@ class bitfinex extends Exchange {
 
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         /**
          * @ignore
@@ -1862,10 +1862,10 @@ class bitfinex extends Exchange {
         $fok = ($timeInForce === 'FOK');
         $postOnly = (($postOnlyParam === true) || ($timeInForce === 'PO'));
         if (($ioc || $fok) && ($price === null)) {
-            throw new InvalidOrder($this->id . ' createOrder() requires a $price argument with IOC and FOK orders');
+            throw new InvalidOrder($this->id . ' createOrder() requires a price argument with IOC and FOK orders');
         }
         if (($ioc || $fok) && ($type === 'market')) {
-            throw new InvalidOrder($this->id . ' createOrder() does not allow $market IOC and FOK orders');
+            throw new InvalidOrder($this->id . ' createOrder() does not allow market IOC and FOK orders');
         }
         if (($type !== 'market') && ($triggerPrice === null)) {
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -2114,7 +2114,7 @@ class bitfinex extends Exchange {
         if ($cid !== null) {
             $cidDate = $this->safe_value($params, 'cidDate'); // client order id date
             if ($cidDate === null) {
-                throw new InvalidOrder($this->id . " canceling an $order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')");
+                throw new InvalidOrder($this->id . " canceling an order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')");
             }
             $request = array(
                 'cid' => $cid,
@@ -2243,7 +2243,7 @@ class bitfinex extends Exchange {
         $orders = Async\await($this->fetch_open_orders($symbol, null, null, $this->extend($request, $params)));
         $order = $this->safe_value($orders, 0);
         if ($order === null) {
-            throw new OrderNotFound($this->id . ' $order ' . $id . ' not found');
+            throw new OrderNotFound($this->id . ' order ' . $id . ' not found');
         }
         return $order;
     }
@@ -2270,7 +2270,7 @@ class bitfinex extends Exchange {
         $orders = Async\await($this->fetch_closed_orders($symbol, null, null, $this->extend($request, $params)));
         $order = $this->safe_value($orders, 0);
         if ($order === null) {
-            throw new OrderNotFound($this->id . ' $order ' . $id . ' not found');
+            throw new OrderNotFound($this->id . ' order ' . $id . ' not found');
         }
         return $order;
     }
@@ -2455,7 +2455,7 @@ class bitfinex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2567,7 +2567,7 @@ class bitfinex extends Exchange {
         $currencyNetwork = $this->safe_dict($currencyNetworks, $network);
         $networkId = $this->safe_string($currencyNetwork, 'id');
         if ($networkId === null) {
-            throw new ArgumentsRequired($this->id . " fetchDepositAddress() could not find a $network for '" . $code . "'. You can specify it by providing the 'network' value inside $params");
+            throw new ArgumentsRequired($this->id . " fetchDepositAddress() could not find a network for '" . $code . "'. You can specify it by providing the 'network' value inside params");
         }
         $wallet = $this->safe_string($params, 'wallet', 'exchange');  // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         $paramsOmitted = $this->omit($params, 'network', 'wallet');
@@ -2984,7 +2984,7 @@ class bitfinex extends Exchange {
         $currencyNetwork = $this->safe_dict($currencyNetworks, $network);
         $networkId = $this->safe_string($currencyNetwork, 'id');
         if ($networkId === null) {
-            throw new ArgumentsRequired($this->id . " withdraw() could not find a $network for '" . $code . "'. You can specify it by providing the 'network' value inside $params");
+            throw new ArgumentsRequired($this->id . " withdraw() could not find a network for '" . $code . "'. You can specify it by providing the 'network' value inside params");
         }
         $wallet = $this->safe_string($paramsOmitted, 'wallet', 'exchange');  // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         $paramsOmitted2 = $this->omit($paramsOmitted, 'network', 'wallet');
@@ -3402,7 +3402,7 @@ class bitfinex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
          */
         if ($symbols === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRates() requires a $symbols argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRates() requires a symbols argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3464,7 +3464,7 @@ class bitfinex extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-$rate-structure funding $rate structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());

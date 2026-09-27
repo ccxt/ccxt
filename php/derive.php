@@ -1268,7 +1268,7 @@ class derive extends Exchange {
         }
         $market = $this->market($symbol);
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument');
         }
         list($subaccountId, $paramsDeriveSubaccountId) = $this->handle_derive_subaccount_id('createOrder', $params);
         $test = $this->safe_bool($paramsDeriveSubaccountId, 'test', false);
@@ -1630,7 +1630,7 @@ class derive extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2732,7 +2732,7 @@ class derive extends Exchange {
         if ($optionsWallet !== null) {
             return array( $optionsWallet, $paramsDeriveWalletAddress );
         }
-        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $deriveWalletAddress parameter inside \'params\' or exchange.options[\'deriveWalletAddress\'] = ADDRESS, the address can find in HOME => Developers tab.');
+        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a deriveWalletAddress parameter inside \'params\' or exchange.options[\'deriveWalletAddress\'] = ADDRESS, the address can find in HOME => Developers tab.');
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

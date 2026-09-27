@@ -8,6 +8,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../ba
 import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, FeeString } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import Precise from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -369,7 +370,8 @@ export default class weex extends weexRest {
             'last': close,
             'previousClose': this.safeString (ticker, 'x'),
             'change': this.safeString (ticker, 'p'),
-            'percentage': this.safeString (ticker, 'P'),
+            // The live spot and contract streams report P as a relative change.
+            'percentage': Precise.stringMul (this.safeString (ticker, 'P'), '100'),
             'average': this.safeString (ticker, 'w'),
             'baseVolume': this.safeString (ticker, 'v'),
             'quoteVolume': this.safeString (ticker, 'q'),

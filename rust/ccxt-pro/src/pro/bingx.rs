@@ -2531,8 +2531,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             })]);
             let mut type_var: Value = self.safe_string_k(data.clone(), "x", &[]);
-            let mut status: Option<String> = self.safe_string_k(data, "X", &[]).as_str().map(str::to_owned);
-            if (type_var.as_str() == Some("TRADE")) && (status.as_deref() == Some("FILLED")) {
+            let mut status: Option<String> = self.safe_string_k(data.clone(), "X", &[]).as_str().map(str::to_owned);
+            let mut isExecution: bool = status.as_deref() == Some("FILLED");
+            if (type_var.as_str() == Some("TRADE")) && (status.as_deref() == Some("PARTIALLY_FILLED")) {
+                let mut marketId: Value = self.safe_string_k(data.clone(), "s", &[]);
+                let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Str("-".into()), Value::Str("swap".into())]);
+                // parseTrade gates its `l`/`L` last-fill preference on the same
+                // `market['linear'] === true`, so an unresolved market id must be skipped here:
+                // delivering it would report the order aggregate `q`/`p` as a single fill.
+                isExecution = (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (self.safe_string_k(data.clone(), "l", &[]) != Value::Null) && (self.safe_string_k(data, "L", &[]) != Value::Null);
+            }
+            if (type_var.as_str() == Some("TRADE")) && isExecution {
                 self.handle_my_trades(client.clone(), message.clone());
             }
         }

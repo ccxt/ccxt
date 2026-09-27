@@ -2164,7 +2164,7 @@ export default class hyperliquid extends Exchange {
         await this.initializeClient ();
         const market = this.market (symbol);
         const nonce = this.incrementingNonce ();
-        const isBuy = (side === 'BUY');
+        const isBuy = ((side as string).toUpperCase () === 'BUY');
         const randomize = this.safeBool (params, 'randomize', false);
         const paramsOmitted: Dict = this.omit (params, 'randomize');
         const [ vaultAddressOption, paramsVault ] = this.handleOptionStringAndParams (paramsOmitted, 'createOrder', 'vaultAddress');

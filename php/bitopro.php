@@ -1176,13 +1176,13 @@ class bitopro extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
             if ($triggerPrice === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $triggerPrice parameter for ' . $orderType . ' orders');
+                throw new InvalidOrder($this->id . ' createOrder() requires a triggerPrice parameter for ' . $orderType . ' orders');
             } else {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             }
             $condition = $this->safe_string($params, 'condition');
             if ($condition === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $condition parameter for ' . $orderType . ' orders');
+                throw new InvalidOrder($this->id . ' createOrder() requires a condition parameter for ' . $orderType . ' orders');
             } else {
                 $request['condition'] = $condition;
             }
@@ -1218,7 +1218,7 @@ class bitopro extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1270,7 +1270,7 @@ class bitopro extends Exchange {
          * @return {array} an list of ~@link https://docs.ccxt.com/?$id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1346,7 +1346,7 @@ class bitopro extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1396,7 +1396,7 @@ class bitopro extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1506,7 +1506,7 @@ class bitopro extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1650,7 +1650,7 @@ class bitopro extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires the $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires the code argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1705,7 +1705,7 @@ class bitopro extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires the $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires the code argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1758,7 +1758,7 @@ class bitopro extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?$id=transaction-structure transaction structure~
          */
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires the $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires the code argument');
         }
         if ($this->markets === null) {
             $this->load_markets();

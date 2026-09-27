@@ -1225,7 +1225,7 @@ class hyperliquid extends Exchange {
                 return $found;
             }
         }
-        throw new ArgumentsRequired($this->id . ' cannot resolve outcome from input => ' . $outcomeInput . '. Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or $market id with side.');
+        throw new ArgumentsRequired($this->id . ' cannot resolve outcome from input => ' . $outcomeInput . '. Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.');
     }
 
     public function create_order(string $outcome, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
@@ -1279,9 +1279,9 @@ class hyperliquid extends Exchange {
         $tif = $this->capitalize($this->safe_string_lower($params, 'timeInForce', $defaultTif)); // eslint-disable-line
         if ($price === null) {
             if ($isMarket) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a reference $price for $market orders on $outcome markets in between 0 and 1. The exchange uses this reference $price together with the configured $slippage to derive the execution $price->');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a reference price for market orders on outcome markets in between 0 and 1. The exchange uses this reference price together with the configured slippage to derive the execution price.');
             }
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a limit $price for $outcome markets in between 0 and 1.');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a limit price for outcome markets in between 0 and 1.');
         }
         $px = null;
         if ($isMarket) {
@@ -1418,7 +1418,7 @@ class hyperliquid extends Exchange {
          */
         $this->check_required_credentials();
         if ($outcome === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires an $outcome argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires an outcome argument');
         }
         Async\await($this->initialize_client());
         Async\await($this->load_outcome($outcome));
@@ -1476,7 +1476,7 @@ class hyperliquid extends Exchange {
             }
             $success = ($status === 'success') || ($this->safe_string($status, 'status') === 'success');
             if (!$success) {
-                throw new ExchangeError($this->id . ' cancelOrders() received an unexpected $status => ' . $this->json($status));
+                throw new ExchangeError($this->id . ' cancelOrders() received an unexpected status => ' . $this->json($status));
             }
             $requestId = $this->safe_string($requestIds, $i, $this->safe_string($requestIds, 0));
             $order = array(
@@ -1633,7 +1633,7 @@ class hyperliquid extends Exchange {
             $outcomeObj = $this->outcome($outcome);
             $expected = $this->safe_string($outcomeObj, 'outcome');
             if ($this->safe_string($parsed, 'outcome') !== $expected) {
-                throw new OrderNotFound($this->id . ' fetchOrder() order ' . $id . ' is not in $outcome ' . $expected);
+                throw new OrderNotFound($this->id . ' fetchOrder() order ' . $id . ' is not in outcome ' . $expected);
             }
         }
         return $parsed;
@@ -2294,7 +2294,7 @@ class hyperliquid extends Exchange {
         if ($this->walletAddress !== null && $this->walletAddress !== '') {
             return array( $this->walletAddress, $paramsAddress );
         }
-        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $user parameter or walletAddress to be set');
+        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a user parameter or walletAddress to be set');
     }
 
     public function format_vault_address(?string $address = null): ?string {

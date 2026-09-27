@@ -991,11 +991,11 @@ class deribit extends \ccxt\async\deribit {
         $symbols = $isOHLCV ? $this->get_list_from_object_values($symbolsArray, 0) : $symbolsArray;
         $this->market_symbols($symbols, null, false);
         if ($symbolsArray === null) {
-            throw new ArgumentsRequired($this->id . ' watchMultipleWrapper() $symbolsArray is required');
+            throw new ArgumentsRequired($this->id . ' watchMultipleWrapper() symbolsArray is required');
         }
         for ($i = 0; $i < count($symbolsArray); $i++) {
             if ($symbolsArray === null) {
-                throw new ArgumentsRequired($this->id . ' watchMultipleWrapper() $symbolsArray is required');
+                throw new ArgumentsRequired($this->id . ' watchMultipleWrapper() symbolsArray is required');
             }
             $current = $symbolsArray[$i];
             $market = null;
@@ -1024,7 +1024,7 @@ class deribit extends \ccxt\async\deribit {
         $maxMessageByteLimit = 32768 - 1; // 'Message Too Big: limit 32768B'
         $jsonedText = $this->json($extendedRequest);
         if (strlen($jsonedText) >= $maxMessageByteLimit) {
-            throw new ExchangeError($this->id . ' requested subscription length over limit, try to reduce $symbols amount');
+            throw new ExchangeError($this->id . ' requested subscription length over limit, try to reduce symbols amount');
         }
         return Async\await($this->watch_multiple($url, $messageHashes, $extendedRequest, $rawSubscriptions));
     }
@@ -1116,7 +1116,7 @@ class deribit extends \ccxt\async\deribit {
                 $handler($client, $message);
                 return;
             }
-            throw new NotSupported($this->id . ' no $handler found for this $message ' . $this->json($message));
+            throw new NotSupported($this->id . ' no handler found for this message ' . $this->json($message));
         }
         $result = $this->safe_dict($message, 'result', array());
         $accessToken = $this->safe_string($result, 'access_token');

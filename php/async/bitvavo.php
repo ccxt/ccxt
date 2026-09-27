@@ -1341,7 +1341,7 @@ class bitvavo extends Exchange {
         $paramsOmitted = $this->omit($params, 'subaccountId');
         $direction = null;
         if (($fromAccount === 'master') && ($toAccount === 'master')) {
-            throw new ArgumentsRequired($this->id . ' transfer() requires $fromAccount and $toAccount to be different (one master and one subaccount id)');
+            throw new ArgumentsRequired($this->id . ' transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)');
         } elseif ($fromAccount === 'master') {
             $direction = 'masterToSub';
             if ($subaccountId === null) {
@@ -1353,10 +1353,10 @@ class bitvavo extends Exchange {
                 $subaccountId = $fromAccount;
             }
         } else {
-            throw new ArgumentsRequired($this->id . ' transfer() requires either $fromAccount or $toAccount to be master');
+            throw new ArgumentsRequired($this->id . ' transfer() requires either fromAccount or toAccount to be master');
         }
         if ($subaccountId === null) {
-            throw new ArgumentsRequired($this->id . ' transfer() requires a subaccount id (provide it as fromAccount/toAccount or $params->subaccountId)');
+            throw new ArgumentsRequired($this->id . ' transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)');
         }
         $request = array(
             'subaccountId' => $subaccountId,
@@ -1409,7 +1409,7 @@ class bitvavo extends Exchange {
         }
         $subaccountId = $this->safe_string($params, 'subaccountId');
         if ($subaccountId === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $subaccountId parameter');
+            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a subaccountId parameter');
         }
         if ($since !== null) {
             $request['start'] = $since;
@@ -1565,10 +1565,10 @@ class bitvavo extends Exchange {
 
     public function create_order_request(?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -1636,7 +1636,7 @@ class bitvavo extends Exchange {
         if ($operatorId !== null) {
             $request['operatorId'] = $this->parse_to_int($operatorId);
         } else {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires an $operatorId in $params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires an operatorId in params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
         }
         list($selfTradePrevention, $paramsSelfTradePrevention) = $this->handle_option_string_and_params($paramsOperatorId, 'createOrder', 'selfTradePrevention');
         if ($selfTradePrevention !== null) {
@@ -1747,7 +1747,7 @@ class bitvavo extends Exchange {
         }
         $request = $this->extend($request, $paramsOmitted);
         if ($this->is_empty($request)) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument, or a $price argument, or non-empty params');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires an amount argument, or a price argument, or non-empty params');
         }
         $clientOrderId = $this->safe_string($paramsOmitted, 'clientOrderId');
         if ($clientOrderId === null) {
@@ -1757,7 +1757,7 @@ class bitvavo extends Exchange {
         if ($operatorId !== null) {
             $request['operatorId'] = $this->parse_to_int($operatorId);
         } else {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires an $operatorId in $params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires an operatorId in params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
         }
         $request['market'] = $market['id'];
         return $request;
@@ -1793,7 +1793,7 @@ class bitvavo extends Exchange {
 
     public function cancel_order_request(?string $id, ?string $symbol = null, $params = array()): array {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -1807,7 +1807,7 @@ class bitvavo extends Exchange {
         if ($operatorId !== null) {
             $request['operatorId'] = $this->parse_to_int($operatorId);
         } else {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires an $operatorId in $params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires an operatorId in params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
         }
         return $this->extend($request, $paramsOperatorId);
     }
@@ -1868,7 +1868,7 @@ class bitvavo extends Exchange {
         if ($operatorId !== null) {
             $request['operatorId'] = $this->parse_to_int($operatorId);
         } else {
-            throw new ArgumentsRequired($this->id . ' canceAllOrders() requires an $operatorId in $params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
+            throw new ArgumentsRequired($this->id . ' canceAllOrders() requires an operatorId in params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
         }
         $response = Async\await($this->privateDeleteOrders($this->extend($request, $paramsOperatorId)));
         //
@@ -1897,10 +1897,10 @@ class bitvavo extends Exchange {
          * @return {array} the api result
          */
         if ($timeout > 300000) {
-            throw new BadRequest($this->id . ' cancelAllOrdersAfter() $timeout should be less than or equal to 300000 milliseconds');
+            throw new BadRequest($this->id . ' cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds');
         }
         if (($timeout > 0) && ($timeout < 10000)) {
-            throw new BadRequest($this->id . ' cancelAllOrdersAfter() $timeout should be 0 or greater than or equal to 10000 milliseconds');
+            throw new BadRequest($this->id . ' cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1936,7 +1936,7 @@ class bitvavo extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2026,7 +2026,7 @@ class bitvavo extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2305,7 +2305,7 @@ class bitvavo extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());

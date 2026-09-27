@@ -1290,7 +1290,7 @@ class bigone extends Exchange {
         }
         $market = $this->market($symbol);
         if ($market['contract'] === true) {
-            throw new NotSupported($this->id . ' fetchTrades () can only fetch $trades for spot markets');
+            throw new NotSupported($this->id . ' fetchTrades () can only fetch trades for spot markets');
         }
         $request = array(
             'asset_pair_name' => $market['id'],
@@ -1646,7 +1646,7 @@ class bigone extends Exchange {
                 $query = $this->omit($query, 'cost');
                 if ($createMarketBuyOrderRequiresPrice) {
                     if (($price === null) && ($cost === null)) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                        throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
@@ -1813,7 +1813,7 @@ class bigone extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1867,7 +1867,7 @@ class bigone extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2047,7 +2047,7 @@ class bigone extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $dataLength = count($data);
         if ($dataLength < 1) {
-            throw new ExchangeError($this->id . ' fetchDepositAddress() returned empty $address response');
+            throw new ExchangeError($this->id . ' fetchDepositAddress() returned empty address response');
         }
         $chainsIndexedById = $this->index_by($data, 'chain');
         $selectedNetworkId = $this->select_network_id_from_raw_networks($code, $networkCode, $chainsIndexedById);

@@ -795,7 +795,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             $handler($client, $message);
             return;
         }
-        throw new NotSupported($this->id . ' received an unsupported $message => ' . $this->json($message));
+        throw new NotSupported($this->id . ' received an unsupported message => ' . $this->json($message));
     }
 
     public function handle_authentication_message(Client $client, array $message) {

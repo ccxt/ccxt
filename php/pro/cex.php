@@ -152,7 +152,7 @@ class cex extends \ccxt\async\cex {
          */
         $currentSymbol = $this->safe_string($this->options['watchTrades'], 'symbol');
         if ($currentSymbol !== null && $currentSymbol !== $symbol) {
-            throw new ArgumentsRequired($this->id . ' : this exchange only supports watching $trades for one $symbol per instance. You should either set .options["watchTrades"]["symbol"] to new $symbol, or create a new instance');
+            throw new ArgumentsRequired($this->id . ' : this exchange only supports watching trades for one symbol per instance. You should either set .options["watchTrades"]["symbol"] to new symbol, or create a new instance');
         }
         $this->options['watchTrades']['symbol'] = $symbol;
         if ($this->markets === null) {
@@ -173,7 +173,7 @@ class cex extends \ccxt\async\cex {
                 }
                 $subscriptionKey = mb_substr($subscriptionKey, 0, 3 - 0);
                 if ($subscriptionKey === 'old') {
-                    throw new ExchangeError($this->id . ' watchTrades() only supports watching one $symbol at a time.');
+                    throw new ExchangeError($this->id . ' watchTrades() only supports watching one symbol at a time.');
                 }
             }
         }
@@ -523,7 +523,7 @@ class cex extends \ccxt\async\cex {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' watchOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' watchOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -569,7 +569,7 @@ class cex extends \ccxt\async\cex {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1389,7 +1389,7 @@ class cex extends \ccxt\async\cex {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrdersWs requires a $symbol->');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrdersWs requires a symbol.');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1430,7 +1430,7 @@ class cex extends \ccxt\async\cex {
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         if ($price === null) {
-            throw new BadRequest($this->id . ' createOrderWs requires a $price argument');
+            throw new BadRequest($this->id . ' createOrderWs requires a price argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1474,10 +1474,10 @@ class cex extends \ccxt\async\cex {
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         if ($amount === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $amount argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a amount argument');
         }
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a price argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());

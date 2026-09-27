@@ -915,7 +915,7 @@ class cryptocom extends Exchange {
             if ((gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)))) {
                 $symbolsLength = count($symbols);
                 if ($symbolsLength > 1) {
-                    throw new BadRequest($this->id . ' fetchTickers() $symbols argument cannot contain more than 1 symbol');
+                    throw new BadRequest($this->id . ' fetchTickers() symbols argument cannot contain more than 1 symbol');
                 }
                 $symbol = $symbols[0];
             } else {
@@ -1406,10 +1406,10 @@ class cryptocom extends Exchange {
 
     public function create_order_request(?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
@@ -1638,10 +1638,10 @@ class cryptocom extends Exchange {
 
     public function create_advanced_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         // differs slightly from createOrderRequest
         // since the advanced order endpoint requires a different set of parameters
@@ -1739,7 +1739,7 @@ class cryptocom extends Exchange {
                 $quoteAmount = $this->cost_to_precision($symbol, $cost);
             } elseif ($createMarketBuyOrderRequiresPrice) {
                 if ($price === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
+                    throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                 } else {
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
@@ -1793,14 +1793,14 @@ class cryptocom extends Exchange {
         } else {
             $originalClientOrderId = $this->safe_string_2($params, 'orig_client_oid', 'clientOrderId');
             if ($originalClientOrderId === null) {
-                throw new ArgumentsRequired($this->id . ' editOrder() requires an $id argument or orig_client_oid parameter');
+                throw new ArgumentsRequired($this->id . ' editOrder() requires an id argument or orig_client_oid parameter');
             } else {
                 $request['orig_client_oid'] = $originalClientOrderId;
             }
         }
         $paramsOmitted = ($id === null) ? $this->omit($params, array( 'orig_client_oid', 'clientOrderId' )) : $params;
         if (($amount === null) || ($price === null)) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires both $amount and $price arguments. If you do not want to change the $amount or $price, you should pass the original values');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values');
         }
         $request['new_quantity'] = $this->amount_to_precision($symbol, $amount);
         $request['new_price'] = $this->price_to_precision($symbol, $price);
@@ -1892,7 +1892,7 @@ class cryptocom extends Exchange {
          * @return {array} an list of ~@link https://docs.ccxt.com/?$id=$order-structure $order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2214,7 +2214,7 @@ class cryptocom extends Exchange {
         $addresses = $this->safe_list($data, 'deposit_address_list', array());
         $addressesLength = count($addresses);
         if ($addressesLength === 0) {
-            throw new ExchangeError($this->id . ' fetchDepositAddressesByNetwork() generating $address->..');
+            throw new ExchangeError($this->id . ' fetchDepositAddressesByNetwork() generating address...');
         }
         $result = array();
         for ($i = 0; $i < $addressesLength; $i++) {
@@ -3311,7 +3311,7 @@ class cryptocom extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3449,7 +3449,7 @@ class cryptocom extends Exchange {
             if ((gettype($symbolsNormalized) === 'array' && array_keys($symbolsNormalized) === array_keys(array_keys($symbolsNormalized)))) {
                 $symbolsLength = count($symbolsNormalized);
                 if ($symbolsLength > 1) {
-                    throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');
+                    throw new BadRequest($this->id . ' fetchPositions() symbols argument cannot contain more than 1 symbol');
                 }
                 $symbol = $symbolsNormalized[0];
             } else {

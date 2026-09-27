@@ -914,7 +914,7 @@ class nado extends \ccxt\async\nado {
         $paramsExtended = $this->extend(array( 'id' => $this->request_id() ), $params);
         $requestIdString = $this->safe_string($paramsExtended, 'id');
         if ($requestIdString === null) {
-            throw new ArgumentsRequired($this->id . ' ws execute requires $params->id');
+            throw new ArgumentsRequired($this->id . ' ws execute requires params.id');
         }
         $request = Async\await($this->create_order_request($symbol, $type, $side, $amount, $price, $paramsExtended));
         $placeOrder = $this->safe_dict($request, 'place_order', array());
@@ -973,7 +973,7 @@ class nado extends \ccxt\async\nado {
         $paramsExtended = $this->extend(array( 'id' => $this->request_id() ), $params);
         $requestIdString = $this->safe_string($paramsExtended, 'id');
         if ($requestIdString === null) {
-            throw new ArgumentsRequired($this->id . ' ws execute requires $params->id');
+            throw new ArgumentsRequired($this->id . ' ws execute requires params.id');
         }
         $request = Async\await($this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $paramsExtended));
         $response = Async\await($this->watch_execute_request($requestIdString, $request));
@@ -1037,18 +1037,18 @@ class nado extends \ccxt\async\nado {
          */
         $this->check_required_credentials();
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrdersWs() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrdersWs() requires a symbol argument');
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         if ($trigger === true) {
-            throw new NotSupported($this->id . ' cancelOrdersWs() does not support $trigger orders, use cancelOrders() instead');
+            throw new NotSupported($this->id . ' cancelOrdersWs() does not support trigger orders, use cancelOrders() instead');
         }
         $paramsExtended = $this->extend(array( 'id' => $this->request_id() ), $params);
         $requestIdString = $this->safe_string($paramsExtended, 'id');
         if ($requestIdString === null) {
-            throw new ArgumentsRequired($this->id . ' ws execute requires $params->id');
+            throw new ArgumentsRequired($this->id . ' ws execute requires params.id');
         }
         $request = Async\await($this->cancelOrdersRequest($ids, $symbol, $paramsExtended));
         $response = Async\await($this->watch_execute_request($requestIdString, $request));
@@ -1097,12 +1097,12 @@ class nado extends \ccxt\async\nado {
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         if ($trigger === true) {
-            throw new NotSupported($this->id . ' cancelAllOrdersWs() does not support $trigger orders, use cancelAllOrders() instead');
+            throw new NotSupported($this->id . ' cancelAllOrdersWs() does not support trigger orders, use cancelAllOrders() instead');
         }
         $paramsExtended = $this->extend(array( 'id' => $this->request_id() ), $params);
         $requestIdString = $this->safe_string($paramsExtended, 'id');
         if ($requestIdString === null) {
-            throw new ArgumentsRequired($this->id . ' ws execute requires $params->id');
+            throw new ArgumentsRequired($this->id . ' ws execute requires params.id');
         }
         $request = Async\await($this->cancelAllOrdersRequest($symbol, $paramsExtended));
         $response = Async\await($this->watch_execute_request($requestIdString, $request));
@@ -1248,7 +1248,7 @@ class nado extends \ccxt\async\nado {
         $chainId = $this->safe_string($contracts, 'chain_id');
         $endpointAddress = $this->safe_string($contracts, 'endpoint_addr');
         if ($endpointAddress === null) {
-            throw new ExchangeError($this->id . ' authenticate() requires endpoint_addr from $contracts query');
+            throw new ExchangeError($this->id . ' authenticate() requires endpoint_addr from contracts query');
         }
         $signature = $this->sign_stream_authentication($tx, $chainId, $endpointAddress);
         $request = array(

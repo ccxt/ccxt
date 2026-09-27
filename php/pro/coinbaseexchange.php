@@ -175,11 +175,11 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             Async\await($this->load_markets());
         }
         if ($symbols === null) {
-            throw new ArgumentsRequired($this->id . ' watchTickers() $symbols is required');
+            throw new ArgumentsRequired($this->id . ' watchTickers() symbols is required');
         }
         $symbolsLength = count($symbols);
         if ($symbolsLength === 0) {
-            throw new BadSymbol($this->id . ' watchTickers requires a non-empty $symbols array');
+            throw new BadSymbol($this->id . ' watchTickers requires a non-empty symbols array');
         }
         $channel = 'ticker';
         $messageHash = 'ticker';
@@ -267,7 +267,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());

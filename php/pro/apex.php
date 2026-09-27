@@ -1147,7 +1147,7 @@ class apex extends \ccxt\async\apex {
         try {
             Async\await($client->send(array( 'args' => array( (string) $timeStamp ), 'op' => 'pong' )));
         } catch (Exception $e) {
-            $error = new NetworkError($this->id . ' handlePing failed with $error ' . $this->exception_message($e));
+            $error = new NetworkError($this->id . ' handlePing failed with error ' . $this->exception_message($e));
             $client->reset($error);
         }
     }

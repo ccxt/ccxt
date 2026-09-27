@@ -1113,7 +1113,7 @@ class whitebit extends Exchange {
         // Process all markets from the loaded markets cache
         $markets = $this->markets;
         if ($markets === null) {
-            throw new ExchangeError($this->id . ' $markets not loaded');
+            throw new ExchangeError($this->id . ' markets not loaded');
         }
         $marketIds = is_array($markets) ? array_keys($markets) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
@@ -1565,7 +1565,7 @@ class whitebit extends Exchange {
             }
         }
         // If both checks failed or were disabled, throw OrderNotFound
-        throw new OrderNotFound($this->id . ' fetchOrder() $order not found => ' . $id);
+        throw new OrderNotFound($this->id . ' fetchOrder() order not found => ' . $id);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -2134,7 +2134,7 @@ class whitebit extends Exchange {
         list($cost, $paramsCost) = $this->handle_param_string($params, 'cost');
         if ($cost !== null) {
             if (($side !== 'buy') || ($type !== 'market')) {
-                throw new InvalidOrder($this->id . ' createOrder() $cost is only supported for $market buy orders');
+                throw new InvalidOrder($this->id . ' createOrder() cost is only supported for market buy orders');
             }
             $request['amount'] = $this->cost_to_precision($symbol, $cost);
         } else {
@@ -2157,15 +2157,15 @@ class whitebit extends Exchange {
         $isStopOrder = ($triggerPrice !== null);
         $timeInForce = $this->safe_string_upper($paramsOmitted, 'timeInForce');
         if (($timeInForce !== null) && ($timeInForce !== 'GTC') && ($timeInForce !== 'IOC') && ($timeInForce !== 'PO')) {
-            throw new NotSupported($this->id . ' createOrder() does not support $timeInForce ' . $timeInForce . ', only GTC, IOC and PO are allowed');
+            throw new NotSupported($this->id . ' createOrder() does not support timeInForce ' . $timeInForce . ', only GTC, IOC and PO are allowed');
         }
         $postOnly = $this->is_post_only($isMarketOrder, false, $paramsOmitted);
         $ioc = ($timeInForce === 'IOC');
         if ($isStopOrder && ($postOnly || $ioc)) {
-            throw new NotSupported($this->id . ' createOrder() does not support $postOnly or $timeInForce IOC for stop orders');
+            throw new NotSupported($this->id . ' createOrder() does not support postOnly or timeInForce IOC for stop orders');
         }
         if ($ioc && !$isLimitOrder) {
-            throw new NotSupported($this->id . ' createOrder() $timeInForce IOC is only supported for limit orders');
+            throw new NotSupported($this->id . ' createOrder() timeInForce IOC is only supported for limit orders');
         }
         list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $paramsOmitted);
         if ($postOnly) {
@@ -2281,7 +2281,7 @@ class whitebit extends Exchange {
         // Ensure at least one modifiable parameter is provided
         $hasModifiableParam = ($amount !== null) || ($price !== null) || ($triggerPrice !== null) || ($total !== null);
         if (!$hasModifiableParam) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires at least one of => $amount, $price, activationPrice, or $total parameters');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires at least one of => amount, price, activationPrice, or total parameters');
         }
         $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'triggerPrice', 'stopPrice', 'activationPrice', 'total' ));
         $response = Async\await($this->v4PrivatePostOrderModify($this->extend($request, $paramsOmitted)));
@@ -2304,7 +2304,7 @@ class whitebit extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2442,7 +2442,7 @@ class whitebit extends Exchange {
         }
         $symbol = $this->safe_string($params, 'symbol');
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrdersAfter() requires a $symbol argument in params');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrdersAfter() requires a symbol argument in params');
         }
         $market = $this->market($symbol);
         $paramsOmitted = $this->omit($params, 'symbol');
@@ -3001,17 +3001,17 @@ class whitebit extends Exchange {
         if ($this->is_fiat($code)) {
             $provider = $this->safe_string($params, 'provider');
             if ($provider === null) {
-                throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a $provider when the ticker is fiat');
+                throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a provider when the ticker is fiat');
             }
             $request['provider'] = $provider;
             $amount = $this->safe_number($params, 'amount');
             if ($amount === null) {
-                throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires an $amount when the ticker is fiat');
+                throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires an amount when the ticker is fiat');
             }
             $request['amount'] = $amount;
             $uniqueId = $this->safe_value($params, 'uniqueId');
             if ($uniqueId === null) {
-                throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires an $uniqueId when the ticker is fiat');
+                throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires an uniqueId when the ticker is fiat');
             }
             $response = Async\await($this->v4PrivatePostMainAccountFiatDepositUrl($this->extend($request, $params)));
         } else {
@@ -3193,7 +3193,7 @@ class whitebit extends Exchange {
             throw new NotSupported($this->id . ' setLeverage() does not allow to set per symbol');
         }
         if (($leverage < 1) || ($leverage > 20)) {
-            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 20');
+            throw new BadRequest($this->id . ' setLeverage() leverage should be between 1 and 20');
         }
         $request = array(
             'leverage' => $leverage,
@@ -3296,7 +3296,7 @@ class whitebit extends Exchange {
         if ($this->is_fiat($code)) {
             $provider = $this->safe_value($params, 'provider');
             if ($provider === null) {
-                throw new ArgumentsRequired($this->id . ' withdraw() requires a $provider when the ticker is fiat');
+                throw new ArgumentsRequired($this->id . ' withdraw() requires a provider when the ticker is fiat');
             }
             $request['provider'] = $provider;
         }
@@ -3806,7 +3806,7 @@ class whitebit extends Exchange {
             Async\await($this->load_markets());
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -4412,7 +4412,7 @@ class whitebit extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         $maxLimit = 100;
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
