@@ -3782,7 +3782,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     // parens of that form are exactly the ones gofmt's stripParens() takes off a control
     // expression - so the spacing pass runs once more over its output
     // market-row reads run after dropNoOpMapTyped so `MapTyped(this.Market(..))` writes read as rows
-    content = goGofmtSplicedText (h2kG16NativeStringHelpers (path, nativeMarketRowReads (dropNoOpMapTyped (goSafeDictMapReads (g10kMaplistOmitOfTupleMaps (goOmitDictOfTypedMaps (goEndpointCheckedReceives (content))))))));
+    content = goGofmtSplicedText (g10kIsEqualNative (h2kG16NativeStringHelpers (path, nativeMarketRowReads (dropNoOpMapTyped (goSafeDictMapReads (g10kMaplistOmitOfTupleMaps (goOmitDictOfTypedMaps (goEndpointCheckedReceives (content)))))))));
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
     content = g10kNativeDerefs (path, content);
@@ -8531,7 +8531,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ());
+        const problems = g10kArithSelfTest ().concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -10366,5 +10366,187 @@ function g10kMaplistSelfTest (): string[] {
         fn ('\tt, p := this.HandleMarketTypeAndParams("f", nil, params)\n', '\tfunc(p any) {}(nil)\n') ]) {
         ok (g10kMaplistOmitOfTupleMaps (bad) === bad, 'kept: ' + bad.split ('\n')[1].trim ());
     }
+    return problems;
+}
+
+// ===== G10K-isequal: native ==/!= for IsEqual on provably comparable concrete operands =====
+// IsEqual derefs pointers and compares same-kind scalars (int/int64/float64 cross-kind by value);
+// with a scalar-typed side, a nil-guarded pointer, or a MarketTyped row value it is exactly Go ==.
+function g10kIsEqualLiteral (text: string): string | undefined {
+    if (/^"(?:[^"\\\n]|\\.)*"$/.test (text)) {
+        return 'string';
+    }
+    if ((text === 'true') || (text === 'false')) {
+        return 'bool';
+    }
+    return /^-?\d{1,9}$/.test (text) ? 'int' : undefined;
+}
+
+// the Go expression `a == b` for a scalar of type `goType` against a literal, or undefined
+function g10kIsEqualScalarVsLiteral (goType: string, lit: string): boolean {
+    const kind = g10kIsEqualLiteral (lit);
+    const ok: any = { 'string': [ 'string' ], 'bool': [ 'bool' ], 'int64': [ 'int' ], 'int': [ 'int' ], 'float64': [ 'int' ] };
+    return (kind !== undefined) && (ok[goType] !== undefined) && (ok[goType].indexOf (kind) >= 0);
+}
+
+function g10kIsEqualStripParens (text: string): string {
+    let t = text.trim ();
+    while (t.startsWith ('(') && (goMatchingCloseText (t, 0) === t.length - 1)) {
+        t = t.slice (1, -1).trim ();
+    }
+    return t;
+}
+
+// split `a, b` at the single top-level comma; undefined for any other arity
+function g10kIsEqualArgs (inner: string): string[] | undefined {
+    let depth = 0;
+    const cuts: number[] = [];
+    for (let i = 0; i < inner.length; i++) {
+        const c = inner[i];
+        if ((c === '"') || (c === '`') || (c === '\'')) {
+            i = goSkipLiteralText (inner, i);
+        } else if ('([{'.indexOf (c) >= 0) {
+            depth++;
+        } else if (')]}'.indexOf (c) >= 0) {
+            depth--;
+        } else if ((c === ',') && (depth === 0)) {
+            cuts.push (i);
+        }
+    }
+    return (cuts.length === 1) ? [ inner.slice (0, cuts[0]).trim (), inner.slice (cuts[0] + 1).trim () ] : undefined;
+}
+
+// native `==` form (without the outer parens) of IsEqual(a, b) inside one func, or undefined
+function g10kIsEqualNativeForm (a: string, b: string, maskedFunc: string, signature: string, methods: Map<string, string>, negate: boolean): string | undefined {
+    const eq = negate ? ' != ' : ' == ';
+    const declType = (x: string): string | undefined => {
+        if (!/^[A-Za-z_]\w*$/.test (x) || (x === 'nil') || (x === 'true') || (x === 'false') || new RegExp ('&\\s*' + x + '\\b').test (maskedFunc)) {
+            return undefined;
+        }
+        const decl = goAccessSingleDeclaration (maskedFunc, signature, x);
+        return (decl === undefined) ? undefined : decl.type;
+    };
+    const scalar = [ 'string', 'bool', 'int64', 'int', 'float64' ];
+    const rowLocal = (x: string): boolean => {
+        const m = /^([A-Za-z_]\w*)\["[^"\\\n]*"\]$/.exec (x);
+        if ((m === null) || (declType (m[1]) !== 'map[string]any')) {
+            return false;
+        }
+        const writes = [ ...maskedFunc.matchAll (new RegExp ('(?:^|\\n)\\s*(?:var ' + m[1] + ' map\\[string\\]any|' + m[1] + ') = ([^\\n]*)', 'g')) ];
+        const all = maskedFunc.match (new RegExp ('(?<![\\w.])' + m[1] + '\\b[^\\n=(]*(?<![=!<>:])=(?!=)', 'g')) ?? [];
+        return (writes.length > 0) && (writes.length === all.length) && writes.every ((w) => /^(?:(?:ccxt\.)?this\.(?:DerivedExchange\.|Exchange\.)?(?:Market|SafeMarket)\(.*\)|nil)$/.test (w[1].trim ()));
+    };
+    for (const [ x, y ] of [ [ a, b ], [ b, a ] ]) {
+        const lit = g10kIsEqualLiteral (y);
+        const t = declType (x);
+        // scalar local/param against a literal of its kind
+        if ((lit !== undefined) && (t !== undefined) && g10kIsEqualScalarVsLiteral (t, y)) {
+            return x + eq + y;
+        }
+        // pointer local/param: nil never equals a literal
+        if ((lit !== undefined) && (t !== undefined) && t.startsWith ('*') && g10kIsEqualScalarVsLiteral (t.slice (1), y)) {
+            return negate ? ('(' + x + ' == nil || *' + x + ' != ' + y + ')') : ('(' + x + ' != nil && *' + x + ' == ' + y + ')');
+        }
+        // a MarketTyped row value is plain (no pointer, no typed-nil container)
+        if (((lit === 'string') || (lit === 'bool')) && rowLocal (x)) {
+            return x + eq + y;
+        }
+        // same-file method on this receiver with a scalar Go result
+        const call = /^this\.(\w+)\(/.exec (x);
+        if ((lit !== undefined) && (call !== null) && (goMatchingCloseText (x, call[0].length - 1) === x.length - 1) && methods.has (call[1]) && g10kIsEqualScalarVsLiteral (methods.get (call[1]), y)) {
+            return x + eq + y;
+        }
+        // base Safe{Integer,String}(o, k, <literal default>) returns &value or &default: never nil
+        const safe = /^this\.Safe(Integer|String)\(/.exec (x);
+        const safeArgs = ((safe !== null) && (goMatchingCloseText (x, safe[0].length - 1) === x.length - 1)) ? goMapWriteTopLevelParts (x.slice (safe[0].length, -1), ', ') : [];
+        const safeType = (safe === null) ? '' : ((safe[1] === 'Integer') ? 'int64' : 'string');
+        const u = declType (y);
+        if ((safeArgs.length === 3) && (g10kIsEqualLiteral (safeArgs[2].trim ()) === ((safeType === 'int64') ? 'int' : 'string')) && ((lit !== undefined) ? g10kIsEqualScalarVsLiteral (safeType, y) : (u === safeType))) {
+            return '*' + x + eq + y;
+        }
+        // two scalar idents (int widened to int64), or a pointer against a scalar ident
+        if ((t !== undefined) && (u !== undefined) && (scalar.indexOf (u) >= 0)) {
+            const base = t.startsWith ('*') ? t.slice (1) : t;
+            if ((scalar.indexOf (base) < 0) || ((base !== u) && !((base === 'int64') && (u === 'int')))) {
+                continue;
+            }
+            const rhs = (base === u) ? y : ('int64(' + y + ')');
+            if (!t.startsWith ('*')) {
+                return x + eq + rhs;
+            }
+            return negate ? ('(' + x + ' == nil || *' + x + ' != ' + rhs + ')') : ('(' + x + ' != nil && *' + x + ' == ' + rhs + ')');
+        }
+    }
+    return undefined;
+}
+
+export function g10kIsEqualNative (content: string): string {
+    if (!/(?<![\w.])(?:ccxt\.)?IsEqual\(/.test (content)) {
+        return content;
+    }
+    const ranges = goFuncBlockRanges (content);
+    for (let r = ranges.length - 1; r >= 0; r--) {
+        const fn = content.slice (ranges[r].start, ranges[r].end);
+        const rewritten = g10kIsEqualFuncText (fn, content);
+        if (rewritten !== fn) {
+            content = content.slice (0, ranges[r].start) + rewritten + content.slice (ranges[r].end);
+        }
+    }
+    return collapseRedundantNilChecks (content);
+}
+
+function g10kIsEqualFuncText (fn: string, file: string): string {
+    const masked = goTextMaskLiteralsAndComments (fn);
+    const signature = fn.replace (/^\n/, '').split ('\n')[0];
+    const recv = /^func \(this \*(\w+)\)/.exec (signature);
+    const methods = new Map<string, string> ();
+    if (recv !== null) {
+        for (const m of file.matchAll (new RegExp ('\\nfunc \\(this \\*' + recv[1] + '\\) (\\w+)\\([^\\n]*\\) (string|bool|int64|int|float64) \\{\\n', 'g'))) {
+            methods.set (m[1], m[2]);
+        }
+    }
+    const re = /(!?)(?<![\w.])(?:ccxt\.)?IsEqual\(/g;
+    let out = '';
+    let cursor = 0;
+    for (let m = re.exec (fn); m !== null; m = re.exec (fn)) {
+        const head = m.index + m[1].length;
+        const open = m.index + m[0].length - 1;
+        const close = goMatchingCloseText (fn, open);
+        if ((m.index < cursor) || (close < 0) || (masked.slice (head, open + 1) !== fn.slice (head, open + 1)) || (fn.slice (open, close).indexOf ('\n') >= 0)) {
+            continue;
+        }
+        const args = g10kIsEqualArgs (fn.slice (open + 1, close));
+        const form = (args === undefined) ? undefined : g10kIsEqualNativeForm (g10kIsEqualStripParens (args[0]), g10kIsEqualStripParens (args[1]), masked, signature, methods, m[1] === '!');
+        if (form === undefined) {
+            continue;
+        }
+        const before = fn.slice (0, m.index);
+        const after = fn.slice (close + 1);
+        // gofmt drops parens around a whole control condition; an already-parenthesised call keeps one pair
+        const wrapped = /(?:^|\n)\t*(?:\} else )?if $/.test (before) && /^ \{\n/.test (after);
+        const inParens = before.endsWith ('(') && after.startsWith (')');
+        const bare = form.startsWith ('(') && (goMatchingCloseText (form, 0) === form.length - 1) ? form.slice (1, -1) : form;
+        out += fn.slice (cursor, m.index) + ((wrapped || inParens) ? bare : ('(' + bare + ')'));
+        cursor = close + 1;
+        re.lastIndex = cursor;
+    }
+    return out + fn.slice (cursor);
+}
+
+function g10kIsEqualSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const f = (body: string): string => g10kIsEqualNative ('\nfunc (this *X) f(p any, n int) any {\n' + body + '\treturn nil\n}\n\nfunc (this *X) HandleErrorMessage(c any, m any) bool {\n\treturn true\n}\n\nfunc (this *X) Other(c any) any {\n\treturn nil\n}\n');
+    const pos = f ('\tvar s string = ToString(p)\n\tvar l *int64 = this.SafeInteger(p, "k")\n\tvar market map[string]any = this.Market(p)\n\tif IsEqual(s, "a") {\n\t}\n\tif !IsEqual(l, 1) && IsEqual(l, n) {\n\t}\n\tvar b bool = (IsEqual(market["settle"], "USDT")) || ccxt.IsEqual(this.HandleErrorMessage(p, p), true)\n');
+    ok (pos.indexOf ('\tif s == "a" {\n') >= 0, 'scalar vs literal: ' + pos);
+    ok (pos.indexOf ('if (l == nil || *l != 1) && (l != nil && *l == int64(n)) {') >= 0, 'pointer vs literal/int ident: ' + pos);
+    ok (pos.indexOf ('var b bool = (market["settle"] == "USDT") || (this.HandleErrorMessage(p, p) == true)') >= 0, 'market row + bool method: ' + pos);
+    const keep = f ('\tvar q any = p\n\tvar market map[string]any = this.Market(p)\n\tmarket = map[string]any{}\n\tvar i int64 = 1\n\tif IsEqual(q, "a") || IsEqual(p, 1) || IsEqual(market["k"], "x") || IsEqual(this.Other(p), true) || IsEqual(i, 1.5) || IsEqual(i, nil) || IsEqual(this.SafeInteger(p, "k"), 1) {\n\t}\n');
+    ok (keep.indexOf ('if IsEqual(q, "a") || IsEqual(p, 1) || IsEqual(market["k"], "x") || IsEqual(this.Other(p), true) || IsEqual(i, 1.5) || IsEqual(i, nil) || IsEqual(this.SafeInteger(p, "k"), 1) {') >= 0, 'unproven operands keep the helper: ' + keep);
+    const rowNil = f ('\tvar market map[string]any = this.Market(p)\n\tif IsEqual(market["k"], nil) || IsEqual(market["k"], 1) {\n\t}\n');
+    ok (rowNil.indexOf ('IsEqual(market["k"], nil) || IsEqual(market["k"], 1)') >= 0, 'row values vs nil/number keep the helper: ' + rowNil);
+    const sd = f ('\tif !IsEqual(this.SafeInteger(p, "k", 0), 0) || IsEqual(this.SafeString(p, "k", ""), "x") || IsEqual(this.SafeInteger(p, "k"), 0) {\n\t}\n');
+    ok (sd.indexOf ('if (*this.SafeInteger(p, "k", 0) != 0) || (*this.SafeString(p, "k", "") == "x") || IsEqual(this.SafeInteger(p, "k"), 0) {') >= 0, 'defaulted Safe* deref: ' + sd);
+    ok (g10kIsEqualNative (pos) === pos, 'second application is a no-op');
     return problems;
 }
