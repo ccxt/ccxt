@@ -11733,7 +11733,7 @@ export default class kucoin extends Exchange {
                 endpoint += '?' + this.rawencode (query);
             } else {
                 if ((endpoint === '/api/ua/v1/classic/order/place') || (endpoint === '/api/ua/v1/classic/order/place/batch') || (endpoint === '/api/ua/v1/classic/order/cancel') || (endpoint === '/api/ua/v1/classic/order/cancel/batch')) {
-                    endpoint += '?tradeType=' + tradeType;
+                    endpoint += '?' + 'tradeType=' + tradeType; // split so the php transpiler does not turn it into '?$tradeType='
                 }
                 body = this.json (query);
                 endpart = body;
