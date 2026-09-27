@@ -808,7 +808,9 @@ export default class binance extends Exchange {
                         'openOrder': { 'cost': 1 } as Endpoint<Dict>,
                         'openOrders': { 'cost': 1, 'noSymbol': 5 } as Endpoint<List>,
                         'openAlgoOrders': { 'cost': 1, 'noSymbol': 40 } as Endpoint<List>,
+                        'algoOrder': { 'cost': 1 } as Endpoint<Dict>,
                         'allOrders': { 'cost': 5 } as Endpoint<List>,
+                        'allAlgoOrders': { 'cost': 5 } as Endpoint<List>,
                         'balance': { 'cost': 1 } as Endpoint<List>,
                         'account': { 'cost': 5 } as Endpoint<Dict>,
                         'positionMargin/history': { 'cost': 1 } as Endpoint<List>,
@@ -7125,12 +7127,13 @@ export default class binance extends Exchange {
         const isTriggerOrder = triggerPrice !== undefined;
         const isConditional = isTriggerOrder || isTrailingPercentOrder || isStopLoss || isTakeProfit;
         const isPortfolioMarginConditional = (isPortfolioMargin && isConditional);
+        const isSwapOrFuture = (market['swap'] === true) || (market['future'] === true);
         const isPriceMatch = priceMatch !== undefined;
         let priceRequiredForTrailing = true;
         let uppercaseType = type.toUpperCase ();
         let stopPrice: Str = undefined;
         if (isTrailingPercentOrder) {
-            if (market['swap'] === true) {
+            if (isSwapOrFuture) {
                 uppercaseType = 'TRAILING_STOP_MARKET';
                 request['callbackRate'] = trailingPercent;
                 if (trailingTriggerPrice !== undefined) {
@@ -7201,7 +7204,7 @@ export default class binance extends Exchange {
             }
         }
         let clientOrderIdRequest = isPortfolioMarginConditional ? 'newClientStrategyId' : 'newClientOrderId';
-        if ((market['linear'] === true) && (market['swap'] === true) && isConditional && !isPortfolioMargin) {
+        if (isSwapOrFuture && isConditional && !isPortfolioMargin) {
             clientOrderIdRequest = 'clientAlgoId';
         } else if (stock === true) {
             clientOrderIdRequest = 'clientOrderId';
@@ -7403,7 +7406,7 @@ export default class binance extends Exchange {
                 }
             }
             if (stopPrice !== undefined) {
-                if ((market['swap'] === true) && !isPortfolioMargin) {
+                if (isSwapOrFuture && !isPortfolioMargin) {
                     request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
                 } else {
                     request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
@@ -7571,17 +7574,17 @@ export default class binance extends Exchange {
         const isOptionType = type === 'option';
         const isLinearType = this.isLinear (type, subType);
         const isInverseType = this.isInverse (type, subType);
-        const isLinearSwapConditional = isLinearType && (market !== undefined) && (market['swap'] === true) && (isConditional === true) && (isPortfolioMargin !== true);
+        const isAlgoConditional = (market !== undefined) && ((market['swap'] === true) || (market['future'] === true)) && (isConditional === true) && (isPortfolioMargin !== true);
         const clientOrderId = this.safeStringN (params, [ 'origClientOrderId', 'clientOrderId', 'clientAlgoId' ]);
         if (clientOrderId !== undefined) {
             if (isOptionType) {
                 request['clientOrderId'] = clientOrderId;
-            } else if (isLinearSwapConditional === true) {
+            } else if (isAlgoConditional === true) {
                 request['clientAlgoId'] = clientOrderId;
             } else {
                 request['origClientOrderId'] = clientOrderId;
             }
-        } else if (isLinearSwapConditional === true) {
+        } else if (isAlgoConditional === true) {
             request['algoId'] = id;
         } else {
             request['orderId'] = id;
@@ -7604,7 +7607,11 @@ export default class binance extends Exchange {
             if (isPortfolioMargin) {
                 response = await this.papiGetCmOrder (this.extend (request, params));
             } else {
-                response = await this.dapiPrivateGetOrder (this.extend (request, params));
+                if (isConditional === true) {
+                    response = await this.dapiPrivateGetAlgoOrder (this.extend (request, params));
+                } else {
+                    response = await this.dapiPrivateGetOrder (this.extend (request, params));
+                }
             }
         } else if ((type === 'margin') || (marginMode !== undefined) || isPortfolioMargin) {
             if (isPortfolioMargin) {
@@ -7736,7 +7743,11 @@ export default class binance extends Exchange {
                     response = await this.papiGetCmAllOrders (this.extend (request, params));
                 }
             } else {
-                response = await this.dapiPrivateGetAllOrders (this.extend (request, params));
+                if (isConditional === true) {
+                    response = await this.dapiPrivateGetAllAlgoOrders (this.extend (request, params));
+                } else {
+                    response = await this.dapiPrivateGetAllOrders (this.extend (request, params));
+                }
             }
         } else {
             if (isPortfolioMargin) {
@@ -8481,12 +8492,12 @@ export default class binance extends Exchange {
         const isOptionType = type === 'option';
         const isLinearType = this.isLinear (type, subType);
         const isInverseType = this.isInverse (type, subType);
-        const isSwapConditional = (market !== undefined) && (market['swap'] === true) && (isConditional === true) && (isPortfolioMargin !== true);
+        const isAlgoConditional = (market !== undefined) && ((market['swap'] === true) || (market['future'] === true)) && (isConditional === true) && (isPortfolioMargin !== true);
         const clientOrderId = this.safeStringN (params, [ 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'clientAlgoId' ]);
         if (clientOrderId !== undefined) {
             if (isOptionType) {
                 request['clientOrderId'] = clientOrderId;
-            } else if (isSwapConditional === true) {
+            } else if (isAlgoConditional === true) {
                 request['clientAlgoId'] = clientOrderId;
             } else {
                 if (isPortfolioMargin && (isConditional === true)) {
@@ -8498,7 +8509,7 @@ export default class binance extends Exchange {
         } else {
             if (isPortfolioMargin && (isConditional === true)) {
                 request['strategyId'] = id;
-            } else if (isSwapConditional === true) {
+            } else if (isAlgoConditional === true) {
                 request['algoId'] = id;
             } else {
                 request['orderId'] = id;

@@ -478,7 +478,9 @@ interface binance {
     dapiPrivateGetOpenOrder (params?: {}): Promise<Dict>;
     dapiPrivateGetOpenOrders (params?: {}): Promise<List>;
     dapiPrivateGetOpenAlgoOrders (params?: {}): Promise<List>;
+    dapiPrivateGetAlgoOrder (params?: {}): Promise<Dict>;
     dapiPrivateGetAllOrders (params?: {}): Promise<List>;
+    dapiPrivateGetAllAlgoOrders (params?: {}): Promise<List>;
     dapiPrivateGetBalance (params?: {}): Promise<List>;
     dapiPrivateGetAccount (params?: {}): Promise<Dict>;
     dapiPrivateGetPositionMarginHistory (params?: {}): Promise<List>;

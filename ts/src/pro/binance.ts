@@ -3740,7 +3740,8 @@ export default class binance extends binanceRest {
         payload['returnRateLimits'] = returnRateLimits;
         const test = this.safeBool (params, 'test', false);
         params = this.omit (params, 'test');
-        if ((market['linear'] === true) && (market['swap'] === true) && isConditional) {
+        const isAlgoOrder = ((market['swap'] === true) || (market['future'] === true)) && isConditional;
+        if (isAlgoOrder) {
             payload['algoType'] = 'CONDITIONAL';
         }
         const message: Dict = {
@@ -3755,7 +3756,7 @@ export default class binance extends binanceRest {
                 message['method'] = 'order.test';
             }
         }
-        if ((market['linear'] === true) && (market['swap'] === true) && isConditional) {
+        if (isAlgoOrder) {
             message['method'] = 'algoOrder.place';
         }
         const subscription: Dict = {
@@ -4057,7 +4058,7 @@ export default class binance extends binanceRest {
         };
         const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
         const clientOrderId = this.safeStringN (params, [ 'clientAlgoId', 'origClientOrderId', 'clientOrderId' ]);
-        const shouldUseAlgoOrder = (market['linear'] === true) && (market['swap'] === true) && (isConditional === true);
+        const shouldUseAlgoOrder = ((market['swap'] === true) || (market['future'] === true)) && (isConditional === true);
         if (clientOrderId !== undefined) {
             if (shouldUseAlgoOrder === true) {
                 payload['clientAlgoId'] = clientOrderId;

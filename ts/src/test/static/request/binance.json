@@ -77,10 +77,11 @@
                     1,
                     null,
                     {
-                        "stopLossPrice": 1000
+                        "stopLossPrice": 1000,
+                        "clientOrderId": "myStopLoss1"
                     }
                 ],
-                "output": "timestamp=1782212047354&symbol=ETHUSD_PERP&side=SELL&newClientOrderId=x-xcKtGhcu816e735bb2af4b22b03c68&newOrderRespType=RESULT&type=STOP_MARKET&quantity=1&triggerPrice=1000&algoType=CONDITIONAL&recvWindow=10000&signature=4c24bc0d0b5f62ac7c86a3f27622211990b457bde44e8ba598bc8044d770a2e7"
+                "output": "timestamp=1790552235980&symbol=ETHUSD_PERP&side=SELL&clientAlgoId=myStopLoss1&newOrderRespType=RESULT&type=STOP_MARKET&quantity=1&triggerPrice=1000&algoType=CONDITIONAL&recvWindow=10000&signature=b29752f2df6cfb391e722af2f4fd68b52211b5780e2084c6734742aa126d1eec"
             },
             {
                 "description": "Swap inverse limit sell with takeProfitPrice (type 2)",
@@ -93,10 +94,11 @@
                     1,
                     2500,
                     {
-                        "takeProfitPrice": 2600
+                        "takeProfitPrice": 2600,
+                        "clientOrderId": "myTakeProfit1"
                     }
                 ],
-                "output": "timestamp=1782211898027&symbol=ETHUSD_PERP&side=SELL&newClientOrderId=x-xcKtGhcu18b6588661a442c2a47097&newOrderRespType=RESULT&type=TAKE_PROFIT&quantity=1&price=2500&triggerPrice=2600&algoType=CONDITIONAL&recvWindow=10000&signature=2892c8bde1aa58603b1747ebc11638aa97bffb35ea45678ce25a1a0d50436d87"
+                "output": "timestamp=1790552235981&symbol=ETHUSD_PERP&side=SELL&clientAlgoId=myTakeProfit1&newOrderRespType=RESULT&type=TAKE_PROFIT&quantity=1&price=2500&triggerPrice=2600&algoType=CONDITIONAL&recvWindow=10000&signature=21b8019f3bcbcb7241f5cc647bfeab7e69568ccc851dc9e5b1f28cabd0e2c26d"
             },
             {
                 "description": "spot +selfTradePrevention +iceberg",
@@ -788,6 +790,75 @@
                     5
                 ],
                 "output": "timestamp=1790229579913&symbol=USDBRLUSDT&side=BUY&newClientOrderId=x-cvBPrNm97965dacb36dd4b4a9735ac&newOrderRespType=RESULT&type=LIMIT&quantity=1&price=5&timeInForce=GTC&recvWindow=10000&signature=c23b11351f8a23972827eae4b46b37e0fc40bfc8c7ab5f92d290b7dee9c51d1d"
+            },
+            {
+                "description": "Future linear market sell with stopLossPrice",
+                "method": "createOrder",
+                "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder",
+                "input": [
+                    "BTC/USDT:USDT-261225",
+                    "market",
+                    "sell",
+                    0.002,
+                    null,
+                    {
+                        "stopLossPrice": 60000,
+                        "clientOrderId": "myStopLoss2"
+                    }
+                ],
+                "output": "timestamp=1790552235981&symbol=BTCUSDT_261225&side=SELL&clientAlgoId=myStopLoss2&newOrderRespType=RESULT&type=STOP_MARKET&quantity=0.002&triggerPrice=60000&algoType=CONDITIONAL&recvWindow=10000&signature=12e7a333759a29b0a497d1c1b758026acb76da531957942b5ab7d1ca78876ea6"
+            },
+            {
+                "description": "Future linear trailingPercent order",
+                "method": "createOrder",
+                "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder",
+                "input": [
+                    "BTC/USDT:USDT-261225",
+                    "market",
+                    "sell",
+                    0.002,
+                    null,
+                    {
+                        "trailingPercent": 5,
+                        "reduceOnly": true,
+                        "clientOrderId": "myTrailing1"
+                    }
+                ],
+                "output": "timestamp=1790552235981&symbol=BTCUSDT_261225&side=SELL&callbackRate=5&clientAlgoId=myTrailing1&newOrderRespType=RESULT&type=TRAILING_STOP_MARKET&quantity=0.002&reduceOnly=true&algoType=CONDITIONAL&recvWindow=10000&signature=ebf36b6fb2a1321a83d7a535303c22ce0c87793d9f7b6541f6edc069eaf91f95"
+            },
+            {
+                "description": "Future inverse market sell with stopLossPrice",
+                "method": "createOrder",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
+                "input": [
+                    "BTC/USD:BTC-261225",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "stopLossPrice": 60000,
+                        "clientOrderId": "myStopLoss3"
+                    }
+                ],
+                "output": "timestamp=1790552235981&symbol=BTCUSD_261225&side=SELL&clientAlgoId=myStopLoss3&newOrderRespType=RESULT&type=STOP_MARKET&quantity=1&triggerPrice=60000&algoType=CONDITIONAL&recvWindow=10000&signature=b3461afc6cd77504f3cf2fcb967b25dd8581fa9e64f5892063b7af7d06fbc3e4"
+            },
+            {
+                "description": "Future inverse limit buy with triggerPrice",
+                "method": "createOrder",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
+                "input": [
+                    "BTC/USD:BTC-261225",
+                    "limit",
+                    "buy",
+                    1,
+                    130000,
+                    {
+                        "triggerPrice": 129000,
+                        "clientOrderId": "myTrigger1"
+                    }
+                ],
+                "output": "timestamp=1790552235982&symbol=BTCUSD_261225&side=BUY&clientAlgoId=myTrigger1&newOrderRespType=RESULT&type=STOP&quantity=1&price=130000&triggerPrice=129000&algoType=CONDITIONAL&recvWindow=10000&signature=2c445c0de29e0dbbb3a58236a9e214b89eebe7721dc1be2d75cbcc78fceb9735"
             }
         ],
         "createOrders": [
@@ -1125,6 +1196,31 @@
                     "USDBRL/USDT:USDT"
                 ],
                 "output": null
+            },
+            {
+                "description": "cancel future linear conditional order by id",
+                "method": "cancelOrder",
+                "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder?timestamp=1790552235983&symbol=BTCUSDT_261225&algoId=3386&recvWindow=10000&signature=a017d0cbf60fab96d1072c3f5149c66839e003f93c5a12a61f4dd39e1be62653",
+                "input": [
+                    "3386",
+                    "BTC/USDT:USDT-261225",
+                    {
+                        "trigger": true
+                    }
+                ]
+            },
+            {
+                "description": "cancel future inverse conditional order by clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder?timestamp=1790552235983&symbol=BTCUSD_261225&clientAlgoId=myStopLoss3&recvWindow=10000&signature=0a5eb1d77a09e594fa48b5acde5026adc21b081f248057a4abfb7ffdf69f68f9",
+                "input": [
+                    null,
+                    "BTC/USD:BTC-261225",
+                    {
+                        "trigger": true,
+                        "clientOrderId": "myStopLoss3"
+                    }
+                ]
             }
         ],
         "cancelOrders": [
@@ -1620,6 +1716,19 @@
                     "USDBRL/USDT:USDT"
                 ],
                 "output": null
+            },
+            {
+                "description": "future inverse conditional fetchOrders",
+                "method": "fetchOrders",
+                "url": "https://demo-dapi.binance.com/dapi/v1/allAlgoOrders?timestamp=1790552235983&symbol=BTCUSD_261225&recvWindow=10000&signature=adc262e811bd872954d7f37b3229acc45b072c0ae8edb52d8eaf67f2a922d43e",
+                "input": [
+                    "BTC/USD:BTC-261225",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ]
             }
         ],
         "fetchOrder": [
@@ -1750,6 +1859,43 @@
                     "USDBRL/USDT:USDT"
                 ],
                 "output": null
+            },
+            {
+                "description": "future linear conditional fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder?timestamp=1790552235982&symbol=BTCUSDT_261225&algoId=3386&recvWindow=10000&signature=a66411e3d29a72c5fc760f1231478bdca477c45f2e88dccc10e46d7ccb276e5c",
+                "input": [
+                    "3386",
+                    "BTC/USDT:USDT-261225",
+                    {
+                        "trigger": true
+                    }
+                ]
+            },
+            {
+                "description": "inverse swap conditional fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder?timestamp=1790552235982&symbol=ETHUSD_PERP&algoId=1000000114315066&recvWindow=10000&signature=5b6dfba1ecd10507664ae666df08f344de3dd47471528aad1875d363eedccefc",
+                "input": [
+                    "1000000114315066",
+                    "ETH/USD:ETH",
+                    {
+                        "trigger": true
+                    }
+                ]
+            },
+            {
+                "description": "future inverse conditional fetchOrder by clientOrderId",
+                "method": "fetchOrder",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder?timestamp=1790552235982&symbol=BTCUSD_261225&clientAlgoId=myStopLoss3&recvWindow=10000&signature=d1523f2769afaf1c13db46e94c2486a16aa37374d62cd77497eab7a2aefe3981",
+                "input": [
+                    null,
+                    "BTC/USD:BTC-261225",
+                    {
+                        "trigger": true,
+                        "clientOrderId": "myStopLoss3"
+                    }
+                ]
             }
         ],
         "fetchOpenOrders": [
