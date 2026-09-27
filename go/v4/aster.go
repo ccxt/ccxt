@@ -1149,18 +1149,22 @@ func (this *Aster) IsLinear(typeVar any, optionalArgs ...any) bool {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Aster) FetchCurrenciesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var sapiResult map[string]any = (<-this.SapiPublicGetV3ExchangeInfo(params)).Checked()
+	r := <-this.SapiPublicGetV3ExchangeInfo(params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var sapiResult map[string]any = r.Value
 	var sapiRows []any = SafeListTypedDefault(sapiResult, "assets", []any{})
 
 	//
@@ -1172,7 +1176,7 @@ func (this *Aster) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	ch <- this.ParseCurrencies(sapiRows)
+	ch <- AsyncResult[any]{Value: this.ParseCurrencies(sapiRows)}
 	return nil
 }
 func (this *Aster) ParseCurrency(rawCurrency any) any {
@@ -1217,12 +1221,12 @@ func (this *Aster) ParseCurrency(rawCurrency any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Aster) FetchMarketsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1230,7 +1234,11 @@ func (this *Aster) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var promises []any = []any{this.SapiPublicGetV3ExchangeInfo(params), this.FapiPublicGetV3ExchangeInfo(params)}
 	promises = append(promises, this.SignInAsync())
 
-	var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
+	r := <-promiseAll(promises)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var results []any = ListTyped(r.Value)
 	var sapiResult map[string]any = SafeMapTyped(results, 0)
 	var sapiRows []any = SafeListTypedDefault(sapiResult, "symbols", []any{})
 	var fapiResult map[string]any = SafeMapTyped(results, 1)
@@ -1344,7 +1352,7 @@ func (this *Aster) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var rows []any = this.ArrayConcat(sapiRows, fapiRowsFiltered)
 
-	ch <- this.ParseMarkets(rows)
+	ch <- AsyncResult[any]{Value: this.ParseMarkets(rows)}
 	return nil
 }
 func (this *Aster) ParseMarket(market any) any {
@@ -1486,12 +1494,12 @@ func (this *Aster) ParseMarket(market any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Aster) FetchTimeAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTimeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchTimeBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchTimeBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1500,10 +1508,18 @@ func (this *Aster) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if marketType != nil && *marketType == "swap" {
 
-		response = (<-this.FapiPublicGetV3Time(paramsMarketType)).Checked()
+		r := <-this.FapiPublicGetV3Time(paramsMarketType)
+		if r.Err != nil {
+			panic(r.Err)
+		}
+		response = r.Value
 	} else {
 
-		response = (<-this.SapiPublicGetV3Time(paramsMarketType)).Checked()
+		r1 := <-this.SapiPublicGetV3Time(paramsMarketType)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
 	}
 
 	//
@@ -1513,7 +1529,7 @@ func (this *Aster) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	//     "serverTime": 1499827319559
 	// }
 	//
-	ch <- this.SafeInteger(response, "serverTime")
+	ch <- AsyncResult[any]{Value: this.SafeInteger(response, "serverTime")}
 	return nil
 }
 func (this *Aster) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -1557,12 +1573,12 @@ func (this *Aster) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {int} [params.until] the latest time in ms to fetch orders for
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Aster) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Aster) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1575,7 +1591,10 @@ func (this *Aster) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
@@ -1595,31 +1614,39 @@ func (this *Aster) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 	if isMark {
 		AddElementToObject(requestUntil, "symbol", market["id"])
 
-		listEp1583 := (<-this.FapiPublicGetV3MarkPriceKlines(this.Extend(requestUntil, paramsOmitted)))
-		PanicOnError(listEp1583.Raw)
+		listEp1583 := <-this.FapiPublicGetV3MarkPriceKlines(this.Extend(requestUntil, paramsOmitted))
+		if listEp1583.Err != nil {
+			panic(listEp1583.Err)
+		}
 		response = listEp1583.Value
 	} else if isIndex {
 		AddElementToObject(requestUntil, "pair", market["id"])
 
-		listEp1587 := (<-this.FapiPublicGetV3IndexPriceKlines(this.Extend(requestUntil, paramsOmitted)))
-		PanicOnError(listEp1587.Raw)
+		listEp1587 := <-this.FapiPublicGetV3IndexPriceKlines(this.Extend(requestUntil, paramsOmitted))
+		if listEp1587.Err != nil {
+			panic(listEp1587.Err)
+		}
 		response = listEp1587.Value
 	} else {
 		AddElementToObject(requestUntil, "symbol", market["id"])
 		if market["linear"] == true {
 
-			listEp1592 := (<-this.FapiPublicGetV3Klines(this.Extend(requestUntil, paramsOmitted)))
-			PanicOnError(listEp1592.Raw)
+			listEp1592 := <-this.FapiPublicGetV3Klines(this.Extend(requestUntil, paramsOmitted))
+			if listEp1592.Err != nil {
+				panic(listEp1592.Err)
+			}
 			response = listEp1592.Value
 		} else {
 
-			listEp1595 := (<-this.SapiPublicGetV3Klines(this.Extend(requestUntil, paramsOmitted)))
-			PanicOnError(listEp1595.Raw)
+			listEp1595 := <-this.SapiPublicGetV3Klines(this.Extend(requestUntil, paramsOmitted))
+			if listEp1595.Err != nil {
+				panic(listEp1595.Err)
+			}
 			response = listEp1595.Value
 		}
 	}
 
-	ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)}
 	return nil
 }
 func (this *Aster) ParseTrade(trade any, optionalArgs ...any) any {
@@ -1752,12 +1779,12 @@ func (this *Aster) ParseTrade(trade any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Aster) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Aster) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1768,7 +1795,10 @@ func (this *Aster) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request any = map[string]any{
@@ -1790,30 +1820,38 @@ func (this *Aster) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	if InOp(request, "startTime") {
 		if market["swap"] == true {
 
-			listEp1770 := (<-this.FapiPublicGetV3AggTrades(this.Extend(request, params)))
-			PanicOnError(listEp1770.Raw)
+			listEp1770 := <-this.FapiPublicGetV3AggTrades(this.Extend(request, params))
+			if listEp1770.Err != nil {
+				panic(listEp1770.Err)
+			}
 			response = listEp1770.Value
 		} else {
 
-			listEp1773 := (<-this.SapiPublicGetV3AggTrades(this.Extend(request, params)))
-			PanicOnError(listEp1773.Raw)
+			listEp1773 := <-this.SapiPublicGetV3AggTrades(this.Extend(request, params))
+			if listEp1773.Err != nil {
+				panic(listEp1773.Err)
+			}
 			response = listEp1773.Value
 		}
 	} else {
 		if market["swap"] == true {
 
-			listEp1778 := (<-this.FapiPublicGetV3Trades(this.Extend(request, params)))
-			PanicOnError(listEp1778.Raw)
+			listEp1778 := <-this.FapiPublicGetV3Trades(this.Extend(request, params))
+			if listEp1778.Err != nil {
+				panic(listEp1778.Err)
+			}
 			response = listEp1778.Value
 		} else {
 
-			listEp1781 := (<-this.SapiPublicGetV3Trades(this.Extend(request, params)))
-			PanicOnError(listEp1781.Raw)
+			listEp1781 := <-this.SapiPublicGetV3Trades(this.Extend(request, params))
+			if listEp1781.Err != nil {
+				panic(listEp1781.Err)
+			}
 			response = listEp1781.Value
 		}
 	}
 
-	ch <- this.ParseTrades(response, market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseTrades(response, market, since, limit)}
 	return nil
 }
 
@@ -1830,12 +1868,12 @@ func (this *Aster) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Aster) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1847,7 +1885,10 @@ func (this *Aster) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if symbol != nil {
@@ -1865,13 +1906,17 @@ func (this *Aster) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var response []any = nil
 	if marketType != nil && *marketType == "swap" {
 
-		listEp1837 := (<-this.FapiPrivateGetV3UserTrades(this.Extend(requestUntil, paramsUntil)))
-		PanicOnError(listEp1837.Raw)
+		listEp1837 := <-this.FapiPrivateGetV3UserTrades(this.Extend(requestUntil, paramsUntil))
+		if listEp1837.Err != nil {
+			panic(listEp1837.Err)
+		}
 		response = listEp1837.Value
 	} else {
 
-		listEp1840 := (<-this.SapiPrivateGetV3UserTrades(this.Extend(requestUntil, paramsUntil)))
-		PanicOnError(listEp1840.Raw)
+		listEp1840 := <-this.SapiPrivateGetV3UserTrades(this.Extend(requestUntil, paramsUntil))
+		if listEp1840.Err != nil {
+			panic(listEp1840.Err)
+		}
 		response = listEp1840.Value
 	}
 
@@ -1898,7 +1943,7 @@ func (this *Aster) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//     "positionSide": "BOTH",      // only in SPOT
 	// }
 	//
-	ch <- this.ParseTrades(response, market, since, limit, paramsUntil)
+	ch <- AsyncResult[any]{Value: this.ParseTrades(response, market, since, limit, paramsUntil)}
 	return nil
 }
 
@@ -1913,12 +1958,12 @@ func (this *Aster) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Aster) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Aster) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1927,7 +1972,10 @@ func (this *Aster) fetchOrderBookBody(ch chan any, symbol string, optionalArgs .
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1939,10 +1987,18 @@ func (this *Aster) fetchOrderBookBody(ch chan any, symbol string, optionalArgs .
 	}
 	if market["swap"] == true {
 
-		response = (<-this.FapiPublicGetV3Depth(this.Extend(request, params))).Checked()
+		r1 := <-this.FapiPublicGetV3Depth(this.Extend(request, params))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
 	} else {
 
-		response = (<-this.SapiPublicGetV3Depth(this.Extend(request, params))).Checked()
+		r2 := <-this.SapiPublicGetV3Depth(this.Extend(request, params))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
 	}
 	//
 	// both SPOT & PERP has same format
@@ -1967,7 +2023,7 @@ func (this *Aster) fetchOrderBookBody(ch chan any, symbol string, optionalArgs .
 	//
 	var timestamp *int64 = this.SafeInteger(response, "T")
 
-	ch <- this.ParseOrderBook(response, symbol, timestamp, "bids", "asks")
+	ch <- AsyncResult[any]{Value: this.ParseOrderBook(response, symbol, timestamp, "bids", "asks")}
 	return nil
 }
 func (this *Aster) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -2078,19 +2134,22 @@ func (this *Aster) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Aster) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Aster) fetchTickerBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -2099,12 +2158,18 @@ func (this *Aster) fetchTickerBody(ch chan any, symbol string, optionalArgs ...a
 	var response any = nil
 	if market["swap"] == true {
 
-		response = (<-this.FapiPublicGetV3Ticker24hr(this.Extend(request, params)))
-		PanicOnError(response)
+		r1 := <-this.FapiPublicGetV3Ticker24hr(this.Extend(request, params))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
 	} else {
 
-		response = (<-this.SapiPublicGetV3Ticker24hr(this.Extend(request, params)))
-		PanicOnError(response)
+		r2 := <-this.SapiPublicGetV3Ticker24hr(this.Extend(request, params))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
 	}
 
 	//
@@ -2135,7 +2200,7 @@ func (this *Aster) fetchTickerBody(ch chan any, symbol string, optionalArgs ...a
 	//        "askQty": "0.32399"            // only in SPOT
 	//    }
 	//
-	ch <- this.ParseTicker(response, market)
+	ch <- AsyncResult[any]{Value: this.ParseTicker(response, market)}
 	return nil
 }
 
@@ -2151,12 +2216,12 @@ func (this *Aster) fetchTickerBody(ch chan any, symbol string, optionalArgs ...a
  * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
  * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Aster) FetchTickersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchTickersBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -2165,7 +2230,10 @@ func (this *Aster) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
@@ -2173,12 +2241,18 @@ func (this *Aster) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if marketType != nil && *marketType == "swap" {
 
-		response = (<-this.FapiPublicGetV3Ticker24hr(paramsMarketType))
-		PanicOnError(response)
+		r1 := <-this.FapiPublicGetV3Ticker24hr(paramsMarketType)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
 	} else if marketType != nil && *marketType == "spot" {
 
-		response = (<-this.SapiPublicGetV3Ticker24hr(paramsMarketType))
-		PanicOnError(response)
+		r2 := <-this.SapiPublicGetV3Ticker24hr(paramsMarketType)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
 	}
 
 	//
@@ -2209,7 +2283,7 @@ func (this *Aster) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	ch <- this.ParseTickers(response, symbolsNormalized)
+	ch <- AsyncResult[any]{Value: this.ParseTickers(response, symbolsNormalized)}
 	return nil
 }
 
@@ -2224,12 +2298,12 @@ func (this *Aster) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {object} a dictionary of lastprices structures
  */
-func (this *Aster) FetchLastPricesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchLastPricesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchLastPricesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchLastPricesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -2238,7 +2312,10 @@ func (this *Aster) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
@@ -2246,12 +2323,18 @@ func (this *Aster) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if marketType != nil && *marketType == "swap" {
 
-		response = (<-this.FapiPublicGetV3TickerPrice(paramsMarketType)).Raw
-		PanicOnError(response)
+		r1 := <-this.FapiPublicGetV3TickerPrice(paramsMarketType)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Raw
 	} else if marketType != nil && *marketType == "spot" {
 
-		response = (<-this.SapiPublicGetV3TickerPrice(paramsMarketType)).Raw
-		PanicOnError(response)
+		r2 := <-this.SapiPublicGetV3TickerPrice(paramsMarketType)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Raw
 	}
 	//
 	// both SPOT & SWAP has same format
@@ -2288,7 +2371,7 @@ func (this *Aster) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized2 []string = this.MarketSymbols(symbolsNormalized)
 
-	ch <- this.FilterByArray(results, "symbol", symbolsNormalized2)
+	ch <- AsyncResult[any]{Value: this.FilterByArray(results, "symbol", symbolsNormalized2)}
 	return nil
 }
 func (this *Aster) ParseLastPrice(entry any, optionalArgs ...any) any {
@@ -2325,12 +2408,12 @@ func (this *Aster) ParseLastPrice(entry any, optionalArgs ...any) any {
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Aster) FetchBidsAsksAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchBidsAsksAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchBidsAsksBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchBidsAsksBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -2339,7 +2422,10 @@ func (this *Aster) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
@@ -2347,12 +2433,18 @@ func (this *Aster) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if marketType != nil && *marketType == "swap" {
 
-		response = (<-this.FapiPublicGetV3TickerBookTicker(paramsMarketType)).Raw
-		PanicOnError(response)
+		r1 := <-this.FapiPublicGetV3TickerBookTicker(paramsMarketType)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Raw
 	} else if marketType != nil && *marketType == "spot" {
 
-		response = (<-this.SapiPublicGetV3TickerBookTicker(paramsMarketType)).Raw
-		PanicOnError(response)
+		r2 := <-this.SapiPublicGetV3TickerBookTicker(paramsMarketType)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Raw
 	}
 
 	//
@@ -2369,7 +2461,7 @@ func (this *Aster) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	//            "lastUpdateId": "453174307613"   // only in PERP
 	//        }, ...
 	//
-	ch <- this.ParseTickers(response, symbolsNormalized)
+	ch <- AsyncResult[any]{Value: this.ParseTickers(response, symbolsNormalized)}
 	return nil
 }
 func (this *Aster) ParseFundingRate(contract any, optionalArgs ...any) any {
@@ -2439,12 +2531,12 @@ func (this *Aster) ParseFundingRate(contract any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Aster) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Aster) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2454,15 +2546,21 @@ func (this *Aster) fetchFundingRateBody(ch chan any, symbol string, optionalArgs
 	}
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 
-	response := (<-this.FapiPublicGetV3PremiumIndex(this.Extend(request, params)))
-	PanicOnError(response)
+	r1 := <-this.FapiPublicGetV3PremiumIndex(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	response := r1.Value
 
 	//
 	//     {
@@ -2476,7 +2574,7 @@ func (this *Aster) fetchFundingRateBody(ch chan any, symbol string, optionalArgs
 	//         "time": 1750146970000
 	//     }
 	//
-	ch <- this.ParseFundingRate(response, market)
+	ch <- AsyncResult[any]{Value: this.ParseFundingRate(response, market)}
 	return nil
 }
 
@@ -2489,12 +2587,12 @@ func (this *Aster) fetchFundingRateBody(ch chan any, symbol string, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Aster) FetchFundingRatesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchFundingRatesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -2503,12 +2601,18 @@ func (this *Aster) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	response := (<-this.FapiPublicGetV3PremiumIndex(this.Extend(params)))
-	PanicOnError(response)
+	r1 := <-this.FapiPublicGetV3PremiumIndex(this.Extend(params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	response := r1.Value
 
 	//
 	//     [
@@ -2524,7 +2628,7 @@ func (this *Aster) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	ch <- this.ParseFundingRates(response, symbolsNormalized)
+	ch <- AsyncResult[any]{Value: this.ParseFundingRates(response, symbolsNormalized)}
 	return nil
 }
 
@@ -2537,12 +2641,12 @@ func (this *Aster) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Aster) FetchFundingIntervalsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchFundingIntervalsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchFundingIntervalsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchFundingIntervalsBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchFundingIntervalsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -2551,12 +2655,17 @@ func (this *Aster) fetchFundingIntervalsBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp2523 := (<-this.FapiPublicGetV3FundingInfo(params))
-	PanicOnError(listEp2523.Raw)
+	listEp2523 := <-this.FapiPublicGetV3FundingInfo(params)
+	if listEp2523.Err != nil {
+		panic(listEp2523.Err)
+	}
 	var response []any = listEp2523.Value
 
 	//
@@ -2571,7 +2680,7 @@ func (this *Aster) fetchFundingIntervalsBody(ch chan any, optionalArgs ...any) a
 	//         }
 	//     ]
 	//
-	ch <- this.ParseFundingRates(response, symbolsNormalized)
+	ch <- AsyncResult[any]{Value: this.ParseFundingRates(response, symbolsNormalized)}
 	return nil
 }
 
@@ -2587,12 +2696,12 @@ func (this *Aster) fetchFundingIntervalsBody(ch chan any, optionalArgs ...any) a
  * @param {int} [params.until] timestamp in ms of the latest funding rate
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func (this *Aster) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2605,7 +2714,10 @@ func (this *Aster) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
@@ -2621,8 +2733,10 @@ func (this *Aster) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp2587 := (<-this.FapiPublicGetV3FundingRate(this.Extend(requestUntil, paramsUntil)))
-	PanicOnError(listEp2587.Raw)
+	listEp2587 := <-this.FapiPublicGetV3FundingRate(this.Extend(requestUntil, paramsUntil))
+	if listEp2587.Err != nil {
+		panic(listEp2587.Err)
+	}
 	var response []any = listEp2587.Value
 
 	//
@@ -2634,7 +2748,7 @@ func (this *Aster) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	//         }
 	//     ]
 	//
-	ch <- this.ParseFundingRateHistories(response, market)
+	ch <- AsyncResult[any]{Value: this.ParseFundingRateHistories(response, market)}
 	return nil
 }
 func (this *Aster) ParseFundingRateHistory(contract any, optionalArgs ...any) any {
@@ -2668,32 +2782,42 @@ func (this *Aster) ParseFundingRateHistory(contract any, optionalArgs ...any) an
  * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Aster) FetchBalanceAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	var response map[string]any = nil
 	var data any = nil
 	if marketType != nil && *marketType == "swap" {
 
-		data = (<-this.FapiPrivateGetV3Balance(paramsMarketType)).Raw
-		PanicOnError(data)
+		r1 := <-this.FapiPrivateGetV3Balance(paramsMarketType)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		data = r1.Raw
 	} else if marketType != nil && *marketType == "spot" {
 
-		response = (<-this.SapiPrivateGetV3Account(paramsMarketType)).Checked()
+		r2 := <-this.SapiPrivateGetV3Account(paramsMarketType)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
 		data = this.SafeList(response, "balances", []any{})
 	}
 
-	ch <- this.ParseBalance(data)
+	ch <- AsyncResult[any]{Value: this.ParseBalance(data)}
 	return nil
 }
 func (this *Aster) ParseBalance(response any) any {
@@ -2725,12 +2849,12 @@ func (this *Aster) ParseBalance(response any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Aster) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
-func (this *Aster) setMarginModeBody(ch chan any, marginMode string, optionalArgs ...any) any {
+func (this *Aster) setMarginModeBody(ch chan AsyncResult[any], marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2751,20 +2875,26 @@ func (this *Aster) setMarginModeBody(ch chan any, marginMode string, optionalArg
 		panic(BadRequest(this.Id + " marginMode must be either isolated or cross"))
 	}
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol":     market["id"],
 		"marginType": marginModeValue,
 	}
 
-	response := (<-this.FapiPrivatePostV3MarginType(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	r1 := <-this.FapiPrivatePostV3MarginType(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	response := r1.Raw
 
 	//
 	//     { "code": 200,"msg": "success" }
 	//
-	ch <- response
+	ch <- AsyncResult[any]{Value: response}
 	return nil
 }
 
@@ -2790,8 +2920,11 @@ func (this *Aster) fetchPositionModeBody(ch chan EndpointResult[map[string]any],
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	response := (<-this.FapiPrivateGetV3PositionSideDual(params)).Raw
-	PanicOnError(response)
+	r := <-this.FapiPrivateGetV3PositionSideDual(params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	response := r.Raw
 
 	//
 	//     {
@@ -2816,12 +2949,12 @@ func (this *Aster) fetchPositionModeBody(ch chan EndpointResult[map[string]any],
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Aster) SetPositionModeAsync(hedged any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) SetPositionModeAsync(hedged any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.setPositionModeBody(ch, hedged, optionalArgs...)
 	return ch
 }
-func (this *Aster) setPositionModeBody(ch chan any, hedged any, optionalArgs ...any) any {
+func (this *Aster) setPositionModeBody(ch chan AsyncResult[any], hedged any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2842,7 +2975,11 @@ func (this *Aster) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 	//         "msg": "success"
 	//     }
 	//
-	ch <- PanicOnError((<-this.FapiPrivatePostV3PositionSideDual(this.Extend(request, params))).Raw)
+	r := <-this.FapiPrivatePostV3PositionSideDual(this.Extend(request, params))
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- AsyncResult[any]{Value: r.Raw}
 	return nil
 }
 func (this *Aster) ParseTradingFee(fee any, optionalArgs ...any) any {
@@ -2871,18 +3008,21 @@ func (this *Aster) ParseTradingFee(fee any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Aster) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Aster) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -2890,10 +3030,18 @@ func (this *Aster) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs 
 	var response map[string]any = nil
 	if market["swap"] == true {
 
-		response = (<-this.FapiPrivateGetV3CommissionRate(this.Extend(request, params))).Checked()
+		r1 := <-this.FapiPrivateGetV3CommissionRate(this.Extend(request, params))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
 	} else {
 
-		response = (<-this.SapiPrivateGetV3CommissionRate(this.Extend(request, params))).Checked()
+		r2 := <-this.SapiPrivateGetV3CommissionRate(this.Extend(request, params))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
 	}
 
 	//
@@ -2905,7 +3053,7 @@ func (this *Aster) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs 
 	//         "takerCommissionRate": "0.0004"
 	//     }
 	//
-	ch <- this.ParseTradingFee(response, market)
+	ch <- AsyncResult[any]{Value: this.ParseTradingFee(response, market)}
 	return nil
 }
 func (this *Aster) ParseOrderStatus(status *string) *string {
@@ -3042,12 +3190,12 @@ func (this *Aster) ParseOrder(order any, optionalArgs ...any) any {
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Aster) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Aster) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3058,7 +3206,10 @@ func (this *Aster) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		panic(ArgumentsRequired(this.Id + " fetchOrder() requires a symbol argument"))
 	}
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -3073,10 +3224,18 @@ func (this *Aster) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	var response map[string]any = nil
 	if market["swap"] == true {
 
-		response = (<-this.FapiPrivateGetV3Order(this.Extend(request, paramsOmitted))).Checked()
+		r1 := <-this.FapiPrivateGetV3Order(this.Extend(request, paramsOmitted))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
 	} else {
 
-		response = (<-this.SapiPrivateGetV3Order(this.Extend(request, paramsOmitted))).Checked()
+		r2 := <-this.SapiPrivateGetV3Order(this.Extend(request, paramsOmitted))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
 	}
 
 	//
@@ -3108,7 +3267,7 @@ func (this *Aster) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	//        "newChainData": { "hash": "0x46aed5...67bdbec8ba" }   // only in SWAP
 	//    }
 	//
-	ch <- this.ParseOrder(response, market)
+	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 
@@ -3123,12 +3282,12 @@ func (this *Aster) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Aster) FetchOpenOrderAsync(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchOpenOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOpenOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Aster) fetchOpenOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3139,7 +3298,10 @@ func (this *Aster) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 		panic(ArgumentsRequired(this.Id + " fetchOpenOrder() requires a symbol argument"))
 	}
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -3154,10 +3316,18 @@ func (this *Aster) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 	var response map[string]any = nil
 	if market["spot"] == true {
 
-		response = (<-this.SapiPrivateGetV3OpenOrder(this.Extend(request, paramsOmitted))).Checked()
+		r1 := <-this.SapiPrivateGetV3OpenOrder(this.Extend(request, paramsOmitted))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
 	} else {
 
-		response = (<-this.FapiPrivateGetV3OpenOrder(this.Extend(request, paramsOmitted))).Checked()
+		r2 := <-this.FapiPrivateGetV3OpenOrder(this.Extend(request, paramsOmitted))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
 	}
 
 	//
@@ -3189,7 +3359,7 @@ func (this *Aster) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 	//        "newChainData": { "hash": "0x46aed5...67bdbec8ba" }   // only in SWAP
 	//    }
 	//
-	ch <- this.ParseOrder(response, market)
+	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 
@@ -3206,12 +3376,12 @@ func (this *Aster) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
  * @param {int} [params.until] the latest time in ms to fetch orders for
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Aster) FetchOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3226,7 +3396,10 @@ func (this *Aster) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		panic(ArgumentsRequired(this.Id + " fetchOrders() requires a symbol argument"))
 	}
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -3241,13 +3414,17 @@ func (this *Aster) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var response []any = nil
 	if market["swap"] == true {
 
-		listEp3201 := (<-this.FapiPrivateGetV3AllOrders(this.Extend(requestUntil, paramsUntil)))
-		PanicOnError(listEp3201.Raw)
+		listEp3201 := <-this.FapiPrivateGetV3AllOrders(this.Extend(requestUntil, paramsUntil))
+		if listEp3201.Err != nil {
+			panic(listEp3201.Err)
+		}
 		response = listEp3201.Value
 	} else {
 
-		listEp3204 := (<-this.SapiPrivateGetV3AllOrders(this.Extend(requestUntil, paramsUntil)))
-		PanicOnError(listEp3204.Raw)
+		listEp3204 := <-this.SapiPrivateGetV3AllOrders(this.Extend(requestUntil, paramsUntil))
+		if listEp3204.Err != nil {
+			panic(listEp3204.Err)
+		}
 		response = listEp3204.Value
 	}
 
@@ -3281,7 +3458,7 @@ func (this *Aster) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//            "newChainData": { "hash": "0xe17d3d5b...dbca8b01" }      // only in PERP
 	//        }, ...
 	//
-	ch <- this.ParseOrders(response, market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market, since, limit)}
 	return nil
 }
 
@@ -3299,12 +3476,12 @@ func (this *Aster) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Aster) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3316,7 +3493,10 @@ func (this *Aster) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if symbol != nil {
@@ -3336,12 +3516,18 @@ func (this *Aster) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if this.IsLinear(marketType, subType) {
 
-		response = (<-this.FapiPrivateGetV3OpenOrders(this.Extend(request, paramsSubType))).Raw
-		PanicOnError(response)
+		r1 := <-this.FapiPrivateGetV3OpenOrders(this.Extend(request, paramsSubType))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Raw
 	} else if marketType != nil && *marketType == "spot" {
 
-		response = (<-this.SapiPrivateGetV3OpenOrders(this.Extend(request, paramsSubType))).Raw
-		PanicOnError(response)
+		r2 := <-this.SapiPrivateGetV3OpenOrders(this.Extend(request, paramsSubType))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Raw
 	}
 
 	//
@@ -3375,7 +3561,7 @@ func (this *Aster) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	//        }
 	//    ]
 	//
-	ch <- this.ParseOrders(response, market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market, since, limit)}
 	return nil
 }
 
@@ -3401,12 +3587,12 @@ func (this *Aster) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Aster) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Aster) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Aster) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3414,16 +3600,27 @@ func (this *Aster) createOrderBody(ch chan any, symbol string, typeVar string, s
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 	var response map[string]any = nil
 	if market["swap"] == true {
 
-		response = (<-this.FapiPrivatePostV3Order(request)).Checked()
+		r1 := <-this.FapiPrivatePostV3Order(request)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
 	} else {
 
-		response = (<-this.SapiPrivatePostV3Order(request)).Checked()
+		r2 := <-this.SapiPrivatePostV3Order(request)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
 	}
 
 	//
@@ -3456,7 +3653,7 @@ func (this *Aster) createOrderBody(ch chan any, symbol string, typeVar string, s
 	//        "newChainData": { "hash": "0x46ae....c8ba" }      // only in PERP
 	//    }
 	//
-	ch <- this.ParseOrder(response, market)
+	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 
@@ -3469,18 +3666,21 @@ func (this *Aster) createOrderBody(ch chan any, symbol string, typeVar string, s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Aster) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any) any {
+func (this *Aster) createOrdersBody(ch chan AsyncResult[any], orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var ordersRequests []any = []any{}
 	var orderSymbols []any = []any{}
 	if GetArrayLength(orders) > 5 {
@@ -3513,8 +3713,10 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		"batchOrders": ordersRequests,
 	}
 
-	listEp3469 := (<-this.FapiPrivatePostV3BatchOrders(this.Extend(request, params)))
-	PanicOnError(listEp3469.Raw)
+	listEp3469 := <-this.FapiPrivatePostV3BatchOrders(this.Extend(request, params))
+	if listEp3469.Err != nil {
+		panic(listEp3469.Err)
+	}
 	var response []any = listEp3469.Value
 
 	//
@@ -3547,7 +3749,7 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 	//        }
 	//    ]
 	//
-	ch <- this.ParseOrders(response)
+	ch <- AsyncResult[any]{Value: this.ParseOrders(response)}
 	return nil
 }
 func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
@@ -3732,12 +3934,12 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Aster) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3748,7 +3950,10 @@ func (this *Aster) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires a symbol argument"))
 	}
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -3756,12 +3961,18 @@ func (this *Aster) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if market["swap"] == true {
 
-		response = (<-this.FapiPrivateDeleteV3AllOpenOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		r1 := <-this.FapiPrivateDeleteV3AllOpenOrders(this.Extend(request, params))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Raw
 	} else {
 
-		response = (<-this.SapiPrivateDeleteV3AllOpenOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		r2 := <-this.SapiPrivateDeleteV3AllOpenOrders(this.Extend(request, params))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Raw
 	}
 
 	//
@@ -3772,9 +3983,9 @@ func (this *Aster) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         "msg": "The operation of cancel all open order is done."
 	//     }
 	//
-	ch <- []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
 		"info": response,
-	})}
+	})}}
 	return nil
 }
 
@@ -3789,12 +4000,12 @@ func (this *Aster) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Aster) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Aster) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Aster) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3805,7 +4016,10 @@ func (this *Aster) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -3820,13 +4034,21 @@ func (this *Aster) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 	var response map[string]any = nil
 	if market["swap"] == true {
 
-		response = (<-this.FapiPrivateDeleteV3Order(this.Extend(request, paramsOmitted))).Checked()
+		r1 := <-this.FapiPrivateDeleteV3Order(this.Extend(request, paramsOmitted))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
 	} else {
 
-		response = (<-this.SapiPrivateDeleteV3Order(this.Extend(request, paramsOmitted))).Checked()
+		r2 := <-this.SapiPrivateDeleteV3Order(this.Extend(request, paramsOmitted))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
 	}
 
-	ch <- this.ParseOrder(response, market)
+	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 
@@ -3845,12 +4067,12 @@ func (this *Aster) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
  * @param {int[]} [params.recvWindow]
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Aster) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Aster) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any {
+func (this *Aster) cancelOrdersBody(ch chan AsyncResult[any], ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3861,7 +4083,10 @@ func (this *Aster) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 		panic(ArgumentsRequired(this.Id + " cancelOrders() requires a symbol argument"))
 	}
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -3875,17 +4100,21 @@ func (this *Aster) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 	var response []any = nil
 	if market["swap"] == true {
 
-		listEp3829 := (<-this.FapiPrivateDeleteV3BatchOrders(this.Extend(request, params)))
-		PanicOnError(listEp3829.Raw)
+		listEp3829 := <-this.FapiPrivateDeleteV3BatchOrders(this.Extend(request, params))
+		if listEp3829.Err != nil {
+			panic(listEp3829.Err)
+		}
 		response = listEp3829.Value
 	} else {
 
-		listEp3832 := (<-this.SapiPrivateDeleteV3AllOpenOrders(this.Extend(request, params)))
-		PanicOnError(listEp3832.Raw)
+		listEp3832 := <-this.SapiPrivateDeleteV3AllOpenOrders(this.Extend(request, params))
+		if listEp3832.Err != nil {
+			panic(listEp3832.Err)
+		}
 		response = listEp3832.Value
 	}
 
-	ch <- this.ParseOrders(response, market)
+	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market)}
 	return nil
 }
 
@@ -3899,12 +4128,12 @@ func (this *Aster) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Aster) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Aster) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
+func (this *Aster) setLeverageBody(ch chan AsyncResult[any], leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3918,15 +4147,21 @@ func (this *Aster) setLeverageBody(ch chan any, leverage int64, optionalArgs ...
 		panic(BadRequest(this.Id + " leverage should be between 1 and 125"))
 	}
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
 		"leverage": leverage,
 	}
 
-	response := (<-this.FapiPrivatePostV3Leverage(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	r1 := <-this.FapiPrivatePostV3Leverage(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	response := r1.Raw
 
 	//
 	//     {
@@ -3935,7 +4170,7 @@ func (this *Aster) setLeverageBody(ch chan any, leverage int64, optionalArgs ...
 	//         "symbol": "BTCUSDT"
 	//     }
 	//
-	ch <- response
+	ch <- AsyncResult[any]{Value: response}
 	return nil
 }
 
@@ -3948,12 +4183,12 @@ func (this *Aster) setLeverageBody(ch chan any, leverage int64, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Aster) FetchLeveragesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchLeveragesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchLeveragesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchLeveragesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -3961,10 +4196,15 @@ func (this *Aster) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 
-	listEp3913 := (<-this.FapiPrivateGetV3PositionRisk(params))
-	PanicOnError(listEp3913.Raw)
+	listEp3913 := <-this.FapiPrivateGetV3PositionRisk(params)
+	if listEp3913.Err != nil {
+		panic(listEp3913.Err)
+	}
 	var response []any = listEp3913.Value
 
 	//
@@ -3988,7 +4228,7 @@ func (this *Aster) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	ch <- this.ParseLeverages(this.ToArray(response), symbols, "symbol")
+	ch <- AsyncResult[any]{Value: this.ParseLeverages(this.ToArray(response), symbols, "symbol")}
 	return nil
 }
 func (this *Aster) ParseLeverage(leverage any, optionalArgs ...any) any {
@@ -4045,12 +4285,12 @@ func (this *Aster) ParseLeverage(leverage any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func (this *Aster) FetchMarginModesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchMarginModesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchMarginModesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchMarginModesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -4058,10 +4298,15 @@ func (this *Aster) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 
-	listEp4008 := (<-this.FapiPrivateGetV3PositionRisk(params))
-	PanicOnError(listEp4008.Raw)
+	listEp4008 := <-this.FapiPrivateGetV3PositionRisk(params)
+	if listEp4008.Err != nil {
+		panic(listEp4008.Err)
+	}
 	var response []any = listEp4008.Value
 
 	//
@@ -4087,7 +4332,7 @@ func (this *Aster) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
 	//     ]
 	//
 	//
-	ch <- this.ParseMarginModes(this.ToArray(response), symbols, "symbol", "swap")
+	ch <- AsyncResult[any]{Value: this.ParseMarginModes(this.ToArray(response), symbols, "symbol", "swap")}
 	return nil
 }
 func (this *Aster) ParseMarginMode(marginMode any, optionalArgs ...any) any {
@@ -4134,12 +4379,12 @@ func (this *Aster) ParseMarginMode(marginMode any, optionalArgs ...any) any {
  * @param {int} [params.until] timestamp in ms of the latest change to fetch
  * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Aster) FetchMarginAdjustmentHistoryAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchMarginAdjustmentHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchMarginAdjustmentHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4156,7 +4401,10 @@ func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ..
 		panic(ArgumentsRequired(this.Id + " fetchMarginAdjustmentHistory () requires a symbol argument"))
 	}
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, "until")
@@ -4181,8 +4429,10 @@ func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ..
 		request["endTime"] = until
 	}
 
-	listEp4127 := (<-this.FapiPrivateGetV3PositionMarginHistory(this.Extend(request, paramsOmitted)))
-	PanicOnError(listEp4127.Raw)
+	listEp4127 := <-this.FapiPrivateGetV3PositionMarginHistory(this.Extend(request, paramsOmitted))
+	if listEp4127.Err != nil {
+		panic(listEp4127.Err)
+	}
 	var response []any = listEp4127.Value
 	//
 	//     [
@@ -4198,7 +4448,7 @@ func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ..
 	//
 	var modifications any = this.ParseMarginModifications(this.ToArray(response))
 
-	ch <- this.FilterBySymbolSinceLimit(modifications, symbol, since, limit)
+	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(modifications, symbol, since, limit)}
 	return nil
 }
 func (this *Aster) ParseMarginModification(data any, optionalArgs ...any) any {
@@ -4251,18 +4501,21 @@ func (this *Aster) ParseMarginModification(data any, optionalArgs ...any) any {
 		"datetime":  this.Iso8601(timestamp),
 	}
 }
-func (this *Aster) ModifyMarginHelperAsync(symbol string, amount any, addOrReduce any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) ModifyMarginHelperAsync(symbol string, amount any, addOrReduce any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, addOrReduce, optionalArgs...)
 	return ch
 }
-func (this *Aster) modifyMarginHelperBody(ch chan any, symbol string, amount any, addOrReduce any, optionalArgs ...any) any {
+func (this *Aster) modifyMarginHelperBody(ch chan AsyncResult[any], symbol string, amount any, addOrReduce any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var amountValue *string = this.AmountToPrecision(symbol, amount)
 	var request map[string]any = map[string]any{
@@ -4272,7 +4525,11 @@ func (this *Aster) modifyMarginHelperBody(ch chan any, symbol string, amount any
 	}
 	var code *string = SafeStringPtr(market["quote"])
 
-	var response map[string]any = (<-this.FapiPrivatePostV3PositionMargin(this.Extend(request, params))).Checked()
+	r1 := <-this.FapiPrivatePostV3PositionMargin(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -4282,9 +4539,9 @@ func (this *Aster) modifyMarginHelperBody(ch chan any, symbol string, amount any
 	//         "type": 1
 	//     }
 	//
-	ch <- this.Extend(this.ParseMarginModification(response, market), map[string]any{
+	ch <- AsyncResult[any]{Value: this.Extend(this.ParseMarginModification(response, market), map[string]any{
 		"code": code,
-	})
+	})}
 	return nil
 }
 
@@ -4309,7 +4566,11 @@ func (this *Aster) reduceMarginBody(ch chan EndpointResult[map[string]any], symb
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes337715 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 2, params))))
+	r := <-this.ModifyMarginHelperAsync(symbol, amount, 2, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var retRes337715 map[string]any = MapTyped(r.Value)
 	if retRes337715 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
@@ -4328,22 +4589,26 @@ func (this *Aster) reduceMarginBody(ch chan EndpointResult[map[string]any], symb
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
  */
-func (this *Aster) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Aster) addMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
+func (this *Aster) addMarginBody(ch chan AsyncResult[any], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes339115 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 1, params))))
+	r := <-this.ModifyMarginHelperAsync(symbol, amount, 1, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var retRes339115 map[string]any = MapTyped(r.Value)
 	if retRes339115 == nil {
-		ch <- nil
+		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- retRes339115
+		ch <- AsyncResult[any]{Value: retRes339115}
 	}
 	return nil
 }
@@ -4390,12 +4655,12 @@ func (this *Aster) ParseIncome(income any, optionalArgs ...any) any {
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func (this *Aster) FetchFundingHistoryAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchFundingHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchFundingHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4407,7 +4672,10 @@ func (this *Aster) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{
 		"incomeType": "FUNDING_FEE",
@@ -4424,11 +4692,13 @@ func (this *Aster) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 		AddElementToObject(requestUntil, "limit", mathMin(limit, 1000)) // max 1000
 	}
 
-	listEp4368 := (<-this.FapiPrivateGetV3Income(this.Extend(requestUntil, paramsUntil)))
-	PanicOnError(listEp4368.Raw)
+	listEp4368 := <-this.FapiPrivateGetV3Income(this.Extend(requestUntil, paramsUntil))
+	if listEp4368.Err != nil {
+		panic(listEp4368.Err)
+	}
 	var response []any = listEp4368.Value
 
-	ch <- this.ParseIncomes(response, market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseIncomes(response, market, since, limit)}
 	return nil
 }
 func (this *Aster) ParseLedgerEntry(item any, optionalArgs ...any) any {
@@ -4502,12 +4772,12 @@ func (this *Aster) ParseLedgerEntryType(typeVar *string) *string {
  * @param {int} [params.until] timestamp in ms of the latest ledger entry
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
  */
-func (this *Aster) FetchLedgerAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchLedgerAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchLedgerBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4519,7 +4789,10 @@ func (this *Aster) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -4542,8 +4815,10 @@ func (this *Aster) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["endTime"] = until
 	}
 
-	listEp4484 := (<-this.FapiPrivateGetV3Income(this.Extend(request, paramsOmitted)))
-	PanicOnError(listEp4484.Raw)
+	listEp4484 := <-this.FapiPrivateGetV3Income(this.Extend(request, paramsOmitted))
+	if listEp4484.Err != nil {
+		panic(listEp4484.Err)
+	}
 	var response []any = listEp4484.Value
 
 	//
@@ -4560,7 +4835,7 @@ func (this *Aster) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	ch <- this.ParseLedger(response, currency, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseLedger(response, currency, since, limit)}
 	return nil
 }
 func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
@@ -4791,12 +5066,12 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} data on the positions risk
  */
-func (this *Aster) FetchPositionsRiskAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchPositionsRiskAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchPositionsRiskBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchPositionsRiskBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -4809,13 +5084,21 @@ func (this *Aster) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) any 
 		}
 	}
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 
-	PanicOnError((<-this.LoadLeverageBracketsAsync(false, params)))
+	r1 := <-this.LoadLeverageBracketsAsync(false, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 	var request map[string]any = map[string]any{}
 
-	listEp4718 := (<-this.FapiPrivateGetV3PositionRisk(this.Extend(request, params)))
-	PanicOnError(listEp4718.Raw)
+	listEp4718 := <-this.FapiPrivateGetV3PositionRisk(this.Extend(request, params))
+	if listEp4718.Err != nil {
+		panic(listEp4718.Err)
+	}
 	var response []any = listEp4718.Value
 	//
 	//     [
@@ -4852,7 +5135,7 @@ func (this *Aster) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) any 
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	ch <- this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)
+	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)}
 	return nil
 }
 
@@ -4866,12 +5149,12 @@ func (this *Aster) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) any 
  * @param {string} [params.method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Aster) FetchPositionsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -4890,20 +5173,28 @@ func (this *Aster) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	if defaultMethod != nil && *defaultMethod == "positionRisk" {
 
-		var retRes380119 []any = ListTyped(PanicOnError((<-this.FetchPositionsRiskAsync(symbols, paramsMethod))))
+		r := <-this.FetchPositionsRiskAsync(symbols, paramsMethod)
+		if r.Err != nil {
+			panic(r.Err)
+		}
+		var retRes380119 []any = ListTyped(r.Value)
 		if retRes380119 == nil {
-			ch <- nil
+			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- retRes380119
+			ch <- AsyncResult[any]{Value: retRes380119}
 		}
 		return nil
 	} else if defaultMethod != nil && *defaultMethod == "account" {
 
-		var retRes380319 []any = ListTyped(PanicOnError((<-this.FetchAccountPositionsAsync(symbols, paramsMethod))))
+		r1 := <-this.FetchAccountPositionsAsync(symbols, paramsMethod)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var retRes380319 []any = ListTyped(r1.Value)
 		if retRes380319 == nil {
-			ch <- nil
+			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- retRes380319
+			ch <- AsyncResult[any]{Value: retRes380319}
 		}
 		return nil
 	} else {
@@ -5181,12 +5472,12 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} data on account positions
  */
-func (this *Aster) FetchAccountPositionsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchAccountPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchAccountPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchAccountPositionsBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchAccountPositionsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -5199,24 +5490,34 @@ func (this *Aster) fetchAccountPositionsBody(ch chan any, optionalArgs ...any) a
 		}
 	}
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 
-	PanicOnError((<-this.LoadLeverageBracketsAsync(false, params)))
+	r1 := <-this.LoadLeverageBracketsAsync(false, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 
-	var response map[string]any = (<-this.FapiPrivateGetV4Account(params)).Checked()
+	r2 := <-this.FapiPrivateGetV4Account(params)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	var response map[string]any = r2.Value
 	var filterClosed *bool = SafeBoolPtr(GetValue(TupleSlice(this.HandleOptionBoolAndParams(params, "fetchAccountPositions", "filterClosed", false)), 0))
 	var result any = this.ParseAccountPositions(response, filterClosed)
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	ch <- this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)
+	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)}
 	return nil
 }
-func (this *Aster) LoadLeverageBracketsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) LoadLeverageBracketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.loadLeverageBracketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) loadLeverageBracketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var reload bool = GetArgBool(optionalArgs, 0, false)
@@ -5224,14 +5525,19 @@ func (this *Aster) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) an
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	// by default cache the leverage bracket
 	// it contains useful stuff like the maintenance margin and initial margin for positions
 	var leverageBrackets any = this.SafeDict(this.Options, "leverageBrackets")
 	if ((leverageBrackets == nil)) || (reload == true) {
 
-		listEp5108 := (<-this.FapiPrivateGetV3LeverageBracket(params))
-		PanicOnError(listEp5108.Raw)
+		listEp5108 := <-this.FapiPrivateGetV3LeverageBracket(params)
+		if listEp5108.Err != nil {
+			panic(listEp5108.Err)
+		}
 		var response []any = listEp5108.Value
 		//
 		//    [
@@ -5274,7 +5580,7 @@ func (this *Aster) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) an
 		}
 	}
 
-	ch <- GetValue(this.Options, "leverageBrackets")
+	ch <- AsyncResult[any]{Value: GetValue(this.Options, "leverageBrackets")}
 	return nil
 }
 func (this *Aster) KeccakMessage(message any) any {
@@ -5347,12 +5653,12 @@ func (this *Aster) SignWithdrawPayload(withdrawPayload any, network any) string 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Aster) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Aster) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Aster) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -5363,7 +5669,10 @@ func (this *Aster) withdrawBody(ch chan any, code string, amount any, address an
 	var paramsWithdrawTag any = GetValue(tagAndParams, 1)
 	this.CheckAddress(address)
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var currency map[string]any = this.Currency(code)
 	var nonce int64 = this.Milliseconds() * 1000
 	var request map[string]any = map[string]any{
@@ -5393,7 +5702,11 @@ func (this *Aster) withdrawBody(ch chan any, code string, amount any, address an
 	request["amount"] = this.CurrencyToPrecision(code, amount, network)
 	request["userSignature"] = this.SignWithdrawPayload(request, network)
 
-	var response map[string]any = (<-this.SapiPrivatePostV3AsterUserWithdraw(this.Extend(request, paramsOmitted))).Checked()
+	r1 := <-this.SapiPrivatePostV3AsterUserWithdraw(this.Extend(request, paramsOmitted))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 
 	//
 	//   {
@@ -5401,7 +5714,7 @@ func (this *Aster) withdrawBody(ch chan any, code string, amount any, address an
 	//       "hash": "0x9e6baa3eb75d92a1164eef51a0cc97b9591930518ba3e8e5ab40ce524ba4e463"
 	//   }
 	//
-	ch <- this.ParseTransaction(response, currency)
+	ch <- AsyncResult[any]{Value: this.ParseTransaction(response, currency)}
 	return nil
 }
 func (this *Aster) ParseTransaction(transaction any, optionalArgs ...any) any {
@@ -5444,18 +5757,21 @@ func (this *Aster) ParseTransaction(transaction any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Aster) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Aster) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Aster) transferBody(ch chan AsyncResult[any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
+	r := <-this.LoadMarketsAndSignInAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"asset":  currency["id"],
@@ -5477,9 +5793,13 @@ func (this *Aster) transferBody(ch chan any, code string, amount any, fromAccoun
 	request["kindType"] = typeVar
 	request["clientTranId"] = clientTranId
 
-	var response map[string]any = (<-this.SapiPrivatePostV3AssetWalletTransfer(this.Extend(request, params))).Checked()
+	r1 := <-this.SapiPrivatePostV3AssetWalletTransfer(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 
-	ch <- this.ParseTransfer(response, currency)
+	ch <- AsyncResult[any]{Value: this.ParseTransfer(response, currency)}
 	return nil
 }
 func (this *Aster) ParseTransfer(transfer any, optionalArgs ...any) any {
@@ -5665,16 +5985,19 @@ func (this *Aster) CapitalizeKeys(dict any) any {
 	}
 	return capitalized
 }
-func (this *Aster) LoadMarketsAndSignInAsync() <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) LoadMarketsAndSignInAsync() <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.loadMarketsAndSignInBody(ch)
 	return ch
 }
-func (this *Aster) loadMarketsAndSignInBody(ch chan any) any {
+func (this *Aster) loadMarketsAndSignInBody(ch chan AsyncResult[any]) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 
-	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.SignInAsync()})))
+	r := <-promiseAll([]any{this.LoadMarketsAsync(), this.SignInAsync()})
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	return nil
 }
 
@@ -5686,12 +6009,12 @@ func (this *Aster) loadMarketsAndSignInBody(ch chan any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns response from exchange
  */
-func (this *Aster) SignInAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) SignInAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.signInBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) signInBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) signInBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5701,24 +6024,27 @@ func (this *Aster) signInBody(ch chan any, optionalArgs ...any) any {
 			panic(NotSupported(this.Id + "after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials."))
 		}
 
-		ch <- false
+		ch <- AsyncResult[any]{Value: false}
 		return nil
 	}
 	if GetLength(this.PrivateKey) > 66 {
 		panic(NotSupported(this.Id + " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials."))
 	}
 
-	PanicOnError((<-this.InitializeClientAsync(params)))
+	r := <-this.InitializeClientAsync(params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
 
-	ch <- true
+	ch <- AsyncResult[any]{Value: true}
 	return nil
 }
-func (this *Aster) InitializeClientAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) InitializeClientAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.initializeClientBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) initializeClientBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) initializeClientBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5726,18 +6052,21 @@ func (this *Aster) initializeClientBody(ch chan any, optionalArgs ...any) any {
 	var builderFee *bool = this.SafeBool(params, "builderFee", this.SafeBool(this.Options, "builderFee", true)) // we shouldn't omit here
 	if builderFee == nil || *builderFee != true {
 
-		ch <- false // skip if builder fee is not enabled
+		ch <- AsyncResult[any]{Value: false} // skip if builder fee is not enabled
 		return nil
 	}
 	var approvedBuilderFee *bool = this.SafeBool(this.Options, "approvedBuilderFee", false)
 	if approvedBuilderFee != nil && *approvedBuilderFee == true {
 
-		ch <- true // skip if builder fee is already approved
+		ch <- AsyncResult[any]{Value: true} // skip if builder fee is already approved
 		return nil
 	}
 
-	result := (<-this.FapiPrivateGetV3Builder()).Raw
-	PanicOnError(result)
+	r := <-this.FapiPrivateGetV3Builder()
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	result := r.Raw
 	//
 	//    [
 	//        {
@@ -5786,8 +6115,11 @@ func (this *Aster) initializeClientBody(ch chan any, optionalArgs ...any) any {
 					"asterChain":       "Mainnet",
 				}
 
-				authResponse := (<-this.FapiPrivatePostV3ApproveBuilder(this.Extend(request, params))).Raw
-				PanicOnError(authResponse)
+				r1 := <-this.FapiPrivatePostV3ApproveBuilder(this.Extend(request, params))
+				if r1.Err != nil {
+					panic(r1.Err)
+				}
+				authResponse := r1.Raw
 				//
 				// {"code": 200,"msg": "success"}
 				//
@@ -5801,7 +6133,7 @@ func (this *Aster) initializeClientBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	ch <- nil // just c#
+	ch <- AsyncResult[any]{Value: nil} // just c#
 	return nil
 }
 func (this *Aster) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
@@ -5851,11 +6183,11 @@ func (this *Aster) Init(userConfig map[string]any) {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *Aster) FetchCurrencies(params ...any) (Currencies, error) {
-	raw := <-this.FetchCurrenciesAsync(params...)
-	if IsError(raw) {
-		return Currencies{}, CreateReturnError(raw)
+	r := <-this.FetchCurrenciesAsync(params...)
+	if r.Err != nil {
+		return Currencies{}, r.Err
 	}
-	var res Currencies = NewCurrencies(raw)
+	var res Currencies = NewCurrencies(r.Value)
 	return res, nil
 }
 
@@ -5869,11 +6201,11 @@ func (this *Aster) FetchCurrencies(params ...any) (Currencies, error) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Aster) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	raw := <-this.FetchMarketsAsync(params...)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchMarketsAsync(params...)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
 	return res, nil
 }
 
@@ -5887,11 +6219,11 @@ func (this *Aster) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
 func (this *Aster) FetchTime(params ...any) (int64, error) {
-	raw := <-this.FetchTimeAsync(params...)
-	if IsError(raw) {
-		return -1, CreateReturnError(raw)
+	r := <-this.FetchTimeAsync(params...)
+	if r.Err != nil {
+		return -1, r.Err
 	}
-	var res int64 = raw.(int64)
+	var res int64 = r.Value.(int64)
 	return res, nil
 }
 
@@ -5919,11 +6251,11 @@ func (this *Aster) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OH
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(raw)
+	var res []OHLCV = NewOHLCVArray(r.Value)
 	return res, nil
 }
 
@@ -5948,11 +6280,11 @@ func (this *Aster) FetchTrades(symbol string, options ...FetchTradesOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(raw)
+	var res []Trade = NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -5976,11 +6308,11 @@ func (this *Aster) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, erro
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(raw)
+	var res []Trade = NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -6002,11 +6334,11 @@ func (this *Aster) FetchOrderBook(symbol string, options ...FetchOrderBookOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return OrderBook{}, CreateReturnError(raw)
+	r := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return OrderBook{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(raw)
+	var res OrderBook = NewOrderBook(r.Value)
 	return res, nil
 }
 
@@ -6027,11 +6359,11 @@ func (this *Aster) FetchTicker(symbol string, options ...FetchTickerOptions) (Ti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTickerAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return Ticker{}, CreateReturnError(raw)
+	r := <-this.FetchTickerAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(raw)
+	var res Ticker = NewTicker(r.Value)
 	return res, nil
 }
 
@@ -6054,11 +6386,11 @@ func (this *Aster) FetchTickers(options ...FetchTickersOptions) (Tickers, error)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return Tickers{}, CreateReturnError(raw)
+	r := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(raw)
+	var res Tickers = NewTickers(r.Value)
 	return res, nil
 }
 
@@ -6080,11 +6412,11 @@ func (this *Aster) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrice
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchLastPricesAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return LastPrices{}, CreateReturnError(raw)
+	r := <-this.FetchLastPricesAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return LastPrices{}, r.Err
 	}
-	var res LastPrices = NewLastPrices(raw)
+	var res LastPrices = NewLastPrices(r.Value)
 	return res, nil
 }
 
@@ -6106,11 +6438,11 @@ func (this *Aster) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, erro
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchBidsAsksAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return Tickers{}, CreateReturnError(raw)
+	r := <-this.FetchBidsAsksAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(raw)
+	var res Tickers = NewTickers(r.Value)
 	return res, nil
 }
 
@@ -6130,11 +6462,11 @@ func (this *Aster) FetchFundingRate(symbol string, options ...FetchFundingRateOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchFundingRateAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return FundingRate{}, CreateReturnError(raw)
+	r := <-this.FetchFundingRateAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return FundingRate{}, r.Err
 	}
-	var res FundingRate = NewFundingRate(raw)
+	var res FundingRate = NewFundingRate(r.Value)
 	return res, nil
 }
 
@@ -6154,11 +6486,11 @@ func (this *Aster) FetchFundingRates(options ...FetchFundingRatesOptions) (Fundi
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchFundingRatesAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return FundingRates{}, CreateReturnError(raw)
+	r := <-this.FetchFundingRatesAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return FundingRates{}, r.Err
 	}
-	var res FundingRates = NewFundingRates(raw)
+	var res FundingRates = NewFundingRates(r.Value)
 	return res, nil
 }
 
@@ -6178,11 +6510,11 @@ func (this *Aster) FetchFundingIntervals(options ...FetchFundingIntervalsOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchFundingIntervalsAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return FundingRates{}, CreateReturnError(raw)
+	r := <-this.FetchFundingIntervalsAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return FundingRates{}, r.Err
 	}
-	var res FundingRates = NewFundingRates(raw)
+	var res FundingRates = NewFundingRates(r.Value)
 	return res, nil
 }
 
@@ -6205,11 +6537,11 @@ func (this *Aster) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchFundingRateHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchFundingRateHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []FundingRateHistory = NewFundingRateHistoryArray(raw)
+	var res []FundingRateHistory = NewFundingRateHistoryArray(r.Value)
 	return res, nil
 }
 
@@ -6225,11 +6557,11 @@ func (this *Aster) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpt
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Aster) FetchBalance(params ...any) (Balances, error) {
-	raw := <-this.FetchBalanceAsync(params...)
-	if IsError(raw) {
-		return Balances{}, CreateReturnError(raw)
+	r := <-this.FetchBalanceAsync(params...)
+	if r.Err != nil {
+		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(raw)
+	var res Balances = NewBalances(r.Value)
 	return res, nil
 }
 
@@ -6250,11 +6582,11 @@ func (this *Aster) SetMarginMode(marginMode string, options ...SetMarginModeOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.SetMarginModeAsync(marginMode, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.SetMarginModeAsync(marginMode, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return map[string]any{}, r.Err
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value.(map[string]any)
 	return res, nil
 }
 
@@ -6275,8 +6607,8 @@ func (this *Aster) FetchPositionMode(options ...FetchPositionModeOptions) (Posit
 		opt(&opts)
 	}
 	r := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
-	if IsError(r.Raw) {
-		return PositionModeInfo{}, CreateReturnError(r.Raw)
+	if r.Err != nil {
+		return PositionModeInfo{}, r.Err
 	}
 	var res PositionModeInfo = NewPositionModeInfo(r.Raw)
 	return res, nil
@@ -6299,11 +6631,11 @@ func (this *Aster) SetPositionMode(hedged bool, options ...SetPositionModeOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.SetPositionModeAsync(hedged, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.SetPositionModeAsync(hedged, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return map[string]any{}, r.Err
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value.(map[string]any)
 	return res, nil
 }
 
@@ -6324,11 +6656,11 @@ func (this *Aster) FetchTradingFee(symbol string, options ...FetchTradingFeeOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTradingFeeAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return TradingFeeInterface{}, CreateReturnError(raw)
+	r := <-this.FetchTradingFeeAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return TradingFeeInterface{}, r.Err
 	}
-	var res TradingFeeInterface = NewTradingFeeInterface(raw)
+	var res TradingFeeInterface = NewTradingFeeInterface(r.Value)
 	return res, nil
 }
 
@@ -6351,11 +6683,11 @@ func (this *Aster) FetchOrder(id string, options ...FetchOrderOptions) (Order, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Value)
 	return res, nil
 }
 
@@ -6377,11 +6709,11 @@ func (this *Aster) FetchOpenOrder(id string, options ...FetchOpenOrderOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOpenOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.FetchOpenOrderAsync(id, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Value)
 	return res, nil
 }
 
@@ -6405,11 +6737,11 @@ func (this *Aster) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -6434,11 +6766,11 @@ func (this *Aster) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -6471,11 +6803,11 @@ func (this *Aster) CreateOrder(symbol string, typeVar string, side string, amoun
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Value)
 	return res, nil
 }
 
@@ -6495,11 +6827,11 @@ func (this *Aster) CreateOrders(orders []OrderRequest, options ...CreateOrdersOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -6520,11 +6852,11 @@ func (this *Aster) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CancelAllOrdersAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.CancelAllOrdersAsync(opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -6546,11 +6878,11 @@ func (this *Aster) CancelOrder(id string, options ...CancelOrderOptions) (Order,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Value)
 	return res, nil
 }
 
@@ -6576,11 +6908,11 @@ func (this *Aster) CancelOrders(ids []string, options ...CancelOrdersOptions) ([
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CancelOrdersAsync(ids, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.CancelOrdersAsync(ids, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -6601,11 +6933,11 @@ func (this *Aster) SetLeverage(leverage int64, options ...SetLeverageOptions) (m
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.SetLeverageAsync(leverage, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.SetLeverageAsync(leverage, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return map[string]any{}, r.Err
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value.(map[string]any)
 	return res, nil
 }
 
@@ -6625,11 +6957,11 @@ func (this *Aster) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchLeveragesAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return Leverages{}, CreateReturnError(raw)
+	r := <-this.FetchLeveragesAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return Leverages{}, r.Err
 	}
-	var res Leverages = NewLeverages(raw)
+	var res Leverages = NewLeverages(r.Value)
 	return res, nil
 }
 
@@ -6649,11 +6981,11 @@ func (this *Aster) FetchMarginModes(options ...FetchMarginModesOptions) (MarginM
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchMarginModesAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return MarginModes{}, CreateReturnError(raw)
+	r := <-this.FetchMarginModesAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return MarginModes{}, r.Err
 	}
-	var res MarginModes = NewMarginModes(raw)
+	var res MarginModes = NewMarginModes(r.Value)
 	return res, nil
 }
 
@@ -6677,11 +7009,11 @@ func (this *Aster) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustment
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchMarginAdjustmentHistoryAsync(opts.Symbol, opts.Type, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchMarginAdjustmentHistoryAsync(opts.Symbol, opts.Type, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []MarginModification = NewMarginModificationArray(raw)
+	var res []MarginModification = NewMarginModificationArray(r.Value)
 	return res, nil
 }
 
@@ -6706,11 +7038,11 @@ func (this *Aster) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchFundingHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchFundingHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []FundingHistory = NewFundingHistoryArray(raw)
+	var res []FundingHistory = NewFundingHistoryArray(r.Value)
 	return res, nil
 }
 
@@ -6733,11 +7065,11 @@ func (this *Aster) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchLedgerAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchLedgerAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []LedgerEntry = NewLedgerEntryArray(raw)
+	var res []LedgerEntry = NewLedgerEntryArray(r.Value)
 	return res, nil
 }
 
@@ -6757,11 +7089,11 @@ func (this *Aster) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]P
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionsRiskAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchPositionsRiskAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(raw)
+	var res []Position = NewPositionArray(r.Value)
 	return res, nil
 }
 
@@ -6782,11 +7114,11 @@ func (this *Aster) FetchPositions(options ...FetchPositionsOptions) ([]Position,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionsAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchPositionsAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(raw)
+	var res []Position = NewPositionArray(r.Value)
 	return res, nil
 }
 
@@ -6807,11 +7139,11 @@ func (this *Aster) FetchAccountPositions(options ...FetchAccountPositionsOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchAccountPositionsAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchAccountPositionsAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(raw)
+	var res []Position = NewPositionArray(r.Value)
 	return res, nil
 }
 
@@ -6836,11 +7168,11 @@ func (this *Aster) Withdraw(code string, amount float64, address string, options
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if r.Err != nil {
+		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Value)
 	return res, nil
 }
 
@@ -6864,11 +7196,11 @@ func (this *Aster) Transfer(code string, amount float64, fromAccount string, toA
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params)
-	if IsError(raw) {
-		return TransferEntry{}, CreateReturnError(raw)
+	r := <-this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params)
+	if r.Err != nil {
+		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(raw)
+	var res TransferEntry = NewTransferEntry(r.Value)
 	return res, nil
 }
 

@@ -103,12 +103,12 @@ func (this *Bitopro) PrivateGetOrdersOpen(args ...any) <-chan EndpointResult[map
 }
 
 // PrivatePostOrdersPair returns a channel that yields a JSON object.
-func (this *Bitopro) PrivatePostOrdersPair(args ...any) <-chan any {
+func (this *Bitopro) PrivatePostOrdersPair(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostOrdersPair", args...)
 }
 
 // PrivatePostOrdersBatch returns a channel that yields a JSON object.
-func (this *Bitopro) PrivatePostOrdersBatch(args ...any) <-chan any {
+func (this *Bitopro) PrivatePostOrdersBatch(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostOrdersBatch", args...)
 }
 
@@ -123,7 +123,7 @@ func (this *Bitopro) PrivatePutOrders(args ...any) <-chan EndpointResult[map[str
 }
 
 // PrivateDeleteOrdersPairId returns a channel that yields a JSON object.
-func (this *Bitopro) PrivateDeleteOrdersPairId(args ...any) <-chan any {
+func (this *Bitopro) PrivateDeleteOrdersPairId(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateDeleteOrdersPairId", args...)
 }
 

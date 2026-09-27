@@ -258,17 +258,17 @@ func (this *Pacifica) PrivatePostPositionsTpsl(args ...any) <-chan EndpointResul
 }
 
 // PrivatePostOrdersCancel returns a channel that yields a JSON object.
-func (this *Pacifica) PrivatePostOrdersCancel(args ...any) <-chan any {
+func (this *Pacifica) PrivatePostOrdersCancel(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostOrdersCancel", args...)
 }
 
 // PrivatePostOrdersCancelAll returns a channel that yields a JSON object.
-func (this *Pacifica) PrivatePostOrdersCancelAll(args ...any) <-chan any {
+func (this *Pacifica) PrivatePostOrdersCancelAll(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostOrdersCancelAll", args...)
 }
 
 // PrivatePostOrdersStopCancel returns a channel that yields a JSON object.
-func (this *Pacifica) PrivatePostOrdersStopCancel(args ...any) <-chan any {
+func (this *Pacifica) PrivatePostOrdersStopCancel(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostOrdersStopCancel", args...)
 }
 
@@ -288,7 +288,7 @@ func (this *Pacifica) PrivatePostOrdersTwapCreate(args ...any) <-chan EndpointRe
 }
 
 // PrivatePostOrdersTwapCancel returns a channel that yields a JSON object.
-func (this *Pacifica) PrivatePostOrdersTwapCancel(args ...any) <-chan any {
+func (this *Pacifica) PrivatePostOrdersTwapCancel(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostOrdersTwapCancel", args...)
 }
 

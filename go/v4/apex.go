@@ -382,18 +382,22 @@ func (this *Apex) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Apex) FetchTimeAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTimeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
+func (this *Apex) fetchTimeBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = (<-this.PublicGetV3Time(params)).Checked()
+	r := <-this.PublicGetV3Time(params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var response map[string]any = r.Value
 	var data map[string]any = SafeMapTyped(response, "data")
 
 	//
@@ -402,7 +406,7 @@ func (this *Apex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	//    "time": 1738837534454
 	//     }
 	// }
-	ch <- this.SafeInteger(data, "time")
+	ch <- AsyncResult[any]{Value: this.SafeInteger(data, "time")}
 	return nil
 }
 func (this *Apex) ParseBalance(response any) any {
@@ -441,25 +445,32 @@ func (this *Apex) ParseBalance(response any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Apex) FetchBalanceAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+func (this *Apex) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	var response map[string]any = (<-this.PrivateGetV3AccountBalance(params)).Checked()
+	r1 := <-this.PrivateGetV3AccountBalance(params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- this.ParseBalance(data)
+	ch <- AsyncResult[any]{Value: this.ParseBalance(data)}
 	return nil
 }
 func (this *Apex) ParseAccount(account any) any {
@@ -480,25 +491,32 @@ func (this *Apex) ParseAccount(account any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Apex) FetchAccountAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) FetchAccountAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchAccountBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchAccountBody(ch chan any, optionalArgs ...any) any {
+func (this *Apex) fetchAccountBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	var response map[string]any = (<-this.PrivateGetV3Account(params)).Checked()
+	r1 := <-this.PrivateGetV3Account(params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- this.ParseAccount(data)
+	ch <- AsyncResult[any]{Value: this.ParseAccount(data)}
 	return nil
 }
 
@@ -510,18 +528,22 @@ func (this *Apex) fetchAccountBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Apex) FetchCurrenciesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
+func (this *Apex) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = (<-this.PublicGetV3Symbols(params)).Checked()
+	r := <-this.PublicGetV3Symbols(params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var response map[string]any = r.Value
 	var data map[string]any = SafeMapTyped(response, "data")
 	var spotConfig map[string]any = SafeMapTyped(data, "spotConfig")
 	var multiChain map[string]any = SafeMapTyped(spotConfig, "multiChain")
@@ -620,7 +642,7 @@ func (this *Apex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var result any = this.ParseCurrencies(rows)
 	this.Options.Delete("_temp_currencies_chains")
 
-	ch <- result
+	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
 func (this *Apex) ParseCurrency(currency any) any {
@@ -715,18 +737,22 @@ func (this *Apex) ParseCurrency(currency any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Apex) FetchMarketsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+func (this *Apex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = (<-this.PublicGetV3Symbols(params)).Checked()
+	r := <-this.PublicGetV3Symbols(params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var response map[string]any = r.Value
 	var data map[string]any = SafeMapTyped(response, "data")
 	var contractConfig map[string]any = SafeMapTyped(data, "contractConfig")
 	var perpetualContract []any = SafeListTypedDefault(contractConfig, "perpetualContract", []any{})
@@ -785,7 +811,7 @@ func (this *Apex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	// }
-	ch <- this.ParseMarkets(perpetualContract)
+	ch <- AsyncResult[any]{Value: this.ParseMarkets(perpetualContract)}
 	return nil
 }
 func (this *Apex) ParseMarket(market any) any {
@@ -938,30 +964,37 @@ func (this *Apex) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Apex) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Apex) fetchTickerBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id2"),
 	}
 
-	var response map[string]any = (<-this.PublicGetV3Ticker(this.Extend(request, params))).Checked()
+	r1 := <-this.PublicGetV3Ticker(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	var tickers []any = SafeListTyped(response, "data")
 	var rawTicker map[string]any = this.SafeDictMap(tickers, 0, map[string]any{})
 
-	ch <- this.ParseTicker(rawTicker, market)
+	ch <- AsyncResult[any]{Value: this.ParseTicker(rawTicker, market)}
 	return nil
 }
 
@@ -974,12 +1007,12 @@ func (this *Apex) fetchTickerBody(ch chan any, symbol string, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Apex) FetchTickersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
+func (this *Apex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -988,13 +1021,20 @@ func (this *Apex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	var response map[string]any = (<-this.PublicGetV3DataAllTickerInfo(params)).Checked()
+	r1 := <-this.PublicGetV3DataAllTickerInfo(params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	var tickers []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- this.ParseTickers(tickers, symbols)
+	ch <- AsyncResult[any]{Value: this.ParseTickers(tickers, symbols)}
 	return nil
 }
 
@@ -1011,12 +1051,12 @@ func (this *Apex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Apex) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Apex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1029,7 +1069,10 @@ func (this *Apex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1049,11 +1092,15 @@ func (this *Apex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 		requestUntil["start"] = math.Floor(float64(*since) / 1000)
 	}
 
-	var response map[string]any = (<-this.PublicGetV3Klines(this.Extend(requestUntil, paramsUntil))).Checked()
+	r1 := <-this.PublicGetV3Klines(this.Extend(requestUntil, paramsUntil))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	var data map[string]any = SafeMapTyped(response, "data")
 	var OHLCVs []any = SafeListTypedDefault(data, this.SafeString(market, "id2"), []any{})
 
-	ch <- this.ParseOHLCVs(OHLCVs, market, timeframe, since, limitResolved)
+	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(OHLCVs, market, timeframe, since, limitResolved)}
 	return nil
 }
 func (this *Apex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -1085,12 +1132,12 @@ func (this *Apex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Apex) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Apex) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1099,7 +1146,10 @@ func (this *Apex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1112,7 +1162,11 @@ func (this *Apex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 		return limit
 	}() // max 100, default 100
 
-	var response map[string]any = (<-this.PublicGetV3Depth(this.Extend(request, params))).Checked()
+	r1 := <-this.PublicGetV3Depth(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	// {
 	//     "a": [
@@ -1144,7 +1198,7 @@ func (this *Apex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	var orderbook map[string]any = this.ParseOrderBook(data, market["symbol"], timestamp, "b", "a")
 	orderbook["nonce"] = this.SafeInteger(data, "u")
 
-	ch <- orderbook
+	ch <- AsyncResult[any]{Value: orderbook}
 	return nil
 }
 
@@ -1161,12 +1215,12 @@ func (this *Apex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Apex) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Apex) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1177,7 +1231,10 @@ func (this *Apex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1191,7 +1248,11 @@ func (this *Apex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	}() // default is 50
 	request["limit"] = limitResolved
 
-	var response map[string]any = (<-this.PublicGetV3Trades(this.Extend(request, params))).Checked()
+	r1 := <-this.PublicGetV3Trades(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	// [
 	//  {
@@ -1214,7 +1275,7 @@ func (this *Apex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	//
 	var trades []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- this.ParseTrades(trades, market, since, limitResolved)
+	ch <- AsyncResult[any]{Value: this.ParseTrades(trades, market, since, limitResolved)}
 	return nil
 }
 func (this *Apex) ParseTrade(trade any, optionalArgs ...any) any {
@@ -1267,30 +1328,37 @@ func (this *Apex) ParseTrade(trade any, optionalArgs ...any) any {
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Apex) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Apex) fetchOpenInterestBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id2"),
 	}
 
-	var response map[string]any = (<-this.PublicGetV3Ticker(this.Extend(request, params))).Checked()
+	r1 := <-this.PublicGetV3Ticker(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	var tickers []any = SafeListTyped(response, "data")
 	var rawTicker map[string]any = this.SafeDictMap(tickers, 0, map[string]any{})
 
-	ch <- this.ParseOpenInterest(rawTicker, market)
+	ch <- AsyncResult[any]{Value: this.ParseOpenInterest(rawTicker, market)}
 	return nil
 }
 func (this *Apex) ParseOpenInterest(interest any, optionalArgs ...any) any {
@@ -1340,12 +1408,12 @@ func (this *Apex) ParseOpenInterest(interest any, optionalArgs ...any) any {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func (this *Apex) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
+func (this *Apex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1361,7 +1429,10 @@ func (this *Apex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	}
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = this.Market(symbol)
@@ -1381,7 +1452,11 @@ func (this *Apex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		request["endTimeExclusive"] = endTimeExclusive
 	}
 
-	var response map[string]any = (<-this.PublicGetV3HistoryFunding(this.Extend(request, params))).Checked()
+	r1 := <-this.PublicGetV3HistoryFunding(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	// {
 	//     "historyFunds": [
@@ -1418,7 +1493,7 @@ func (this *Apex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
+	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)}
 	return nil
 }
 func (this *Apex) ParseOrder(order any, optionalArgs ...any) any {
@@ -1621,22 +1696,26 @@ func (this *Apex) GetSeeds() any {
 	}
 	return seeds
 }
-func (this *Apex) GetAccountIdAsync() <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) GetAccountIdAsync() <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.getAccountIdBody(ch)
 	return ch
 }
-func (this *Apex) getAccountIdBody(ch chan any) any {
+func (this *Apex) getAccountIdBody(ch chan AsyncResult[any]) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var accountId *string = this.SafeString(this.Options, "accountId", "0")
 	if accountId != nil && *accountId == "0" {
 
-		var accountData map[string]any = MapTyped(PanicOnError((<-this.FetchAccountAsync())))
+		r := <-this.FetchAccountAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+		var accountData map[string]any = MapTyped(r.Value)
 		this.Options.Store("accountId", this.SafeString(accountData, "id", "0"))
 	}
 
-	ch <- GetValue(this.Options, "accountId")
+	ch <- AsyncResult[any]{Value: GetValue(this.Options, "accountId")}
 	return nil
 }
 
@@ -1660,12 +1739,12 @@ func (this *Apex) getAccountIdBody(ch chan any) any {
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Apex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Apex) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Apex) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1674,7 +1753,10 @@ func (this *Apex) createOrderBody(ch chan any, symbol string, typeVar string, si
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var orderType string = strings.ToUpper(typeVar)
@@ -1734,8 +1816,11 @@ func (this *Apex) createOrderBody(ch chan any, symbol string, typeVar string, si
 	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, "postOnly")
 	var clientOrderId any = DerefScalar(this.SafeStringN(paramsOmitted2, []any{"clientId", "clientOrderId", "client_order_id"}))
 
-	accountId := (<-this.GetAccountIdAsync())
-	PanicOnError(accountId)
+	r1 := <-this.GetAccountIdAsync()
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	accountId := r1.Value
 	if IsEqual(clientOrderId, nil) {
 		clientOrderId = this.GenerateRandomClientIdOmni(accountId)
 	}
@@ -1757,8 +1842,11 @@ func (this *Apex) createOrderBody(ch chan any, symbol string, typeVar string, si
 		orderToSign["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 	}
 
-	signature := (<-this.GetZKContractSignatureObjAsync(this.Remove0xPrefix(this.GetSeeds()), orderToSign))
-	PanicOnError(signature)
+	r2 := <-this.GetZKContractSignatureObjAsync(this.Remove0xPrefix(this.GetSeeds()), orderToSign)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	signature := r2.Value
 	var request map[string]any = map[string]any{
 		"symbol":      market["id"],
 		"side":        orderSide,
@@ -1776,10 +1864,14 @@ func (this *Apex) createOrderBody(ch chan any, symbol string, typeVar string, si
 	}
 	request["signature"] = signature
 
-	var response map[string]any = (<-this.PrivatePostV3Order(this.Extend(request, paramsOmitted3))).Checked()
+	r3 := <-this.PrivatePostV3Order(this.Extend(request, paramsOmitted3))
+	if r3.Err != nil {
+		panic(r3.Err)
+	}
+	var response map[string]any = r3.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- this.ParseOrder(data, market)
+	ch <- AsyncResult[any]{Value: this.ParseOrder(data, market)}
 	return nil
 }
 
@@ -1795,22 +1887,29 @@ func (this *Apex) createOrderBody(ch chan any, symbol string, typeVar string, si
  * @param {string} [params.transferId] UUID, which is unique across the platform
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Apex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Apex) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Apex) transferBody(ch chan AsyncResult[any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	var configResponse map[string]any = (<-this.PublicGetV3Symbols(params)).Checked()
+	r1 := <-this.PublicGetV3Symbols(params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var configResponse map[string]any = r1.Value
 	var configData map[string]any = SafeMapTyped(configResponse, "data")
 	var contractConfig map[string]any = SafeMapTyped(configData, "contractConfig")
 	var contractAssets any = this.SafeList(contractConfig, "assets", []any{})
@@ -1822,7 +1921,11 @@ func (this *Apex) transferBody(ch chan any, code string, amount any, fromAccount
 	var receiverSubAccountId *string = this.SafeString(globalConfig, "contractAssetPoolSubAccount", "")
 	var receiverAccountId *string = this.SafeString(globalConfig, "contractAssetPoolAccountId", "")
 
-	var accountResponse map[string]any = (<-this.PrivateGetV3Account(params)).Checked()
+	r2 := <-this.PrivateGetV3Account(params)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	var accountResponse map[string]any = r2.Value
 	var accountData map[string]any = SafeMapTyped(accountResponse, "data")
 	var spotAccount map[string]any = SafeMapTyped(accountData, "spotAccount")
 	var zkAccountId *string = this.SafeString(spotAccount, "zkAccountId", "")
@@ -1886,8 +1989,11 @@ func (this *Apex) transferBody(ch chan any, code string, amount any, fromAccount
 			"isContract":           true,
 		}
 
-		signature := (<-this.GetZKTransferSignatureObjAsync(this.Remove0xPrefix(this.GetSeeds()), orderToSign))
-		PanicOnError(signature)
+		r3 := <-this.GetZKTransferSignatureObjAsync(this.Remove0xPrefix(this.GetSeeds()), orderToSign)
+		if r3.Err != nil {
+			panic(r3.Err)
+		}
+		signature := r3.Value
 		var request map[string]any = map[string]any{
 			"amount":           amount,
 			"expireTime":       expireTime,
@@ -1897,8 +2003,11 @@ func (this *Apex) transferBody(ch chan any, code string, amount any, fromAccount
 			"ethAddress":       ethAddress,
 		}
 
-		response := (<-this.PrivatePostV3ContractTransferOut(this.Extend(request, paramsOmitted))).Raw
-		PanicOnError(response)
+		r4 := <-this.PrivatePostV3ContractTransferOut(this.Extend(request, paramsOmitted))
+		if r4.Err != nil {
+			panic(r4.Err)
+		}
+		response := r4.Raw
 		var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 		var currentTime int64 = this.Milliseconds()
 		var parsedAmount *float64
@@ -1906,13 +2015,13 @@ func (this *Apex) transferBody(ch chan any, code string, amount any, fromAccount
 			parsedAmount = &derefNum
 		}
 
-		ch <- this.Extend(this.ParseTransfer(data, this.Currency(code)), map[string]any{
+		ch <- AsyncResult[any]{Value: this.Extend(this.ParseTransfer(data, this.Currency(code)), map[string]any{
 			"timestamp":   currentTime,
 			"datetime":    this.Iso8601(currentTime),
 			"amount":      parsedAmount,
 			"fromAccount": "contract",
 			"toAccount":   "spot",
-		})
+		})}
 		return nil
 	} else {
 		var orderToSign map[string]any = map[string]any{
@@ -1927,8 +2036,11 @@ func (this *Apex) transferBody(ch chan any, code string, amount any, fromAccount
 			"timestampSeconds":     timestampSeconds,
 		}
 
-		signature := (<-this.GetZKTransferSignatureObjAsync(this.Remove0xPrefix(this.GetSeeds()), orderToSign))
-		PanicOnError(signature)
+		r5 := <-this.GetZKTransferSignatureObjAsync(this.Remove0xPrefix(this.GetSeeds()), orderToSign)
+		if r5.Err != nil {
+			panic(r5.Err)
+		}
+		signature := r5.Value
 		var amountStr string = ToString(amount)
 		var ts int64 = timestampSeconds // java req
 		var request map[string]any = map[string]any{
@@ -1948,18 +2060,21 @@ func (this *Apex) transferBody(ch chan any, code string, amount any, fromAccount
 			"nonce":                finalNonce,
 		}
 
-		response := (<-this.PrivatePostV3TransferOut(this.Extend(request, paramsOmitted))).Raw
-		PanicOnError(response)
+		r6 := <-this.PrivatePostV3TransferOut(this.Extend(request, paramsOmitted))
+		if r6.Err != nil {
+			panic(r6.Err)
+		}
+		response := r6.Raw
 		var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 		var currentTime int64 = this.Milliseconds()
 
-		ch <- this.Extend(this.ParseTransfer(data, this.Currency(code)), map[string]any{
+		ch <- AsyncResult[any]{Value: this.Extend(this.ParseTransfer(data, this.Currency(code)), map[string]any{
 			"timestamp":   currentTime,
 			"datetime":    this.Iso8601(currentTime),
 			"amount":      this.ParseNumber(amount),
 			"fromAccount": "spot",
 			"toAccount":   "contract",
-		})
+		})}
 		return nil
 	}
 }
@@ -1992,12 +2107,12 @@ func (this *Apex) ParseTransfer(transfer any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Apex) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Apex) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2006,7 +2121,10 @@ func (this *Apex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
@@ -2015,10 +2133,14 @@ func (this *Apex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = market["id"]
 	}
 
-	var response map[string]any = (<-this.PrivatePostV3DeleteOpenOrders(this.Extend(request, params))).Checked()
+	r1 := <-this.PrivatePostV3DeleteOpenOrders(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- []any{this.ParseOrder(data, market)}
+	ch <- AsyncResult[any]{Value: []any{this.ParseOrder(data, market)}}
 	return nil
 }
 
@@ -2032,12 +2154,12 @@ func (this *Apex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Apex) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Apex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Apex) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2050,15 +2172,23 @@ func (this *Apex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	if clientOrderId != nil {
 		request["id"] = clientOrderId
 
-		response = (<-this.PrivatePostV3DeleteClientOrderId(this.Extend(request, this.Omit(params, []any{"clientId", "clientOrderId", "client_order_id"})))).Checked()
+		r := <-this.PrivatePostV3DeleteClientOrderId(this.Extend(request, this.Omit(params, []any{"clientId", "clientOrderId", "client_order_id"})))
+		if r.Err != nil {
+			panic(r.Err)
+		}
+		response = r.Value
 	} else {
 		request["id"] = id
 
-		response = (<-this.PrivatePostV3DeleteOrder(this.Extend(request, params))).Checked()
+		r1 := <-this.PrivatePostV3DeleteOrder(this.Extend(request, params))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 
-	ch <- this.SafeOrder(data)
+	ch <- AsyncResult[any]{Value: this.SafeOrder(data)}
 	return nil
 }
 
@@ -2074,12 +2204,12 @@ func (this *Apex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Apex) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Apex) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2088,7 +2218,10 @@ func (this *Apex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"})
@@ -2096,15 +2229,23 @@ func (this *Apex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	if clientOrderId != nil {
 		request["id"] = clientOrderId
 
-		response = (<-this.PrivateGetV3OrderByClientOrderId(this.Extend(request, this.Omit(params, []any{"clientId", "clientOrderId", "client_order_id"})))).Checked()
+		r1 := <-this.PrivateGetV3OrderByClientOrderId(this.Extend(request, this.Omit(params, []any{"clientId", "clientOrderId", "client_order_id"})))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
 	} else {
 		request["id"] = id
 
-		response = (<-this.PrivateGetV3Order(this.Extend(request, params))).Checked()
+		r2 := <-this.PrivateGetV3Order(this.Extend(request, params))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- this.ParseOrder(data)
+	ch <- AsyncResult[any]{Value: this.ParseOrder(data)}
 	return nil
 }
 
@@ -2119,12 +2260,12 @@ func (this *Apex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Apex) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Apex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2137,13 +2278,20 @@ func (this *Apex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	var response map[string]any = (<-this.PrivateGetV3OpenOrders(params)).Checked()
+	r1 := <-this.PrivateGetV3OpenOrders(params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	var orders []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- this.ParseOrders(orders, nil, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseOrders(orders, nil, since, limit)}
 	return nil
 }
 
@@ -2164,12 +2312,12 @@ func (this *Apex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.page] Page numbers start from 0
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Apex) FetchOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Apex) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2182,7 +2330,10 @@ func (this *Apex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
@@ -2207,11 +2358,15 @@ func (this *Apex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		return params
 	}()
 
-	var response map[string]any = (<-this.PrivateGetV3HistoryOrders(this.Extend(request, paramsOmitted))).Checked()
+	r1 := <-this.PrivateGetV3HistoryOrders(this.Extend(request, paramsOmitted))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	var data map[string]any = SafeMapTyped(response, "data")
 	var orders []any = SafeListTypedDefault(data, "orders", []any{})
 
-	ch <- this.ParseOrders(orders, market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseOrders(orders, market, since, limit)}
 	return nil
 }
 
@@ -2227,12 +2382,12 @@ func (this *Apex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Apex) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
+func (this *Apex) fetchOrderTradesBody(ch chan AsyncResult[any], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2245,7 +2400,10 @@ func (this *Apex) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clientId")
@@ -2256,11 +2414,15 @@ func (this *Apex) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...a
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "clientId"})
 
-	var response map[string]any = (<-this.PrivateGetV3OrderFills(this.Extend(request, paramsOmitted))).Checked()
+	r1 := <-this.PrivateGetV3OrderFills(this.Extend(request, paramsOmitted))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	var data map[string]any = SafeMapTyped(response, "data")
 	var orders []any = SafeListTypedDefault(data, "orders", []any{})
 
-	ch <- this.ParseTrades(orders, nil, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseTrades(orders, nil, since, limit)}
 	return nil
 }
 
@@ -2279,12 +2441,12 @@ func (this *Apex) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...a
  * @param {boolean} [params.page] Page numbers start from 0
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Apex) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+func (this *Apex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2297,7 +2459,10 @@ func (this *Apex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
@@ -2322,11 +2487,15 @@ func (this *Apex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		return params
 	}()
 
-	var response map[string]any = (<-this.PrivateGetV3Fills(this.Extend(request, paramsOmitted))).Checked()
+	r1 := <-this.PrivateGetV3Fills(this.Extend(request, paramsOmitted))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	var data map[string]any = SafeMapTyped(response, "data")
 	var orders []any = SafeListTypedDefault(data, "orders", []any{})
 
-	ch <- this.ParseTrades(orders, market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseTrades(orders, market, since, limit)}
 	return nil
 }
 
@@ -2344,12 +2513,12 @@ func (this *Apex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.page] Page numbers start from 0
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func (this *Apex) FetchFundingHistoryAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) FetchFundingHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchFundingHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
+func (this *Apex) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2362,7 +2531,10 @@ func (this *Apex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
@@ -2387,11 +2559,15 @@ func (this *Apex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		return params
 	}()
 
-	var response map[string]any = (<-this.PrivateGetV3Funding(this.Extend(request, paramsOmitted))).Checked()
+	r1 := <-this.PrivateGetV3Funding(this.Extend(request, paramsOmitted))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	var data map[string]any = SafeMapTyped(response, "data")
 	var fundingValues []any = SafeListTypedDefault(data, "fundingValues", []any{})
 
-	ch <- this.ParseIncomes(fundingValues, market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseIncomes(fundingValues, market, since, limit)}
 	return nil
 }
 func (this *Apex) ParseIncome(income any, optionalArgs ...any) any {
@@ -2437,12 +2613,12 @@ func (this *Apex) ParseIncome(income any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Apex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Apex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
+func (this *Apex) setLeverageBody(ch chan AsyncResult[any], leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2454,7 +2630,10 @@ func (this *Apex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...a
 	}
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var leverageString *string = this.NumberToString(leverage)
@@ -2464,10 +2643,14 @@ func (this *Apex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...a
 		"initialMarginRate": initialMarginRate,
 	}
 
-	var response map[string]any = (<-this.PrivatePostV3SetInitialMarginRate(this.Extend(request, params))).Checked()
+	r1 := <-this.PrivatePostV3SetInitialMarginRate(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- data
+	ch <- AsyncResult[any]{Value: data}
 	return nil
 }
 
@@ -2480,12 +2663,12 @@ func (this *Apex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Apex) FetchPositionsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Apex) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
+func (this *Apex) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -2494,14 +2677,21 @@ func (this *Apex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	var response map[string]any = (<-this.PrivateGetV3Account(params)).Checked()
+	r1 := <-this.PrivateGetV3Account(params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	var data map[string]any = SafeMapTyped(response, "data")
 	var positions []any = SafeListTypedDefault(data, "positions", []any{})
 
-	ch <- this.ParsePositions(positions, symbols)
+	ch <- AsyncResult[any]{Value: this.ParsePositions(positions, symbols)}
 	return nil
 }
 func (this *Apex) ParsePosition(position any, optionalArgs ...any) any {
@@ -2655,11 +2845,11 @@ func (this *Apex) Init(userConfig map[string]any) {
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
 func (this *Apex) FetchTime(params ...any) (int64, error) {
-	raw := <-this.FetchTimeAsync(params...)
-	if IsError(raw) {
-		return -1, CreateReturnError(raw)
+	r := <-this.FetchTimeAsync(params...)
+	if r.Err != nil {
+		return -1, r.Err
 	}
-	var res int64 = raw.(int64)
+	var res int64 = r.Value.(int64)
 	return res, nil
 }
 
@@ -2672,11 +2862,11 @@ func (this *Apex) FetchTime(params ...any) (int64, error) {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Apex) FetchBalance(params ...any) (Balances, error) {
-	raw := <-this.FetchBalanceAsync(params...)
-	if IsError(raw) {
-		return Balances{}, CreateReturnError(raw)
+	r := <-this.FetchBalanceAsync(params...)
+	if r.Err != nil {
+		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(raw)
+	var res Balances = NewBalances(r.Value)
 	return res, nil
 }
 
@@ -2689,11 +2879,11 @@ func (this *Apex) FetchBalance(params ...any) (Balances, error) {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Apex) FetchAccount(params ...any) (Account, error) {
-	raw := <-this.FetchAccountAsync(params...)
-	if IsError(raw) {
-		return Account{}, CreateReturnError(raw)
+	r := <-this.FetchAccountAsync(params...)
+	if r.Err != nil {
+		return Account{}, r.Err
 	}
-	var res Account = NewAccount(raw)
+	var res Account = NewAccount(r.Value)
 	return res, nil
 }
 
@@ -2706,11 +2896,11 @@ func (this *Apex) FetchAccount(params ...any) (Account, error) {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *Apex) FetchCurrencies(params ...any) (Currencies, error) {
-	raw := <-this.FetchCurrenciesAsync(params...)
-	if IsError(raw) {
-		return Currencies{}, CreateReturnError(raw)
+	r := <-this.FetchCurrenciesAsync(params...)
+	if r.Err != nil {
+		return Currencies{}, r.Err
 	}
-	var res Currencies = NewCurrencies(raw)
+	var res Currencies = NewCurrencies(r.Value)
 	return res, nil
 }
 
@@ -2723,11 +2913,11 @@ func (this *Apex) FetchCurrencies(params ...any) (Currencies, error) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Apex) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	raw := <-this.FetchMarketsAsync(params...)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchMarketsAsync(params...)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
 	return res, nil
 }
 
@@ -2747,11 +2937,11 @@ func (this *Apex) FetchTicker(symbol string, options ...FetchTickerOptions) (Tic
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTickerAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return Ticker{}, CreateReturnError(raw)
+	r := <-this.FetchTickerAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(raw)
+	var res Ticker = NewTicker(r.Value)
 	return res, nil
 }
 
@@ -2771,11 +2961,11 @@ func (this *Apex) FetchTickers(options ...FetchTickersOptions) (Tickers, error) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return Tickers{}, CreateReturnError(raw)
+	r := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(raw)
+	var res Tickers = NewTickers(r.Value)
 	return res, nil
 }
 
@@ -2799,11 +2989,11 @@ func (this *Apex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHL
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(raw)
+	var res []OHLCV = NewOHLCVArray(r.Value)
 	return res, nil
 }
 
@@ -2824,11 +3014,11 @@ func (this *Apex) FetchOrderBook(symbol string, options ...FetchOrderBookOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return OrderBook{}, CreateReturnError(raw)
+	r := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return OrderBook{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(raw)
+	var res OrderBook = NewOrderBook(r.Value)
 	return res, nil
 }
 
@@ -2852,11 +3042,11 @@ func (this *Apex) FetchTrades(symbol string, options ...FetchTradesOptions) ([]T
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(raw)
+	var res []Trade = NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -2876,11 +3066,11 @@ func (this *Apex) FetchOpenInterest(symbol string, options ...FetchOpenInterestO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOpenInterestAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return OpenInterest{}, CreateReturnError(raw)
+	r := <-this.FetchOpenInterestAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return OpenInterest{}, r.Err
 	}
-	var res OpenInterest = NewOpenInterest(raw)
+	var res OpenInterest = NewOpenInterest(r.Value)
 	return res, nil
 }
 
@@ -2904,11 +3094,11 @@ func (this *Apex) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchFundingRateHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchFundingRateHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []FundingRateHistory = NewFundingRateHistoryArray(raw)
+	var res []FundingRateHistory = NewFundingRateHistoryArray(r.Value)
 	return res, nil
 }
 
@@ -2939,11 +3129,11 @@ func (this *Apex) CreateOrder(symbol string, typeVar string, side string, amount
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Value)
 	return res, nil
 }
 
@@ -2966,11 +3156,11 @@ func (this *Apex) Transfer(code string, amount float64, fromAccount string, toAc
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params)
-	if IsError(raw) {
-		return TransferEntry{}, CreateReturnError(raw)
+	r := <-this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params)
+	if r.Err != nil {
+		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(raw)
+	var res TransferEntry = NewTransferEntry(r.Value)
 	return res, nil
 }
 
@@ -2990,11 +3180,11 @@ func (this *Apex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CancelAllOrdersAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.CancelAllOrdersAsync(opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -3015,11 +3205,11 @@ func (this *Apex) CancelOrder(id string, options ...CancelOrderOptions) (Order, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Value)
 	return res, nil
 }
 
@@ -3042,11 +3232,11 @@ func (this *Apex) FetchOrder(id string, options ...FetchOrderOptions) (Order, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Value)
 	return res, nil
 }
 
@@ -3068,11 +3258,11 @@ func (this *Apex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -3100,11 +3290,11 @@ func (this *Apex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -3127,11 +3317,11 @@ func (this *Apex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrderTradesAsync(id, opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchOrderTradesAsync(id, opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(raw)
+	var res []Trade = NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -3157,11 +3347,11 @@ func (this *Apex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(raw)
+	var res []Trade = NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -3186,11 +3376,11 @@ func (this *Apex) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchFundingHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchFundingHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []FundingHistory = NewFundingHistoryArray(raw)
+	var res []FundingHistory = NewFundingHistoryArray(r.Value)
 	return res, nil
 }
 
@@ -3211,11 +3401,11 @@ func (this *Apex) SetLeverage(leverage int64, options ...SetLeverageOptions) (ma
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.SetLeverageAsync(leverage, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.SetLeverageAsync(leverage, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return map[string]any{}, r.Err
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value.(map[string]any)
 	return res, nil
 }
 
@@ -3235,11 +3425,11 @@ func (this *Apex) FetchPositions(options ...FetchPositionsOptions) ([]Position, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionsAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchPositionsAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(raw)
+	var res []Position = NewPositionArray(r.Value)
 	return res, nil
 }
 

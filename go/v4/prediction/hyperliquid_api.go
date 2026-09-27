@@ -10,7 +10,7 @@ package ccxtprediction
 import ccxt "github.com/ccxt/ccxt/go/v4"
 
 // PublicPostInfo returns a channel that yields a JSON object, a JSON array or a JSON scalar.
-func (this *Hyperliquid) PublicPostInfo(args ...any) <-chan any {
+func (this *Hyperliquid) PublicPostInfo(args ...any) <-chan ccxt.AsyncResult[any] {
 	var params any
 	if len(args) > 0 {
 		params = args[0]

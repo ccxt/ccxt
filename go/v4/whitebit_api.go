@@ -368,7 +368,7 @@ func (this *Whitebit) V4PrivatePostTradeAccountBalance(args ...any) <-chan Endpo
 }
 
 // V4PrivatePostTradeAccountExecutedHistory returns a channel that yields a JSON object or a JSON array.
-func (this *Whitebit) V4PrivatePostTradeAccountExecutedHistory(args ...any) <-chan any {
+func (this *Whitebit) V4PrivatePostTradeAccountExecutedHistory(args ...any) <-chan AsyncResult[any] {
 	return this.Fetch2Async("trade-account/executed-history", []string{"v4", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 

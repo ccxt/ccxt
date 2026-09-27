@@ -332,24 +332,24 @@ func (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...a
 	}
 	return result
 }
-func (this *PredictionExchange) FetchEventsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchEventsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchEventsBody(ch chan any, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchEventsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchEvents() is not supported yet"))
 }
-func (this *PredictionExchange) FetchEventAsync(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) FetchEventAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchEventBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchEventBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchEventBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -408,12 +408,12 @@ func (this *PredictionExchange) EventsList() any {
 	}
 	return result
 }
-func (this *PredictionExchange) LoadEventsHelperAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) LoadEventsHelperAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.loadEventsHelperBody(ch, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) loadEventsHelperBody(ch chan any, optionalArgs ...any) any {
+func (this *PredictionExchange) loadEventsHelperBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// note: the cache-hit shortcut ignores params, so events fetched under one scope are
@@ -425,22 +425,25 @@ func (this *PredictionExchange) loadEventsHelperBody(ch chan any, optionalArgs .
 	_ = params
 	if !(reload == true) && (!IsEqual(this.Events, nil) && !IsEqual(this.Events, nil)) {
 
-		ch <- this.Events
+		ch <- AsyncResult[any]{Value: this.Events}
 		return nil
 	}
 
-	events := <-this.DerivedExchange.FetchEventsAsync(params)
-	PanicOnError(events)
+	r := <-this.DerivedExchange.FetchEventsAsync(params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	events := r.Value
 
-	ch <- this.SetEvents(events)
+	ch <- AsyncResult[any]{Value: this.SetEvents(events)}
 	return nil
 }
-func (this *PredictionExchange) LoadEventsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) LoadEventsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.loadEventsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) loadEventsBody(ch chan any, optionalArgs ...any) any {
+func (this *PredictionExchange) loadEventsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// cached entry point mirroring loadMarkets. unlike loadMarkets there is no cross-call
@@ -451,7 +454,11 @@ func (this *PredictionExchange) loadEventsBody(ch chan any, optionalArgs ...any)
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	ch <- PanicOnError((<-this.LoadEventsHelperAsync(reload, params)))
+	r := <-this.LoadEventsHelperAsync(reload, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- AsyncResult[any]{Value: r.Value}
 	return nil
 }
 func (this *PredictionExchange) GetEvent(eventIdOrSlug any) any {
@@ -773,12 +780,12 @@ func (this *PredictionExchange) IndexEventOutcomes(event any) {
 	}
 	this.PopulateOutcomes()
 }
-func (this *PredictionExchange) LoadOutcomesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) LoadOutcomesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.loadOutcomesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...any) any {
+func (this *PredictionExchange) loadOutcomesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// outcome-addressed methods call this first, mirroring loadMarkets(). two modes:
@@ -810,7 +817,10 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
 		var loadAll *bool = this.SafeBool(this.Options, "loadAllOutcomes", false)
 		if (missingLength > 0) && (loadAll != nil && *loadAll == true) && !wasWarm && !(reload == true) {
 
-			PanicOnError((<-this.LoadOutcomesAsync()))
+			r := <-this.LoadOutcomesAsync()
+			if r.Err != nil {
+				panic(r.Err)
+			}
 			var stillMissing []any = []any{}
 			for i := 0; i < missingLength; i++ {
 				if !EvalTruthy(this.HasOutcome(func() any {
@@ -832,22 +842,28 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
 		}
 		if missingLength > 0 {
 
-			PanicOnError(<-this.DerivedExchange.FetchOutcomesAsync(missing))
+			r1 := <-this.DerivedExchange.FetchOutcomesAsync(missing)
+			if r1.Err != nil {
+				panic(r1.Err)
+			}
 		}
 
-		ch <- this.Outcomes
+		ch <- AsyncResult[any]{Value: this.Outcomes}
 		return nil
 	}
 	if !(reload == true) && (!IsEqual(this.Outcomes, nil)) && !this.IsEmpty(this.Outcomes) {
 
-		ch <- this.Outcomes
+		ch <- AsyncResult[any]{Value: this.Outcomes}
 		return nil
 	}
 
-	PanicOnError((<-this.LoadMarketsAsync(reload, params)))
+	r2 := <-this.LoadMarketsAsync(reload, params)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
 	this.PopulateOutcomes()
 
-	ch <- this.Outcomes
+	ch <- AsyncResult[any]{Value: this.Outcomes}
 	return nil
 }
 
@@ -859,28 +875,31 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
  * @param {string[]} outcomeSymbols the uncached outcome handles or ids to resolve
  * @returns {object} the outcome cache
  */
-func (this *PredictionExchange) FetchOutcomesAsync(outcomeSymbols any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) FetchOutcomesAsync(outcomeSymbols any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOutcomesBody(ch, outcomeSymbols)
 	return ch
 }
-func (this *PredictionExchange) fetchOutcomesBody(ch chan any, outcomeSymbols any) any {
+func (this *PredictionExchange) fetchOutcomesBody(ch chan AsyncResult[any], outcomeSymbols any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	for i := 0; i < GetArrayLength(outcomeSymbols); i++ {
 
-		PanicOnError(<-this.DerivedExchange.FetchOutcomeAsync(GetValue(outcomeSymbols, i)))
+		r := <-this.DerivedExchange.FetchOutcomeAsync(GetValue(outcomeSymbols, i))
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	ch <- this.Outcomes
+	ch <- AsyncResult[any]{Value: this.Outcomes}
 	return nil
 }
-func (this *PredictionExchange) LoadOutcomeAsync(outcomeSymbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) LoadOutcomeAsync(outcomeSymbol any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.loadOutcomeBody(ch, outcomeSymbol, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) loadOutcomeBody(ch chan any, outcomeSymbol any, optionalArgs ...any) any {
+func (this *PredictionExchange) loadOutcomeBody(ch chan AsyncResult[any], outcomeSymbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
@@ -898,7 +917,7 @@ func (this *PredictionExchange) loadOutcomeBody(ch chan any, outcomeSymbol any, 
 	if !(reload == true) {
 		if EvalTruthy(this.HasOutcome(outcomeSymbol)) {
 
-			ch <- this.SafeOutcome(outcomeSymbol)
+			ch <- AsyncResult[any]{Value: this.SafeOutcome(outcomeSymbol)}
 			return nil
 		}
 		var wasWarm bool = (!IsEqual(this.Outcomes, nil)) && !this.IsEmpty(this.Outcomes)
@@ -909,7 +928,7 @@ func (this *PredictionExchange) loadOutcomeBody(ch chan any, outcomeSymbol any, 
 			this.PopulateOutcomes()
 			if EvalTruthy(this.HasOutcome(outcomeSymbol)) {
 
-				ch <- this.SafeOutcome(outcomeSymbol)
+				ch <- AsyncResult[any]{Value: this.SafeOutcome(outcomeSymbol)}
 				return nil
 			}
 		}
@@ -920,16 +939,23 @@ func (this *PredictionExchange) loadOutcomeBody(ch chan any, outcomeSymbol any, 
 			// listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
 			// the whole listing (which would mask typos and clobber offline-injected markets)
 
-			PanicOnError((<-this.LoadOutcomesAsync()))
+			r := <-this.LoadOutcomesAsync()
+			if r.Err != nil {
+				panic(r.Err)
+			}
 			if EvalTruthy(this.HasOutcome(outcomeSymbol)) {
 
-				ch <- this.SafeOutcome(outcomeSymbol)
+				ch <- AsyncResult[any]{Value: this.SafeOutcome(outcomeSymbol)}
 				return nil
 			}
 		}
 	}
 
-	ch <- PanicOnError(<-this.DerivedExchange.FetchOutcomeAsync(outcomeSymbol))
+	r1 := <-this.DerivedExchange.FetchOutcomeAsync(outcomeSymbol)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 func (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any {
@@ -983,12 +1009,12 @@ func (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any {
 	}
 	return Join(words, " ")
 }
-func (this *PredictionExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOutcomeBody(ch, outcomeSymbol)
 	return ch
 }
-func (this *PredictionExchange) fetchOutcomeBody(ch chan any, outcomeSymbol any) any {
+func (this *PredictionExchange) fetchOutcomeBody(ch chan AsyncResult[any], outcomeSymbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// fetch just one outcome on demand — never through a bulk listing download. the base has
@@ -1020,17 +1046,20 @@ func (this *PredictionExchange) fetchOutcomeBody(ch chan any, outcomeSymbol any)
 				}()
 				// try block:
 
-				PanicOnError(<-this.callInternal("fetchEvents", map[string]any{
+				r := <-this.callInternal("fetchEvents", map[string]any{
 					"query": searchQuery,
 					"limit": searchLimit,
-				}))
+				})
+				if r.Err != nil {
+					panic(r.Err)
+				}
 				return nil
 			}(this)
 
 		}
 		if EvalTruthy(this.HasOutcome(outcomeSymbol)) {
 
-			ch <- this.SafeOutcome(outcomeSymbol)
+			ch <- AsyncResult[any]{Value: this.SafeOutcome(outcomeSymbol)}
 			return nil
 		}
 	}
@@ -1045,12 +1074,12 @@ func (this *PredictionExchange) fetchOutcomeBody(ch chan any, outcomeSymbol any)
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *PredictionExchange) FetchTickerAsync(outcome string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) FetchTickerAsync(outcome string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTickerBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchTickerBody(ch chan any, outcome string, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchTickerBody(ch chan AsyncResult[any], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1066,12 +1095,12 @@ func (this *PredictionExchange) fetchTickerBody(ch chan any, outcome string, opt
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
  */
-func (this *PredictionExchange) FetchTickersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchTickersBody(ch chan any, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcomes []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1090,12 +1119,12 @@ func (this *PredictionExchange) fetchTickersBody(ch chan any, optionalArgs ...an
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
  */
-func (this *PredictionExchange) FetchOrderBookAsync(outcome string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) FetchOrderBookAsync(outcome string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchOrderBookBody(ch chan any, outcome string, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchOrderBookBody(ch chan AsyncResult[any], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1116,12 +1145,12 @@ func (this *PredictionExchange) fetchOrderBookBody(ch chan any, outcome string, 
  * @param {object} [params] extra exchange-specific parameters
  * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *PredictionExchange) FetchOHLCVAsync(outcome string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) FetchOHLCVAsync(outcome string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOHLCVBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchOHLCVBody(ch chan any, outcome string, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchOHLCVBody(ch chan AsyncResult[any], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1133,7 +1162,11 @@ func (this *PredictionExchange) fetchOHLCVBody(ch chan any, outcome string, opti
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	ch <- PanicOnError((<-this.BaseExchange.FetchOHLCVAsync(outcome, timeframe, since, limit, params)))
+	r := <-this.BaseExchange.FetchOHLCVAsync(outcome, timeframe, since, limit, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- AsyncResult[any]{Value: r.Value}
 	return nil
 }
 
@@ -1147,12 +1180,12 @@ func (this *PredictionExchange) fetchOHLCVBody(ch chan any, outcome string, opti
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
  */
-func (this *PredictionExchange) FetchTradesAsync(outcome any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) FetchTradesAsync(outcome any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTradesBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchTradesBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchTradesBody(ch chan AsyncResult[any], outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1176,12 +1209,12 @@ func (this *PredictionExchange) fetchTradesBody(ch chan any, outcome any, option
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PredictionExchange) CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) createOrderBody(ch chan any, outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *PredictionExchange) createOrderBody(ch chan AsyncResult[any], outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1200,12 +1233,12 @@ func (this *PredictionExchange) createOrderBody(ch chan any, outcome string, typ
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PredictionExchange) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *PredictionExchange) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1223,12 +1256,12 @@ func (this *PredictionExchange) cancelOrderBody(ch chan any, id any, optionalArg
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *PredictionExchange) WatchTickerAsync(outcome string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) WatchTickerAsync(outcome string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.watchTickerBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) watchTickerBody(ch chan any, outcome string, optionalArgs ...any) any {
+func (this *PredictionExchange) watchTickerBody(ch chan AsyncResult[any], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1245,12 +1278,12 @@ func (this *PredictionExchange) watchTickerBody(ch chan any, outcome string, opt
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
  */
-func (this *PredictionExchange) WatchOrderBookAsync(outcome string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) WatchOrderBookAsync(outcome string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.watchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) watchOrderBookBody(ch chan any, outcome string, optionalArgs ...any) any {
+func (this *PredictionExchange) watchOrderBookBody(ch chan AsyncResult[any], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1270,12 +1303,12 @@ func (this *PredictionExchange) watchOrderBookBody(ch chan any, outcome string, 
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
  */
-func (this *PredictionExchange) WatchTradesAsync(outcome any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) WatchTradesAsync(outcome any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.watchTradesBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) watchTradesBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *PredictionExchange) watchTradesBody(ch chan AsyncResult[any], outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1297,12 +1330,12 @@ func (this *PredictionExchange) watchTradesBody(ch chan any, outcome any, option
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PredictionExchange) FetchOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1326,12 +1359,12 @@ func (this *PredictionExchange) fetchOrdersBody(ch chan any, optionalArgs ...any
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PredictionExchange) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1355,12 +1388,12 @@ func (this *PredictionExchange) fetchOpenOrdersBody(ch chan any, optionalArgs ..
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PredictionExchange) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) FetchClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1385,12 +1418,12 @@ func (this *PredictionExchange) fetchClosedOrdersBody(ch chan any, optionalArgs 
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
  */
-func (this *PredictionExchange) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchOrderTradesBody(ch chan AsyncResult[any], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1414,12 +1447,12 @@ func (this *PredictionExchange) fetchOrderTradesBody(ch chan any, id string, opt
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
  */
-func (this *PredictionExchange) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1441,12 +1474,12 @@ func (this *PredictionExchange) fetchMyTradesBody(ch chan any, optionalArgs ...a
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [position structure](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *PredictionExchange) FetchPositionAsync(outcome any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) FetchPositionAsync(outcome any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchPositionBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchPositionBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchPositionBody(ch chan AsyncResult[any], outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1462,12 +1495,12 @@ func (this *PredictionExchange) fetchPositionBody(ch chan any, outcome any, opti
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *PredictionExchange) FetchPositionsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcomes []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1485,12 +1518,12 @@ func (this *PredictionExchange) fetchPositionsBody(ch chan any, optionalArgs ...
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
  */
-func (this *PredictionExchange) FetchTradingFeeAsync(outcome string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) FetchTradingFeeAsync(outcome string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTradingFeeBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchTradingFeeBody(ch chan any, outcome string, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchTradingFeeBody(ch chan AsyncResult[any], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1506,12 +1539,12 @@ func (this *PredictionExchange) fetchTradingFeeBody(ch chan any, outcome string,
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
  */
-func (this *PredictionExchange) FetchOpenInterestAsync(outcome string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) FetchOpenInterestAsync(outcome string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOpenInterestBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchOpenInterestBody(ch chan any, outcome string, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchOpenInterestBody(ch chan AsyncResult[any], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1527,12 +1560,12 @@ func (this *PredictionExchange) fetchOpenInterestBody(ch chan any, outcome strin
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PredictionExchange) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) createOrdersBody(ch chan any, orders any, optionalArgs ...any) any {
+func (this *PredictionExchange) createOrdersBody(ch chan AsyncResult[any], orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1549,12 +1582,12 @@ func (this *PredictionExchange) createOrdersBody(ch chan any, orders any, option
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PredictionExchange) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any {
+func (this *PredictionExchange) cancelOrdersBody(ch chan AsyncResult[any], ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1573,12 +1606,12 @@ func (this *PredictionExchange) cancelOrdersBody(ch chan any, ids any, optionalA
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PredictionExchange) CreateMarketBuyOrderWithCostAsync(outcome string, cost any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) CreateMarketBuyOrderWithCostAsync(outcome string, cost any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.createMarketBuyOrderWithCostBody(ch, outcome, cost, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) createMarketBuyOrderWithCostBody(ch chan any, outcome string, cost any, optionalArgs ...any) any {
+func (this *PredictionExchange) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], outcome string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// safeBool, not this.options['...'] — a raw missing-key access throws KeyError in Python/PHP
@@ -1587,7 +1620,11 @@ func (this *PredictionExchange) createMarketBuyOrderWithCostBody(ch chan any, ou
 	_ = params
 	if (this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", false) != nil && *this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", false)) || (this.SafeBool(this.Has, "createMarketBuyOrderWithCost", false) != nil && *this.SafeBool(this.Has, "createMarketBuyOrderWithCost", false)) {
 
-		ch <- PanicOnError(<-this.DerivedExchange.CreateOrderAsync(outcome, "market", "buy", cost, 1, params))
+		r := <-this.DerivedExchange.CreateOrderAsync(outcome, "market", "buy", cost, 1, params)
+		if r.Err != nil {
+			panic(r.Err)
+		}
+		ch <- AsyncResult[any]{Value: r.Value}
 		return nil
 	}
 	panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() is not supported yet"))
@@ -1602,19 +1639,23 @@ func (this *PredictionExchange) createMarketBuyOrderWithCostBody(ch chan any, ou
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PredictionExchange) CreateMarketSellOrderWithCostAsync(outcome string, cost any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) CreateMarketSellOrderWithCostAsync(outcome string, cost any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.createMarketSellOrderWithCostBody(ch, outcome, cost, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) createMarketSellOrderWithCostBody(ch chan any, outcome string, cost any, optionalArgs ...any) any {
+func (this *PredictionExchange) createMarketSellOrderWithCostBody(ch chan AsyncResult[any], outcome string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if (this.SafeBool(this.Options, "createMarketSellOrderRequiresPrice", false) != nil && *this.SafeBool(this.Options, "createMarketSellOrderRequiresPrice", false)) || (this.SafeBool(this.Has, "createMarketSellOrderWithCost", false) != nil && *this.SafeBool(this.Has, "createMarketSellOrderWithCost", false)) {
 
-		ch <- PanicOnError(<-this.DerivedExchange.CreateOrderAsync(outcome, "market", "sell", cost, 1, params))
+		r := <-this.DerivedExchange.CreateOrderAsync(outcome, "market", "sell", cost, 1, params)
+		if r.Err != nil {
+			panic(r.Err)
+		}
+		ch <- AsyncResult[any]{Value: r.Value}
 		return nil
 	}
 	panic(NotSupported(this.Id + " createMarketSellOrderWithCost() is not supported yet"))
@@ -1628,12 +1669,12 @@ func (this *PredictionExchange) createMarketSellOrderWithCostBody(ch chan any, o
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *PredictionExchange) WatchTickersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) WatchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.watchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) watchTickersBody(ch chan any, optionalArgs ...any) any {
+func (this *PredictionExchange) watchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcomes []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1653,12 +1694,12 @@ func (this *PredictionExchange) watchTickersBody(ch chan any, optionalArgs ...an
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PredictionExchange) WatchOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) WatchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) watchOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *PredictionExchange) watchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1682,12 +1723,12 @@ func (this *PredictionExchange) watchOrdersBody(ch chan any, optionalArgs ...any
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
  */
-func (this *PredictionExchange) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) WatchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.watchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
+func (this *PredictionExchange) watchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1711,12 +1752,12 @@ func (this *PredictionExchange) watchMyTradesBody(ch chan any, optionalArgs ...a
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *PredictionExchange) WatchPositionsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) WatchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.watchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) watchPositionsBody(ch chan any, optionalArgs ...any) any {
+func (this *PredictionExchange) watchPositionsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcomes []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1741,12 +1782,12 @@ func (this *PredictionExchange) watchPositionsBody(ch chan any, optionalArgs ...
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction settlement structures
  */
-func (this *PredictionExchange) FetchSettlementsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) FetchSettlementsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchSettlementsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchSettlementsBody(ch chan any, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchSettlementsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2324,12 +2365,12 @@ func (this *PredictionExchange) HexToRlpBytes(hexValue any) any {
 func (this *PredictionExchange) SignEvmTransaction(tx any, privateKey any) any {
 	panic(NotSupported(this.Id + " signEvmTransaction() must be overridden by the exchange"))
 }
-func (this *PredictionExchange) EthRpcAsync(rpcUrl any, method any, rpcParams any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) EthRpcAsync(rpcUrl any, method any, rpcParams any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.ethRpcBody(ch, rpcUrl, method, rpcParams)
 	return ch
 }
-func (this *PredictionExchange) ethRpcBody(ch chan any, rpcUrl any, method any, rpcParams any) any {
+func (this *PredictionExchange) ethRpcBody(ch chan AsyncResult[any], rpcUrl any, method any, rpcParams any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var payload map[string]any = map[string]any{
@@ -2342,8 +2383,11 @@ func (this *PredictionExchange) ethRpcBody(ch chan any, rpcUrl any, method any, 
 		"Content-Type": "application/json",
 	}
 
-	response := (<-this.FetchAsync(rpcUrl, "POST", headers, this.Json(payload)))
-	PanicOnError(response)
+	r := <-this.FetchAsync(rpcUrl, "POST", headers, this.Json(payload))
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	response := r.Value
 	var rpcError any = this.SafeValue(response, "error")
 	if !IsEqual(rpcError, nil) {
 		panic(ExchangeError(Add(Add(Add(this.Id+" rpc ", method), " error: "), this.Json(rpcError))))
@@ -2351,23 +2395,29 @@ func (this *PredictionExchange) ethRpcBody(ch chan any, rpcUrl any, method any, 
 
 	// the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
 	// safeString would coerce a receipt object to "[object Object]"
-	ch <- this.SafeValue(response, "result")
+	ch <- AsyncResult[any]{Value: this.SafeValue(response, "result")}
 	return nil
 }
-func (this *PredictionExchange) SendEvmTransactionAsync(rpcUrl any, chainId any, fromAddress any, to any, value any, data any, gasLimit any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) SendEvmTransactionAsync(rpcUrl any, chainId any, fromAddress any, to any, value any, data any, gasLimit any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.sendEvmTransactionBody(ch, rpcUrl, chainId, fromAddress, to, value, data, gasLimit)
 	return ch
 }
-func (this *PredictionExchange) sendEvmTransactionBody(ch chan any, rpcUrl any, chainId any, fromAddress any, to any, value any, data any, gasLimit any) any {
+func (this *PredictionExchange) sendEvmTransactionBody(ch chan AsyncResult[any], rpcUrl any, chainId any, fromAddress any, to any, value any, data any, gasLimit any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 
-	nonce := (<-this.EthRpcAsync(rpcUrl, "eth_getTransactionCount", []any{fromAddress, "pending"}))
-	PanicOnError(nonce)
+	r := <-this.EthRpcAsync(rpcUrl, "eth_getTransactionCount", []any{fromAddress, "pending"})
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	nonce := r.Value
 
-	gasPrice := (<-this.EthRpcAsync(rpcUrl, "eth_gasPrice", []any{}))
-	PanicOnError(gasPrice)
+	r1 := <-this.EthRpcAsync(rpcUrl, "eth_gasPrice", []any{})
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	gasPrice := r1.Value
 	var tx map[string]any = map[string]any{
 		"chainId":              chainId,
 		"nonce":                nonce,
@@ -2382,15 +2432,19 @@ func (this *PredictionExchange) sendEvmTransactionBody(ch chan any, rpcUrl any, 
 	var signed any = this.DerivedExchange.SignEvmTransaction(tx, this.PrivateKey)
 	PanicOnError(signed)
 
-	ch <- PanicOnError((<-this.EthRpcAsync(rpcUrl, "eth_sendRawTransaction", []any{signed})))
+	r2 := <-this.EthRpcAsync(rpcUrl, "eth_sendRawTransaction", []any{signed})
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	ch <- AsyncResult[any]{Value: r2.Value}
 	return nil
 }
-func (this *PredictionExchange) WaitForTransactionReceiptAsync(rpcUrl any, txHash any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *PredictionExchange) WaitForTransactionReceiptAsync(rpcUrl any, txHash any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.waitForTransactionReceiptBody(ch, rpcUrl, txHash, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) waitForTransactionReceiptBody(ch chan any, rpcUrl any, txHash any, optionalArgs ...any) any {
+func (this *PredictionExchange) waitForTransactionReceiptBody(ch chan AsyncResult[any], rpcUrl any, txHash any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeout int64 = GetArgInt64(optionalArgs, 0, 60000)
@@ -2398,19 +2452,22 @@ func (this *PredictionExchange) waitForTransactionReceiptBody(ch chan any, rpcUr
 	var start int64 = this.Milliseconds()
 	for IsLessThan((this.Milliseconds() - start), timeout) {
 
-		receipt := (<-this.EthRpcAsync(rpcUrl, "eth_getTransactionReceipt", []any{txHash}))
-		PanicOnError(receipt)
+		r := <-this.EthRpcAsync(rpcUrl, "eth_getTransactionReceipt", []any{txHash})
+		if r.Err != nil {
+			panic(r.Err)
+		}
+		receipt := r.Value
 		if (!IsEqual(receipt, nil)) {
 
-			ch <- receipt
+			ch <- AsyncResult[any]{Value: receipt}
 			return nil
 		}
 
-		PanicOnError((<-this.Sleep(2000)))
+		<-this.Sleep(2000)
 	}
 	panic(ExchangeError(Add(Add(this.Id+" transaction ", txHash), " not mined within timeout")))
 }
 
-func (this *PredictionExchange) CallEndpointAsync(endpointName string, args ...any) <-chan any {
+func (this *PredictionExchange) CallEndpointAsync(endpointName string, args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync(endpointName, args...)
 }

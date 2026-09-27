@@ -7,12 +7,12 @@ import "github.com/ccxt/ccxt/go/v4"
 
 import "strconv"
 
-func TestFetchTickersAsync(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <-chan any {
-	ch := make(chan any, 1)
+func TestFetchTickersAsync(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go testFetchTickersBody(ch, exchange, skippedProperties, symbol)
 	return ch
 }
-func testFetchTickersBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
+func testFetchTickersBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
@@ -20,36 +20,45 @@ func testFetchTickersBody(ch chan any, exchange ccxt.ICoreExchange, skippedPrope
 	// fetchTickers by the outcome handle instead
 	if EvalTruthy(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
 
-		predictionResult := (<-FetchTickersHelperTestAsync(exchange, skippedProperties, []any{symbol}))
-		PanicOnError(predictionResult)
+		r := <-FetchTickersHelperTestAsync(exchange, skippedProperties, []any{symbol})
+		if r.Err != nil {
+			panic(r.Err)
+		}
+		predictionResult := r.Value
 
-		ch <- []any{predictionResult}
+		ch <- ccxt.AsyncResult[any]{Value: []any{predictionResult}}
 		return nil
 	}
 	var withoutSymbol any = FetchTickersHelperTestAsync(exchange, skippedProperties, nil)
 	var withSymbol any = FetchTickersHelperTestAsync(exchange, skippedProperties, []any{symbol})
 
-	results := (<-promiseAll([]any{withoutSymbol, withSymbol}))
-	PanicOnError(results)
+	r1 := <-promiseAll([]any{withoutSymbol, withSymbol})
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	results := r1.Value
 	FetchTickersAmountsTest(exchange, skippedProperties, GetValue(results, 0))
 
-	ch <- results
+	ch <- ccxt.AsyncResult[any]{Value: results}
 	return nil
 }
-func FetchTickersHelperTestAsync(exchange ccxt.ICoreExchange, skippedProperties any, argSymbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func FetchTickersHelperTestAsync(exchange ccxt.ICoreExchange, skippedProperties any, argSymbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go fetchTickersHelperTestBody(ch, exchange, skippedProperties, argSymbols, optionalArgs...)
 	return ch
 }
-func fetchTickersHelperTestBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, argSymbols any, optionalArgs ...any) any {
+func fetchTickersHelperTestBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchange, skippedProperties any, argSymbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var argParams map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = argParams
 	var method string = "fetchTickers"
 
-	response := (<-exchange.(ccxt.IFetchTickers).FetchTickersAsync(argSymbols, argParams))
-	PanicOnError(response)
+	r := <-exchange.(ccxt.IFetchTickers).FetchTickersAsync(argSymbols, argParams)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	response := r.Value
 	AssertDictionaryResponse(exchange, method, response, exchange.Json(argSymbols))
 	var values []any = ObjectValues(response)
 	var checkedSymbol any = nil
@@ -79,8 +88,11 @@ func fetchTickersHelperTestBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 							var tickerSymbol *string = SafeStringPtr(GetValue(ticker, "symbol"))
 							if (tickerSymbol != nil) && EvalTruthy(TickerExceptionNeedsOhlcv(ex, exchange, ticker)) {
 
-								ohlcv = (<-exchange.FetchOHLCVAsync(*tickerSymbol, "1d", nil, 5))
-								PanicOnError(ohlcv)
+								r1 := <-exchange.FetchOHLCVAsync(*tickerSymbol, "1d", nil, 5)
+								if r1.Err != nil {
+									panic(r1.Err)
+								}
+								ohlcv = r1.Value
 							}
 							ValidateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv)
 							return nil
@@ -95,7 +107,7 @@ func fetchTickersHelperTestBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 		}
 	}
 
-	ch <- response
+	ch <- ccxt.AsyncResult[any]{Value: response}
 	return nil
 }
 func FetchTickersAmountsTest(exchange ccxt.ICoreExchange, skippedProperties any, tickers any) {

@@ -7,18 +7,21 @@ import "github.com/ccxt/ccxt/go/v4"
 
 import "strconv"
 
-func TestFetchCurrenciesAsync(exchange ccxt.ICoreExchange, skippedProperties any) <-chan any {
-	ch := make(chan any, 1)
+func TestFetchCurrenciesAsync(exchange ccxt.ICoreExchange, skippedProperties any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go testFetchCurrenciesBody(ch, exchange, skippedProperties)
 	return ch
 }
-func testFetchCurrenciesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any) any {
+func testFetchCurrenciesBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchange, skippedProperties any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var method string = "fetchCurrencies"
 
-	currencies := (<-exchange.FetchCurrenciesAsync())
-	PanicOnError(currencies)
+	r := <-exchange.FetchCurrenciesAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	currencies := r.Value
 	// todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
 	var numInactiveCurrencies any = 0
 	var maxInactiveCurrenciesPercentage any = ccxt.DerefScalar(exchange.SafeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50)) // no more than X% currencies should be inactive
@@ -67,7 +70,7 @@ func testFetchCurrenciesBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 		DetectCurrencyConflicts(exchange, currencies)
 	}
 
-	ch <- true
+	ch <- ccxt.AsyncResult[any]{Value: true}
 	return nil
 }
 func DetectCurrencyConflicts(exchange ccxt.ICoreExchange, currencyValues any) any {

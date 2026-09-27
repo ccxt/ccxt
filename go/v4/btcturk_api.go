@@ -13,12 +13,12 @@ func (this *Btcturk) PublicGetOrderbook(args ...any) <-chan EndpointResult[map[s
 }
 
 // PublicGetTicker returns a channel that yields a JSON object.
-func (this *Btcturk) PublicGetTicker(args ...any) <-chan any {
+func (this *Btcturk) PublicGetTicker(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
 // PublicGetTickerCurrency returns a channel that yields a JSON object.
-func (this *Btcturk) PublicGetTickerCurrency(args ...any) <-chan any {
+func (this *Btcturk) PublicGetTickerCurrency(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("publicGetTickerCurrency", args...)
 }
 

@@ -203,7 +203,7 @@ func (this *Modetrade) V1PublicGetPublicFundingRateHistory(args ...any) <-chan E
 }
 
 // V1PublicGetPublicFundingRateSymbol returns a channel that yields a JSON object.
-func (this *Modetrade) V1PublicGetPublicFundingRateSymbol(args ...any) <-chan any {
+func (this *Modetrade) V1PublicGetPublicFundingRateSymbol(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PublicGetPublicFundingRateSymbol", args...)
 }
 
@@ -373,12 +373,12 @@ func (this *Modetrade) V1PrivateGetClientStatisticsDaily(args ...any) <-chan End
 }
 
 // V1PrivateGetPositions returns a channel that yields a JSON object.
-func (this *Modetrade) V1PrivateGetPositions(args ...any) <-chan any {
+func (this *Modetrade) V1PrivateGetPositions(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivateGetPositions", args...)
 }
 
 // V1PrivateGetPositionSymbol returns a channel that yields a JSON object.
-func (this *Modetrade) V1PrivateGetPositionSymbol(args ...any) <-chan any {
+func (this *Modetrade) V1PrivateGetPositionSymbol(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivateGetPositionSymbol", args...)
 }
 

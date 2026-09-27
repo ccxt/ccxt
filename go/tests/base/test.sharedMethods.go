@@ -452,12 +452,12 @@ func CheckPrecisionAccuracy(exchange ccxt.ICoreExchange, skippedProperties any, 
 		AssertGreaterOrEqual(exchange, skippedProperties, method, entry, key, "-8") // in real-world cases, there would not be less than that
 	}
 }
-func FetchBestBidAskAsync(exchange ccxt.ICoreExchange, method any, symbol any) <-chan any {
-	ch := make(chan any, 1)
+func FetchBestBidAskAsync(exchange ccxt.ICoreExchange, method any, symbol any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go fetchBestBidAskBody(ch, exchange, method, symbol)
 	return ch
 }
-func fetchBestBidAskBody(ch chan any, exchange ccxt.ICoreExchange, method any, symbol any) any {
+func fetchBestBidAskBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchange, method any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var logText any = LogTemplate(exchange, method, map[string]any{})
@@ -468,8 +468,11 @@ func fetchBestBidAskBody(ch chan any, exchange ccxt.ICoreExchange, method any, s
 	if (!IsEqual(GetValue(exchange.GetHas(), "fetchOrderBook"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchOrderBook"), false)) {
 		usedMethod = SafeStringPtr("fetchOrderBook")
 
-		orderbook := (<-exchange.FetchOrderBookAsync(StringArg(symbol)))
-		PanicOnError(orderbook)
+		r := <-exchange.FetchOrderBookAsync(StringArg(symbol))
+		if r.Err != nil {
+			panic(r.Err)
+		}
+		orderbook := r.Value
 		var bids any = exchange.SafeList(orderbook, "bids")
 		var asks any = exchange.SafeList(orderbook, "asks")
 		var bestBidArray any = exchange.SafeList(bids, 0)
@@ -479,23 +482,32 @@ func fetchBestBidAskBody(ch chan any, exchange ccxt.ICoreExchange, method any, s
 	} else if (!IsEqual(GetValue(exchange.GetHas(), "fetchBidsAsks"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchBidsAsks"), false)) {
 		usedMethod = SafeStringPtr("fetchBidsAsks")
 
-		tickers := (<-exchange.(ccxt.IFetchBidsAsks).FetchBidsAsksAsync([]any{symbol}))
-		PanicOnError(tickers)
+		r1 := <-exchange.(ccxt.IFetchBidsAsks).FetchBidsAsksAsync([]any{symbol})
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		tickers := r1.Value
 		var ticker any = exchange.SafeDict(tickers, symbol)
 		bestBid = exchange.SafeNumber(ticker, "bid")
 		bestAsk = exchange.SafeNumber(ticker, "ask")
 	} else if (!IsEqual(GetValue(exchange.GetHas(), "fetchTicker"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchTicker"), false)) {
 		usedMethod = SafeStringPtr("fetchTicker")
 
-		ticker := (<-exchange.FetchTickerAsync(StringArg(symbol)))
-		PanicOnError(ticker)
+		r2 := <-exchange.FetchTickerAsync(StringArg(symbol))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		ticker := r2.Value
 		bestBid = exchange.SafeNumber(ticker, "bid")
 		bestAsk = exchange.SafeNumber(ticker, "ask")
 	} else if (!IsEqual(GetValue(exchange.GetHas(), "fetchTickers"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchTickers"), false)) {
 		usedMethod = SafeStringPtr("fetchTickers")
 
-		tickers := (<-exchange.(ccxt.IFetchTickers).FetchTickersAsync([]any{symbol}))
-		PanicOnError(tickers)
+		r3 := <-exchange.(ccxt.IFetchTickers).FetchTickersAsync([]any{symbol})
+		if r3.Err != nil {
+			panic(r3.Err)
+		}
+		tickers := r3.Value
 		var ticker any = exchange.SafeDict(tickers, symbol)
 		bestBid = exchange.SafeNumber(ticker, "bid")
 		bestAsk = exchange.SafeNumber(ticker, "ask")
@@ -503,15 +515,15 @@ func fetchBestBidAskBody(ch chan any, exchange ccxt.ICoreExchange, method any, s
 	//
 	Assert(!IsEqual(bestBid, nil) && !IsEqual(bestAsk, nil), Add(Add(Add(Add(Add(Add(Add(Add(logText, " "), exchange.GetId()), " could not get best bid/ask for "), symbol), " using "), usedMethod), " while testing "), method))
 
-	ch <- []any{bestBid, bestAsk}
+	ch <- ccxt.AsyncResult[any]{Value: []any{bestBid, bestAsk}}
 	return nil
 }
-func FetchOrderAsync(exchange ccxt.ICoreExchange, symbol any, orderId any, skippedProperties any) <-chan any {
-	ch := make(chan any, 1)
+func FetchOrderAsync(exchange ccxt.ICoreExchange, symbol any, orderId any, skippedProperties any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go fetchOrderBody(ch, exchange, symbol, orderId, skippedProperties)
 	return ch
 }
-func fetchOrderBody(ch chan any, exchange ccxt.ICoreExchange, symbol any, orderId any, skippedProperties any) any {
+func fetchOrderBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchange, symbol any, orderId any, skippedProperties any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var fetchedOrder any = nil
@@ -529,8 +541,11 @@ func fetchOrderBody(ch chan any, exchange ccxt.ICoreExchange, symbol any, orderI
 		}())
 		if (!IsEqual(GetValue(exchange.GetHas(), singularFetchName), nil)) && (!IsEqual(GetValue(exchange.GetHas(), singularFetchName), false)) {
 
-			currentOrder := (<-callDynamically(singularFetchName, originalId, symbol))
-			PanicOnError(currentOrder)
+			r := <-callDynamically(singularFetchName, originalId, symbol)
+			if r.Err != nil {
+				panic(r.Err)
+			}
+			currentOrder := r.Value
 			// if there is an id inside the order, it means the order was fetched successfully
 			if IsEqual(GetValue(currentOrder, "id"), originalId) {
 				fetchedOrder = currentOrder
@@ -551,8 +566,11 @@ func fetchOrderBody(ch chan any, exchange ccxt.ICoreExchange, symbol any, orderI
 			}())
 			if (!IsEqual(GetValue(exchange.GetHas(), pluralFetchName), nil)) && (!IsEqual(GetValue(exchange.GetHas(), pluralFetchName), false)) {
 
-				orders := (<-callDynamically(pluralFetchName, symbol, sinceTime))
-				PanicOnError(orders)
+				r1 := <-callDynamically(pluralFetchName, symbol, sinceTime)
+				if r1.Err != nil {
+					panic(r1.Err)
+				}
+				orders := r1.Value
 				var found bool = false
 				for j := 0; j < GetArrayLength(orders); j++ {
 					var currentOrder any = GetValue(orders, j)
@@ -569,7 +587,7 @@ func fetchOrderBody(ch chan any, exchange ccxt.ICoreExchange, symbol any, orderI
 		}
 	}
 
-	ch <- fetchedOrder
+	ch <- ccxt.AsyncResult[any]{Value: fetchedOrder}
 	return nil
 }
 func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method any, order any, AssertedStatus any, strictCheck any) {

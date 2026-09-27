@@ -213,7 +213,7 @@ func (this *Woofipro) V1PublicGetPublicFundingRateHistory(args ...any) <-chan En
 }
 
 // V1PublicGetPublicFundingRateSymbol returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicFundingRateSymbol(args ...any) <-chan any {
+func (this *Woofipro) V1PublicGetPublicFundingRateSymbol(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PublicGetPublicFundingRateSymbol", args...)
 }
 
@@ -393,12 +393,12 @@ func (this *Woofipro) V1PrivateGetClientStatisticsDaily(args ...any) <-chan Endp
 }
 
 // V1PrivateGetPositions returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetPositions(args ...any) <-chan any {
+func (this *Woofipro) V1PrivateGetPositions(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivateGetPositions", args...)
 }
 
 // V1PrivateGetPositionSymbol returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetPositionSymbol(args ...any) <-chan any {
+func (this *Woofipro) V1PrivateGetPositionSymbol(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivateGetPositionSymbol", args...)
 }
 

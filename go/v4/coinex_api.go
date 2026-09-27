@@ -258,37 +258,37 @@ func (this *Coinex) V1PrivatePostOrderLimitBatch(args ...any) <-chan EndpointRes
 }
 
 // V1PrivatePostOrderIoc returns a channel that yields a JSON object.
-func (this *Coinex) V1PrivatePostOrderIoc(args ...any) <-chan any {
+func (this *Coinex) V1PrivatePostOrderIoc(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivatePostOrderIoc", args...)
 }
 
 // V1PrivatePostOrderLimit returns a channel that yields a JSON object.
-func (this *Coinex) V1PrivatePostOrderLimit(args ...any) <-chan any {
+func (this *Coinex) V1PrivatePostOrderLimit(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivatePostOrderLimit", args...)
 }
 
 // V1PrivatePostOrderMarket returns a channel that yields a JSON object.
-func (this *Coinex) V1PrivatePostOrderMarket(args ...any) <-chan any {
+func (this *Coinex) V1PrivatePostOrderMarket(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivatePostOrderMarket", args...)
 }
 
 // V1PrivatePostOrderModify returns a channel that yields a JSON object.
-func (this *Coinex) V1PrivatePostOrderModify(args ...any) <-chan any {
+func (this *Coinex) V1PrivatePostOrderModify(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivatePostOrderModify", args...)
 }
 
 // V1PrivatePostOrderStopLimit returns a channel that yields a JSON object.
-func (this *Coinex) V1PrivatePostOrderStopLimit(args ...any) <-chan any {
+func (this *Coinex) V1PrivatePostOrderStopLimit(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivatePostOrderStopLimit", args...)
 }
 
 // V1PrivatePostOrderStopMarket returns a channel that yields a JSON object.
-func (this *Coinex) V1PrivatePostOrderStopMarket(args ...any) <-chan any {
+func (this *Coinex) V1PrivatePostOrderStopMarket(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivatePostOrderStopMarket", args...)
 }
 
 // V1PrivatePostOrderStopModify returns a channel that yields a JSON object.
-func (this *Coinex) V1PrivatePostOrderStopModify(args ...any) <-chan any {
+func (this *Coinex) V1PrivatePostOrderStopModify(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivatePostOrderStopModify", args...)
 }
 
@@ -353,7 +353,7 @@ func (this *Coinex) V1PrivateDeleteOrderPendingBatch(args ...any) <-chan Endpoin
 }
 
 // V1PrivateDeleteOrderPending returns a channel that yields a JSON object.
-func (this *Coinex) V1PrivateDeleteOrderPending(args ...any) <-chan any {
+func (this *Coinex) V1PrivateDeleteOrderPending(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivateDeleteOrderPending", args...)
 }
 
@@ -363,7 +363,7 @@ func (this *Coinex) V1PrivateDeleteOrderStopPending(args ...any) <-chan Endpoint
 }
 
 // V1PrivateDeleteOrderStopPendingId returns a channel that yields a JSON object.
-func (this *Coinex) V1PrivateDeleteOrderStopPendingId(args ...any) <-chan any {
+func (this *Coinex) V1PrivateDeleteOrderStopPendingId(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v1PrivateDeleteOrderStopPendingId", args...)
 }
 
@@ -1093,12 +1093,12 @@ func (this *Coinex) V2PrivatePostAssetsAmmRemoveLiquidity(args ...any) <-chan En
 }
 
 // V2PrivatePostSpotOrder returns a channel that yields a JSON object.
-func (this *Coinex) V2PrivatePostSpotOrder(args ...any) <-chan any {
+func (this *Coinex) V2PrivatePostSpotOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostSpotOrder", args...)
 }
 
 // V2PrivatePostSpotStopOrder returns a channel that yields a JSON object.
-func (this *Coinex) V2PrivatePostSpotStopOrder(args ...any) <-chan any {
+func (this *Coinex) V2PrivatePostSpotStopOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostSpotStopOrder", args...)
 }
 
@@ -1113,17 +1113,17 @@ func (this *Coinex) V2PrivatePostSpotBatchStopOrder(args ...any) <-chan Endpoint
 }
 
 // V2PrivatePostSpotModifyOrder returns a channel that yields a JSON object.
-func (this *Coinex) V2PrivatePostSpotModifyOrder(args ...any) <-chan any {
+func (this *Coinex) V2PrivatePostSpotModifyOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostSpotModifyOrder", args...)
 }
 
 // V2PrivatePostSpotModifyStopOrder returns a channel that yields a JSON object.
-func (this *Coinex) V2PrivatePostSpotModifyStopOrder(args ...any) <-chan any {
+func (this *Coinex) V2PrivatePostSpotModifyStopOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostSpotModifyStopOrder", args...)
 }
 
 // V2PrivatePostSpotBatchModifyOrder returns a channel that yields a JSON object.
-func (this *Coinex) V2PrivatePostSpotBatchModifyOrder(args ...any) <-chan any {
+func (this *Coinex) V2PrivatePostSpotBatchModifyOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostSpotBatchModifyOrder", args...)
 }
 
@@ -1133,12 +1133,12 @@ func (this *Coinex) V2PrivatePostSpotCancelAllOrder(args ...any) <-chan Endpoint
 }
 
 // V2PrivatePostSpotCancelOrder returns a channel that yields a JSON object.
-func (this *Coinex) V2PrivatePostSpotCancelOrder(args ...any) <-chan any {
+func (this *Coinex) V2PrivatePostSpotCancelOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostSpotCancelOrder", args...)
 }
 
 // V2PrivatePostSpotCancelStopOrder returns a channel that yields a JSON object.
-func (this *Coinex) V2PrivatePostSpotCancelStopOrder(args ...any) <-chan any {
+func (this *Coinex) V2PrivatePostSpotCancelStopOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostSpotCancelStopOrder", args...)
 }
 

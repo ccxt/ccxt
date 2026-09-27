@@ -38,7 +38,7 @@ func (this *Revolutx) PublicGet10PublicConfigurationPairs(args ...any) <-chan En
 }
 
 // PrivateGet10Balances returns a channel that yields a JSON object or a JSON array.
-func (this *Revolutx) PrivateGet10Balances(args ...any) <-chan any {
+func (this *Revolutx) PrivateGet10Balances(args ...any) <-chan AsyncResult[any] {
 	return this.Fetch2Async("1.0/balances", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
@@ -58,7 +58,7 @@ func (this *Revolutx) PrivateGet10OrdersVenueOrderId(args ...any) <-chan Endpoin
 }
 
 // PrivateGet10OrdersFillsVenueOrderId returns a channel that yields a JSON object or a JSON array.
-func (this *Revolutx) PrivateGet10OrdersFillsVenueOrderId(args ...any) <-chan any {
+func (this *Revolutx) PrivateGet10OrdersFillsVenueOrderId(args ...any) <-chan AsyncResult[any] {
 	return this.Fetch2Async("1.0/orders/fills/{venue_order_id}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
@@ -68,7 +68,7 @@ func (this *Revolutx) PrivateGet10TradesPrivateSymbol(args ...any) <-chan Endpoi
 }
 
 // PrivateGet10Transactions returns a channel that yields a JSON object or a JSON array.
-func (this *Revolutx) PrivateGet10Transactions(args ...any) <-chan any {
+func (this *Revolutx) PrivateGet10Transactions(args ...any) <-chan AsyncResult[any] {
 	return this.Fetch2Async("1.0/transactions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
@@ -83,7 +83,7 @@ func (this *Revolutx) PrivatePut10OrdersVenueOrderId(args ...any) <-chan Endpoin
 }
 
 // PrivateDelete10Orders returns a channel that yields a JSON object or a JSON array.
-func (this *Revolutx) PrivateDelete10Orders(args ...any) <-chan any {
+func (this *Revolutx) PrivateDelete10Orders(args ...any) <-chan AsyncResult[any] {
 	return this.Fetch2Async("1.0/orders", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 

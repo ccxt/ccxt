@@ -7,12 +7,12 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 
 import "strconv"
 
-func TestSleepAsync() <-chan any {
-	ch := make(chan any, 1)
+func TestSleepAsync() <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go testSleepBody(ch)
 	return ch
 }
-func testSleepBody(ch chan any) any {
+func testSleepBody(ch chan ccxt.AsyncResult[any]) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -23,7 +23,7 @@ func testSleepBody(ch chan any) any {
 	var start int64 = exchange.Milliseconds()
 	var sleepAmount int = 100 // milliseconds
 
-	ccxt.PanicOnError((<-exchange.Sleep(sleepAmount)))
+	<-exchange.Sleep(sleepAmount)
 	var end int64 = exchange.Milliseconds()
 	var elapsed int64 = end - start
 	// Allow a small margin of error due to execution time and timer jitter
@@ -44,6 +44,6 @@ func testSleepBody(ch chan any) any {
 	assert(elapsedBiggerThanSleep, "Elapsed time "+strconv.FormatInt(elapsed, 10)+"ms is less than minimum "+strconv.FormatInt(minElapsed, 10)+"ms (sleep amount "+strconv.Itoa(sleepAmount)+"ms)")
 	assert(elapsedLessThanMax, "Elapsed time "+strconv.FormatInt(elapsed, 10)+"ms exceeds sleep amount "+strconv.Itoa(maxElapsed)+"ms")
 
-	ch <- true
+	ch <- ccxt.AsyncResult[any]{Value: true}
 	return nil
 }

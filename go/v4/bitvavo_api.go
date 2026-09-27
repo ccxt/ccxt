@@ -43,7 +43,7 @@ func (this *Bitvavo) PublicGetMarketCandles(args ...any) <-chan EndpointResult[[
 }
 
 // PublicGetTicker24h returns a channel that yields a JSON object or a JSON array.
-func (this *Bitvavo) PublicGetTicker24h(args ...any) <-chan any {
+func (this *Bitvavo) PublicGetTicker24h(args ...any) <-chan AsyncResult[any] {
 	return this.Fetch2Async("ticker/24h", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 

@@ -28,7 +28,7 @@ func (this *Bitget) PublicSpotGetSpotV1PublicTime(args ...any) <-chan EndpointRe
 }
 
 // PublicSpotGetSpotV1PublicCurrencies returns a channel that yields a JSON object.
-func (this *Bitget) PublicSpotGetSpotV1PublicCurrencies(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetSpotV1PublicCurrencies(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("publicSpotGetSpotV1PublicCurrencies", args...)
 }
 
@@ -98,7 +98,7 @@ func (this *Bitget) PublicSpotGetSpotV1PublicLoanHourInterest(args ...any) <-cha
 }
 
 // PublicSpotGetV2SpotPublicCoins returns a channel that yields a JSON object.
-func (this *Bitget) PublicSpotGetV2SpotPublicCoins(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetV2SpotPublicCoins(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("publicSpotGetV2SpotPublicCoins", args...)
 }
 
@@ -128,12 +128,12 @@ func (this *Bitget) PublicSpotGetV2SpotMarketOrderbook(args ...any) <-chan Endpo
 }
 
 // PublicSpotGetV2SpotMarketCandles returns a channel that yields a JSON object, a JSON array or a JSON scalar.
-func (this *Bitget) PublicSpotGetV2SpotMarketCandles(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetV2SpotMarketCandles(args ...any) <-chan AsyncResult[any] {
 	return this.Fetch2Async("v2/spot/market/candles", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicSpotGetV2SpotMarketHistoryCandles returns a channel that yields a JSON object, a JSON array or a JSON scalar.
-func (this *Bitget) PublicSpotGetV2SpotMarketHistoryCandles(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetV2SpotMarketHistoryCandles(args ...any) <-chan AsyncResult[any] {
 	return this.Fetch2Async("v2/spot/market/history-candles", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
@@ -298,22 +298,22 @@ func (this *Bitget) PublicMixGetV2MixMarketFillsHistory(args ...any) <-chan Endp
 }
 
 // PublicMixGetV2MixMarketCandles returns a channel that yields a JSON object, a JSON array or a JSON scalar.
-func (this *Bitget) PublicMixGetV2MixMarketCandles(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketCandles(args ...any) <-chan AsyncResult[any] {
 	return this.Fetch2Async("v2/mix/market/candles", []string{"public", "mix"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicMixGetV2MixMarketHistoryCandles returns a channel that yields a JSON object, a JSON array or a JSON scalar.
-func (this *Bitget) PublicMixGetV2MixMarketHistoryCandles(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketHistoryCandles(args ...any) <-chan AsyncResult[any] {
 	return this.Fetch2Async("v2/mix/market/history-candles", []string{"public", "mix"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicMixGetV2MixMarketHistoryIndexCandles returns a channel that yields a JSON object, a JSON array or a JSON scalar.
-func (this *Bitget) PublicMixGetV2MixMarketHistoryIndexCandles(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketHistoryIndexCandles(args ...any) <-chan AsyncResult[any] {
 	return this.Fetch2Async("v2/mix/market/history-index-candles", []string{"public", "mix"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicMixGetV2MixMarketHistoryMarkCandles returns a channel that yields a JSON object, a JSON array or a JSON scalar.
-func (this *Bitget) PublicMixGetV2MixMarketHistoryMarkCandles(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketHistoryMarkCandles(args ...any) <-chan AsyncResult[any] {
 	return this.Fetch2Async("v2/mix/market/history-mark-candles", []string{"public", "mix"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
@@ -438,12 +438,12 @@ func (this *Bitget) PublicUtaGetV3MarketOpenInterest(args ...any) <-chan Endpoin
 }
 
 // PublicUtaGetV3MarketCandles returns a channel that yields a JSON object, a JSON array or a JSON scalar.
-func (this *Bitget) PublicUtaGetV3MarketCandles(args ...any) <-chan any {
+func (this *Bitget) PublicUtaGetV3MarketCandles(args ...any) <-chan AsyncResult[any] {
 	return this.Fetch2Async("v3/market/candles", []string{"public", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicUtaGetV3MarketHistoryCandles returns a channel that yields a JSON object, a JSON array or a JSON scalar.
-func (this *Bitget) PublicUtaGetV3MarketHistoryCandles(args ...any) <-chan any {
+func (this *Bitget) PublicUtaGetV3MarketHistoryCandles(args ...any) <-chan AsyncResult[any] {
 	return this.Fetch2Async("v3/market/history-candles", []string{"public", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
@@ -488,7 +488,7 @@ func (this *Bitget) PublicUtaGetV3MarketIndexComponents(args ...any) <-chan Endp
 }
 
 // PublicUtaGetV3MarketRiskReserveAll returns a channel that yields a JSON object.
-func (this *Bitget) PublicUtaGetV3MarketRiskReserveAll(args ...any) <-chan any {
+func (this *Bitget) PublicUtaGetV3MarketRiskReserveAll(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("publicUtaGetV3MarketRiskReserveAll", args...)
 }
 
@@ -3033,7 +3033,7 @@ func (this *Bitget) PrivateUtaGetV3AccountDeductInfo(args ...any) <-chan Endpoin
 }
 
 // PrivateUtaGetV3AccountFeeRate returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3AccountFeeRate(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountFeeRate(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateUtaGetV3AccountFeeRate", args...)
 }
 
@@ -3043,7 +3043,7 @@ func (this *Bitget) PrivateUtaGetV3AccountSwitchStatus(args ...any) <-chan Endpo
 }
 
 // PrivateUtaGetV3AccountMaxTransferable returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3AccountMaxTransferable(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountMaxTransferable(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateUtaGetV3AccountMaxTransferable", args...)
 }
 
@@ -3113,42 +3113,42 @@ func (this *Bitget) PrivateUtaGetV3BrokerQuerySubApikey(args ...any) <-chan Endp
 }
 
 // PrivateUtaGetV3InsLoanTransfered returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3InsLoanTransfered(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3InsLoanTransfered(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateUtaGetV3InsLoanTransfered", args...)
 }
 
 // PrivateUtaGetV3InsLoanSymbols returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3InsLoanSymbols(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3InsLoanSymbols(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateUtaGetV3InsLoanSymbols", args...)
 }
 
 // PrivateUtaGetV3InsLoanRiskUnit returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3InsLoanRiskUnit(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3InsLoanRiskUnit(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateUtaGetV3InsLoanRiskUnit", args...)
 }
 
 // PrivateUtaGetV3InsLoanRepaidHistory returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3InsLoanRepaidHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3InsLoanRepaidHistory(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateUtaGetV3InsLoanRepaidHistory", args...)
 }
 
 // PrivateUtaGetV3InsLoanProductInfos returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3InsLoanProductInfos(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3InsLoanProductInfos(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateUtaGetV3InsLoanProductInfos", args...)
 }
 
 // PrivateUtaGetV3InsLoanLoanOrder returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3InsLoanLoanOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3InsLoanLoanOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateUtaGetV3InsLoanLoanOrder", args...)
 }
 
 // PrivateUtaGetV3InsLoanLtvConvert returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3InsLoanLtvConvert(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3InsLoanLtvConvert(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateUtaGetV3InsLoanLtvConvert", args...)
 }
 
 // PrivateUtaGetV3InsLoanEnsureCoinsConvert returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3InsLoanEnsureCoinsConvert(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3InsLoanEnsureCoinsConvert(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateUtaGetV3InsLoanEnsureCoinsConvert", args...)
 }
 
@@ -3258,7 +3258,7 @@ func (this *Bitget) PrivateUtaGetV3AccountInfo(args ...any) <-chan EndpointResul
 }
 
 // PrivateUtaGetV3AccountAllFeeRate returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3AccountAllFeeRate(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountAllFeeRate(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateUtaGetV3AccountAllFeeRate", args...)
 }
 
@@ -3698,7 +3698,7 @@ func (this *Bitget) PrivateUtaPostV3BrokerDeleteSubApikey(args ...any) <-chan En
 }
 
 // PrivateUtaPostV3InsLoanBindUid returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaPostV3InsLoanBindUid(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3InsLoanBindUid(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateUtaPostV3InsLoanBindUid", args...)
 }
 

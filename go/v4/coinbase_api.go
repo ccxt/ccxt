@@ -8,232 +8,232 @@
 package ccxt
 
 // V2PublicGetCurrencies returns a channel that yields a JSON object.
-func (this *Coinbase) V2PublicGetCurrencies(args ...any) <-chan any {
+func (this *Coinbase) V2PublicGetCurrencies(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PublicGetCurrencies", args...)
 }
 
 // V2PublicGetCurrenciesCrypto returns a channel that yields a JSON object.
-func (this *Coinbase) V2PublicGetCurrenciesCrypto(args ...any) <-chan any {
+func (this *Coinbase) V2PublicGetCurrenciesCrypto(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PublicGetCurrenciesCrypto", args...)
 }
 
 // V2PublicGetTime returns a channel that yields a JSON object.
-func (this *Coinbase) V2PublicGetTime(args ...any) <-chan any {
+func (this *Coinbase) V2PublicGetTime(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PublicGetTime", args...)
 }
 
 // V2PublicGetExchangeRates returns a channel that yields a JSON object.
-func (this *Coinbase) V2PublicGetExchangeRates(args ...any) <-chan any {
+func (this *Coinbase) V2PublicGetExchangeRates(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PublicGetExchangeRates", args...)
 }
 
 // V2PublicGetUsersUserId returns a channel that yields a JSON object.
-func (this *Coinbase) V2PublicGetUsersUserId(args ...any) <-chan any {
+func (this *Coinbase) V2PublicGetUsersUserId(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PublicGetUsersUserId", args...)
 }
 
 // V2PublicGetPricesSymbolBuy returns a channel that yields a JSON object.
-func (this *Coinbase) V2PublicGetPricesSymbolBuy(args ...any) <-chan any {
+func (this *Coinbase) V2PublicGetPricesSymbolBuy(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PublicGetPricesSymbolBuy", args...)
 }
 
 // V2PublicGetPricesSymbolSell returns a channel that yields a JSON object.
-func (this *Coinbase) V2PublicGetPricesSymbolSell(args ...any) <-chan any {
+func (this *Coinbase) V2PublicGetPricesSymbolSell(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PublicGetPricesSymbolSell", args...)
 }
 
 // V2PublicGetPricesSymbolSpot returns a channel that yields a JSON object.
-func (this *Coinbase) V2PublicGetPricesSymbolSpot(args ...any) <-chan any {
+func (this *Coinbase) V2PublicGetPricesSymbolSpot(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PublicGetPricesSymbolSpot", args...)
 }
 
 // V2PrivateGetAccounts returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateGetAccounts(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateGetAccounts(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateGetAccounts", args...)
 }
 
 // V2PrivateGetAccountsAccountId returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateGetAccountsAccountId(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateGetAccountsAccountId(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateGetAccountsAccountId", args...)
 }
 
 // V2PrivateGetAccountsAccountIdAddresses returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateGetAccountsAccountIdAddresses(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateGetAccountsAccountIdAddresses(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdAddresses", args...)
 }
 
 // V2PrivateGetAccountsAccountIdAddressesAddressId returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateGetAccountsAccountIdAddressesAddressId(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateGetAccountsAccountIdAddressesAddressId(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdAddressesAddressId", args...)
 }
 
 // V2PrivateGetAccountsAccountIdAddressesAddressIdTransactions returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateGetAccountsAccountIdAddressesAddressIdTransactions(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateGetAccountsAccountIdAddressesAddressIdTransactions(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdAddressesAddressIdTransactions", args...)
 }
 
 // V2PrivateGetAccountsAccountIdTransactions returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateGetAccountsAccountIdTransactions(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateGetAccountsAccountIdTransactions(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdTransactions", args...)
 }
 
 // V2PrivateGetAccountsAccountIdTransactionsTransactionId returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateGetAccountsAccountIdTransactionsTransactionId(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateGetAccountsAccountIdTransactionsTransactionId(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdTransactionsTransactionId", args...)
 }
 
 // V2PrivateGetAccountsAccountIdBuys returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateGetAccountsAccountIdBuys(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateGetAccountsAccountIdBuys(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdBuys", args...)
 }
 
 // V2PrivateGetAccountsAccountIdBuysBuyId returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateGetAccountsAccountIdBuysBuyId(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateGetAccountsAccountIdBuysBuyId(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdBuysBuyId", args...)
 }
 
 // V2PrivateGetAccountsAccountIdSells returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateGetAccountsAccountIdSells(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateGetAccountsAccountIdSells(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdSells", args...)
 }
 
 // V2PrivateGetAccountsAccountIdSellsSellId returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateGetAccountsAccountIdSellsSellId(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateGetAccountsAccountIdSellsSellId(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdSellsSellId", args...)
 }
 
 // V2PrivateGetAccountsAccountIdDeposits returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateGetAccountsAccountIdDeposits(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateGetAccountsAccountIdDeposits(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdDeposits", args...)
 }
 
 // V2PrivateGetAccountsAccountIdDepositsDepositId returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateGetAccountsAccountIdDepositsDepositId(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateGetAccountsAccountIdDepositsDepositId(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdDepositsDepositId", args...)
 }
 
 // V2PrivateGetAccountsAccountIdWithdrawals returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateGetAccountsAccountIdWithdrawals(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateGetAccountsAccountIdWithdrawals(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdWithdrawals", args...)
 }
 
 // V2PrivateGetAccountsAccountIdWithdrawalsWithdrawalId returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateGetAccountsAccountIdWithdrawalsWithdrawalId(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateGetAccountsAccountIdWithdrawalsWithdrawalId(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdWithdrawalsWithdrawalId", args...)
 }
 
 // V2PrivateGetPaymentMethods returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateGetPaymentMethods(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateGetPaymentMethods(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateGetPaymentMethods", args...)
 }
 
 // V2PrivateGetPaymentMethodsPaymentMethodId returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateGetPaymentMethodsPaymentMethodId(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateGetPaymentMethodsPaymentMethodId(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateGetPaymentMethodsPaymentMethodId", args...)
 }
 
 // V2PrivateGetUser returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateGetUser(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateGetUser(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateGetUser", args...)
 }
 
 // V2PrivateGetUserAuth returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateGetUserAuth(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateGetUserAuth(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateGetUserAuth", args...)
 }
 
 // V2PrivateGetSubscriptionsCoinbaseOne returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateGetSubscriptionsCoinbaseOne(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateGetSubscriptionsCoinbaseOne(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateGetSubscriptionsCoinbaseOne", args...)
 }
 
 // V2PrivatePostAccounts returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivatePostAccounts(args ...any) <-chan any {
+func (this *Coinbase) V2PrivatePostAccounts(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostAccounts", args...)
 }
 
 // V2PrivatePostAccountsAccountIdPrimary returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivatePostAccountsAccountIdPrimary(args ...any) <-chan any {
+func (this *Coinbase) V2PrivatePostAccountsAccountIdPrimary(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdPrimary", args...)
 }
 
 // V2PrivatePostAccountsAccountIdAddresses returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivatePostAccountsAccountIdAddresses(args ...any) <-chan any {
+func (this *Coinbase) V2PrivatePostAccountsAccountIdAddresses(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdAddresses", args...)
 }
 
 // V2PrivatePostAccountsAccountIdTransactions returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivatePostAccountsAccountIdTransactions(args ...any) <-chan any {
+func (this *Coinbase) V2PrivatePostAccountsAccountIdTransactions(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdTransactions", args...)
 }
 
 // V2PrivatePostAccountsAccountIdTransactionsTransactionIdComplete returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivatePostAccountsAccountIdTransactionsTransactionIdComplete(args ...any) <-chan any {
+func (this *Coinbase) V2PrivatePostAccountsAccountIdTransactionsTransactionIdComplete(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdTransactionsTransactionIdComplete", args...)
 }
 
 // V2PrivatePostAccountsAccountIdTransactionsTransactionIdResend returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivatePostAccountsAccountIdTransactionsTransactionIdResend(args ...any) <-chan any {
+func (this *Coinbase) V2PrivatePostAccountsAccountIdTransactionsTransactionIdResend(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdTransactionsTransactionIdResend", args...)
 }
 
 // V2PrivatePostAccountsAccountIdBuys returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivatePostAccountsAccountIdBuys(args ...any) <-chan any {
+func (this *Coinbase) V2PrivatePostAccountsAccountIdBuys(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdBuys", args...)
 }
 
 // V2PrivatePostAccountsAccountIdBuysBuyIdCommit returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivatePostAccountsAccountIdBuysBuyIdCommit(args ...any) <-chan any {
+func (this *Coinbase) V2PrivatePostAccountsAccountIdBuysBuyIdCommit(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdBuysBuyIdCommit", args...)
 }
 
 // V2PrivatePostAccountsAccountIdSells returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivatePostAccountsAccountIdSells(args ...any) <-chan any {
+func (this *Coinbase) V2PrivatePostAccountsAccountIdSells(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdSells", args...)
 }
 
 // V2PrivatePostAccountsAccountIdSellsSellIdCommit returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivatePostAccountsAccountIdSellsSellIdCommit(args ...any) <-chan any {
+func (this *Coinbase) V2PrivatePostAccountsAccountIdSellsSellIdCommit(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdSellsSellIdCommit", args...)
 }
 
 // V2PrivatePostAccountsAccountIdDeposits returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivatePostAccountsAccountIdDeposits(args ...any) <-chan any {
+func (this *Coinbase) V2PrivatePostAccountsAccountIdDeposits(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdDeposits", args...)
 }
 
 // V2PrivatePostAccountsAccountIdDepositsDepositIdCommit returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivatePostAccountsAccountIdDepositsDepositIdCommit(args ...any) <-chan any {
+func (this *Coinbase) V2PrivatePostAccountsAccountIdDepositsDepositIdCommit(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdDepositsDepositIdCommit", args...)
 }
 
 // V2PrivatePostAccountsAccountIdWithdrawals returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivatePostAccountsAccountIdWithdrawals(args ...any) <-chan any {
+func (this *Coinbase) V2PrivatePostAccountsAccountIdWithdrawals(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdWithdrawals", args...)
 }
 
 // V2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit(args ...any) <-chan any {
+func (this *Coinbase) V2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit", args...)
 }
 
 // V2PrivatePutAccountsAccountId returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivatePutAccountsAccountId(args ...any) <-chan any {
+func (this *Coinbase) V2PrivatePutAccountsAccountId(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePutAccountsAccountId", args...)
 }
 
 // V2PrivatePutUser returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivatePutUser(args ...any) <-chan any {
+func (this *Coinbase) V2PrivatePutUser(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivatePutUser", args...)
 }
 
 // V2PrivateDeleteAccountsId returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateDeleteAccountsId(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateDeleteAccountsId(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateDeleteAccountsId", args...)
 }
 
 // V2PrivateDeleteAccountsAccountIdTransactionsTransactionId returns a channel that yields a JSON object.
-func (this *Coinbase) V2PrivateDeleteAccountsAccountIdTransactionsTransactionId(args ...any) <-chan any {
+func (this *Coinbase) V2PrivateDeleteAccountsAccountIdTransactionsTransactionId(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("v2PrivateDeleteAccountsAccountIdTransactionsTransactionId", args...)
 }
 

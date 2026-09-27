@@ -1013,7 +1013,7 @@ func (this *Kucoin) FuturesPublicGetStatus(args ...any) <-chan EndpointResult[ma
 }
 
 // FuturesPublicGetLevel2MessageQuery returns a channel that yields a JSON object.
-func (this *Kucoin) FuturesPublicGetLevel2MessageQuery(args ...any) <-chan any {
+func (this *Kucoin) FuturesPublicGetLevel2MessageQuery(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("futuresPublicGetLevel2MessageQuery", args...)
 }
 
@@ -1353,12 +1353,12 @@ func (this *Kucoin) FuturesPrivateDeleteStopOrders(args ...any) <-chan EndpointR
 }
 
 // FuturesPrivateDeleteCopyTradeFuturesOrders returns a channel that yields a JSON object.
-func (this *Kucoin) FuturesPrivateDeleteCopyTradeFuturesOrders(args ...any) <-chan any {
+func (this *Kucoin) FuturesPrivateDeleteCopyTradeFuturesOrders(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("futuresPrivateDeleteCopyTradeFuturesOrders", args...)
 }
 
 // FuturesPrivateDeleteCopyTradeFuturesOrdersClientOrder returns a channel that yields a JSON object.
-func (this *Kucoin) FuturesPrivateDeleteCopyTradeFuturesOrdersClientOrder(args ...any) <-chan any {
+func (this *Kucoin) FuturesPrivateDeleteCopyTradeFuturesOrdersClientOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("futuresPrivateDeleteCopyTradeFuturesOrdersClientOrder", args...)
 }
 
