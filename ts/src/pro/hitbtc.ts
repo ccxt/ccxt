@@ -233,7 +233,8 @@ export default class hitbtc extends hitbtcRest {
         const defaultMethod = this.safeString (options, 'method', 'orderbook/full');
         let name = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
         const depthValue = this.safeString (params, 'depth', '20'); // not named depth: the php transpiler would turn the '{depth}' literals into '{$depth}'
-        const speedValue = this.safeString (params, 'depth', '100'); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
+        const speedValue = this.safeString (params, 'speed', '100'); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
+        params = this.omit (params, [ 'method', 'defaultMethod', 'depth', 'speed' ]);
         if (name === 'orderbook/{depth}/{speed}') {
             name = 'orderbook/D' + depthValue + '/' + speedValue + 'ms';
         } else if (name === 'orderbook/{depth}/{speed}/batch') {
