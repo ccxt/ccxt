@@ -11502,7 +11502,9 @@ function g10kMiscSetDefaults (content: string): string {
     if ((struct === null) || struct[1].includes ('`') || ((content.match (/^type \w+ struct \{/gm) || []).length !== 1)) {
         return content;
     }
-    return content.replace (/(\n\tp := &\w+\{\}\n(?:\t[^\n]*\n)*?)\t(?:ccxt\.)?SetDefaults\(p\)\n(\treturn p\n\})/g, '$1$2');
+    const out = content.replace (/(\n\tp := &\w+\{\}\n(?:\t[^\n]*\n)*?)\t(?:ccxt\.)?SetDefaults\(p\)\n(\treturn p\n\})/g, '$1$2');
+    // keep the call when it was the file's only use of the imported ccxt package (unused import)
+    return (content.includes ('ccxt.SetDefaults(p)') && !/(?<![\w.])ccxt\./.test (out)) ? content : out;
 }
 
 // ParseInt of a decimal literal is that int64; StringArg of a declared `string` is the value itself;
@@ -11524,6 +11526,8 @@ function g10kMiscSelfTest (): string[] {
     const ok = (c: boolean, m: string) => { if (!c) { problems.push ('g10k-misc: ' + m); } };
     const ctor = (fields: string) => 'package p\n\ntype X struct {\n\t*ccxt.X\n' + fields + '}\n\nfunc newX() *X {\n\tp := &X{}\n\tbase := &ccxt.X{}\n\tp.base = base\n\tccxt.SetDefaults(p)\n\treturn p\n}\n';
     ok (!g10kMiscNative (ctor ('\tbase *ccxt.X\n')).includes ('SetDefaults'), 'untagged struct drops SetDefaults');
+    const onlyUse = 'package p\n\nimport (\n\tccxt "github.com/ccxt/ccxt/go/v4"\n)\n\ntype X struct {\n\t*Y\n}\n\nfunc newX() *X {\n\tp := &X{}\n\tccxt.SetDefaults(p)\n\treturn p\n}\n';
+    ok (g10kMiscNative (onlyUse).includes ('ccxt.SetDefaults(p)'), 'sole ccxt use keeps SetDefaults');
     ok (g10kMiscNative (ctor ('\tA bool `default:"true"`\n')).includes ('ccxt.SetDefaults(p)'), 'tagged struct keeps SetDefaults');
     const f = (sig: string, body: string) => g10kMiscNative ('\nfunc (this *X) M(' + sig + ') any {\n' + body + '\treturn nil\n}\n');
     ok (f ('', '\tm := map[string]any{\"a\": ParseInt(\"08\")}\n').includes ('"a": int64(8)}'), 'literal ParseInt');
