@@ -1,0 +1,843 @@
+{
+  "market": "usdm",
+  "minutes": 9.999400000000001,
+  "reconnects": 1,
+  "symbols": {
+    "BTCUSDT": {
+      "rankByTrades": "24 of 727 USDT pairs",
+      "trades24h": 1245462,
+      "quoteVolume24hUSD": 4240713001,
+      "windowRepresentativeness": "observed trade rate × day = 1283261 vs 24h count 1245462 (103%)",
+      "restSnapshots": {
+        "depthSnapshotBytes": 42089,
+        "depthSnapshotGzip": 8307,
+        "depthLevels": 2000,
+        "kline1mRowJsonBytes": 130.916
+      },
+      "streams": [
+        {
+          "stream": "trade",
+          "category": "trades",
+          "msgs": 8911,
+          "rows": 8911,
+          "windowRawMB": "1.6",
+          "windowGzipMB": "0.069",
+          "perDay": {
+            "rawMB": "235.3",
+            "gzipMB": "9.9",
+            "brotliMB": "8.7",
+            "zstdMB": "11.0",
+            "columnarUncompressedMB": "42.3"
+          },
+          "perYearGzipGB": "3.6"
+        },
+        {
+          "stream": "aggTrade",
+          "category": "trades (aggregated)",
+          "msgs": 7575,
+          "rows": 7575,
+          "windowRawMB": "1.7",
+          "windowGzipMB": "0.134",
+          "perDay": {
+            "rawMB": "239.4",
+            "gzipMB": "19.3",
+            "brotliMB": "17.6",
+            "zstdMB": "20.5",
+            "columnarUncompressedMB": "44.7"
+          },
+          "perYearGzipGB": "7.0"
+        },
+        {
+          "stream": "kline_1m",
+          "category": "ohlcv (live kline pushes)",
+          "msgs": 1278,
+          "rows": 1278,
+          "windowRawMB": "0.459",
+          "windowGzipMB": "0.046",
+          "perDay": {
+            "rawMB": "66.1",
+            "gzipMB": "6.6",
+            "brotliMB": "6.5",
+            "zstdMB": "7.6",
+            "columnarUncompressedMB": "8.8"
+          },
+          "perYearGzipGB": "2.4"
+        },
+        {
+          "stream": "ticker",
+          "category": "ticker (24h rolling, 1s)",
+          "msgs": 300,
+          "rows": 300,
+          "windowRawMB": "0.104",
+          "windowGzipMB": "0.013",
+          "perDay": {
+            "rawMB": "15.0",
+            "gzipMB": "1.9",
+            "brotliMB": "1.6",
+            "zstdMB": "1.9",
+            "columnarUncompressedMB": "4.3"
+          },
+          "perYearGzipGB": "0.7"
+        },
+        {
+          "stream": "bookTicker",
+          "category": "top of book (every change)",
+          "msgs": 102968,
+          "rows": 102968,
+          "windowRawMB": "22.4",
+          "windowGzipMB": "0.982",
+          "perDay": {
+            "rawMB": "3226.9",
+            "gzipMB": "141.5",
+            "brotliMB": "134.9",
+            "zstdMB": "171.8",
+            "columnarUncompressedMB": "593.1"
+          },
+          "perYearGzipGB": "51.6"
+        },
+        {
+          "stream": "depth20@100ms",
+          "category": "L2 top-20 snapshots (100ms)",
+          "msgs": 3028,
+          "rows": 121120,
+          "windowRawMB": "3.2",
+          "windowGzipMB": "0.153",
+          "perDay": {
+            "rawMB": "461.5",
+            "gzipMB": "22.0",
+            "brotliMB": "20.0",
+            "zstdMB": "26.2",
+            "columnarUncompressedMB": "296.5"
+          },
+          "perYearGzipGB": "8.0"
+        },
+        {
+          "stream": "depth@100ms",
+          "category": "L2 full diff deltas (100ms)",
+          "msgs": 3121,
+          "rows": 318125,
+          "windowRawMB": "7.4",
+          "windowGzipMB": "1.3",
+          "perDay": {
+            "rawMB": "1060.3",
+            "gzipMB": "186.5",
+            "brotliMB": "171.9",
+            "zstdMB": "211.5",
+            "columnarUncompressedMB": "778.8"
+          },
+          "perYearGzipGB": "68.1"
+        },
+        {
+          "stream": "markPrice@1s",
+          "category": "mark price + funding (1s)",
+          "msgs": 600,
+          "rows": 600,
+          "windowRawMB": "0.143",
+          "windowGzipMB": "0.014",
+          "perDay": {
+            "rawMB": "20.6",
+            "gzipMB": "2.1",
+            "brotliMB": "2.0",
+            "zstdMB": "2.3",
+            "columnarUncompressedMB": "3.5"
+          },
+          "perYearGzipGB": "0.8"
+        }
+      ],
+      "allStreamsPerDay": {
+        "rawMB": "5325.2",
+        "gzipMB": "389.7"
+      }
+    },
+    "COHRUSDT": {
+      "rankByTrades": "582 of 727 USDT pairs",
+      "trades24h": 13896,
+      "quoteVolume24hUSD": 946269,
+      "windowRepresentativeness": "observed trade rate × day = 4752 vs 24h count 13896 (34%)",
+      "restSnapshots": {
+        "depthSnapshotBytes": 41742,
+        "depthSnapshotGzip": 8234,
+        "depthLevels": 1978,
+        "kline1mRowJsonBytes": 118.369
+      },
+      "streams": [
+        {
+          "stream": "trade",
+          "category": "trades",
+          "msgs": 33,
+          "rows": 33,
+          "windowRawMB": "0.006",
+          "windowGzipMB": "0.001",
+          "perDay": {
+            "rawMB": "0.868",
+            "gzipMB": "0.075",
+            "brotliMB": "0.063",
+            "zstdMB": "0.070",
+            "columnarUncompressedMB": "0.157"
+          },
+          "perYearGzipGB": "0.0"
+        },
+        {
+          "stream": "aggTrade",
+          "category": "trades (aggregated)",
+          "msgs": 72,
+          "rows": 72,
+          "windowRawMB": "0.015",
+          "windowGzipMB": "0.002",
+          "perDay": {
+            "rawMB": "2.2",
+            "gzipMB": "0.262",
+            "brotliMB": "0.208",
+            "zstdMB": "0.247",
+            "columnarUncompressedMB": "0.425"
+          },
+          "perYearGzipGB": "0.1"
+        },
+        {
+          "stream": "kline_1m",
+          "category": "ohlcv (live kline pushes)",
+          "msgs": 54,
+          "rows": 54,
+          "windowRawMB": "0.018",
+          "windowGzipMB": "0.002",
+          "perDay": {
+            "rawMB": "2.7",
+            "gzipMB": "0.264",
+            "brotliMB": "0.224",
+            "zstdMB": "0.262",
+            "columnarUncompressedMB": "0.373"
+          },
+          "perYearGzipGB": "0.1"
+        },
+        {
+          "stream": "ticker",
+          "category": "ticker (24h rolling, 1s)",
+          "msgs": 33,
+          "rows": 33,
+          "windowRawMB": "0.011",
+          "windowGzipMB": "0.002",
+          "perDay": {
+            "rawMB": "1.6",
+            "gzipMB": "0.224",
+            "brotliMB": "0.179",
+            "zstdMB": "0.196",
+            "columnarUncompressedMB": "0.475"
+          },
+          "perYearGzipGB": "0.1"
+        },
+        {
+          "stream": "bookTicker",
+          "category": "top of book (every change)",
+          "msgs": 4863,
+          "rows": 4863,
+          "windowRawMB": "1.1",
+          "windowGzipMB": "0.057",
+          "perDay": {
+            "rawMB": "154.1",
+            "gzipMB": "8.3",
+            "brotliMB": "7.3",
+            "zstdMB": "9.8",
+            "columnarUncompressedMB": "28.0"
+          },
+          "perYearGzipGB": "3.0"
+        },
+        {
+          "stream": "depth20@100ms",
+          "category": "L2 top-20 snapshots (100ms)",
+          "msgs": 921,
+          "rows": 36840,
+          "windowRawMB": "0.977",
+          "windowGzipMB": "0.035",
+          "perDay": {
+            "rawMB": "140.7",
+            "gzipMB": "5.0",
+            "brotliMB": "4.4",
+            "zstdMB": "5.8",
+            "columnarUncompressedMB": "90.2"
+          },
+          "perYearGzipGB": "1.8"
+        },
+        {
+          "stream": "depth@100ms",
+          "category": "L2 full diff deltas (100ms)",
+          "msgs": 1045,
+          "rows": 3881,
+          "windowRawMB": "0.311",
+          "windowGzipMB": "0.038",
+          "perDay": {
+            "rawMB": "44.8",
+            "gzipMB": "5.4",
+            "brotliMB": "5.3",
+            "zstdMB": "6.2",
+            "columnarUncompressedMB": "9.5"
+          },
+          "perYearGzipGB": "2.0"
+        },
+        {
+          "stream": "markPrice@1s",
+          "category": "mark price + funding (1s)",
+          "msgs": 600,
+          "rows": 600,
+          "windowRawMB": "0.139",
+          "windowGzipMB": "0.013",
+          "perDay": {
+            "rawMB": "20.0",
+            "gzipMB": "1.8",
+            "brotliMB": "1.7",
+            "zstdMB": "2.0",
+            "columnarUncompressedMB": "3.5"
+          },
+          "perYearGzipGB": "0.7"
+        }
+      ],
+      "allStreamsPerDay": {
+        "rawMB": "367.0",
+        "gzipMB": "21.3"
+      }
+    },
+    "DEXEUSDT": {
+      "rankByTrades": "364 of 727 USDT pairs",
+      "trades24h": 45151,
+      "quoteVolume24hUSD": 3035139,
+      "windowRepresentativeness": "observed trade rate × day = 29666 vs 24h count 45151 (66%)",
+      "restSnapshots": {
+        "depthSnapshotBytes": 35879,
+        "depthSnapshotGzip": 9166,
+        "depthLevels": 1681,
+        "kline1mRowJsonBytes": 128.791
+      },
+      "streams": [
+        {
+          "stream": "trade",
+          "category": "trades",
+          "msgs": 206,
+          "rows": 206,
+          "windowRawMB": "0.038",
+          "windowGzipMB": "0.003",
+          "perDay": {
+            "rawMB": "5.5",
+            "gzipMB": "0.373",
+            "brotliMB": "0.332",
+            "zstdMB": "0.369",
+            "columnarUncompressedMB": "0.979"
+          },
+          "perYearGzipGB": "0.1"
+        },
+        {
+          "stream": "aggTrade",
+          "category": "trades (aggregated)",
+          "msgs": 301,
+          "rows": 301,
+          "windowRawMB": "0.065",
+          "windowGzipMB": "0.008",
+          "perDay": {
+            "rawMB": "9.3",
+            "gzipMB": "1.1",
+            "brotliMB": "0.949",
+            "zstdMB": "1.1",
+            "columnarUncompressedMB": "1.8"
+          },
+          "perYearGzipGB": "0.4"
+        },
+        {
+          "stream": "kline_1m",
+          "category": "ohlcv (live kline pushes)",
+          "msgs": 279,
+          "rows": 279,
+          "windowRawMB": "0.098",
+          "windowGzipMB": "0.008",
+          "perDay": {
+            "rawMB": "14.2",
+            "gzipMB": "1.1",
+            "brotliMB": "1.0",
+            "zstdMB": "1.2",
+            "columnarUncompressedMB": "1.9"
+          },
+          "perYearGzipGB": "0.4"
+        },
+        {
+          "stream": "ticker",
+          "category": "ticker (24h rolling, 1s)",
+          "msgs": 177,
+          "rows": 177,
+          "windowRawMB": "0.062",
+          "windowGzipMB": "0.006",
+          "perDay": {
+            "rawMB": "9.0",
+            "gzipMB": "0.896",
+            "brotliMB": "0.754",
+            "zstdMB": "0.868",
+            "columnarUncompressedMB": "2.5"
+          },
+          "perYearGzipGB": "0.3"
+        },
+        {
+          "stream": "bookTicker",
+          "category": "top of book (every change)",
+          "msgs": 1875,
+          "rows": 1875,
+          "windowRawMB": "0.417",
+          "windowGzipMB": "0.031",
+          "perDay": {
+            "rawMB": "60.1",
+            "gzipMB": "4.4",
+            "brotliMB": "4.2",
+            "zstdMB": "5.0",
+            "columnarUncompressedMB": "10.8"
+          },
+          "perYearGzipGB": "1.6"
+        },
+        {
+          "stream": "depth20@100ms",
+          "category": "L2 top-20 snapshots (100ms)",
+          "msgs": 956,
+          "rows": 38240,
+          "windowRawMB": "1.1",
+          "windowGzipMB": "0.040",
+          "perDay": {
+            "rawMB": "156.7",
+            "gzipMB": "5.8",
+            "brotliMB": "5.0",
+            "zstdMB": "5.9",
+            "columnarUncompressedMB": "93.6"
+          },
+          "perYearGzipGB": "2.1"
+        },
+        {
+          "stream": "depth@100ms",
+          "category": "L2 full diff deltas (100ms)",
+          "msgs": 1063,
+          "rows": 2648,
+          "windowRawMB": "0.293",
+          "windowGzipMB": "0.041",
+          "perDay": {
+            "rawMB": "42.2",
+            "gzipMB": "6.0",
+            "brotliMB": "5.8",
+            "zstdMB": "6.4",
+            "columnarUncompressedMB": "6.5"
+          },
+          "perYearGzipGB": "2.2"
+        },
+        {
+          "stream": "markPrice@1s",
+          "category": "mark price + funding (1s)",
+          "msgs": 600,
+          "rows": 600,
+          "windowRawMB": "0.134",
+          "windowGzipMB": "0.008",
+          "perDay": {
+            "rawMB": "19.4",
+            "gzipMB": "1.2",
+            "brotliMB": "1.1",
+            "zstdMB": "1.4",
+            "columnarUncompressedMB": "3.5"
+          },
+          "perYearGzipGB": "0.4"
+        }
+      ],
+      "allStreamsPerDay": {
+        "rawMB": "316.3",
+        "gzipMB": "20.9"
+      }
+    },
+    "GWEIUSDT": {
+      "rankByTrades": "184 of 727 USDT pairs",
+      "trades24h": 108370,
+      "quoteVolume24hUSD": 7662204,
+      "windowRepresentativeness": "observed trade rate × day = 33266 vs 24h count 108370 (31%)",
+      "restSnapshots": {
+        "depthSnapshotBytes": 30180,
+        "depthSnapshotGzip": 7198,
+        "depthLevels": 1454,
+        "kline1mRowJsonBytes": 130.521
+      },
+      "streams": [
+        {
+          "stream": "trade",
+          "category": "trades",
+          "msgs": 231,
+          "rows": 231,
+          "windowRawMB": "0.042",
+          "windowGzipMB": "0.003",
+          "perDay": {
+            "rawMB": "6.1",
+            "gzipMB": "0.378",
+            "brotliMB": "0.318",
+            "zstdMB": "0.377",
+            "columnarUncompressedMB": "1.1"
+          },
+          "perYearGzipGB": "0.1"
+        },
+        {
+          "stream": "aggTrade",
+          "category": "trades (aggregated)",
+          "msgs": 382,
+          "rows": 382,
+          "windowRawMB": "0.082",
+          "windowGzipMB": "0.010",
+          "perDay": {
+            "rawMB": "11.8",
+            "gzipMB": "1.4",
+            "brotliMB": "1.2",
+            "zstdMB": "1.4",
+            "columnarUncompressedMB": "2.3"
+          },
+          "perYearGzipGB": "0.5"
+        },
+        {
+          "stream": "kline_1m",
+          "category": "ohlcv (live kline pushes)",
+          "msgs": 144,
+          "rows": 144,
+          "windowRawMB": "0.051",
+          "windowGzipMB": "0.006",
+          "perDay": {
+            "rawMB": "7.4",
+            "gzipMB": "0.799",
+            "brotliMB": "0.728",
+            "zstdMB": "0.812",
+            "columnarUncompressedMB": "0.995"
+          },
+          "perYearGzipGB": "0.3"
+        },
+        {
+          "stream": "ticker",
+          "category": "ticker (24h rolling, 1s)",
+          "msgs": 132,
+          "rows": 132,
+          "windowRawMB": "0.047",
+          "windowGzipMB": "0.006",
+          "perDay": {
+            "rawMB": "6.8",
+            "gzipMB": "0.807",
+            "brotliMB": "0.683",
+            "zstdMB": "0.798",
+            "columnarUncompressedMB": "1.9"
+          },
+          "perYearGzipGB": "0.3"
+        },
+        {
+          "stream": "bookTicker",
+          "category": "top of book (every change)",
+          "msgs": 789,
+          "rows": 789,
+          "windowRawMB": "0.174",
+          "windowGzipMB": "0.012",
+          "perDay": {
+            "rawMB": "25.1",
+            "gzipMB": "1.7",
+            "brotliMB": "1.5",
+            "zstdMB": "1.9",
+            "columnarUncompressedMB": "4.5"
+          },
+          "perYearGzipGB": "0.6"
+        },
+        {
+          "stream": "depth20@100ms",
+          "category": "L2 top-20 snapshots (100ms)",
+          "msgs": 762,
+          "rows": 30480,
+          "windowRawMB": "0.840",
+          "windowGzipMB": "0.035",
+          "perDay": {
+            "rawMB": "120.9",
+            "gzipMB": "5.0",
+            "brotliMB": "4.3",
+            "zstdMB": "5.3",
+            "columnarUncompressedMB": "74.6"
+          },
+          "perYearGzipGB": "1.8"
+        },
+        {
+          "stream": "depth@100ms",
+          "category": "L2 full diff deltas (100ms)",
+          "msgs": 1290,
+          "rows": 6623,
+          "windowRawMB": "0.429",
+          "windowGzipMB": "0.067",
+          "perDay": {
+            "rawMB": "61.7",
+            "gzipMB": "9.6",
+            "brotliMB": "9.4",
+            "zstdMB": "10.5",
+            "columnarUncompressedMB": "16.2"
+          },
+          "perYearGzipGB": "3.5"
+        },
+        {
+          "stream": "markPrice@1s",
+          "category": "mark price + funding (1s)",
+          "msgs": 600,
+          "rows": 600,
+          "windowRawMB": "0.134",
+          "windowGzipMB": "0.010",
+          "perDay": {
+            "rawMB": "19.4",
+            "gzipMB": "1.4",
+            "brotliMB": "1.2",
+            "zstdMB": "1.6",
+            "columnarUncompressedMB": "3.5"
+          },
+          "perYearGzipGB": "0.5"
+        }
+      ],
+      "allStreamsPerDay": {
+        "rawMB": "259.2",
+        "gzipMB": "21.1"
+      }
+    },
+    "TMFUSDT": {
+      "rankByTrades": "655 of 727 USDT pairs",
+      "trades24h": 2602,
+      "quoteVolume24hUSD": 176456,
+      "windowRepresentativeness": "observed trade rate × day = 432 vs 24h count 2602 (17%)",
+      "restSnapshots": {
+        "depthSnapshotBytes": 23802,
+        "depthSnapshotGzip": 5179,
+        "depthLevels": 1171,
+        "kline1mRowJsonBytes": 101.583
+      },
+      "streams": [
+        {
+          "stream": "trade",
+          "category": "trades",
+          "msgs": 3,
+          "rows": 3,
+          "windowRawMB": "0.001",
+          "windowGzipMB": "0.000",
+          "perDay": {
+            "rawMB": "0.077",
+            "gzipMB": "0.027",
+            "brotliMB": "0.023",
+            "zstdMB": "0.025",
+            "columnarUncompressedMB": "0.014"
+          },
+          "perYearGzipGB": "0.0"
+        },
+        {
+          "stream": "aggTrade",
+          "category": "trades (aggregated)",
+          "msgs": 12,
+          "rows": 12,
+          "windowRawMB": "0.002",
+          "windowGzipMB": "0.000",
+          "perDay": {
+            "rawMB": "0.356",
+            "gzipMB": "0.068",
+            "brotliMB": "0.056",
+            "zstdMB": "0.061",
+            "columnarUncompressedMB": "0.071"
+          },
+          "perYearGzipGB": "0.0"
+        },
+        {
+          "stream": "kline_1m",
+          "category": "ohlcv (live kline pushes)",
+          "msgs": 16,
+          "rows": 16,
+          "windowRawMB": "0.005",
+          "windowGzipMB": "0.001",
+          "perDay": {
+            "rawMB": "0.756",
+            "gzipMB": "0.097",
+            "brotliMB": "0.085",
+            "zstdMB": "0.098",
+            "columnarUncompressedMB": "0.111"
+          },
+          "perYearGzipGB": "0.0"
+        },
+        {
+          "stream": "ticker",
+          "category": "ticker (24h rolling, 1s)",
+          "msgs": 6,
+          "rows": 6,
+          "windowRawMB": "0.002",
+          "windowGzipMB": "0.000",
+          "perDay": {
+            "rawMB": "0.290",
+            "gzipMB": "0.067",
+            "brotliMB": "0.056",
+            "zstdMB": "0.063",
+            "columnarUncompressedMB": "0.086"
+          },
+          "perYearGzipGB": "0.0"
+        },
+        {
+          "stream": "bookTicker",
+          "category": "top of book (every change)",
+          "msgs": 56,
+          "rows": 56,
+          "windowRawMB": "0.012",
+          "windowGzipMB": "0.001",
+          "perDay": {
+            "rawMB": "1.7",
+            "gzipMB": "0.158",
+            "brotliMB": "0.139",
+            "zstdMB": "0.154",
+            "columnarUncompressedMB": "0.323"
+          },
+          "perYearGzipGB": "0.1"
+        },
+        {
+          "stream": "depth20@100ms",
+          "category": "L2 top-20 snapshots (100ms)",
+          "msgs": 59,
+          "rows": 2360,
+          "windowRawMB": "0.063",
+          "windowGzipMB": "0.003",
+          "perDay": {
+            "rawMB": "9.0",
+            "gzipMB": "0.429",
+            "brotliMB": "0.355",
+            "zstdMB": "0.393",
+            "columnarUncompressedMB": "5.8"
+          },
+          "perYearGzipGB": "0.2"
+        },
+        {
+          "stream": "depth@100ms",
+          "category": "L2 full diff deltas (100ms)",
+          "msgs": 184,
+          "rows": 473,
+          "windowRawMB": "0.050",
+          "windowGzipMB": "0.007",
+          "perDay": {
+            "rawMB": "7.2",
+            "gzipMB": "1.0",
+            "brotliMB": "0.942",
+            "zstdMB": "1.0",
+            "columnarUncompressedMB": "1.2"
+          },
+          "perYearGzipGB": "0.4"
+        },
+        {
+          "stream": "markPrice@1s",
+          "category": "mark price + funding (1s)",
+          "msgs": 600,
+          "rows": 600,
+          "windowRawMB": "0.136",
+          "windowGzipMB": "0.013",
+          "perDay": {
+            "rawMB": "19.5",
+            "gzipMB": "1.9",
+            "brotliMB": "1.8",
+            "zstdMB": "2.0",
+            "columnarUncompressedMB": "3.5"
+          },
+          "perYearGzipGB": "0.7"
+        }
+      ],
+      "allStreamsPerDay": {
+        "rawMB": "38.9",
+        "gzipMB": "3.8"
+      }
+    }
+  },
+  "wholeExchange": {
+    "market": "usdm",
+    "activeSymbols": 775,
+    "totalTrades24h": 139590774,
+    "busySymbolShareOfTrades": "0.9%",
+    "ohlcv1mPerYear": "20.4 GB raw (775 symbols × 525,600 rows × ~50 B)",
+    "streams": [
+      {
+        "stream": "trade",
+        "category": "trades",
+        "fittedExponent": 1.09,
+        "exchangeGzipGBPerDay": "1.1",
+        "exchangeGzipTBPerYear": "0.39",
+        "check": [
+          "DEXEUSDT: predicted 0.3 MB/day, measured 0.4",
+          "GWEIUSDT: predicted 0.7 MB/day, measured 0.4",
+          "TMFUSDT: predicted 0.0 MB/day, measured 0.0"
+        ]
+      },
+      {
+        "stream": "aggTrade",
+        "category": "trades (aggregated)",
+        "fittedExponent": 0.96,
+        "exchangeGzipGBPerDay": "2.2",
+        "exchangeGzipTBPerYear": "0.81",
+        "check": [
+          "DEXEUSDT: predicted 0.8 MB/day, measured 1.1",
+          "GWEIUSDT: predicted 1.9 MB/day, measured 1.4",
+          "TMFUSDT: predicted 0.1 MB/day, measured 0.1"
+        ]
+      },
+      {
+        "stream": "kline_1m",
+        "category": "ohlcv (live kline pushes)",
+        "fittedExponent": 0.72,
+        "exchangeGzipGBPerDay": "1.0",
+        "exchangeGzipTBPerYear": "0.35",
+        "check": [
+          "DEXEUSDT: predicted 0.6 MB/day, measured 1.1",
+          "GWEIUSDT: predicted 1.1 MB/day, measured 0.8",
+          "TMFUSDT: predicted 0.1 MB/day, measured 0.1"
+        ]
+      },
+      {
+        "stream": "ticker",
+        "category": "ticker (24h rolling, 1s)",
+        "fittedExponent": 0.48,
+        "exchangeGzipGBPerDay": "0.4",
+        "exchangeGzipTBPerYear": "0.15",
+        "check": [
+          "DEXEUSDT: predicted 0.4 MB/day, measured 0.9",
+          "GWEIUSDT: predicted 0.6 MB/day, measured 0.8",
+          "TMFUSDT: predicted 0.1 MB/day, measured 0.1"
+        ]
+      },
+      {
+        "stream": "bookTicker",
+        "category": "top of book (every change)",
+        "fittedExponent": 0.63,
+        "exchangeGzipGBPerDay": "23.2",
+        "exchangeGzipTBPerYear": "8.46",
+        "check": [
+          "DEXEUSDT: predicted 17.5 MB/day, measured 4.4",
+          "GWEIUSDT: predicted 30.3 MB/day, measured 1.7",
+          "TMFUSDT: predicted 2.9 MB/day, measured 0.2"
+        ]
+      },
+      {
+        "stream": "depth20@100ms",
+        "category": "L2 top-20 snapshots (100ms)",
+        "fittedExponent": 0.33,
+        "exchangeGzipGBPerDay": "6.6",
+        "exchangeGzipTBPerYear": "2.39",
+        "check": [
+          "DEXEUSDT: predicted 7.4 MB/day, measured 5.8",
+          "GWEIUSDT: predicted 9.8 MB/day, measured 5.0",
+          "TMFUSDT: predicted 2.9 MB/day, measured 0.4"
+        ]
+      },
+      {
+        "stream": "depth@100ms",
+        "category": "L2 full diff deltas (100ms)",
+        "fittedExponent": 0.79,
+        "exchangeGzipGBPerDay": "24.8",
+        "exchangeGzipTBPerYear": "9.06",
+        "check": [
+          "DEXEUSDT: predicted 13.7 MB/day, measured 6.0",
+          "GWEIUSDT: predicted 27.2 MB/day, measured 9.6",
+          "TMFUSDT: predicted 1.4 MB/day, measured 1.0"
+        ]
+      },
+      {
+        "stream": "markPrice@1s",
+        "category": "mark price + funding (1s)",
+        "fittedExponent": 0.03,
+        "exchangeGzipGBPerDay": "1.5",
+        "exchangeGzipTBPerYear": "0.53",
+        "check": [
+          "DEXEUSDT: predicted 1.9 MB/day, measured 1.2",
+          "GWEIUSDT: predicted 1.9 MB/day, measured 1.4",
+          "TMFUSDT: predicted 1.7 MB/day, measured 1.9"
+        ]
+      }
+    ],
+    "note": "Power-law fit through two symbols; rerun with more --symbols for a better fit. Streams overlap (trade vs aggTrade, depth20 vs depth diff): a store keeps one of each pair."
+  }
+}

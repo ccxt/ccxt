@@ -101,41 +101,53 @@ The simulator merges several sources by `localTs` (e.g. trades from Tardis + fun
 - **Point-in-time `markets` snapshots** (precision, limits, fees, listing/delisting) stored daily. No surveyed crypto framework has this; it is a CCXT differentiator.
 - Gaps are reported, never silently filled.
 
-### 5.4 Storage sizing (preliminary — to be replaced by measurement)
+### 5.4 Storage sizing (measured on Binance, 2026-09-27)
 
-These figures are **estimates, not measurements**. The measurement script (`research_notes/Trading simulation design research/measure-binance-data-volume.mjs`) could not run here because the environment blocks exchange hosts. When run, it measures a busy symbol and a quiet one, fits a size-vs-activity curve per stream, and sums it over every symbol using Binance's own 24h trade counts. That replaces the assumptions below.
+**Method.** `research_notes/Trading simulation design research/measure-binance-data-volume.mjs` recorded raw public WebSocket frames for 10 minutes: each frame plus a local timestamp, which is exactly what a recorder would store. It ran on Binance spot and USD-M perpetuals, with one busy symbol (BTC/USDT) and several quieter ones picked by 24h trade-count rank. Sizes are gzip-9 of the raw frames, scaled to a day. Raw results are in `research_notes/…/measurements/`. For comparison, brotli came out about 5% smaller than gzip, and zstd at its default level 10–20% larger.
 
-**Inputs used:**
-- BTC/USDT from Binance's published daily files: trades 24–27 MB/day zipped, aggTrades ~16 MB, futures bookTicker ~54 MB. A vendor figure puts full L2 diffs for the BTCUSDT perpetual at 1–2 GB/day compressed (moderate confidence).
-- Binance has roughly **2,000 active symbols** (≈1,400 spot, ≈500 USD-M, ≈50 COIN-M). This is an approximation; the script reads the real count.
-- BTC/USDT is assumed to be 5–10% of an exchange's trades, so exchange-wide trades are about 10–20× BTC's.
-- The long tail of quiet symbols is assumed at 20–100 MB/day each for full L2 diffs, because quoting bots keep updating even quiet books. **This is the biggest unknown and the main reason to measure a quiet symbol.**
+Caveats:
+- 10 minutes is a small sample. The BTC spot window was about 2.3× busier than Binance's own 24h average for that symbol, so per-day BTC spot figures are roughly 2× high. The BTC perpetual's second run matched its 24h average (103%).
+- A Sunday sample. Weekday and volatile-day traffic is higher.
+- COIN-M futures and options were not measured.
 
-**One symbol (BTC/USDT), per year:**
+**Measured, per symbol per day (gzip of raw frames):**
 
-| Data | Per day | Per year |
-|---|---|---|
-| OHLCV 1m | ~70 KB | ~25 MB |
-| Trades | 24–27 MB | ~9–10 GB |
-| Best bid/ask updates | ~54 MB | ~20 GB |
-| Full L2 diffs (perp) | 1–2 GB | ~0.4–0.7 TB |
+| Stream | BTC spot | BTC perp | Quiet spot (3 pairs, rank 249–447 of 496) | Quiet perp (4 pairs, rank 184–655 of 727) |
+|---|---|---|---|---|
+| Trades | 16 MB | 10–22 MB | 0.02–0.2 MB | 0.03–0.4 MB |
+| 1m kline pushes | 2 MB | 6–7 MB | 0.1–0.4 MB | 0.1–1.1 MB |
+| 24h ticker (1 s) | 5 MB | 2 MB | 0.6–1.8 MB | 0.1–0.9 MB |
+| Best bid/ask (every change) | 61–65 MB | 142–285 MB | 0.6–11.5 MB | 0.2–8.3 MB |
+| L2 top-20 snapshots (100 ms) | 28–30 MB | 22–43 MB | 1.8–10.2 MB | 0.4–5.8 MB |
+| **L2 full diffs (100 ms)** | **113–122 MB** | **187–387 MB** | **1.8–11.3 MB** | **1.0–9.6 MB** |
+| Everything | 237–253 MB | 390–766 MB | 5.5–36 MB | 3.8–21 MB |
 
-**All symbols on one exchange (Binance, spot + derivatives), per year:**
+For reference, Binance's own daily trade files for BTC/USDT are 24–27 MB zipped, consistent with these numbers.
 
-| Data | Estimate per year | How |
-|---|---|---|
-| OHLCV 1m (all timeframes derivable) | **~50 GB raw, ~10–20 GB compressed** | 2,000 symbols × 525,600 rows × ~50 B |
-| Trades | **~0.2–0.4 TB** | 10–20× BTC per market type, spot + USD-M |
-| Best bid/ask (bookTicker) | **~0.4–1.2 TB** | 10–30× BTC per market type |
-| 24h rolling tickers @1s | ~3–6 TB | 86,400 msgs/day/symbol; **not worth storing** — rebuild from trades and book |
-| Full L2 diffs + periodic snapshots | **~20–110 TB** | ~50 busy symbols × 0.3–2 GB/day + ~1,950 quiet × 20–100 MB/day |
-| Top-20 snapshots @100ms, every symbol | ~35–150 TB | fixed ~1 GB/day raw per symbol, pushed even when little changes; **worse than diffs** — use diffs, or 1 s snapshots (10× smaller) |
+**Findings:**
+- **Order-book traffic doesn't follow trading activity.** A pair with 4,000 trades a day (WBETH/USDT) produced more book traffic than one with 10,000 (BAT/USDT). Market makers requote regardless of trading. So a curve fitted on trade counts overestimates book data for the long tail by 3–10×. The whole-exchange estimate below therefore uses measured tail medians instead of that fit.
+- **Most quiet symbols cost 2–6 MB/day each for full L2 diffs.** That is well below the 20–100 MB assumed in the earlier estimate.
+- **Diffs beat snapshots only on busy books.** On quiet books, top-20 snapshots every 100 ms are about the same size as full diffs. Diffs plus a periodic snapshot remain the right default, because they are complete and seekable.
+
+**Whole-exchange estimate, per year.** Binance has 1,368 trading spot symbols and 775 USD-M perpetuals. The model for each market is:
+- the long tail: every symbol at the measured tail range;
+- plus ~25 head symbols averaging about ⅓ of BTC. This head assumption is unmeasured and contributes 20–35% of the total.
+
+| Data | Spot | USD-M | **Binance total / year** |
+|---|---|---|---|
+| OHLCV 1m (backfilled via REST, ~50 B/row) | 36 GB raw | 20 GB raw | **~56 GB raw, ~10–15 GB compressed** |
+| Trades | 0.15–0.3 TB | ~0.4 TB | **~0.5–0.7 TB** |
+| Best bid/ask | 0.8–2.3 TB | 1.5–1.8 TB | **~2.3–4 TB** |
+| L2 full diffs + periodic snapshots | 1.5–3 TB | ~2.5 TB | **~4–5.5 TB** |
+| L2 top-20 @100 ms (alternative to diffs) | ~1.2 TB | ~1.6 TB | ~2.8 TB |
+| Tickers + mark price (1 s) | ~0.3 TB | ~0.7 TB | ~1 TB; don't store — rebuild from trades and book |
 
 **What this means for the design:**
-- **Without order books (OHLCV + trades + bid/ask) a whole exchange is roughly 0.5–1.5 TB per year.** That fits on one local disk, so "all symbols, all history" is realistic for users at this tier.
-- **Full L2 for a whole exchange is tens of TB per year.** Nobody should record that by default. The recorder and importers should be per symbol and per window: e.g. L2 for the 5–20 pairs a strategy actually trades is roughly 1–10 TB per year, and much less for a few recorded weeks.
-- Default tiers: OHLCV for everything, trades for traded pairs, L2 only on request. Store L2 as diffs plus a snapshot every few minutes (for seeking), not as repeated full snapshots.
-- Across the ~10 largest exchanges, multiply roughly by 3–5× (Binance is the largest venue, so this is a loose upper-bound guess).
+- **Candles + trades for every Binance symbol: well under 1 TB per year.** That fits on a laptop disk, so "all symbols, full history" is realistic by default at this tier.
+- **Adding best bid/ask and full L2 for every symbol: roughly 7–10 TB per year** for Binance spot + USD-M as gzip'd raw frames. That is a single large disk or a NAS, not a data centre, but it is still too much to record by default. Keep L2 opt-in per symbol and window. For example, the top 20 pairs cost about 1.5–3 TB/year; a handful of quiet pairs cost a few GB a month.
+- **Across the ~10 largest exchanges, very roughly 3–5× Binance:** about 20–50 TB/year for everything, including full L2 on every symbol. This is a loose extrapolation. Binance is the largest venue, but others (OKX, Bybit) also run large derivatives books.
+- **Storage format.** Keep raw frames as the source of truth: gzip or brotli, daily files per symbol per stream. Derive columnar tables from them. Columnar compression wasn't measured; the script only estimates uncompressed columnar row sizes.
+- **Re-measure before committing to numbers.** Record a few hours on a weekday and a volatile day, and add COIN-M and options.
 
 ## 6. Using Tardis.dev
 

@@ -14,11 +14,21 @@ import WebSocket from 'ws';
 import zlib from 'node:zlib';
 import fs from 'node:fs';
 
-const args = Object.fromEntries (process.argv.slice (2).join (' ').split ('--').filter (Boolean).map ((a) => a.trim ().split (/\s+/)));
-const MINUTES = Number (args.minutes?.[0] ?? 10);
-const MARKET = args.market?.[0] ?? 'spot';
+const args = {};
+const argv = process.argv.slice (2);
+for (let i = 0; i < argv.length; i++) {
+    if (argv[i].startsWith ('--')) {
+        args[argv[i].slice (2)] = argv[i + 1];
+        i++;
+    }
+}
+const MINUTES = Number (args.minutes ?? 10);
+const MARKET = args.market ?? 'spot';
 const REST = (MARKET === 'usdm') ? 'https://fapi.binance.com/fapi/v1' : 'https://api.binance.com/api/v3';
-const WS = (MARKET === 'usdm') ? 'wss://fstream.binance.com/stream?streams=' : 'wss://stream.binance.com:443/stream?streams=';
+// USD-M futures split market streams across two endpoints (mirrors binance.getFutureWsCategory in ccxt pro):
+// depth, bookTicker and trade on /public, everything else on /market
+const futureWsCategory = (suffix) => ((suffix.startsWith ('depth') || suffix === 'bookTicker' || suffix === 'trade') ? 'public' : 'market');
+const wsUrlFor = (suffix) => ((MARKET === 'usdm') ? `wss://fstream.binance.com/${futureWsCategory (suffix)}/stream?streams=` : 'wss://stream.binance.com:443/stream?streams=');
 let agent;
 if (process.env.HTTPS_PROXY) {
     const { HttpsProxyAgent } = await import ('https-proxy-agent');
@@ -32,9 +42,17 @@ async function get (path) {
     return { text, json: JSON.parse (text) };
 }
 
-async function pickSymbols () {
-    const wanted = (args.symbols?.[0] ?? 'BTCUSDT,auto').split (',');
+// the 24h ticker also lists halted and delisted pairs, so keep only symbols whose status is TRADING
+async function tradingTickers () {
+    const { json: info } = await get ((MARKET === 'usdm') ? '/exchangeInfo' : '/exchangeInfo?permissions=SPOT');
+    const trading = new Set (info.symbols.filter ((x) => x.status === 'TRADING').map ((x) => x.symbol));
     const { json: all } = await get ('/ticker/24hr');
+    return all.filter ((t) => trading.has (t.symbol));
+}
+
+async function pickSymbols () {
+    const wanted = (args.symbols ?? 'BTCUSDT,auto').split (',');
+    const all = await tradingTickers ();
     const usdt = all.filter ((t) => t.symbol.endsWith ('USDT') && Number (t.count) > 0).sort ((a, b) => Number (b.count) - Number (a.count));
     const out = [];
     for (const w of wanted) {
@@ -59,7 +77,6 @@ const STREAMS = {
     'depth@100ms': 'L2 full diff deltas (100ms)',
 };
 if (MARKET === 'usdm') {
-    delete STREAMS['trade'];            // usdm has no raw trade stream
     STREAMS['markPrice@1s'] = 'mark price + funding (1s)';
 }
 
@@ -78,9 +95,15 @@ async function record (symbols) {
     const names = lower.flatMap ((s) => Object.keys (STREAMS).map ((k) => `${s}@${k}`));
     const acc = {};
     for (const n of names) acc[n] = { msgs: 0, rows: 0, bytes: 0, chunks: [] };
-    const ws = new WebSocket (WS + names.join ('/'), { agent });
+    // group streams by endpoint URL, one connection per endpoint
+    const byUrl = {};
+    for (const n of names) {
+        const url = wsUrlFor (n.slice (n.indexOf ('@') + 1));
+        (byUrl[url] = byUrl[url] ?? []).push (n);
+    }
+    const sockets = Object.entries (byUrl).map (([ url, group ]) => new WebSocket (url + group.join ('/'), { agent }));
     let reconnects = 0;
-    ws.on ('message', (buf) => {
+    const onMessage = (buf) => {
         const localTs = Date.now ();
         const text = buf.toString ();
         const { stream, data } = JSON.parse (text);
@@ -92,16 +115,21 @@ async function record (symbols) {
         a.rows += rowsOf (suffix, data);
         a.bytes += Buffer.byteLength (line);
         a.chunks.push (line);
-    });
-    ws.on ('close', () => { reconnects += 1; });
-    await new Promise ((res, rej) => { ws.once ('open', res); ws.once ('error', rej); });
+    };
+    for (const ws of sockets) {
+        ws.on ('message', onMessage);
+        ws.on ('close', () => { reconnects += 1; });
+    }
+    await Promise.all (sockets.map ((ws) => new Promise ((res, rej) => { ws.once ('open', res); ws.once ('error', rej); })));
     const t0 = Date.now ();
     process.stderr.write (`recording ${names.length} streams for ${MINUTES} min…\n`);
     const timer = setInterval (() => process.stderr.write (`  ${((Date.now () - t0) / 60000).toFixed (1)} min\n`), 60000);
     await new Promise ((res) => setTimeout (res, MINUTES * 60000));
     clearInterval (timer);
-    ws.close ();
-    return { acc, seconds: (Date.now () - t0) / 1000, reconnects };
+    const seconds = (Date.now () - t0) / 1000;
+    const closedEarly = reconnects;
+    for (const ws of sockets) ws.close ();
+    return { acc, seconds, reconnects: closedEarly };
 }
 
 function compress (chunks) {
@@ -171,7 +199,7 @@ for (const s of picked.symbols) {
 // OHLCV is exact arithmetic: 1440 one-minute rows per symbol per day.
 if (picked.symbols.length >= 2) {
     const [ busy, quiet ] = picked.symbols;
-    const { json: all } = await get ('/ticker/24hr');
+    const all = await tradingTickers ();
     const counts = all.map ((t) => Number (t.count)).filter ((n) => n > 0);
     const totalTrades = counts.reduce ((x, y) => x + y, 0);
     const perStream = [];
@@ -186,7 +214,13 @@ if (picked.symbols.length >= 2) {
         const a = yb / Math.pow (tb, k);
         const dayMB = counts.reduce ((sum, t) => sum + a * Math.pow (t, k), 0);
         totalDay += dayMB;
-        perStream.push ({ stream: suffix, category: STREAMS[suffix], fittedExponent: Number (k.toFixed (2)), exchangeGzipGBPerDay: (dayMB / 1e3).toFixed (1), exchangeGzipTBPerYear: (dayMB * 365 / 1e6).toFixed (2) });
+        // any extra symbols are a check on the fit: predicted vs measured
+        const check = picked.symbols.slice (2).map ((x) => {
+            const measured = Number (report.symbols[x].streams.find ((r) => r.stream === suffix).perDay.gzipMB);
+            const predicted = a * Math.pow (picked.stats[x].trades24h, k);
+            return `${x}: predicted ${predicted.toFixed (1)} MB/day, measured ${measured.toFixed (1)}`;
+        });
+        perStream.push ({ stream: suffix, category: STREAMS[suffix], fittedExponent: Number (k.toFixed (2)), exchangeGzipGBPerDay: (dayMB / 1e3).toFixed (1), exchangeGzipTBPerYear: (dayMB * 365 / 1e6).toFixed (2), check });
     }
     const ohlcvRaw = counts.length * 1440 * 365 * 50;
     report.wholeExchange = {
