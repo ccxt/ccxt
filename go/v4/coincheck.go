@@ -534,7 +534,7 @@ func (this *Coincheck) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArg
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Coincheck) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Coincheck) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// fetchOpenOrders
 	//
@@ -628,7 +628,7 @@ func (this *Coincheck) fetchOrderBookBody(ch chan AsyncResult[any], symbol strin
 	ch <- AsyncResult[any]{Value: this.ParseOrderBook(response, market["symbol"])}
 	return nil
 }
-func (this *Coincheck) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Coincheck) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "last":4192632.0,
@@ -1292,7 +1292,7 @@ func (this *Coincheck) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coincheck) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Coincheck) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//

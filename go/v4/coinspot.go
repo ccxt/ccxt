@@ -731,7 +731,7 @@ func (this *Coinspot) fetchOrderBookBody(ch chan AsyncResult[any], symbol string
 	ch <- AsyncResult[any]{Value: this.ParseOrderBook(orderbook, market["symbol"], nil, "buyorders", "sellorders", "rate", "amount")}
 	return nil
 }
-func (this *Coinspot) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Coinspot) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "btc":{

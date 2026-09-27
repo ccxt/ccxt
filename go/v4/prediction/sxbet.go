@@ -2762,7 +2762,7 @@ func (this *Sxbet) fetchTickersBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 		if ccxt.IsGreaterThan(end, hashesLength) {
 			end = hashesLength
 		}
-		var chunk any = this.ArraySlice(hashesOrder, start, end)
+		var chunk []any = this.ArraySlice(hashesOrder, start, end)
 
 		r2 := <-this.FetchSxbetBestOddsAsync(chunk, params)
 		if r2.Err != nil {

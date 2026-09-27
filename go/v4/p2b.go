@@ -594,7 +594,7 @@ func (this *P2b) fetchTickerBody(ch chan AsyncResult[any], symbol string, option
 	}, this.ParseTicker(result, market))}
 	return nil
 }
-func (this *P2b) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *P2b) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// parseTickers
 	//
@@ -1606,7 +1606,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: orders}
 	return nil
 }
-func (this *P2b) ParseOrder(order any, optionalArgs ...any) any {
+func (this *P2b) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// cancelOrder, fetchOpenOrders, createOrder
 	//

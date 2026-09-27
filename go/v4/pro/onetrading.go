@@ -897,12 +897,12 @@ func (this *Onetrading) HandleOrders(client any, message map[string]any) {
 	}
 	var orders any = this.Orders
 	for i := 0; i < len(rawOrders); i++ {
-		var order map[string]any = ccxt.MapTyped(this.ParseOrder(func() any {
+		var order map[string]any = this.ParseOrder(func() any {
 			if i >= 0 && i < len(rawOrders) {
 				return ccxt.DerefScalar(rawOrders[i])
 			}
 			return nil
-		}()))
+		}())
 		var symbol *string = this.SafeString(order, "symbol", "")
 		orders.(ccxt.Appender).Append(order)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, "orders:"+*symbol)
@@ -1181,7 +1181,7 @@ func (this *Onetrading) HandleAccountUpdate(client any, message map[string]any) 
 		}
 		orders.(ccxt.Appender).Append(orderObject)
 	} else {
-		var parsed any = this.ParseOrder(update)
+		var parsed map[string]any = this.ParseOrder(update)
 		symbol = this.SafeString(parsed, "symbol", "")
 		orders.(ccxt.Appender).Append(parsed)
 	}

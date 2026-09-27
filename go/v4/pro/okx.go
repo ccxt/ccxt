@@ -915,12 +915,12 @@ func (this *Okx) HandleTicker(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var newTickers map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(func() any {
+		var ticker map[string]any = this.ParseTicker(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}()))
+		}())
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		ccxt.AddElementToObject(newTickers, symbol, ticker)
 	}
@@ -2966,7 +2966,7 @@ func (this *Okx) HandleMyTrades(client any, message map[string]any) {
 		}()
 		var tradeId *string = this.SafeString(rawOrder, "tradeId", "")
 		if len(*tradeId) > 0 {
-			var order map[string]any = ccxt.MapTyped(this.ParseOrder(rawOrder))
+			var order map[string]any = this.ParseOrder(rawOrder)
 			filteredOrders = append(filteredOrders, order)
 		}
 	}

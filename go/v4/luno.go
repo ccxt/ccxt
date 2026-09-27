@@ -536,7 +536,7 @@ func (this *Luno) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(values)}
 	return nil
 }
-func (this *Luno) ParseCurrency(rawCurrency any) any {
+func (this *Luno) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(GetValue(rawCurrency, 0), "native_currency") // first item is guaranteed
 	var code *string = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}
@@ -935,7 +935,7 @@ func (this *Luno) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Luno) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Luno) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "base": "string",
@@ -1224,7 +1224,7 @@ func (this *Luno) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	}
 	return nil
 }
-func (this *Luno) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Luno) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	// {
 	//     "pair":"XBTAUD",
 	//     "timestamp":1642201439301,
@@ -2048,7 +2048,7 @@ func (this *Luno) ParseLedgerComment(comment any) any {
 		"referenceId": referenceId,
 	}
 }
-func (this *Luno) ParseLedgerEntry(entry any, optionalArgs ...any) any {
+func (this *Luno) ParseLedgerEntry(entry any, optionalArgs ...any) map[string]any {
 	// const details = this.safeValue (entry, 'details', {});
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency

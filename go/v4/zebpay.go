@@ -561,7 +561,7 @@ func (this *Zebpay) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs .
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(rows)}
 	return nil
 }
-func (this *Zebpay) ParseCurrency(rawCurrency any) any {
+func (this *Zebpay) ParseCurrency(rawCurrency any) map[string]any {
 	var currencyId *string = this.SafeString(rawCurrency, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var name *string = this.SafeString(rawCurrency, "name")
@@ -1725,7 +1725,7 @@ func (this *Zebpay) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	//    }
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
-	var parsedOrder map[string]any = MapTyped(this.ParseOrder(data))
+	var parsedOrder map[string]any = this.ParseOrder(data)
 
 	ch <- AsyncResult[any]{Value: []any{parsedOrder}}
 	return nil
@@ -1913,7 +1913,7 @@ func (this *Zebpay) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArg
 	ch <- AsyncResult[any]{Value: this.ParseOrder(responseData, market)}
 	return nil
 }
-func (this *Zebpay) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Zebpay) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//      {
 	//          "clientOrderId": "64507d02921f1c0001ff6892-123-zeb",
@@ -1946,7 +1946,7 @@ func (this *Zebpay) ParseOrder(order any, optionalArgs ...any) any {
 	var timeInForce *string = this.SafeString(order, "timeInForce")
 	var status *string = this.SafeStringLower(order, "status")
 	var orderId *string = this.SafeString(order, "orderId")
-	var parsedOrder any = this.SafeOrder(map[string]any{
+	var parsedOrder map[string]any = this.SafeOrder(map[string]any{
 		"id":                  orderId,
 		"clientOrderId":       clientOrderId,
 		"symbol":              symbol,
@@ -2642,7 +2642,7 @@ func (this *Zebpay) ParseTradingFee(fee any, optionalArgs ...any) any {
 		"tierBased":  nil,
 	}
 }
-func (this *Zebpay) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Zebpay) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     [
 	//        {

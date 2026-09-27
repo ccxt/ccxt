@@ -2633,7 +2633,7 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 		if isSwap {
 			typeVar = "swap"
 		}
-		var fakeMarket any = this.SafeMarketStructure(map[string]any{
+		var fakeMarket map[string]any = this.SafeMarketStructure(map[string]any{
 			"type": typeVar,
 		})
 		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(message, fakeMarket))

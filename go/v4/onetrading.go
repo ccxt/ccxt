@@ -523,7 +523,7 @@ func (this *Onetrading) fetchCurrenciesBody(ch chan AsyncResult[any], optionalAr
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(response)}
 	return nil
 }
-func (this *Onetrading) ParseCurrency(rawCurrency any) any {
+func (this *Onetrading) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "code")
 	var code *string = this.SafeCurrencyCode(id)
 	return this.SafeCurrencyStructure(map[string]any{
@@ -1001,7 +1001,7 @@ func (this *Onetrading) ParseFeeTiers(feeTiers any, optionalArgs ...any) map[str
 		"taker": takerFees,
 	}
 }
-func (this *Onetrading) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Onetrading) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// fetchTicker, fetchTickers
 	//
@@ -1173,12 +1173,12 @@ func (this *Onetrading) fetchTickersBody(ch chan AsyncResult[any], optionalArgs 
 	var result map[string]any = map[string]any{}
 	var rawTickers []any = this.ToArray(response)
 	for i := 0; i < len(rawTickers); i++ {
-		var ticker map[string]any = MapTyped(this.ParseTicker(func() any {
+		var ticker map[string]any = this.ParseTicker(func() any {
 			if i >= 0 && i < len(rawTickers) {
 				return DerefScalar(rawTickers[i])
 			}
 			return nil
-		}()))
+		}())
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			result[*symbol] = ticker
@@ -1586,7 +1586,7 @@ func (this *Onetrading) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Onetrading) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Onetrading) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder
 	//
@@ -1966,7 +1966,7 @@ func (this *Onetrading) cancelOrdersBody(ch chan AsyncResult[any], ids any, opti
 	//         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
 	//     ]
 	//
-	var order any = this.SafeOrder(map[string]any{
+	var order map[string]any = this.SafeOrder(map[string]any{
 		"info": response,
 	})
 

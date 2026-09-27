@@ -916,7 +916,7 @@ func (this *Krakenfutures) fetchTickersBody(ch chan AsyncResult[any], optionalAr
 	ch <- AsyncResult[any]{Value: this.ParseTickers(tickers, symbols)}
 	return nil
 }
-func (this *Krakenfutures) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Krakenfutures) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "tag": 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
@@ -1927,7 +1927,7 @@ func (this *Krakenfutures) editOrderBody(ch chan AsyncResult[any], id string, sy
 	var editStatus map[string]any = this.SafeDictMap(response, "editStatus", map[string]any{})
 	var status *string = this.SafeString(editStatus, "status")
 	this.VerifyOrderActionSuccess(status, "editOrder", []any{"filled"})
-	var order map[string]any = MapTyped(this.ParseOrder(editStatus))
+	var order map[string]any = this.ParseOrder(editStatus)
 	order["info"] = response
 
 	ch <- AsyncResult[any]{Value: order}
@@ -1973,7 +1973,7 @@ func (this *Krakenfutures) cancelOrderBody(ch chan AsyncResult[any], id any, opt
 	response := r1.Raw
 	var status *string = this.SafeString(this.SafeDict(response, "cancelStatus", map[string]any{}), "status")
 	this.VerifyOrderActionSuccess(status, "cancelOrder")
-	var order any = map[string]any{}
+	var order map[string]any = map[string]any{}
 	if InOp(response, "cancelStatus") {
 		order = this.ParseOrder(GetValue(response, "cancelStatus"))
 	}
@@ -2623,7 +2623,7 @@ func (this *Krakenfutures) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// LIMIT
 	//
@@ -3483,7 +3483,7 @@ func (this *Krakenfutures) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Krakenfutures) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Krakenfutures) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "asset": "usd",
@@ -4499,7 +4499,7 @@ func (this *Krakenfutures) ParseMarketLeverageTiers(info any, optionalArgs ...an
 	}
 	return tiers
 }
-func (this *Krakenfutures) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Krakenfutures) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	// transfer
 	//
@@ -4649,7 +4649,7 @@ func (this *Krakenfutures) transferBody(ch chan AsyncResult[any], code string, a
 	//        "serverTime": "2022-04-12T01:22:53.420Z"
 	//    }
 	//
-	var transfer any = this.ParseTransfer(response, currency)
+	var transfer map[string]any = this.ParseTransfer(response, currency)
 
 	ch <- AsyncResult[any]{Value: this.Extend(transfer, map[string]any{
 		"amount":      amount,

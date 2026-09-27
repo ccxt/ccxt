@@ -263,7 +263,7 @@ func (this *Bitvavo) HandleTicker(client any, message map[string]any) {
 		}()
 		var marketId *string = this.SafeString(data, "market")
 		var market map[string]any = this.SafeMarket(marketId, nil, "-")
-		var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(data, market))
+		var ticker map[string]any = this.ParseTicker(data, market)
 		var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		result = append(result, ticker)
@@ -2095,7 +2095,7 @@ func (this *Bitvavo) HandleWithdraw(client any, message map[string]any) {
 	// const messageHash = this.buildMessageHash (action, message)
 	var messageHash *string = this.SafeString(message, "requestId")
 	var response map[string]any = this.SafeDictMap(message, "response", map[string]any{})
-	var withdraw map[string]any = ccxt.MapTyped(this.ParseTransaction(response))
+	var withdraw map[string]any = this.ParseTransaction(response)
 	client.(ccxt.ClientInterface).Resolve(withdraw, messageHash)
 }
 
@@ -2527,7 +2527,7 @@ func (this *Bitvavo) HandleSingleOrder(client any, message map[string]any) {
 	//    }
 	//
 	var response map[string]any = this.SafeDictMap(message, "response", map[string]any{})
-	var order map[string]any = ccxt.MapTyped(this.ParseOrder(response))
+	var order map[string]any = this.ParseOrder(response)
 	var messageHash *string = this.SafeString(message, "requestId")
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)
 }
@@ -2614,7 +2614,7 @@ func (this *Bitvavo) HandleOrder(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId, nil, "-")
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "order:" + *symbol
-	var order map[string]any = ccxt.MapTyped(this.ParseOrder(message, market))
+	var order map[string]any = this.ParseOrder(message, market)
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)

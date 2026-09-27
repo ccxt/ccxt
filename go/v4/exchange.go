@@ -854,7 +854,7 @@ type IArrayCache interface {
 	ToArray() []any
 }
 
-func (this *BaseExchange) ArraySlice(array any, first any, second ...any) any {
+func (this *BaseExchange) ArraySlice(array any, first any, second ...any) []any {
 	// limits/indices arrive as typed pointers from the Safe* accessors
 	array = derefScalar(array)
 	first = derefScalar(first)

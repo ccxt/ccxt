@@ -386,7 +386,7 @@ func (this *Kraken) HandleCreateEditOrder(client any, message map[string]any) {
 	//     }
 	//
 	var result map[string]any = this.SafeDictMap(message, "result", map[string]any{})
-	var order map[string]any = ccxt.MapTyped(this.ParseOrder(result))
+	var order map[string]any = this.ParseOrder(result)
 	var messageHash *string = this.SafeString2(message, "reqid", "req_id")
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)
 }
@@ -685,7 +685,7 @@ func (this *Kraken) HandleTicker(client any, message map[string]any) {
 		quoteVolume = ccxt.Precise.StringMul(baseVolume, vwap)
 	}
 	var last *string = this.SafeString(ticker, "last")
-	var result any = this.SafeTicker(map[string]any{
+	var result map[string]any = this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     nil,
 		"datetime":      nil,

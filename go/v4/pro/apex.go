@@ -609,7 +609,7 @@ func (this *Apex) HandleTicker(client any, message map[string]any) {
 	var updateType *string = this.SafeString(message, "type", "")
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var symbol any = nil
-	var parsed any = this.ParseTicker(data)
+	var parsed map[string]any = this.ParseTicker(data)
 	if updateType != nil && *updateType == "snapshot" {
 		parsed = this.ParseTicker(data)
 		symbol = ccxt.DerefScalar(this.SafeString(parsed, "symbol"))
@@ -625,8 +625,8 @@ func (this *Apex) HandleTicker(client any, message map[string]any) {
 		parsed = this.ParseTicker(merged)
 	}
 	var timestamp *int64 = this.SafeIntegerProduct(message, "ts", 0.001)
-	ccxt.AddElementToObject(parsed, "timestamp", timestamp)
-	ccxt.AddElementToObject(parsed, "datetime", this.Iso8601(timestamp))
+	parsed["timestamp"] = timestamp
+	parsed["datetime"] = this.Iso8601(timestamp)
 	ccxt.AddElementToObject(this.Tickers, symbol, parsed)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), messageHash)
@@ -1111,12 +1111,12 @@ func (this *Apex) HandleOrder(client any, lists []any) {
 	var orders any = this.Orders
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(lists); i++ {
-		var parsed map[string]any = ccxt.MapTyped(this.ParseOrder(func() any {
+		var parsed map[string]any = this.ParseOrder(func() any {
 			if i >= 0 && i < len(lists) {
 				return ccxt.DerefScalar(lists[i])
 			}
 			return nil
-		}()))
+		}())
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {
 			symbols[*symbol] = true

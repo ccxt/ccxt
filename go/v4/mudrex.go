@@ -594,7 +594,7 @@ func (this *Mudrex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
 	ch <- AsyncResult[any]{Value: this.FilterByArrayTickers(resultTickers, "symbol", symbols)}
 	return nil
 }
-func (this *Mudrex) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Mudrex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var ms *string = this.SafeString(ticker, "symbol")
@@ -1090,7 +1090,7 @@ func (this *Mudrex) createOrderBody(ch chan AsyncResult[any], symbol string, typ
 		"order_type":   request["order_type"],
 		"trigger_type": request["trigger_type"],
 	})
-	var order map[string]any = MapTyped(this.ParseOrder(merged, market))
+	var order map[string]any = this.ParseOrder(merged, market)
 	order["info"] = data
 
 	ch <- AsyncResult[any]{Value: order}
@@ -1172,7 +1172,7 @@ func (this *Mudrex) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var oms *string = this.SafeString(order, "symbol")

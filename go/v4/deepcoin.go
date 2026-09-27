@@ -1066,7 +1066,7 @@ func (this *Deepcoin) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: this.ParseTickers(tickers, symbolsNormalized)}
 	return nil
 }
-func (this *Deepcoin) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Deepcoin) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "instType": "SWAP",
@@ -1516,7 +1516,7 @@ func (this *Deepcoin) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArg
 	ch <- AsyncResult[any]{Value: this.ParseTransactions(items, currency, since, limit, transactionParams)}
 	return nil
 }
-func (this *Deepcoin) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Deepcoin) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//     {
@@ -1846,7 +1846,7 @@ func (this *Deepcoin) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseLedger(data, currency, since, limit)}
 	return nil
 }
-func (this *Deepcoin) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Deepcoin) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "billId": "1001044652247714",
@@ -1968,19 +1968,19 @@ func (this *Deepcoin) transferBody(ch chan AsyncResult[any], code string, amount
 	//     }
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
-	var transfer any = this.ParseTransfer(data, currency)
+	var transfer map[string]any = this.ParseTransfer(data, currency)
 	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
-		AddElementToObject(transfer, "fromAccount", fromAccount)
-		AddElementToObject(transfer, "toAccount", toAccount)
-		AddElementToObject(transfer, "amount", amount)
+		transfer["fromAccount"] = fromAccount
+		transfer["toAccount"] = toAccount
+		transfer["amount"] = amount
 	}
 
 	ch <- AsyncResult[any]{Value: transfer}
 	return nil
 }
-func (this *Deepcoin) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Deepcoin) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "retCode": 0,
@@ -3316,7 +3316,7 @@ func (this *Deepcoin) cancelOrdersBody(ch chan AsyncResult[any], ids any, option
 	ch <- AsyncResult[any]{Value: this.ParseOrders(data, market)}
 	return nil
 }
-func (this *Deepcoin) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Deepcoin) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// regular order
 	//     {

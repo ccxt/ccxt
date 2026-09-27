@@ -857,7 +857,7 @@ func (this *Derive) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs .
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(currencies)}
 	return nil
 }
-func (this *Derive) ParseCurrency(rawCurrency any) any {
+func (this *Derive) ParseCurrency(rawCurrency any) map[string]any {
 	var currencyId *string = this.SafeString(rawCurrency, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	return this.SafeCurrencyStructure(map[string]any{
@@ -1258,7 +1258,7 @@ func (this *Derive) fetchTickerBody(ch chan AsyncResult[any], symbol string, opt
 	ch <- AsyncResult[any]{Value: this.ParseTicker(data, market)}
 	return nil
 }
-func (this *Derive) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Derive) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "instrument_type": "perp",
@@ -1943,7 +1943,7 @@ func (this *Derive) createOrderBody(ch chan AsyncResult[any], symbol string, typ
 	if rawOrder == nil {
 		rawOrder = this.SafeDict(result, "order", map[string]any{})
 	}
-	var order map[string]any = MapTyped(this.ParseOrder(rawOrder, market))
+	var order map[string]any = this.ParseOrder(rawOrder, market)
 	order["type"] = typeVar
 
 	ch <- AsyncResult[any]{Value: order}
@@ -2125,7 +2125,7 @@ func (this *Derive) editOrderBody(ch chan AsyncResult[any], id string, symbol an
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 	var rawOrder map[string]any = this.SafeDictMap(result, "order", map[string]any{})
-	var order map[string]any = MapTyped(this.ParseOrder(rawOrder, market))
+	var order map[string]any = this.ParseOrder(rawOrder, market)
 
 	ch <- AsyncResult[any]{Value: order}
 	return nil
@@ -2656,7 +2656,7 @@ func (this *Derive) ParseOrderStatus(status *string) *string {
 	}
 	return nil
 }
-func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) any {
+func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "subaccount_id": 130837,
@@ -3596,7 +3596,7 @@ func (this *Derive) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs 
 	ch <- AsyncResult[any]{Value: this.ParseTransactions(events, currency, since, limit, paramsDeriveSubaccountId)}
 	return nil
 }
-func (this *Derive) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Derive) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "timestamp": 1736860533599,

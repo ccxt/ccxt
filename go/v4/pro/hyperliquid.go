@@ -242,7 +242,7 @@ func (this *Hyperliquid) editOrderWsBody(ch chan ccxt.AsyncResult[any], id strin
 	var dataObject map[string]any = ccxt.SafeMapTyped(responseObject, "data")
 	var statuses []any = ccxt.SafeListTyped(dataObject, "statuses")
 	var first any = this.SafeDict(statuses, 0, map[string]any{})
-	var parsedOrder map[string]any = ccxt.MapTyped(this.ParseOrder(first, market))
+	var parsedOrder map[string]any = this.ParseOrder(first, market)
 
 	ch <- ccxt.AsyncResult[any]{Value: parsedOrder}
 	return nil
@@ -2105,7 +2105,7 @@ func (this *Hyperliquid) HandleOrder(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var order map[string]any = ccxt.MapTyped(this.ParseOrder(rawOrder))
+		var order map[string]any = this.ParseOrder(rawOrder)
 		stored.(ccxt.Appender).Append(order)
 		var symbol *string = this.SafeString(order, "symbol")
 		ccxt.AddElementToObject(marketSymbols, symbol, true)

@@ -867,7 +867,7 @@ func (this *Kalshi) ParseMarket(raw any) any {
 	var seriesTicker *string = eventTicker
 	var eventPartsLength int = ccxt.GetArrayLength(eventParts)
 	if eventPartsLength > 1 {
-		var seriesParts any = this.ArraySlice(eventParts, 0, eventPartsLength-1)
+		var seriesParts []any = this.ArraySlice(eventParts, 0, eventPartsLength-1)
 		seriesTicker = ccxt.SafeStringPtr(ccxt.Join(seriesParts, "-"))
 	}
 	// market symbol (no outcome suffix)
@@ -1215,7 +1215,7 @@ func (this *Kalshi) ParsePredictionOpenInterest(interest any, optionalArgs ...an
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.Parse8601(this.SafeString(interest, "updated_time"))
-	var openInterest any = this.SafeOpenInterest(map[string]any{
+	var openInterest map[string]any = this.SafeOpenInterest(map[string]any{
 		"symbol":             this.SafeSymbol(nil, market),
 		"openInterestAmount": this.SafeNumber2(interest, "open_interest_fp", "open_interest"),
 		"openInterestValue":  nil,
@@ -1225,9 +1225,9 @@ func (this *Kalshi) ParsePredictionOpenInterest(interest any, optionalArgs ...an
 		"datetime":           this.Iso8601(timestamp),
 		"info":               interest,
 	}, market)
-	ccxt.AddElementToObject(openInterest, "outcome", this.SafeOutcomeSymbol(nil, market))
-	ccxt.AddElementToObject(openInterest, "outcomeId", this.SafeString(market, "outcomeId"))
-	ccxt.Remove(openInterest, "symbol")
+	openInterest["outcome"] = this.SafeOutcomeSymbol(nil, market)
+	openInterest["outcomeId"] = this.SafeString(market, "outcomeId")
+	delete(openInterest, "symbol")
 	return openInterest
 }
 

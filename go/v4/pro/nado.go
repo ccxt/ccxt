@@ -2567,7 +2567,7 @@ func (this *Nado) ParseWsAllBidsAsks(message map[string]any) any {
 		var ask *string = this.SafeString(bbo, "ask")
 		var maxPrice string = "170141183460469231731687303715884105727"
 		if ccxt.Precise.StringGt(bid, "0") && ccxt.Precise.StringGt(ask, "0") && !ccxt.Precise.StringEquals(bid, maxPrice) && !ccxt.Precise.StringEquals(ask, maxPrice) {
-			var ticker any = this.SafeTicker(map[string]any{
+			var ticker map[string]any = this.SafeTicker(map[string]any{
 				"symbol":    market["symbol"],
 				"timestamp": timestamp,
 				"datetime":  this.Iso8601(timestamp),

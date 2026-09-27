@@ -1283,7 +1283,7 @@ func (this *Bydfi) fetchTickerBody(ch chan AsyncResult[any], symbol string, opti
 	ch <- AsyncResult[any]{Value: this.ParseTicker(ticker, market)}
 	return nil
 }
-func (this *Bydfi) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Bydfi) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// fetchTicker/fetchTickers
 	//     {
@@ -2379,7 +2379,7 @@ func (this *Bydfi) HandleSinceAndUntil(methodName string, optionalArgs ...any) m
 	}
 	return this.Extend(request, paramsUntil)
 }
-func (this *Bydfi) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Bydfi) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder, fetchOpenOrders, fetchOpenOrder
 	//     {
@@ -3509,14 +3509,14 @@ func (this *Bydfi) transferBody(ch chan AsyncResult[any], code string, amount an
 	//         "success": true
 	//     }
 	//
-	var transfer any = this.ParseTransfer(response, currency)
+	var transfer map[string]any = this.ParseTransfer(response, currency)
 	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
-		AddElementToObject(transfer, "currency", code)
-		AddElementToObject(transfer, "fromAccount", fromAccount)
-		AddElementToObject(transfer, "toAccount", toAccount)
-		AddElementToObject(transfer, "amount", amount)
+		transfer["currency"] = code
+		transfer["fromAccount"] = fromAccount
+		transfer["toAccount"] = toAccount
+		transfer["amount"] = amount
 	}
 
 	ch <- AsyncResult[any]{Value: transfer}
@@ -3631,7 +3631,7 @@ func (this *Bydfi) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseTransfers(data, currency, sinceResolved, limit)}
 	return nil
 }
-func (this *Bydfi) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Bydfi) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	// transfer
 	//     {
@@ -3876,7 +3876,7 @@ func (this *Bydfi) fetchTransactionsHelperBody(ch chan AsyncResult[any], typeVar
 	ch <- AsyncResult[any]{Value: this.ParseTransactions(data, currency, since, limit, paramsTransaction)}
 	return nil
 }
-func (this *Bydfi) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Bydfi) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//     {

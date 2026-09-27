@@ -486,7 +486,7 @@ func (this *Revolutx) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {object} currency the raw currency data from the exchange
  * @returns {object} a [currency structure]{@link https://docs.ccxt.com/?id=currency-structure}
  */
-func (this *Revolutx) ParseCurrency(currency any) any {
+func (this *Revolutx) ParseCurrency(currency any) map[string]any {
 	var id *string = this.SafeString2(currency, "id", "symbol", "")
 	var code *string = this.SafeCurrencyCode(id)
 	var name *string = this.SafeString(currency, "name")
@@ -580,14 +580,12 @@ func (this *Revolutx) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs
 		var currencyData map[string]any = this.Extend(currency, map[string]any{
 			"id": key,
 		})
-		var parsed any = this.ParseCurrency(currencyData)
+		var parsed map[string]any = this.ParseCurrency(currencyData)
 		var code *string = this.SafeString(parsed, "code", "")
 		if code != nil && *code == "" {
 			continue
 		}
-		if code != nil {
-			result[*code] = parsed
-		}
+		AddElementToObject(result, code, parsed)
 	}
 
 	ch <- AsyncResult[any]{Value: result}
@@ -603,7 +601,7 @@ func (this *Revolutx) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs
  * @param {object} [market] the market the ticker is for
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var tickerSymbol *string = this.SafeString(ticker, "symbol")
@@ -719,7 +717,7 @@ func (this *Revolutx) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 	for i := 0; i < len(data); i++ {
 		var tickerData map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		tickerData["timestamp"] = timestamp
-		var ticker map[string]any = MapTyped(this.ParseTicker(tickerData))
+		var ticker map[string]any = this.ParseTicker(tickerData)
 		var symbol *string = this.SafeString(ticker, "symbol", "")
 		if symbol != nil && *symbol == "" {
 			continue
@@ -1188,7 +1186,7 @@ func (this *Revolutx) ParseOrderStatus(status *string) *string {
  * @param {object} [market] the market the order was placed in
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Revolutx) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Revolutx) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var orderId *string = this.SafeString2(order, "id", "venue_order_id")
@@ -1356,13 +1354,13 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[any], symbol string, t
 	}()
 	var venueOrderId *string = this.SafeString(orderData, "venue_order_id")
 	var state *string = this.SafeString(orderData, "state")
-	var order map[string]any = MapTyped(this.ParseOrder(this.Extend(orderData, map[string]any{
+	var order map[string]any = this.ParseOrder(this.Extend(orderData, map[string]any{
 		"id":     venueOrderId,
 		"symbol": market["id"],
 		"status": state,
 		"side":   side,
 		"type":   typeVar,
-	}), market))
+	}), market)
 
 	ch <- AsyncResult[any]{Value: order}
 	return nil
@@ -1967,13 +1965,13 @@ func (this *Revolutx) editOrderBody(ch chan AsyncResult[any], id string, symbol 
 	}()
 	var newVenueOrderId *string = this.SafeString(orderData, "venue_order_id")
 	var state *string = this.SafeString(orderData, "state")
-	var order map[string]any = MapTyped(this.ParseOrder(this.Extend(orderData, map[string]any{
+	var order map[string]any = this.ParseOrder(this.Extend(orderData, map[string]any{
 		"id":     newVenueOrderId,
 		"symbol": market["id"],
 		"status": state,
 		"side":   side,
 		"type":   typeVar,
-	}), market))
+	}), market)
 
 	ch <- AsyncResult[any]{Value: order}
 	return nil

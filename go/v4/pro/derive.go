@@ -308,7 +308,7 @@ func (this *Derive) HandleTicker(client any, message map[string]any) any {
 	var rawData map[string]any = ccxt.SafeMapTyped(params, "data")
 	var data map[string]any = this.SafeDictMap(rawData, "instrument_ticker", map[string]any{})
 	var topic *string = this.SafeString(params, "channel")
-	var ticker any = nil
+	var ticker map[string]any = nil
 	if (topic != nil) && strings.HasPrefix(*topic, "ticker_slim") {
 		// the slim payload uses short keys and does not carry the instrument name,
 		// so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
@@ -336,7 +336,7 @@ func (this *Derive) HandleTicker(client any, message map[string]any) any {
 	} else {
 		ticker = this.ParseTicker(data)
 	}
-	var tickerSymbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
+	var tickerSymbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	if tickerSymbol != nil {
 		ccxt.AddElementToObject(this.Tickers, tickerSymbol, ticker)
 	}
@@ -811,7 +811,7 @@ func (this *Derive) HandleOrder(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var parsed map[string]any = ccxt.MapTyped(this.ParseOrder(data))
+		var parsed map[string]any = this.ParseOrder(data)
 		var symbol *string = this.SafeString(parsed, "symbol")
 		var orderId *string = this.SafeString(parsed, "id")
 		if symbol != nil {

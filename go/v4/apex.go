@@ -645,7 +645,7 @@ func (this *Apex) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Apex) ParseCurrency(currency any) any {
+func (this *Apex) ParseCurrency(currency any) map[string]any {
 	var currencyId *string = this.SafeString(currency, "token")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var name *string = this.SafeString(currency, "displayName")
@@ -899,7 +899,7 @@ func (this *Apex) ParseMarket(market any) any {
 		"info":    market,
 	})
 }
-func (this *Apex) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Apex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "symbol": "BTCUSDT",
@@ -1361,7 +1361,7 @@ func (this *Apex) fetchOpenInterestBody(ch chan AsyncResult[any], symbol string,
 	ch <- AsyncResult[any]{Value: this.ParseOpenInterest(rawTicker, market)}
 	return nil
 }
-func (this *Apex) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Apex) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "symbol": "BTCUSDT",
@@ -1496,7 +1496,7 @@ func (this *Apex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optional
 	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)}
 	return nil
 }
-func (this *Apex) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Apex) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "id": "1234",
@@ -2078,7 +2078,7 @@ func (this *Apex) transferBody(ch chan AsyncResult[any], code string, amount any
 		return nil
 	}
 }
-func (this *Apex) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Apex) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transfer, "coin")

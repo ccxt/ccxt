@@ -1168,7 +1168,7 @@ func (this *Cex) HandleOrdersSnapshot(client any, message map[string]any) {
 			return nil
 		}()
 		var market map[string]any = this.SafeMarket(symbol)
-		var order map[string]any = ccxt.MapTyped(this.ParseOrder(rawOrder, market))
+		var order map[string]any = this.ParseOrder(rawOrder, market)
 		order["status"] = "open"
 		myOrders.(ccxt.Appender).Append(order)
 	}

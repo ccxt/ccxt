@@ -306,7 +306,7 @@ func (this *Hashkey) HandleTicker(client any, message any) {
 	//     }
 	//
 	var data []any = ccxt.SafeListTyped(message, "data")
-	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(this.SafeDict(data, 0, map[string]any{})))
+	var ticker map[string]any = this.ParseTicker(this.SafeDict(data, 0, map[string]any{}))
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)

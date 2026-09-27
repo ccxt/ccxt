@@ -534,7 +534,7 @@ func (this *Cryptomus) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArg
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(groupedArray)}
 	return nil
 }
-func (this *Cryptomus) ParseCurrency(rawCurrency any) any {
+func (this *Cryptomus) ParseCurrency(rawCurrency any) map[string]any {
 	// currency here is array of networks
 	var id any = nil // all entries have same id, as they were grouped by
 	var code any = nil
@@ -639,7 +639,7 @@ func (this *Cryptomus) fetchTickersBody(ch chan AsyncResult[any], optionalArgs .
 	ch <- AsyncResult[any]{Value: this.ParseTickers(data, symbolsNormalized)}
 	return nil
 }
-func (this *Cryptomus) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Cryptomus) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "currency_pair": "XMR_USDT",
@@ -1272,7 +1272,7 @@ func (this *Cryptomus) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArg
 	ch <- AsyncResult[any]{Value: this.ParseOrders(result, market, nil, nil)}
 	return nil
 }
-func (this *Cryptomus) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Cryptomus) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder
 	//     {

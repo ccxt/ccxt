@@ -132,7 +132,7 @@ func (this *Alpaca) HandleTicker(client any, message map[string]any) {
 	//         "t": "2022-12-16T06:07:56.611063286Z"
 	//    ]
 	//
-	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(message))
+	var ticker map[string]any = this.ParseTicker(message)
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 	if symbol != nil {
@@ -140,7 +140,7 @@ func (this *Alpaca) HandleTicker(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
-func (this *Alpaca) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Alpaca) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//         "T": "q",
@@ -663,7 +663,7 @@ func (this *Alpaca) HandleOrder(client any, message map[string]any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var orders any = this.Orders
-	var order map[string]any = ccxt.MapTyped(this.ParseOrder(rawOrder))
+	var order map[string]any = this.ParseOrder(rawOrder)
 	orders.(ccxt.Appender).Append(order)
 	var messageHash any = "orders"
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)

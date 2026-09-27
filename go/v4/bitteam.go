@@ -748,7 +748,7 @@ func (this *Bitteam) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs 
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Bitteam) ParseCurrency(currency any) any {
+func (this *Bitteam) ParseCurrency(currency any) map[string]any {
 	var statusesResponse map[string]any = SafeMapTyped(this.Options, "_temp_currencies_statuses")
 	var id *string = this.SafeString(currency, "symbol")
 	var numericId *int64 = this.SafeInteger(currency, "id")
@@ -1578,7 +1578,7 @@ func (this *Bitteam) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	ch <- AsyncResult[any]{Value: this.ParseOrders(orders, market)}
 	return nil
 }
-func (this *Bitteam) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Bitteam) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// fetchOrders
 	//     {
@@ -1828,7 +1828,7 @@ func (this *Bitteam) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 			}
 			return nil
 		}()
-		var ticker map[string]any = MapTyped(this.ParseTicker(rawTicker))
+		var ticker map[string]any = this.ParseTicker(rawTicker)
 		tickers = append(tickers, ticker)
 	}
 
@@ -2061,7 +2061,7 @@ func (this *Bitteam) fetchTickerBody(ch chan AsyncResult[any], symbol string, op
 	ch <- AsyncResult[any]{Value: this.ParseTicker(pair, market)}
 	return nil
 }
-func (this *Bitteam) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Bitteam) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// fetchTicker
 	//     {
@@ -2808,7 +2808,7 @@ func (this *Bitteam) fetchDepositsWithdrawalsBody(ch chan AsyncResult[any], opti
 	ch <- AsyncResult[any]{Value: this.ParseTransactions(transactions, currency, since, limit)}
 	return nil
 }
-func (this *Bitteam) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Bitteam) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": 1329229,

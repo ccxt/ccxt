@@ -480,7 +480,7 @@ func (this *Coinone) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs 
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(currencies)}
 	return nil
 }
-func (this *Coinone) ParseCurrency(rawCurrency any) any {
+func (this *Coinone) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "symbol")
 	var code *string = this.SafeCurrencyCode(id)
 	var isWithdrawEnabled bool = (this.SafeString(rawCurrency, "withdraw_status", "") != nil && *this.SafeString(rawCurrency, "withdraw_status", "") == "normal")
@@ -944,7 +944,7 @@ func (this *Coinone) fetchTickerBody(ch chan AsyncResult[any], symbol string, op
 	ch <- AsyncResult[any]{Value: this.ParseTicker(ticker, market)}
 	return nil
 }
-func (this *Coinone) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Coinone) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "quote_currency": "krw",
@@ -1301,7 +1301,7 @@ func (this *Coinone) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinone) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Coinone) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder
 	//

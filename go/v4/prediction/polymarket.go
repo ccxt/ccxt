@@ -2171,7 +2171,7 @@ func (this *Polymarket) ParsePredictionOpenInterest(interest any, optionalArgs .
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var openInterest any = this.SafeOpenInterest(map[string]any{
+	var openInterest map[string]any = this.SafeOpenInterest(map[string]any{
 		"symbol":             this.SafeOutcomeSymbol(nil, market),
 		"openInterestAmount": nil,
 		"openInterestValue":  this.SafeNumber(interest, "value"),
@@ -2181,10 +2181,10 @@ func (this *Polymarket) ParsePredictionOpenInterest(interest any, optionalArgs .
 		"datetime":           nil,
 		"info":               interest,
 	}, market)
-	ccxt.AddElementToObject(openInterest, "outcome", this.SafeOutcomeSymbol(nil, market))
-	ccxt.AddElementToObject(openInterest, "outcomeId", this.SafeString(market, "outcomeId"))
-	ccxt.AddElementToObject(openInterest, "market", this.SafeString(market, "market"))
-	ccxt.Remove(openInterest, "symbol")
+	openInterest["outcome"] = this.SafeOutcomeSymbol(nil, market)
+	openInterest["outcomeId"] = this.SafeString(market, "outcomeId")
+	openInterest["market"] = this.SafeString(market, "market")
+	delete(openInterest, "symbol")
 	return openInterest
 }
 

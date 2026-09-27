@@ -2845,7 +2845,7 @@ func (this *Bybit) HandleOrderWs(client any, message map[string]any) {
 	//
 	var messageHash *string = this.SafeString(message, "reqId")
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
-	var order map[string]any = ccxt.MapTyped(this.ParseOrder(data))
+	var order map[string]any = this.ParseOrder(data)
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)
 }
 func (this *Bybit) HandleOrder(client any, message map[string]any) {
@@ -2946,7 +2946,7 @@ func (this *Bybit) HandleOrder(client any, message map[string]any) {
 	}
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(rawOrders); i++ {
-		var parsed map[string]any = ccxt.MapTyped(this.ParseOrder(ccxt.GetValue(rawOrders, i)))
+		var parsed map[string]any = this.ParseOrder(ccxt.GetValue(rawOrders, i))
 		// if (isSpot) {
 		//     parsed = this.parseWsSpotOrder (rawOrders[i])
 		// } else {
