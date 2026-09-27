@@ -30,10 +30,10 @@ type ICancelOrderWithClientOrderId interface {
 	CancelOrderWithClientOrderIdAsync(clientOrderId string, optionalArgs ...any) <-chan any
 }
 type ICancelOrdersWithClientOrderIds interface {
-	CancelOrdersWithClientOrderIdsAsync(clientOrderIds any, optionalArgs ...any) <-chan any
+	CancelOrdersWithClientOrderIdsAsync(clientOrderIds any, optionalArgs ...any) <-chan EndpointResult[[]any]
 }
 type IFetchL2OrderBook interface {
-	FetchL2OrderBookAsync(symbol string, optionalArgs ...any) <-chan any
+	FetchL2OrderBookAsync(symbol string, optionalArgs ...any) <-chan EndpointResult[map[string]any]
 }
 type IFetchOpenOrders interface {
 	FetchOpenOrdersAsync(optionalArgs ...any) <-chan any
@@ -220,8 +220,8 @@ type ICoreExchange interface {
 	ParseLiquidation(liquidation any, optionalArgs ...any) any
 	FetchGreeksAsync(symbol string, optionalArgs ...any) <-chan any
 	ParseGreeks(greeks any, optionalArgs ...any) any
-	FetchTradingLimitsAsync(optionalArgs ...any) <-chan any
-	FetchPositionModeAsync(optionalArgs ...any) <-chan any
+	FetchTradingLimitsAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
+	FetchPositionModeAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchMarginModesAsync(optionalArgs ...any) <-chan any
 	FetchOptionAsync(symbol string, optionalArgs ...any) <-chan any
 	FetchMarginAdjustmentHistoryAsync(optionalArgs ...any) <-chan any
