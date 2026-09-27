@@ -4344,7 +4344,7 @@ export default class bybit extends Exchange {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
         }
         // workaround, bcz for some langs we have to allow 0.0 as input (bcz of type)
-        let amountValue = undefined;
+        let amountValue: Num = undefined;
         if (Precise.stringGt (this.numberToString (amount), '0')) {
             amountValue = amount;
         }
