@@ -8103,13 +8103,14 @@ export default class okx extends Exchange {
     /**
      * @method
      * @name okx#fetchOpenInterestHistory
-     * @description Retrieves the open interest history of a currency
-     * @see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-contracts-open-interest-and-volume
-     * @see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-options-open-interest-and-volume
-     * @param {string} symbol Unified CCXT currency code or unified symbol
+     * @description Retrieves the open interest history of a swap or future market, or of a currency when a currency code is given
+     * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-open-interest-history
+     * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contracts-open-interest-and-volume
+     * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-options-open-interest-and-volume
+     * @param {string} symbol unified symbol of a swap or future market for the history of that instrument, otherwise a unified currency code, or the symbol of a spot or option market, for the aggregate over all contracts of the currency
      * @param {string} timeframe "5m", "1h", or "1d" for option only "1d" or "8h"
      * @param {int} [since] The time in ms of the earliest record to retrieve as a unix timestamp
-     * @param {int} [limit] Not used by okx, but parsed internally by CCXT
+     * @param {int} [limit] the maximum number of records to retrieve, at most 100 for a swap or future market; not used by the currency aggregate
      * @param {object} [params] Exchange specific parameters
      * @param {int} [params.until] The time in ms of the latest record to retrieve as a unix timestamp
      * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -8141,6 +8142,53 @@ export default class okx extends Exchange {
         let type: Str = undefined;
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenInterestHistory', market, params);
+        if ((market !== undefined) && ((market['swap'] === true) || (market['future'] === true))) {
+            const instrumentRequest: Dict = {
+                'instId': market['id'],
+                'period': timeframe,
+            };
+            // the venue returns the latest entries first and treats begin and end as exclusive bounds
+            const instrumentLimit = (limit === undefined) ? 100 : Math.min (limit, 100);
+            if (limit !== undefined) {
+                instrumentRequest['limit'] = instrumentLimit;
+            }
+            if (since !== undefined) {
+                instrumentRequest['begin'] = since - 1;
+            }
+            const until = this.safeInteger (params, 'until');
+            params = this.omit (params, [ 'until' ]);
+            let end: Int = undefined;
+            if (until !== undefined) {
+                end = this.sum (until, 1);
+            }
+            if (since !== undefined) {
+                // end the window after `limit` periods, so the venue returns the earliest entries from since on
+                const duration = this.parseTimeframe (timeframe.toLowerCase ()) * 1000;
+                const windowEnd = this.sum (since, instrumentLimit * duration);
+                end = (end === undefined) ? windowEnd : Math.min (end, windowEnd);
+            }
+            if (end !== undefined) {
+                instrumentRequest['end'] = end;
+            }
+            response = await this.publicGetRubikStatContractsOpenInterestHistory (this.extend (instrumentRequest, params));
+            //
+            //    {
+            //        "code": "0",
+            //        "data": [
+            //            [
+            //                "1790550000000",  // timestamp
+            //                "2800476.45",  // open interest (contracts)
+            //                "28006.5419",  // open interest (base currency)
+            //                "2360916466.88",  // open interest (USD)
+            //            ],
+            //            ...
+            //        ],
+            //        "msg": ""
+            //    }
+            //
+            const instrumentData = this.safeList (response, 'data', []) as List;
+            return this.parseOpenInterestsHistory (instrumentData, market, since, limit);
+        }
         if (type === 'option') {
             response = await this.publicGetRubikStatOptionOpenInterestVolume (this.extend (request, params));
         } else {
@@ -8182,6 +8230,15 @@ export default class okx extends Exchange {
         //        "74285877.617",  // volume (USD) - (coin) for options
         //    ]
         //
+        // fetchOpenInterestHistory for a swap or future market
+        //
+        //    [
+        //        "1790550000000",  // timestamp
+        //        "2800476.45",  // open interest (contracts)
+        //        "28006.5419",  // open interest (base currency)
+        //        "2360916466.88",  // open interest (USD)
+        //    ]
+        //
         // fetchOpenInterest
         //
         //     {
@@ -8203,7 +8260,12 @@ export default class okx extends Exchange {
         let openInterestValue: Num = undefined;
         const type = this.safeString (this.options, 'defaultType');
         if (Array.isArray (interest)) {
-            if (type === 'option') {
+            const numFields = interest.length;
+            if (numFields > 3) {
+                openInterestAmount = this.safeNumber (interest, 1);
+                baseVolume = this.safeNumber (interest, 2);
+                openInterestValue = this.safeNumber (interest, 3);
+            } else if (type === 'option') {
                 openInterestAmount = this.safeNumber (interest, 1);
                 baseVolume = this.safeNumber (interest, 2);
             } else {

@@ -1843,11 +1843,52 @@
         ],
         "fetchOpenInterestHistory": [
             {
-                "description": "fetch borrow interest history",
+                "description": "linear swap open interest history",
                 "method": "fetchOpenInterestHistory",
-                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/open-interest-volume?ccy=BTC&period=1D",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/open-interest-history?instId=BTC-USDT-SWAP&period=1D",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap open interest history",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/open-interest-history?instId=BTC-USD-SWAP&period=1H",
+                "input": [
+                    "BTC/USD:BTC",
+                    "1h"
+                ]
+            },
+            {
+                "description": "inverse future open interest history",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/open-interest-history?instId=BTC-USD-261225&period=1D",
+                "input": [
+                    "BTC/USD:BTC-261225",
+                    "1d"
+                ]
+            },
+            {
+                "description": "linear swap open interest history with since, limit and until",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/open-interest-history?instId=BTC-USDT-SWAP&period=1H&limit=3&begin=1790503199999&end=1790514000000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1790503200000,
+                    3,
+                    {
+                        "until": 1790524800000
+                    }
+                ]
+            },
+            {
+                "description": "currency open interest history",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/open-interest-volume?ccy=BTC&period=1H",
+                "input": [
+                    "BTC",
+                    "1h"
                 ]
             }
         ],
