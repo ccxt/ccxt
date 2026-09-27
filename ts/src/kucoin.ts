@@ -3351,7 +3351,7 @@ export default class kucoin extends Exchange {
         }
         const market = this.market (symbol);
         let uta = false;
-        let paramsRequest: Dict = undefined;
+        let paramsRequest = undefined;
         [ uta, paramsRequest ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'uta', uta);
         const priceType = this.safeString (paramsRequest, 'price');
         if ((priceType !== undefined) && (!uta)) {
@@ -5975,7 +5975,7 @@ export default class kucoin extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires an id argument');
         }
         let uta = await this.isUTAEnabled ();
-        let paramsRequest: Dict = undefined;
+        let paramsRequest = undefined;
         [ uta, paramsRequest ] = this.handleOptionBoolAndParams (params, 'fetchOrder', 'uta', uta);
         let paramsOmitted: Dict = paramsRequest;
         if (uta) {
@@ -11520,7 +11520,7 @@ export default class kucoin extends Exchange {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, 'swap', false, true);
         let marginMode = 'cross';
-        let paramsRequest: Dict = undefined;
+        let paramsRequest = undefined;
         [ marginMode, paramsRequest ] = this.handleOptionStringAndParams (params, 'fetchLeverageTiers', 'marginMode', marginMode);
         marginMode = marginMode.toUpperCase ();
         if (marginMode !== 'CROSS') {
