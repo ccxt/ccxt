@@ -17,7 +17,6 @@ func newLighter() *Lighter {
 	base := &ccxt.Lighter{}
 	p.base = base
 	p.Lighter = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -97,7 +96,7 @@ func (this *Lighter) subscribePublicBody(ch chan any, messageHash any, optionalA
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var request map[string]any = map[string]any{
 		"type": "subscribe",
 	}
@@ -119,7 +118,7 @@ func (this *Lighter) subscribePublicMultipleBody(ch chan any, messageHashes any,
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var request map[string]any = map[string]any{
 		"type": "subscribe",
 	}
@@ -141,7 +140,7 @@ func (this *Lighter) unsubscribeBody(ch chan any, messageHash any, optionalArgs 
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var request map[string]any = map[string]any{
 		"type": "unsubscribe",
 	}
@@ -1107,7 +1106,11 @@ func (this *Lighter) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 		messageHash = this.GetMessageHash("myTrades", symbolResolved)
 	}
 	var request map[string]any = map[string]any{
@@ -1608,7 +1611,7 @@ func (this *Lighter) createOrderWsBody(ch chan any, symbol string, typeVar strin
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var requestId any = this.RequestId(url)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("jsonapi/sendtx:", requestId))
 	var txTypetxInfoorderVariable []any = (<-this.SignAndCreateOrderAsync("createOrderWs", symbol, typeVar, side, amount, price, params)).Checked()
@@ -1660,7 +1663,7 @@ func (this *Lighter) cancelOrderWsBody(ch chan any, id string, optionalArgs ...a
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var requestId any = this.RequestId(url)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("jsonapi/sendtx:", requestId))
 	var txTypetxInfoVariable []any = (<-this.SignAndCancelOrderAsync("cancelOrderWs", id, symbol, params)).Checked()
@@ -1710,7 +1713,7 @@ func (this *Lighter) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var requestId any = this.RequestId(url)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("jsonapi/sendtx:", requestId))
 	var txTypetxInfoVariable []any = (<-this.SignAndCancelAllOrdersAsync("cancelAllOrdersWs", symbol, params)).Checked()
@@ -2019,7 +2022,7 @@ func (this *Lighter) HandleTickerUnSubscription(client any, marketId any) {
 				var subscribedChannel *string = this.SafeString(subscriptionParams, "channel")
 				if subscribedChannel != nil && *subscribedChannel == "market_stats/all" {
 					ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
-					if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), subscriptionHash) {
+					if _, ok := client.(ccxt.ClientInterface).GetFutures()[subscriptionHash]; ok {
 						error := ccxt.UnsubscribeError(this.Id + " " + subscriptionHash)
 						client.(ccxt.ClientInterface).Reject(error, subscriptionHash)
 					}

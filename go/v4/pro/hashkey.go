@@ -15,7 +15,6 @@ func newHashkey() *Hashkey {
 	base := &ccxt.Hashkey{}
 	p.base = base
 	p.Hashkey = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -75,7 +74,7 @@ func (this *Hashkey) wathPublicBody(ch chan any, market any, topic string, messa
 		"topic":  topic,
 		"event":  "sub",
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash)))
 	return nil
@@ -97,7 +96,7 @@ func (this *Hashkey) watchPrivateBody(ch chan any, messageHash any) any {
 	return nil
 }
 func (this *Hashkey) GetPrivateUrl(listenKey any) any {
-	var wsUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " getPrivateUrl() has no private websocket url"))
 	}
@@ -574,7 +573,10 @@ func (this *Hashkey) ParseWsOrder(order any, optionalArgs ...any) any {
 	side = ccxt.GetValue(sidereduceOnlyVariable, 0)
 	reduceOnly = ccxt.GetValue(sidereduceOnlyVariable, 1)
 	var typeVar any = this.ParseOrderType(this.SafeString(order, "o"))
-	var timeInForce any = ccxt.DerefScalar(this.SafeString(order, "f"))
+	var timeInForce any
+	if derefPtr := this.SafeString(order, "f"); derefPtr != nil {
+		timeInForce = *derefPtr
+	}
 	var postOnly any = nil
 	typeVartimeInForcepostOnlyVariable := this.ParseOrderTypeTimeInForceAndPostOnly(typeVar, timeInForce)
 	typeVar = ccxt.GetValue(typeVartimeInForcepostOnlyVariable, 0)
@@ -1050,7 +1052,7 @@ func (this *Hashkey) authenticateBody(ch chan any, optionalArgs ...any) any {
 	// the client's own accessors
 	var messageHash string = "authenticateFlight"
 	var client ccxt.ClientInterface = this.Client("authenticationFlights")
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 		// a flight is already in progress - wake when the leader
 		// settles it: the listenKey is then in the bucket
 

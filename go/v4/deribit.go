@@ -805,13 +805,25 @@ func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 	var base any = nil
 	var expiry any = nil
 	if GetIndexOf(symbol, "/") > -1 {
-		base = DerefScalar(this.SafeString(symbolBase, 0))
-		expiry = DerefScalar(this.SafeString(optionParts, 1))
+		if derefPtr := this.SafeString(symbolBase, 0); derefPtr != nil {
+			base = *derefPtr
+		} else {
+			base = nil
+		}
+		if derefPtr := this.SafeString(optionParts, 1); derefPtr != nil {
+			expiry = *derefPtr
+		} else {
+			expiry = nil
+		}
 		if GetIndexOf(symbol, "USDC") > -1 {
 			base = Add(base, "_USDC")
 		}
 	} else {
-		base = DerefScalar(this.SafeString(optionParts, 0))
+		if derefPtr := this.SafeString(optionParts, 0); derefPtr != nil {
+			base = *derefPtr
+		} else {
+			base = nil
+		}
 		expiry = this.ConvertMarketIdExpireDate(this.SafeString(optionParts, 1))
 	}
 	if GetIndexOf(symbol, "USDC") > -1 {
@@ -2033,7 +2045,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(paramsPaginate, "until"))
+			return this.OmitDict(paramsPaginate, "until")
 		}
 		return paramsPaginate
 	}()
@@ -4285,7 +4297,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	var until *int64 = this.SafeInteger2(paramsPaginate, "until", "end_timestamp")
 	var paramsUntil map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(paramsPaginate, []any{"until"}))
+			return this.OmitDict(paramsPaginate, []any{"until"})
 		}
 		return paramsPaginate
 	}()
@@ -5081,7 +5093,7 @@ func (this *Deribit) Sign(path string, optionalArgs ...any) any {
 		var signedHeaders map[string]any = map[string]any{
 			"Authorization": Add(Add(Add(Add(Add(Add(Add(Add("deri-hmac-sha256 id=", this.ApiKey), ",ts="), timestamp), ",sig="), signature), ","), "nonce="), nonce),
 		}
-		var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+		var baseApiUrl *string = this.SafeString(this.Urls["api"], "rest")
 		if baseApiUrl == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
@@ -5093,7 +5105,7 @@ func (this *Deribit) Sign(path string, optionalArgs ...any) any {
 			"headers": signedHeaders,
 		}
 	}
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

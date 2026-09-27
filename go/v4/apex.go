@@ -618,7 +618,7 @@ func (this *Apex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var chains any = this.SafeList(multiChain, "chains", []any{})
 	this.Options.Store("_temp_currencies_chains", chains)
 	var result any = this.ParseCurrencies(rows)
-	Remove(this.Options, "_temp_currencies_chains")
+	this.Options.Delete("_temp_currencies_chains")
 
 	ch <- result
 	return nil
@@ -802,8 +802,14 @@ func (this *Apex) ParseMarket(market any) any {
 	}
 	var symbol string = *baseId + "/" + *quote + ":" + *settle
 	var expiry int = 0
-	var takerFee *float64 = Float64PtrTyped(this.ParseNumber("0.0002"))
-	var makerFee *float64 = Float64PtrTyped(this.ParseNumber("0.0005"))
+	var takerFee *float64
+	if derefNum, isNum := this.ParseNumber("0.0002").(float64); isNum {
+		takerFee = &derefNum
+	}
+	var makerFee *float64
+	if derefNum, isNum := this.ParseNumber("0.0005").(float64); isNum {
+		makerFee = &derefNum
+	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":           id,
 		"id2":          id2,
@@ -1677,7 +1683,11 @@ func (this *Apex) createOrderBody(ch chan any, symbol string, typeVar string, si
 	var orderSize *string = this.AmountToPrecision(symbol, amount)
 	var orderPrice any = "0"
 	if price != nil {
-		orderPrice = DerefScalar(this.PriceToPrecision(symbol, price))
+		if derefPtr := this.PriceToPrecision(symbol, price); derefPtr != nil {
+			orderPrice = *derefPtr
+		} else {
+			orderPrice = nil
+		}
 	}
 	var fees map[string]any = SafeMapTyped(this.Fees, "swap")
 	var taker *string = this.SafeString(fees, "taker", "0.0005")
@@ -1838,7 +1848,7 @@ func (this *Apex) transferBody(ch chan any, code string, amount any, fromAccount
 		assets = spotAssets
 	}
 	for i := 0; i < GetArrayLength(assets); i++ {
-		if IsEqual(this.SafeString(GetValue(assets, i), "token", ""), code) {
+		if *this.SafeString(GetValue(assets, i), "token", "") == code {
 			currency = GetValue(assets, i)
 		}
 	}
@@ -1891,7 +1901,10 @@ func (this *Apex) transferBody(ch chan any, code string, amount any, fromAccount
 		PanicOnError(response)
 		var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 		var currentTime int64 = this.Milliseconds()
-		var parsedAmount *float64 = Float64PtrTyped(this.ParseNumber(amount))
+		var parsedAmount *float64
+		if derefNum, isNum := this.ParseNumber(amount).(float64); isNum {
+			parsedAmount = &derefNum
+		}
 
 		ch <- this.Extend(this.ParseTransfer(data, this.Currency(code)), map[string]any{
 			"timestamp":   currentTime,
@@ -2557,7 +2570,7 @@ func (this *Apex) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

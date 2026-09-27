@@ -2188,7 +2188,10 @@ func (this *Bitrue) ParseOrder(order any, optionalArgs ...any) any {
 	if typeVar != nil && *typeVar == "limit_maker" {
 		typeVar = SafeStringPtr("limit")
 	}
-	var triggerPrice *float64 = Float64PtrTyped(this.ParseNumber(this.OmitZero(this.SafeString(order, "stopPrice"))))
+	var triggerPrice *float64
+	if derefNum, isNum := this.ParseNumber(this.OmitZero(this.SafeString(order, "stopPrice"))).(float64); isNum {
+		triggerPrice = &derefNum
+	}
 	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,
@@ -3789,7 +3792,7 @@ func (this *Bitrue) Sign(path string, optionalArgs ...any) any {
 	var typeVar *string = this.SafeString(api, 0)
 	var version *string = this.SafeString(api, 1)
 	var access *string = this.SafeString(api, 2)
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), typeVar)
+	var apiUrl *string = this.SafeString(this.Urls["api"], typeVar)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

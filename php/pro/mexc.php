@@ -988,7 +988,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve($storedOrderBook, $messageHash);
     }
 
-    public function handle_bookside_delta(mixed $bookside, mixed $bidasks) {
+    public function handle_bookside_delta(mixed $bookside, array $bidasks) {
         //
         //    [{
         //        "p": "20290.89",

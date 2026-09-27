@@ -9815,7 +9815,7 @@ class htx extends Exchange {
         return $result;
     }
 
-    public function parse_settlement(?array $settlement, array $market) {
+    public function parse_settlement(?array $settlement, array $market): array {
         //
         // coin-m swap, fetchSettlementHistory
         //

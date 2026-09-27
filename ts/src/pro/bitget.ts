@@ -805,7 +805,7 @@ export default class bitget extends bitgetRest {
         return await this.unWatchChannel (symbol, channel, 'orderbook', 'watchOrderBook', paramsOmitted);
     }
 
-    async unWatchChannel (symbol: string, channel: string, messageHashTopic: string, methodName: string, params = {}): Promise<any> {
+    async unWatchChannel (symbol: string, channel: string, messageHashTopic: string, methodName: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

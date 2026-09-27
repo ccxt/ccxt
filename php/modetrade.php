@@ -1670,7 +1670,6 @@ class modetrade extends Exchange {
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
         $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
-        $response = null;
         if ($isConditional) {
             $response = $this->v1PrivatePostAlgoOrder($request);
             //
@@ -1817,7 +1816,6 @@ class modetrade extends Exchange {
             $request[$orderQtyKey] = $this->amount_to_precision($symbol, $amount);
         }
         $paramsOmitted = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ));
-        $response = null;
         if ($isConditional) {
             $response = $this->v1PrivatePutAlgoOrder($this->extend($request, $paramsOmitted));
         } else {
@@ -1960,7 +1958,6 @@ class modetrade extends Exchange {
         $clientOrderIds = $this->safe_list_n($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
         $paramsOmitted = $this->omit($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
         $request = array();
-        $response = null;
         if ($clientOrderIds !== null) {
             $request['client_order_ids'] = implode(',', $clientOrderIds);
             $response = $this->v1PrivateDeleteClientBatchOrder($this->extend($request, $paramsOmitted));
@@ -2059,7 +2056,6 @@ class modetrade extends Exchange {
         $request = array();
         $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
         $paramsOmitted = $this->omit($params, array( 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ));
-        $response = null;
         if ($trigger === true) {
             if ($clientOrderId !== null && $clientOrderId !== '') {
                 $request['client_order_id'] = $clientOrderId;
@@ -2154,7 +2150,6 @@ class modetrade extends Exchange {
             $request['algo_type'] = 'STOP';
         }
         list($requestUntil, $paramsUntil) = $this->handle_until_option('end_t', $request, $paramsOmitted);
-        $response = null;
         if ($isTrigger === true) {
             $response = $this->v1PrivateGetAlgoOrders($this->extend($requestUntil, $paramsUntil));
         } else {

@@ -2234,7 +2234,6 @@ class okx extends Exchange {
         if ($limitResolved !== null) {
             $request['sz'] = $limitResolved; // max 400
         }
-        $response = null;
         if ($rpi) {
             $response = Async\await($this->publicGetMarketBooksRpi($this->extend($request, $paramsMethod)));
         } elseif (($method === 'publicGetMarketBooksFull') || ($limitResolved > 400)) {
@@ -3102,7 +3101,6 @@ class okx extends Exchange {
         $request = array(
             // 'ccy': 'BTC,ETH', // comma-separated list of currency ids
         );
-        $response = null;
         if ($marketType === 'funding') {
             $response = Async\await($this->privateGetAssetBalances($this->extend($request, $query)));
         } else {
@@ -3646,7 +3644,6 @@ class okx extends Exchange {
             // because it has a lower ratelimit
             $request = array( $request );
         }
-        $response = null;
         if ($method === 'privatePostTradeOrder') {
             $response = Async\await($this->privatePostTradeOrder($request));
         } elseif ($method === 'privatePostTradeOrderAlgo') {
@@ -3861,7 +3858,6 @@ class okx extends Exchange {
         if (($type === 'trigger') || ($type === 'conditional') || ($type === 'move_order_stop') || ($type === 'oco') || ($type === 'iceberg') || ($type === 'twap')) {
             $isAlgoOrder = true;
         }
-        $response = null;
         if ($isAlgoOrder) {
             $response = Async\await($this->privatePostTradeAmendAlgos($this->extend($request, $params)));
         } else {
@@ -4029,7 +4025,6 @@ class okx extends Exchange {
                 }
             }
         }
-        $response = null;
         if ($method === 'privatePostTradeCancelAlgos') {
             $response = Async\await($this->privatePostTradeCancelAlgos($request)); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         } else {
@@ -4122,7 +4117,6 @@ class okx extends Exchange {
             $requestItem[$idKey] = ($clientOrderId !== null) ? $clientOrderId : $id;
             $request[] = $requestItem;
         }
-        $response = null;
         if ($method === 'privatePostTradeCancelAlgos') {
             $response = Async\await($this->privatePostTradeCancelAlgos($request)); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         } else {
@@ -4556,7 +4550,6 @@ class okx extends Exchange {
             }
         }
         $query = $this->omit($params, array( 'method', 'clOrdId', 'clientOrderId', 'stop', 'trigger' ));
-        $response = null;
         if ($method === 'privateGetTradeOrderAlgo') {
             $response = Async\await($this->privateGetTradeOrderAlgo($this->extend($request, $query)));
         } else {
@@ -4728,7 +4721,6 @@ class okx extends Exchange {
             $request['ordType'] = 'trigger';
         }
         $query = $this->omit($paramsPaginate, array( 'method', 'stop', 'trigger', 'trailing' ));
-        $response = null;
         if ($method === 'privateGetTradeOrdersAlgoPending') {
             $response = Async\await($this->privateGetTradeOrdersAlgoPending($this->extend($request, $query)));
         } else {
@@ -4914,7 +4906,6 @@ class okx extends Exchange {
             }
         }
         $send = $this->omit($query, array( 'method', 'stop', 'trigger', 'trailing' ));
-        $response = null;
         if ($method === 'privateGetTradeOrdersAlgoHistory') {
             $response = Async\await($this->privateGetTradeOrdersAlgoHistory($this->extend($request, $send)));
         } else {
@@ -5107,7 +5098,6 @@ class okx extends Exchange {
             $request['state'] = 'filled';
         }
         $send = $this->omit($query, array( 'method', 'stop', 'trigger', 'trailing' ));
-        $response = null;
         if ($method === 'privateGetTradeOrdersAlgoHistory') {
             $response = Async\await($this->privateGetTradeOrdersAlgoHistory($this->extend($request, $send)));
         } elseif ($method === 'privateGetTradeOrdersHistoryArchive') {
@@ -5384,7 +5374,6 @@ class okx extends Exchange {
             $request['ccy'] = $currency['id'];
         }
         $requestUntil = $this->handle_until_option('end', $request, $paramsMarginMode)[0];
-        $response = null;
         if ($method === 'privateGetAccountBillsArchive') {
             $response = Async\await($this->privateGetAccountBillsArchive($this->extend($requestUntil, $query)));
         } elseif ($method === 'privateGetAssetBills') {
@@ -6400,7 +6389,6 @@ class okx extends Exchange {
         }
         $fetchPositionsOptions = $this->safe_dict($this->options, 'fetchPositions', array());
         $method = $this->safe_string($fetchPositionsOptions, 'method', 'privateGetAccountPositions');
-        $response = null;
         if ($method === 'privateGetAccountPositionsHistory') {
             $response = Async\await($this->privateGetAccountPositionsHistory($this->extend($request, $params)));
         } else {
@@ -8421,7 +8409,6 @@ class okx extends Exchange {
             'ccy' => $currencyId,
             'period' => $timeframeValue,
         );
-        $response = null;
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchOpenInterestHistory', $market, $params);
         if ($type === 'option') {
             $response = Async\await($this->publicGetRubikStatOptionOpenInterestVolume($this->extend($request, $paramsMarketType)));
@@ -9701,7 +9688,6 @@ class okx extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = null;
         $now = $this->milliseconds();
         $oneWeekAgo = $now - 604800000;
         $threeMonthsAgo = $now - 7776000000;

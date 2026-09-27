@@ -18,7 +18,6 @@ func newApex() *Apex {
 	base := &ccxt.Apex{}
 	p.base = base
 	p.Apex = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -359,19 +358,25 @@ func (this *Apex) GetWsPublicUrl() any {
 	// signing. CCXT's client manager keys clients by URL, so recomputing the
 	// timestamp on every watch* call would open a new connection each time.
 	// Cache it per exchange instance.
-	var url any = ccxt.DerefScalar(this.SafeString(this.Options, "wsPublicUrl"))
+	var url any
+	if derefPtr := this.SafeString(this.Options, "wsPublicUrl"); derefPtr != nil {
+		url = *derefPtr
+	}
 	if url == nil {
 		var timeStamp string = strconv.FormatInt(this.Milliseconds(), 10)
-		url = ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "&timestamp="), timeStamp)
+		url = ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "public"), "&timestamp="), timeStamp)
 		this.Options.Store("wsPublicUrl", url)
 	}
 	return url
 }
 func (this *Apex) GetWsPrivateUrl() any {
-	var url any = ccxt.DerefScalar(this.SafeString(this.Options, "wsPrivateUrl"))
+	var url any
+	if derefPtr := this.SafeString(this.Options, "wsPrivateUrl"); derefPtr != nil {
+		url = *derefPtr
+	}
 	if url == nil {
 		var timeStamp string = strconv.FormatInt(this.Milliseconds(), 10)
-		url = ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "&timestamp="), timeStamp)
+		url = ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "&timestamp="), timeStamp)
 		this.Options.Store("wsPrivateUrl", url)
 	}
 	return url
@@ -658,7 +663,10 @@ func (this *Apex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
-		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
+		var symbolString any
+		if derefPtr := this.SafeString(data, 0); derefPtr != nil {
+			symbolString = *derefPtr
+		}
 		var market map[string]any = this.Market(symbolString)
 		symbolString = market["id2"]
 		var unfiedTimeframe *string = this.SafeString(data, 1, "1")
@@ -709,7 +717,7 @@ func (this *Apex) HandleOHLCV(client any, message map[string]any) {
 	var timeframeId *string = this.SafeString(topicParts, 1)
 	var timeframe *string = this.FindTimeframe(timeframeId)
 	var marketId *string = this.SafeString(topicParts, topicLength-1)
-	var isSpot bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot") > -1)
+	var isSpot bool = (strings.Index(client.(ccxt.ClientInterface).GetUrl(), "spot") > -1)
 	var marketType string = "contract"
 	if isSpot {
 		marketType = "spot"
@@ -1053,7 +1061,7 @@ func (this *Apex) SetPositionsCache(client any, optionalArgs ...any) {
 		return
 	}
 	var messageHash string = "fetchPositionsSnapshot"
-	if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
 		client.(ccxt.ClientInterface).Future(messageHash)
 		this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash)
 	}
@@ -1361,7 +1369,7 @@ func (this *Apex) HandleMessage(client any, message any) {
 	}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		if ccxt.GetIndexOf(topic, keys[i]) >= 0 {
+		if strings.Index(*topic, keys[i]) >= 0 {
 			var method any = methods[key]
 			ccxt.CallDynamically(method, client, message)
 			return

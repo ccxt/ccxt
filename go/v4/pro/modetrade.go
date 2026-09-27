@@ -17,7 +17,6 @@ func newModetrade() *Modetrade {
 	base := &ccxt.Modetrade{}
 	p.base = base
 	p.Modetrade = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -98,7 +97,7 @@ func (this *Modetrade) watchPublicBody(ch chan any, messageHash any, message any
 	if !ccxt.IsEqual(this.AccountId, nil) && (this.AccountId != "") {
 		id = this.AccountId
 	}
-	var wsUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "public")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchPublic() has no public websocket url"))
 	}
@@ -765,7 +764,7 @@ func (this *Modetrade) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var wsUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " authenticate() has no private websocket url"))
 	}
@@ -816,7 +815,7 @@ func (this *Modetrade) watchPrivateBody(ch chan any, messageHash any, message an
 	_ = params
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(params)))
-	var wsUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchPrivate() has no private websocket url"))
 	}
@@ -842,7 +841,7 @@ func (this *Modetrade) watchPrivateMultipleBody(ch chan any, messageHashes any, 
 	_ = params
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(params)))
-	var wsUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchPrivateMultiple() has no private websocket url"))
 	}
@@ -900,7 +899,11 @@ func (this *Modetrade) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 	}
 	var request map[string]any = map[string]any{
@@ -962,7 +965,11 @@ func (this *Modetrade) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 	}
 	var request map[string]any = map[string]any{
@@ -1287,7 +1294,7 @@ func (this *Modetrade) watchPositionsBody(ch chan any, optionalArgs ...any) any 
 	} else {
 		messageHashes = append(messageHashes, "positions")
 	}
-	var wsUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchPositions() has no private websocket url"))
 	}
@@ -1325,7 +1332,7 @@ func (this *Modetrade) SetPositionsCache(client any, typeVar any, optionalArgs .
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash)
 		}

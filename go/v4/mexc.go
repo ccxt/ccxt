@@ -2690,8 +2690,16 @@ func (this *Mexc) ParseTicker(ticker any, optionalArgs ...any) any {
 		timestamp = this.SafeInteger(ticker, "closeTime")
 		bid = this.SafeString(ticker, "bidPrice")
 		ask = this.SafeString(ticker, "askPrice")
-		bidVolume = DerefScalar(this.SafeString(ticker, "bidQty"))
-		askVolume = DerefScalar(this.SafeString(ticker, "askQty"))
+		if derefPtr := this.SafeString(ticker, "bidQty"); derefPtr != nil {
+			bidVolume = *derefPtr
+		} else {
+			bidVolume = nil
+		}
+		if derefPtr := this.SafeString(ticker, "askQty"); derefPtr != nil {
+			askVolume = *derefPtr
+		} else {
+			askVolume = nil
+		}
 		if Precise.StringEq(bidVolume, "0") {
 			bidVolume = nil
 		}
@@ -5032,7 +5040,7 @@ func (this *Mexc) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		}
 		var paramsUntil map[string]any = func() map[string]any {
 			if until != nil {
-				return MapTyped(this.Omit(paramsMarketType, "until"))
+				return this.OmitDict(paramsMarketType, "until")
 			}
 			return paramsMarketType
 		}()
@@ -5783,9 +5791,18 @@ func (this *Mexc) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	}
 	for Precise.StringLt(floor, maxVol) {
 		var cap *string = Precise.StringAdd(floor, riskIncrVol)
-		var minNotional *float64 = Float64PtrTyped(this.ParseNumber(floor))
-		var mainMarginRate *float64 = Float64PtrTyped(this.ParseNumber(maintenanceMarginRate))
-		var maxLev *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv("1", initialMarginRate)))
+		var minNotional *float64
+		if derefNum, isNum := this.ParseNumber(floor).(float64); isNum {
+			minNotional = &derefNum
+		}
+		var mainMarginRate *float64
+		if derefNum, isNum := this.ParseNumber(maintenanceMarginRate).(float64); isNum {
+			mainMarginRate = &derefNum
+		}
+		var maxLev *float64
+		if derefNum, isNum := this.ParseNumber(Precise.StringDiv("1", initialMarginRate)).(float64); isNum {
+			maxLev = &derefNum
+		}
 		tiers = append(tiers, map[string]any{
 			"tier":                  this.ParseNumber(Precise.StringDiv(cap, riskIncrVol)),
 			"symbol":                this.SafeSymbol(marketId, market, nil, "contract"),
@@ -5873,7 +5890,11 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan EndpointResult[map[
 				return this.SafeDict(networks, networkUnified, map[string]any{})
 			}()
 			var networkInfo map[string]any = SafeMapTyped(network, "info")
-			networkId = DerefScalar(this.SafeString(networkInfo, "network"))
+			if derefPtr := this.SafeString(networkInfo, "network"); derefPtr != nil {
+				networkId = *derefPtr
+			} else {
+				networkId = nil
+			}
 		} else {
 			networkId = this.NetworkCodeToId(networkCode, code)
 		}
@@ -5954,7 +5975,11 @@ func (this *Mexc) createDepositAddressBody(ch chan any, code string, optionalArg
 			return this.SafeDict(networks, networkUnified, map[string]any{})
 		}()
 		var networkInfo map[string]any = SafeMapTyped(network, "info")
-		networkId = DerefScalar(this.SafeString(networkInfo, "network"))
+		if derefPtr := this.SafeString(networkInfo, "network"); derefPtr != nil {
+			networkId = *derefPtr
+		} else {
+			networkId = nil
+		}
 	} else {
 		networkId = this.NetworkCodeToId(networkCode, code)
 	}
@@ -6916,8 +6941,16 @@ func (this *Mexc) ParseTransfer(transfer any, optionalArgs ...any) any {
 			return "MAIN"
 		}()
 	} else {
-		accountFrom = DerefScalar(this.SafeString(transfer, "from"))
-		accountTo = DerefScalar(this.SafeString(transfer, "to"))
+		if derefPtr := this.SafeString(transfer, "from"); derefPtr != nil {
+			accountFrom = *derefPtr
+		} else {
+			accountFrom = nil
+		}
+		if derefPtr := this.SafeString(transfer, "to"); derefPtr != nil {
+			accountTo = *derefPtr
+		} else {
+			accountTo = nil
+		}
 	}
 	return map[string]any{
 		"info":        transfer,
@@ -7094,14 +7127,14 @@ func (this *Mexc) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Mexc) FetchPositionModeAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) FetchPositionModeAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchPositionModeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Mexc) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
+func (this *Mexc) fetchPositionModeBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -7118,10 +7151,11 @@ func (this *Mexc) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 	//
 	var positionMode *int64 = this.SafeInteger(response, "data")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":   response,
 		"hedged": (positionMode != nil && *positionMode == 1),
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -7670,13 +7704,13 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) any {
 	var url any = nil
 	if (section != nil && *section == "spot") || (section != nil && *section == "broker") {
 		if section != nil && *section == "broker" {
-			var apiUrl *string = this.SafeString(GetValue(GetValue(this.Urls, "api"), section), access)
+			var apiUrl *string = this.SafeString(GetValue(this.Urls["api"], section), access)
 			if apiUrl == nil {
 				panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 			}
 			url = *apiUrl + "/" + pathValue
 		} else {
-			var apiUrl *string = this.SafeString(GetValue(GetValue(this.Urls, "api"), section), access)
+			var apiUrl *string = this.SafeString(GetValue(this.Urls["api"], section), access)
 			if apiUrl == nil {
 				panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 			}
@@ -7719,7 +7753,7 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) any {
 			AddElementToObject(requestHeaders, "Content-Type", "application/json")
 		}
 	} else if (section != nil && *section == "contract") || (section != nil && *section == "spot2") {
-		var apiUrl *string = this.SafeString(GetValue(GetValue(this.Urls, "api"), section), access)
+		var apiUrl *string = this.SafeString(GetValue(this.Urls["api"], section), access)
 		if apiUrl == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
@@ -9026,11 +9060,11 @@ func (this *Mexc) FetchPositionMode(options ...FetchPositionModeOptions) (Positi
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return PositionModeInfo{}, CreateReturnError(raw)
+	r := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return PositionModeInfo{}, CreateReturnError(r.Raw)
 	}
-	var res PositionModeInfo = NewPositionModeInfo(raw)
+	var res PositionModeInfo = NewPositionModeInfo(r.Raw)
 	return res, nil
 }
 

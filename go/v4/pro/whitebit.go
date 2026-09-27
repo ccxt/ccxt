@@ -17,7 +17,6 @@ func newWhitebit() *Whitebit {
 	base := &ccxt.Whitebit{}
 	p.base = base
 	p.Whitebit = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -356,7 +355,7 @@ func (this *Whitebit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var method string = "market_subscribe"
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var id any = this.IncrementingNonce()
 	var messageHashes []any = []any{}
 	var args []any = []any{}
@@ -629,7 +628,11 @@ func (this *Whitebit) ParseWsTrade(trade any, optionalArgs ...any) any {
 		var feeCurrencyId *string = this.SafeString(trade, 10)
 		var feeCurrencyCode any = nil
 		if feeCurrencyId != nil {
-			feeCurrencyCode = ccxt.DerefScalar(this.SafeCurrencyCode(feeCurrencyId))
+			if derefPtr := this.SafeCurrencyCode(feeCurrencyId); derefPtr != nil {
+				feeCurrencyCode = *derefPtr
+			} else {
+				feeCurrencyCode = nil
+			}
 		} else {
 			feeCurrencyCode = marketResolved["quote"]
 		}
@@ -911,7 +914,7 @@ func (this *Whitebit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		method = "balanceMargin_subscribe"
 		messageHash += "margin"
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, typeVar, messageHash)
 	fetchBalanceSnapshot, paramsFetchBalanceSnapshot := this.HandleOptionBoolAndParams(paramsMarketType, "watchBalance", "fetchBalanceSnapshot", true)
@@ -1063,7 +1066,7 @@ func (this *Whitebit) watchPublicBody(ch chan any, messageHash any, method strin
 	_ = reqParams
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var id any = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"id":     id,
@@ -1091,7 +1094,7 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash str
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var id any = this.IncrementingNonce()
 	var client any = this.SafeValue(this.Clients, url)
 	var request any = nil
@@ -1169,7 +1172,7 @@ func (this *Whitebit) watchPrivateBody(ch chan any, messageHash string, method a
 	this.CheckRequiredCredentials()
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var id any = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"id":     id,
@@ -1192,7 +1195,7 @@ func (this *Whitebit) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var client ccxt.ClientInterface = this.Client(url)
 	var subscribeHash string = "authenticated"
 	// handleAuthenticate () resolves the handshake future with 1, so 1 is
@@ -1205,7 +1208,7 @@ func (this *Whitebit) authenticateBody(ch chan any, optionalArgs ...any) any {
 	// their own authorize frame. the flight lives in client.futures of the handshake client
 	// under a non-messageHash key and settles only via client.resolve () / client.reject ()
 	var messageHash string = "authenticateFlight"
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 		// a flight is already in progress - wake when the leader settles
 		// it, the socket is authorized by then. the flight gate is
 		// checked before the subscriptions one because watch () registers
@@ -1249,7 +1252,7 @@ func (this *Whitebit) authenticateBody(ch chan any, optionalArgs ...any) any {
 						if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash) {
 							ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
 						}
-						if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), subscribeHash) {
+						if _, ok := client.(ccxt.ClientInterface).GetFutures()[subscribeHash]; ok {
 							client.(ccxt.ClientInterface).Reject(e, subscribeHash)
 						}
 						// reject the flight - the leader and every waiter throw and the

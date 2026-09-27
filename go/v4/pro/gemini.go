@@ -17,7 +17,6 @@ func newGemini() *Gemini {
 	base := &ccxt.Gemini{}
 	p.base = base
 	p.Gemini = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -91,7 +90,7 @@ func (this *Gemini) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		}},
 	}
 	var subscribeHash *string = ccxt.SafeStringPtr(ccxt.Add("l2:", market["symbol"]))
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	var wsUrl *string = this.SafeString(this.Urls["api"], "ws")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchTrades() has no websocket url"))
 	}
@@ -367,7 +366,7 @@ func (this *Gemini) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 		}},
 	}
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", market["symbol"]), ":"), timeframeId))
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	var wsUrl *string = this.SafeString(this.Urls["api"], "ws")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchOHLCV() has no websocket url"))
 	}
@@ -487,7 +486,7 @@ func (this *Gemini) watchOrderBookBody(ch chan any, symbol string, optionalArgs 
 		}},
 	}
 	var subscribeHash *string = ccxt.SafeStringPtr(ccxt.Add("l2:", market["symbol"]))
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	var wsUrl *string = this.SafeString(this.Urls["api"], "ws")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchOrderBook() has no websocket url"))
 	}
@@ -645,7 +644,10 @@ func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges []an
 		if ccxt.Precise.StringEq(sizeString, "0") {
 			continue
 		}
-		var size *float64 = ccxt.Float64PtrTyped(this.ParseNumber(sizeString))
+		var size *float64
+		if derefNum, isNum := this.ParseNumber(sizeString).(float64); isNum {
+			size = &derefNum
+		}
 		if rawSide != nil && *rawSide == "bid" {
 			ccxt.AddElementToObject(currentBidAsk, "bid", price)
 			ccxt.AddElementToObject(currentBidAsk, "bidVolume", size)
@@ -688,7 +690,7 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan any, itemHashNam
 		}
 		return nil
 	}())
-	if (ccxt.GetValue(firstMarket, "spot") != true) && (ccxt.GetValue(firstMarket, "linear") != true) {
+	if (firstMarket["spot"] != true) && (firstMarket["linear"] != true) {
 		panic(ccxt.NotSupported(this.Id + " watchMultiple supports only spot or linear-swap symbols"))
 	}
 	var messageHashes []any = []any{}
@@ -701,7 +703,7 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan any, itemHashNam
 		marketIds = append(marketIds, market["id"])
 	}
 	var queryStr string = ccxt.Join(marketIds, ",")
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	var wsUrl *string = this.SafeString(this.Urls["api"], "ws")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " helperForWatchMultipleConstruct() has no websocket url"))
 	}
@@ -838,7 +840,7 @@ func (this *Gemini) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	var wsUrl *string = this.SafeString(this.Urls["api"], "ws")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchOrders() has no websocket url"))
 	}
@@ -1155,7 +1157,7 @@ func (this *Gemini) authenticateBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	this.CheckRequiredCredentials()
-	var startIndex int = ccxt.GetArrayLength(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var startIndex int = ccxt.GetArrayLength(ccxt.GetValue(this.Urls["api"], "ws"))
 	var urlParamsIndex int = func() int {
 		if url == nil {
 			return -1

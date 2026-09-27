@@ -923,7 +923,11 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan EndpointResult[[]any], optiona
 		if swap {
 			typeVar = "swap"
 			symbol = *base + "/" + *quote + ":" + *settle
-			isInverse = DerefScalar(this.SafeBool(market, "is_inverse"))
+			if derefPtr := this.SafeBool(market, "is_inverse"); derefPtr != nil {
+				isInverse = *derefPtr
+			} else {
+				isInverse = nil
+			}
 			isLinear = func() bool {
 				if isInverse != true {
 					return true
@@ -2385,7 +2389,7 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 		}
 		request["order_type"] = orderType
 		request["size"] = amount // swap orders require the amount to be the number of contracts
-		paramsRequest = MapTyped(this.Omit(paramsMarginMode, []any{"reduceOnly", "timeInForce", "postOnly"}))
+		paramsRequest = this.OmitDict(paramsMarginMode, []any{"reduceOnly", "timeInForce", "postOnly"})
 	} else {
 		postOnlyParsed = func() int {
 			if postOnly == true {
@@ -2411,7 +2415,7 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 		} else {
 			keysToOmit = []any{"postOnly"}
 		}
-		paramsRequest = MapTyped(this.Omit(paramsRequiresPrice, keysToOmit))
+		paramsRequest = this.OmitDict(paramsRequiresPrice, keysToOmit)
 		if isMarketBuy {
 			var cost *float64 = this.SafeNumber(paramsRequiresPrice, "cost")
 			if cost != nil {
@@ -2422,14 +2426,21 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 				} else {
 					var amountString *string = this.NumberToString(amount)
 					var priceString *string = this.NumberToString(price)
-					var costRequest *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMul(amountString, priceString)))
+					var costRequest *float64
+					if derefNum, isNum := this.ParseNumber(Precise.StringMul(amountString, priceString)).(float64); isNum {
+						costRequest = &derefNum
+					}
 					quantity = this.CostToPrecision(symbol, costRequest)
 				}
 			} else {
 				quantity = this.CostToPrecision(symbol, amount)
 			}
 		} else {
-			quantity = DerefScalar(this.AmountToPrecision(symbol, amount))
+			if derefPtr := this.AmountToPrecision(symbol, amount); derefPtr != nil {
+				quantity = *derefPtr
+			} else {
+				quantity = nil
+			}
 		}
 		request["amount"] = quantity
 	}
@@ -2748,7 +2759,10 @@ func (this *Digifinex) ParseOrder(order any, optionalArgs ...any) any {
 	var lastTradeTimestamp *int64 = nil
 	var timeInForce *string = nil
 	var typeVar any = nil
-	var side any = DerefScalar(this.SafeString(order, "type"))
+	var side any
+	if derefPtr := this.SafeString(order, "type"); derefPtr != nil {
+		side = *derefPtr
+	}
 	var marketId *string = this.SafeString2(order, "symbol", "instrument_id")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var marketResolved map[string]any = this.Market(symbol)
@@ -5701,7 +5715,7 @@ func (this *Digifinex) Sign(path string, optionalArgs ...any) any {
 	}
 	var request string = "/" + this.ImplodeParams(path, params)
 	var payload string = pathPart + request
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

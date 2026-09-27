@@ -1229,7 +1229,10 @@ func (this *Blofin) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	if isSpot {
 		var spotSymbol any = Add(Add(marketResolved["base"], "/"), marketResolved["quote"])
-		var cost *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMul(price, amount)))
+		var cost *float64
+		if derefNum, isNum := this.ParseNumber(Precise.StringMul(price, amount)).(float64); isNum {
+			cost = &derefNum
+		}
 		var result map[string]any = map[string]any{
 			"info":         trade,
 			"timestamp":    timestamp,
@@ -2316,7 +2319,7 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var isTrigger *bool = this.SafeBoolN(paramsPaginate, []any{"stop", "trigger"}, false)
 	var isTpSl *bool = this.SafeBool2(paramsPaginate, "tpsl", "TPSL", false)
 	method, paramsMethod := this.HandleOptionStringAndParams(paramsPaginate, "fetchOpenOrders", "method", "privateGetTradeOrdersPending")
-	var query map[string]any = MapTyped(this.Omit(paramsMethod, []any{"method", "stop", "trigger", "tpsl", "TPSL"}))
+	var query map[string]any = this.OmitDict(paramsMethod, []any{"method", "stop", "trigger", "tpsl", "TPSL"})
 	var response any = nil
 	if (isTpSl != nil && *isTpSl == true) || (method != nil && *method == "privateGetTradeOrdersTpslPending") {
 
@@ -3214,7 +3217,7 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 				}
 				return nil
 			}())
-			request["instId"] = GetValue(market, "id")
+			request["instId"] = market["id"]
 		}
 	}
 	if limit != nil {
@@ -3318,7 +3321,10 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 	var contractsAbs *string = Precise.StringAbs(pos)
 	var side *string = this.SafeString(position, "positionSide")
 	var hedged bool = (side == nil || *side != "net")
-	var contracts *float64 = Float64PtrTyped(this.ParseNumber(contractsAbs))
+	var contracts *float64
+	if derefNum, isNum := this.ParseNumber(contractsAbs).(float64); isNum {
+		contracts = &derefNum
+	}
 	if pos != nil {
 		if side != nil && *side == "net" {
 			if Precise.StringGt(pos, "0") {
@@ -3337,7 +3343,10 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 	if marketResolved["inverse"] == true {
 		notionalString = Precise.StringDiv(Precise.StringMul(contractsAbs, contractSizeString), markPriceString)
 	}
-	var notional *float64 = Float64PtrTyped(this.ParseNumber(notionalString))
+	var notional *float64
+	if derefNum, isNum := this.ParseNumber(notionalString).(float64); isNum {
+		notional = &derefNum
+	}
 	var marginMode *string = this.SafeString(position, "marginMode")
 	var initialMarginString *string = nil
 	var entryPriceString *string = this.SafeString2(position, "averagePrice", "openAveragePrice")
@@ -3353,7 +3362,10 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 		collateralString = this.SafeString(position, "margin")
 	}
 	var maintenanceMarginString *string = this.SafeString(position, "maintenanceMargin")
-	var maintenanceMargin *float64 = Float64PtrTyped(this.ParseNumber(maintenanceMarginString))
+	var maintenanceMargin *float64
+	if derefNum, isNum := this.ParseNumber(maintenanceMarginString).(float64); isNum {
+		maintenanceMargin = &derefNum
+	}
 	var maintenanceMarginPercentageString *string = Precise.StringDiv(maintenanceMarginString, notionalString)
 	if initialMarginPercentage == nil {
 		initialMarginPercentage = this.ParseNumber(Precise.StringDiv(initialMarginString, notionalString, 4))
@@ -3362,12 +3374,21 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 		initialMarginString = Precise.StringMul(initialMarginPercentageString, notionalString)
 	}
 	var rounder string = "0.00005" // round to closest 0.01%
-	var maintenanceMarginPercentage *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(Precise.StringAdd(maintenanceMarginPercentageString, rounder), "1", 4)))
+	var maintenanceMarginPercentage *float64
+	if derefNum, isNum := this.ParseNumber(Precise.StringDiv(Precise.StringAdd(maintenanceMarginPercentageString, rounder), "1", 4)).(float64); isNum {
+		maintenanceMarginPercentage = &derefNum
+	}
 	var liquidationPrice *float64 = this.SafeNumber(position, "liquidationPrice")
 	var percentageString *string = this.SafeString(position, "unrealizedPnlRatio")
-	var percentage *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMul(percentageString, "100")))
+	var percentage *float64
+	if derefNum, isNum := this.ParseNumber(Precise.StringMul(percentageString, "100")).(float64); isNum {
+		percentage = &derefNum
+	}
 	var timestamp *int64 = this.SafeInteger(position, "updateTime")
-	var marginRatio *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(maintenanceMarginString, collateralString, 4)))
+	var marginRatio *float64
+	if derefNum, isNum := this.ParseNumber(Precise.StringDiv(maintenanceMarginString, collateralString, 4)).(float64); isNum {
+		marginRatio = &derefNum
+	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
@@ -3710,7 +3731,7 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	}
 	var isTrigger *bool = this.SafeBoolN(paramsPaginate, []any{"stop", "trigger", "tpsl", "TPSL"}, false)
 	method, paramsMethod := this.HandleOptionStringAndParams(paramsPaginate, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory")
-	var query map[string]any = MapTyped(this.Omit(paramsMethod, []any{"method", "stop", "trigger", "tpsl", "TPSL"}))
+	var query map[string]any = this.OmitDict(paramsMethod, []any{"method", "stop", "trigger", "tpsl", "TPSL"})
 	var response any = nil
 	if (isTrigger != nil && *isTrigger == true) || (method != nil && *method == "privateGetTradeOrdersTpslHistory") {
 
@@ -3838,14 +3859,14 @@ func (this *Blofin) setMarginModeBody(ch chan any, marginMode string, optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Blofin) FetchPositionModeAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Blofin) FetchPositionModeAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchPositionModeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Blofin) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
+func (this *Blofin) fetchPositionModeBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3864,10 +3885,11 @@ func (this *Blofin) fetchPositionModeBody(ch chan any, optionalArgs ...any) any 
 	//         }
 	//     }
 	//
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":   data,
 		"hedged": (positionMode != nil && *positionMode == "long_short_mode"),
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -4065,7 +4087,7 @@ func (this *Blofin) Sign(path string, optionalArgs ...any) any {
 	_ = body
 	var request string = "/api/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -4957,11 +4979,11 @@ func (this *Blofin) FetchPositionMode(options ...FetchPositionModeOptions) (Posi
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return PositionModeInfo{}, CreateReturnError(raw)
+	r := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return PositionModeInfo{}, CreateReturnError(r.Raw)
 	}
-	var res PositionModeInfo = NewPositionModeInfo(raw)
+	var res PositionModeInfo = NewPositionModeInfo(r.Raw)
 	return res, nil
 }
 

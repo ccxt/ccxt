@@ -535,8 +535,16 @@ func (this *Cryptomus) ParseCurrency(rawCurrency any) any {
 		var networkEntry map[string]any = SafeMapTyped(rawCurrency, i)
 		// set ID on first loop
 		if id == nil {
-			id = DerefScalar(this.SafeString(networkEntry, "currency_code"))
-			code = DerefScalar(this.SafeCurrencyCode(id))
+			if derefPtr := this.SafeString(networkEntry, "currency_code"); derefPtr != nil {
+				id = *derefPtr
+			} else {
+				id = nil
+			}
+			if derefPtr := this.SafeCurrencyCode(id); derefPtr != nil {
+				code = *derefPtr
+			} else {
+				code = nil
+			}
 		}
 		var networkId *string = this.SafeString(networkEntry, "network_code")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
@@ -1455,7 +1463,7 @@ func (this *Cryptomus) Sign(path string, optionalArgs ...any) any {
 	_ = body
 	var endpoint string = this.ImplodeParams(path, params)
 	var paramsOmitted any = this.Omit(params, this.ExtractParams(path))
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

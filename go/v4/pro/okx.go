@@ -18,7 +18,6 @@ func newOkx() *Okx {
 	base := &ccxt.Okx{}
 	p.base = base
 	p.Okx = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -120,7 +119,7 @@ func (this *Okx) GetUrl(channel any, optionalArgs ...any) any {
 	}
 	var isBusiness bool = (access == "business")
 	var isPublic bool = (access == "public")
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url any = ccxt.GetValue(this.Urls["api"], "ws")
 	if isBusiness || (ccxt.GetIndexOf(channel, "candle") > -1) || (ccxt.IsEqual(channel, "orders-algo")) {
 		return ccxt.Add(ccxt.Add(url, "/business"), sandboxSuffix)
 	} else if isPublic {
@@ -2281,7 +2280,7 @@ func (this *Okx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	typeOption, paramsType := this.HandleOptionStringAndParams(params, "watchMyTrades", "type", "ANY")
 	var isTrigger *bool = this.SafeBool2(paramsType, "trigger", "stop", false)
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsType, []any{"trigger", "stop"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsType, []any{"trigger", "stop"})
 	if this.Markets == nil {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
@@ -2543,7 +2542,7 @@ func (this *Okx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	typeOption, paramsType := this.HandleOptionStringAndParams(params, "watchOrders", "type", "ANY")
 	var isTrigger *bool = this.SafeBool2(paramsType, "stop", "trigger", false)
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsType, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsType, []any{"stop", "trigger"})
 	if this.Markets == nil {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
@@ -2561,7 +2560,11 @@ func (this *Okx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = typeOption
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 		typeVar = this.SafeString(market, "type")
 	}
 	if ccxt.IsEqual(typeVar, "future") {
@@ -2762,7 +2765,7 @@ func (this *Okx) HandleMyTrades(client any, message map[string]any) {
 			return nil
 		}()
 		var tradeId *string = this.SafeString(rawOrder, "tradeId", "")
-		if ccxt.GetLength(tradeId) > 0 {
+		if len(*tradeId) > 0 {
 			var order map[string]any = ccxt.MapTyped(this.ParseOrder(rawOrder))
 			filteredOrders = append(filteredOrders, order)
 		}

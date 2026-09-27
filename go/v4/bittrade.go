@@ -658,14 +658,14 @@ func (this *Bittrade) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.SafeInteger(response, "data")
 	return nil
 }
-func (this *Bittrade) FetchTradingLimitsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bittrade) FetchTradingLimitsAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchTradingLimitsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bittrade) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) any {
+func (this *Bittrade) fetchTradingLimitsBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	// this method should not be called directly, use loadTradingLimits () instead
 	//  by default it will try load withdrawal fees of all currencies (with separate requests)
 	//  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
@@ -692,7 +692,7 @@ func (this *Bittrade) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) a
 		AddElementToObject(result, symbol, (<-this.FetchTradingLimitsByIdAsync(this.MarketId(symbol), params)))
 	}
 
-	ch <- result
+	ch <- EndpointResult[map[string]any]{Value: result, Raw: result}
 	return nil
 }
 func (this *Bittrade) FetchTradingLimitsByIdAsync(id any, optionalArgs ...any) <-chan any {
@@ -847,9 +847,15 @@ func (this *Bittrade) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var margin bool = Precise.StringGt(leverageRatio, "1") || Precise.StringGt(superLeverageRatio, "1")
 		var fee *float64 = func() *float64 {
 			if base != nil && *base == "OMG" {
-				return Float64PtrTyped(this.ParseNumber("0"))
+				if derefNum, isNum := this.ParseNumber("0").(float64); isNum {
+					return &derefNum
+				}
+				return nil
 			}
-			return Float64PtrTyped(this.ParseNumber("0.002"))
+			if derefNum, isNum := this.ParseNumber("0.002").(float64); isNum {
+				return &derefNum
+			}
+			return nil
 		}()
 		if baseId == nil {
 			panic(ExchangeError(this.Id + " fetchMarkets() missing baseId"))
@@ -1222,8 +1228,14 @@ func (this *Bittrade) ParseTrade(trade any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var timestamp *int64 = this.SafeInteger2(trade, "ts", "created-at")
 	var order *string = this.SafeString(trade, "order-id")
-	var side any = DerefScalar(this.SafeString(trade, "direction"))
-	var typeVar any = DerefScalar(this.SafeString(trade, "type"))
+	var side any
+	if derefPtr := this.SafeString(trade, "direction"); derefPtr != nil {
+		side = *derefPtr
+	}
+	var typeVar any
+	if derefPtr := this.SafeString(trade, "type"); derefPtr != nil {
+		typeVar = *derefPtr
+	}
 	if typeVar != nil {
 		var typeParts []string = Split(typeVar, "-")
 		side = func() any {
@@ -1929,7 +1941,7 @@ func (this *Bittrade) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		return nil
 	}
 
-	listRecv1931, _ := PanicOnError((<-this.FetchOpenOrdersV1Async(symbol, since, limit, params))).([]any)
+	listRecv1931 := (<-this.FetchOpenOrdersV1Async(symbol, since, limit, params)).Checked()
 	var retRes137615 []any = listRecv1931
 	if retRes137615 == nil {
 		ch <- nil
@@ -1938,14 +1950,14 @@ func (this *Bittrade) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	}
 	return nil
 }
-func (this *Bittrade) FetchOpenOrdersV1Async(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bittrade) FetchOpenOrdersV1Async(optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.fetchOpenOrdersV1Body(ch, optionalArgs...)
 	return ch
 }
-func (this *Bittrade) fetchOpenOrdersV1Body(ch chan any, optionalArgs ...any) any {
+func (this *Bittrade) fetchOpenOrdersV1Body(ch chan EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
@@ -1960,9 +1972,9 @@ func (this *Bittrade) fetchOpenOrdersV1Body(ch chan any, optionalArgs ...any) an
 
 	var retRes138315 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatesAsync("pre-submitted,submitted,partial-filled", symbol, since, limit, params))))
 	if retRes138315 == nil {
-		ch <- nil
+		ch <- EndpointResult[[]any]{}
 	} else {
-		ch <- retRes138315
+		ch <- EndpointResult[[]any]{Value: retRes138315, Raw: retRes138315}
 	}
 	return nil
 }
@@ -2939,7 +2951,7 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
 			url += "?" + this.Urlencode(params)
 		}
 	}
-	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -3024,11 +3036,11 @@ func (this *Bittrade) FetchTradingLimits(options ...FetchTradingLimitsOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTradingLimitsAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.FetchTradingLimitsAsync(opts.Symbols, opts.Params)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 func (this *Bittrade) FetchTradingLimitsById(id string, options ...FetchTradingLimitsByIdOptions) (map[string]any, error) {
@@ -3376,11 +3388,11 @@ func (this *Bittrade) FetchOpenOrdersV1(options ...FetchOpenOrdersV1Options) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOpenOrdersV1Async(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchOpenOrdersV1Async(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Raw)
 	return res, nil
 }
 

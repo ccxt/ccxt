@@ -1095,7 +1095,11 @@ func (this *Woo) ParseMarket(market any) any {
 	var contract bool = swap
 	if contract {
 		margin = false
-		settleId = DerefScalar(this.SafeString(parts, 2))
+		if derefPtr := this.SafeString(parts, 2); derefPtr != nil {
+			settleId = *derefPtr
+		} else {
+			settleId = nil
+		}
 		settle = this.SafeCurrencyCode(settleId)
 		symbol = Add(*base+"/"+*quote+":", settle)
 		contractSize = this.ParseNumber("1")
@@ -2445,7 +2449,7 @@ func (this *Woo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	var trigger *bool = this.SafeBool2(paramsPaginate, "stop", "trigger")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"stop", "trigger"})
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = market["id"]
@@ -2989,7 +2993,7 @@ func (this *Woo) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 				}
 				return nil
 			}())
-			if GetValue(firstMarket, "swap") != true {
+			if firstMarket["swap"] != true {
 				panic(NotSupported(this.Id + " fetchTickers() supports swap markets only"))
 			}
 		}
@@ -3239,7 +3243,7 @@ func (this *Woo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["startTime"] = since
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until") // unified in milliseconds
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
 	if until != nil {
 		request["endTime"] = until
 	}
@@ -3746,7 +3750,10 @@ func (this *Woo) GetCurrencyFromChaincode(networkizedCode any, currency any) any
 		var parts []string = Split(networkizedCode, "_")
 		var partsLength int = len(parts)
 		var firstPart *string = this.SafeString(parts, 0)
-		var currencyId any = DerefScalar(this.SafeString(parts, 1, firstPart))
+		var currencyId any
+		if derefPtr := this.SafeString(parts, 1, firstPart); derefPtr != nil {
+			currencyId = *derefPtr
+		}
 		if partsLength > 2 {
 			currencyId = Add(currencyId, Add("_", this.SafeString(parts, 2)))
 		}
@@ -4318,7 +4325,7 @@ func (this *Woo) Sign(path string, optionalArgs ...any) any {
 	var version *string = this.SafeString(section, 0)
 	var access *string = this.SafeString(section, 1)
 	var pathWithParams string = this.ImplodeParams(path, params)
-	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), access)
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], access)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -4440,7 +4447,10 @@ func (this *Woo) ParseIncome(income any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(income, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var amount any = DerefScalar(this.SafeString(income, "fundingFee"))
+	var amount any
+	if derefPtr := this.SafeString(income, "fundingFee"); derefPtr != nil {
+		amount = *derefPtr
+	}
 	var code *string = this.SafeCurrencyCode("USD")
 	var id *string = this.SafeString(income, "id")
 	var timestamp *int64 = this.SafeInteger(income, "updatedTime")
@@ -4517,7 +4527,7 @@ func (this *Woo) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 		request["startTime"] = since
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until") // unified in milliseconds
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
 	if until != nil {
 		request["endTime"] = until
 	}

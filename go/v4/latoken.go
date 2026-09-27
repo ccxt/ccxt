@@ -2397,7 +2397,7 @@ func (this *Latoken) Sign(path string, optionalArgs ...any) any {
 			requestBody = this.Json(query)
 		}
 	}
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

@@ -3199,7 +3199,7 @@ export default class bingx extends Exchange {
         } else if (timeInForce === 'GTC') {
             request['timeInForce'] = 'GTC';
         }
-        let paramsOrder = undefined;
+        let paramsOrder: NullableDict = undefined;
         if (isSpot) {
             paramsOrder = this.omit (paramsPostOnly, [ 'cost', 'quoteOrderQty' ]);
             if (cost !== undefined) {
@@ -6092,7 +6092,7 @@ export default class bingx extends Exchange {
         const request: Dict = {};
         let fills: Trade[];
         let response: Dict;
-        let paramsTrades = undefined;
+        let paramsTrades: NullableDict = undefined;
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
         if (subType === 'inverse') {
             paramsTrades = paramsSubType;

@@ -17,7 +17,6 @@ func newWeex() *Weex {
 	base := &ccxt.Weex{}
 	p.base = base
 	p.Weex = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -129,7 +128,7 @@ func (this *Weex) subscribePublicBody(ch chan any, messageHashes any, channels a
 	if isContract == true {
 		typeVar = "contract"
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar), "/public"))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), typeVar), "/public"))
 
 	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.DeepExtend(message, params), messageHashes, subscriptionExtended)))
 	return nil
@@ -152,7 +151,7 @@ func (this *Weex) subscribePrivateBody(ch chan any, messageHash any, subscribeHa
 	if isContract == true {
 		typeVar = "contract"
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar), "/private"))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), typeVar), "/private"))
 	this.Authenticate(url)
 	var method string = "SUBSCRIBE"
 	var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
@@ -2026,7 +2025,7 @@ func (this *Weex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if isContract {
 		urlType = "contract"
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), urlType), "/private"))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), urlType), "/private"))
 	this.Authenticate(url)
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, typeVar)
@@ -2201,7 +2200,7 @@ func (this *Weex) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "contract"), "/private"))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "contract"), "/private"))
 	this.Authenticate(url)
 	var client ccxt.ClientInterface = this.Client(url)
 	var symbolsNormalized []string = this.MarketSymbols(symbols, "swap", true)
@@ -2239,7 +2238,7 @@ func (this *Weex) SetPositionsCache(client any, optionalArgs ...any) {
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash, params)
 		}

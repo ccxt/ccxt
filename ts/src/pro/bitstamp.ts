@@ -116,7 +116,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    async unWatchChannel (channel: string, subHash: string, topic: string, symbols: string[], params = {}): Promise<any> {
+    async unWatchChannel (channel: string, subHash: string, topic: string, symbols: string[], params: Dict = {}): Promise<any> {
         const url = this.urls['api']['ws'];
         const unsubHash = 'unsubscribe:' + channel;
         const request: Dict = {

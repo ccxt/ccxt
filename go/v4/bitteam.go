@@ -732,7 +732,7 @@ func (this *Bitteam) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	statusesResponse = this.IndexBy(statusesResponse, "unified_cryptoasset_id")
 	this.Options.Store("_temp_currencies_statuses", statusesResponse)
 	var result any = this.ParseCurrencies(currencies)
-	Remove(this.Options, "_temp_currencies_statuses")
+	this.Options.Delete("_temp_currencies_statuses")
 
 	ch <- result
 	return nil
@@ -764,7 +764,10 @@ func (this *Bitteam) ParseCurrency(currency any) any {
 	var withdraw *bool = this.SafeBool(statuses, "withdrawStatus")
 	var networkIds []string = ObjectKeys(feesByNetworkId)
 	var networks map[string]any = map[string]any{}
-	var networkPrecision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals"))))
+	var networkPrecision *float64
+	if derefNum, isNum := this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals"))).(float64); isNum {
+		networkPrecision = &derefNum
+	}
 	var typeRaw *string = this.SafeString(currency, "type")
 	for j := 0; j < len(networkIds); j++ {
 		var networkId string = networkIds[j]
@@ -2804,7 +2807,7 @@ func (this *Bitteam) Sign(path string, optionalArgs ...any) any {
 	_ = body
 	var request any = this.Omit(params, this.ExtractParams(path))
 	var endpoint string = "/" + this.ImplodeParams(path, params)
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

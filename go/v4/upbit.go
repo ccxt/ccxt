@@ -408,14 +408,14 @@ func (this *Upbit) Describe() any {
 		},
 	})
 }
-func (this *Upbit) FetchCurrencyAsync(code any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Upbit) FetchCurrencyAsync(code any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchCurrencyBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Upbit) fetchCurrencyBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Upbit) fetchCurrencyBody(ch chan EndpointResult[map[string]any], code any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	// this method is for retrieving funding fees and limits per currency
 	// it requires private access and API keys properly set up
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -428,9 +428,9 @@ func (this *Upbit) fetchCurrencyBody(ch chan any, code any, optionalArgs ...any)
 
 	var retRes29915 map[string]any = (<-this.FetchCurrencyByIdAsync(currency["id"], params)).Checked()
 	if retRes29915 == nil {
-		ch <- nil
+		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- retRes29915
+		ch <- EndpointResult[map[string]any]{Value: retRes29915, Raw: retRes29915}
 	}
 	return nil
 }
@@ -537,14 +537,14 @@ func (this *Upbit) fetchCurrencyByIdBody(ch chan EndpointResult[map[string]any],
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Upbit) FetchMarketAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Upbit) FetchMarketAsync(symbol any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchMarketBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Upbit) fetchMarketBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Upbit) fetchMarketBody(ch chan EndpointResult[map[string]any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	// this method is for retrieving trading fees and limits per market
 	// it requires private access and API keys properly set up
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -557,9 +557,9 @@ func (this *Upbit) fetchMarketBody(ch chan any, symbol any, optionalArgs ...any)
 
 	var retRes39915 map[string]any = MapTyped(PanicOnError((<-this.FetchMarketByIdAsync(market["id"], params))))
 	if retRes39915 == nil {
-		ch <- nil
+		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- retRes39915
+		ch <- EndpointResult[map[string]any]{Value: retRes39915, Raw: retRes39915}
 	}
 	return nil
 }
@@ -628,7 +628,10 @@ func (this *Upbit) fetchMarketByIdBody(ch chan any, id any, optionalArgs ...any)
 	var state *string = this.SafeString(marketInfo, "state")
 	var bidFee *string = this.SafeString(response, "bid_fee")
 	var askFee *string = this.SafeString(response, "ask_fee")
-	var fee *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMax(bidFee, askFee)))
+	var fee *float64
+	if derefNum, isNum := this.ParseNumber(Precise.StringMax(bidFee, askFee)).(float64); isNum {
+		fee = &derefNum
+	}
 
 	ch <- this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
@@ -3084,7 +3087,7 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -3191,11 +3194,11 @@ func (this *Upbit) FetchCurrency(code string, options ...FetchCurrencyOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchCurrencyAsync(code, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.FetchCurrencyAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Raw.(map[string]any)
 	return res, nil
 }
 func (this *Upbit) FetchCurrencyById(id string, options ...FetchCurrencyByIdOptions) (map[string]any, error) {
@@ -3219,11 +3222,11 @@ func (this *Upbit) FetchMarket(symbol string, options ...FetchMarketOptions) (Ma
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchMarketAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return MarketInterface{}, CreateReturnError(raw)
+	r := <-this.FetchMarketAsync(symbol, opts.Params)
+	if IsError(r.Raw) {
+		return MarketInterface{}, CreateReturnError(r.Raw)
 	}
-	var res MarketInterface = NewMarketInterface(raw)
+	var res MarketInterface = NewMarketInterface(r.Raw)
 	return res, nil
 }
 func (this *Upbit) FetchMarketById(id string, options ...FetchMarketByIdOptions) (MarketInterface, error) {

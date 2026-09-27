@@ -17,7 +17,6 @@ func newCoinbaseinternational() *Coinbaseinternational {
 	base := &ccxt.Coinbaseinternational{}
 	p.base = base
 	p.Coinbaseinternational = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -130,7 +129,7 @@ func (this *Coinbaseinternational) subscribeBody(ch chan any, name any, optional
 		messageHash = ccxt.Add(ccxt.Add(name, "::"), market["symbol"])
 		productIds = []any{market["id"]}
 	}
-	var url *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 	if url == nil {
 		panic(ccxt.NotSupported(this.Id + " is not supported in sandbox environment"))
 	}
@@ -199,7 +198,7 @@ func (this *Coinbaseinternational) subscribeMultipleBody(ch chan any, name strin
 		productIds = append(productIds, marketId)
 		messageHashes = append(messageHashes, ccxt.Add(name+"::", symbol))
 	}
-	var url *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 	if url == nil {
 		panic(ccxt.NotSupported(this.Id + " is not supported in sandbox environment"))
 	}
@@ -1015,7 +1014,7 @@ func (this *Coinbaseinternational) HandleErrorMessage(client any, message any) b
 	return true
 }
 func (this *Coinbaseinternational) HandleMessage(client any, message any) {
-	if ccxt.IsEqual(this.HandleErrorMessage(client, message), true) {
+	if this.HandleErrorMessage(client, message) == true {
 		return
 	}
 	var channel *string = this.SafeString(message, "channel", "")

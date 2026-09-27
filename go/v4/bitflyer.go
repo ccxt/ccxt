@@ -417,12 +417,28 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId any = nil
 		var expiry any = nil
 		if spot {
-			baseId = DerefScalar(this.SafeString(currencies, 0))
-			quoteId = DerefScalar(this.SafeString(currencies, 1))
+			if derefPtr := this.SafeString(currencies, 0); derefPtr != nil {
+				baseId = *derefPtr
+			} else {
+				baseId = nil
+			}
+			if derefPtr := this.SafeString(currencies, 1); derefPtr != nil {
+				quoteId = *derefPtr
+			} else {
+				quoteId = nil
+			}
 		} else if swap {
 			typeVar = "swap"
-			baseId = DerefScalar(this.SafeString(currencies, 1))
-			quoteId = DerefScalar(this.SafeString(currencies, 2))
+			if derefPtr := this.SafeString(currencies, 1); derefPtr != nil {
+				baseId = *derefPtr
+			} else {
+				baseId = nil
+			}
+			if derefPtr := this.SafeString(currencies, 2); derefPtr != nil {
+				quoteId = *derefPtr
+			} else {
+				quoteId = nil
+			}
 		} else if future {
 			var alias *string = this.SafeString(market, "alias")
 			if alias == nil {
@@ -1713,7 +1729,7 @@ func (this *Bitflyer) Sign(path string, optionalArgs ...any) any {
 			request += "?" + this.Urlencode(params)
 		}
 	}
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

@@ -930,12 +930,12 @@ func (this *BaseExchange) FilterByValueSinceLimit(array any, field any, optional
 func (this *BaseExchange) SetSandboxMode(enabled any) {
 	if EvalTruthy(enabled) {
 		if InOp(this.Urls, "test") {
-			if IsString(GetValue(this.Urls, "api")) {
-				AddElementToObject(this.Urls, "apiBackup", GetValue(this.Urls, "api"))
-				AddElementToObject(this.Urls, "api", GetValue(this.Urls, "test"))
+			if IsString(this.Urls["api"]) {
+				this.Urls["apiBackup"] = this.Urls["api"]
+				this.Urls["api"] = this.Urls["test"]
 			} else {
-				AddElementToObject(this.Urls, "apiBackup", this.Clone(GetValue(this.Urls, "api")))
-				AddElementToObject(this.Urls, "api", this.Clone(GetValue(this.Urls, "test")))
+				this.Urls["apiBackup"] = this.Clone(this.Urls["api"])
+				this.Urls["api"] = this.Clone(this.Urls["test"])
 			}
 		} else {
 			panic(NotSupported(this.Id + " does not have a sandbox URL"))
@@ -943,12 +943,12 @@ func (this *BaseExchange) SetSandboxMode(enabled any) {
 		// set flag
 		this.IsSandboxModeEnabled = true
 	} else if InOp(this.Urls, "apiBackup") {
-		if IsString(GetValue(this.Urls, "api")) {
-			AddElementToObject(this.Urls, "api", GetValue(this.Urls, "apiBackup"))
+		if IsString(this.Urls["api"]) {
+			this.Urls["api"] = this.Urls["apiBackup"]
 		} else {
-			AddElementToObject(this.Urls, "api", this.Clone(GetValue(this.Urls, "apiBackup")))
+			this.Urls["api"] = this.Clone(this.Urls["apiBackup"])
 		}
-		var newUrls any = this.Omit(this.Urls, "apiBackup")
+		var newUrls map[string]any = MapTyped(this.Omit(this.Urls, "apiBackup"))
 		this.Urls = newUrls
 		// set flag
 		this.IsSandboxModeEnabled = false
@@ -966,11 +966,11 @@ func (this *BaseExchange) EnableDemoTrading(enable any) {
 		panic(NotSupported(this.Id + " demo trading does not support in sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences"))
 	}
 	if EvalTruthy(enable) {
-		AddElementToObject(this.Urls, "apiBackupDemoTrading", GetValue(this.Urls, "api"))
-		AddElementToObject(this.Urls, "api", GetValue(this.Urls, "demo"))
+		this.Urls["apiBackupDemoTrading"] = this.Urls["api"]
+		this.Urls["api"] = this.Urls["demo"]
 	} else if InOp(this.Urls, "apiBackupDemoTrading") {
-		AddElementToObject(this.Urls, "api", GetValue(this.Urls, "apiBackupDemoTrading"))
-		var newUrls any = this.Omit(this.Urls, "apiBackupDemoTrading")
+		this.Urls["api"] = this.Urls["apiBackupDemoTrading"]
+		var newUrls map[string]any = MapTyped(this.Omit(this.Urls, "apiBackupDemoTrading"))
 		this.Urls = newUrls
 	}
 	this.Options.Store("enableDemoTrading", enable)
@@ -1282,14 +1282,14 @@ func (this *BaseExchange) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	panic(NotSupported(this.Id + " fetchTime() is not supported yet"))
 }
-func (this *BaseExchange) FetchTradingLimitsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *BaseExchange) FetchTradingLimitsAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchTradingLimitsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) any {
+func (this *BaseExchange) fetchTradingLimitsBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3427,7 +3427,10 @@ func (this *BaseExchange) SafeTicker(ticker any, optionalArgs ...any) any {
 	}
 	// timestamp and symbol operations don't belong in safeTicker
 	// they should be done in the derived classes
-	var closeParsed *float64 = Float64PtrTyped(this.ParseNumber(this.OmitZero(close)))
+	var closeParsed *float64
+	if derefNum, isNum := this.ParseNumber(this.OmitZero(close)).(float64); isNum {
+		closeParsed = &derefNum
+	}
 	return this.Extend(ticker, map[string]any{
 		"bid":           this.ParseNumber(this.OmitZero(this.SafeString(ticker, "bid"))),
 		"bidVolume":     this.SafeNumber(ticker, "bidVolume"),
@@ -4343,7 +4346,7 @@ func (this *BaseExchange) loadTradingLimitsBody(ch chan any, optionalArgs ...any
 	if !IsEqual(this.Has["fetchTradingLimits"], nil) && !IsEqual(this.Has["fetchTradingLimits"], false) {
 		if (reload == true) || !(InOp(this.Options, "limitsLoaded")) {
 
-			var response map[string]any = MapTyped(PanicOnError((<-this.FetchTradingLimitsAsync(symbols))))
+			var response map[string]any = (<-this.FetchTradingLimitsAsync(symbols)).Checked()
 			var symbolsArray any = this.RequireValue(symbols, "loadTradingLimits() requires a symbols argument")
 			var markets any = this.Markets
 			if IsEqual(markets, nil) {
@@ -4923,7 +4926,7 @@ func (this *BaseExchange) fetch2Body(ch chan any, path any, optionalArgs ...any)
 	// implicit endpoints may pass a list body as params: keep it an untyped box
 	var requestParams any = params
 	var retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable []any = this.HandleOptionIntegerAndParamsNullable(requestParams, path, "maxRetriesOnFailure", retries)
-	retriesMaxRetriesOnFailure := GetValue(retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable, 0)
+	retriesMaxRetriesOnFailure := retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable[0]
 	paramsMaxRetriesOnFailure := retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable[1]
 	var retryDelay int = 0
 	var retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsMaxRetriesOnFailure, path, "maxRetriesOnFailureDelay", retryDelay)
@@ -5471,14 +5474,14 @@ func (this *BaseExchange) fetchStatusBody(ch chan EndpointResult[map[string]any]
 	_ = params
 	panic(NotSupported(this.Id + " fetchStatus() is not supported yet"))
 }
-func (this *BaseExchange) FetchTransactionFeeAsync(code string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *BaseExchange) FetchTransactionFeeAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchTransactionFeeBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) fetchTransactionFeeBody(ch chan any, code string, optionalArgs ...any) any {
+func (this *BaseExchange) fetchTransactionFeeBody(ch chan EndpointResult[map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if IsEqual(this.Has["fetchTransactionFees"], nil) || IsEqual(this.Has["fetchTransactionFees"], false) {
@@ -5487,9 +5490,9 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan any, code string, opti
 
 	var retRes678215 map[string]any = MapTyped(PanicOnError((<-this.FetchTransactionFeesAsync([]any{code}, params))))
 	if retRes678215 == nil {
-		ch <- nil
+		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- retRes678215
+		ch <- EndpointResult[map[string]any]{Value: retRes678215, Raw: retRes678215}
 	}
 	return nil
 }
@@ -5877,14 +5880,14 @@ func (this *BaseExchange) fetchConvertTradeHistoryBody(ch chan any, optionalArgs
 	_ = params
 	panic(NotSupported(this.Id + " fetchConvertTradeHistory() is not supported yet"))
 }
-func (this *BaseExchange) FetchPositionModeAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *BaseExchange) FetchPositionModeAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchPositionModeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
+func (this *BaseExchange) fetchPositionModeBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -6387,14 +6390,14 @@ func (this *BaseExchange) fetchDepositAddressBody(ch chan any, code string, opti
 		panic(NotSupported(this.Id + " fetchDepositAddress() is not supported yet"))
 	}
 }
-func (this *BaseExchange) FetchContractDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *BaseExchange) FetchContractDepositAddressAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchContractDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) fetchContractDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
+func (this *BaseExchange) fetchContractDepositAddressBody(ch chan EndpointResult[map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchContractDepositAddress() is not supported yet"))
@@ -7823,11 +7826,11 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan any, method any,
 	_ = removeRepeated
 	var maxCalls int = 10
 	var maxCallsPaginationCallsparamsPaginationCallsVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "paginationCalls", maxCalls)
-	maxCallsPaginationCalls := GetValue(maxCallsPaginationCallsparamsPaginationCallsVariable, 0)
+	maxCallsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[0]
 	paramsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[1]
 	var maxRetries int = 3
 	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginationCalls, method, "maxRetries", maxRetries)
-	maxRetriesOption := GetValue(maxRetriesOptionparamsMaxRetriesVariable, 0)
+	maxRetriesOption := maxRetriesOptionparamsMaxRetriesVariable[0]
 	paramsMaxRetries := maxRetriesOptionparamsMaxRetriesVariable[1]
 	var paginationDirectionparamsPaginationDirectionVariable []any = this.HandleOptionAndParams(paramsMaxRetries, method, "paginationDirection", "backward")
 	paginationDirection := GetValue(paginationDirectionparamsPaginationDirectionVariable, 0)
@@ -7971,7 +7974,7 @@ func (this *BaseExchange) safeDeterministicCallBody(ch chan any, method any, opt
 	_ = params
 	var maxRetries int = 3
 	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "maxRetries", maxRetries)
-	maxRetriesOption := GetValue(maxRetriesOptionparamsMaxRetriesVariable, 0)
+	maxRetriesOption := maxRetriesOptionparamsMaxRetriesVariable[0]
 	paramsMaxRetries := maxRetriesOptionparamsMaxRetriesVariable[1]
 	var errors any = 0
 	for IsLessThanOrEqual(errors, maxRetriesOption) {
@@ -8042,7 +8045,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
 	_ = maxEntriesPerRequest
 	var maxCalls int = 10
 	var maxCallsPaginationCallsparamsPaginationCallsVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "paginationCalls", maxCalls)
-	maxCallsPaginationCalls := GetValue(maxCallsPaginationCallsparamsPaginationCallsVariable, 0)
+	maxCallsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[0]
 	paramsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[1]
 	maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationCalls)
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
@@ -8136,11 +8139,11 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan any, method any, 
 	_ = maxEntriesPerRequest
 	var maxCalls int = 10
 	var maxCallsPaginationCallsparamsPaginationCallsVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "paginationCalls", maxCalls)
-	maxCallsPaginationCalls := GetValue(maxCallsPaginationCallsparamsPaginationCallsVariable, 0)
+	maxCallsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[0]
 	paramsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[1]
 	var maxRetries int = 3
 	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginationCalls, method, "maxRetries", maxRetries)
-	maxRetriesOption := GetValue(maxRetriesOptionparamsMaxRetriesVariable, 0)
+	maxRetriesOption := maxRetriesOptionparamsMaxRetriesVariable[0]
 	paramsMaxRetries := maxRetriesOptionparamsMaxRetriesVariable[1]
 	maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries)
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
@@ -8290,11 +8293,11 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan any, method 
 	_ = maxEntriesPerRequest
 	var maxCalls int = 10
 	var maxCallsPaginationCallsparamsPaginationCallsVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "paginationCalls", maxCalls)
-	maxCallsPaginationCalls := GetValue(maxCallsPaginationCallsparamsPaginationCallsVariable, 0)
+	maxCallsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[0]
 	paramsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[1]
 	var maxRetries int = 3
 	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginationCalls, method, "maxRetries", maxRetries)
-	maxRetriesOption := GetValue(maxRetriesOptionparamsMaxRetriesVariable, 0)
+	maxRetriesOption := maxRetriesOptionparamsMaxRetriesVariable[0]
 	paramsMaxRetries := maxRetriesOptionparamsMaxRetriesVariable[1]
 	maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries)
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
@@ -9055,7 +9058,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 			for i := 0; i < len(tickerSymbols); i++ {
 				var tickerSymbol string = tickerSymbols[i]
 				if InOp(this.Tickers, tickerSymbol) {
-					Remove(this.Tickers, tickerSymbol)
+					this.Tickers.Delete(tickerSymbol)
 				}
 			}
 		} else if (topic != nil && *topic == "bidsasks") && (this.Bidsasks != nil) {
@@ -9063,7 +9066,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 			for i := 0; i < len(bidsaskSymbols); i++ {
 				var bidsaskSymbol string = bidsaskSymbols[i]
 				if InOp(this.Bidsasks, bidsaskSymbol) {
-					Remove(this.Bidsasks, bidsaskSymbol)
+					this.Bidsasks.Delete(bidsaskSymbol)
 				}
 			}
 		}
@@ -9402,14 +9405,14 @@ func (this *Exchange) watchMarkPricesBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	panic(NotSupported(this.Id + " watchMarkPrices () is not supported yet"))
 }
-func (this *Exchange) FetchL3OrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Exchange) FetchL3OrderBookAsync(symbol string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchL3OrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Exchange) fetchL3OrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Exchange) fetchL3OrderBookBody(ch chan EndpointResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -10012,14 +10015,14 @@ func (this *Exchange) editOrderWsBody(ch chan any, id string, symbol string, typ
 	ch <- PanicOnError(<-this.DerivedExchange.(ICreateOrderWs).CreateOrderWsAsync(symbol, typeVar, side, amount, price, params))
 	return nil
 }
-func (this *Exchange) FetchClosedOrdersWsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Exchange) FetchClosedOrdersWsAsync(optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.fetchClosedOrdersWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Exchange) fetchClosedOrdersWsBody(ch chan any, optionalArgs ...any) any {
+func (this *Exchange) fetchClosedOrdersWsBody(ch chan EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
@@ -10033,7 +10036,8 @@ func (this *Exchange) fetchClosedOrdersWsBody(ch chan any, optionalArgs ...any) 
 		orders := <-this.DerivedExchange.(IFetchOrdersWs).FetchOrdersWsAsync(symbol, since, limit, params)
 		PanicOnError(orders)
 
-		ch <- this.FilterBy(orders, "status", "closed")
+		chValue := this.FilterBy(orders, "status", "closed")
+		ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue}
 		return nil
 	}
 	panic(NotSupported(this.Id + " fetchClosedOrdersWs() is not supported yet"))
@@ -10128,14 +10132,14 @@ func (this *Exchange) fetchOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	panic(NotSupported(this.Id + " fetchOrdersWs() is not supported yet"))
 }
-func (this *Exchange) FetchPositionWsAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Exchange) FetchPositionWsAsync(symbol string, optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.fetchPositionWsBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Exchange) fetchPositionWsBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Exchange) fetchPositionWsBody(ch chan EndpointResult[[]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchPositionWs() is not supported yet"))
@@ -10350,14 +10354,14 @@ func (this *Exchange) fetchOpenInterestBody(ch chan any, symbol string, optional
 		panic(NotSupported(this.Id + " fetchOpenInterest() is not supported yet"))
 	}
 }
-func (this *Exchange) FetchL2OrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Exchange) FetchL2OrderBookAsync(symbol string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchL2OrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Exchange) fetchL2OrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Exchange) fetchL2OrderBookBody(ch chan EndpointResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -10366,10 +10370,11 @@ func (this *Exchange) fetchL2OrderBookBody(ch chan any, symbol string, optionalA
 	orderbook := <-this.DerivedExchange.FetchOrderBookAsync(symbol, limit, params)
 	PanicOnError(orderbook)
 
-	ch <- this.Extend(orderbook, map[string]any{
+	chValue := this.Extend(orderbook, map[string]any{
 		"asks": this.SortBy(this.Aggregate(GetValue(orderbook, "asks")), 0),
 		"bids": this.SortBy(this.Aggregate(GetValue(orderbook, "bids")), 0, true),
 	})
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Exchange) EditLimitBuyOrderAsync(id string, symbol string, amount any, optionalArgs ...any) <-chan any {
@@ -11101,14 +11106,14 @@ func (this *Exchange) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Exchange) CancelOrdersWithClientOrderIdsAsync(clientOrderIds any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Exchange) CancelOrdersWithClientOrderIdsAsync(clientOrderIds any, optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.cancelOrdersWithClientOrderIdsBody(ch, clientOrderIds, optionalArgs...)
 	return ch
 }
-func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan any, clientOrderIds any, optionalArgs ...any) any {
+func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan EndpointResult[[]any], clientOrderIds any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -11120,9 +11125,9 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan any, clientOrde
 	listRecv11119, _ := PanicOnError((<-this.CancelOrdersAsync([]any{}, symbol, extendedParams))).([]any)
 	var retRes1022215 []any = listRecv11119
 	if retRes1022215 == nil {
-		ch <- nil
+		ch <- EndpointResult[[]any]{}
 	} else {
-		ch <- retRes1022215
+		ch <- EndpointResult[[]any]{Value: retRes1022215, Raw: retRes1022215}
 	}
 	return nil
 }

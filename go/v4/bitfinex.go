@@ -1024,8 +1024,8 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"strike":         nil,
 			"optionType":     nil,
 			"precision": map[string]any{
-				"amount": ParseInt("8"),
-				"price":  ParseInt("5"),
+				"amount": int64(8),
+				"price":  int64(5),
 			},
 			"limits": map[string]any{
 				"leverage": map[string]any{
@@ -1535,14 +1535,22 @@ func (this *Bitfinex) ConvertDerivativesId(currency any, typeVar any) any {
 	var underlying []any = SafeListTyped(info, 4)
 	var currencyId any = nil
 	if IsEqual(typeVar, "derivatives") {
-		currencyId = DerefScalar(this.SafeString(underlying, 0, transferId))
+		if derefPtr := this.SafeString(underlying, 0, transferId); derefPtr != nil {
+			currencyId = *derefPtr
+		} else {
+			currencyId = nil
+		}
 		var start int64 = Subtract(GetLength(currencyId), 2).(int64)
 		var isDerivativeCode bool = (Slice(currencyId, start, nil) == "F0")
 		if !isDerivativeCode {
 			currencyId = Add(currencyId, "F0")
 		}
 	} else if !IsEqual(typeVar, "margin") {
-		currencyId = DerefScalar(this.SafeString(underlying, 1, transferId))
+		if derefPtr := this.SafeString(underlying, 1, transferId); derefPtr != nil {
+			currencyId = *derefPtr
+		} else {
+			currencyId = nil
+		}
 	} else {
 		currencyId = transferId
 	}
@@ -2300,7 +2308,10 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	 * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
 	 */
 	var market map[string]any = this.Market(symbol)
-	var amountString any = DerefScalar(this.AmountToPrecision(symbol, amount))
+	var amountString any
+	if derefPtr := this.AmountToPrecision(symbol, amount); derefPtr != nil {
+		amountString = *derefPtr
+	}
 	amountString = func() any {
 		if IsEqual(side, "buy") {
 			return amountString
@@ -2368,7 +2379,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	if !IsEqual(clientOrderId, nil) {
 		request["cid"] = clientOrderId
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarginMode, []any{"triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsMarginMode, []any{"triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId"})
 	return this.Extend(request, paramsOmitted)
 }
 
@@ -3411,8 +3422,16 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 		if feeCost != nil {
 			feeCost = Precise.StringAbs(feeCost)
 		}
-		amount = DerefScalar(this.SafeNumber(data, 5))
-		id = DerefScalar(this.SafeInteger(data, 0))
+		if derefPtr := this.SafeNumber(data, 5); derefPtr != nil {
+			amount = *derefPtr
+		} else {
+			amount = nil
+		}
+		if derefPtr := this.SafeInteger(data, 0); derefPtr != nil {
+			id = *derefPtr
+		} else {
+			id = nil
+		}
 		status = SafeStringPtr("ok")
 		if IsEqual(id, 0) {
 			id = nil
@@ -3423,9 +3442,17 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 		var networkId *string = this.SafeString(data, 2)
 		network = this.NetworkIdToCode(ToUpper(networkId), code) // withdraw returns in lowercase
 	} else if transactionLength == 22 {
-		id = DerefScalar(this.SafeString(transaction, 0))
+		if derefPtr := this.SafeString(transaction, 0); derefPtr != nil {
+			id = *derefPtr
+		} else {
+			id = nil
+		}
 		var currencyId *string = this.SafeString(transaction, 1)
-		code = DerefScalar(this.SafeCurrencyCode(currencyId, currency))
+		if derefPtr := this.SafeCurrencyCode(currencyId, currency); derefPtr != nil {
+			code = *derefPtr
+		} else {
+			code = nil
+		}
 		var networkId *string = this.SafeString(transaction, 2)
 		network = this.NetworkIdToCode(networkId, code)
 		timestamp = this.SafeInteger(transaction, 5)
@@ -3977,7 +4004,7 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
 	} else {
 		request = Add(this.Version, request)
 	}
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -5195,7 +5222,10 @@ func (this *Bitfinex) editOrderBody(ch chan any, id string, symbol any, typeVar 
 		"id": this.ParseToNumeric(id),
 	}
 	if amount != nil {
-		var amountString any = DerefScalar(this.AmountToPrecision(symbol, amount))
+		var amountString any
+		if derefPtr := this.AmountToPrecision(symbol, amount); derefPtr != nil {
+			amountString = *derefPtr
+		}
 		amountString = func() any {
 			if IsEqual(side, "buy") {
 				return amountString

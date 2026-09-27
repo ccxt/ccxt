@@ -185,7 +185,7 @@ func (this *testMainClass) CheckIfSpecificTestIsChosen(methodArgv any) {
 				for j := 0; j < len(possibleMethodNames); j++ {
 					var methodName string = possibleMethodNames[j]
 					methodName = strings.Replace(methodName, "()", "", 1)
-					if IsEqual(testFileName, methodName) {
+					if testFileName == methodName {
 						AppendToArray(&this.OnlySpecificTests, testFileName)
 					}
 				}

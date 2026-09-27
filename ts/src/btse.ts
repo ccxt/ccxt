@@ -1538,7 +1538,7 @@ export default class btse extends Exchange {
         // perpetuals, observed live, the zero means no next funding and is omitted
         const nextFundingTimestamp = this.safeIntegerOmitZero (contract, 'nextFundingTime');
         const fundingIntervalMinutes = this.safeInteger (contract, 'fundingIntervalMinutes');
-        let interval = undefined;
+        let interval: Str = undefined;
         // a wire value of zero minutes reaches this, and zero hours is not an
         // interval: a caller annualising a rate divides by it. anything under an
         // hour rounds to the same string, and the vocabulary has no minutes
@@ -1990,7 +1990,7 @@ export default class btse extends Exchange {
         // sizing rules are strict on both sides, verified live
         const needsQuoteSize = (isMarketOrder || (typeValue === 'TRAILING')) && (upperSide === 'BUY');
         if (needsQuoteSize) {
-            let quoteAmount = undefined;
+            let quoteAmount: Str = undefined;
             let createMarketBuyOrderRequiresPrice = true;
             [ createMarketBuyOrderRequiresPrice, query ] = this.handleOptionBoolAndParams (query, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             const cost = this.safeString (query, 'cost');
@@ -2051,8 +2051,8 @@ export default class btse extends Exchange {
         } else {
             if (isConditionalOrder) {
                 request['orderType'] = 'CONDITIONAL';
-                let triggerOrderType = undefined;
-                let triggerPriceToSend = undefined;
+                let triggerOrderType: Str = undefined;
+                let triggerPriceToSend: Str = undefined;
                 if (isStopLossOrder) {
                     triggerOrderType = 'STOP_LOSS';
                     triggerPriceToSend = stopLossPrice;
@@ -3634,8 +3634,8 @@ export default class btse extends Exchange {
             'info': response,
             'symbol': symbol,
         };
-        let longLeverage = undefined;
-        let shortLeverage = undefined;
+        let longLeverage: Int = undefined;
+        let shortLeverage: Int = undefined;
         let marginMode: Str = undefined;
         for (let i = 0; i < safeResponse.length; i++) {
             const entrty = this.safeDict (safeResponse, i);

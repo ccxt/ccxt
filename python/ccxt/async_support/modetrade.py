@@ -1601,7 +1601,7 @@ class modetrade(Exchange, ImplicitAPI):
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
         isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
-        response = None
+        response: dict
         if isConditional:
             response = await self.v1PrivatePostAlgoOrder(request)
             #
@@ -1735,7 +1735,7 @@ class modetrade(Exchange, ImplicitAPI):
         if amount is not None:
             request[orderQtyKey] = self.amount_to_precision(symbol, amount)
         paramsOmitted = self.omit(params, ['stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent'])
-        response = None
+        response: dict
         if isConditional:
             response = await self.v1PrivatePutAlgoOrder(self.extend(request, paramsOmitted))
         else:
@@ -1864,7 +1864,7 @@ class modetrade(Exchange, ImplicitAPI):
         clientOrderIds = self.safe_list_n(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
         paramsOmitted = self.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
         request = {}
-        response = None
+        response: dict
         if clientOrderIds is not None:
             request['client_order_ids'] = ','.join(clientOrderIds)
             response = await self.v1PrivateDeleteClientBatchOrder(self.extend(request, paramsOmitted))
@@ -1955,7 +1955,7 @@ class modetrade(Exchange, ImplicitAPI):
         request = {}
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         paramsOmitted = self.omit(params, ['stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id'])
-        response = None
+        response: dict
         if trigger is True:
             if clientOrderId is not None and clientOrderId != '':
                 request['client_order_id'] = clientOrderId
@@ -2040,7 +2040,7 @@ class modetrade(Exchange, ImplicitAPI):
         if isTrigger is True:
             request['algo_type'] = 'STOP'
         requestUntil, paramsUntil = self.handle_until_option('end_t', request, paramsOmitted)
-        response = None
+        response: dict
         if isTrigger is True:
             response = await self.v1PrivateGetAlgoOrders(self.extend(requestUntil, paramsUntil))
         else:

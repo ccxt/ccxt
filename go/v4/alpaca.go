@@ -1565,7 +1565,7 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol string, typeVar string, 
 		}
 		return defaultTIF
 	}()
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsTimeInForce, []any{"timeInForce", "triggerPrice"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsTimeInForce, []any{"timeInForce", "triggerPrice"})
 	request["client_order_id"] = this.GenerateClientOrderId(paramsOmitted)
 
 	var order map[string]any = (<-this.TraderPrivatePostV2Orders(this.Extend(request, this.Omit(paramsOmitted, []any{"clientOrderId"})))).Checked()
@@ -2877,7 +2877,11 @@ func (this *Alpaca) ParseBalance(response any) any {
 			return strings.Index(*positionSymbol, "/")
 		}() >= 0 {
 			var parts []string = strings.Split(*positionSymbol, "/")
-			baseId = DerefScalar(this.SafeString(parts, 0))
+			if derefPtr := this.SafeString(parts, 0); derefPtr != nil {
+				baseId = *derefPtr
+			} else {
+				baseId = nil
+			}
 		} else {
 			// crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
 			var baseLength int64 = Subtract(GetLength(positionSymbol), 3).(int64)
@@ -2916,7 +2920,7 @@ func (this *Alpaca) Sign(path string, optionalArgs ...any) any {
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var endpoint string = "/" + this.ImplodeParams(path, params)
-	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), GetValue(api, 0))
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], GetValue(api, 0))
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

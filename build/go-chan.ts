@@ -208,6 +208,70 @@ function goChanOwnReturn (masked: string, receiver: string, name: string): strin
     return ((t === null) || (t[1] === 'any') || (t[1] === 'interface{}')) ? undefined : t[1];
 }
 
+// ===== G10K-gochan2: sends of base methods (Parse*/Filter*/Safe*) once their base return is typed =====
+let GO_CHAN_BASE_RETURNS: { key: string, map: Map<string, string> } | undefined = undefined;
+let GO_CHAN_BASE_RETURNS_TEST: Map<string, string> | undefined = undefined;
+
+// `<Struct>.<method>` -> concrete return, for BaseExchange / Exchange / PredictionExchange in go/v4/exchange*.go
+export function goChanBaseReturns (dir: string = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'go', 'v4')): Map<string, string> {
+    if (GO_CHAN_BASE_RETURNS_TEST !== undefined) {
+        return GO_CHAN_BASE_RETURNS_TEST;
+    }
+    const files = fs.existsSync (dir) ? fs.readdirSync (dir).filter ((f) => /^exchange.*\.go$/.test (f) && !f.endsWith ('_api.go')).sort () : [];
+    const key = files.map ((f) => f + ':' + fs.statSync (path.join (dir, f)).mtimeMs).join ('|');
+    if ((GO_CHAN_BASE_RETURNS === undefined) || (GO_CHAN_BASE_RETURNS.key !== key)) {
+        const seen = new Map<string, string | undefined> ();
+        for (const f of files) {
+            const masked = goChanMask (fs.readFileSync (path.join (dir, f), 'utf8'));
+            const decl = /^func \(this \*(BaseExchange|Exchange|PredictionExchange)\) (\w+)\([^\n]*\{$/gm;
+            for (let m = decl.exec (masked); m !== null; m = decl.exec (masked)) {
+                const t = /\) ([^\s(){},]+) \{$/.exec (m[0]);
+                const type = ((t === null) || (t[1] === 'any') || (t[1] === 'interface{}')) ? undefined : t[1];
+                const k = m[1] + '.' + m[2];
+                seen.set (k, seen.has (k) ? undefined : type);
+            }
+        }
+        const map = new Map<string, string> ();
+        seen.forEach ((t, k) => { if (t !== undefined) { map.set (k, t); } });
+        // a name declared anywhere with no concrete type blocks every lookup of it
+        seen.forEach ((t, k) => { if (t === undefined) { map.set (k, ''); } });
+        GO_CHAN_BASE_RETURNS = { key, map };
+    }
+    return GO_CHAN_BASE_RETURNS.map;
+}
+
+export function goChanSetBaseReturnsForTest (map: Map<string, string> | undefined) {
+    GO_CHAN_BASE_RETURNS_TEST = map;
+}
+
+// `this.M` on R: R's own declaration in the file decides. Otherwise R must directly embed Exchange (package ccxt)
+// or ccxt.PredictionExchange; the promoted method is the shallowest declaration, which must have a concrete type.
+function goChanMethodReturn (masked: string, receiver: string, name: string): string | undefined {
+    if (new RegExp ('^func \\(this \\*' + receiver + '\\) ' + name + '\\(', 'm').test (masked)) {
+        return goChanOwnReturn (masked, receiver, name);
+    }
+    const embed = new RegExp ('^type ' + receiver + ' struct \\{\\n\\t((?:ccxt\\.)?\\w+)\\n', 'm').exec (masked);
+    const own = /^package ccxt\s*$/m.test (masked);
+    let chain: string[];
+    if (own && /^(?:BaseExchange|Exchange|PredictionExchange)$/.test (receiver)) {
+        chain = (receiver === 'BaseExchange') ? [ 'BaseExchange' ] : [ receiver, 'BaseExchange' ];
+    } else if (own && (embed !== null) && (embed[1] === 'Exchange')) {
+        chain = [ 'Exchange', 'BaseExchange' ];
+    } else if ((embed !== null) && (embed[1] === (own ? '' : 'ccxt.') + 'PredictionExchange')) {
+        chain = [ 'PredictionExchange', 'BaseExchange' ];
+    } else {
+        return undefined;
+    }
+    const map = goChanBaseReturns ();
+    for (const s of chain) {
+        const t = map.get (s + '.' + name);
+        if (t !== undefined) {
+            return (t === '') ? undefined : t;
+        }
+    }
+    return undefined;
+}
+
 interface GoChanCore { receiver: string, method: string, asyncStart: number, asyncEnd: number, bodyStart: number, bodyEnd: number, sends: { start: number, end: number, expr: string, bind: boolean }[] }
 
 // every `XAsync` trampoline + body pair of a tabled method in the file; throws on a tabled core it cannot prove
@@ -272,7 +336,7 @@ function goChanCores (content: string, masked: string, table: Map<string, string
             const start = u.index + 6;
             const end = goChanExprEnd (fnMasked, start);
             const expr = content.substring (bodyStart + start, bodyStart + end);
-            const proof = goChanSendType (expr, fnMasked, signature, (name) => goChanOwnReturn (masked, receiver, name));
+            const proof = goChanSendType (expr, fnMasked, signature, (name) => goChanMethodReturn (masked, receiver, name));
             if (proof.reason !== undefined) {
                 reason = proof.reason;
                 break;
@@ -380,10 +444,15 @@ function goChanConsumerEdits (content: string, masked: string, table: Map<string
         const nilable = /\?$/.test (table.get (m[1]) as string);
         const type = goChanType (table.get (m[1])) as string;
         let recvStart = m.index;
-        while ((recvStart > 0) && /[\w.]/.test (masked[recvStart - 1])) {
+        // G10K-gochan2: `this.DerivedExchange.(IName)` / `exchange.(ccxt.IName)` assert to the interface --apply-hand retypes
+        const asserted = /(?<![\w.])(this\.DerivedExchange|exchange)\.\((?:ccxt\.)?I\w+\)$/.exec (masked.substring (Math.max (0, m.index - 120), m.index));
+        if (asserted !== null) {
+            recvStart = m.index - asserted[0].length;
+        }
+        while ((asserted === null) && (recvStart > 0) && /[\w.]/.test (masked[recvStart - 1])) {
             recvStart--;
         }
-        const recv = masked.substring (recvStart, m.index);
+        const recv = (asserted !== null) ? asserted[1] : masked.substring (recvStart, m.index);
         const lineStart = masked.lastIndexOf ('\n', recvStart) + 1;
         if (/^func \(/.test (masked.substring (lineStart, recvStart))) {
             continue;
@@ -573,6 +642,22 @@ export function goChanSelfTest (): string[] {
     ok (throws ('\tch <- this.ParseOrder(a)\n\treturn nil\n'), 'any-typed call rejected');
     const ownOk = goChanCarrierPass ('package ccxt\n' + core ('X', '\tch <- this.ParseRows(a)\n\treturn nil\n') + 'func (this *X) ParseRows(a any) map[string]any {\n\treturn nil\n}\n', table);
     ok (ownOk.includes ('\tchValue := this.ParseRows(a)\n\tch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}\n'), 'own typed call send');
+    // G10K-gochan2: inherited base returns
+    goChanSetBaseReturnsForTest (new Map ([ [ 'BaseExchange.ParseBase', 'map[string]any' ], [ 'Exchange.ParseShadow', '' ], [ 'BaseExchange.ParseShadow', 'map[string]any' ] ]));
+    const embed = 'package ccxt\ntype X struct {\n\tExchange\n\texchangeTyped *ExchangeTyped\n}\n';
+    const inherited = goChanCarrierPass (embed + core ('X', '\tch <- this.ParseBase(a)\n\treturn nil\n'), table);
+    ok (inherited.includes ('\tchValue := this.ParseBase(a)\n\tch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}\n'), 'inherited base typed send');
+    const tryPass = (src: string) => { try { goChanCarrierPass (src, table); return false; } catch (e) { return true; } };
+    ok (tryPass (embed + core ('X', '\tch <- this.ParseBase(a)\n\treturn nil\n') + 'func (this *X) ParseBase(a any) any {\n\treturn nil\n}\n'), 'own any override beats base');
+    ok (tryPass ('package ccxt\ntype X struct {\n\tY\n}\n' + core ('X', '\tch <- this.ParseBase(a)\n\treturn nil\n')), 'non-base embed rejected');
+    ok (tryPass ('package ccxtpro\ntype X struct {\n\tExchange\n}\n' + core ('X', '\tch <- this.ParseBase(a)\n\treturn nil\n')), 'other package rejected');
+    ok (tryPass (embed + core ('X', '\tch <- this.ParseOther(a)\n\treturn nil\n')), 'untyped base rejected');
+    ok (tryPass (embed + core ('X', '\tch <- this.ParseShadow(a)\n\treturn nil\n')), 'any shadow in Exchange rejected');
+    const pred = 'package ccxtprediction\ntype X struct {\n\tccxt.PredictionExchange\n}\n';
+    ok (goChanCarrierPass (pred + core ('X', '\tch <- this.ParseBase(a)\n\treturn nil\n'), table).includes ('ch <- ccxt.EndpointResult[map[string]any]{Value: chValue, Raw: chValue}'), 'prediction inherited send');
+    const viaIface = goChanCarrierPass ('package ccxt\nfunc F(exchange any) {\n\tv := (<-exchange.(ccxt.ISetX).SetXAsync(1))\n\t_ = v\n}\n', table);
+    ok (viaIface.includes ('v := (<-exchange.(ccxt.ISetX).SetXAsync(1)).Raw'), 'asserted interface receiver');
+    goChanSetBaseReturnsForTest (undefined);
     ok (throws ('\tch <- this.ParseRows(a)\n\treturn nil\n' + '}\nfunc (this *X) ParseRows(a any) any {\n\treturn nil\n'), 'own any-typed call rejected');
     ok (throws ('\tch <- this.ParseRows(a)\n\treturn nil\n' + '}\nfunc (this *Y) ParseRows(a any) map[string]any {\n\treturn nil\n'), 'other receiver call rejected');
     ok (goChanCarrierPass ('package ccxt\n' + core ('X', '\tch <- this.IndexBy(a, "network")\n\treturn nil\n'), table).includes ('chValue := this.IndexBy(a, "network")'), 'IndexBy send');

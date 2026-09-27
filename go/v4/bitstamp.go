@@ -1311,7 +1311,10 @@ func (this *Bitstamp) ConstructCurrencyObject(id any, code any, name any, precis
 	if this.IsFiat(code) {
 		currencyType = "fiat"
 	}
-	var tickSize *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.NumberToString(precision))))
+	var tickSize *float64
+	if derefNum, isNum := this.ParseNumber(this.ParsePrecision(this.NumberToString(precision))).(float64); isNum {
+		tickSize = &derefNum
+	}
 	return map[string]any{
 		"id":        id,
 		"code":      code,
@@ -1848,7 +1851,11 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 	if rawMarketId != nil {
 		priceId = rawMarketId
 	} else {
-		priceId = DerefScalar(this.SafeString(marketResolved, "id"))
+		if derefPtr := this.SafeString(marketResolved, "id"); derefPtr != nil {
+			priceId = *derefPtr
+		} else {
+			priceId = nil
+		}
 	}
 	priceString = this.SafeString(trade, priceId, priceString)
 	amountString = this.SafeString(trade, this.SafeString(marketResolved, "baseId"), amountString)
@@ -1877,7 +1884,11 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 			return strings.Index(*datetimeString, " ")
 		}() >= 0 {
 			// iso8601
-			timestamp = DerefScalar(this.Parse8601(datetimeString))
+			if derefPtr := this.Parse8601(datetimeString); derefPtr != nil {
+				timestamp = *derefPtr
+			} else {
+				timestamp = nil
+			}
 		} else {
 			// string unix epoch in seconds
 			timestamp = ParseInt(datetimeString)
@@ -1896,7 +1907,11 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 			}
 		}
 	} else {
-		side = DerefScalar(this.SafeString(trade, "type"))
+		if derefPtr := this.SafeString(trade, "type"); derefPtr != nil {
+			side = *derefPtr
+		} else {
+			side = nil
+		}
 		if side == "1" {
 			side = "sell"
 		} else if side == "0" {
@@ -3418,8 +3433,8 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		var market any = nil
 		var keys []string = ObjectKeys(item)
 		for i := 0; i < len(keys); i++ {
-			if GetIndexOf(keys[i], "_") >= 0 {
-				var marketId string = Replace(keys[i], "_", "")
+			if strings.Index(keys[i], "_") >= 0 {
+				var marketId string = strings.ReplaceAll(keys[i], "_", "")
 				market = this.SafeMarket(marketId, market)
 			}
 		}
@@ -3907,7 +3922,7 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

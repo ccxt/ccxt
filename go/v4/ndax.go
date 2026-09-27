@@ -978,7 +978,11 @@ func (this *Ndax) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any)
 	for i := 0; i < GetArrayLength(orderbook); i++ {
 		var level any = GetValue(orderbook, i)
 		if IsEqual(latestTimestamp, nil) {
-			latestTimestamp = DerefScalar(this.SafeInteger(level, 2))
+			if derefPtr := this.SafeInteger(level, 2); derefPtr != nil {
+				latestTimestamp = *derefPtr
+			} else {
+				latestTimestamp = nil
+			}
 		} else {
 			var newTimestamp *int64 = this.SafeInteger(level, 2)
 			if newTimestamp != nil {
@@ -986,7 +990,11 @@ func (this *Ndax) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any)
 			}
 		}
 		if nonce == nil {
-			nonce = DerefScalar(this.SafeInteger(level, 0))
+			if derefPtr := this.SafeInteger(level, 0); derefPtr != nil {
+				nonce = *derefPtr
+			} else {
+				nonce = nil
+			}
 		} else {
 			var newNonce *int64 = this.SafeInteger(level, 0)
 			if newNonce != nil {
@@ -1501,7 +1509,11 @@ func (this *Ndax) ParseTrade(trade any, optionalArgs ...any) any {
 		amountString = this.SafeString(trade, 2)
 		timestamp = this.SafeInteger(trade, 6)
 		id = this.SafeString(trade, 0)
-		marketId = DerefScalar(this.SafeString(trade, 1))
+		if derefPtr := this.SafeString(trade, 1); derefPtr != nil {
+			marketId = *derefPtr
+		} else {
+			marketId = nil
+		}
 		var takerSide *int64 = this.SafeInteger(trade, 8)
 		if takerSide != nil && *takerSide == 0 {
 			side = SafeStringPtr("buy")
@@ -1513,7 +1525,11 @@ func (this *Ndax) ParseTrade(trade any, optionalArgs ...any) any {
 		timestamp = this.SafeInteger2(trade, "TradeTimeMS", "ReceiveTime")
 		id = this.SafeString(trade, "TradeId")
 		orderId = this.SafeString2(trade, "OrderId", "OrigOrderId")
-		marketId = DerefScalar(this.SafeString2(trade, "InstrumentId", "Instrument"))
+		if derefPtr := this.SafeString2(trade, "InstrumentId", "Instrument"); derefPtr != nil {
+			marketId = *derefPtr
+		} else {
+			marketId = nil
+		}
 		priceString = this.SafeString(trade, "Price")
 		amountString = this.SafeString(trade, "Quantity")
 		costString = this.SafeString2(trade, "Value", "GrossValueExecuted")
@@ -2043,7 +2059,10 @@ func (this *Ndax) createOrderBody(ch chan any, symbol string, typeVar string, si
 	var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	var clientOrderId *int64 = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
-	var orderType any = DerefScalar(this.SafeInteger(GetValue(this.Options, "orderTypes"), this.Capitalize(typeVar)))
+	var orderType any
+	if derefPtr := this.SafeInteger(GetValue(this.Options, "orderTypes"), this.Capitalize(typeVar)); derefPtr != nil {
+		orderType = *derefPtr
+	}
 	var triggerPrice *string = this.SafeString(params, "triggerPrice")
 	if triggerPrice != nil {
 		if typeVar == "market" {
@@ -3410,7 +3429,7 @@ func (this *Ndax) Sign(path string, optionalArgs ...any) any {
 	_ = body
 	var bodySigned any = nil
 	var headersSigned any = nil
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

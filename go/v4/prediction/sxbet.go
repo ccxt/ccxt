@@ -14,7 +14,6 @@ type Sxbet struct {
 
 func newSxbet() *Sxbet {
 	p := &Sxbet{}
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -405,7 +404,7 @@ func (this *Sxbet) ParseSxbetMarket(raw any) any {
 	// guard against a zero sentinel for "no scheduled game time" - safeTimestamp would
 	// turn it into the 1970 epoch
 	var gameTime *int64 = nil
-	if !ccxt.IsEqual(this.SafeInteger(raw, "gameTime", 0), 0) {
+	if *this.SafeInteger(raw, "gameTime", 0) != 0 {
 		gameTime = this.SafeTimestamp(raw, "gameTime")
 	}
 	var outcomeLabels []any = []any{outcomeOneName, outcomeTwoName}
@@ -1089,7 +1088,7 @@ func (this *Sxbet) approveBody(ch chan any, optionalArgs ...any) any {
 		"deadline":     this.NumberToString(deadline),
 		"signature":    signature,
 	}
-	var rest map[string]any = ccxt.MapTyped(this.Omit(paramsSpender, []any{"amount", "tokenAddress", "deadline", "rpcUrl"}))
+	var rest map[string]any = this.OmitDict(paramsSpender, []any{"amount", "tokenAddress", "deadline", "rpcUrl"})
 
 	response := (<-this.SxbetPrivatePostUserTransferToProxy(this.Extend(request, rest))).Raw
 	ccxt.PanicOnError(response)
@@ -1272,7 +1271,7 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome string, typeVar string, 
 		orderItem["externalUserId"] = externalUserId
 	}
 	var waitForOutcome *bool = this.SafeBool(paramsTimeInForce, "waitForOutcome", true)
-	var rest map[string]any = ccxt.MapTyped(this.Omit(paramsTimeInForce, []any{"salt", "expiry", "clientOrderId", "waitForOutcome", "useBetCredits", "externalUserId"}))
+	var rest map[string]any = this.OmitDict(paramsTimeInForce, []any{"salt", "expiry", "clientOrderId", "waitForOutcome", "useBetCredits", "externalUserId"})
 	var request map[string]any = map[string]any{
 		"orders":         []any{orderItem},
 		"waitForOutcome": waitForOutcome,
@@ -1303,10 +1302,18 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome string, typeVar string, 
 		var fillAmountRaw *string = this.SafeString(matchOutcome, "fillAmount")
 		var remainingRaw *string = this.SafeString(matchOutcome, "remainingAmount")
 		if fillAmountRaw != nil {
-			filled = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(fillAmountRaw, usdcDecimals, 6)))
+			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(fillAmountRaw, usdcDecimals, 6)).(float64); isNum {
+				filled = &derefNum
+			} else {
+				filled = nil
+			}
 		}
 		if remainingRaw != nil {
-			remaining = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(remainingRaw, usdcDecimals, 6)))
+			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(remainingRaw, usdcDecimals, 6)).(float64); isNum {
+				remaining = &derefNum
+			} else {
+				remaining = nil
+			}
 		}
 		var state *string = this.SafeStringUpper(matchOutcome, "state")
 		if (state != nil && *state == "RESTED") || (state != nil && *state == "PARTIAL_FILL_RESTED") {
@@ -1615,16 +1622,28 @@ func (this *Sxbet) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	var percentageOdds *string = this.SafeString(order, "percentageOdds")
 	var price *float64 = func() *float64 {
 		if percentageOdds != nil {
-			return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(percentageOdds, oneDenom)))
+			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(percentageOdds, oneDenom)).(float64); isNum {
+				return &derefNum
+			}
+			return nil
 		}
 		return nil
 	}()
 	var totalBetSize *string = this.SafeString(order, "totalBetSize", "0")
 	var remainingSize *string = this.SafeString(order, "remainingSize", totalBetSize)
 	var filledRaw *string = ccxt.Precise.StringSub(totalBetSize, remainingSize)
-	var amount *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(totalBetSize, usdcDecimals, 6)))
-	var filled *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(filledRaw, usdcDecimals, 6)))
-	var remaining *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(remainingSize, usdcDecimals, 6)))
+	var amount *float64
+	if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(totalBetSize, usdcDecimals, 6)).(float64); isNum {
+		amount = &derefNum
+	}
+	var filled *float64
+	if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(filledRaw, usdcDecimals, 6)).(float64); isNum {
+		filled = &derefNum
+	}
+	var remaining *float64
+	if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(remainingSize, usdcDecimals, 6)).(float64); isNum {
+		remaining = &derefNum
+	}
 	var orderStatus *string = this.SafeStringUpper(order, "status")
 	var inactiveReason *string = this.SafeStringUpper(order, "inactiveReason")
 	var status string = "open"
@@ -1985,12 +2004,18 @@ func (this *Sxbet) ParseSxbetV3Fill(fill any, optionalArgs ...any) any {
 	var fillOdds *string = this.SafeString(fill, "fillOdds")
 	var price *float64 = func() *float64 {
 		if fillOdds != nil {
-			return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(fillOdds, oneDenom)))
+			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(fillOdds, oneDenom)).(float64); isNum {
+				return &derefNum
+			}
+			return nil
 		}
 		return nil
 	}()
 	var fillAmount *string = this.SafeString(fill, "fillAmount", "0")
-	var amount *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(fillAmount, usdcDecimals, 6)))
+	var amount *float64
+	if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(fillAmount, usdcDecimals, 6)).(float64); isNum {
+		amount = &derefNum
+	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(fill, "createdAt"))
 	// isMaker: true when the account's order was the resting one - absent on older rows
 	var isMaker *bool = this.SafeBool(fill, "isMaker")
@@ -2198,7 +2223,10 @@ func (this *Sxbet) ParseSxbetV3Position(raw any) any {
 	}
 	var entryPrice *float64 = func() *float64 {
 		if ownOdds != nil {
-			return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(ownOdds, oneDenom)))
+			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(ownOdds, oneDenom)).(float64); isNum {
+				return &derefNum
+			}
+			return nil
 		}
 		return nil
 	}()
@@ -2341,7 +2369,7 @@ func (this *Sxbet) ParseSettlement(trade any, optionalArgs ...any) any {
 	}()
 	var won any = nil
 	if (winner != nil) && !isVoid {
-		won = (ccxt.IsEqual(winner, heldNumber))
+		won = (winner != nil && *winner == int64(heldNumber))
 	}
 	var usdcDecimals string = "1000000"
 	var stake *string = ccxt.Precise.StringDiv(this.SafeString(trade, "totalStake", "0"), usdcDecimals, 6)
@@ -2662,13 +2690,19 @@ func (this *Sxbet) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	var oppositePercentage *string = this.SafeString(oppositeOdds, "percentageOdds")
 	var bid *float64 = func() *float64 {
 		if ownPercentage != nil {
-			return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(ownPercentage, oneDenom)))
+			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(ownPercentage, oneDenom)).(float64); isNum {
+				return &derefNum
+			}
+			return nil
 		}
 		return nil
 	}()
 	var ask *float64 = func() *float64 {
 		if oppositePercentage != nil {
-			return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringSub("1", ccxt.Precise.StringDiv(oppositePercentage, oneDenom))))
+			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub("1", ccxt.Precise.StringDiv(oppositePercentage, oneDenom))).(float64); isNum {
+				return &derefNum
+			}
+			return nil
 		}
 		return nil
 	}()
@@ -2682,7 +2716,11 @@ func (this *Sxbet) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	}()
 	var average *float64 = nil
 	if ((bid != nil)) && ((ask != nil)) {
-		average = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(this.NumberToString(bid), this.NumberToString(ask)), "2")))
+		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(this.NumberToString(bid), this.NumberToString(ask)), "2")).(float64); isNum {
+			average = &derefNum
+		} else {
+			average = nil
+		}
 	}
 	return this.SafePredictionTicker(map[string]any{
 		"outcome":     this.SafeString(outcomeObj, "outcome"),
@@ -2803,8 +2841,14 @@ func (this *Sxbet) ParseSxbetV3BookSides(snapshot any, isOutcomeOne any) map[str
 		var level map[string]any = ccxt.SafeMapTyped(ownLevels, i)
 		var percentageOdds *string = this.SafeString(level, "percentageOdds")
 		var size *string = this.SafeString(level, "size", "0")
-		var price *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(percentageOdds, oneDenom)))
-		var amount *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(size, usdcDecimals, 6)))
+		var price *float64
+		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(percentageOdds, oneDenom)).(float64); isNum {
+			price = &derefNum
+		}
+		var amount *float64
+		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(size, usdcDecimals, 6)).(float64); isNum {
+			amount = &derefNum
+		}
 		bids = append(bids, []any{price, amount})
 	}
 	var asks []any = []any{}
@@ -2815,10 +2859,16 @@ func (this *Sxbet) ParseSxbetV3BookSides(snapshot any, isOutcomeOne any) map[str
 		var size *string = this.SafeString(level, "size", "0")
 		// the opposite side's resting stake mirrors into this outcome's ask - the price is the
 		// complement, and the takeable amount follows the remaining-taker-space formula
-		var price *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringSub("1", ccxt.Precise.StringDiv(percentageOdds, oneDenom))))
+		var price *float64
+		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub("1", ccxt.Precise.StringDiv(percentageOdds, oneDenom))).(float64); isNum {
+			price = &derefNum
+		}
 		var ratio *string = ccxt.Precise.StringDiv(oneDenom, percentageOdds, 12)
 		var remainingTaker *string = ccxt.Precise.StringSub(ccxt.Precise.StringMul(size, ratio), size)
-		var amount *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(remainingTaker, usdcDecimals, 6)))
+		var amount *float64
+		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(remainingTaker, usdcDecimals, 6)).(float64); isNum {
+			amount = &derefNum
+		}
 		asks = append(asks, []any{price, amount})
 	}
 	return map[string]any{
@@ -2869,14 +2919,14 @@ func (this *Sxbet) RegisterSxbetWsRequest(requestId any, messageHash any, subscr
  * @see https://docs.sx.bet/developers/realtime-initialization
  * @returns {string} the JWT connection token
  */
-func (this *Sxbet) FetchSxbetRealtimeTokenAsync() <-chan any {
-	ch := make(chan any, 1)
+func (this *Sxbet) FetchSxbetRealtimeTokenAsync() <-chan ccxt.EndpointResult[*string] {
+	ch := make(chan ccxt.EndpointResult[*string], 1)
 	go this.fetchSxbetRealtimeTokenBody(ch)
 	return ch
 }
-func (this *Sxbet) fetchSxbetRealtimeTokenBody(ch chan any) any {
+func (this *Sxbet) fetchSxbetRealtimeTokenBody(ch chan ccxt.EndpointResult[*string]) any {
 	defer close(ch)
-	defer ccxt.ReturnPanicError(ch)
+	defer ccxt.ReturnPanicErrorT(ch)
 	if ccxt.IsEqual(this.ApiKey, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " websocket streaming requires the apiKey credential - the realtime token endpoint authenticates with the X-Api-Key header"))
 	}
@@ -2884,7 +2934,8 @@ func (this *Sxbet) fetchSxbetRealtimeTokenBody(ch chan any) any {
 	var response map[string]any = (<-this.SxbetPrivateGetUserRealtimeTokenV3ApiKey()).Checked()
 	var data map[string]any = ccxt.SafeMapTyped(response, "data")
 
-	ch <- this.SafeString2(data, "token", "realtimeToken", this.SafeString(response, "token"))
+	chValue := this.SafeString2(data, "token", "realtimeToken", this.SafeString(response, "token"))
+	ch <- ccxt.EndpointResult[*string]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Sxbet) ConnectSxbetCentrifugoAsync(url any) <-chan any {
@@ -2903,7 +2954,7 @@ func (this *Sxbet) connectSxbetCentrifugoBody(ch chan any, url any) any {
 	if ccxt.IsEqual(connectSent, nil) {
 		this.Options.Store("wsConnected", false)
 
-		var token *string = ccxt.SafeStringPtr(ccxt.PanicOnError((<-this.FetchSxbetRealtimeTokenAsync())))
+		var token *string = ccxt.SafeStringPtr(ccxt.PanicOnError((<-this.FetchSxbetRealtimeTokenAsync()).Raw))
 		var requestId int64 = this.RequestId(url)
 		this.RegisterSxbetWsRequest(requestId, "centrifugoConnected", "connect")
 		var connectMsg map[string]any = map[string]any{
@@ -2950,7 +3001,7 @@ func (this *Sxbet) SubscribeSxbetChannelAsync(messageHash any, channel any) <-ch
 func (this *Sxbet) subscribeSxbetChannelBody(ch chan any, messageHash any, channel any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var url *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 	// finish the connect handshake first so the subscribe frame follows the connect reply
 
 	ccxt.PanicOnError((<-this.ConnectSxbetCentrifugoAsync(url)))
@@ -3105,7 +3156,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan any, outcome string, optionalArgs 
 	var marketHash *string = this.SafeString(outcomeObj["info"], "marketHash")
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add("orderbook_v3:", marketHash))
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook::", sym))
-	var url *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 
 	ccxt.PanicOnError((<-this.ConnectSxbetCentrifugoAsync(url)))
 	var client any = this.Client(url)
@@ -3258,7 +3309,7 @@ func (this *Sxbet) watchTickerBody(ch chan any, outcome string, optionalArgs ...
 		this.Options.Store("wsWatchedTickers", this.CreateSafeDictionary())
 	}
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "wsWatchedTickers"), sym, marketHash)
-	var url *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 
 	ccxt.PanicOnError((<-this.ConnectSxbetCentrifugoAsync(url)))
 	var client any = this.Client(url)
@@ -3405,12 +3456,18 @@ func (this *Sxbet) ParseSxbetV3PublicTrade(trade any) any {
 	var odds *string = this.SafeString(trade, "weightedAverageOdds")
 	var price *float64 = func() *float64 {
 		if odds != nil {
-			return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(odds, oneDenom)))
+			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(odds, oneDenom)).(float64); isNum {
+				return &derefNum
+			}
+			return nil
 		}
 		return nil
 	}()
 	var stake *string = this.SafeString(trade, "totalStake", "0")
-	var amount *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(stake, usdcDecimals, 6)))
+	var amount *float64
+	if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(stake, usdcDecimals, 6)).(float64); isNum {
+		amount = &derefNum
+	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "betTime"))
 	return this.SafePredictionTrade(map[string]any{
 		"id":           this.SafeString(trade, "tradeId"),
@@ -3661,7 +3718,7 @@ func (this *Sxbet) Sign(path string, optionalArgs ...any) any {
 	if (ccxt.IsEqual(accessLevel, "private")) && (ccxt.IsEqual(this.ApiKey, nil)) {
 		panic(ccxt.AuthenticationError(this.Id + " " + path + " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)"))
 	}
-	var baseUrls any = ccxt.GetValue(this.Urls, "api")
+	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "sxbet"))
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
@@ -4279,11 +4336,11 @@ func (this *Sxbet) FetchOrderBook(outcome string, options ...ccxt.FetchOrderBook
  * @returns {string} the JWT connection token
  */
 func (this *Sxbet) FetchSxbetRealtimeToken() (string, error) {
-	raw := <-this.FetchSxbetRealtimeTokenAsync()
-	if ccxt.IsError(raw) {
-		return "", ccxt.CreateReturnError(raw)
+	r := <-this.FetchSxbetRealtimeTokenAsync()
+	if ccxt.IsError(r.Raw) {
+		return "", ccxt.CreateReturnError(r.Raw)
 	}
-	var res string = raw.(string)
+	var res string = r.Raw.(string)
 	return res, nil
 }
 

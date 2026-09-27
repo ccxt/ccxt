@@ -17,7 +17,6 @@ func newCoinbase() *Coinbase {
 	base := &ccxt.Coinbase{}
 	p.base = base
 	p.Coinbase = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -111,7 +110,7 @@ func (this *Coinbase) subscribeBody(ch chan any, name string, isPrivate any, opt
 		messageHash = ccxt.Add(name+"::", symbol)
 		productIds = []any{this.SafeString(market, "id")}
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var subscribe map[string]any = map[string]any{
 		"type":        "subscribe",
 		"product_ids": productIds,
@@ -174,7 +173,7 @@ func (this *Coinbase) unSubscribeBody(ch chan any, topic string, name string, is
 		unWatchMessageHash = ccxt.Add(ccxt.Add(unWatchMessageHash, "::"), symbol)
 		productIds = []any{this.SafeString(market, "id")}
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	// '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
 	var message map[string]any = map[string]any{
 		"type":        "unsubscribe",
@@ -239,7 +238,7 @@ func (this *Coinbase) subscribeMultipleBody(ch chan any, name string, isPrivate 
 		productIds = append(productIds, marketId)
 		messageHashes = append(messageHashes, name+"::"+symbol)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var subscribe map[string]any = map[string]any{
 		"type":        "subscribe",
 		"product_ids": productIds,
@@ -297,7 +296,7 @@ func (this *Coinbase) unSubscribeMultipleBody(ch chan any, topic string, name st
 		watchMessageHashes = append(watchMessageHashes, name+"::"+symbol)
 		unWatchMessageHashes = append(unWatchMessageHashes, "unsubscribe:"+name+"::"+symbol)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var message map[string]any = map[string]any{
 		"type":        "unsubscribe",
 		"product_ids": productIds,

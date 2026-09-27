@@ -661,7 +661,7 @@ func (this *Coinbaseinternational) fetchOHLCVBody(ch chan any, symbol string, op
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if unitl != nil {
-			return MapTyped(this.Omit(paramsPaginate, "until"))
+			return this.OmitDict(paramsPaginate, "until")
 		}
 		return paramsPaginate
 	}()
@@ -3107,7 +3107,7 @@ func (this *Coinbaseinternational) Sign(path string, optionalArgs ...any) any {
 			fullPath = Add(fullPath, "?"+this.UrlencodeWithArrayRepeat(query))
 		}
 	}
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

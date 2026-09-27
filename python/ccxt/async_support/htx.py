@@ -8908,7 +8908,7 @@ class htx(Exchange, ImplicitAPI):
                 result.append(self.parse_settlement(settlements[i], market))
         return result
 
-    def parse_settlement(self, settlement: dict, market: Market):
+    def parse_settlement(self, settlement: dict, market: Market) -> dict:
         #
         # coin-m swap, fetchSettlementHistory
         #

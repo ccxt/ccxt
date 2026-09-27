@@ -623,7 +623,11 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 					return nil
 				}()
 				base = this.SafeCurrencyCode(baseId)
-				quote = DerefScalar(this.SafeCurrencyCode(quoteId))
+				if derefPtr := this.SafeCurrencyCode(quoteId); derefPtr != nil {
+					quote = *derefPtr
+				} else {
+					quote = nil
+				}
 			}
 			if (base == nil) || (quote == nil) {
 				continue
@@ -653,8 +657,8 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				"strike":         nil,
 				"optionType":     nil,
 				"precision": map[string]any{
-					"amount": ParseInt("4"),
-					"price":  ParseInt("4"),
+					"amount": int64(4),
+					"price":  int64(4),
 				},
 				"limits": map[string]any{
 					"leverage": map[string]any{
@@ -749,8 +753,8 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 					"strike":         nil,
 					"optionType":     nil,
 					"precision": map[string]any{
-						"amount": ParseInt("4"),
-						"price":  ParseInt("4"),
+						"amount": int64(4),
+						"price":  int64(4),
 					},
 					"limits": map[string]any{
 						"leverage": map[string]any{
@@ -1724,7 +1728,11 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) any {
 			if GetLength(transactionTime) < 8 {
 				transactionTime = Add("0", transactionTime)
 			}
-			timestamp = DerefScalar(this.Parse8601(Add(*transactionDate+" ", transactionTime)))
+			if derefPtr := this.Parse8601(Add(*transactionDate+" ", transactionTime)); derefPtr != nil {
+				timestamp = *derefPtr
+			} else {
+				timestamp = nil
+			}
 		} else {
 			timestamp = this.SafeIntegerProduct(trade, "transaction_date", 0.001)
 		}
@@ -1745,7 +1753,10 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "market")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var priceString *string = this.SafeString2(trade, "price", "trade_price")
-	var amountString any = DerefScalar(this.SafeString(trade, "trade_volume"))
+	var amountString any
+	if derefPtr := this.SafeString(trade, "trade_volume"); derefPtr != nil {
+		amountString = *derefPtr
+	}
 	if IsEqual(amountString, nil) {
 		amountString = this.FixCommaNumber(this.SafeString2(trade, "units_traded", "units"))
 	}
@@ -2553,12 +2564,20 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 			var normalized string = strings.Replace(*datetime, "+09:00", "Z", 1)
 			var normalizedTimestamp *int64 = this.Parse8601(normalized)
 			if normalizedTimestamp != nil {
-				timestamp = Subtract(normalizedTimestamp, 9*3600000)
+				timestamp = (*normalizedTimestamp - (9*3600000))
 			} else {
-				timestamp = DerefScalar(this.Parse8601(datetime))
+				if derefPtr := this.Parse8601(datetime); derefPtr != nil {
+					timestamp = *derefPtr
+				} else {
+					timestamp = nil
+				}
 			}
 		} else {
-			timestamp = DerefScalar(this.Parse8601(datetime))
+			if derefPtr := this.Parse8601(datetime); derefPtr != nil {
+				timestamp = *derefPtr
+			} else {
+				timestamp = nil
+			}
 		}
 	} else {
 		timestamp = this.SafeIntegerProduct(order, "order_date", 0.001)
@@ -3283,7 +3302,10 @@ func (this *Bithumb) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var currencyResolved map[string]any = this.SafeCurrency(currencyId, currency)
 	var datetime *string = this.SafeString(transaction, "created_at")
-	var timestamp any = DerefScalar(this.Parse8601(datetime))
+	var timestamp any
+	if derefPtr := this.Parse8601(datetime); derefPtr != nil {
+		timestamp = *derefPtr
+	}
 	if (datetime != nil) && (func() int {
 		if datetime == nil {
 			return -1
@@ -3293,7 +3315,7 @@ func (this *Bithumb) ParseTransaction(transaction any, optionalArgs ...any) any 
 		var normalized string = strings.Replace(*datetime, "+09:00", "Z", 1)
 		var normalizedTimestamp *int64 = this.Parse8601(normalized)
 		if normalizedTimestamp != nil {
-			timestamp = Subtract(normalizedTimestamp, 9*3600000)
+			timestamp = (*normalizedTimestamp - (9*3600000))
 		}
 	}
 	return map[string]any{
@@ -3943,7 +3965,7 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
 	var requestHeaders map[string]any = nil
 	var requestBody any = nil
 	var endpoint string = "/" + this.ImplodeParams(path, params)
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

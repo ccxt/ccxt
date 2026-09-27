@@ -2845,13 +2845,21 @@ func (this *Okx) ParseMarket(market any) any {
 			symbol = Add(Add(symbol, ":"), settle)
 		}
 		if future {
-			expiry = DerefScalar(this.SafeInteger(market, "expTime"))
+			if derefPtr := this.SafeInteger(market, "expTime"); derefPtr != nil {
+				expiry = *derefPtr
+			} else {
+				expiry = nil
+			}
 			if expiry != nil {
 				var ymd string = this.Yymmdd(expiry)
 				symbol = Add(Add(symbol, "-"), ymd)
 			}
 		} else if option {
-			expiry = DerefScalar(this.SafeInteger(market, "expTime"))
+			if derefPtr := this.SafeInteger(market, "expTime"); derefPtr != nil {
+				expiry = *derefPtr
+			} else {
+				expiry = nil
+			}
 			strikePrice = this.SafeString(market, "stk")
 			optionType = this.SafeString(market, "optType")
 			if expiry != nil {
@@ -3903,7 +3911,7 @@ func (this *Okx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
 	}
 	var priceType *string = this.SafeString(paramsPaginate, "price")
 	var isMarkOrIndex bool = this.InArray(priceType, []any{"mark", "index"})
-	var paramsPrice map[string]any = MapTyped(this.Omit(paramsPaginate, "price"))
+	var paramsPrice map[string]any = this.OmitDict(paramsPaginate, "price")
 	var options map[string]any = SafeMapTyped(this.Options, "fetchOHLCV")
 	var timezone *string = this.SafeString(options, "timezone", "UTC")
 	var limitIsUndefined bool = (limit == nil)
@@ -3917,7 +3925,10 @@ func (this *Okx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
 		limitResolved = mathMin(limit, requestMaxLimit)
 	}
 	var duration int64 = this.ParseTimeframe(timeframe)
-	var bar any = DerefScalar(this.SafeString(this.Timeframes, timeframe, timeframe))
+	var bar any
+	if derefPtr := this.SafeString(this.Timeframes, timeframe, timeframe); derefPtr != nil {
+		bar = *derefPtr
+	}
 	if (timezone != nil && *timezone == "UTC") && (duration >= 21600) {
 		bar = Add(bar, strings.ToLower(*timezone))
 	}
@@ -4634,7 +4645,10 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 			if tgtCcy != nil && *tgtCcy == "quote_ccy" {
 				// quote_ccy: sz refers to units of quote currency
 				createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(orderParams, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-				var notional any = DerefScalar(this.SafeNumber2(paramsRequiresPrice, "cost", "sz"))
+				var notional any
+				if derefPtr := this.SafeNumber2(paramsRequiresPrice, "cost", "sz"); derefPtr != nil {
+					notional = *derefPtr
+				}
 				orderParams = this.Omit(paramsRequiresPrice, []any{"cost", "sz"})
 				if createMarketBuyOrderRequiresPrice {
 					if price != nil {
@@ -4802,7 +4816,11 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 			AddElementToObject(request, "tpTriggerPx", this.PriceToPrecision(symbol, takeProfitPrice))
 			var tpOrdPxReq any = "-1"
 			if tpOrdPx != nil {
-				tpOrdPxReq = DerefScalar(this.PriceToPrecision(symbol, tpOrdPx))
+				if derefPtr := this.PriceToPrecision(symbol, tpOrdPx); derefPtr != nil {
+					tpOrdPxReq = *derefPtr
+				} else {
+					tpOrdPxReq = nil
+				}
 			}
 			AddElementToObject(request, "tpOrdPx", tpOrdPxReq)
 			AddElementToObject(request, "tpTriggerPxType", tpTriggerPxType)
@@ -4811,7 +4829,11 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 			AddElementToObject(request, "slTriggerPx", this.PriceToPrecision(symbol, stopLossPrice))
 			var slOrdPxReq any = "-1"
 			if slOrdPx != nil {
-				slOrdPxReq = DerefScalar(this.PriceToPrecision(symbol, slOrdPx))
+				if derefPtr := this.PriceToPrecision(symbol, slOrdPx); derefPtr != nil {
+					slOrdPxReq = *derefPtr
+				} else {
+					slOrdPxReq = nil
+				}
 			}
 			AddElementToObject(request, "slOrdPx", slOrdPxReq)
 			AddElementToObject(request, "slTriggerPxType", slTriggerPxType)
@@ -6131,7 +6153,7 @@ func (this *Okx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	} else if isTrigger && (ordType == nil) {
 		request["ordType"] = "trigger"
 	}
-	var query map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"method", "stop", "trigger", "trailing"}))
+	var query map[string]any = this.OmitDict(paramsPaginate, []any{"method", "stop", "trigger", "trailing"})
 	var response any = nil
 	if method != nil && *method == "privateGetTradeOrdersAlgoPending" {
 
@@ -6846,7 +6868,7 @@ func (this *Okx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var options map[string]any = SafeMapTyped(this.Options, "fetchLedger")
 	var method *string = this.SafeString(options, "method")
 	method = this.SafeString(paramsPaginate, "method", method)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, "method"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, "method")
 	var request map[string]any = map[string]any{}
 	marginModeOption, paramsMarginMode := this.HandleMarginModeAndParams("fetchLedger", paramsOmitted)
 	var marginMode any = func() any {
@@ -7272,7 +7294,7 @@ func (this *Okx) withdrawBody(ch chan any, code string, amount any, address any,
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	tagWithdrawTag := tagWithdrawTagparamsWithdrawTagVariable[0]
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address)
 	if this.Markets == nil {
@@ -7780,7 +7802,11 @@ func (this *Okx) ParseTransaction(transaction any, optionalArgs ...any) any {
 	if typeVar == "deposit" {
 		feeCost = 0
 	} else {
-		feeCost = DerefScalar(this.SafeNumber(transaction, "fee"))
+		if derefPtr := this.SafeNumber(transaction, "fee"); derefPtr != nil {
+			feeCost = *derefPtr
+		} else {
+			feeCost = nil
+		}
 	}
 	// todo parse tags
 	return map[string]any{
@@ -7876,7 +7902,11 @@ func (this *Okx) ParseLeverage(leverage any, optionalArgs ...any) any {
 	for i := 0; i < GetArrayLength(leverage); i++ {
 		var entry map[string]any = SafeMapTyped(leverage, i)
 		marginMode = this.SafeStringLower(entry, "mgnMode")
-		marketId = DerefScalar(this.SafeString(entry, "instId"))
+		if derefPtr := this.SafeString(entry, "instId"); derefPtr != nil {
+			marketId = *derefPtr
+		} else {
+			marketId = nil
+		}
 		var positionSide *string = this.SafeStringLower(entry, "posSide")
 		if positionSide != nil && *positionSide == "long" {
 			longLeverage = this.SafeInteger(entry, "lever")
@@ -8202,7 +8232,10 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 	var contractsAbs *string = Precise.StringAbs(pos)
 	var side *string = this.SafeString2(position, "posSide", "direction")
 	var hedged bool = (side == nil || *side != "net")
-	var contracts *float64 = Float64PtrTyped(this.ParseNumber(contractsAbs))
+	var contracts *float64
+	if derefNum, isNum := this.ParseNumber(contractsAbs).(float64); isNum {
+		contracts = &derefNum
+	}
 	if marketResolved["margin"] == true {
 		// margin position
 		if side != nil && *side == "net" {
@@ -8240,7 +8273,10 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 	if marketResolved["inverse"] == true {
 		notionalString = Precise.StringDiv(Precise.StringMul(contractsAbs, contractSizeString), markPriceString)
 	}
-	var notional *float64 = Float64PtrTyped(this.ParseNumber(notionalString))
+	var notional *float64
+	if derefNum, isNum := this.ParseNumber(notionalString).(float64); isNum {
+		notional = &derefNum
+	}
 	var marginMode *string = this.SafeString(position, "mgnMode")
 	var initialMarginString *string = nil
 	var entryPriceString *string = this.SafeString2(position, "avgPx", "openAvgPx")
@@ -8256,7 +8292,10 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 		collateralString = this.SafeString(position, "margin")
 	}
 	var maintenanceMarginString *string = this.SafeString(position, "mmr")
-	var maintenanceMargin *float64 = Float64PtrTyped(this.ParseNumber(maintenanceMarginString))
+	var maintenanceMargin *float64
+	if derefNum, isNum := this.ParseNumber(maintenanceMarginString).(float64); isNum {
+		maintenanceMargin = &derefNum
+	}
 	var maintenanceMarginPercentageString *string = Precise.StringDiv(maintenanceMarginString, notionalString)
 	if initialMarginPercentage == nil {
 		initialMarginPercentage = this.ParseNumber(Precise.StringDiv(initialMarginString, notionalString, 4))
@@ -8269,12 +8308,21 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 		}
 	}
 	var rounder string = "0.00005" // round to closest 0.01%
-	var maintenanceMarginPercentage *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(Precise.StringAdd(maintenanceMarginPercentageString, rounder), "1", 4)))
+	var maintenanceMarginPercentage *float64
+	if derefNum, isNum := this.ParseNumber(Precise.StringDiv(Precise.StringAdd(maintenanceMarginPercentageString, rounder), "1", 4)).(float64); isNum {
+		maintenanceMarginPercentage = &derefNum
+	}
 	var liquidationPrice *float64 = this.SafeNumber(position, "liqPx")
 	var percentageString *string = this.SafeString(position, "uplRatio")
-	var percentage *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMul(percentageString, "100")))
+	var percentage *float64
+	if derefNum, isNum := this.ParseNumber(Precise.StringMul(percentageString, "100")).(float64); isNum {
+		percentage = &derefNum
+	}
 	var timestamp *int64 = this.SafeInteger(position, "cTime")
-	var marginRatio *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(maintenanceMarginString, collateralString, 4)))
+	var marginRatio *float64
+	if derefNum, isNum := this.ParseNumber(Precise.StringDiv(maintenanceMarginString, collateralString, 4)).(float64); isNum {
+		marginRatio = &derefNum
+	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "posId"),
@@ -8436,7 +8484,10 @@ func (this *Okx) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var id *string = this.SafeString2(transfer, "transId", "billId")
 	var currencyId *string = this.SafeString(transfer, "ccy")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
-	var amount any = DerefScalar(this.SafeNumber(transfer, "amt"))
+	var amount any
+	if derefPtr := this.SafeNumber(transfer, "amt"); derefPtr != nil {
+		amount = *derefPtr
+	}
 	var fromAccountId *string = this.SafeString(transfer, "from")
 	var toAccountId *string = this.SafeString(transfer, "to")
 	var accountsById map[string]any = SafeMapTyped(this.Options, "accountsById")
@@ -8633,7 +8684,7 @@ func (this *Okx) Sign(path string, optionalArgs ...any) any {
 	var isArray bool = IsArray(params)
 	var request string = "/api/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -9152,14 +9203,14 @@ func (this *Okx) setLeverageBody(ch chan any, leverage int64, optionalArgs ...an
  * @param {string} [params.accountId] if you have multiple accounts, you must specify the account id to fetch the position mode
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Okx) FetchPositionModeAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Okx) FetchPositionModeAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchPositionModeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
+func (this *Okx) fetchPositionModeBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -9185,10 +9236,11 @@ func (this *Okx) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 	var posMode *string = this.SafeString(mainAccount, "posMode") // long_short_mode, net_mode
 	var isHedged bool = (posMode != nil && *posMode == "long_short_mode")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":   mainAccount,
 		"hedged": isHedged,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -10399,7 +10451,7 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan any, symbol string, option
 		}
 		var paramsOmitted map[string]any = func() map[string]any {
 			if until != nil {
-				return MapTyped(this.Omit(paramsMarketType, []any{"until"}))
+				return this.OmitDict(paramsMarketType, []any{"until"})
 			}
 			return paramsMarketType
 		}()
@@ -13519,11 +13571,11 @@ func (this *Okx) FetchPositionMode(options ...FetchPositionModeOptions) (Positio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return PositionModeInfo{}, CreateReturnError(raw)
+	r := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return PositionModeInfo{}, CreateReturnError(r.Raw)
 	}
-	var res PositionModeInfo = NewPositionModeInfo(raw)
+	var res PositionModeInfo = NewPositionModeInfo(r.Raw)
 	return res, nil
 }
 

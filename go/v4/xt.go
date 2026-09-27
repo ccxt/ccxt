@@ -1761,7 +1761,11 @@ func (this *Xt) ParseMarket(market any) any {
 		if filter != nil && *filter == "QUANTITY" {
 			minAmount = this.SafeNumber(entry, "min")
 			maxAmount = this.SafeNumber(entry, "max")
-			amountPrecision = DerefScalar(this.SafeNumber(entry, "tickSize"))
+			if derefPtr := this.SafeNumber(entry, "tickSize"); derefPtr != nil {
+				amountPrecision = *derefPtr
+			} else {
+				amountPrecision = nil
+			}
 		}
 		if filter != nil && *filter == "QUOTE_QTY" {
 			minCost = this.SafeNumber(entry, "min")
@@ -1799,7 +1803,11 @@ func (this *Xt) ParseMarket(market any) any {
 		inverse = true
 	}
 	if underlyingType != nil {
-		expiry = DerefScalar(this.SafeInteger(market, "deliveryDate"))
+		if derefPtr := this.SafeInteger(market, "deliveryDate"); derefPtr != nil {
+			expiry = *derefPtr
+		} else {
+			expiry = nil
+		}
 		var productType *string = this.SafeString(market, "productType")
 		if productType == nil || *productType != "perpetual" {
 			symbol = symbol + "-" + this.Yymmdd(expiry)
@@ -1819,7 +1827,11 @@ func (this *Xt) ParseMarket(market any) any {
 	}
 	var isActive any = false
 	if contract {
-		isActive = DerefScalar(this.SafeBool(market, "isOpenApi", false))
+		if derefPtr := this.SafeBool(market, "isOpenApi", false); derefPtr != nil {
+			isActive = *derefPtr
+		} else {
+			isActive = nil
+		}
 	} else {
 		if (state != nil && *state == "ONLINE") && (*this.SafeBool(market, "tradingEnabled", false)) && (*this.SafeBool(market, "openapiEnabled", false)) {
 			isActive = true
@@ -1951,7 +1963,7 @@ func (this *Xt) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) 
 		request["limit"] = 1000
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
 	if until != nil {
 		request["endTime"] = until
 	}
@@ -3456,7 +3468,7 @@ func (this *Xt) createContractOrderBody(ch chan any, symbol any, typeVar string,
 		if trailingTriggerPrice != nil {
 			request["activationPrice"] = this.PriceToPrecision(symbol, trailingTriggerPrice)
 		}
-		var paramsOmitted3 map[string]any = MapTyped(this.Omit(paramsMarginMode, []any{"trailingPercent", "trailingAmount", "trailingTriggerPrice"}))
+		var paramsOmitted3 map[string]any = this.OmitDict(paramsMarginMode, []any{"trailingPercent", "trailingAmount", "trailingTriggerPrice"})
 		if market["linear"] == true {
 
 			response = (<-this.PrivateLinearPostFutureTradeV1EntrustCreateTrack(this.Extend(request, paramsOmitted3))).Raw
@@ -3593,7 +3605,7 @@ func (this *Xt) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		request["orderId"] = id
 	}
 	if trigger != nil && *trigger == true {
-		var paramsOmitted3 map[string]any = MapTyped(this.Omit(paramsSubType, []any{"trigger", "stop"}))
+		var paramsOmitted3 map[string]any = this.OmitDict(paramsSubType, []any{"trigger", "stop"})
 		if subType != nil && *subType == "inverse" {
 
 			response = (<-this.PrivateInverseGetFutureTradeV1EntrustPlanDetail(this.Extend(request, paramsOmitted3))).Checked()
@@ -3602,7 +3614,7 @@ func (this *Xt) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 			response = (<-this.PrivateLinearGetFutureTradeV1EntrustPlanDetail(this.Extend(request, paramsOmitted3))).Checked()
 		}
 	} else if stopLossTakeProfit != nil && *stopLossTakeProfit == true {
-		var paramsOmitted2 map[string]any = MapTyped(this.Omit(paramsSubType, "stopLossTakeProfit"))
+		var paramsOmitted2 map[string]any = this.OmitDict(paramsSubType, "stopLossTakeProfit")
 		if subType != nil && *subType == "inverse" {
 
 			response = (<-this.PrivateInverseGetFutureTradeV1EntrustProfitDetail(this.Extend(request, paramsOmitted2))).Checked()
@@ -3611,7 +3623,7 @@ func (this *Xt) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 			response = (<-this.PrivateLinearGetFutureTradeV1EntrustProfitDetail(this.Extend(request, paramsOmitted2))).Checked()
 		}
 	} else if trailing != nil && *trailing == true {
-		var paramsOmitted map[string]any = MapTyped(this.Omit(paramsSubType, "trailing"))
+		var paramsOmitted map[string]any = this.OmitDict(paramsSubType, "trailing")
 		if subType != nil && *subType == "inverse" {
 
 			response = (<-this.PrivateInverseGetFutureTradeV1EntrustTrackDetail(this.Extend(request, paramsOmitted))).Checked()
@@ -3812,7 +3824,7 @@ func (this *Xt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	if trigger != nil && *trigger == true {
-		var paramsOmitted2 map[string]any = MapTyped(this.Omit(paramsSubType, []any{"trigger", "stop"}))
+		var paramsOmitted2 map[string]any = this.OmitDict(paramsSubType, []any{"trigger", "stop"})
 		if subType != nil && *subType == "inverse" {
 
 			response = (<-this.PrivateInverseGetFutureTradeV1EntrustPlanListHistory(this.Extend(request, paramsOmitted2))).Checked()
@@ -3821,7 +3833,7 @@ func (this *Xt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 			response = (<-this.PrivateLinearGetFutureTradeV1EntrustPlanListHistory(this.Extend(request, paramsOmitted2))).Checked()
 		}
 	} else if trailing != nil && *trailing == true {
-		var paramsOmitted map[string]any = MapTyped(this.Omit(paramsSubType, "trailing"))
+		var paramsOmitted map[string]any = this.OmitDict(paramsSubType, "trailing")
 		if subType != nil && *subType == "inverse" {
 
 			response = (<-this.PrivateInverseGetFutureTradeV1EntrustTrackListHistory(this.Extend(request, paramsOmitted))).Checked()
@@ -3981,17 +3993,17 @@ func (this *Xt) fetchOrdersByStatusBody(ch chan any, status string, optionalArgs
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "symbol", market["id"])
+		request["symbol"] = market["id"]
 	}
 	if limit != nil {
-		AddElementToObject(request, "size", limit)
+		request["size"] = *limit
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = *since
 	}
 	var response map[string]any = nil
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrdersByStatus", market, params)
@@ -4007,38 +4019,38 @@ func (this *Xt) fetchOrdersByStatusBody(ch chan any, status string, optionalArgs
 		// the track endpoints do not accept a state filter, and a server-side
 		// size would truncate the mixed-state page before the local status
 		// filter runs, so the limit is only applied locally after filtering
-		request = this.Omit(request, []any{"state", "size"})
+		request = this.OmitDict(request, []any{"state", "size"})
 	} else if status == "open" {
 		if (trigger != nil && *trigger == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) {
-			AddElementToObject(request, "state", "NOT_TRIGGERED")
+			request["state"] = "NOT_TRIGGERED"
 		} else if typeVar != nil && *typeVar == "swap" {
-			AddElementToObject(request, "state", "UNFINISHED") // NEW & PARTIALLY_FILLED
+			request["state"] = "UNFINISHED" // NEW & PARTIALLY_FILLED
 		}
 	} else if status == "closed" {
 		if (trigger != nil && *trigger == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) {
-			AddElementToObject(request, "state", "TRIGGERED")
+			request["state"] = "TRIGGERED"
 		} else {
-			AddElementToObject(request, "state", "FILLED")
+			request["state"] = "FILLED"
 		}
 	} else if status == "canceled" {
 		if (trigger != nil && *trigger == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) {
-			AddElementToObject(request, "state", "USER_REVOCATION")
+			request["state"] = "USER_REVOCATION"
 		} else {
-			AddElementToObject(request, "state", "CANCELED")
+			request["state"] = "CANCELED"
 		}
 	} else {
-		AddElementToObject(request, "state", status)
+		request["state"] = status
 	}
 	if (trigger != nil && *trigger == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (subType != nil) || (typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future") {
 		if since != nil {
-			AddElementToObject(request, "startTime", since)
+			request["startTime"] = *since
 		}
 		if (limit != nil) && (trailing == nil || *trailing != true) {
-			AddElementToObject(request, "size", limit)
+			request["size"] = *limit
 		}
 	}
 	if trigger != nil && *trigger == true {
-		var paramsOmitted3 map[string]any = MapTyped(this.Omit(paramsSubType, []any{"stop", "trigger"}))
+		var paramsOmitted3 map[string]any = this.OmitDict(paramsSubType, []any{"stop", "trigger"})
 		if subType != nil && *subType == "inverse" {
 
 			response = (<-this.PrivateInverseGetFutureTradeV1EntrustPlanList(this.Extend(request, paramsOmitted3))).Checked()
@@ -4047,7 +4059,7 @@ func (this *Xt) fetchOrdersByStatusBody(ch chan any, status string, optionalArgs
 			response = (<-this.PrivateLinearGetFutureTradeV1EntrustPlanList(this.Extend(request, paramsOmitted3))).Checked()
 		}
 	} else if stopLossTakeProfit != nil && *stopLossTakeProfit == true {
-		var paramsOmitted2 map[string]any = MapTyped(this.Omit(paramsSubType, "stopLossTakeProfit"))
+		var paramsOmitted2 map[string]any = this.OmitDict(paramsSubType, "stopLossTakeProfit")
 		if subType != nil && *subType == "inverse" {
 
 			response = (<-this.PrivateInverseGetFutureTradeV1EntrustProfitList(this.Extend(request, paramsOmitted2))).Checked()
@@ -4056,7 +4068,7 @@ func (this *Xt) fetchOrdersByStatusBody(ch chan any, status string, optionalArgs
 			response = (<-this.PrivateLinearGetFutureTradeV1EntrustProfitList(this.Extend(request, paramsOmitted2))).Checked()
 		}
 	} else if trailing != nil && *trailing == true {
-		var paramsOmitted map[string]any = MapTyped(this.Omit(paramsSubType, "trailing"))
+		var paramsOmitted map[string]any = this.OmitDict(paramsSubType, "trailing")
 		if status == "open" {
 			if subType != nil && *subType == "inverse" {
 
@@ -4088,14 +4100,14 @@ func (this *Xt) fetchOrdersByStatusBody(ch chan any, status string, optionalArgs
 		if marginMode != nil {
 			marginOrSpotRequest = "LEVER"
 		}
-		AddElementToObject(request, "bizType", marginOrSpotRequest)
+		request["bizType"] = marginOrSpotRequest
 		if status != "open" {
 			if since != nil {
-				AddElementToObject(request, "startTime", since)
+				request["startTime"] = *since
 			}
 			if limit != nil {
-				request = this.Omit(request, "size")
-				AddElementToObject(request, "limit", limit)
+				request = this.OmitDict(request, "size")
+				request["limit"] = *limit
 			}
 
 			response = (<-this.PrivateSpotGetHistoryOrder(this.Extend(request, paramsMarginMode))).Checked()
@@ -4496,7 +4508,7 @@ func (this *Xt) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		request["orderId"] = id
 	}
 	if trigger != nil && *trigger == true {
-		var paramsOmitted3 map[string]any = MapTyped(this.Omit(paramsSubType, []any{"trigger", "stop"}))
+		var paramsOmitted3 map[string]any = this.OmitDict(paramsSubType, []any{"trigger", "stop"})
 		if subType != nil && *subType == "inverse" {
 
 			response = (<-this.PrivateInversePostFutureTradeV1EntrustCancelPlan(this.Extend(request, paramsOmitted3))).Checked()
@@ -4505,7 +4517,7 @@ func (this *Xt) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 			response = (<-this.PrivateLinearPostFutureTradeV1EntrustCancelPlan(this.Extend(request, paramsOmitted3))).Checked()
 		}
 	} else if stopLossTakeProfit != nil && *stopLossTakeProfit == true {
-		var paramsOmitted2 map[string]any = MapTyped(this.Omit(paramsSubType, "stopLossTakeProfit"))
+		var paramsOmitted2 map[string]any = this.OmitDict(paramsSubType, "stopLossTakeProfit")
 		if subType != nil && *subType == "inverse" {
 
 			response = (<-this.PrivateInversePostFutureTradeV1EntrustCancelProfitStop(this.Extend(request, paramsOmitted2))).Checked()
@@ -4514,7 +4526,7 @@ func (this *Xt) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 			response = (<-this.PrivateLinearPostFutureTradeV1EntrustCancelProfitStop(this.Extend(request, paramsOmitted2))).Checked()
 		}
 	} else if trailing != nil && *trailing == true {
-		var paramsOmitted map[string]any = MapTyped(this.Omit(paramsSubType, "trailing"))
+		var paramsOmitted map[string]any = this.OmitDict(paramsSubType, "trailing")
 		if subType != nil && *subType == "inverse" {
 
 			response = (<-this.PrivateInversePostFutureTradeV1EntrustCancelTrack(this.Extend(request, paramsOmitted))).Checked()
@@ -4616,7 +4628,7 @@ func (this *Xt) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	if trigger != nil && *trigger == true {
-		var paramsOmitted3 map[string]any = MapTyped(this.Omit(paramsSubType, []any{"trigger", "stop"}))
+		var paramsOmitted3 map[string]any = this.OmitDict(paramsSubType, []any{"trigger", "stop"})
 		if subType != nil && *subType == "inverse" {
 
 			response = (<-this.PrivateInversePostFutureTradeV1EntrustCancelAllPlan(this.Extend(request, paramsOmitted3))).Checked()
@@ -4625,7 +4637,7 @@ func (this *Xt) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 			response = (<-this.PrivateLinearPostFutureTradeV1EntrustCancelAllPlan(this.Extend(request, paramsOmitted3))).Checked()
 		}
 	} else if stopLossTakeProfit != nil && *stopLossTakeProfit == true {
-		var paramsOmitted2 map[string]any = MapTyped(this.Omit(paramsSubType, "stopLossTakeProfit"))
+		var paramsOmitted2 map[string]any = this.OmitDict(paramsSubType, "stopLossTakeProfit")
 		if subType != nil && *subType == "inverse" {
 
 			response = (<-this.PrivateInversePostFutureTradeV1EntrustCancelAllProfitStop(this.Extend(request, paramsOmitted2))).Checked()
@@ -4634,7 +4646,7 @@ func (this *Xt) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 			response = (<-this.PrivateLinearPostFutureTradeV1EntrustCancelAllProfitStop(this.Extend(request, paramsOmitted2))).Checked()
 		}
 	} else if trailing != nil && *trailing == true {
-		var paramsOmitted map[string]any = MapTyped(this.Omit(paramsSubType, "trailing"))
+		var paramsOmitted map[string]any = this.OmitDict(paramsSubType, "trailing")
 		if subType != nil && *subType == "inverse" {
 
 			response = (<-this.PrivateInversePostFutureTradeV1EntrustCancelAllTrack(this.Extend(request, paramsOmitted))).Checked()
@@ -6115,7 +6127,10 @@ func (this *Xt) ParseFundingRate(contract any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(contract, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market, "_", "swap")
 	var timestamp *int64 = this.SafeInteger(contract, "nextCollectionTime")
-	var interval any = DerefScalar(this.SafeString(contract, "collectionInternal"))
+	var interval any
+	if derefPtr := this.SafeString(contract, "collectionInternal"); derefPtr != nil {
+		interval = *derefPtr
+	}
 	if interval != nil {
 		interval = Add(interval, "h")
 	}
@@ -6754,7 +6769,7 @@ func (this *Xt) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any 
 				}
 				return nil
 			}())
-			request["symbol"] = GetValue(market, "id")
+			request["symbol"] = market["id"]
 		}
 	}
 	if since != nil {
@@ -7249,7 +7264,7 @@ func (this *Xt) Sign(path string, optionalArgs ...any) any {
 	} else {
 		payload = request
 	}
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), endpoint)
+	var apiUrl *string = this.SafeString(this.Urls["api"], endpoint)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

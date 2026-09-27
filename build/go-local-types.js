@@ -1358,7 +1358,7 @@ export function ccxtGoWrapUrlsDeclaration (printed) {
     if (typeof printed !== 'string') {
         return printed;
     }
-    const match = /^([\s\S]*?\bvar [A-Za-z0-9_]+ \*string = )(GetValue\(GetValue\([^\n]*this\.Urls[^\n]*\))(\s*)$/.exec (printed);
+    const match = /^([\s\S]*?\bvar [A-Za-z0-9_]+ \*string = )(GetValue\((?:GetValue\()?[^\n]*this\.Urls[^\n]*\))(\s*)$/.exec (printed);
     return (match === null) ? printed : match[1] + 'SafeStringPtr(' + match[2] + ')' + match[3];
 }
 
@@ -1863,6 +1863,8 @@ export const CCXT_GO_EXCHANGE_MAP_FIELDS = {
     'Limits': 'map[string]any',
     'Fees': 'map[string]any',
     'Status': 'map[string]any',
+    // G10K-fields-typed: `Urls map[string]any`; written only by SetSandboxMode/EnableDemoTrading (config time)
+    'Urls': 'map[string]any',
 };
 
 // the Go map type of `this.<field>`, or undefined for every other expression shape
@@ -1894,6 +1896,14 @@ export function installCcxtGoIndexableTypes (goTranspiler) {
         }
         return ccxtGoIndexableThisField (this, node);
     };
+    // G10K-fields-typed: `this.Urls[k] = v` writes natively like the printer's own map fields
+    const upstreamField = goTranspiler.goFieldContainerTypeNative;
+    if (typeof upstreamField === 'function') {
+        goTranspiler.goFieldContainerTypeNative = function (node) {
+            const known = upstreamField.call (this, node);
+            return ((known === undefined) && (ccxtGoIndexableThisField (this, node) !== undefined) && (node.name?.text === 'urls')) ? 'map[string]any' : known;
+        };
+    }
     goTranspiler.__ccxtGoIndexableTypesInstalled = true;
 }
 
@@ -8268,6 +8278,9 @@ function ccxtGoProducerArgIsMap (goTranspiler, arg) {
     }
     if (arg.kind === ts.SyntaxKind.ObjectLiteralExpression) {
         return true;
+    }
+    if ((arg.kind === ts.SyntaxKind.PropertyAccessExpression) && (arg.name?.text === 'urls')) {
+        return ccxtGoIndexableThisField (goTranspiler, arg) !== undefined; // G10K-fields-typed: map field
     }
     if (arg.kind !== ts.SyntaxKind.Identifier) {
         return false;

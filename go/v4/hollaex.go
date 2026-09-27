@@ -1161,7 +1161,7 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	var paginate bool = false
 	var maxLimit int = 500
 	var paginateOptionparamsPaginateVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchOHLCV", "paginate", paginate)
-	paginateOption := GetValue(paginateOptionparamsPaginateVariable, 0)
+	paginateOption := paginateOptionparamsPaginateVariable[0]
 	var paramsPaginate map[string]any = MapTyped(paginateOptionparamsPaginateVariable[1])
 	if EvalTruthy(paginateOption) {
 
@@ -2563,7 +2563,7 @@ func (this *Hollaex) Sign(path string, optionalArgs ...any) any {
 			requestPath += "?" + this.Urlencode(query)
 		}
 	}
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

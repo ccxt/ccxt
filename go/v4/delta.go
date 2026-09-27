@@ -439,11 +439,19 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 	var optionType *string = nil
 	if GetIndexOf(symbol, "/") > -1 {
 		base = this.SafeString(symbolBase, 0)
-		expiry = DerefScalar(this.SafeString(optionParts, 1))
+		if derefPtr := this.SafeString(optionParts, 1); derefPtr != nil {
+			expiry = *derefPtr
+		} else {
+			expiry = nil
+		}
 		optionType = this.SafeString(optionParts, 3)
 	} else {
 		base = this.SafeString(optionParts, 1)
-		expiry = DerefScalar(this.SafeString(optionParts, 3))
+		if derefPtr := this.SafeString(optionParts, 3); derefPtr != nil {
+			expiry = *derefPtr
+		} else {
+			expiry = nil
+		}
 		optionType = this.SafeString(optionParts, 0)
 	}
 	if !IsEqual(expiry, nil) {
@@ -4912,7 +4920,7 @@ func (this *Delta) Sign(path string, optionalArgs ...any) any {
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var requestPath string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

@@ -18,7 +18,6 @@ func newGate() *Gate {
 	base := &ccxt.Gate{}
 	p.base = base
 	p.Gate = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -297,7 +296,7 @@ func (this *Gate) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	var channel any = ccxt.Add(messageType, ".order_cancel_cp")
 	channelOption, paramsChannel := this.HandleOptionStringAndParams(params, "cancelAllOrdersWs", "channel", channel)
 	var url any = this.GetUrlByMarket(market)
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsChannel, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsChannel, []any{"stop", "trigger"})
 	typeVar, query := this.HandleMarketTypeAndParams("cancelAllOrders", market, paramsOmitted)
 	requestrequestParamsVariable := func() any {
 		if typeVar != nil && *typeVar == "spot" {
@@ -525,14 +524,14 @@ func (this *Gate) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {ccxt.Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Gate) FetchClosedOrdersWsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Gate) FetchClosedOrdersWsAsync(optionalArgs ...any) <-chan ccxt.EndpointResult[[]any] {
+	ch := make(chan ccxt.EndpointResult[[]any], 1)
 	go this.fetchClosedOrdersWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Gate) fetchClosedOrdersWsBody(ch chan any, optionalArgs ...any) any {
+func (this *Gate) fetchClosedOrdersWsBody(ch chan ccxt.EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ccxt.ReturnPanicError(ch)
+	defer ccxt.ReturnPanicErrorT(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
@@ -544,9 +543,9 @@ func (this *Gate) fetchClosedOrdersWsBody(ch chan any, optionalArgs ...any) any 
 
 	var retRes38015 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersByStatusWsAsync("finished", symbol, since, limit, params))))
 	if retRes38015 == nil {
-		ch <- nil
+		ch <- ccxt.EndpointResult[[]any]{}
 	} else {
-		ch <- retRes38015
+		ch <- ccxt.EndpointResult[[]any]{Value: retRes38015, Raw: retRes38015}
 	}
 	return nil
 }
@@ -589,7 +588,11 @@ func (this *Gate) fetchOrdersByStatusWsBody(ch chan any, status string, optional
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 		if ccxt.GetValue(market, "swap") != true {
 			panic(ccxt.NotSupported(this.Id + " fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets"))
 		}
@@ -2102,7 +2105,7 @@ func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		var marketResolved map[string]any = this.Market(symbol)
 		market = marketResolved
-		symbolResolved = ccxt.GetValue(market, "symbol")
+		symbolResolved = market["symbol"]
 	}
 	var typeVar any = nil
 	var query any = nil
@@ -2141,7 +2144,7 @@ func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var payload []any = []any{"!" + "all"}
 	if market != nil {
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "id")))
+		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["id"]))
 		var mid *string = ccxt.SafeStringPtr(market["id"])
 		if mid != nil {
 			payload = []any{mid}
@@ -2830,7 +2833,7 @@ func (this *Gate) HandleMessage(client any, message any) {
 	//        ]
 	//    }
 	//
-	if ccxt.IsEqual(this.HandleErrorMessage(client, message), true) {
+	if this.HandleErrorMessage(client, message) == true {
 		return
 	}
 	var event *string = this.SafeString(message, "event")
@@ -2884,7 +2887,7 @@ func (this *Gate) HandleMessage(client any, message any) {
 	}
 }
 func (this *Gate) GetUrlByMarket(market any) any {
-	var baseUrl any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), ccxt.GetValue(market, "type"))
+	var baseUrl any = ccxt.GetValue(this.Urls["api"], ccxt.GetValue(market, "type"))
 	if *this.SafeBool(market, "contract", false) {
 		return func() any {
 			if *this.SafeBool(market, "linear", false) {
@@ -2911,7 +2914,7 @@ func (this *Gate) GetTypeByMarket(market any) any {
 func (this *Gate) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 	var isInverse bool = ccxt.GetArgBool(optionalArgs, 0, false)
 	_ = isInverse
-	var api any = ccxt.GetValue(this.Urls, "api")
+	var api any = this.Urls["api"]
 	var url any = this.SafeValue(api, typeVar)
 	if (ccxt.IsEqual(typeVar, "swap")) || (ccxt.IsEqual(typeVar, "future")) {
 		return func() any {
@@ -3416,11 +3419,11 @@ func (this *Gate) FetchClosedOrdersWs(options ...ccxt.FetchClosedOrdersWsOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchClosedOrdersWsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.FetchClosedOrdersWsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(r.Raw) {
+		return nil, ccxt.CreateReturnError(r.Raw)
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(raw)
+	var res []ccxt.Order = ccxt.NewOrderArray(r.Raw)
 	return res, nil
 }
 func (this *Gate) FetchOrdersByStatusWs(status string, options ...ccxt.FetchOrdersByStatusWsOptions) ([]ccxt.Order, error) {

@@ -17,7 +17,6 @@ func newHitbtc() *Hitbtc {
 	base := &ccxt.Hitbtc{}
 	p.base = base
 	p.Hitbtc = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -106,7 +105,7 @@ func (this *Hitbtc) authenticateBody(ch chan any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	this.CheckRequiredCredentials()
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
@@ -161,7 +160,7 @@ func (this *Hitbtc) subscribePublicBody(ch chan any, name any, messageHashPrefix
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var isBatch bool = (ccxt.GetIndexOf(name, "batch") >= 0)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
 	var messageHashes []any = []any{}
 	if (symbolsNormalized != nil) && !isBatch {
 		for i := 0; i < len(symbolsNormalized); i++ {
@@ -206,9 +205,12 @@ func (this *Hitbtc) subscribePrivateBody(ch chan any, name any, optionalArgs ...
 	}
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
 	var splitName []string = ccxt.Split(name, "_subscribe")
-	var messageHash any = ccxt.DerefScalar(this.SafeString(splitName, 0, ""))
+	var messageHash any
+	if derefPtr := this.SafeString(splitName, 0, ""); derefPtr != nil {
+		messageHash = *derefPtr
+	}
 	if symbol != nil {
 		messageHash = ccxt.Add(ccxt.Add(messageHash, "::"), symbol)
 	}
@@ -244,7 +246,7 @@ func (this *Hitbtc) tradeRequestBody(ch chan any, name string, optionalArgs ...a
 	}
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
 	var messageHash string = ccxt.ToString(this.IncrementingNonce())
 	var subscribe map[string]any = map[string]any{
 		"method": name,
@@ -1333,7 +1335,7 @@ func (this *Hitbtc) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"future": "futures_balance_subscribe",
 	})
 	var mode *string = this.SafeString(paramsMarketType, "mode", "batches")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsMarketType, "mode"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, "mode")
 	var request map[string]any = map[string]any{
 		"mode": mode,
 	}

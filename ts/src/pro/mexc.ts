@@ -950,7 +950,7 @@ export default class mexc extends mexcRest {
         client.resolve (storedOrderBook, messageHash);
     }
 
-    handleBooksideDelta (bookside: any, bidasks: any) {
+    handleBooksideDelta (bookside: any, bidasks: any[]) {
         //
         //    [{
         //        "p": "20290.89",

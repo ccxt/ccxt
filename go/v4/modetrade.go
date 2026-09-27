@@ -1488,7 +1488,11 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	var symbolResolved any = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = DerefScalar(this.SafeString(market, "symbol"))
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
@@ -1558,7 +1562,10 @@ func (this *Modetrade) ParseIncome(income any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(income, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var amount any = DerefScalar(this.SafeString(income, "funding_fee"))
+	var amount any
+	if derefPtr := this.SafeString(income, "funding_fee"); derefPtr != nil {
+		amount = *derefPtr
+	}
 	var code *string = this.SafeCurrencyCode("USDC")
 	var timestamp *int64 = this.SafeInteger(income, "updated_time")
 	var rate *float64 = this.SafeNumber(income, "funding_rate")
@@ -1634,7 +1641,7 @@ func (this *Modetrade) fetchFundingHistoryBody(ch chan any, optionalArgs ...any)
 		request["start_t"] = since
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until") // unified in milliseconds
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
 	if until != nil {
 		request["end_t"] = until
 	}
@@ -2793,7 +2800,7 @@ func (this *Modetrade) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"stop", "trigger"})
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = market["id"]
@@ -3285,7 +3292,10 @@ func (this *Modetrade) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		}())
 	}
 	var timestamp *int64 = this.SafeInteger(item, "created_time")
-	var feeCost *float64 = Float64PtrTyped(this.ParseNumber(this.SafeString(item, "fee")))
+	var feeCost *float64
+	if derefNum, isNum := this.ParseNumber(this.SafeString(item, "fee")).(float64); isNum {
+		feeCost = &derefNum
+	}
 	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
@@ -3380,7 +3390,10 @@ func (this *Modetrade) ParseTransaction(transaction any, optionalArgs ...any) an
 	if movementDirection != nil && *movementDirection == "withdraw" {
 		movementDirection = SafeStringPtr("withdrawal")
 	}
-	var feeCost *float64 = Float64PtrTyped(this.ParseNumber(this.SafeString(transaction, "fee")))
+	var feeCost *float64
+	if derefNum, isNum := this.ParseNumber(this.SafeString(transaction, "fee")).(float64); isNum {
+		feeCost = &derefNum
+	}
 	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
@@ -3558,14 +3571,14 @@ func (this *Modetrade) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ..
 	ch <- this.ParseTransactions(rows, currency, since, limit, paramsOmitted)
 	return nil
 }
-func (this *Modetrade) GetWithdrawNonceAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Modetrade) GetWithdrawNonceAsync(optionalArgs ...any) <-chan EndpointResult[*float64] {
+	ch := make(chan EndpointResult[*float64], 1)
 	go this.getWithdrawNonceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Modetrade) getWithdrawNonceBody(ch chan any, optionalArgs ...any) any {
+func (this *Modetrade) getWithdrawNonceBody(ch chan EndpointResult[*float64], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -3581,7 +3594,8 @@ func (this *Modetrade) getWithdrawNonceBody(ch chan any, optionalArgs ...any) an
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
 
-	ch <- this.SafeNumber(data, "withdraw_nonce")
+	chValue := this.SafeNumber(data, "withdraw_nonce")
+	ch <- EndpointResult[*float64]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Modetrade) HashMessage(message any) any {
@@ -3646,7 +3660,7 @@ func (this *Modetrade) withdrawBody(ch chan any, code string, amount any, addres
 		panic(BadRequest(this.Id + " withdraw() require chainId parameter"))
 	}
 
-	var withdrawNonce *float64 = Float64PtrTyped(PanicOnError((<-this.GetWithdrawNonceAsync(params))))
+	var withdrawNonce *float64 = Float64PtrTyped(PanicOnError((<-this.GetWithdrawNonceAsync(params)).Raw))
 	var nonce any = this.Nonce()
 	var domain map[string]any = map[string]any{
 		"chainId":           chainId,
@@ -4049,7 +4063,7 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 	var version any = GetValue(section, 0)
 	var access any = GetValue(section, 1)
 	var pathWithParams string = this.ImplodeParams(path, params)
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), access)
+	var apiUrl *string = this.SafeString(this.Urls["api"], access)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

@@ -15,7 +15,6 @@ func newLuno() *Luno {
 	base := &ccxt.Luno{}
 	p.base = base
 	p.Luno = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -81,7 +80,7 @@ func (this *Luno) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var subscription map[string]any = map[string]any{
 		"symbol": symbolValue,
 	}
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	var wsUrl *string = this.SafeString(this.Urls["api"], "ws")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchTrades() has no websocket url"))
 	}
@@ -216,7 +215,7 @@ func (this *Luno) watchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	var subscription map[string]any = map[string]any{
 		"symbol": symbolValue,
 	}
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	var wsUrl *string = this.SafeString(this.Urls["api"], "ws")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchOrderBook() has no websocket url"))
 	}

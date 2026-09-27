@@ -1016,10 +1016,10 @@ func (this *Indodax) ParseOrder(order any, optionalArgs ...any) any {
 		symbol = marketResolved["symbol"]
 		var quoteId *string = SafeStringPtr(marketResolved["quoteId"])
 		var baseId *string = SafeStringPtr(marketResolved["baseId"])
-		if (IsEqual(marketResolved["quoteId"], "idr")) && (InOp(order, "order_rp")) {
+		if (marketResolved["quoteId"] == "idr") && (InOp(order, "order_rp")) {
 			quoteId = SafeStringPtr("rp")
 		}
-		if (IsEqual(marketResolved["baseId"], "idr")) && (InOp(order, "remain_rp")) {
+		if (marketResolved["baseId"] == "idr") && (InOp(order, "remain_rp")) {
 			baseId = SafeStringPtr("rp")
 		}
 		cost = this.SafeString(order, Add("order_", quoteId))
@@ -1385,14 +1385,14 @@ func (this *Indodax) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Indodax) FetchTransactionFeeAsync(code string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Indodax) FetchTransactionFeeAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchTransactionFeeBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Indodax) fetchTransactionFeeBody(ch chan any, code string, optionalArgs ...any) any {
+func (this *Indodax) fetchTransactionFeeBody(ch chan EndpointResult[map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -1419,11 +1419,12 @@ func (this *Indodax) fetchTransactionFeeBody(ch chan any, code string, optionalA
 	var data map[string]any = SafeMapTyped(response, "return")
 	var currencyId *string = this.SafeString(data, "currency")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":     response,
 		"rate":     this.SafeNumber(data, "withdraw_fee"),
 		"currency": this.SafeCurrencyCode(currencyId, currency),
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -1904,7 +1905,7 @@ func (this *Indodax) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -1966,7 +1967,7 @@ func (this *Indodax) HandleErrors(code any, reason any, url any, method any, hea
 	if status != nil && *status == "approved" {
 		return nil
 	}
-	if IsEqual(this.SafeInteger(response, "success", 0), 1) {
+	if *this.SafeInteger(response, "success", 0) == 1 {
 		// { success: 1, return: { orders: [] }}
 		if !(InOp(response, "return")) {
 			panic(ExchangeError(this.Id + ": malformed response: " + this.Json(response)))
@@ -2318,11 +2319,11 @@ func (this *Indodax) FetchTransactionFee(code string, options ...FetchTransactio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTransactionFeeAsync(code, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.FetchTransactionFeeAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Raw.(map[string]any)
 	return res, nil
 }
 

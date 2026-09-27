@@ -1446,7 +1446,7 @@ func (this *Poloniex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 				return nil
 			}())
 			if symbolsLength == 1 {
-				request["symbol"] = GetValue(market, "id")
+				request["symbol"] = market["id"]
 			}
 		}
 	}
@@ -2188,7 +2188,11 @@ func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) any {
 		}()
 	} else {
 		// poloniex accepts a 30% discount to pay fees in TRX
-		feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(feeCurrency))
+		if derefPtr := this.SafeCurrencyCode(feeCurrency); derefPtr != nil {
+			feeCurrencyCode = *derefPtr
+		} else {
+			feeCurrencyCode = nil
+		}
 		feeCost = this.SafeString2(order, "tokenFee", "feeAmt")
 	}
 	if feeCost != nil {
@@ -2304,7 +2308,7 @@ func (this *Poloniex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = mathMax(limit, max)
 	}
 	var isTrigger *bool = this.SafeBool2(paramsMarketType, "trigger", "stop")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, []any{"trigger", "stop"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, []any{"trigger", "stop"})
 	var response any = []any{}
 	if marketType == nil || *marketType != "spot" {
 
@@ -2873,7 +2877,7 @@ func (this *Poloniex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		return nil
 	}
 	var isTrigger *bool = this.SafeBool2(paramsMarketType, "trigger", "stop")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, []any{"trigger", "stop"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, []any{"trigger", "stop"})
 	if isTrigger != nil && *isTrigger == true {
 
 		response = (<-this.PrivateDeleteSmartorders(this.Extend(request, paramsOmitted))).Raw
@@ -2945,7 +2949,7 @@ func (this *Poloniex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 		panic(NotSupported(this.Id + " fetchOrder() is not supported for " + *marketType + " markets yet"))
 	}
 	var isTrigger *bool = this.SafeBool2(paramsMarketType, "trigger", "stop")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, []any{"trigger", "stop"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, []any{"trigger", "stop"})
 	var response any = map[string]any{}
 	if isTrigger != nil && *isTrigger == true {
 
@@ -4280,7 +4284,11 @@ func (this *Poloniex) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var data []any = SafeListTyped(leverage, "data")
 	for i := 0; i < len(data); i++ {
 		var entry map[string]any = SafeMapTyped(data, i)
-		marketId = DerefScalar(this.SafeString(entry, "symbol"))
+		if derefPtr := this.SafeString(entry, "symbol"); derefPtr != nil {
+			marketId = *derefPtr
+		} else {
+			marketId = nil
+		}
 		// mgnMode arrives upper case; parseOrder and parsePosition read the
 		// same field with safeStringLower
 		marginMode = this.SafeStringLower(entry, "mgnMode")
@@ -4313,14 +4321,14 @@ func (this *Poloniex) ParseLeverage(leverage any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Poloniex) FetchPositionModeAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Poloniex) FetchPositionModeAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchPositionModeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
+func (this *Poloniex) fetchPositionModeBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -4341,10 +4349,11 @@ func (this *Poloniex) fetchPositionModeBody(ch chan any, optionalArgs ...any) an
 	var posMode *string = this.SafeString(data, "posMode")
 	var hedged bool = (posMode != nil && *posMode == "HEDGE")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":   response,
 		"hedged": hedged,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -4675,9 +4684,9 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var url any = GetValue(GetValue(this.Urls, "api"), "spot")
+	var url any = GetValue(this.Urls["api"], "spot")
 	if this.InArray(api, []any{"swapPublic", "swapPrivate"}) {
-		url = GetValue(GetValue(this.Urls, "api"), "swap")
+		url = GetValue(this.Urls["api"], "swap")
 	}
 	if (method == "GET") && (InOp(params, "symbol")) {
 		AddElementToObject(params, "symbol", this.EncodeURIComponent(GetValue(params, "symbol"))) // handle symbols like 索拉拉/USDT'
@@ -5557,11 +5566,11 @@ func (this *Poloniex) FetchPositionMode(options ...FetchPositionModeOptions) (Po
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return PositionModeInfo{}, CreateReturnError(raw)
+	r := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return PositionModeInfo{}, CreateReturnError(r.Raw)
 	}
-	var res PositionModeInfo = NewPositionModeInfo(raw)
+	var res PositionModeInfo = NewPositionModeInfo(r.Raw)
 	return res, nil
 }
 

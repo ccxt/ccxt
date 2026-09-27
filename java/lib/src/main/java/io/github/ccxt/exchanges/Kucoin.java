@@ -4335,7 +4335,7 @@ public class Kucoin extends KucoinApi
             paramsRequest = utaparamsRequestVariable.second();
             if (java.util.Objects.equals(accountType, "contract"))
             {
-                return (this.fetchContractDepositAddress(code, paramsRequest)).join();
+                return (this.fetchContractDepositAddress(code, Helpers.toMapArg(paramsRequest))).join();
             } else if (Boolean.TRUE.equals(uta) || (java.util.Objects.equals(accountType, "uta")) || (java.util.Objects.equals(accountType, "unified")))
             {
                 return (super.fetchDepositAddress(code, this.extend(paramsRequest, new HashMap<String, Object>() {{
@@ -11726,14 +11726,14 @@ public class Kucoin extends KucoinApi
                 market = this.market(symbol);
                 if (java.util.Objects.equals(market.get("contract"), true))
                 {
-                    return (this.setContractLeverage(leverage, symbol, paramsRequest)).join();
+                    return (this.setContractLeverage(leverage, symbol, Helpers.toMapArg(paramsRequest))).join();
                 }
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "leverage", Kucoin.this.numberToString(leverage) );
             }};
             String marginMode = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsRequestVariable = this.handleMarginModeAndParams("setLeverage", paramsRequest, (String) null);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsRequestVariable = this.handleMarginModeAndParams("setLeverage", Helpers.toMapArg(paramsRequest), (String) null);
             marginMode = marginModeparamsRequestVariable.first();
             paramsRequest = marginModeparamsRequestVariable.second();
             Boolean uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();

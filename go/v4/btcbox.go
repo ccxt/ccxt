@@ -296,9 +296,15 @@ func (this *Btcbox) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var symbol string = *baseCurr + "/" + *quote
 		var fee *float64 = func() *float64 {
 			if id == "BTC" {
-				return Float64PtrTyped(this.ParseNumber("0.0005"))
+				if derefNum, isNum := this.ParseNumber("0.0005").(float64); isNum {
+					return &derefNum
+				}
+				return nil
 			}
-			return Float64PtrTyped(this.ParseNumber("0.0010"))
+			if derefNum, isNum := this.ParseNumber("0.0010").(float64); isNum {
+				return &derefNum
+			}
+			return nil
 		}()
 		var details map[string]any = SafeMapTyped(result2Data, id)
 		var tradeDetails map[string]any = SafeMapTyped(details, "trade")
@@ -1068,7 +1074,7 @@ func (this *Btcbox) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -1078,7 +1084,7 @@ func (this *Btcbox) Sign(path string, optionalArgs ...any) any {
 			url = Add(url, "?"+this.Urlencode(params))
 		}
 	} else if api == "webApi" {
-		url = Add(Add(GetValue(this.Urls, "www"), "/"), path)
+		url = Add(Add(this.Urls["www"], "/"), path)
 	} else {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())

@@ -1257,10 +1257,20 @@ func (this *Weex) ParseMarket(market any) any {
 			isInverse = true
 		}
 	} else {
-		active = DerefScalar(this.SafeBool(market, "enableTrade", false))
+		if derefPtr := this.SafeBool(market, "enableTrade", false); derefPtr != nil {
+			active = *derefPtr
+		} else {
+			active = nil
+		}
 	}
-	var amountPrecision any = DerefScalar(this.SafeNumber(market, "stepSize"))
-	var pricePrecision any = DerefScalar(this.SafeNumber(market, "tickSize"))
+	var amountPrecision any
+	if derefPtr := this.SafeNumber(market, "stepSize"); derefPtr != nil {
+		amountPrecision = *derefPtr
+	}
+	var pricePrecision any
+	if derefPtr := this.SafeNumber(market, "tickSize"); derefPtr != nil {
+		pricePrecision = *derefPtr
+	}
 	if amountPrecision == nil {
 		var amountPrecisionString any = this.ParsePrecision(this.SafeString(market, "quantityPrecision"))
 		var pricePrecisionString any = this.ParsePrecision(this.SafeString(market, "pricePrecision"))
@@ -2001,7 +2011,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol string, optionalArg
 		"interval": this.SafeString(contractTimeframes, timeframe, timeframe),
 	}
 	var priceType *string = this.SafeStringUpper(paramsHistorical, "price")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsHistorical, []any{"historical", "until", "price"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsHistorical, []any{"historical", "until", "price"})
 	var response []any = nil
 	// hardcap threshold
 	var limitResolved any = func() any {
@@ -3147,7 +3157,7 @@ func (this *Weex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	}
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeString(paramsMarketType, "clientOrderId")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, []any{"clientOrderId", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, []any{"clientOrderId", "trigger"})
 	if clientOrderId != nil {
 		request["origClientOrderId"] = clientOrderId
 	} else if IsEqual(id, nil) {
@@ -3225,7 +3235,7 @@ func (this *Weex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	var trigger *bool = this.SafeBool(paramsMarketType, "trigger", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, "trigger"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, "trigger")
 	var response []any = nil
 	if marketType != nil && *marketType == "spot" {
 		if symbol == nil {
@@ -3291,7 +3301,7 @@ func (this *Weex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelOrders", market, params)
 	var isSpot bool = (marketType != nil && *marketType == "spot")
 	var clientOrderIds any = this.SafeList(paramsMarketType, "clientOrderIds")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, "clientOrderIds"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, "clientOrderIds")
 	if clientOrderIds != nil {
 		if isSpot {
 			request["origClientOrderIds"] = clientOrderIds
@@ -3364,7 +3374,7 @@ func (this *Weex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		panic(ArgumentsRequired(this.Id + " fetchOrder() requires an id argument for non-spot markets"))
 	}
 	var clientOrderId *string = this.SafeString(paramsMarketType, "clientOrderId")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, "clientOrderId"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, "clientOrderId")
 	if clientOrderId != nil {
 		request["origClientOrderId"] = clientOrderId
 	} else if IsEqual(id, nil) {
@@ -3502,7 +3512,7 @@ func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 		var trigger *bool = this.SafeBool(paramsUntil, "trigger", false)
 		if trigger != nil && *trigger == true {
-			var paramsOmitted map[string]any = MapTyped(this.Omit(paramsUntil, "trigger"))
+			var paramsOmitted map[string]any = this.OmitDict(paramsUntil, "trigger")
 			//
 			//     [
 			//         {
@@ -4432,7 +4442,10 @@ func (this *Weex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var amountRaw *string = this.SafeString2(item, "deltaAmount", "income")
 	var after *string = this.SafeString2(item, "afterAmount", "balance")
 	var before *string = Precise.StringSub(after, amountRaw)
-	var amount *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringAbs(amountRaw)))
+	var amount *float64
+	if derefNum, isNum := this.ParseNumber(Precise.StringAbs(amountRaw)).(float64); isNum {
+		amount = &derefNum
+	}
 	var direction string = "in"
 	if amountRaw == nil {
 		panic(ExchangeError(this.Id + " parseLedgerEntry() missing amountRaw"))
@@ -5318,14 +5331,14 @@ func (this *Weex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Weex) FetchPositionModeAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchPositionModeAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchPositionModeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchPositionModeBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -5344,10 +5357,11 @@ func (this *Weex) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 	var entry map[string]any = SafeMapTyped(response, 0)
 	var separatedType *string = this.SafeString(entry, "separatedType")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":   response,
 		"hedged": (separatedType != nil && *separatedType == "SEPARATED"),
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -5625,7 +5639,7 @@ func (this *Weex) Sign(path string, optionalArgs ...any) any {
 			"User-Agent": "ccxt",
 		}
 	}
-	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -6817,11 +6831,11 @@ func (this *Weex) FetchPositionMode(options ...FetchPositionModeOptions) (Positi
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return PositionModeInfo{}, CreateReturnError(raw)
+	r := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return PositionModeInfo{}, CreateReturnError(r.Raw)
 	}
-	var res PositionModeInfo = NewPositionModeInfo(raw)
+	var res PositionModeInfo = NewPositionModeInfo(r.Raw)
 	return res, nil
 }
 

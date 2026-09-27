@@ -791,8 +791,14 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		var leverageBuy []any = SafeListTyped(market, "leverage_buy")
 		var leverageBuyLength int = len(leverageBuy)
-		var precisionPrice *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pair_decimals"))))
-		var precisionAmount *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(market, "lot_decimals"))))
+		var precisionPrice *float64
+		if derefNum, isNum := this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pair_decimals"))).(float64); isNum {
+			precisionPrice = &derefNum
+		}
+		var precisionAmount *float64
+		if derefNum, isNum := this.ParseNumber(this.ParsePrecision(this.SafeString(market, "lot_decimals"))).(float64); isNum {
+			precisionAmount = &derefNum
+		}
 		var spot bool = true
 		// fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
 		if spot && (func() bool {
@@ -1854,7 +1860,11 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 	} else {
 		symbol = this.SafeString(trade, "symbol")
 		datetime = this.SafeString(trade, "timestamp")
-		id = DerefScalar(this.SafeString(trade, "trade_id"))
+		if derefPtr := this.SafeString(trade, "trade_id"); derefPtr != nil {
+			id = *derefPtr
+		} else {
+			id = nil
+		}
 		side = this.SafeString(trade, "side")
 		typeVar = this.SafeString(trade, "ord_type")
 		price = this.SafeString(trade, "price")
@@ -2481,13 +2491,25 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	var triggerPrice *string = nil
 	if !IsEqual(orderDescription, nil) {
 		var parts []string = Split(orderDescription, " ")
-		side = DerefScalar(this.SafeString(parts, 0))
+		if derefPtr := this.SafeString(parts, 0); derefPtr != nil {
+			side = *derefPtr
+		} else {
+			side = nil
+		}
 		if isUsingCost == nil || *isUsingCost != true {
-			amount = DerefScalar(this.SafeString(parts, 1))
+			if derefPtr := this.SafeString(parts, 1); derefPtr != nil {
+				amount = *derefPtr
+			} else {
+				amount = nil
+			}
 		} else {
 			cost = this.SafeString(parts, 1)
 		}
-		marketId = DerefScalar(this.SafeString(parts, 2))
+		if derefPtr := this.SafeString(parts, 2); derefPtr != nil {
+			marketId = *derefPtr
+		} else {
+			marketId = nil
+		}
 		var part4 *string = this.SafeString(parts, 4)
 		var part5 *string = this.SafeString(parts, 5)
 		if (part4 != nil && *part4 == "limit") || (part4 != nil && *part4 == "market") {
@@ -2497,9 +2519,17 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 		}
 		if IsEqual(rawType, "stop loss") || IsEqual(rawType, "take profit") {
 			triggerPrice = this.SafeString(parts, 6)
-			price = DerefScalar(this.SafeString(parts, 9))
+			if derefPtr := this.SafeString(parts, 9); derefPtr != nil {
+				price = *derefPtr
+			} else {
+				price = nil
+			}
 		} else if IsEqual(rawType, "limit") {
-			price = DerefScalar(this.SafeString(parts, 5))
+			if derefPtr := this.SafeString(parts, 5); derefPtr != nil {
+				price = *derefPtr
+			} else {
+				price = nil
+			}
 		}
 	}
 	side = DerefScalar(this.SafeString(description, "type", side))
@@ -2519,7 +2549,11 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 		price = nil // this is not the price we want
 	}
 	if IsEqual(price, nil) {
-		price = DerefScalar(this.SafeString(description, "price2"))
+		if derefPtr := this.SafeString(description, "price2"); derefPtr != nil {
+			price = *derefPtr
+		} else {
+			price = nil
+		}
 		price = DerefScalar(this.SafeString2(orderOmitted, "limitprice", "price", price))
 	}
 	var flags *string = this.SafeString(orderOmitted, "oflags", "")
@@ -2854,7 +2888,7 @@ func (this *Kraken) editOrderBody(ch chan any, id string, symbol any, typeVar an
 	if market["spot"] != true {
 		panic(NotSupported(Add(Add(this.Id+" editOrder() does not support ", market["type"]), " orders, only spot orders are accepted")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"txid": id,
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "cl_ord_id")
@@ -2865,8 +2899,8 @@ func (this *Kraken) editOrderBody(ch chan any, id string, symbol any, typeVar an
 		return params
 	}()
 	if clientOrderId != nil {
-		AddElementToObject(request, "cl_ord_id", clientOrderId)
-		request = this.Omit(request, "txid")
+		request["cl_ord_id"] = *clientOrderId
+		request = this.OmitDict(request, "txid")
 	}
 	var isMarket bool = (IsEqual(typeVar, "market"))
 	var postOnly any = nil
@@ -2874,7 +2908,7 @@ func (this *Kraken) editOrderBody(ch chan any, id string, symbol any, typeVar an
 	postOnly = postOnlyparamsOmittedVariable[0]
 	paramsOmitted = postOnlyparamsOmittedVariable[1]
 	if postOnly == true {
-		AddElementToObject(request, "post_only", "true") // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
+		request["post_only"] = "true" // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
 	}
 	if amount != nil {
 		AddElementToObject(request, "order_qty", this.AmountToPrecision(symbol, amount))
@@ -2882,7 +2916,10 @@ func (this *Kraken) editOrderBody(ch chan any, id string, symbol any, typeVar an
 	if price != nil {
 		AddElementToObject(request, "limit_price", this.PriceToPrecision(symbol, price))
 	}
-	var allTriggerPrices any = DerefScalar(this.SafeStringN(paramsOmitted, []any{"stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent"}))
+	var allTriggerPrices any
+	if derefPtr := this.SafeStringN(paramsOmitted, []any{"stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent"}); derefPtr != nil {
+		allTriggerPrices = *derefPtr
+	}
 	if allTriggerPrices != nil {
 		var offset *string = this.SafeString(paramsOmitted, "offset")
 		paramsOmitted = this.Omit(paramsOmitted, []any{"stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset"})
@@ -3285,7 +3322,7 @@ func (this *Kraken) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var response map[string]any = nil
 	var requestId any = this.SafeValue(params, "userref", id) // string or integer
 	var paramsUserref map[string]any = this.OmitDict(params, "userref")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"txid": requestId,
 	}
 	var clientOrderId *string = this.SafeString2(paramsUserref, "clientOrderId", "cl_ord_id")
@@ -3296,8 +3333,8 @@ func (this *Kraken) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		return paramsUserref
 	}()
 	if clientOrderId != nil {
-		AddElementToObject(request, "cl_ord_id", clientOrderId)
-		request = this.Omit(request, "txid")
+		request["cl_ord_id"] = *clientOrderId
+		request = this.OmitDict(request, "txid")
 	}
 
 	{
@@ -3808,7 +3845,10 @@ func (this *Kraken) ParseTransaction(transaction any, optionalArgs ...any) any {
 		status = SafeStringPtr("pending")
 	}
 	var typeVar *string = this.SafeString(transaction, "type") // injected from the outside
-	var feeCost any = DerefScalar(this.SafeNumber(transaction, "fee"))
+	var feeCost any
+	if derefPtr := this.SafeNumber(transaction, "fee"); derefPtr != nil {
+		feeCost = *derefPtr
+	}
 	if feeCost == nil {
 		if typeVar != nil && *typeVar == "deposit" {
 			feeCost = 0
@@ -4026,7 +4066,7 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var until *string = this.SafeString2(paramsPaginate, "until", "till")
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(paramsPaginate, []any{"until", "till"}))
+			return this.OmitDict(paramsPaginate, []any{"until", "till"})
 		}
 		return paramsPaginate
 	}()
@@ -4673,7 +4713,7 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 		} else {
 			headersSigned["Content-Type"] = "application/x-www-form-urlencoded"
 		}
-		var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+		var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
 		if baseApiUrl == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
@@ -4687,7 +4727,7 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 	} else {
 		url = "/" + path
 	}
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

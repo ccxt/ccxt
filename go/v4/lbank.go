@@ -1673,7 +1673,7 @@ func (this *Lbank) ParseBalance(response any) any {
 		return this.SafeBalance(result)
 	}
 	// from spotPrivatePostSupplementUserInfo
-	var isArray bool = IsArray(data)
+	var isArray bool = false
 	if isArray == true {
 		for i := 0; i < GetArrayLength(data); i++ {
 			var item map[string]any = SafeMapTyped(data, i)
@@ -1717,7 +1717,7 @@ func (this *Lbank) ParseFundingRate(ticker any, optionalArgs ...any) any {
 	var positionFeeTime *int64 = this.SafeInteger(ticker, "positionFeeTime")
 	var intervalString *string = nil
 	if positionFeeTime != nil {
-		var interval int64 = this.ParseToInt(Divide(Divide(positionFeeTime, 60), 60))
+		var interval int64 = this.ParseToInt((float64(*positionFeeTime) / 60) / 60)
 		intervalString = SafeStringPtr(strconv.FormatInt(interval, 10) + "h")
 	}
 	return map[string]any{
@@ -2896,25 +2896,25 @@ func (this *Lbank) fetchDepositAddressBody(ch chan any, code string, optionalArg
 	var response any = nil
 	if method != nil && *method == "fetchDepositAddressSupplement" {
 
-		response = (<-this.FetchDepositAddressSupplementAsync(code, paramsOmitted))
+		response = (<-this.FetchDepositAddressSupplementAsync(code, paramsOmitted)).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.FetchDepositAddressDefaultAsync(code, paramsOmitted))
+		response = (<-this.FetchDepositAddressDefaultAsync(code, paramsOmitted)).Raw
 		PanicOnError(response)
 	}
 
 	ch <- response
 	return nil
 }
-func (this *Lbank) FetchDepositAddressDefaultAsync(code string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Lbank) FetchDepositAddressDefaultAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchDepositAddressDefaultBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchDepositAddressDefaultBody(ch chan any, code string, optionalArgs ...any) any {
+func (this *Lbank) fetchDepositAddressDefaultBody(ch chan EndpointResult[map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -2955,23 +2955,24 @@ func (this *Lbank) fetchDepositAddressDefaultBody(ch chan any, code string, opti
 	var address *string = this.SafeString(result, "address")
 	var tag *string = this.SafeString(result, "memo")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":     response,
 		"currency": code,
 		"network":  this.NetworkIdToCode(this.SafeString(result, "netWork"), code),
 		"address":  address,
 		"tag":      tag,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Lbank) FetchDepositAddressSupplementAsync(code string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Lbank) FetchDepositAddressSupplementAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchDepositAddressSupplementBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchDepositAddressSupplementBody(ch chan any, code string, optionalArgs ...any) any {
+func (this *Lbank) fetchDepositAddressSupplementBody(ch chan EndpointResult[map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	// returns the address for whatever the default network is...
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
@@ -3014,13 +3015,14 @@ func (this *Lbank) fetchDepositAddressSupplementBody(ch chan any, code string, o
 	var address *string = this.SafeString(result, "address")
 	var tag *string = this.SafeString(result, "memo")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":     response,
 		"currency": code,
 		"network":  nil,
 		"address":  address,
 		"tag":      tag,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -3855,7 +3857,7 @@ func (this *Lbank) Sign(path string, optionalArgs ...any) any {
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -3864,7 +3866,7 @@ func (this *Lbank) Sign(path string, optionalArgs ...any) any {
 	if GetValue(api, 0) == "spot" {
 		url += ".do"
 	} else {
-		var contractUrl *string = this.SafeString(GetValue(this.Urls, "api"), "contract")
+		var contractUrl *string = this.SafeString(this.Urls["api"], "contract")
 		if contractUrl == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
@@ -4651,11 +4653,11 @@ func (this *Lbank) FetchDepositAddressDefault(code string, options ...FetchDepos
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchDepositAddressDefaultAsync(code, opts.Params)
-	if IsError(raw) {
-		return DepositAddress{}, CreateReturnError(raw)
+	r := <-this.FetchDepositAddressDefaultAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return DepositAddress{}, CreateReturnError(r.Raw)
 	}
-	var res DepositAddress = NewDepositAddress(raw)
+	var res DepositAddress = NewDepositAddress(r.Raw)
 	return res, nil
 }
 func (this *Lbank) FetchDepositAddressSupplement(code string, options ...FetchDepositAddressSupplementOptions) (DepositAddress, error) {
@@ -4665,11 +4667,11 @@ func (this *Lbank) FetchDepositAddressSupplement(code string, options ...FetchDe
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchDepositAddressSupplementAsync(code, opts.Params)
-	if IsError(raw) {
-		return DepositAddress{}, CreateReturnError(raw)
+	r := <-this.FetchDepositAddressSupplementAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return DepositAddress{}, CreateReturnError(r.Raw)
 	}
-	var res DepositAddress = NewDepositAddress(raw)
+	var res DepositAddress = NewDepositAddress(r.Raw)
 	return res, nil
 }
 

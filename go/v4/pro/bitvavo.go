@@ -18,7 +18,6 @@ func newBitvavo() *Bitvavo {
 	base := &ccxt.Bitvavo{}
 	p.base = base
 	p.Bitvavo = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -99,7 +98,7 @@ func (this *Bitvavo) watchPublicBody(ch chan any, name string, symbol any, optio
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+"@", market["id"]))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"channels": []any{map[string]any{
@@ -133,7 +132,7 @@ func (this *Bitvavo) watchPublicMultipleBody(ch chan any, methodName string, cha
 		var market map[string]any = this.Market(symbolsNormalized[i])
 		args = append(args, market["id"])
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"channels": []any{map[string]any{
@@ -430,7 +429,7 @@ func (this *Bitvavo) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 		marketIds = append(marketIds, market["id"])
 		messageHashes = append(messageHashes, ccxt.Add(name+"@", market["id"]))
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"channels": []any{map[string]any{
@@ -557,7 +556,7 @@ func (this *Bitvavo) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(name+"@", marketId), "_"), interval))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"channels": []any{map[string]any{
@@ -722,7 +721,7 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 			"markets":  marketIdsByInterval[interval],
 		})
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var request map[string]any = map[string]any{
 		"action":   "subscribe",
 		"channels": channels,
@@ -883,7 +882,7 @@ func (this *Bitvavo) watchOrderBookBody(ch chan any, symbol string, optionalArgs
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var name string = "book"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+"@", market["id"]))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"channels": []any{map[string]any{
@@ -943,7 +942,7 @@ func (this *Bitvavo) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 		marketIds = append(marketIds, market["id"])
 		messageHashes = append(messageHashes, ccxt.Add(name+"@", market["id"]))
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"channels": []any{map[string]any{
@@ -1130,7 +1129,7 @@ func (this *Bitvavo) watchOrderBookSnapshotBody(ch chan any, client any, message
 	}
 	var name string = "getBook"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+"@", marketId))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var request map[string]any = map[string]any{
 		"action": name,
 		"market": marketId,
@@ -1231,7 +1230,7 @@ func (this *Bitvavo) unWatchChannelsBody(ch chan any, topic string, channels any
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var request map[string]any = map[string]any{
 		"action":   "unsubscribe",
 		"channels": channels,
@@ -1276,8 +1275,8 @@ func (this *Bitvavo) HandleUnsubscriptionStatus(client any, message map[string]a
 		// unsubscribe time the sub future is usually already gone and cleanUnsubscription
 		// stashes the error in client.rejections instead - that stale entry
 		// would immediately reject the next subscribe's fresh future, so clear it here
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetRejections(), subHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetRejections(), subHash)
+		if _, ok := client.(ccxt.ClientInterface).GetRejections()[subHash]; ok {
+			delete(client.(ccxt.ClientInterface).GetRejections(), subHash)
 		}
 	}
 	return message
@@ -1321,7 +1320,7 @@ func (this *Bitvavo) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var name string = "account"
 	var messageHash string = "order:" + *symbolValue
 	var request map[string]any = map[string]any{
@@ -1380,7 +1379,7 @@ func (this *Bitvavo) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var name string = "account"
 	var messageHash string = "myTrades:" + *symbolValue
 	var request map[string]any = map[string]any{
@@ -1691,7 +1690,7 @@ func (this *Bitvavo) watchRequestBody(ch chan any, action string, request any) a
 	var messageHashStr string = strconv.FormatInt(messageHash, 10)
 	ccxt.AddElementToObject(request, "action", action)
 	ccxt.AddElementToObject(request, "requestId", messageHash)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHashStr, request, messageHashStr)))
 	return nil
@@ -2408,7 +2407,7 @@ func (this *Bitvavo) authenticateBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)

@@ -963,7 +963,7 @@ func (this *Bitbns) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		return "Order"
 	}()
 	var quoteSide string = func() string {
-		if IsEqual(market["quoteId"], "USDT") {
+		if market["quoteId"] == "USDT" {
 			return "usdtcancel"
 		}
 		return "cancel"
@@ -1095,7 +1095,7 @@ func (this *Bitbns) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"trigger", "stop"})
 	var quoteSide string = "listOpen"
-	if IsEqual(market["quoteId"], "USDT") {
+	if market["quoteId"] == "USDT" {
 		quoteSide = "usdtListOpen"
 	}
 	var request map[string]any = map[string]any{
@@ -1679,7 +1679,7 @@ func (this *Bitbns) Sign(path string, optionalArgs ...any) any {
 		}
 		return headers
 	}()
-	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

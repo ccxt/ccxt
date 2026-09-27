@@ -330,7 +330,6 @@ class mudrex extends Exchange {
         }
         $request['start_time'] = $startTime;
         $request['end_time'] = $endTime;
-        $response = null;
         if ($priceType === 'mark') {
             $response = Async\await($this->marketGetPriceMarkKline($this->extend($request, $paramsOmitted)));
         } else {
@@ -1021,7 +1020,6 @@ class mudrex extends Exchange {
             $q['limit'] = $limit;
         }
         $request = $this->extend($q, $params);
-        $response = null;
         if ($state === 'closed') {
             $response = Async\await($this->privateGetFuturesOrdersHistory($request));
         } else {
@@ -1563,7 +1561,6 @@ class mudrex extends Exchange {
                 $useInr = true;
             }
         }
-        $response = null;
         if ($useInr) {
             $response = Async\await($this->privatePostFuturesTransfersInr($this->extend($body, $params)));
         } else {

@@ -2262,11 +2262,11 @@ func (this *Bybit) EnableDemoTrading(enable any) {
 	}
 	// enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
 	if EvalTruthy(enable) {
-		AddElementToObject(this.Urls, "apiBackupDemoTrading", GetValue(this.Urls, "api"))
-		AddElementToObject(this.Urls, "api", GetValue(this.Urls, "demotrading"))
+		this.Urls["apiBackupDemoTrading"] = this.Urls["api"]
+		this.Urls["api"] = this.Urls["demotrading"]
 	} else if InOp(this.Urls, "apiBackupDemoTrading") {
-		AddElementToObject(this.Urls, "api", GetValue(this.Urls, "apiBackupDemoTrading"))
-		var newUrls any = this.Omit(this.Urls, "apiBackupDemoTrading")
+		this.Urls["api"] = this.Urls["apiBackupDemoTrading"]
+		var newUrls map[string]any = MapTyped(this.Omit(this.Urls, "apiBackupDemoTrading"))
 		this.Urls = newUrls
 	}
 	this.Options.Store("enableDemoTrading", enable)
@@ -2426,8 +2426,16 @@ func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {
 	var base any = nil
 	var expiry any = nil
 	if GetIndexOf(symbol, "/") > -1 {
-		base = DerefScalar(this.SafeString(symbolBase, 0))
-		expiry = DerefScalar(this.SafeString(optionParts, 1))
+		if derefPtr := this.SafeString(symbolBase, 0); derefPtr != nil {
+			base = *derefPtr
+		} else {
+			base = nil
+		}
+		if derefPtr := this.SafeString(optionParts, 1); derefPtr != nil {
+			expiry = *derefPtr
+		} else {
+			expiry = nil
+		}
 		var symbolQuoteAndSettle *string = this.SafeString(symbolBase, 1)
 		if symbolQuoteAndSettle == nil {
 			panic(ExchangeError(this.Id + " createExpiredOptionMarket() missing symbolQuoteAndSettle"))
@@ -2437,7 +2445,11 @@ func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {
 		quote = quoteAndSettle
 		settle = quoteAndSettle
 	} else {
-		base = DerefScalar(this.SafeString(optionParts, 0))
+		if derefPtr := this.SafeString(optionParts, 0); derefPtr != nil {
+			base = *derefPtr
+		} else {
+			base = nil
+		}
 		expiry = this.ConvertMarketIdExpireDate(this.SafeString(optionParts, 1))
 		if EndsWith(symbol, "-USDT") {
 			quote = SafeStringPtr("USDT")
@@ -2962,8 +2974,14 @@ func (this *Bybit) fetchSpotMarketsBody(ch chan any, params any) any {
 	var responseResult map[string]any = SafeMapTyped(response, "result")
 	var markets []any = SafeListTyped(responseResult, "list")
 	var result []any = []any{}
-	var takerFee *float64 = Float64PtrTyped(this.ParseNumber("0.001"))
-	var makerFee *float64 = Float64PtrTyped(this.ParseNumber("0.001"))
+	var takerFee *float64
+	if derefNum, isNum := this.ParseNumber("0.001").(float64); isNum {
+		takerFee = &derefNum
+	}
+	var makerFee *float64
+	if derefNum, isNum := this.ParseNumber("0.001").(float64); isNum {
+		makerFee = &derefNum
+	}
 	for i := 0; i < len(markets); i++ {
 		var market any = func() any {
 			if i >= 0 && i < len(markets) {
@@ -3204,7 +3222,10 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan EndpointResult[[]any], optiona
 			if inverse {
 				return this.SafeNumber2(lotSizeFilter, "minTradingQty", "minOrderQty")
 			}
-			return Float64PtrTyped(this.ParseNumber("1"))
+			if derefNum, isNum := this.ParseNumber("1").(float64); isNum {
+				return &derefNum
+			}
+			return nil
 		}()
 		var parsedMarket any = this.SafeMarketStructure(map[string]any{
 			"id":             id,
@@ -4082,7 +4103,7 @@ func (this *Bybit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 		}())
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			request["symbol"] = GetValue(market, "id")
+			request["symbol"] = market["id"]
 		}
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchFundingRates", market, params)
@@ -4435,7 +4456,11 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) any {
 		}()
 	}
 	if market != nil {
-		marketType = DerefScalar(this.SafeString(market, "type"))
+		if derefPtr := this.SafeString(market, "type"); derefPtr != nil {
+			marketType = *derefPtr
+		} else {
+			marketType = nil
+		}
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
@@ -6699,7 +6724,7 @@ func (this *Bybit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 	var orders any = this.SafeList(result, "list")
-	if !IsArray(orders) {
+	if orders == nil {
 
 		ch <- []any{this.SafeOrder(map[string]any{
 			"info": response,
@@ -8945,7 +8970,7 @@ func (this *Bybit) ParsePosition(position any, optionalArgs ...any) any {
 	var liquidationPrice any = this.OmitZero(this.SafeString(position, "liqPrice"))
 	var leverage *string = this.SafeString(position, "leverage")
 	if liquidationPrice != nil {
-		if IsEqual(marketResolved["settle"], "USDC") {
+		if marketResolved["settle"] == "USDC" {
 			//  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
 			var useMarkPrice *bool = this.SafeBool(this.Options, "useMarkPriceForPositionCollateral", false)
 			var price any = entryPrice
@@ -9116,7 +9141,7 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode string, optionalArg
 			panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol parameter for non unified account"))
 		}
 		market = this.Market(symbol)
-		var isUsdcSettled bool = IsEqual(market["settle"], "USDC")
+		var isUsdcSettled bool = (market["settle"] == "USDC")
 		if isUsdcSettled {
 			if (marginMode != "cross") && (marginMode != "portfolio") {
 				panic(NotSupported(this.Id + " setMarginMode() for usdc market marginMode must be either [cross, portfolio]"))
@@ -10306,7 +10331,11 @@ func (this *Bybit) ParseTradingFee(fee any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(fee, "symbol")
 	var defaultType any = "contract"
 	if market != nil {
-		defaultType = DerefScalar(this.SafeString(market, "type"))
+		if derefPtr := this.SafeString(market, "type"); derefPtr != nil {
+			defaultType = *derefPtr
+		} else {
+			defaultType = nil
+		}
 	}
 	var symbol *string = this.SafeSymbol(marketId, market, nil, defaultType)
 	return map[string]any{
@@ -11002,7 +11031,7 @@ func (this *Bybit) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 				}
 				return nil
 			}())
-			request["symbol"] = GetValue(market, "id")
+			request["symbol"] = market["id"]
 		}
 	}
 
@@ -11359,7 +11388,7 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any 
 			}
 			return nil
 		}())
-		if GetValue(market, "spot") == true {
+		if market["spot"] == true {
 			panic(NotSupported(this.Id + " fetchLeverageTiers() is not supported for spot market"))
 		}
 		symbol = DerefScalar(this.SafeString(market, "symbol"))
@@ -11444,7 +11473,10 @@ func (this *Bybit) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 		var tier map[string]any = SafeMapTyped(info, i)
 		var marketId *string = this.SafeString(info, "symbol")
 		var marketResolved map[string]any = this.SafeMarket(marketId)
-		var minNotional *float64 = Float64PtrTyped(this.ParseNumber("0"))
+		var minNotional *float64
+		if derefNum, isNum := this.ParseNumber("0").(float64); isNum {
+			minNotional = &derefNum
+		}
 		if i != 0 {
 			minNotional = this.SafeNumber(GetValue(info, i-1), "riskLimitValue")
 		}
@@ -11851,7 +11883,7 @@ func (this *Bybit) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchPositionsHistory", market, params, "linear")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsSubType, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsSubType, "until")
 	var request map[string]any = map[string]any{
 		"category": subType,
 	}
@@ -12725,7 +12757,7 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) any {
 	_ = body
 	var requestBody any = nil
 	var requestHeaders any = nil
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

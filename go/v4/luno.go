@@ -1768,14 +1768,14 @@ func (this *Luno) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	})
 	return nil
 }
-func (this *Luno) FetchLedgerByEntriesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Luno) FetchLedgerByEntriesAsync(optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.fetchLedgerByEntriesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Luno) fetchLedgerByEntriesBody(ch chan any, optionalArgs ...any) any {
+func (this *Luno) fetchLedgerByEntriesBody(ch chan EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	// by default without entry number or limit number, return most recent entry
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
@@ -1805,9 +1805,9 @@ func (this *Luno) fetchLedgerByEntriesBody(ch chan any, optionalArgs ...any) any
 
 	var retRes140915 []any = ListTyped(PanicOnError((<-this.FetchLedgerAsync(code, since, limitValue, this.Extend(request, params)))))
 	if retRes140915 == nil {
-		ch <- nil
+		ch <- EndpointResult[[]any]{}
 	} else {
-		ch <- retRes140915
+		ch <- EndpointResult[[]any]{Value: retRes140915, Raw: retRes140915}
 	}
 	return nil
 }
@@ -2179,7 +2179,7 @@ func (this *Luno) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -2660,11 +2660,11 @@ func (this *Luno) FetchLedgerByEntries(options ...FetchLedgerByEntriesOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchLedgerByEntriesAsync(opts.Code, opts.Entry, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchLedgerByEntriesAsync(opts.Code, opts.Entry, opts.Limit, opts.Params)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []LedgerEntry = NewLedgerEntryArray(raw)
+	var res []LedgerEntry = NewLedgerEntryArray(r.Raw)
 	return res, nil
 }
 

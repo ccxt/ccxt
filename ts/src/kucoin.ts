@@ -1528,7 +1528,7 @@ export default class kucoin extends Exchange {
      */
     override async fetchTime (params: Dict = {}): Promise<Int> {
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
-        let response = undefined;
+        let response: Dict;
         if ((type !== 'spot') && (type !== 'margin')) {
             //
             //    {
@@ -1567,7 +1567,7 @@ export default class kucoin extends Exchange {
         const uta = false;
         const [ utaOption, paramsUta ] = this.handleOptionBoolAndParams (params, 'fetchStatus', 'uta', uta);
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, paramsUta);
-        let response = undefined;
+        let response: Dict;
         if (utaOption) {
             const defaultType = this.safeString (this.options, 'defaultType', 'spot');
             let defaultTradeType: Str = 'FUTURES';
@@ -2417,7 +2417,7 @@ export default class kucoin extends Exchange {
     override async fetchAccounts (params: Dict = {}): Promise<Account[]> {
         const uta = await this.isUTAEnabled ();
         const [ utaOption, paramsUta ] = this.handleOptionBoolAndParams (params, 'fetchAccounts', 'uta', uta);
-        let response = undefined;
+        let response: Dict;
         let data: Dict[] = [];
         if (utaOption) {
             response = await this.utaPrivateGetAccountModeAccountOverview (this.extend (paramsUta, { 'accountMode': 'unified' }));
@@ -2977,7 +2977,7 @@ export default class kucoin extends Exchange {
             }
         }
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', firstMarket, paramsUta);
-        let response = undefined;
+        let response: Dict;
         if ((tradeType !== undefined) || utaOption) {
             if (tradeType === undefined) {
                 request['tradeType'] = this.typeToTradeType (type);
@@ -3059,7 +3059,7 @@ export default class kucoin extends Exchange {
 
     override async fetchContractTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         const [ method, paramsMethod ] = this.handleOptionStringAndParams (params, 'fetchTickers', 'method', 'futuresPublicGetContractsActive');
-        let response = undefined;
+        let response: Dict;
         if (method === 'futuresPublicGetAllTickers') {
             response = await this.futuresPublicGetAllTickers (paramsMethod);
         } else {
@@ -3173,7 +3173,7 @@ export default class kucoin extends Exchange {
         };
         const uta = false;
         const [ utaOption, paramsUta ] = this.handleOptionBoolAndParams (params, 'fetchTicker', 'uta', uta);
-        let response = undefined;
+        let response: Dict;
         let result: NullableDict = undefined;
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTicker', market, paramsUta);
         if (utaOption) {
@@ -3281,7 +3281,7 @@ export default class kucoin extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let response = undefined;
+        let response: Dict;
         if (market['contract'] === true) {
             response = await this.futuresPublicGetMarkPriceSymbolCurrent (this.extend (request, params));
             const data = this.safeDict (response, 'data', {}) as Dict;
@@ -3637,7 +3637,7 @@ export default class kucoin extends Exchange {
             await this.loadMarkets ();
         }
         let accountType = 'main';
-        let paramsRequest = undefined;
+        let paramsRequest: Dict;
         [ accountType, paramsRequest ] = this.handleOptionStringAndParams (params, 'fetchDepositAddress', 'accountType', accountType);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         accountType = this.safeString (accountsByType, accountType, accountType);
@@ -3763,9 +3763,9 @@ export default class kucoin extends Exchange {
             'currency': currency['id'],
         };
         let uta = await this.isUTAEnabled ();
-        let paramsRequest = undefined;
+        let paramsRequest: Dict;
         [ uta, paramsRequest ] = this.handleOptionBoolAndParams (params, 'fetchDepositAddressesByNetwork', 'uta', uta);
-        let response = undefined;
+        let response: Dict;
         if (uta) {
             let networkCode: Str = undefined;
             [ networkCode, paramsRequest ] = this.handleNetworkCodeAndParams (paramsRequest);
@@ -3846,7 +3846,7 @@ export default class kucoin extends Exchange {
         const isAuthenticated = this.checkRequiredCredentials (false);
         const uta = false;
         const [ utaOption, paramsUta ] = this.handleOptionBoolAndParams (params, 'fetchOrderBook', 'uta', uta);
-        let response = undefined;
+        let response: Dict;
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, paramsUta);
         if (utaOption) {
             let limitString = '20';
@@ -4090,7 +4090,7 @@ export default class kucoin extends Exchange {
         const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
         // don't omit anything before calling createOrderRequest
         const orderRequest = this.createSpotOrderRequest (symbol, type, side, amount, price, paramsSync);
-        let response = undefined;
+        let response: Dict;
         if (testOrder === true) {
             if (isMarginOrder) {
                 if (hf === true) {
@@ -4261,7 +4261,7 @@ export default class kucoin extends Exchange {
         const paramsOmitted: Dict = this.omit (params, 'test');
         const hasTpOrSlOrder = (this.safeValue (paramsOmitted, 'stopLoss') !== undefined) || (this.safeValue (paramsOmitted, 'takeProfit') !== undefined);
         const orderRequest = this.createContractOrderRequest (symbol, type, side, amount, price, paramsOmitted);
-        let response = undefined;
+        let response: Dict;
         if (testOrder === true) {
             response = await this.futuresPrivatePostOrdersTest (orderRequest);
         } else {
@@ -4793,7 +4793,7 @@ export default class kucoin extends Exchange {
         };
         const [ hf, paramsHf ] = this.handleHfAndParams (params);
         const [ useSync, paramsSync ] = this.handleOptionBoolAndParams (paramsHf, 'createOrders', 'sync', false);
-        let response = undefined;
+        let response: Dict;
         if (useSync) {
             response = await this.privatePostHfOrdersMultiSync (this.extend (request, paramsSync));
         } else if (hf === true) {
@@ -5153,7 +5153,7 @@ export default class kucoin extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
         const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId' ]);
         const request: Dict = {};
-        let response = undefined;
+        let response: Dict;
         if (clientOrderId !== undefined) {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument when cancelling by clientOrderId');
@@ -5360,7 +5360,7 @@ export default class kucoin extends Exchange {
         }
         const trigger = this.safeValue2 (params, 'stop', 'trigger');
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
-        let response = undefined;
+        let response: Dict;
         if ((trigger !== undefined) && (trigger !== false)) {
             response = await this.futuresPrivateDeleteStopOrders (this.extend (request, paramsOmitted));
         } else {
@@ -5687,7 +5687,7 @@ export default class kucoin extends Exchange {
         if (until !== undefined) {
             request['endAt'] = until;
         }
-        let response = undefined;
+        let response: Dict;
         if (trigger === true) {
             response = await this.futuresPrivateGetStopOrders (this.extend (request, paramsOmitted));
         } else {
@@ -5812,7 +5812,7 @@ export default class kucoin extends Exchange {
         } else if (lowercaseStatus === 'closed') {
             lowercaseStatus = 'done';
         }
-        let response = undefined;
+        let response: Dict;
         if (lowercaseStatus === 'active') {
             //
             //     {
@@ -6042,7 +6042,7 @@ export default class kucoin extends Exchange {
             }
         }
         const paramsOmitted: Dict = this.omit (paramsMarginMode, [ 'stop', 'clientOid', 'clientOrderId', 'trigger' ]);
-        let response = undefined;
+        let response: Dict;
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
             if (trigger === true) {
@@ -6106,7 +6106,7 @@ export default class kucoin extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        let response = undefined;
+        let response: Dict;
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
@@ -7140,7 +7140,7 @@ export default class kucoin extends Exchange {
         // }
         const uta = false;
         const [ utaOption, paramsUta ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'uta', uta);
-        let response = undefined;
+        let response: Dict;
         let trades: NullableList = undefined;
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTrades', market, paramsUta);
         if (utaOption) {
@@ -7568,7 +7568,7 @@ export default class kucoin extends Exchange {
         const uta = await this.isUTAEnabled ();
         const [ utaOption, paramsUta ] = this.handleOptionBoolAndParams (params, 'fetchTradingFee', 'uta', uta);
         const request: Dict = {};
-        let response = undefined;
+        let response: Dict;
         let entry: NullableDict = undefined;
         if (utaOption) {
             if (market['spot'] === true) {
@@ -8420,7 +8420,7 @@ export default class kucoin extends Exchange {
             await this.loadMarkets ();
         }
         let requestedType = 'unified';
-        let paramsRequest = undefined;
+        let paramsRequest: Dict;
         [ requestedType, paramsRequest ] = this.handleMarketTypeAndParams ('fetchUtaBalance', undefined, params, requestedType);
         if (requestedType === 'margin') {
             // assume cross margin if margin is specified but marginMode is not specified
@@ -8433,7 +8433,7 @@ export default class kucoin extends Exchange {
         type = this.safeString (utaAccountsByType, requestedType, requestedType);
         const isIsolated = (type === 'ISOLATED');
         const request: Dict = {};
-        let response = undefined;
+        let response: Dict;
         if (type === 'unified') {
             request['accountMode'] = type;
             // uta
@@ -8708,7 +8708,7 @@ export default class kucoin extends Exchange {
             toId = 'isolated';
         }
         const hfOrMining = this.isHfOrMining (fromId, toId);
-        let response = undefined;
+        let response: Dict;
         if (hfOrMining) {
             // new endpoint does not support hf and mining transfers
             // use old endpoint for hf and mining transfers
@@ -9151,7 +9151,7 @@ export default class kucoin extends Exchange {
                 request['pageSize'] = limit;
             }
         }
-        let response = undefined;
+        let response: Dict;
         if (uta) {
             request['accountType'] = type;
             response = await this.utaPrivateGetAccountLedger (this.extend (request, paramsRequest));
@@ -9326,7 +9326,7 @@ export default class kucoin extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let response = undefined;
+        let response: Dict;
         if (marginMode === 'isolated') {
             response = await this.privateGetIsolatedAccounts (this.extend (request, paramsMarginMode));
         } else {
@@ -9943,7 +9943,7 @@ export default class kucoin extends Exchange {
         }
         let market: Market = undefined;
         let marketType: Str = undefined;
-        let paramsRequest = undefined;
+        let paramsRequest: Dict;
         [ marketType, paramsRequest ] = this.handleMarketTypeAndParams ('setLeverage', undefined, params);
         if ((symbol !== undefined) || ((marketType !== 'spot') && (marketType !== 'margin'))) {
             if (symbol === undefined) {
@@ -10020,7 +10020,7 @@ export default class kucoin extends Exchange {
         };
         const uta = await this.isUTAEnabled ();
         const [ utaOption, paramsUta ] = this.handleOptionBoolAndParams (paramsMarginMode, 'setLeverage', 'uta', uta);
-        let response = undefined;
+        let response: Dict;
         if (utaOption) {
             request['accountMode'] = 'unified';
             response = await this.utaPrivatePostAccountModeAccountModifyLeverage (this.extend (request, paramsUta));
@@ -10079,7 +10079,7 @@ export default class kucoin extends Exchange {
         };
         const uta = false;
         const [ utaOption, paramsUta ] = this.handleOptionBoolAndParams (params, 'fetchFundingRate', 'uta', uta);
-        let response = undefined;
+        let response: Dict;
         if (utaOption) {
             //
             //     {
@@ -10473,7 +10473,7 @@ export default class kucoin extends Exchange {
         };
         const uta = await this.isUTAEnabled ();
         const [ utaOption, paramsUta ] = this.handleOptionBoolAndParams (params, 'fetchPosition', 'uta', uta);
-        let response = undefined;
+        let response: Dict;
         let position: NullableDict = undefined;
         if (utaOption) {
             request['accountMode'] = 'unified';
@@ -10574,7 +10574,7 @@ export default class kucoin extends Exchange {
         }
         const uta = await this.isUTAEnabled ();
         const [ utaOption, paramsUta ] = this.handleOptionBoolAndParams (params, 'fetchPositions', 'uta', uta);
-        let response = undefined;
+        let response: Dict;
         if (utaOption) {
             response = await this.utaPrivateGetAccountModePositionOpenList (this.extend ({ 'accountMode': 'unified', 'limit': 200 }, paramsUta));
         } else {
@@ -10652,7 +10652,7 @@ export default class kucoin extends Exchange {
         let uta = await this.isUTAEnabled ();
         let paramsRequest = undefined;
         [ uta, paramsRequest ] = this.handleOptionBoolAndParams (params, 'fetchPositionsHistory', 'uta', uta);
-        let response = undefined;
+        let response: Dict;
         let request: Dict = {};
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         if (symbolsNormalized !== undefined) {
@@ -10994,7 +10994,7 @@ export default class kucoin extends Exchange {
             }
         }
         const request: Dict = {};
-        let response = undefined;
+        let response: Dict;
         let orders: Dict[] = [];
         if (uta) {
             let accountMode = 'unified';

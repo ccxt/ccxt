@@ -4196,11 +4196,11 @@ class aster extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized, false);
     }
 
-    public function load_leverage_brackets($reload = false, $params = array()): PromiseInterface {
+    public function load_leverage_brackets(bool $reload = false, $params = array()): PromiseInterface {
         return Async\async(self::do_load_leverage_brackets(...))($reload, $params);
     }
 
-    private function do_load_leverage_brackets($reload = false, $params = array()) {
+    private function do_load_leverage_brackets(bool $reload = false, $params = array()) {
         Async\await($this->load_markets_and_sign_in());
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions

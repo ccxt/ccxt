@@ -1538,7 +1538,6 @@ class kucoin extends Exchange {
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchTime', null, $params);
-        $response = null;
         if (($type !== 'spot') && ($type !== 'margin')) {
             //
             //    {
@@ -1581,7 +1580,6 @@ class kucoin extends Exchange {
         $uta = false;
         list($utaOption, $paramsUta) = $this->handle_option_bool_and_params($params, 'fetchStatus', 'uta', $uta);
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchStatus', null, $paramsUta);
-        $response = null;
         if ($utaOption) {
             $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
             $defaultTradeType = 'FUTURES';
@@ -2455,7 +2453,6 @@ class kucoin extends Exchange {
          */
         $uta = Async\await($this->is_uta_enabled());
         list($utaOption, $paramsUta) = $this->handle_option_bool_and_params($params, 'fetchAccounts', 'uta', $uta);
-        $response = null;
         $data = array();
         if ($utaOption) {
             $response = Async\await($this->utaPrivateGetAccountModeAccountOverview($this->extend($paramsUta, array( 'accountMode' => 'unified' ))));
@@ -3027,7 +3024,6 @@ class kucoin extends Exchange {
             }
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchTickers', $firstMarket, $paramsUta);
-        $response = null;
         if (($tradeType !== null) || $utaOption) {
             if ($tradeType === null) {
                 $request['tradeType'] = $this->type_to_trade_type($type);
@@ -3113,7 +3109,6 @@ class kucoin extends Exchange {
 
     private function do_fetch_contract_tickers(?array $symbols = null, $params = array()) {
         list($method, $paramsMethod) = $this->handle_option_string_and_params($params, 'fetchTickers', 'method', 'futuresPublicGetContractsActive');
-        $response = null;
         if ($method === 'futuresPublicGetAllTickers') {
             $response = Async\await($this->futuresPublicGetAllTickers($paramsMethod));
         } else {
@@ -3235,7 +3230,6 @@ class kucoin extends Exchange {
         );
         $uta = false;
         list($utaOption, $paramsUta) = $this->handle_option_bool_and_params($params, 'fetchTicker', 'uta', $uta);
-        $response = null;
         $result = null;
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchTicker', $market, $paramsUta);
         if ($utaOption) {
@@ -3347,7 +3341,6 @@ class kucoin extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = null;
         if ($market['contract'] === true) {
             $response = Async\await($this->futuresPublicGetMarkPriceSymbolCurrent($this->extend($request, $params)));
             $data = $this->safe_dict($response, 'data', array());
@@ -3727,7 +3720,6 @@ class kucoin extends Exchange {
             Async\await($this->load_markets());
         }
         $accountType = 'main';
-        $paramsRequest = null;
         list($accountType, $paramsRequest) = $this->handle_option_string_and_params($params, 'fetchDepositAddress', 'accountType', $accountType);
         $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $accountType = $this->safe_string($accountsByType, $accountType, $accountType);
@@ -3861,9 +3853,7 @@ class kucoin extends Exchange {
             'currency' => $currency['id'],
         );
         $uta = Async\await($this->is_uta_enabled());
-        $paramsRequest = null;
         list($uta, $paramsRequest) = $this->handle_option_bool_and_params($params, 'fetchDepositAddressesByNetwork', 'uta', $uta);
-        $response = null;
         if ($uta) {
             $networkCode = null;
             list($networkCode, $paramsRequest) = $this->handle_network_code_and_params($paramsRequest);
@@ -3948,7 +3938,6 @@ class kucoin extends Exchange {
         $isAuthenticated = $this->check_required_credentials(false);
         $uta = false;
         list($utaOption, $paramsUta) = $this->handle_option_bool_and_params($params, 'fetchOrderBook', 'uta', $uta);
-        $response = null;
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchOrderBook', $market, $paramsUta);
         if ($utaOption) {
             $limitString = '20';
@@ -4200,7 +4189,6 @@ class kucoin extends Exchange {
         $isMarginOrder = $tradeType === 'MARGIN_TRADE' || $marginMode !== null;
         // don't omit anything before calling createOrderRequest
         $orderRequest = $this->create_spot_order_request($symbol, $type, $side, $amount, $price, $paramsSync);
-        $response = null;
         if ($testOrder === true) {
             if ($isMarginOrder) {
                 if ($hf === true) {
@@ -4375,7 +4363,6 @@ class kucoin extends Exchange {
         $paramsOmitted = $this->omit($params, 'test');
         $hasTpOrSlOrder = ($this->safe_value($paramsOmitted, 'stopLoss') !== null) || ($this->safe_value($paramsOmitted, 'takeProfit') !== null);
         $orderRequest = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $paramsOmitted);
-        $response = null;
         if ($testOrder === true) {
             $response = Async\await($this->futuresPrivatePostOrdersTest($orderRequest));
         } else {
@@ -4931,7 +4918,6 @@ class kucoin extends Exchange {
         );
         list($hf, $paramsHf) = $this->handle_hf_and_params($params);
         list($useSync, $paramsSync) = $this->handle_option_bool_and_params($paramsHf, 'createOrders', 'sync', false);
-        $response = null;
         if ($useSync) {
             $response = Async\await($this->privatePostHfOrdersMultiSync($this->extend($request, $paramsSync)));
         } elseif ($hf === true) {
@@ -5311,7 +5297,6 @@ class kucoin extends Exchange {
         $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
         $paramsOmitted = $this->omit($params, array( 'clientOrderId' ));
         $request = array();
-        $response = null;
         if ($clientOrderId !== null) {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument when cancelling by clientOrderId');
@@ -5534,7 +5519,6 @@ class kucoin extends Exchange {
         }
         $trigger = $this->safe_value_2($params, 'stop', 'trigger');
         $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
-        $response = null;
         if (($trigger !== null) && ($trigger !== false)) {
             $response = Async\await($this->futuresPrivateDeleteStopOrders($this->extend($request, $paramsOmitted)));
         } else {
@@ -5877,7 +5861,6 @@ class kucoin extends Exchange {
         if ($until !== null) {
             $request['endAt'] = $until;
         }
-        $response = null;
         if ($trigger === true) {
             $response = Async\await($this->futuresPrivateGetStopOrders($this->extend($request, $paramsOmitted)));
         } else {
@@ -6006,7 +5989,6 @@ class kucoin extends Exchange {
         } elseif ($lowercaseStatus === 'closed') {
             $lowercaseStatus = 'done';
         }
-        $response = null;
         if ($lowercaseStatus === 'active') {
             //
             //     {
@@ -6252,7 +6234,6 @@ class kucoin extends Exchange {
             }
         }
         $paramsOmitted = $this->omit($paramsMarginMode, array( 'stop', 'clientOid', 'clientOrderId', 'trigger' ));
-        $response = null;
         if ($clientOrderId !== null) {
             $request['clientOid'] = $clientOrderId;
             if ($trigger === true) {
@@ -6320,7 +6301,6 @@ class kucoin extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array();
-        $response = null;
         $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clientOid'] = $clientOrderId;
@@ -7382,7 +7362,6 @@ class kucoin extends Exchange {
         // }
         $uta = false;
         list($utaOption, $paramsUta) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'uta', $uta);
-        $response = null;
         $trades = null;
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchTrades', $market, $paramsUta);
         if ($utaOption) {
@@ -7814,7 +7793,6 @@ class kucoin extends Exchange {
         $uta = Async\await($this->is_uta_enabled());
         list($utaOption, $paramsUta) = $this->handle_option_bool_and_params($params, 'fetchTradingFee', 'uta', $uta);
         $request = array();
-        $response = null;
         $entry = null;
         if ($utaOption) {
             if ($market['spot'] === true) {
@@ -8694,7 +8672,6 @@ class kucoin extends Exchange {
             Async\await($this->load_markets());
         }
         $requestedType = 'unified';
-        $paramsRequest = null;
         list($requestedType, $paramsRequest) = $this->handle_market_type_and_params('fetchUtaBalance', null, $params, $requestedType);
         if ($requestedType === 'margin') {
             // assume cross margin if margin is specified but marginMode is not specified
@@ -8707,7 +8684,6 @@ class kucoin extends Exchange {
         $type = $this->safe_string($utaAccountsByType, $requestedType, $requestedType);
         $isIsolated = ($type === 'ISOLATED');
         $request = array();
-        $response = null;
         if ($type === 'unified') {
             $request['accountMode'] = $type;
             // uta
@@ -8994,7 +8970,6 @@ class kucoin extends Exchange {
             $toId = 'isolated';
         }
         $hfOrMining = $this->is_hf_or_mining($fromId, $toId);
-        $response = null;
         if ($hfOrMining) {
             // new endpoint does not support hf and mining transfers
             // use old endpoint for hf and mining transfers
@@ -9441,7 +9416,6 @@ class kucoin extends Exchange {
                 $request['pageSize'] = $limit;
             }
         }
-        $response = null;
         if ($uta) {
             $request['accountType'] = $type;
             $response = Async\await($this->utaPrivateGetAccountLedger($this->extend($request, $paramsRequest)));
@@ -9620,7 +9594,6 @@ class kucoin extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $response = null;
         if ($marginMode === 'isolated') {
             $response = Async\await($this->privateGetIsolatedAccounts($this->extend($request, $paramsMarginMode)));
         } else {
@@ -10277,7 +10250,6 @@ class kucoin extends Exchange {
         }
         $market = null;
         $marketType = null;
-        $paramsRequest = null;
         list($marketType, $paramsRequest) = $this->handle_market_type_and_params('setLeverage', null, $params);
         if (($symbol !== null) || (($marketType !== 'spot') && ($marketType !== 'margin'))) {
             if ($symbol === null) {
@@ -10358,7 +10330,6 @@ class kucoin extends Exchange {
         );
         $uta = Async\await($this->is_uta_enabled());
         list($utaOption, $paramsUta) = $this->handle_option_bool_and_params($paramsMarginMode, 'setLeverage', 'uta', $uta);
-        $response = null;
         if ($utaOption) {
             $request['accountMode'] = 'unified';
             $response = Async\await($this->utaPrivatePostAccountModeAccountModifyLeverage($this->extend($request, $paramsUta)));
@@ -10425,7 +10396,6 @@ class kucoin extends Exchange {
         );
         $uta = false;
         list($utaOption, $paramsUta) = $this->handle_option_bool_and_params($params, 'fetchFundingRate', 'uta', $uta);
-        $response = null;
         if ($utaOption) {
             //
             //     {
@@ -10835,7 +10805,6 @@ class kucoin extends Exchange {
         );
         $uta = Async\await($this->is_uta_enabled());
         list($utaOption, $paramsUta) = $this->handle_option_bool_and_params($params, 'fetchPosition', 'uta', $uta);
-        $response = null;
         $position = null;
         if ($utaOption) {
             $request['accountMode'] = 'unified';
@@ -10940,7 +10909,6 @@ class kucoin extends Exchange {
         }
         $uta = Async\await($this->is_uta_enabled());
         list($utaOption, $paramsUta) = $this->handle_option_bool_and_params($params, 'fetchPositions', 'uta', $uta);
-        $response = null;
         if ($utaOption) {
             $response = Async\await($this->utaPrivateGetAccountModePositionOpenList($this->extend(array( 'accountMode' => 'unified', 'limit' => 200 ), $paramsUta)));
         } else {
@@ -11022,7 +10990,6 @@ class kucoin extends Exchange {
         $uta = Async\await($this->is_uta_enabled());
         $paramsRequest = null;
         list($uta, $paramsRequest) = $this->handle_option_bool_and_params($params, 'fetchPositionsHistory', 'uta', $uta);
-        $response = null;
         $request = array();
         $symbolsNormalized = $this->market_symbols($symbols);
         if ($symbolsNormalized !== null) {
@@ -11368,7 +11335,6 @@ class kucoin extends Exchange {
             }
         }
         $request = array();
-        $response = null;
         $orders = array();
         if ($uta) {
             $accountMode = 'unified';

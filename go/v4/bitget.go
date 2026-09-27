@@ -3915,7 +3915,11 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan EndpointResult[[]any], param
 		} else if this.InArray(quoteId, supportMarginCoins) {
 			settleId = quoteId
 		} else {
-			settleId = DerefScalar(this.SafeString(supportMarginCoins, 0))
+			if derefPtr := this.SafeString(supportMarginCoins, 0); derefPtr != nil {
+				settleId = *derefPtr
+			} else {
+				settleId = nil
+			}
 		}
 		var settle *string = this.SafeCurrencyCode(settleId)
 		var symbol any = *base + "/" + *quote
@@ -3952,7 +3956,11 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan EndpointResult[[]any], param
 				symbol = Add(Add(symbol, ":"), settle)
 			} else if symbolType != nil && *symbolType == "delivery" {
 				expiry = this.SafeInteger(market, "deliveryTime")
-				expiryDatetime = DerefScalar(this.Iso8601(expiry))
+				if derefPtr := this.Iso8601(expiry); derefPtr != nil {
+					expiryDatetime = *derefPtr
+				} else {
+					expiryDatetime = nil
+				}
 				var expiryParts []string = Split(expiryDatetime, "-")
 				var yearPart *string = this.SafeString(expiryParts, 0, "")
 				var dayPart *string = this.SafeString(expiryParts, 2, "")
@@ -4215,7 +4223,11 @@ func (this *Bitget) fetchUtaMarketsBody(ch chan EndpointResult[[]any], params an
 			settleId = base
 		}
 		if !IsEqual(settleId, nil) {
-			settle = DerefScalar(this.SafeCurrencyCode(settleId))
+			if derefPtr := this.SafeCurrencyCode(settleId); derefPtr != nil {
+				settle = *derefPtr
+			} else {
+				settle = nil
+			}
 		}
 		var symbol any = *base + "/" + *quote
 		var typeVar *string = nil
@@ -4255,7 +4267,11 @@ func (this *Bitget) fetchUtaMarketsBody(ch chan EndpointResult[[]any], params an
 				symbol = Add(Add(symbol, ":"), settle)
 			} else if symbolType != nil && *symbolType == "delivery" {
 				expiry = this.SafeInteger(market, "deliveryTime")
-				expiryDatetime = DerefScalar(this.Iso8601(expiry))
+				if derefPtr := this.Iso8601(expiry); derefPtr != nil {
+					expiryDatetime = *derefPtr
+				} else {
+					expiryDatetime = nil
+				}
 				var expiryParts []string = Split(expiryDatetime, "-")
 				var yearPart *string = this.SafeString(expiryParts, 0, "")
 				var dayPart *string = this.SafeString(expiryParts, 2, "")
@@ -7572,7 +7588,11 @@ func (this *Bitget) ParseOrder(order any, optionalArgs ...any) any {
 		marketType = "contract"
 	}
 	if market != nil {
-		marketType = DerefScalar(this.SafeString(market, "type"))
+		if derefPtr := this.SafeString(market, "type"); derefPtr != nil {
+			marketType = *derefPtr
+		} else {
+			marketType = nil
+		}
 	}
 	var marketId *string = this.SafeString(order, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
@@ -8269,7 +8289,11 @@ func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount
 			}
 		} else {
 			planType = "amount"
-			quantity = DerefScalar(this.AmountToPrecision(symbol, amount))
+			if derefPtr := this.AmountToPrecision(symbol, amount); derefPtr != nil {
+				quantity = *derefPtr
+			} else {
+				quantity = nil
+			}
 		}
 		if clientOrderId != nil {
 			request["clientOid"] = clientOrderId
@@ -9460,7 +9484,7 @@ func (this *Bitget) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	}
 	var data any = this.SafeDict(response, "data")
 	if data != nil {
-		if !IsArray(data) {
+		if true {
 
 			ch <- this.ParseOrder(data, market)
 			return nil
@@ -10849,14 +10873,20 @@ func (this *Bitget) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var currencyResolved map[string]any = this.SafeCurrency(currencyId, currency)
 	var timestamp *int64 = this.SafeInteger2(item, "cTime", "ts")
 	var balanceString *string = this.SafeString(item, "balance")
-	var after *float64 = Float64PtrTyped(this.ParseNumber(balanceString))
+	var after *float64
+	if derefNum, isNum := this.ParseNumber(balanceString).(float64); isNum {
+		after = &derefNum
+	}
 	var feeCostString *string = this.SafeString2(item, "fees", "fee")
 	var feeCost *float64 = nil
 	if feeCostString != nil {
 		feeCost = Float64PtrTyped(this.ParseNumber(Precise.StringAbs(feeCostString))) // deliberate for both generations, uta reports charged fees as negative values and the v2 fields hold signed values too
 	}
 	var amountRaw *string = this.SafeString2(item, "size", "amount", "")
-	var amount *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringAbs(amountRaw)))
+	var amount *float64
+	if derefNum, isNum := this.ParseNumber(Precise.StringAbs(amountRaw)).(float64); isNum {
+		amount = &derefNum
+	}
 	var before *float64 = nil
 	if (balanceString != nil) && (amountRaw == nil || *amountRaw != "") {
 		before = Float64PtrTyped(this.ParseNumber(Precise.StringSub(balanceString, amountRaw))) // subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
@@ -11868,7 +11898,10 @@ func (this *Bitget) ParsePosition(position any, optionalArgs ...any) any {
 	if initialMargin == nil {
 		initialMargin = Precise.StringDiv(openNotional, leverage)
 	}
-	var contracts *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(baseAmount, contractSize)))
+	var contracts *float64
+	if derefNum, isNum := this.ParseNumber(Precise.StringDiv(baseAmount, contractSize)).(float64); isNum {
+		contracts = &derefNum
+	}
 	if contracts == nil {
 		contracts = this.SafeNumber(position, "closeTotalPos")
 	}
@@ -13123,7 +13156,11 @@ func (this *Bitget) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var fromAccount *string = this.SafeString(paramsMarketType, "fromAccount", typeVar)
 	paramsMarketType = this.Omit(paramsMarketType, "fromAccount")
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
-	typeVar = DerefScalar(this.SafeString(accountsByType, fromAccount))
+	if derefPtr := this.SafeString(accountsByType, fromAccount); derefPtr != nil {
+		typeVar = *derefPtr
+	} else {
+		typeVar = nil
+	}
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"coin":     currency["id"],
@@ -14568,7 +14605,7 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 				}
 				return nil
 			}())
-			request["symbol"] = GetValue(market, "id")
+			request["symbol"] = market["id"]
 		}
 	}
 	if since != nil {
@@ -15146,7 +15183,7 @@ func (this *Bitget) Sign(path string, optionalArgs ...any) any {
 	var pathPart string = "/api"
 	var request string = "/" + this.ImplodeParams(path, params)
 	var payload string = pathPart + request
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), endpoint)
+	var apiUrl *string = this.SafeString(this.Urls["api"], endpoint)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

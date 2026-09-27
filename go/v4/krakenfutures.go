@@ -582,7 +582,11 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 				}
 				return "future"
 			}()
-			expiry = DerefScalar(this.Parse8601(settleTime))
+			if derefPtr := this.Parse8601(settleTime); derefPtr != nil {
+				expiry = *derefPtr
+			} else {
+				expiry = nil
+			}
 		} else {
 			typeVar = "index"
 		}
@@ -602,7 +606,10 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 		var settle *string = nil
 		var settleId *string = nil
 		var cvtp *string = this.SafeString(market, "contractValueTradePrecision")
-		var amountPrecision *float64 = Float64PtrTyped(this.ParseNumber(this.IntegerPrecisionToAmount(cvtp)))
+		var amountPrecision *float64
+		if derefNum, isNum := this.ParseNumber(this.IntegerPrecisionToAmount(cvtp)).(float64); isNum {
+			amountPrecision = &derefNum
+		}
 		var pricePrecision *float64 = this.SafeNumber(market, "tickSize")
 		var contract bool = (swap || future || index)
 		var swapOrFutures bool = (swap || future)
@@ -1141,7 +1148,7 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol string, optionalAr
 		"price_type": priceType,
 		"interval":   this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, "price"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, "price")
 	var windowLimit any = func() any {
 		if limit == nil {
 			return 2000
@@ -1439,12 +1446,20 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) any {
 		order = this.SafeString(priorExecution, "orderId")
 		marketId = this.SafeString(priorExecution, "symbol")
 		side = this.SafeString(priorExecution, "side")
-		typeVar = DerefScalar(this.SafeString(priorExecution, "type"))
+		if derefPtr := this.SafeString(priorExecution, "type"); derefPtr != nil {
+			typeVar = *derefPtr
+		} else {
+			typeVar = nil
+		}
 	} else if priorEdit != nil {
 		order = this.SafeString(priorEdit, "orderId")
 		marketId = this.SafeString(priorEdit, "symbol")
 		side = this.SafeString(priorEdit, "type")
-		typeVar = DerefScalar(this.SafeString(priorEdit, "type"))
+		if derefPtr := this.SafeString(priorEdit, "type"); derefPtr != nil {
+			typeVar = *derefPtr
+		} else {
+			typeVar = nil
+		}
 	}
 	if !IsEqual(typeVar, nil) {
 		typeVar = this.ParseOrderType(typeVar)
@@ -2840,7 +2855,11 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 					var orderPriorExecution map[string]any = SafeMapTyped(item, "orderPriorExecution")
 					details = this.SafeValue2(item, "orderPriorExecution", "orderPriorEdit")
 					if executedPrice == nil {
-						price = DerefScalar(this.SafeString(orderPriorExecution, "limitPrice"))
+						if derefPtr := this.SafeString(orderPriorExecution, "limitPrice"); derefPtr != nil {
+							price = *derefPtr
+						} else {
+							price = nil
+						}
 					} else {
 						price = executedPrice
 					}
@@ -2851,13 +2870,21 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 			}
 		}
 		trades = this.ParseTrades(executions)
-		statusId = DerefScalar(this.SafeString(order, "status"))
+		if derefPtr := this.SafeString(order, "status"); derefPtr != nil {
+			statusId = *derefPtr
+		} else {
+			statusId = nil
+		}
 	}
 	if IsEqual(details, nil) {
 		details = order
 	}
 	if statusId == nil {
-		statusId = DerefScalar(this.SafeString(details, "status"))
+		if derefPtr := this.SafeString(details, "status"); derefPtr != nil {
+			statusId = *derefPtr
+		} else {
+			statusId = nil
+		}
 	}
 	// This may be incorrectly marked as "open" if only execution report is given,
 	// but will be fixed below
@@ -3920,7 +3947,7 @@ func (this *Krakenfutures) fetchPositionsHistoryBody(ch chan any, optionalArgs .
 		"closed": true,
 	}
 	if market != nil {
-		request["tradeable"] = GetValue(market, "id")
+		request["tradeable"] = market["id"]
 	}
 	if since != nil {
 		request["since"] = since
@@ -4616,7 +4643,7 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) any {
 		}
 		query = Add(query, "?"+postData)
 	}
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

@@ -2581,7 +2581,7 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) any {
 		fullPath = "/status"
 		urlPath = "status"
 	}
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), urlPath)
+	var apiUrl *string = this.SafeString(this.Urls["api"], urlPath)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

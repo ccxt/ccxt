@@ -706,7 +706,10 @@ func (this *Deepcoin) ParseMarket(market any) any {
 	maxLeverage = Precise.StringMax(maxLeverage, "1")
 	var maxMarketSize *string = this.SafeString(market, "maxMktSz")
 	var maxLimitSize *string = this.SafeString(market, "maxLmtSz")
-	var maxAmount *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMax(maxMarketSize, maxLimitSize)))
+	var maxAmount *float64
+	if derefNum, isNum := this.ParseNumber(Precise.StringMax(maxMarketSize, maxLimitSize)).(float64); isNum {
+		maxAmount = &derefNum
+	}
 	var state *string = this.SafeString(market, "state")
 	var isMargin bool = spot && (Precise.StringGt(maxLeverage, "1"))
 	var isInverse any = func() any {
@@ -922,7 +925,7 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 		}
 		return []any{"price", "until"}
 	}()
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, keysToOmit))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, keysToOmit)
 	if calculateUntil != nil && *calculateUntil == true {
 		if since != nil {
 			// the exchange do not have a since param for this endpoint
@@ -1052,8 +1055,14 @@ func (this *Deepcoin) ParseTicker(ticker any, optionalArgs ...any) any {
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var last *string = this.SafeString(ticker, "last")
 	var open *string = this.SafeString(ticker, "open24h")
-	var quoteVolume any = DerefScalar(this.SafeString(ticker, "volCcy24h"))
-	var baseVolume any = DerefScalar(this.SafeString(ticker, "vol24h"))
+	var quoteVolume any
+	if derefPtr := this.SafeString(ticker, "volCcy24h"); derefPtr != nil {
+		quoteVolume = *derefPtr
+	}
+	var baseVolume any
+	if derefPtr := this.SafeString(ticker, "vol24h"); derefPtr != nil {
+		baseVolume = *derefPtr
+	}
 	if (marketResolved["swap"] == true) && (marketResolved["inverse"] == true) {
 		var temp any = baseVolume
 		baseVolume = quoteVolume
@@ -1346,7 +1355,7 @@ func (this *Deepcoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	if until != nil {
 		request["endTime"] = until
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, "until")
 
 	var response map[string]any = (<-this.PrivateGetDeepcoinAssetDepositList(this.Extend(request, paramsOmitted))).Checked()
 	var data map[string]any = SafeMapTyped(response, "data")
@@ -1419,7 +1428,7 @@ func (this *Deepcoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	if until != nil {
 		request["endTime"] = until
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, "until")
 
 	var response map[string]any = (<-this.PrivateGetDeepcoinAssetWithdrawList(this.Extend(request, paramsOmitted))).Checked()
 	var data map[string]any = SafeMapTyped(response, "data")
@@ -1707,7 +1716,7 @@ func (this *Deepcoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if until != nil {
 		request["before"] = until
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, "until")
 
 	var response map[string]any = (<-this.PrivateGetDeepcoinAccountBills(this.Extend(request, paramsOmitted))).Checked()
 	//
@@ -2173,7 +2182,7 @@ func (this *Deepcoin) CreateTriggerOrderRequest(symbol any, typeVar any, side an
 		isCrossMargin = 0
 	}
 	var reduceOnly *bool = this.SafeBool(paramsMarginMode, "reduceOnly", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarginMode, "reduceOnly"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsMarginMode, "reduceOnly")
 	request["isCrossMargin"] = isCrossMargin
 	request["tdMode"] = marginModeOption
 	if market["swap"] == true {
@@ -2517,7 +2526,7 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 		if market == nil {
 			panic(ArgumentsRequired(this.Id + " fetchCanceledAndClosedOrders() requires a symbol argument for trigger orders"))
 		}
-		var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, "trigger"))
+		var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, "trigger")
 		//
 		//     {
 		//         "code": "0",
@@ -3809,7 +3818,7 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(paramsMarketType, "until"))
+			return this.OmitDict(paramsMarketType, "until")
 		}
 		return paramsMarketType
 	}()
@@ -3973,7 +3982,7 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) any {
 			requestPath += "?" + query
 		}
 	}
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

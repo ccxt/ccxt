@@ -927,7 +927,11 @@ func (this *Backpack) ParseMarket(market any) any {
 		typeVar = SafeStringPtr("swap")
 		linear = true
 		inverse = false
-		settleId = DerefScalar(this.SafeString(market, "quoteSymbol"))
+		if derefPtr := this.SafeString(market, "quoteSymbol"); derefPtr != nil {
+			settleId = *derefPtr
+		} else {
+			settleId = nil
+		}
 		settle = this.SafeCurrencyCode(settleId)
 		symbol = Add(symbol, Add(":", settle))
 		contractSize = 1
@@ -1221,7 +1225,7 @@ func (this *Backpack) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 		"interval": interval,
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchOHLCV", "until")
-	until := GetValue(untilparamsUntilVariable, 0)
+	until := untilparamsUntilVariable[0]
 	paramsUntil := untilparamsUntilVariable[1]
 	if !IsEqual(until, nil) {
 		request["endTime"] = this.ParseToInt(Divide(until, 1000)) // convert milliseconds to seconds
@@ -3019,7 +3023,7 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) any {
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var endpoint string = "/" + path
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

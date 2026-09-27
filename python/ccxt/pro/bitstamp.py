@@ -100,7 +100,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         subHash = 'orderbook:' + symbolValue
         return await self.un_watch_channel(channel, subHash, 'orderbook', [symbolValue], params)
 
-    async def un_watch_channel(self, channel: str, subHash: str, topic: str, symbols: list[str], params={}) -> object:
+    async def un_watch_channel(self, channel: str, subHash: str, topic: str, symbols: list[str], params: dict = {}) -> object:
         """
  @ignore
         sends an unsubscribe request for a channel and cleans the related caches on confirmation

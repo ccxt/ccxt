@@ -14,7 +14,6 @@ type Predictfun struct {
 
 func newPredictfun() *Predictfun {
 	p := &Predictfun{}
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -1287,9 +1286,15 @@ func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) any {
 	var resolved bool = (status != nil && *status == "RESOLVED") || (status != nil && *status == "SETTLED")
 	var endDate *string = this.SafeString(rawTopic, "endsAt")
 	var feeRateBps *string = this.SafeString(rawMarket, "feeRateBps", "200") // todo check
-	var feeRate *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(feeRateBps, "10000")))
+	var feeRate *float64
+	if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(feeRateBps, "10000")).(float64); isNum {
+		feeRate = &derefNum
+	}
 	var decimalPrecision *string = this.SafeString(rawMarket, "decimalPrecision", "2")
-	var pricePrecision *float64 = ccxt.Float64PtrTyped(this.ParseNumber(this.ParsePrecision(decimalPrecision)))
+	var pricePrecision *float64
+	if derefNum, isNum := this.ParseNumber(this.ParsePrecision(decimalPrecision)).(float64); isNum {
+		pricePrecision = &derefNum
+	}
 	var precision map[string]any = map[string]any{
 		"amount": 0.01,
 		"price":  pricePrecision,
@@ -1476,15 +1481,27 @@ func (this *Predictfun) fetchOrderBookBody(ch chan any, outcome string, optional
 		for i := 0; i < len(bids); i++ {
 			var bid []any = ccxt.SafeListTyped(bids, i)
 			var bidPrice *string = this.SafeString(bid, 0)
-			var bidSize *float64 = ccxt.Float64PtrTyped(this.ParseNumber(this.SafeString(bid, 1)))
-			var complementPrice *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringSub("1", bidPrice)))
+			var bidSize *float64
+			if derefNum, isNum := this.ParseNumber(this.SafeString(bid, 1)).(float64); isNum {
+				bidSize = &derefNum
+			}
+			var complementPrice *float64
+			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub("1", bidPrice)).(float64); isNum {
+				complementPrice = &derefNum
+			}
 			noAsks = append(noAsks, []any{complementPrice, bidSize})
 		}
 		for i := 0; i < len(asks); i++ {
 			var ask []any = ccxt.SafeListTyped(asks, i)
 			var askPrice *string = this.SafeString(ask, 0)
-			var askSize *float64 = ccxt.Float64PtrTyped(this.ParseNumber(this.SafeString(ask, 1)))
-			var complementPrice *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringSub("1", askPrice)))
+			var askSize *float64
+			if derefNum, isNum := this.ParseNumber(this.SafeString(ask, 1)).(float64); isNum {
+				askSize = &derefNum
+			}
+			var complementPrice *float64
+			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub("1", askPrice)).(float64); isNum {
+				complementPrice = &derefNum
+			}
 			noBids = append(noBids, []any{complementPrice, askSize})
 		}
 		var noOrderbook map[string]any = map[string]any{
@@ -3291,8 +3308,14 @@ func (this *Predictfun) SignEvmTransaction(tx any, privateKey any) any {
 	var payload *string = ccxt.SafeStringPtr(ccxt.Add("02", this.RlpEncodeList(fields)))
 	var hashHex any = this.Hash(this.Base16ToBinary(payload), ccxt.Keccak, "hex")
 	var signature map[string]any = ccxt.Ecdsa(hashHex, this.Remove0xPrefix(privateKey), ccxt.Secp256k1, nil)
-	var rHex any = ccxt.DerefScalar(this.SafeString(signature, "r"))
-	var sHex any = ccxt.DerefScalar(this.SafeString(signature, "s"))
+	var rHex any
+	if derefPtr := this.SafeString(signature, "r"); derefPtr != nil {
+		rHex = *derefPtr
+	}
+	var sHex any
+	if derefPtr := this.SafeString(signature, "s"); derefPtr != nil {
+		sHex = *derefPtr
+	}
 	rHex = this.PadHexToEven(rHex)
 	sHex = this.PadHexToEven(sHex)
 	var yParity *int64 = this.SafeInteger(signature, "v")
@@ -4023,7 +4046,7 @@ func (this *Predictfun) unWatchWalletEventsBody(ch chan any, channel string, opt
  * @returns {string} the url to connect to
  */
 func (this *Predictfun) SocketUrl() any {
-	var urls map[string]any = ccxt.MapTyped(ccxt.GetValue(this.Urls, "api"))
+	var urls map[string]any = ccxt.MapTyped(this.Urls["api"])
 	var base *string = this.SafeString(urls, "ws")
 	if base == nil {
 		panic(ccxt.NotSupported(this.Id + " does not have a sandbox websocket endpoint"))
@@ -4159,7 +4182,10 @@ func (this *Predictfun) HandleOrderBook(client any, message any) {
 	for i := 0; i < bidsLength; i++ {
 		var bid []any = ccxt.SafeListTyped(rawBids, i)
 		var bidPrice *string = this.SafeString(bid, 0)
-		var bidSize *float64 = ccxt.Float64PtrTyped(this.ParseNumber(this.SafeString(bid, 1)))
+		var bidSize *float64
+		if derefNum, isNum := this.ParseNumber(this.SafeString(bid, 1)).(float64); isNum {
+			bidSize = &derefNum
+		}
 		yesBids = append(yesBids, []any{this.ParseNumber(bidPrice), bidSize})
 		// a bid for yes at p is an offer of no at 1 - p
 		noAsks = append(noAsks, []any{this.ParseNumber(ccxt.Precise.StringSub("1", bidPrice)), bidSize})
@@ -4168,7 +4194,10 @@ func (this *Predictfun) HandleOrderBook(client any, message any) {
 	for i := 0; i < asksLength; i++ {
 		var ask []any = ccxt.SafeListTyped(rawAsks, i)
 		var askPrice *string = this.SafeString(ask, 0)
-		var askSize *float64 = ccxt.Float64PtrTyped(this.ParseNumber(this.SafeString(ask, 1)))
+		var askSize *float64
+		if derefNum, isNum := this.ParseNumber(this.SafeString(ask, 1)).(float64); isNum {
+			askSize = &derefNum
+		}
 		yesAsks = append(yesAsks, []any{this.ParseNumber(askPrice), askSize})
 		noBids = append(noBids, []any{this.ParseNumber(ccxt.Precise.StringSub("1", askPrice)), askSize})
 	}
@@ -4678,7 +4707,7 @@ func (this *Predictfun) Sign(path string, optionalArgs ...any) any {
 		}
 		return ccxt.GetValue(api, 0)
 	}()
-	var baseUrls any = ccxt.GetValue(this.Urls, "api")
+	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "predictfun"))
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))

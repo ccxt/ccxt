@@ -16,7 +16,6 @@ type Hyperliquid struct {
 
 func newHyperliquid() *Hyperliquid {
 	p := &Hyperliquid{}
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -321,7 +320,7 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc any, outcomeId any, optio
 				var thresholdParts []string = strings.Split(*thresholdsRaw, ",")
 				var thresholds []any = []any{}
 				for i := 0; i < len(thresholdParts); i++ {
-					var trimmed string = ccxt.Trim(thresholdParts[i])
+					var trimmed string = strings.TrimSpace(thresholdParts[i])
 					if len(trimmed) > 0 {
 						thresholds = append(thresholds, trimmed)
 					}
@@ -1324,20 +1323,35 @@ func (this *Hyperliquid) ParsePredictionPosition(position any, optionalArgs ...a
 	_ = market
 	var outcomeObj map[string]any = this.SafeOutcome(nil, market)
 	var totalStr *string = this.SafeString(position, "total")
-	var total *float64 = ccxt.Float64PtrTyped(this.ParseNumber(totalStr))
+	var total *float64
+	if derefNum, isNum := this.ParseNumber(totalStr).(float64); isNum {
+		total = &derefNum
+	}
 	var entryNtlStr *string = this.SafeString(position, "entryNtl")
 	var entryPrice *float64 = nil
 	if (entryNtlStr != nil) && (totalStr != nil) && !ccxt.Precise.StringEq(totalStr, "0") {
-		entryPrice = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(entryNtlStr, totalStr)))
+		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(entryNtlStr, totalStr)).(float64); isNum {
+			entryPrice = &derefNum
+		} else {
+			entryPrice = nil
+		}
 	}
 	var markPxStr *string = this.SafeString(position, "markPx")
 	var notional *float64 = nil      // current position value = size * mark price
 	var unrealizedPnl *float64 = nil // value - entry notional
 	if (markPxStr != nil) && (totalStr != nil) {
 		var notionalStr *string = ccxt.Precise.StringMul(totalStr, markPxStr)
-		notional = ccxt.Float64PtrTyped(this.ParseNumber(notionalStr))
+		if derefNum, isNum := this.ParseNumber(notionalStr).(float64); isNum {
+			notional = &derefNum
+		} else {
+			notional = nil
+		}
 		if entryNtlStr != nil {
-			unrealizedPnl = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringSub(notionalStr, entryNtlStr)))
+			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub(notionalStr, entryNtlStr)).(float64); isNum {
+				unrealizedPnl = &derefNum
+			} else {
+				unrealizedPnl = nil
+			}
 		}
 	}
 	return this.SafePredictionPosition(map[string]any{
@@ -1436,7 +1450,7 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
 	var inputCharsLength int = len(inputChars)
 	var isNumericInput bool = (inputCharsLength > 0)
 	for di := 0; di < len(inputChars); di++ {
-		if ccxt.GetIndexOf(digitChars, inputChars[di]) < 0 {
+		if strings.Index(digitChars, inputChars[di]) < 0 {
 			isNumericInput = false
 			break
 		}
@@ -1550,7 +1564,11 @@ func (this *Hyperliquid) createOrderBody(ch chan any, outcome string, typeVar st
 		}()
 		px = ccxt.DerefScalar(this.PriceToPrecision(marketSymbol, px))
 	} else {
-		px = ccxt.DerefScalar(this.PriceToPrecision(marketSymbol, price))
+		if derefPtr := this.PriceToPrecision(marketSymbol, price); derefPtr != nil {
+			px = *derefPtr
+		} else {
+			px = nil
+		}
 	}
 	if px == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrder() could not determine price"))
@@ -1874,7 +1892,11 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 
 		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 		var outcomeObj map[string]any = this.Outcome(outcome)
-		outcomeHandle = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
+		if derefPtr := this.SafeString(outcomeObj, "outcome"); derefPtr != nil {
+			outcomeHandle = *derefPtr
+		} else {
+			outcomeHandle = nil
+		}
 	}
 
 	ch <- this.FilterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit)
@@ -1967,7 +1989,11 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 		var outcomeObj map[string]any = this.Outcome(outcome)
-		outcomeHandle = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
+		if derefPtr := this.SafeString(outcomeObj, "outcome"); derefPtr != nil {
+			outcomeHandle = *derefPtr
+		} else {
+			outcomeHandle = nil
+		}
 	}
 
 	ch <- this.FilterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit)
@@ -2262,7 +2288,11 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	if outcome != nil {
 
 		var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
-		outcomeHandle = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
+		if derefPtr := this.SafeString(outcomeObj, "outcome"); derefPtr != nil {
+			outcomeHandle = *derefPtr
+		} else {
+			outcomeHandle = nil
+		}
 	} else {
 		// fills identify their outcome only by the raw coin handle (e.g. "#10") — warm the
 		// cache (one market load) so parsePredictionTrade can resolve the unified outcome identity
@@ -2361,7 +2391,11 @@ func (this *Hyperliquid) ParsePredictionTrade(trade any, optionalArgs ...any) an
 	}
 	var cost *float64 = nil
 	if (price != nil) && (amount != nil) {
-		cost = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringMul(price, amount)))
+		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringMul(price, amount)).(float64); isNum {
+			cost = &derefNum
+		} else {
+			cost = nil
+		}
 	}
 	var crossed *bool = this.SafeBool(trade, "crossed", false)
 	var takerOrMaker string = "maker"
@@ -2605,7 +2639,11 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) any {
 				str := *ymd
 				return str[6:min(8, len(str))]
 			}() + "T" + ccxt.Slice(hm, 0, 2) + ":" + ccxt.Slice(hm, 2, 4) + ":00Z"
-			expiryMs = ccxt.DerefScalar(this.Parse8601(isoStr))
+			if derefPtr := this.Parse8601(isoStr); derefPtr != nil {
+				expiryMs = *derefPtr
+			} else {
+				expiryMs = nil
+			}
 			expiryDatetime = ccxt.SafeStringPtr(isoStr)
 		}
 	}

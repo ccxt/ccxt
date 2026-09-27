@@ -15,7 +15,6 @@ func newNdax() *Ndax {
 	base := &ccxt.Ndax{}
 	p.base = base
 	p.Ndax = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -72,7 +71,7 @@ func (this *Ndax) watchTickerBody(ch chan any, symbol string, optionalArgs ...an
 	var market map[string]any = this.Market(symbol)
 	var name string = "SubscribeLevel1"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", market["id"]))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var requestId int64 = this.RequestId()
 	var payload map[string]any = map[string]any{
 		"OMSId":        omsId,
@@ -161,7 +160,7 @@ func (this *Ndax) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var name string = "SubscribeTrades"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", market["id"]))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var requestId int64 = this.RequestId()
 	var payload map[string]any = map[string]any{
 		"OMSId":            omsId,
@@ -287,7 +286,7 @@ func (this *Ndax) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var name string = "SubscribeTicker"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":"+timeframe+":", market["id"]))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var requestId int64 = this.RequestId()
 	var payload map[string]any = map[string]any{
 		"OMSId":            omsId,
@@ -503,7 +502,7 @@ func (this *Ndax) watchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var name string = "SubscribeLevel2"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", market["id"]))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var requestId int64 = this.RequestId()
 	var limitValue int64 = func() int64 {
 		if limit == nil {
@@ -579,7 +578,11 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 	for i := 0; i < len(payload); i++ {
 		var bidask []any = ccxt.SafeListTyped(payload, i)
 		if timestamp == nil {
-			timestamp = ccxt.DerefScalar(this.SafeInteger(bidask, 2))
+			if derefPtr := this.SafeInteger(bidask, 2); derefPtr != nil {
+				timestamp = *derefPtr
+			} else {
+				timestamp = nil
+			}
 		} else {
 			var newTimestamp *int64 = this.SafeInteger(bidask, 2)
 			var currentTimestampValue any = func() any {
@@ -597,7 +600,11 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 			timestamp = ccxt.MathMax(currentTimestampValue, newTimestampValue)
 		}
 		if nonce == nil {
-			nonce = ccxt.DerefScalar(this.SafeInteger(bidask, 0))
+			if derefPtr := this.SafeInteger(bidask, 0); derefPtr != nil {
+				nonce = *derefPtr
+			} else {
+				nonce = nil
+			}
 		} else {
 			var newNonce *int64 = this.SafeInteger(bidask, 0)
 			var currentNonceValue any = func() any {

@@ -15,7 +15,6 @@ type Polymarket struct {
 
 func newPolymarket() *Polymarket {
 	p := &Polymarket{}
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -605,7 +604,7 @@ func (this *Polymarket) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var rawEvents any = []any{}
 	if queriesLength > 0 {
 
-		rawEvents = (<-this.FetchRawEventsBySearchAsync(queries, rest))
+		rawEvents = (<-this.FetchRawEventsBySearchAsync(queries, rest)).Raw
 		ccxt.PanicOnError(rawEvents)
 	} else {
 
@@ -649,14 +648,14 @@ func (this *Polymarket) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.limit] page size per search query, defaults to 50
  * @returns {object[]} an array of raw gamma event objects
  */
-func (this *Polymarket) FetchRawEventsBySearchAsync(queries any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Polymarket) FetchRawEventsBySearchAsync(queries any, optionalArgs ...any) <-chan ccxt.EndpointResult[[]any] {
+	ch := make(chan ccxt.EndpointResult[[]any], 1)
 	go this.fetchRawEventsBySearchBody(ch, queries, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) fetchRawEventsBySearchBody(ch chan any, queries any, optionalArgs ...any) any {
+func (this *Polymarket) fetchRawEventsBySearchBody(ch chan ccxt.EndpointResult[[]any], queries any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ccxt.ReturnPanicError(ch)
+	defer ccxt.ReturnPanicErrorT(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var resultLimit *int64 = this.SafeInteger(params, "limit")
@@ -781,7 +780,7 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan any, queries any, opt
 		}
 	}
 
-	ch <- rawEvents
+	ch <- ccxt.EndpointResult[[]any]{Value: rawEvents, Raw: rawEvents}
 	return nil
 }
 
@@ -1085,7 +1084,10 @@ func (this *Polymarket) ParseEventToMarkets(event any) any {
 		var tickSize *float64 = this.SafeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01)
 		// real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
 		var orderMinSize *float64 = this.SafeNumber(market, "orderMinSize", 1)
-		var priceMax *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(tickSize))))
+		var priceMax *float64
+		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(tickSize))).(float64); isNum {
+			priceMax = &derefNum
+		}
 		var negRisk *bool = this.SafeBool(market, "negRisk", false)
 		var endDate *string = this.SafeString(market, "endDate", this.SafeString(market, "end_date_iso"))
 		// Gamma API returns these arrays as JSON-encoded strings
@@ -2075,9 +2077,9 @@ func (this *Polymarket) fetchOpenInterestBody(ch chan any, outcome string, optio
 		"market": conditionId,
 	}
 
-	listEp2076 := (<-this.DataPublicGetOi(this.Extend(request, params)))
-	ccxt.PanicOnError(listEp2076.Raw)
-	var response []any = listEp2076.Value
+	listEp2075 := (<-this.DataPublicGetOi(this.Extend(request, params)))
+	ccxt.PanicOnError(listEp2075.Raw)
+	var response []any = listEp2075.Value
 	//
 	//     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
 	//
@@ -2144,7 +2146,10 @@ func (this *Polymarket) fetchTradingFeeBody(ch chan any, outcome string, optiona
 	var baseFeeBps *string = this.SafeString(response, "base_fee")
 	var rate *float64 = func() *float64 {
 		if baseFeeBps != nil {
-			return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(baseFeeBps, "10000")))
+			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(baseFeeBps, "10000")).(float64); isNum {
+				return &derefNum
+			}
+			return nil
 		}
 		return nil
 	}()
@@ -2968,7 +2973,11 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 			panic(ccxt.ArgumentsRequired(this.Id + " createOrder() requires a price for limit orders"))
 		}
 		// market order without an explicit price: use the outcome's current price as the marketable reference
-		priceResolved = ccxt.DerefScalar(this.SafeNumber(outcomeObj, "price"))
+		if derefPtr := this.SafeNumber(outcomeObj, "price"); derefPtr != nil {
+			priceResolved = *derefPtr
+		} else {
+			priceResolved = nil
+		}
 		if ccxt.IsEqual(priceResolved, nil) {
 			panic(ccxt.ArgumentsRequired(this.Id + " createOrder() could not determine a price from the outcome, pass an explicit price"))
 		}
@@ -3515,7 +3524,7 @@ func (this *Polymarket) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		}()
 	} else if queriesLength > 0 {
 
-		rawEvents = (<-this.FetchRawEventsBySearchAsync(queries, rest))
+		rawEvents = (<-this.FetchRawEventsBySearchAsync(queries, rest)).Raw
 		ccxt.PanicOnError(rawEvents)
 	} else {
 
@@ -3827,7 +3836,7 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
 		}
 		return ccxt.GetValue(api, 1)
 	}()
-	var baseUrls any = ccxt.GetValue(this.Urls, "api")
+	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "gamma"))
 	var url any = *baseUrl + "/" + this.ImplodeParams(path, params)
 	// an empty params container must not become a body: in PHP an empty array is
@@ -4392,7 +4401,7 @@ func (this *Polymarket) watchOrderBookBody(ch chan any, outcome string, optional
 		"assets_ids": []any{tokenId},
 		"type":       "market",
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url any = ccxt.GetValue(this.Urls["api"], "ws")
 
 	orderbook := (<-this.Watch(url, messageHash, subscribeMsg, subscribeHash))
 	ccxt.PanicOnError(orderbook)
@@ -4435,7 +4444,7 @@ func (this *Polymarket) watchTradesBody(ch chan any, outcome any, optionalArgs .
 		"assets_ids": []any{tokenId},
 		"type":       "market",
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url any = ccxt.GetValue(this.Urls["api"], "ws")
 
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, subscribeMsg, subscribeHash))))
 
@@ -4480,7 +4489,7 @@ func (this *Polymarket) watchTickerBody(ch chan any, outcome string, optionalArg
 			ccxt.AddElementToObject(this.Orderbooks, outcomeValue, seededBook)
 		}
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url any = ccxt.GetValue(this.Urls["api"], "ws")
 
 	orderbook := (<-this.Watch(url, messageHash, subscribeMsg, subscribeHash))
 	ccxt.PanicOnError(orderbook)
@@ -4661,7 +4670,11 @@ func (this *Polymarket) subscribeUserChannelBody(ch chan any, messageHash any, o
 	if !ccxt.IsEqual(this.Secret, nil) {
 		secret = this.Secret
 	} else {
-		secret = ccxt.DerefScalar(this.SafeString(this.Options, "l2Secret"))
+		if derefPtr := this.SafeString(this.Options, "l2Secret"); derefPtr != nil {
+			secret = *derefPtr
+		} else {
+			secret = nil
+		}
 	}
 	var passphrase any = func() any {
 		if !ccxt.IsEqual(this.Password, nil) {
@@ -4680,7 +4693,7 @@ func (this *Polymarket) subscribeUserChannelBody(ch chan any, messageHash any, o
 		"markets": []any{},
 		"type":    "user",
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "wsUser")
+	var url any = ccxt.GetValue(this.Urls["api"], "wsUser")
 	var subscribeHash string = "user"
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(subscribeMsg, params), subscribeHash)))
@@ -4792,11 +4805,11 @@ func (this *Polymarket) FetchRawEventsBySearch(queries []string, options ...Fetc
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchRawEventsBySearchAsync(queries, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.FetchRawEventsBySearchAsync(queries, opts.Params)
+	if ccxt.IsError(r.Raw) {
+		return nil, ccxt.CreateReturnError(r.Raw)
 	}
-	var res []map[string]any = ccxt.NewMapArray(raw)
+	var res []map[string]any = ccxt.NewMapArray(r.Raw)
 	return res, nil
 }
 

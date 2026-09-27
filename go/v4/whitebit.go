@@ -821,7 +821,10 @@ func (this *Whitebit) ParseMarket(market any) any {
 	var swap bool = (typeId != nil && *typeId == "futures") || (typeId != nil && *typeId == "tradfiFutures")
 	var margin bool = (isCollateral != nil && *isCollateral == true) && !swap
 	var contract bool = false
-	var amountPrecision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(market, "stockPrec"))))
+	var amountPrecision *float64
+	if derefNum, isNum := this.ParseNumber(this.ParsePrecision(this.SafeString(market, "stockPrec"))).(float64); isNum {
+		amountPrecision = &derefNum
+	}
 	var linear any = nil
 	var inverse any = nil
 	if swap {
@@ -1415,14 +1418,14 @@ func (this *Whitebit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [trading limits structure]{@link https://docs.ccxt.com/?id=trading-limits-structure}
  */
-func (this *Whitebit) FetchTradingLimitsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Whitebit) FetchTradingLimitsAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchTradingLimitsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) any {
+func (this *Whitebit) fetchTradingLimitsBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1533,7 +1536,7 @@ func (this *Whitebit) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) a
 		}
 	}
 
-	ch <- result
+	ch <- EndpointResult[map[string]any]{Value: result, Raw: result}
 	return nil
 }
 
@@ -2783,7 +2786,7 @@ func (this *Whitebit) createOrderBody(ch chan any, symbol string, typeVar string
 	if (marginMode != nil) && (marginMode == nil || *marginMode != "cross") {
 		panic(NotSupported(this.Id + " createOrder() is only available for cross margin"))
 	}
-	var orderParams map[string]any = MapTyped(this.Omit(query, []any{"postOnly", "triggerPrice", "stopPrice", "timeInForce"}))
+	var orderParams map[string]any = this.OmitDict(query, []any{"postOnly", "triggerPrice", "stopPrice", "timeInForce"})
 	var useCollateralEndpoint bool = (marginMode != nil) || (marketType != nil && *marketType == "swap")
 	var response map[string]any = nil
 	if isStopOrder {
@@ -3206,7 +3209,7 @@ func (this *Whitebit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		var options map[string]any = SafeMapTyped(this.Options, "fetchBalance")
 		var defaultAccount *string = this.SafeString(options, "account")
 		var account *string = this.SafeString2(paramsMarketType, "account", "type", defaultAccount)
-		var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, []any{"account", "type"}))
+		var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, []any{"account", "type"})
 		if (account != nil && *account == "main") || (account != nil && *account == "funding") {
 
 			response = (<-this.V4PrivatePostMainAccountBalance(paramsOmitted)).Checked()
@@ -5555,7 +5558,7 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
 	}()
 	AddElementToObject(publicHeaders, "User-Agent", "ccxt/"+this.Id+"-"+this.Version)
 	var pathWithParams string = "/" + this.ImplodeParams(path, params)
-	var apiUrl *string = this.SafeString(GetValue(GetValue(this.Urls, "api"), version), accessibility)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls["api"], version), accessibility)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -5837,11 +5840,11 @@ func (this *Whitebit) FetchTradingLimits(options ...FetchTradingLimitsOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTradingLimitsAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.FetchTradingLimitsAsync(opts.Symbols, opts.Params)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 

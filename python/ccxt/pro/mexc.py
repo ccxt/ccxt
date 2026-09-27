@@ -893,7 +893,7 @@ class mexc(ccxt.async_support.mexc):
             return  # go requirement
         client.resolve(storedOrderBook, messageHash)
 
-    def handle_bookside_delta(self, bookside: object, bidasks: object):
+    def handle_bookside_delta(self, bookside: object, bidasks: list[object]):
         #
         #    [{
         #        "p": "20290.89",

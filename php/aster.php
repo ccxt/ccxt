@@ -4019,7 +4019,7 @@ class aster extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized, false);
     }
 
-    public function load_leverage_brackets($reload = false, $params = array()): array {
+    public function load_leverage_brackets(bool $reload = false, $params = array()): array {
         $this->load_markets_and_sign_in();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions

@@ -846,7 +846,11 @@ func (this *Btse) ParseMarket(market any) any {
 		symbol += ":" + *quote
 		contractSize = this.SafeString(market, "contractSize")
 		if isFuture {
-			expiry = DerefScalar(this.SafeInteger(market, "contractEndTime"))
+			if derefPtr := this.SafeInteger(market, "contractEndTime"); derefPtr != nil {
+				expiry = *derefPtr
+			} else {
+				expiry = nil
+			}
 			symbol += "-" + this.Yymmdd(expiry)
 			typeVar = "future"
 		} else {
@@ -991,7 +995,7 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 		request["start"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginate, "fetchOHLCV", "until")
-	until := GetValue(untilparamsUntilVariable, 0)
+	until := untilparamsUntilVariable[0]
 	paramsUntil := untilparamsUntilVariable[1]
 	if !IsEqual(until, nil) {
 		if since != nil {
@@ -1164,7 +1168,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		"period": period,
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPeriod, "fetchFundingRateHistory", "until")
-	until := GetValue(untilparamsUntilVariable, 0)
+	until := untilparamsUntilVariable[0]
 	paramsUntil := untilparamsUntilVariable[1]
 
 	var response map[string]any = (<-this.PublicGetPublicApiMarketV1RecentFundingHistory(this.Extend(request, paramsUntil))).Checked()
@@ -1929,7 +1933,7 @@ func (this *Btse) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	// the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchTrades", "until")
-	until := GetValue(untilparamsUntilVariable, 0)
+	until := untilparamsUntilVariable[0]
 	paramsUntil := untilparamsUntilVariable[1]
 
 	var response map[string]any = (<-this.PublicGetPublicApiMarketV1Trades(this.Extend(request, paramsUntil))).Checked()
@@ -2015,16 +2019,16 @@ func (this *Btse) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var market any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		request["symbol"] = GetValue(market, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		AddElementToObject(request, "count", limit)
+		request["count"] = *limit
 	}
 	var paramsUntil any = nil
 	request, paramsUntil = this.HandleUntilOption("endTime", request, params)
@@ -2068,7 +2072,7 @@ func (this *Btse) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 	} else {
 		// the futures endpoint does not support a count parameter, the limit is applied client-side
-		request = this.Omit(request, "count")
+		request = this.OmitDict(request, "count")
 		if !IsEqual(market, nil) {
 			AddElementToObject(request, "symbol", this.FuturesRequestId(market))
 		}
@@ -4189,14 +4193,14 @@ func (this *Btse) ParsePositionSide(side *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Btse) FetchPositionModeAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Btse) FetchPositionModeAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchPositionModeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Btse) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
+func (this *Btse) fetchPositionModeBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -4226,10 +4230,11 @@ func (this *Btse) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 	var positionMode *string = this.SafeString(data, "positionMode")
 	var hedged bool = (positionMode != nil && *positionMode == "HEDGE") || (positionMode != nil && *positionMode == "ISOLATED")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":   data,
 		"hedged": hedged,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -4448,7 +4453,7 @@ func (this *Btse) closePositionBody(ch chan any, symbol string, optionalArgs ...
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if typeUpper == "LIMIT" {
-			return MapTyped(this.Omit(paramsOrderType, "price"))
+			return this.OmitDict(paramsOrderType, "price")
 		}
 		return paramsOrderType
 	}()
@@ -4678,7 +4683,7 @@ func (this *Btse) Sign(path string, optionalArgs ...any) any {
 	_ = body
 	var requestBody any = nil
 	var requestHeaders any = nil
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -5631,11 +5636,11 @@ func (this *Btse) FetchPositionMode(options ...FetchPositionModeOptions) (Positi
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return PositionModeInfo{}, CreateReturnError(raw)
+	r := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return PositionModeInfo{}, CreateReturnError(r.Raw)
 	}
-	var res PositionModeInfo = NewPositionModeInfo(raw)
+	var res PositionModeInfo = NewPositionModeInfo(r.Raw)
 	return res, nil
 }
 

@@ -17,7 +17,6 @@ func newAlpaca() *Alpaca {
 	base := &ccxt.Alpaca{}
 	p.base = base
 	p.Alpaca = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -94,7 +93,7 @@ func (this *Alpaca) watchTickerBody(ch chan any, symbol string, optionalArgs ...
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "crypto"))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	if this.Markets == nil {
@@ -199,7 +198,7 @@ func (this *Alpaca) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "crypto"))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	if this.Markets == nil {
@@ -274,7 +273,7 @@ func (this *Alpaca) watchOrderBookBody(ch chan any, symbol string, optionalArgs 
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "crypto"))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	if this.Markets == nil {
@@ -375,7 +374,7 @@ func (this *Alpaca) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "crypto"))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	if this.Markets == nil {
@@ -453,7 +452,7 @@ func (this *Alpaca) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "trading"))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	var messageHash any = "myTrades"
@@ -513,7 +512,7 @@ func (this *Alpaca) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "trading"))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	if this.Markets == nil {
@@ -524,7 +523,11 @@ func (this *Alpaca) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 		messageHash = ccxt.Add("orders:", symbolResolved)
 	}
 	var request map[string]any = map[string]any{
@@ -771,7 +774,7 @@ func (this *Alpaca) authenticateBody(ch chan any, url any, optionalArgs ...any) 
 			"key":    this.ApiKey,
 			"secret": this.Secret,
 		}
-		if ccxt.IsEqual(url, this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading")) {
+		if ccxt.IsEqual(url, this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "trading")) {
 			// this auth request is being deprecated in test environment
 			request = map[string]any{
 				"action": "authenticate",

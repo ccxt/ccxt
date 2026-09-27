@@ -935,7 +935,10 @@ func (this *Paradex) ParseMarket(market any) any {
 	var expiry *int64 = this.SafeInteger(market, "expiry_at")
 	var optionType *string = this.SafeString(market, "option_type")
 	var strikePrice *string = this.SafeString(market, "strike_price")
-	var takerFee *float64 = Float64PtrTyped(this.ParseNumber("0.0003"))
+	var takerFee *float64
+	if derefNum, isNum := this.ParseNumber("0.0003").(float64); isNum {
+		takerFee = &derefNum
+	}
 	var makerFee any = this.ParseNumber("-0.00005")
 	if isOption {
 		var optionTypeSuffix string = func() string {
@@ -2061,14 +2064,14 @@ func (this *Paradex) onboardingBody(ch chan any, optionalArgs ...any) any {
 	ch <- response
 	return nil
 }
-func (this *Paradex) AuthenticateRestAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Paradex) AuthenticateRestAsync(optionalArgs ...any) <-chan EndpointResult[*string] {
+	ch := make(chan EndpointResult[*string], 1)
 	go this.authenticateRestBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) authenticateRestBody(ch chan any, optionalArgs ...any) any {
+func (this *Paradex) authenticateRestBody(ch chan EndpointResult[*string], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var cachedToken *string = this.SafeString(this.Options, "authToken")
@@ -2080,7 +2083,7 @@ func (this *Paradex) authenticateRestBody(ch chan any, optionalArgs ...any) any 
 		}
 		if IsLessThan(now, cachedExpires) {
 
-			ch <- cachedToken
+			ch <- EndpointResult[*string]{Value: cachedToken, Raw: cachedToken}
 			return nil
 		}
 	}
@@ -2134,7 +2137,7 @@ func (this *Paradex) authenticateRestBody(ch chan any, optionalArgs ...any) any 
 	this.Options.Store("authToken", token)
 	this.Options.Store("expires", expires)
 
-	ch <- token
+	ch <- EndpointResult[*string]{Value: token, Raw: token}
 	return nil
 }
 func (this *Paradex) ParseOrder(order any, optionalArgs ...any) any {
@@ -2318,7 +2321,11 @@ func (this *Paradex) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 				request["type"] = "TAKE_PROFIT_MARKET"
 			} else {
 				stopPrice = this.PriceToPrecision(symbol, triggerPrice)
-				sizeString = DerefScalar(this.AmountToPrecision(symbol, amount))
+				if derefPtr := this.AmountToPrecision(symbol, amount); derefPtr != nil {
+					sizeString = *derefPtr
+				} else {
+					sizeString = nil
+				}
 				request["type"] = "STOP_MARKET"
 			}
 		} else {
@@ -2332,12 +2339,20 @@ func (this *Paradex) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 				request["type"] = "TAKE_PROFIT_LIMIT"
 			} else {
 				stopPrice = this.PriceToPrecision(symbol, triggerPrice)
-				sizeString = DerefScalar(this.AmountToPrecision(symbol, amount))
+				if derefPtr := this.AmountToPrecision(symbol, amount); derefPtr != nil {
+					sizeString = *derefPtr
+				} else {
+					sizeString = nil
+				}
 				request["type"] = "STOP_LIMIT"
 			}
 		}
 	} else {
-		sizeString = DerefScalar(this.AmountToPrecision(symbol, amount))
+		if derefPtr := this.AmountToPrecision(symbol, amount); derefPtr != nil {
+			sizeString = *derefPtr
+		} else {
+			sizeString = nil
+		}
 	}
 	if stopPrice != nil {
 		request["trigger_price"] = stopPrice
@@ -2471,7 +2486,7 @@ func (this *Paradex) createOrderBody(ch chan any, symbol string, typeVar string,
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -2554,7 +2569,7 @@ func (this *Paradex) editOrderBody(ch chan any, id string, symbol any, typeVar a
 		panic(ArgumentsRequired(this.Id + " editOrder() requires a price argument"))
 	}
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -2628,7 +2643,7 @@ func (this *Paradex) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -2717,7 +2732,7 @@ func (this *Paradex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -2766,7 +2781,7 @@ func (this *Paradex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -2869,7 +2884,7 @@ func (this *Paradex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires a symbol argument"))
 	}
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -2916,7 +2931,7 @@ func (this *Paradex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -2996,7 +3011,7 @@ func (this *Paradex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -3102,7 +3117,7 @@ func (this *Paradex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -3172,7 +3187,7 @@ func (this *Paradex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -3242,7 +3257,7 @@ func (this *Paradex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -3325,7 +3340,7 @@ func (this *Paradex) fetchPositionBody(ch chan any, symbol any, optionalArgs ...
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -3360,7 +3375,7 @@ func (this *Paradex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -3431,7 +3446,10 @@ func (this *Paradex) ParsePosition(position any, optionalArgs ...any) any {
 		quantity = Precise.StringMul("-1", quantity)
 	}
 	var timestamp *int64 = this.SafeInteger(position, "time")
-	var liquidationPrice *float64 = Float64PtrTyped(this.ParseNumber(this.OmitZero(this.SafeString(position, "liquidation_price"))))
+	var liquidationPrice *float64
+	if derefNum, isNum := this.ParseNumber(this.OmitZero(this.SafeString(position, "liquidation_price"))).(float64); isNum {
+		liquidationPrice = &derefNum
+	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "id"),
@@ -3488,7 +3506,7 @@ func (this *Paradex) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -3575,7 +3593,7 @@ func (this *Paradex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -3670,7 +3688,7 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -3765,7 +3783,7 @@ func (this *Paradex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -3953,7 +3971,7 @@ func (this *Paradex) fetchMarginModeBody(ch chan any, symbol any, optionalArgs .
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -4019,7 +4037,7 @@ func (this *Paradex) setMarginModeBody(ch chan any, marginMode string, optionalA
 	_ = params
 	this.CheckRequiredArgument("setMarginMode", symbol, "symbol")
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -4059,7 +4077,7 @@ func (this *Paradex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -4134,7 +4152,7 @@ func (this *Paradex) setLeverageBody(ch chan any, leverage int64, optionalArgs .
 	_ = params
 	this.CheckRequiredArgument("setLeverage", symbol, "symbol")
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -4388,7 +4406,7 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 		panic(ArgumentsRequired(this.Id + " fetchFundingHistory() requires a symbol argument"))
 	}
 
-	PanicOnError((<-this.AuthenticateRestAsync()))
+	(<-this.AuthenticateRestAsync()).Checked()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -4591,7 +4609,7 @@ func (this *Paradex) Sign(path string, optionalArgs ...any) any {
 	if strings.Index(path, "v2/") == 0 {
 		version = "v2"
 	}
-	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), version)
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], version)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

@@ -17,7 +17,6 @@ func newIndependentreserve() *Independentreserve {
 	base := &ccxt.Independentreserve{}
 	p.base = base
 	p.Independentreserve = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -80,7 +79,7 @@ func (this *Independentreserve) watchTradesBody(ch chan any, symbol any, optiona
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	var wsUrl *string = this.SafeString(this.Urls["api"], "ws")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchTrades() has no websocket url"))
 	}
@@ -194,7 +193,7 @@ func (this *Independentreserve) watchOrderBookBody(ch chan any, symbol string, o
 		return *limit
 	}()
 	var limitString *string = this.NumberToString(limitResolved)
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	var wsUrl *string = this.SafeString(this.Urls["api"], "ws")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchOrderBook() has no websocket url"))
 	}
@@ -295,7 +294,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 		if responseChecksum == nil || *responseChecksum != calculatedChecksum {
 			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-			ccxt.Remove(this.Orderbooks, symbol)
+			this.Orderbooks.Delete(symbol)
 			client.(ccxt.ClientInterface).Reject(error, messageHash)
 			return
 		}

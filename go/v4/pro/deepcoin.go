@@ -15,7 +15,6 @@ func newDeepcoin() *Deepcoin {
 	base := &ccxt.Deepcoin{}
 	p.base = base
 	p.Deepcoin = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -147,7 +146,7 @@ func (this *Deepcoin) watchPublicBody(ch chan any, market any, messageHash any, 
 	_ = params
 	var suffix string = ccxt.GetArgString(optionalArgs, 1, "")
 	_ = suffix
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), ccxt.GetValue(market, "type"))
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"), ccxt.GetValue(market, "type"))
 	var requestId int64 = this.RequestId()
 	var request any = this.CreatePublicRequest(market, requestId, topicID, suffix)
 	var subscription map[string]any = map[string]any{
@@ -172,7 +171,7 @@ func (this *Deepcoin) unWatchPublicBody(ch chan any, market any, messageHash any
 	_ = subscription
 	var suffix string = ccxt.GetArgString(optionalArgs, 2, "")
 	_ = suffix
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), ccxt.GetValue(market, "type"))
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"), ccxt.GetValue(market, "type"))
 	var requestId int64 = this.RequestId()
 	var client ccxt.ClientInterface = this.Client(url)
 	var existingSubscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -205,7 +204,7 @@ func (this *Deepcoin) watchPrivateBody(ch chan any, messageHash any, optionalArg
 
 	listenKey := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(listenKey)
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "?listenKey="), listenKey))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "?listenKey="), listenKey))
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, "private", params)))
 	return nil
@@ -229,7 +228,7 @@ func (this *Deepcoin) authenticateBody(ch chan any, optionalArgs ...any) any {
 	// settled through client.resolve / client.reject so the registry is only mutated inside the client (one lock in go)
 	var messageHash string = "authenticate"
 	var client ccxt.ClientInterface = this.Client("authenticationFlights")
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 		// a flight is already in progress - wake when the leader
 		// settles it: the listenKey is then in the bucket
 
@@ -281,7 +280,11 @@ func (this *Deepcoin) authenticateBody(ch chan any, optionalArgs ...any) any {
 			}
 			if response != nil {
 				var data map[string]any = ccxt.SafeMapTyped(response, "data")
-				listenKey = ccxt.DerefScalar(this.SafeString(data, "listenkey"))
+				if derefPtr := this.SafeString(data, "listenkey"); derefPtr != nil {
+					listenKey = *derefPtr
+				} else {
+					listenKey = nil
+				}
 				if listenKey == nil {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
 				}
@@ -442,8 +445,14 @@ func (this *Deepcoin) ParseWsTicker(ticker map[string]any, optionalArgs ...any) 
 	var last *float64 = this.SafeNumber(ticker, "N")
 	var bid *float64 = this.SafeNumber(ticker, "BP1")
 	var ask *float64 = this.SafeNumber(ticker, "AP1")
-	var baseVolume any = ccxt.DerefScalar(this.SafeNumber(ticker, "V"))
-	var quoteVolume any = ccxt.DerefScalar(this.SafeNumber(ticker, "T"))
+	var baseVolume any
+	if derefPtr := this.SafeNumber(ticker, "V"); derefPtr != nil {
+		baseVolume = *derefPtr
+	}
+	var quoteVolume any
+	if derefPtr := this.SafeNumber(ticker, "T"); derefPtr != nil {
+		quoteVolume = *derefPtr
+	}
 	if *this.SafeBool(market, "inverse", false) {
 		var temp any = baseVolume
 		baseVolume = quoteVolume
@@ -1360,7 +1369,7 @@ func (this *Deepcoin) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		messageHashes = append(messageHashes, messageHash)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "?listenKey="), listenKey))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "?listenKey="), listenKey))
 
 	positions := (<-this.WatchMultiple(url, messageHashes, params, []any{"private"}))
 	ccxt.PanicOnError(positions)

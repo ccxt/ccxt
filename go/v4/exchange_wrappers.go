@@ -325,11 +325,11 @@ func (this *ExchangeTyped) FetchTradingLimits(options ...FetchTradingLimitsOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.Exchange.FetchTradingLimitsAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.Exchange.FetchTradingLimitsAsync(opts.Symbols, opts.Params)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
@@ -894,11 +894,11 @@ func (this *ExchangeTyped) FetchTransactionFee(code string, options ...FetchTran
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.Exchange.FetchTransactionFeeAsync(code, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.Exchange.FetchTransactionFeeAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Raw.(map[string]any)
 	return res, nil
 }
 func (this *ExchangeTyped) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
@@ -1102,11 +1102,11 @@ func (this *ExchangeTyped) FetchPositionMode(options ...FetchPositionModeOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.Exchange.FetchPositionModeAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return PositionModeInfo{}, CreateReturnError(raw)
+	r := <-this.Exchange.FetchPositionModeAsync(opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return PositionModeInfo{}, CreateReturnError(r.Raw)
 	}
-	var res PositionModeInfo = NewPositionModeInfo(raw)
+	var res PositionModeInfo = NewPositionModeInfo(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) FetchADLRank(symbol string, options ...FetchADLRankOptions) (ADL, error) {
@@ -1480,11 +1480,11 @@ func (this *ExchangeTyped) FetchContractDepositAddress(code string, options ...F
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.Exchange.FetchContractDepositAddressAsync(code, opts.Params)
-	if IsError(raw) {
-		return DepositAddress{}, CreateReturnError(raw)
+	r := <-this.Exchange.FetchContractDepositAddressAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return DepositAddress{}, CreateReturnError(r.Raw)
 	}
-	var res DepositAddress = NewDepositAddress(raw)
+	var res DepositAddress = NewDepositAddress(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
@@ -2019,11 +2019,11 @@ func (this *ExchangeTyped) FetchL3OrderBook(symbol string, options ...FetchL3Ord
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.Exchange.FetchL3OrderBookAsync(symbol, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return OrderBook{}, CreateReturnError(raw)
+	r := <-this.Exchange.FetchL3OrderBookAsync(symbol, opts.Limit, opts.Params)
+	if IsError(r.Raw) {
+		return OrderBook{}, CreateReturnError(r.Raw)
 	}
-	var res OrderBook = NewOrderBook(raw)
+	var res OrderBook = NewOrderBook(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
@@ -2397,11 +2397,11 @@ func (this *ExchangeTyped) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.Exchange.FetchClosedOrdersWsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.Exchange.FetchClosedOrdersWsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -2481,11 +2481,11 @@ func (this *ExchangeTyped) FetchPositionWs(symbol string, options ...FetchPositi
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.Exchange.FetchPositionWsAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.Exchange.FetchPositionWsAsync(symbol, opts.Params)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []Position = NewPositionArray(raw)
+	var res []Position = NewPositionArray(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
@@ -2635,11 +2635,11 @@ func (this *ExchangeTyped) FetchL2OrderBook(symbol string, options ...FetchL2Ord
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.Exchange.FetchL2OrderBookAsync(symbol, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.Exchange.FetchL2OrderBookAsync(symbol, opts.Limit, opts.Params)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error) {
@@ -3083,11 +3083,11 @@ func (this *ExchangeTyped) CancelOrdersWithClientOrderIds(clientOrderIds []strin
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.Exchange.CancelOrdersWithClientOrderIdsAsync(clientOrderIds, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.Exchange.CancelOrdersWithClientOrderIdsAsync(clientOrderIds, opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
@@ -3679,11 +3679,11 @@ func (this *BaseExchangeTyped) FetchTradingLimits(options ...FetchTradingLimitsO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.BaseExchange.FetchTradingLimitsAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.BaseExchange.FetchTradingLimitsAsync(opts.Symbols, opts.Params)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
@@ -4248,11 +4248,11 @@ func (this *BaseExchangeTyped) FetchTransactionFee(code string, options ...Fetch
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.BaseExchange.FetchTransactionFeeAsync(code, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.BaseExchange.FetchTransactionFeeAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Raw.(map[string]any)
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
@@ -4456,11 +4456,11 @@ func (this *BaseExchangeTyped) FetchPositionMode(options ...FetchPositionModeOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.BaseExchange.FetchPositionModeAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return PositionModeInfo{}, CreateReturnError(raw)
+	r := <-this.BaseExchange.FetchPositionModeAsync(opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return PositionModeInfo{}, CreateReturnError(r.Raw)
 	}
-	var res PositionModeInfo = NewPositionModeInfo(raw)
+	var res PositionModeInfo = NewPositionModeInfo(r.Raw)
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchADLRank(symbol string, options ...FetchADLRankOptions) (ADL, error) {
@@ -4834,11 +4834,11 @@ func (this *BaseExchangeTyped) FetchContractDepositAddress(code string, options 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.BaseExchange.FetchContractDepositAddressAsync(code, opts.Params)
-	if IsError(raw) {
-		return DepositAddress{}, CreateReturnError(raw)
+	r := <-this.BaseExchange.FetchContractDepositAddressAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return DepositAddress{}, CreateReturnError(r.Raw)
 	}
-	var res DepositAddress = NewDepositAddress(raw)
+	var res DepositAddress = NewDepositAddress(r.Raw)
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
