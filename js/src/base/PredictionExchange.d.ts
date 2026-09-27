@@ -79,7 +79,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    fetchOrderBook(outcome: Str, limit?: Int, params?: Dict): Promise<PredictionOrderBook>;
+    fetchOrderBook(outcome: string, limit?: Int, params?: Dict): Promise<PredictionOrderBook>;
     /**
      * @method
      * @name fetchOHLCV
@@ -387,8 +387,8 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
     parsePredictionPositions(positions: any[], params?: Dict): PredictionPosition[];
-    filterByOutcomeSinceLimit(array: any, outcome?: Str, since?: Int, limit?: Int, tail?: boolean): any;
-    filterByOutcomesSinceLimit(array: any, outcomes?: Strings, since?: Int, limit?: Int, tail?: boolean): any;
+    filterByOutcomeSinceLimit(array: any, outcome?: Str, since?: Int, limit?: Int, tail?: boolean): any[];
+    filterByOutcomesSinceLimit(array: any, outcomes?: Strings, since?: Int, limit?: Int, tail?: boolean): any[];
     amountToPredictionPrecision(outcome: Str, amount: any): Str;
     priceToPredictionPrecision(outcome: Str, price: any): Str;
     costToPredictionPrecision(outcome: Str, cost: any): Str;

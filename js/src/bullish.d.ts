@@ -313,7 +313,7 @@ export default class bullish extends Exchange {
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionType(type: any): string;
+    parseTransactionType(type: Str): Str;
     parseTransactionStatus(status: Str): Str;
     loadAccount(params?: Dict): Promise<string>;
     /**
@@ -337,7 +337,7 @@ export default class bullish extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
+    parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
     /**
      * @method
      * @name bullish#fetchBalance
@@ -350,7 +350,7 @@ export default class bullish extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalanceForSingleCurrency(response: any, code: Str): Balances;
+    parseBalanceForSingleCurrency(response: Dict, code: Str): Balances;
     parseBalance(response: any): Balances;
     /**
      * @method
@@ -421,7 +421,7 @@ export default class bullish extends Exchange {
      */
     fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
     parseOpenInterest(interest: any, market?: Market): OpenInterest;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     /**
      * @method
      * @name bullish#signIn
@@ -430,7 +430,7 @@ export default class bullish extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns response from exchange
      */
-    signIn(params?: {}): Promise<string>;
+    signIn(params?: Dict): Promise<string>;
     handleToken(params?: Dict): Promise<string>;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

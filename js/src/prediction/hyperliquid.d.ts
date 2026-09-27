@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/hyperliquid.js';
-import type { Int, int, Str, Num, Dict, Market, PredictionOrderBook, OHLCV, Balances, fetchEventsParams, Strings, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition } from '../base/types.js';
+import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Market, PredictionOrderBook, OHLCV, Balances, fetchEventsParams, Strings, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition } from '../base/types.js';
 /**
  * @class hyperliquid
  * @augments Exchange
@@ -148,7 +148,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    fetchOrderBook(outcome: Str, limit?: Int, params?: Dict): Promise<PredictionOrderBook>;
+    fetchOrderBook(outcome: string, limit?: Int, params?: Dict): Promise<PredictionOrderBook>;
     /**
      * @method
      * @name hyperliquid#fetchOHLCV
@@ -226,7 +226,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    createOrder(outcome: string, type: string, side: string, amount: number, price?: Num, params?: Dict): Promise<PredictionOrder>;
+    createOrder(outcome: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<PredictionOrder>;
     /**
      * @method
      * @name hyperliquid#cancelOrder
@@ -380,14 +380,14 @@ export default class hyperliquid extends Exchange {
      */
     approveBuilderFee(builder: string, maxFeeRate: string): Promise<any>;
     initializeClient(): Promise<any>;
-    handlePublicAddress(methodName: string, params: Dict): any;
+    handlePublicAddress(methodName: string, params: Dict): [Str, Dict];
     formatVaultAddress(address?: Str): Str;
-    sign(path: any, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
+    sign(path: string, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;
         headers: any;
     };
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
+    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: Dict): any;
 }

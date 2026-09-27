@@ -1,6 +1,7 @@
 import xtRest from '../xt.js';
 import { Balances, Dict, FundingRate, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 export default class xt extends xtRest {
     describe(): any;
     /**
@@ -12,9 +13,9 @@ export default class xt extends xtRest {
      * @see https://doc.xt.com/docs/futures/UserWebsocket/General_WSS_information
      * @returns {string} listen key / access token
      */
-    getListenKey(isContract: boolean): Promise<any>;
+    getListenKey(isContract: boolean): Promise<Str>;
     getCacheIndex(orderbook: any, cache: any): number;
-    handleDelta(orderbook: any, delta: any): void;
+    handleBookDelta(orderbook: Ob, delta: any): void;
     /**
      * @ignore
      * @method
@@ -242,11 +243,11 @@ export default class xt extends xtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
      */
-    unWatchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    unWatchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     handleFundingRate(client: Client, message: Dict): Dict;
     setPositionsCache(client: Client): void;
     loadPositionsSnapshot(client: Client, messageHash: any): Promise<void>;
-    handlePosition(client: any, message: Dict): void;
+    handlePosition(client: Client, message: Dict): void;
     handleTicker(client: Client, message: Dict): Dict;
     handleTickers(client: Client, message: Dict): Dict;
     handleOHLCV(client: Client, message: Dict): Dict;

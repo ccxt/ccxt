@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/polymarket.js';
-import type { Int, Str, Num, Dict, Market, PredictionTickers, PredictionOrderBook, OHLCV, PredictionOrderRequest, Balances, Strings, PredictionOpenInterest, PredictionTradingFee, PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition, fetchEventsParams } from '../base/types.js';
+import type { OrderSide, OrderType, Int, Str, Num, Dict, Market, PredictionTickers, PredictionOrderBook, OHLCV, PredictionOrderRequest, Balances, Strings, PredictionOpenInterest, PredictionTradingFee, PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition, fetchEventsParams } from '../base/types.js';
 /**
  * @class polymarket
  * @augments Exchange
@@ -121,7 +121,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    fetchOrderBook(outcome: Str, limit?: Int, params?: Dict): Promise<PredictionOrderBook>;
+    fetchOrderBook(outcome: string, limit?: Int, params?: Dict): Promise<PredictionOrderBook>;
     /**
      * @method
      * @name polymarket#fetchOHLCV
@@ -293,7 +293,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    fetchOrder(id: Str, outcome?: Str, params?: Dict): Promise<PredictionOrder>;
+    fetchOrder(id: string, outcome?: Str, params?: Dict): Promise<PredictionOrder>;
     /**
      * @ignore
      * @method
@@ -335,7 +335,7 @@ export default class polymarket extends Exchange {
      * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    createOrder(outcome: string, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Promise<PredictionOrder>;
+    createOrder(outcome: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<PredictionOrder>;
     /**
      * @method
      * @name polymarket#createOrders
@@ -377,7 +377,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    cancelOrder(id: Str, outcome?: Str, params?: Dict): Promise<PredictionOrder>;
+    cancelOrder(id: string, outcome?: Str, params?: Dict): Promise<PredictionOrder>;
     /**
      * @method
      * @name polymarket#cancelOrders
@@ -457,7 +457,7 @@ export default class polymarket extends Exchange {
      * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    sign(path: any, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
+    sign(path: string, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;
@@ -507,9 +507,9 @@ export default class polymarket extends Exchange {
     loadApiCredentials(): Promise<void>;
     ping(client: any): string;
     handleMessage(client: any, message: any): void;
-    handleOrderBookSnapshot(client: any, event: any): void;
-    handleOrderBookDelta(client: any, event: any): void;
-    handleTrade(client: any, event: any): void;
+    handleOrderBookSnapshot(client: any, event: Dict): void;
+    handleOrderBookDelta(client: any, event: Dict): void;
+    handleTrade(client: any, event: Dict): void;
     /**
      * @method
      * @name polymarket#watchOrderBook
@@ -519,7 +519,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra params (currently unused)
      * @returns {object} a [prediction order book structure]{@link https://docs.ccxt.com/#/?id=prediction-order-book-structure}
      */
-    watchOrderBook(outcome: Str, limit?: Int, params?: Dict): Promise<PredictionOrderBook>;
+    watchOrderBook(outcome: string, limit?: Int, params?: Dict): Promise<PredictionOrderBook>;
     /**
      * @method
      * @name polymarket#watchTrades
@@ -530,7 +530,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra params (unused)
      * @returns {object[]} a list of [prediction trade structures]{@link https://docs.ccxt.com/#/?id=prediction-trade-structure}
      */
-    watchTrades(outcome: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
+    watchTrades(outcome: string, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
     /**
      * @method
      * @name polymarket#watchTicker
@@ -539,7 +539,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra params (unused)
      * @returns {object} a [prediction ticker structure]{@link https://docs.ccxt.com/#/?id=prediction-ticker-structure}
      */
-    watchTicker(outcome: Str, params?: Dict): Promise<PredictionTicker>;
+    watchTicker(outcome: string, params?: Dict): Promise<PredictionTicker>;
     /**
      * @method
      * @name polymarket#watchOrders
@@ -565,8 +565,8 @@ export default class polymarket extends Exchange {
      */
     watchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
     subscribeUserChannel(messageHash: string, params?: Dict): Promise<any>;
-    handleOrder(client: any, event: any): void;
-    handleMyTrade(client: any, event: any): void;
+    handleOrder(client: any, event: Dict): void;
+    handleMyTrade(client: any, event: Dict): void;
     tokenIdToSymbol(tokenId: Str): Str;
     parsePolyTimestamp(raw: Str): Int;
 }

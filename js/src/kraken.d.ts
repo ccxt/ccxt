@@ -1,5 +1,5 @@
 import Exchange from './abstract/kraken.js';
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Market, TransferEntry, Num, TradingFeeInterface, Currencies, int, LedgerEntry, DepositAddress, Position, OrderRequest, NullableDict, Status } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Market, MarketInterface, TransferEntry, Num, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest, NullableDict, Status } from './base/types.js';
 /**
  * @class kraken
  * @augments Exchange
@@ -47,7 +47,7 @@ export default class kraken extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchTradingFee(symbol: string, params?: Dict): Promise<TradingFeeInterface>;
-    parseTradingFee(response: Dict, market: any): TradingFeeInterface;
+    parseTradingFee(fee: Dict, market: MarketInterface): TradingFeeInterface;
     parseOrderBookBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): (number | undefined)[];
     /**
      * @method
@@ -114,7 +114,7 @@ export default class kraken extends Exchange {
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
     fetchLedgerEntriesByIds(ids: any, code?: Str, params?: Dict): Promise<LedgerEntry[]>;
     fetchLedgerEntry(id: string, code?: Str, params?: Dict): Promise<LedgerEntry>;
-    parseTrade(trade: Dict, market?: Market): Trade;
+    parseTrade(trade: Dict | List | string, market?: Market): Trade;
     /**
      * @method
      * @name kraken#fetchTrades
@@ -195,6 +195,7 @@ export default class kraken extends Exchange {
      */
     createOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
     findMarketByAltnameOrId(id: any): any;
+    resolveMarketByAltnameOrId(marketId: Str, market?: Market): Market;
     getDelistedMarketById(id: any): any;
     parseOrderStatus(status: Str): Str;
     parseOrderType(status: Str): Str;
@@ -349,7 +350,7 @@ export default class kraken extends Exchange {
     parseTransactionStatus(status: Str): Str;
     parseNetwork(network: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionsByType(type: any, transactions: any, code?: Str, since?: Int, limit?: Int): any;
+    parseTransactionsByType(type: string, transactions: any, code?: Str, since?: Int, limit?: Int): any[];
     /**
      * @method
      * @name kraken#fetchDeposits
@@ -419,7 +420,7 @@ export default class kraken extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
+    parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
     /**
      * @method
      * @name kraken#withdraw
@@ -444,7 +445,7 @@ export default class kraken extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    parseAccountType(account: any): string;
+    parseAccountType(account: Str): Str;
     /**
      * @method
      * @name kraken#transferOut
@@ -470,7 +471,7 @@ export default class kraken extends Exchange {
      */
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     nonce(): number;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

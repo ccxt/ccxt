@@ -171,7 +171,7 @@ export default class kraken extends krakenRest {
     formatNumber(data: string): string;
     handleSystemStatus(client: Client, message: Dict): Dict;
     authenticate(params?: Dict): Promise<Str>;
-    watchPrivate(name: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<any>;
+    watchPrivate(name: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<any[]>;
     /**
      * @method
      * @name kraken#watchMyTrades

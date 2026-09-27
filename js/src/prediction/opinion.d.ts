@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/opinion.js';
-import type { Balances, Dict, Int, Market, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { OrderSide, OrderType, Balances, Dict, Int, Market, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 /**
  * @class opinion
  * @augments Exchange
@@ -108,7 +108,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    fetchOrderBook(outcome: Str, limit?: Int, params?: Dict): Promise<PredictionOrderBook>;
+    fetchOrderBook(outcome: string, limit?: Int, params?: Dict): Promise<PredictionOrderBook>;
     /**
      * @method
      * @name opinion#fetchOHLCV
@@ -164,7 +164,7 @@ export default class opinion extends Exchange {
      * @param {bool} [params.postOnly] limit orders only - reject the order if it would cross the spread
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    createOrder(outcome: string, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Promise<PredictionOrder>;
+    createOrder(outcome: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<PredictionOrder>;
     /**
      * @method
      * @name opinion#cancelOrder
@@ -175,7 +175,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    cancelOrder(id: Str, outcome?: Str, params?: Dict): Promise<PredictionOrder>;
+    cancelOrder(id: string, outcome?: Str, params?: Dict): Promise<PredictionOrder>;
     /**
      * @ignore
      * @method
@@ -216,7 +216,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    fetchOrder(id: Str, outcome?: Str, params?: Dict): Promise<PredictionOrder>;
+    fetchOrder(id: string, outcome?: Str, params?: Dict): Promise<PredictionOrder>;
     /**
      * @method
      * @name opinion#fetchOpenOrders
@@ -398,8 +398,8 @@ export default class opinion extends Exchange {
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
     watchOrderBook(outcome: string, limit?: Int, params?: Dict): Promise<PredictionOrderBook>;
-    seedOrderBook(outcome: Str, sym: Str, limit?: Int): Promise<void>;
-    handleOrderBook(client: any, message: any): void;
+    seedOrderBook(outcome: string, sym: Str, limit?: Int): Promise<void>;
+    handleOrderBook(client: any, message: Dict): void;
     /**
      * @method
      * @name opinion#watchTicker
@@ -410,7 +410,7 @@ export default class opinion extends Exchange {
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     watchTicker(outcome: string, params?: Dict): Promise<PredictionTicker>;
-    handleTicker(client: any, message: any): void;
+    handleTicker(client: any, message: Dict): void;
     /**
      * @method
      * @name opinion#watchTrades
@@ -423,7 +423,7 @@ export default class opinion extends Exchange {
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     watchTrades(outcome: string, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
-    handleTrades(client: any, message: any): void;
+    handleTrades(client: any, message: Dict): void;
     /**
      * @method
      * @name opinion#watchOrders
@@ -445,7 +445,7 @@ export default class opinion extends Exchange {
      * @returns {string} a unified order status, or undefined
      */
     parseWsOrderStatus(status: Int): Str;
-    handleOrder(client: any, message: any): void;
+    handleOrder(client: any, message: Dict): void;
     /**
      * @method
      * @name opinion#watchMyTrades
@@ -458,7 +458,7 @@ export default class opinion extends Exchange {
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     watchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
-    handleMyTrade(client: any, message: any): void;
+    handleMyTrade(client: any, message: Dict): void;
     handleErrors(code: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     /**
      * @ignore
@@ -473,7 +473,7 @@ export default class opinion extends Exchange {
      * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    sign(path: any, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
+    sign(path: string, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

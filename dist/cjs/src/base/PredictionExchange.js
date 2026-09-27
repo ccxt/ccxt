@@ -440,12 +440,12 @@ class PredictionExchange extends Exchange.BaseExchange {
             return outcomeObj;
         }
         // stub for an unknown handle; it only carries the identity keys, not the market fields
-        outcomeObj = { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'event': undefined, 'info': {} };
-        return outcomeObj;
+        const outcomeObjValue = { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'event': undefined, 'info': {} };
+        return outcomeObjValue;
     }
     safeOutcomeSymbol(outcomeIdOrSymbol, outcomeObj = undefined) {
-        outcomeObj = this.safeOutcome(outcomeIdOrSymbol, outcomeObj);
-        return outcomeObj['outcome'];
+        const outcomeObjValue = this.safeOutcome(outcomeIdOrSymbol, outcomeObj);
+        return outcomeObjValue['outcome'];
     }
     shortenSlug(slug) {
         const replacements = {
@@ -539,10 +539,8 @@ class PredictionExchange extends Exchange.BaseExchange {
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
-        if (outcome === undefined) {
-            outcome = '';
-        }
-        const upper = outcome.toUpperCase();
+        const outcomeValue = (outcome === undefined) ? '' : outcome;
+        const upper = outcomeValue.toUpperCase();
         const allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         const chars = this.stringToCharsArray(upper);
         let label = '';

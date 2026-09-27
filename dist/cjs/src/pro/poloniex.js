@@ -143,8 +143,14 @@ class poloniex extends poloniex$1["default"] {
      * @returns {object} data from the websocket stream
      */
     async subscribe(name, messageHash, isPrivate, symbols = undefined, params = {}) {
-        const publicOrPrivate = isPrivate ? 'private' : 'public';
-        const url = this.urls['api']['ws'][publicOrPrivate];
+        let publicOrPrivate = 'public';
+        if (isPrivate) {
+            publicOrPrivate = 'private';
+        }
+        const url = this.safeString(this.urls['api']['ws'], publicOrPrivate);
+        if (url === undefined) {
+            throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
+        }
         const subscribe = {
             'event': 'subscribe',
             'channel': [
@@ -159,15 +165,22 @@ class poloniex extends poloniex$1["default"] {
             if (symbols === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' subscribe() symbols is required');
             }
-            messageHash = messageHash + '::' + symbols.join(',');
             const ids = this.marketIds(symbols);
             marketIds = (ids === undefined) ? [] : ids;
+        }
+        const symbolsSuffix = (symbols === undefined) ? '' : symbols.join(',');
+        let symbolsHash = undefined;
+        if (this.isEmpty(symbols)) {
+            symbolsHash = messageHash;
+        }
+        else {
+            symbolsHash = messageHash + '::' + symbolsSuffix;
         }
         if (name !== 'balances') {
             subscribe['symbols'] = marketIds;
         }
         const request = this.extend(subscribe, params);
-        return await this.watch(url, messageHash, request, messageHash);
+        return await this.watch(url, symbolsHash, request, symbolsHash);
     }
     /**
      * @ignore
@@ -229,12 +242,13 @@ class poloniex extends poloniex$1["default"] {
             'side': side.toUpperCase(),
             'type': type.toUpperCase(),
         };
-        if ((uppercaseType === 'MARKET') && (uppercaseSide === 'BUY')) {
+        const isMarketBuy = (uppercaseType === 'MARKET') && (uppercaseSide === 'BUY');
+        let paramsOmitted = params;
+        if (isMarketBuy) {
             let quoteAmount = undefined;
-            let createMarketBuyOrderRequiresPrice = true;
-            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-            const cost = this.safeNumber(params, 'cost');
-            params = this.omit(params, 'cost');
+            const [createMarketBuyOrderRequiresPrice, paramsRequiresPrice] = this.handleOptionBoolAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber(paramsRequiresPrice, 'cost');
+            paramsOmitted = this.omit(paramsRequiresPrice, 'cost');
             if (cost !== undefined) {
                 quoteAmount = this.costToPrecision(symbol, cost);
             }
@@ -260,7 +274,7 @@ class poloniex extends poloniex$1["default"] {
                 request['price'] = this.priceToPrecision(symbol, price);
             }
         }
-        const orders = await this.tradeRequest('createOrder', this.extend(request, params));
+        const orders = await this.tradeRequest('createOrder', this.extend(request, paramsOmitted));
         const order = this.safeDict(orders, 0);
         return order;
     }
@@ -366,10 +380,11 @@ class poloniex extends poloniex$1["default"] {
             throw new errors.BadRequest(this.id + ' watchOHLCV cannot take a timeframe of ' + timeframe);
         }
         const ohlcv = await this.subscribe(channel, channel, false, [symbol], params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit(symbol, limit);
+            limitResolved = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     /**
      * @method
@@ -384,9 +399,9 @@ class poloniex extends poloniex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbol = this.symbol(symbol);
-        const tickers = await this.watchTickers([symbol], params);
-        return this.safeValue(tickers, symbol);
+        const symbolValue = this.symbol(symbol);
+        const tickers = await this.watchTickers([symbolValue], params);
+        return this.safeValue(tickers, symbolValue);
     }
     /**
      * @method
@@ -402,12 +417,12 @@ class poloniex extends poloniex$1["default"] {
             await this.loadMarkets();
         }
         const name = 'ticker';
-        symbols = this.marketSymbols(symbols);
-        const newTickers = await this.subscribe(name, name, false, symbols, params);
+        const symbolsNormalized = this.marketSymbols(symbols);
+        const newTickers = await this.subscribe(name, name, false, symbolsNormalized, params);
         if (this.newUpdates) {
             return newTickers;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbols);
+        return this.filterByArray(this.tickers, 'symbol', symbolsNormalized);
     }
     /**
      * @method
@@ -438,10 +453,10 @@ class poloniex extends poloniex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, false, true, true);
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, true);
         const name = 'trades';
         const url = this.urls['api']['ws']['public'];
-        const marketIds = this.marketIds(symbols);
+        const marketIds = this.marketIds(symbolsNormalized);
         const subscribe = {
             'event': 'subscribe',
             'channel': [
@@ -451,18 +466,19 @@ class poloniex extends poloniex$1["default"] {
         };
         const request = this.extend(subscribe, params);
         const messageHashes = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                messageHashes.push(name + '::' + symbols[i]);
+        if (symbolsNormalized !== undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                messageHashes.push(name + '::' + symbolsNormalized[i]);
             }
         }
         const trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
+        const first = this.safeDict(trades, 0);
+        const tradeSymbol = this.safeString(first, 'symbol');
+        let limitResolved = limit;
         if (this.newUpdates) {
-            const first = this.safeDict(trades, 0);
-            const tradeSymbol = this.safeString(first, 'symbol');
-            limit = trades.getLimit(tradeSymbol, limit);
+            limitResolved = trades.getLimit(tradeSymbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     /**
      * @method
@@ -479,9 +495,9 @@ class poloniex extends poloniex$1["default"] {
             await this.loadMarkets();
         }
         const watchOrderBookOptions = this.safeDict(this.options, 'watchOrderBook');
-        let name = this.safeString(watchOrderBookOptions, 'name', 'book_lv2');
-        [name, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'name', name);
-        const orderbook = await this.subscribe(name, name, false, [symbol], params);
+        const name = this.safeString(watchOrderBookOptions, 'name', 'book_lv2');
+        const [nameOption, paramsName] = this.handleOptionStringAndParams(params, 'watchOrderBook', 'name', name);
+        const orderbook = await this.subscribe(nameOption, nameOption, false, [symbol], paramsName);
         return orderbook.limit();
     }
     /**
@@ -501,15 +517,14 @@ class poloniex extends poloniex$1["default"] {
         }
         const name = 'orders';
         await this.authenticate();
-        if (symbol !== undefined) {
-            symbol = this.symbol(symbol);
-        }
-        const symbols = (symbol === undefined) ? undefined : [symbol];
+        const symbolResolved = (symbol === undefined) ? undefined : this.symbol(symbol);
+        const symbols = (symbolResolved === undefined) ? undefined : [symbolResolved];
         const orders = await this.subscribe(name, name, true, symbols, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        return this.filterBySinceLimit(orders, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(orders, since, limitResolved, 'timestamp', true);
     }
     /**
      * @method
@@ -529,15 +544,14 @@ class poloniex extends poloniex$1["default"] {
         const name = 'orders';
         const messageHash = 'myTrades';
         await this.authenticate();
-        if (symbol !== undefined) {
-            symbol = this.symbol(symbol);
-        }
-        const symbols = (symbol === undefined) ? undefined : [symbol];
+        const symbolResolved = (symbol === undefined) ? undefined : this.symbol(symbol);
+        const symbols = (symbolResolved === undefined) ? undefined : [symbolResolved];
         const trades = await this.subscribe(name, messageHash, true, symbols, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolResolved, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     /**
      * @method
@@ -609,10 +623,9 @@ class poloniex extends poloniex$1["default"] {
         const market = this.safeMarket(symbol);
         const timeframes = this.safeDict(this.options, 'timeframes', {});
         const timeframe = this.findTimeframe(channel, timeframes);
-        const messageHash = channel + '::' + symbol;
         const parsed = this.parseWsOHLCV(data, market);
         this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
-        let stored = (timeframe === undefined) ? undefined : this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+        let stored = (timeframe === undefined) ? undefined : this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (symbol !== undefined) {
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -622,7 +635,10 @@ class poloniex extends poloniex$1["default"] {
                 }
             }
             stored.append(parsed);
-            client.resolve(stored, messageHash);
+            if (channel !== undefined) {
+                const messageHash = channel + '::' + symbol;
+                client.resolve(stored, messageHash);
+            }
         }
         return message;
     }
@@ -646,7 +662,7 @@ class poloniex extends poloniex$1["default"] {
         //
         const data = this.safeList(message, 'data', []);
         for (let i = 0; i < data.length; i++) {
-            const item = data[i];
+            const item = this.safeDict(data, i);
             const marketId = this.safeString(item, 'symbol');
             if (marketId !== undefined) {
                 const trade = this.parseWsTrade(item);
@@ -711,13 +727,13 @@ class poloniex extends poloniex$1["default"] {
         //     }
         //
         const marketId = this.safeString(trade, 'symbol');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(trade, 'createTime');
         const takerMaker = this.safeStringLower2(trade, 'matchRole', 'taker');
         return this.safeTrade({
             'info': trade,
             'id': this.safeString2(trade, 'id', 'tradeId'),
-            'symbol': this.safeString(market, 'symbol'),
+            'symbol': this.safeString(marketResolved, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'order': this.safeString(trade, 'orderId'),
@@ -732,7 +748,7 @@ class poloniex extends poloniex$1["default"] {
                 'cost': this.safeString(trade, 'tradeFee'),
                 'currency': this.safeString(trade, 'feeCurrency'),
             },
-        }, market);
+        }, marketResolved);
     }
     parseStatus(status) {
         const statuses = {
@@ -1101,7 +1117,7 @@ class poloniex extends poloniex$1["default"] {
         const snapshot = type === 'snapshot';
         const update = type === 'update';
         for (let i = 0; i < data.length; i++) {
-            const item = data[i];
+            const item = this.safeDict(data, i);
             const marketId = this.safeString(item, 'symbol');
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];

@@ -330,8 +330,8 @@ export default class grvt extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseIncome(income: any, market?: Market): {
-        info: any;
+    parseIncome(income: Dict, market?: Market): {
+        info: Dict;
         symbol: string;
         code: Str;
         timestamp: Int;
@@ -408,7 +408,7 @@ export default class grvt extends Exchange {
         chainId: number;
     };
     feeAmountMultiplier(): number;
-    createSignedRequest(request: any, structureType: string, currencyObj?: Dict | undefined, signerAddress?: Str): Dict;
+    createSignedRequest(request: Dict, structureType: string, currencyObj?: Dict | undefined, signerAddress?: Str): Dict;
     formatSignatureRS(value: string): string;
     defaultSignature(): {
         signer: string;
@@ -421,6 +421,6 @@ export default class grvt extends Exchange {
     };
     handleUntilOptionString(key: string, request: Dict, params?: Dict, multiplier?: number): [Dict, Dict];
     requestId(): number;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

@@ -1,5 +1,5 @@
 import Exchange from './abstract/pacifica.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory, List, OpenInterest } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory, OpenInterest } from './base/types.js';
 /**
  * @class pacifica
  * @augments Exchange
@@ -61,7 +61,7 @@ export default class pacifica extends Exchange {
      */
     fetchAccountSettings(params?: Dict): Promise<Dict>;
     loadAccountSettings(refresh?: boolean, params?: Dict): Promise<void>;
-    parseAccountSettings(settings: any[]): Dict;
+    parseAccountSettings(settings: Dict[]): Dict;
     /**
      * @method
      * @name pacifica#fetchMarginMode
@@ -335,7 +335,7 @@ export default class pacifica extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
-    addPaginationCursorToResult(response: Dict): any[];
+    addPaginationCursorToResult(response: Dict): Dict[];
     /**
      * @method
      * @name pacifica#fetchOrder
@@ -348,7 +348,7 @@ export default class pacifica extends Exchange {
      */
     fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     parseOrderStatus(status: Str): Str;
-    mapTimeInForce(tifRaw: Str): Str;
+    mapTimeInForce(tifRaw: Str): string;
     mapSide(sideRaw: Str): Str;
     parseOrderType(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
@@ -478,7 +478,7 @@ export default class pacifica extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseIncome(income: any, market?: Market): object;
+    parseIncome(income: Dict, market?: Market): object;
     /**
      * @method
      * @name pacifica#transfer
@@ -512,12 +512,12 @@ export default class pacifica extends Exchange {
     revokeApiKey(apiKey: string, params?: Dict): Promise<Dict>;
     fetchApiKeys(params?: Dict): Promise<Dict>;
     approveBuilderCode(builderCode: string, maxFeeRate: string, params?: Dict): Promise<Dict>;
-    fetchBuilderApprovals(address: string): Promise<List>;
+    fetchBuilderApprovals(address: string): Promise<Dict>;
     revokeBuilderCode(builderCode: string, params?: Dict): Promise<Dict>;
     handleOriginAndSingleAddress(methodName: string, params: Dict): [Str, Dict];
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: any): any;
+    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: Dict): any;
     sortJsonKeys(value: any): any;
     prepareMessage(header: Dict, payload: Dict): string;
     signMessage(header: Dict, payload: Dict, privateKey: string): string;

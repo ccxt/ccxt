@@ -568,7 +568,7 @@ class bigone extends bigone$1["default"] {
         }
         const chainLength = chains.length;
         let type = undefined;
-        if (this.safeBool(rawCurrency, 'is_fiat') === true) {
+        if (this.safeBool(rawCurrency, 'is_fiat', false)) {
             type = 'fiat';
         }
         else if (chainLength === 0) {
@@ -617,7 +617,7 @@ class bigone extends bigone$1["default"] {
     async fetchMarkets(params = {}) {
         const promises = [this.publicGetAssetPairs(params), this.contractPublicGetSymbols(params)];
         const promisesResult = await Promise.all(promises);
-        const response = promisesResult[0];
+        const response = this.safeDict(promisesResult, 0);
         const contractResponse = promisesResult[1];
         //
         //     {
@@ -681,6 +681,9 @@ class bigone extends bigone$1["default"] {
             const quoteId = this.safeString(quoteAsset, 'symbol');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             result.push(this.safeMarketStructure({
                 'id': this.safeString(market, 'name'),
                 'uuid': this.safeString(market, 'id'),
@@ -741,6 +744,9 @@ class bigone extends bigone$1["default"] {
             const marketId = this.safeString(market, 'symbol');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const settle = this.safeCurrencyCode(settleId);
             const inverse = this.safeBool(market, 'isInverse');
             result.push(this.safeMarketStructure({
@@ -841,7 +847,10 @@ class bigone extends bigone$1["default"] {
         //        "openInterest": 1141372.0
         //    }
         //
-        const marketType = ('asset_pair_name' in ticker) ? 'spot' : 'swap';
+        let marketType = 'swap';
+        if ('asset_pair_name' in ticker) {
+            marketType = 'spot';
+        }
         const marketId = this.safeString2(ticker, 'asset_pair_name', 'symbol');
         const symbol = this.safeSymbol(marketId, market, '-', marketType);
         const close = this.safeString2(ticker, 'close', 'latestPrice');
@@ -886,13 +895,12 @@ class bigone extends bigone$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('fetchTicker', market, params);
+        const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchTicker', market, params);
         if (type === 'spot') {
             const request = {
                 'asset_pair_name': market['id'],
             };
-            const response = await this.publicGetAssetPairsAssetPairNameTicker(this.extend(request, params));
+            const response = await this.publicGetAssetPairsAssetPairNameTicker(this.extend(request, paramsMarketType));
             //
             //     {
             //         "code":0,
@@ -913,7 +921,7 @@ class bigone extends bigone$1["default"] {
             return this.parseTicker(ticker, market);
         }
         else {
-            const tickers = await this.fetchTickers([symbol], params);
+            const tickers = await this.fetchTickers([symbol], paramsMarketType);
             return this.safeValue(tickers, symbol);
         }
     }
@@ -935,18 +943,17 @@ class bigone extends bigone$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
+        const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchTickers', market, params);
         const isSpot = type === 'spot';
         const request = {};
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         let data = undefined;
         if (isSpot) {
-            if (symbols !== undefined) {
-                const ids = this.marketIds(symbols);
+            if (symbolsNormalized !== undefined) {
+                const ids = this.marketIds(symbolsNormalized);
                 request['pair_names'] = ids.join(',');
             }
-            const response = await this.publicGetAssetPairsTickers(this.extend(request, params));
+            const response = await this.publicGetAssetPairsTickers(this.extend(request, paramsMarketType));
             //
             //    {
             //        "code": 0,
@@ -977,7 +984,7 @@ class bigone extends bigone$1["default"] {
             data = this.safeList(response, 'data', []);
         }
         else {
-            const instruments = await this.contractPublicGetInstruments(params);
+            const instruments = await this.contractPublicGetInstruments(paramsMarketType);
             data = this.toArray(instruments);
             //
             //    [
@@ -1005,8 +1012,8 @@ class bigone extends bigone$1["default"] {
             //    ]
             //
         }
-        const tickers = this.parseTickers(data, symbols);
-        return this.filterByArrayTickers(tickers, 'symbol', symbols);
+        const tickers = this.parseTickers(data, symbolsNormalized);
+        return this.filterByArrayTickers(tickers, 'symbol', symbolsNormalized);
     }
     /**
      * @method
@@ -1178,7 +1185,7 @@ class bigone extends bigone$1["default"] {
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'amount');
         const marketId = this.safeString(trade, 'asset_pair_name');
-        market = this.safeMarket(marketId, market, '-');
+        const marketResolved = this.safeMarket(marketId, market, '-');
         let side = this.safeString(trade, 'side');
         const takerSide = this.safeString(trade, 'taker_side');
         let takerOrMaker = undefined;
@@ -1212,7 +1219,7 @@ class bigone extends bigone$1["default"] {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': orderId,
             'type': 'limit',
             'side': side,
@@ -1227,33 +1234,33 @@ class bigone extends bigone$1["default"] {
         if (takerOrMaker !== undefined) {
             if (side === 'buy') {
                 if (takerOrMaker === 'maker') {
-                    makerCurrencyCode = market['base'];
-                    takerCurrencyCode = market['quote'];
+                    makerCurrencyCode = this.safeString(marketResolved, 'base');
+                    takerCurrencyCode = this.safeString(marketResolved, 'quote');
                 }
                 else {
-                    makerCurrencyCode = market['quote'];
-                    takerCurrencyCode = market['base'];
+                    makerCurrencyCode = this.safeString(marketResolved, 'quote');
+                    takerCurrencyCode = this.safeString(marketResolved, 'base');
                 }
             }
             else {
                 if (takerOrMaker === 'maker') {
-                    makerCurrencyCode = market['quote'];
-                    takerCurrencyCode = market['base'];
+                    makerCurrencyCode = this.safeString(marketResolved, 'quote');
+                    takerCurrencyCode = this.safeString(marketResolved, 'base');
                 }
                 else {
-                    makerCurrencyCode = market['base'];
-                    takerCurrencyCode = market['quote'];
+                    makerCurrencyCode = this.safeString(marketResolved, 'base');
+                    takerCurrencyCode = this.safeString(marketResolved, 'quote');
                 }
             }
         }
         else if (side === 'SELF_TRADING') {
             if (takerSide === 'BID') {
-                makerCurrencyCode = market['quote'];
-                takerCurrencyCode = market['base'];
+                makerCurrencyCode = this.safeString(marketResolved, 'quote');
+                takerCurrencyCode = this.safeString(marketResolved, 'base');
             }
             else if (takerSide === 'ASK') {
-                makerCurrencyCode = market['base'];
-                takerCurrencyCode = market['quote'];
+                makerCurrencyCode = this.safeString(marketResolved, 'base');
+                takerCurrencyCode = this.safeString(marketResolved, 'quote');
             }
         }
         const makerFeeCost = this.safeString(trade, 'maker_fee');
@@ -1278,7 +1285,7 @@ class bigone extends bigone$1["default"] {
         else {
             result['fee'] = undefined;
         }
-        return this.safeTrade(result, market);
+        return this.safeTrade(result, marketResolved);
     }
     /**
      * @method
@@ -1371,18 +1378,21 @@ class bigone extends bigone$1["default"] {
         const until = this.safeInteger(params, 'until');
         const untilIsDefined = (until !== undefined);
         const sinceIsDefined = (since !== undefined);
-        if (limit === undefined) {
-            limit = (sinceIsDefined && untilIsDefined) ? 500 : 100; // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
+        // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
+        let defaultLimit = 100;
+        if (sinceIsDefined && untilIsDefined) {
+            defaultLimit = 500;
         }
+        const limitResolved = (limit === undefined) ? defaultLimit : limit;
         const request = {
             'asset_pair_name': market['id'],
             'period': this.safeString(this.timeframes, timeframe, timeframe),
-            'limit': limit,
+            'limit': limitResolved,
         };
         if (sinceIsDefined) {
             // const start = this.parseToInt (since / 1000);
             const duration = this.parseTimeframe(timeframe);
-            const endByLimit = this.sum(since, limit * duration * 1000);
+            const endByLimit = this.sum(since, limitResolved * duration * 1000);
             if (untilIsDefined) {
                 request['time'] = this.iso8601(Math.min(endByLimit, until + 1));
             }
@@ -1393,8 +1403,8 @@ class bigone extends bigone$1["default"] {
         else if (untilIsDefined) {
             request['time'] = this.iso8601(until + 1);
         }
-        params = this.omit(params, 'until');
-        const response = await this.publicGetAssetPairsAssetPairNameCandles(this.extend(request, params));
+        const paramsOmitted = this.omit(params, 'until');
+        const response = await this.publicGetAssetPairsAssetPairNameCandles(this.extend(request, paramsOmitted));
         //
         //     {
         //         "code": 0,
@@ -1419,7 +1429,7 @@ class bigone extends bigone$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseOHLCVs(data, market, timeframe, since, limit);
+        return this.parseOHLCVs(data, market, timeframe, since, limitResolved);
     }
     parseBalance(response) {
         const result = {
@@ -1429,7 +1439,7 @@ class bigone extends bigone$1["default"] {
         };
         const balances = this.safeList(response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict(balances, i);
             const symbol = this.safeString(balance, 'asset_symbol');
             const code = this.safeCurrencyCode(symbol);
             const account = this.account();
@@ -1455,13 +1465,13 @@ class bigone extends bigone$1["default"] {
             await this.loadMarkets();
         }
         const type = this.safeString(params, 'type', '');
-        params = this.omit(params, 'type');
+        const paramsOmitted = this.omit(params, 'type');
         let response;
         if (type === 'funding' || type === 'fund') {
-            response = await this.privateGetFundAccounts(params);
+            response = await this.privateGetFundAccounts(paramsOmitted);
         }
         else {
-            response = await this.privateGetAccounts(params);
+            response = await this.privateGetAccounts(paramsOmitted);
         }
         //
         //     {
@@ -1608,13 +1618,17 @@ class bigone extends bigone$1["default"] {
         }
         const market = this.market(symbol);
         const isBuy = (side === 'buy');
-        const requestSide = isBuy ? 'BID' : 'ASK';
+        let requestSide = 'ASK';
+        if (isBuy) {
+            requestSide = 'BID';
+        }
         let uppercaseType = type.toUpperCase();
         const isLimit = uppercaseType === 'LIMIT';
         const exchangeSpecificParam = this.safeBool(params, 'post_only', false);
         let postOnly = undefined;
-        [postOnly, params] = this.handlePostOnly(uppercaseType === 'MARKET', exchangeSpecificParam === true, params);
-        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'stop_price']);
+        let query = undefined;
+        [postOnly, query] = this.handlePostOnly(uppercaseType === 'MARKET', exchangeSpecificParam === true, params);
+        const triggerPrice = this.safeStringN(query, ['triggerPrice', 'stopPrice', 'stop_price']);
         const request = {
             'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
             'side': requestSide, // order side one of "ASK"/"BID", required
@@ -1627,7 +1641,7 @@ class bigone extends bigone$1["default"] {
         if (isLimit || (uppercaseType === 'STOP_LIMIT')) {
             request['price'] = this.priceToPrecision(symbol, price);
             if (isLimit) {
-                const timeInForce = this.safeString(params, 'timeInForce');
+                const timeInForce = this.safeString(query, 'timeInForce');
                 if (timeInForce === 'IOC') {
                     request['immediate_or_cancel'] = true;
                 }
@@ -1640,9 +1654,9 @@ class bigone extends bigone$1["default"] {
         else {
             if (isBuy) {
                 let createMarketBuyOrderRequiresPrice = undefined;
-                [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                const cost = this.safeNumber(params, 'cost');
-                params = this.omit(params, 'cost');
+                [createMarketBuyOrderRequiresPrice, query] = this.handleOptionBoolAndParams(query, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber(query, 'cost');
+                query = this.omit(query, 'cost');
                 if (createMarketBuyOrderRequiresPrice) {
                     if ((price === undefined) && (cost === undefined)) {
                         throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
@@ -1674,12 +1688,12 @@ class bigone extends bigone$1["default"] {
             }
         }
         request['type'] = uppercaseType;
-        const clientOrderId = this.safeString(params, 'clientOrderId');
+        const clientOrderId = this.safeString(query, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
-        params = this.omit(params, ['stop_price', 'stopPrice', 'triggerPrice', 'timeInForce', 'clientOrderId']);
-        const response = await this.privatePostOrders(this.extend(request, params));
+        query = this.omit(query, ['stop_price', 'stopPrice', 'triggerPrice', 'timeInForce', 'clientOrderId']);
+        const response = await this.privatePostOrders(this.extend(request, query));
         //
         //    {
         //        "id": 10,
@@ -1963,10 +1977,15 @@ class bigone extends bigone$1["default"] {
         return this.sum(this.microseconds() * 1000, exchangeTimeCorrection);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let bodySigned = undefined;
         const query = this.omit(params, this.extractParams(path));
-        const baseUrl = this.implodeHostname(this.urls['api'][api]);
+        const apiUrl = this.safeString(this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl = this.implodeHostname(apiUrl);
         let url = baseUrl + '/' + this.implodeParams(path, params);
-        headers = {};
+        const headersValue = {};
         if (api === 'public' || api === 'webExchange' || api === 'contractPublic') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
@@ -1982,19 +2001,20 @@ class bigone extends bigone$1["default"] {
                 // 'recv_window': '30', // default 30
             };
             const token = rsa.jwt(request, this.encode(this.secret), sha2_js.sha256);
-            headers['Authorization'] = 'Bearer ' + token;
+            headersValue['Authorization'] = 'Bearer ' + token;
             if (method === 'GET') {
                 if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }
             else if (method === 'POST') {
-                headers['Content-Type'] = 'application/json';
-                body = this.json(query);
+                headersValue['Content-Type'] = 'application/json';
+                bodySigned = this.json(query);
             }
         }
-        headers['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        headersValue['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
+        const bodyResolved = (bodySigned === undefined) ? body : bodySigned;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue };
     }
     /**
      * @method
@@ -2124,7 +2144,10 @@ class bigone extends bigone$1["default"] {
         const txid = this.safeString(transaction, 'txid');
         const address = this.safeString(transaction, 'target_address');
         const tag = this.safeString(transaction, 'memo');
-        const type = ('customer_id' in transaction) ? 'withdrawal' : 'deposit';
+        let type = 'deposit';
+        if ('customer_id' in transaction) {
+            type = 'withdrawal';
+        }
         const internal = this.safeBool(transaction, 'is_internal');
         return {
             'info': transaction,
@@ -2344,7 +2367,7 @@ class bigone extends bigone$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -2354,16 +2377,15 @@ class bigone extends bigone$1["default"] {
             'target_address': address,
             'amount': this.currencyToPrecision(code, amount),
         };
-        if (tag !== undefined) {
-            request['memo'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['memo'] = tagWithdrawTag;
         }
-        let networkCode = undefined;
-        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        const [networkCode, paramsNetworkCode] = this.handleNetworkCodeAndParams(paramsWithdrawTag);
         if (networkCode !== undefined) {
-            request['gateway_name'] = this.networkCodeToId(networkCode, currency['code']);
+            request['gateway_name'] = this.networkCodeToId(networkCode, this.safeString(currency, 'code'));
         }
         // requires write permission on the wallet
-        const response = await this.privatePostWithdrawals(this.extend(request, params));
+        const response = await this.privatePostWithdrawals(this.extend(request, paramsNetworkCode));
         //
         //     {
         //         "code":0,

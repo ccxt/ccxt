@@ -797,14 +797,13 @@ class sxbet extends sxbet$1["default"] {
         if (tokenAddress === undefined) {
             throw new errors.BadRequest(this.id + ' approve() could not resolve the base token address from /metadata/obv3');
         }
-        let spender = undefined;
-        [spender, params] = this.handleOptionAndParams2(params, 'approve', 'spender', 'transferToProxySpender', executorAddress);
+        const [spender, paramsSpender] = this.handleOptionStringAndParams2(params, 'approve', 'spender', 'transferToProxySpender', executorAddress);
         if (spender === undefined) {
             throw new errors.BadRequest(this.id + ' approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender');
         }
         const chains = this.safeDict(this.options, 'chains', {});
         const chainConfig = this.safeDict(chains, this.numberToString(chainId), {});
-        const rpcUrl = this.safeString(params, 'rpcUrl', this.safeString(chainConfig, 'rpcUrl'));
+        const rpcUrl = this.safeString(paramsSpender, 'rpcUrl', this.safeString(chainConfig, 'rpcUrl'));
         if (rpcUrl === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' approve() has no RPC endpoint configured for chainId ' + this.numberToString(chainId) + ' - pass params.rpcUrl');
         }
@@ -815,7 +814,7 @@ class sxbet extends sxbet$1["default"] {
         const nonce = (nonceHex === '') ? '0' : this.numberToString(this.hexToInt(nonceHex));
         const tokenName = await this.fetchErc20Name(rpcUrl, tokenAddress);
         const defaultDeadlineSeconds = this.safeInteger(this.options, 'approveDeadlineSeconds', 7200);
-        const deadline = this.safeInteger(params, 'deadline', this.sum(this.seconds(), defaultDeadlineSeconds));
+        const deadline = this.safeInteger(paramsSpender, 'deadline', this.sum(this.seconds(), defaultDeadlineSeconds));
         const value = this.decimalToPrecision(Precise["default"].stringMul(this.numberToString(amount), '1000000'), number.ROUND, 0, number.DECIMAL_PLACES);
         const domain = { 'name': tokenName, 'version': '1', 'chainId': chainId, 'verifyingContract': tokenAddress };
         const messageTypes = {
@@ -839,7 +838,7 @@ class sxbet extends sxbet$1["default"] {
             'deadline': this.numberToString(deadline),
             'signature': signature,
         };
-        const rest = this.omit(params, ['amount', 'tokenAddress', 'deadline', 'rpcUrl']);
+        const rest = this.omit(paramsSpender, ['amount', 'tokenAddress', 'deadline', 'rpcUrl']);
         const response = await this.sxbetPrivatePostUserTransferToProxy(this.extend(request, rest));
         const data = this.safeDict(response, 'data', {});
         return {
@@ -914,9 +913,11 @@ class sxbet extends sxbet$1["default"] {
         const saltHex = '0x' + saltHexPadded;
         const defaultExpirySeconds = this.safeInteger(this.options, 'defaultOrderExpirySeconds', 86400);
         const expiry = this.safeInteger(params, 'expiry', this.sum(this.seconds(), defaultExpirySeconds));
-        const defaultTif = (type === 'limit') ? 'GTC' : 'IOC';
-        let timeInForce = undefined;
-        [timeInForce, params] = this.handleOptionAndParams(params, 'createOrder', 'timeInForce', defaultTif);
+        let defaultTif = 'IOC';
+        if (type === 'limit') {
+            defaultTif = 'GTC';
+        }
+        const [timeInForce, paramsTimeInForce] = this.handleOptionStringAndParams(params, 'createOrder', 'timeInForce', defaultTif);
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         // contradicting the immediate-fill semantics the type promises
@@ -961,22 +962,22 @@ class sxbet extends sxbet$1["default"] {
             'timeInForce': timeInForce,
             'orderSignature': orderSignature,
         };
-        const clientOrderId = this.safeString(params, 'clientOrderId');
+        const clientOrderId = this.safeString(paramsTimeInForce, 'clientOrderId');
         if (clientOrderId !== undefined) {
             orderItem['clientOrderId'] = clientOrderId;
         }
         // useBetCredits and externalUserId are per-order fields - route them into the order item,
         // not the top-level body, where the venue would silently ignore them
-        const useBetCredits = this.safeBool(params, 'useBetCredits');
+        const useBetCredits = this.safeBool(paramsTimeInForce, 'useBetCredits');
         if (useBetCredits !== undefined) {
             orderItem['useBetCredits'] = useBetCredits;
         }
-        const externalUserId = this.safeString(params, 'externalUserId');
+        const externalUserId = this.safeString(paramsTimeInForce, 'externalUserId');
         if (externalUserId !== undefined) {
             orderItem['externalUserId'] = externalUserId;
         }
-        const waitForOutcome = this.safeBool(params, 'waitForOutcome', true);
-        const rest = this.omit(params, ['salt', 'expiry', 'clientOrderId', 'waitForOutcome', 'useBetCredits', 'externalUserId']);
+        const waitForOutcome = this.safeBool(paramsTimeInForce, 'waitForOutcome', true);
+        const rest = this.omit(paramsTimeInForce, ['salt', 'expiry', 'clientOrderId', 'waitForOutcome', 'useBetCredits', 'externalUserId']);
         const request = { 'orders': [orderItem], 'waitForOutcome': waitForOutcome };
         const response = await this.sxbetPrivatePostOrdersV3(this.extend(request, rest));
         const data = this.safeDict(response, 'data', {});
@@ -1222,7 +1223,13 @@ class sxbet extends sxbet$1["default"] {
         const orderId = this.safeString2(order, 'id', 'orderId');
         const marketHash = this.safeString(order, 'marketHash', '');
         const isBettingOutcomeOne = this.safeBool(order, 'isBettingOutcomeOne', true);
-        const outcomeId = (isBettingOutcomeOne) ? marketHash : (marketHash + '-2');
+        let outcomeId = undefined;
+        if (isBettingOutcomeOne) {
+            outcomeId = marketHash;
+        }
+        else {
+            outcomeId = (marketHash + '-2');
+        }
         const outcomeObj = this.safeOutcome(outcomeId, market);
         const oneDenom = '100000000000000000000';
         const usdcDecimals = '1000000';
@@ -1459,7 +1466,13 @@ class sxbet extends sxbet$1["default"] {
         //
         const marketHash = this.safeString(fill, 'marketHash', '');
         const isBettingOutcomeOne = this.safeBool(fill, 'isBettingOutcomeOne', true);
-        const outcomeId = (isBettingOutcomeOne) ? marketHash : (marketHash + '-2');
+        let outcomeId = undefined;
+        if (isBettingOutcomeOne) {
+            outcomeId = marketHash;
+        }
+        else {
+            outcomeId = (marketHash + '-2');
+        }
         const outcomeObj = this.safeOutcome(outcomeId, market);
         const oneDenom = '100000000000000000000';
         const usdcDecimals = '1000000';
@@ -1519,7 +1532,7 @@ class sxbet extends sxbet$1["default"] {
         const usdcDecimals = '1000000';
         const balancesLength = balances.length;
         for (let i = 0; i < balancesLength; i++) {
-            const row = balances[i];
+            const row = this.safeDict(balances, i);
             const tokenAddress = this.safeStringLower(row, 'tokenAddress', '');
             // every sxbet market is denominated in the active base token, surfaced under 'USDC';
             // rows of any other token keep their contract address for the code
@@ -1602,12 +1615,24 @@ class sxbet extends sxbet$1["default"] {
         //
         const marketHash = this.safeString(raw, 'marketHash', '');
         const isOutcomeOneMaxWin = this.safeBool(raw, 'isOutcomeOneMaxWin', true);
-        const outcomeId = (isOutcomeOneMaxWin) ? marketHash : (marketHash + '-2');
+        let outcomeId = undefined;
+        if (isOutcomeOneMaxWin) {
+            outcomeId = marketHash;
+        }
+        else {
+            outcomeId = (marketHash + '-2');
+        }
         const outcomeObj = this.safeOutcome(outcomeId);
         const oneDenom = '100000000000000000000';
         const usdcDecimals = '1000000';
         const odds = this.safeDict(raw, 'odds', {});
-        const ownOdds = (isOutcomeOneMaxWin) ? this.safeString(odds, 'outcomeOne') : this.safeString(odds, 'outcomeTwo');
+        let ownOdds = undefined;
+        if (isOutcomeOneMaxWin) {
+            ownOdds = this.safeString(odds, 'outcomeOne');
+        }
+        else {
+            ownOdds = this.safeString(odds, 'outcomeTwo');
+        }
         const entryPrice = (ownOdds !== undefined) ? this.parseNumber(Precise["default"].stringDiv(ownOdds, oneDenom)) : undefined;
         const totalStake = this.safeString(raw, 'totalStake', '0');
         const pnl = this.safeString(raw, 'pnl');
@@ -1695,7 +1720,13 @@ class sxbet extends sxbet$1["default"] {
         //
         const marketHash = this.safeString(trade, 'marketHash', '');
         const isBettingOutcomeOne = this.safeBool(trade, 'isBettingOutcomeOne', true);
-        const outcomeId = (isBettingOutcomeOne) ? marketHash : (marketHash + '-2');
+        let outcomeId = undefined;
+        if (isBettingOutcomeOne) {
+            outcomeId = marketHash;
+        }
+        else {
+            outcomeId = (marketHash + '-2');
+        }
         const outcomeObj = this.safeOutcome(outcomeId, market);
         const settlement = this.safeDict(trade, 'settlement', {});
         const winner = this.safeInteger(settlement, 'outcome');
@@ -1716,7 +1747,10 @@ class sxbet extends sxbet$1["default"] {
         }
         else if (winner !== undefined) {
             const info = this.safeDict(outcomeObj, 'info', {});
-            const labelKey = (winner === 1) ? 'outcomeOneName' : 'outcomeTwoName';
+            let labelKey = 'outcomeTwoName';
+            if (winner === 1) {
+                labelKey = 'outcomeOneName';
+            }
             resultLabel = this.safeString(info, labelKey, this.numberToString(winner));
         }
         const timestamp = this.parse8601(this.safeString(settlement, 'settleDate'));
@@ -1924,8 +1958,14 @@ class sxbet extends sxbet$1["default"] {
         const isOutcomeOne = (outcomeId === marketHash);
         const outcomeOneOdds = this.safeDict(raw, 'outcomeOne', {});
         const outcomeTwoOdds = this.safeDict(raw, 'outcomeTwo', {});
-        const ownOdds = (isOutcomeOne) ? outcomeOneOdds : outcomeTwoOdds;
-        const oppositeOdds = (isOutcomeOne) ? outcomeTwoOdds : outcomeOneOdds;
+        let ownOdds = outcomeTwoOdds;
+        if (isOutcomeOne) {
+            ownOdds = outcomeOneOdds;
+        }
+        let oppositeOdds = outcomeOneOdds;
+        if (isOutcomeOne) {
+            oppositeOdds = outcomeTwoOdds;
+        }
         // percentageOdds is the maker's own implied probability * 1e20 (sx.bet protocol format);
         // the opposite side's best resting maker mirrors into this outcome's ask via 1 - p
         const oneDenom = '100000000000000000000';
@@ -2027,7 +2067,7 @@ class sxbet extends sxbet$1["default"] {
         const bids = [];
         const ownLevelsLength = ownLevels.length;
         for (let i = 0; i < ownLevelsLength; i++) {
-            const level = ownLevels[i];
+            const level = this.safeDict(ownLevels, i);
             const percentageOdds = this.safeString(level, 'percentageOdds');
             const size = this.safeString(level, 'size', '0');
             const price = this.parseNumber(Precise["default"].stringDiv(percentageOdds, oneDenom));
@@ -2037,7 +2077,7 @@ class sxbet extends sxbet$1["default"] {
         const asks = [];
         const oppositeLevelsLength = oppositeLevels.length;
         for (let i = 0; i < oppositeLevelsLength; i++) {
-            const level = oppositeLevels[i];
+            const level = this.safeDict(oppositeLevels, i);
             const percentageOdds = this.safeString(level, 'percentageOdds');
             const size = this.safeString(level, 'size', '0');
             // the opposite side's resting stake mirrors into this outcome's ask - the price is the
@@ -2415,7 +2455,7 @@ class sxbet extends sxbet$1["default"] {
         const watchedSyms = Object.keys(watchedTickers);
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
-            const entry = rows[i];
+            const entry = this.safeDict(rows, i);
             const marketHash = this.safeString(entry, 'marketHash');
             if (marketHash === undefined) {
                 continue;
@@ -2472,7 +2512,13 @@ class sxbet extends sxbet$1["default"] {
     parseSxbetV3PublicTrade(trade) {
         const marketHash = this.safeString(trade, 'marketHash', '');
         const isBettingOutcomeOne = this.safeBool(trade, 'isBettingOutcomeOne', true);
-        const outcomeId = (isBettingOutcomeOne) ? marketHash : (marketHash + '-2');
+        let outcomeId = undefined;
+        if (isBettingOutcomeOne) {
+            outcomeId = marketHash;
+        }
+        else {
+            outcomeId = (marketHash + '-2');
+        }
         const outcomeObj = this.safeOutcome(outcomeId);
         const oneDenom = '100000000000000000000';
         const usdcDecimals = '1000000';
@@ -2676,12 +2722,12 @@ class sxbet extends sxbet$1["default"] {
         let url = baseUrl + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const existingHeaders = (headers !== undefined) ? headers : {};
-        headers = this.extend({
+        const headersExtended = this.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders);
         if (this.apiKey !== undefined) {
-            headers['x-sx-api-key'] = this.apiKey;
+            headersExtended['x-sx-api-key'] = this.apiKey;
         }
         // DELETE /orders-v3 carries its order ids in a JSON body; the other DELETE routes -
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
@@ -2690,6 +2736,7 @@ class sxbet extends sxbet$1["default"] {
             const hasOrdersList = ('orders' in query);
             sendAsQuery = !hasOrdersList;
         }
+        let bodyValue = body;
         if (sendAsQuery) {
             const querystring = this.urlencode(query);
             if (querystring !== '') {
@@ -2700,10 +2747,10 @@ class sxbet extends sxbet$1["default"] {
             const queryKeys = Object.keys(query);
             const queryKeysLength = queryKeys.length;
             if (queryKeysLength > 0) {
-                body = this.json(query);
+                bodyValue = this.json(query);
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersExtended };
     }
 }
 

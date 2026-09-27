@@ -624,7 +624,7 @@ export default class backpack extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool(this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference();
         }
         const response = await this.publicGetApiV1Markets(params);
@@ -724,6 +724,9 @@ export default class backpack extends Exchange {
         const quoteId = this.safeString(market, 'quoteSymbol');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         let symbol = base + '/' + quote;
         const filters = this.safeDict(market, 'filters', {});
         const priceFilter = this.safeDict(filters, 'price', {});
@@ -874,8 +877,8 @@ export default class backpack extends Exchange {
         //     }, ...
         //
         const marketId = this.safeString(ticker, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = this.safeSymbol(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = this.safeSymbol(marketId, marketResolved);
         const open = this.safeString(ticker, 'firstPrice');
         const last = this.safeString(ticker, 'lastPrice');
         const high = this.safeString(ticker, 'high');
@@ -912,7 +915,7 @@ export default class backpack extends Exchange {
             'markPrice': undefined,
             'indexPrice': undefined,
             'info': ticker,
-        }, market);
+        }, marketResolved);
         return parsedTicker;
     }
     /**
@@ -979,32 +982,33 @@ export default class backpack extends Exchange {
             'symbol': market['id'],
             'interval': interval,
         };
-        let until = undefined;
-        [until, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'until');
+        const [until, paramsUntil] = this.handleOptionIntegerAndParams(params, 'fetchOHLCV', 'until');
         if (until !== undefined) {
             request['endTime'] = this.parseToInt(until / 1000); // convert milliseconds to seconds
         }
         const defaultLimit = 100;
+        let limitResolved = limit;
+        if ((since === undefined) && (limit === undefined)) {
+            limitResolved = defaultLimit;
+        }
         if (since === undefined) {
-            if (limit === undefined) {
-                limit = defaultLimit;
-            }
             const duration = this.parseTimeframe(timeframe);
             const endTime = (until !== undefined && until !== null && until !== 0) ? this.parseToInt(until / 1000) : this.seconds();
-            const startTime = endTime - (limit * duration);
+            const windowLimit = (limit === undefined) ? defaultLimit : limit;
+            const startTime = endTime - (windowLimit * duration);
             request['startTime'] = startTime;
         }
         else {
             request['startTime'] = this.parseToInt(since / 1000); // convert milliseconds to seconds
         }
-        const price = this.safeString(params, 'price');
+        const price = this.safeString(paramsUntil, 'price');
+        const paramsOmitted = (price !== undefined) ? this.omit(paramsUntil, 'price') : paramsUntil;
         if (price !== undefined) {
             request['priceType'] = this.capitalize(price);
-            params = this.omit(params, 'price');
         }
-        const response = await this.publicGetApiV1Klines(this.extend(request, params));
+        const response = await this.publicGetApiV1Klines(this.extend(request, paramsOmitted));
         const ohlcvs = this.toArray(response);
-        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
+        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limitResolved);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -1067,8 +1071,8 @@ export default class backpack extends Exchange {
         //     }
         //
         const marketId = this.safeString(contract, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = this.safeSymbol(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = this.safeSymbol(marketId, marketResolved);
         const nextFundingTimestamp = this.safeInteger(contract, 'nextFundingTimestamp');
         return {
             'info': contract,
@@ -1186,7 +1190,7 @@ export default class backpack extends Exchange {
             });
         }
         const sorted = this.sortBy(rates, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, 'symbol'), since, limit);
     }
     /**
      * @method
@@ -1253,15 +1257,15 @@ export default class backpack extends Exchange {
             request['limit'] = limit;
         }
         const until = this.safeInteger(params, 'until');
+        const paramsOmitted = (until !== undefined) ? this.omit(params, ['until']) : params;
         if (until !== undefined) {
-            params = this.omit(params, ['until']);
             request['to'] = until;
         }
-        const fillType = this.safeString(params, 'fillType');
+        const fillType = this.safeString(paramsOmitted, 'fillType');
         if (fillType === undefined) {
             request['fillType'] = 'User'; // default
         }
-        const response = await this.privateGetWapiV1HistoryFills(this.extend(request, params));
+        const response = await this.privateGetWapiV1HistoryFills(this.extend(request, paramsOmitted));
         const responseList = this.toArray(response);
         return this.parseTrades(responseList, market, since, limit);
     }
@@ -1295,7 +1299,7 @@ export default class backpack extends Exchange {
         //
         const id = this.safeString2(trade, 'id', 'tradeId');
         const marketId = this.safeString(trade, 'symbol');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'quantity');
         const isBuyerMaker = this.safeBool(trade, 'isBuyerMaker');
@@ -1330,7 +1334,7 @@ export default class backpack extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'id': id,
             'order': orderId,
             'type': undefined,
@@ -1340,7 +1344,7 @@ export default class backpack extends Exchange {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1415,7 +1419,7 @@ export default class backpack extends Exchange {
         for (let i = 0; i < balanceKeys.length; i++) {
             const id = balanceKeys[i];
             const code = this.safeCurrencyCode(id);
-            const balance = response[id];
+            const balance = this.safeDict(response, id);
             const account = this.account();
             const locked = this.safeString(balance, 'locked');
             const staked = this.safeString(balance, 'staked');
@@ -1455,12 +1459,11 @@ export default class backpack extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
-        let until = undefined;
-        [until, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'until');
+        const [until, paramsUntil] = this.handleOptionIntegerAndParams(params, 'fetchDeposits', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.privateGetWapiV1CapitalDeposits(this.extend(request, params));
+        const response = await this.privateGetWapiV1CapitalDeposits(this.extend(request, paramsUntil));
         return this.parseTransactions(response, currency, since, limit);
     }
     /**
@@ -1490,12 +1493,11 @@ export default class backpack extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let until = undefined;
-        [until, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'until');
+        const [until, paramsUntil] = this.handleOptionIntegerAndParams(params, 'fetchWithdrawals', 'until');
         if (until !== undefined) {
             request['to'] = until;
         }
-        const response = await this.privateGetWapiV1CapitalWithdrawals(this.extend(request, params));
+        const response = await this.privateGetWapiV1CapitalWithdrawals(this.extend(request, paramsUntil));
         return this.parseTransactions(response, currency, since, limit);
     }
     /**
@@ -1525,7 +1527,7 @@ export default class backpack extends Exchange {
             request['clientId'] = tag; // memo or tag
         }
         const [networkCode, query] = this.handleNetworkCodeAndParams(params);
-        const networkId = this.networkCodeToId(networkCode, currency['code']);
+        const networkId = this.networkCodeToId(networkCode, this.safeString(currency, 'code'));
         if (networkId === undefined) {
             throw new BadRequest(this.id + ' withdraw() requires a network parameter');
         }
@@ -1677,16 +1679,15 @@ export default class backpack extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let networkCode = undefined;
-        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        const [networkCode, paramsNetworkCode] = this.handleNetworkCodeAndParams(params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes');
         }
         const currency = this.currency(code);
         const request = {
-            'blockchain': this.networkCodeToId(networkCode, currency['code']),
+            'blockchain': this.networkCodeToId(networkCode, this.safeString(currency, 'code')),
         };
-        const response = await this.privateGetWapiV1CapitalDepositAddress(this.extend(request, params));
+        const response = await this.privateGetWapiV1CapitalDepositAddress(this.extend(request, paramsNetworkCode));
         return this.parseDepositAddress(response, currency);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
@@ -1697,10 +1698,10 @@ export default class backpack extends Exchange {
         //
         const address = this.safeString(depositAddress, 'address');
         const currencyId = this.safeString(depositAddress, 'currency');
-        currency = this.safeCurrency(currencyId, currency);
+        const currencyResolved = this.safeCurrency(currencyId, currency);
         return {
             'info': depositAddress,
-            'currency': currency['code'],
+            'currency': currencyResolved['code'],
             'network': undefined, // network is not returned by the API
             'address': address,
             'tag': undefined,
@@ -1760,7 +1761,7 @@ export default class backpack extends Exchange {
         }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict(orders, i);
             const marketId = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
@@ -1789,7 +1790,11 @@ export default class backpack extends Exchange {
         };
         const triggerPrice = this.safeString(params, 'triggerPrice');
         const isTriggerOrder = triggerPrice !== undefined;
-        const quantityKey = isTriggerOrder ? 'triggerQuantity' : 'quantity';
+        let quantityKey = 'quantity';
+        if (isTriggerOrder) {
+            quantityKey = 'triggerQuantity';
+        }
+        const omitKeys = [];
         // handle basic limit/market order types
         if (type === 'limit') {
             request['price'] = this.priceToPrecision(symbol, price);
@@ -1799,7 +1804,8 @@ export default class backpack extends Exchange {
             const cost = this.safeString2(params, 'cost', 'quoteQuantity');
             if (cost !== undefined) {
                 request['quoteQuantity'] = this.costToPrecision(symbol, cost);
-                params = this.omit(params, ['cost', 'quoteQuantity']);
+                omitKeys.push('cost');
+                omitKeys.push('quoteQuantity');
             }
             else {
                 request[quantityKey] = this.amountToPrecision(symbol, amount);
@@ -1808,19 +1814,19 @@ export default class backpack extends Exchange {
         // trigger orders
         if (isTriggerOrder) {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
-            params = this.omit(params, 'triggerPrice');
+            omitKeys.push('triggerPrice');
         }
         const clientOrderId = this.safeInteger(params, 'clientOrderId'); // the exchange requires uint
         if (clientOrderId !== undefined) {
             request['clientId'] = clientOrderId;
-            params = this.omit(params, 'clientOrderId');
+            omitKeys.push('clientOrderId');
         }
-        let postOnly = false;
-        [postOnly, params] = this.handlePostOnly(type === 'market', false, params);
+        const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', false, this.omit(params, omitKeys));
         if (postOnly) {
-            params['postOnly'] = true;
+            paramsPostOnly['postOnly'] = true;
         }
-        const takeProfit = this.safeDict(params, 'takeProfit');
+        const bracketKeys = [];
+        const takeProfit = this.safeDict(paramsPostOnly, 'takeProfit');
         if (takeProfit !== undefined) {
             const takeProfitTriggerPrice = this.safeString(takeProfit, 'triggerPrice');
             if (takeProfitTriggerPrice !== undefined) {
@@ -1830,9 +1836,9 @@ export default class backpack extends Exchange {
             if (takeProfitPrice !== undefined) {
                 request['takeProfitLimitPrice'] = this.priceToPrecision(symbol, takeProfitPrice);
             }
-            params = this.omit(params, 'takeProfit');
+            bracketKeys.push('takeProfit');
         }
-        const stopLoss = this.safeDict(params, 'stopLoss');
+        const stopLoss = this.safeDict(paramsPostOnly, 'stopLoss');
         if (stopLoss !== undefined) {
             const stopLossTriggerPrice = this.safeString(stopLoss, 'triggerPrice');
             if (stopLossTriggerPrice !== undefined) {
@@ -1842,10 +1848,9 @@ export default class backpack extends Exchange {
             if (stopLossPrice !== undefined) {
                 request['stopLossLimitPrice'] = this.priceToPrecision(symbol, stopLossPrice);
             }
-            params = this.omit(params, 'stopLoss');
+            bracketKeys.push('stopLoss');
         }
-        let selfTradePrevention = undefined;
-        [selfTradePrevention, params] = this.handleOptionAndParams(params, 'createOrder', 'selfTradePrevention');
+        const [selfTradePrevention, paramsSelfTradePrevention] = this.handleOptionStringAndParams(this.omit(paramsPostOnly, bracketKeys), 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
             if (selfTradePrevention === 'EXPIRE_MAKER') {
                 request['selfTradePrevention'] = 'RejectMaker';
@@ -1857,7 +1862,7 @@ export default class backpack extends Exchange {
                 request['selfTradePrevention'] = 'RejectBoth';
             }
         }
-        return this.extend(request, params);
+        return this.extend(request, paramsSelfTradePrevention);
     }
     encodeOrderSide(side) {
         const sides = {
@@ -2168,8 +2173,8 @@ export default class backpack extends Exchange {
         if (this.isEmpty(symbols)) {
             return positions;
         }
-        symbols = this.marketSymbols(symbols);
-        return this.filterByArrayPositions(positions, 'symbol', symbols, false);
+        const symbolsNormalized = this.marketSymbols(symbols);
+        return this.filterByArrayPositions(positions, 'symbol', symbolsNormalized, false);
     }
     parsePosition(position, market = undefined) {
         //
@@ -2208,8 +2213,8 @@ export default class backpack extends Exchange {
         //
         const id = this.safeString(position, 'positionId');
         const marketId = this.safeString(position, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const entryPrice = this.safeString(position, 'entryPrice');
         const markPrice = this.safeString(position, 'markPrice');
         const netCost = this.safeString(position, 'netCost');
@@ -2313,12 +2318,22 @@ export default class backpack extends Exchange {
         };
     }
     nonce() {
-        return this.milliseconds() - this.options['timeDifference'];
+        const timeDifference = this.safeInteger(this.options, 'timeDifference');
+        if (timeDifference === undefined) {
+            throw new ExchangeError(this.id + ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return this.milliseconds() - timeDifference;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + path;
-        let url = this.urls['api'][api];
+        const apiUrl = this.safeString(this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl;
         const sortedParams = Array.isArray(params) ? params : this.keysort(params);
+        let headersSigned = undefined;
+        let bodySigned = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials();
             const ts = this.nonce().toString();
@@ -2340,7 +2355,7 @@ export default class backpack extends Exchange {
             const secretBytes = this.base64ToBinary(this.secret);
             const seed = this.arraySlice(secretBytes, 0, 32);
             const signature = eddsa(this.encode(payload), seed, ed25519);
-            headers = {
+            headersSigned = {
                 'X-Timestamp': ts,
                 'X-Window': recvWindow,
                 'X-API-Key': this.apiKey,
@@ -2348,8 +2363,8 @@ export default class backpack extends Exchange {
                 'X-Broker-Id': '1400',
             };
             if (method !== 'GET') {
-                body = this.json(sortedParams);
-                headers['Content-Type'] = 'application/json';
+                bodySigned = this.json(sortedParams);
+                headersSigned['Content-Type'] = 'application/json';
             }
         }
         if (method === 'GET') {
@@ -2359,7 +2374,12 @@ export default class backpack extends Exchange {
             }
         }
         url += endpoint;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved = (api === 'private') ? headersSigned : headers;
+        let bodyResolved = body;
+        if ((api === 'private') && (method !== 'GET')) {
+            bodyResolved = bodySigned;
+        }
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     generateBatchPayload(params, ts, recvWindow, instruction) {
         let payload = '';

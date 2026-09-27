@@ -100,7 +100,7 @@ export default class cex extends cexRest {
     handleMyTrades(client: Client, message: Dict): void;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     handleOrderUpdate(client: Client, message: Dict): void;
-    parseWsOrderUpdate(order: any, market?: Market): Order | undefined;
+    parseWsOrderUpdate(order: Dict, market?: Market): Order | undefined;
     fromPrecision(amount: any, scale: any): string | undefined;
     currencyFromPrecision(currency: any, amount: any): string | undefined;
     handleOrdersSnapshot(client: Client, message: Dict): void;
@@ -116,7 +116,7 @@ export default class cex extends cexRest {
      */
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBookSnapshot(client: Client, message: Dict): void;
-    pairToSymbol(pair: any): string;
+    pairToSymbol(pair: any): Str;
     handleOrderBookUpdate(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
@@ -214,7 +214,7 @@ export default class cex extends cexRest {
     cancelOrdersWs(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
     resolveData(client: Client, message: Dict): void;
     handleConnected(client: Client, message: Dict): Dict;
-    handleErrorMessage(client: Client, message: any): Bool;
+    handleErrorMessage(client: Client, message: Dict): Bool;
     handleMessage(client: Client, message: Dict): void;
     handleAuthenticationMessage(client: Client, message: Dict): void;
     authenticate(params?: Dict): Promise<any>;
