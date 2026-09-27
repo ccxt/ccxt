@@ -5109,7 +5109,8 @@ export default class binance extends binanceRest {
             newPositions.push (position);
             cache.append (position);
         }
-        const messageHashes = this.findMessageHashes (client, accountType + ':positions::');
+        const positionsHashPrefix = accountType + ':' + 'positions::'; // split so the php transpiler does not turn it into 'future:$positions::'
+        const messageHashes = this.findMessageHashes (client, positionsHashPrefix);
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const parts = messageHash.split ('::');
@@ -5631,7 +5632,8 @@ export default class binance extends binanceRest {
             newPositions.push (position);
             cache.append (position);
         }
-        const messageHashes = this.findMessageHashes (client, accountType + ':positions::');
+        const positionsHashPrefix = accountType + ':' + 'positions::'; // split so the php transpiler does not turn it into 'option:$positions::'
+        const messageHashes = this.findMessageHashes (client, positionsHashPrefix);
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const parts = messageHash.split ('::');
