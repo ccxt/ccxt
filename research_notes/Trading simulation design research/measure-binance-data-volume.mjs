@@ -163,5 +163,39 @@ for (const s of picked.symbols) {
         allStreamsPerDay: { rawMB: mb (rawDay), gzipMB: mb (gzDay) },
     };
 }
+// ---------------------------------------------------------------------------
+// Whole-exchange extrapolation for this market type (spot or usdm).
+// Each stream's daily compressed size is modelled as a power law of the symbol's 24h trade
+// count, size = a * trades^k, fitted through the two measured symbols (one busy, one quiet).
+// It is then summed over every symbol on the exchange using Binance's own 24h trade counts.
+// OHLCV is exact arithmetic: 1440 one-minute rows per symbol per day.
+if (picked.symbols.length >= 2) {
+    const [ busy, quiet ] = picked.symbols;
+    const { json: all } = await get ('/ticker/24hr');
+    const counts = all.map ((t) => Number (t.count)).filter ((n) => n > 0);
+    const totalTrades = counts.reduce ((x, y) => x + y, 0);
+    const perStream = [];
+    let totalDay = 0;
+    for (const suffix of Object.keys (STREAMS)) {
+        const b = report.symbols[busy].streams.find ((r) => r.stream === suffix);
+        const q = report.symbols[quiet].streams.find ((r) => r.stream === suffix);
+        const yb = Number (b.perDay.gzipMB), yq = Number (q.perDay.gzipMB);
+        const tb = picked.stats[busy].trades24h, tq = picked.stats[quiet].trades24h;
+        let k = (yb > 0 && yq > 0 && tb !== tq) ? Math.log (yb / yq) / Math.log (tb / tq) : 1;
+        k = Math.min (Math.max (k, 0), 1.5);
+        const a = yb / Math.pow (tb, k);
+        const dayMB = counts.reduce ((sum, t) => sum + a * Math.pow (t, k), 0);
+        totalDay += dayMB;
+        perStream.push ({ stream: suffix, category: STREAMS[suffix], fittedExponent: Number (k.toFixed (2)), exchangeGzipGBPerDay: (dayMB / 1e3).toFixed (1), exchangeGzipTBPerYear: (dayMB * 365 / 1e6).toFixed (2) });
+    }
+    const ohlcvRaw = counts.length * 1440 * 365 * 50;
+    report.wholeExchange = {
+        market: MARKET, activeSymbols: counts.length, totalTrades24h: totalTrades,
+        busySymbolShareOfTrades: `${(picked.stats[busy].trades24h / totalTrades * 100).toFixed (1)}%`,
+        ohlcv1mPerYear: `${(ohlcvRaw / 1e9).toFixed (1)} GB raw (${counts.length} symbols × 525,600 rows × ~50 B)`,
+        streams: perStream,
+        note: 'Power-law fit through two symbols; rerun with more --symbols for a better fit. Streams overlap (trade vs aggTrade, depth20 vs depth diff): a store keeps one of each pair.',
+    };
+}
 fs.writeFileSync ('binance-volume-report.json', JSON.stringify (report, null, 2));
 console.log (JSON.stringify (report, null, 2));
