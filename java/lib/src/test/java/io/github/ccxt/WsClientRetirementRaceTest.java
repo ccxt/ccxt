@@ -17,19 +17,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Mirrors cs/tests/WsClientRetirementRaceTest.cs (PR #30545) — pins WsClient
- * retirement to the client object rather than to its registry url key,
- * mirroring js Client.error and Client.reset: cleanup used to treat "the
- * client" and "the registry entry under client.url" as the same object, but a
- * concurrent reconnect can install a replacement client under the same url
- * between a transport event and the cleanup that follows it. Retirement must
- * be tied to the reference that actually errored/closed — mark it with the
- * terminal error, reject its pending futures and clear its subscriptions —
- * while a replacement found under the same key must stay untouched and keep
- * its registry slot. All tests are offline: the clients never connect, the
- * url is synthetic. See https://github.com/ccxt/ccxt/issues/30463
- */
+// native java test, hand-written - pins WsClient retirement to the client
+// object rather than to its registry url key, mirroring js Client.error and
+// Client.reset. all offline: the synthetic url is never dialed.
+// see https://github.com/ccxt/ccxt/issues/30463
 class WsClientRetirementRaceTest {
 
     private static final String RETIREMENT_URL = "ws://localhost:1234/retirement-race";
@@ -89,7 +80,8 @@ class WsClientRetirementRaceTest {
         // replacement when cleanup for the erroring caller runs
         clientsMap(exchange).put(RETIREMENT_URL, replacementClient);
 
-        exchange.onError(callerClient, new NetworkError("simulated reconnect failure"));
+        callerClient.onErrorCallback = (c, e) -> exchange.onError((Client) c, e);
+        callerClient.onError(new NetworkError("simulated reconnect failure"));
 
         assertRetired(callerClient, "caller");
         assertRejectedWithNetworkError(callerFuture,
@@ -118,7 +110,8 @@ class WsClientRetirementRaceTest {
         Future future = futuresOf(client).get("solo-pending");
         clientsMap(exchange).put(RETIREMENT_URL, client);
 
-        exchange.onError(client, new NetworkError("transport error"));
+        client.onErrorCallback = (c, e) -> exchange.onError((Client) c, e);
+        client.onError(new NetworkError("transport error"));
 
         assertRetired(client, "solo");
         assertRejectedWithNetworkError(future,
@@ -127,8 +120,8 @@ class WsClientRetirementRaceTest {
     }
 
     /**
-     * onError, a late onClose and the registry cleanup may all race into
-     * retire — the first error wins and repeat calls are no-ops.
+     * a late transport error must not re-retire with a new error: the first
+     * error wins and repeat calls are no-ops.
      */
     @Test
     @Timeout(value = 10, unit = TimeUnit.SECONDS)
@@ -137,10 +130,10 @@ class WsClientRetirementRaceTest {
         Future future = futuresOf(client).get("twice-pending");
         NetworkError first = new NetworkError("first");
 
-        client.retire(first);
-        client.retire(new NetworkError("late close"));
+        client.onError(first);
+        client.onError(new NetworkError("late close"));
 
-        assertSame(first, client.error, "retirement must happen at most once — the first error wins");
+        assertSame(first, client.error, "retirement must happen at most once, the first error wins");
         assertRetired(client, "twice");
         assertRejectedWithNetworkError(future, "twice: the first retirement must win the settlement");
     }
@@ -163,7 +156,7 @@ class WsClientRetirementRaceTest {
                     NetworkError mine = new NetworkError("racer-" + i);
                     tasks.add(pool.submit(() -> {
                         start.await();
-                        client.retire(mine);
+                        client.onError(mine);
                         return null;
                     }));
                 }
