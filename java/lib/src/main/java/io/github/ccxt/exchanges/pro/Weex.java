@@ -453,7 +453,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         mapLiteral1.put("last", close);
         mapLiteral1.put("previousClose", this.safeString(ticker, "x"));
         mapLiteral1.put("change", this.safeString(ticker, "p"));
-        mapLiteral1.put("percentage", this.safeString(ticker, "P"));
+        mapLiteral1.put("percentage", Precise.stringMul(this.safeString(ticker, "P"), "100"));
         mapLiteral1.put("average", this.safeString(ticker, "w"));
         mapLiteral1.put("baseVolume", this.safeString(ticker, "v"));
         mapLiteral1.put("quoteVolume", this.safeString(ticker, "q"));

@@ -647,18 +647,19 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 put( "instrument", market.get("id") );
                 put( "granularity", Coinbaseinternational.this.safeString(Coinbaseinternational.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
-            int duration = this.parseTimeframe(timeframe);
+            int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("start", this.iso8601(since));
             } else
             {
-                if (java.util.Objects.equals(limit, null))
+                Object limitResolved = java.util.Objects.requireNonNullElse(limit, 100L);
+                if (java.util.Objects.equals(limitResolved, null))
                 {
-                    limit = 300; // the default of api
+                    limitResolved = 300; // the default of api
                 }
-                since = this.sum(this.milliseconds(), Helpers.multiply(Helpers.multiply(Helpers.opNeg(limit), duration), 1000));
-                ((Map<String, Object>)request).put("start", this.iso8601(since));
+                Object sinceResolved = this.sum(this.milliseconds(), Helpers.multiply(Helpers.multiply(Helpers.opNeg(limitResolved), duration), 1000));
+                request.put("start", this.iso8601(sinceResolved));
             }
             Long unitl = this.safeInteger(paramsPaginate, "until");
             if (!java.util.Objects.equals(unitl, null))

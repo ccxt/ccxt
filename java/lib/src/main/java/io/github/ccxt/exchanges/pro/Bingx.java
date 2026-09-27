@@ -2251,11 +2251,11 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             if ((java.util.Objects.equals(type, "TRADE")) && (java.util.Objects.equals(status, "PARTIALLY_FILLED")))
             {
                 String marketId = this.safeString(data, "s");
-                Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "-", "swap");
+                Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", "swap");
                 // parseTrade gates its `l`/`L` last-fill preference on the same
                 // `market['linear'] === true`, so an unresolved market id must be skipped here:
                 // delivering it would report the order aggregate `q`/`p` as a single fill.
-                isExecution = (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)) && (!java.util.Objects.equals(this.safeString(data, "l"), null)) && (!java.util.Objects.equals(this.safeString(data, "L"), null));
+                isExecution = (java.util.Objects.equals(market.get("linear"), true)) && (!java.util.Objects.equals(this.safeString(data, "l"), null)) && (!java.util.Objects.equals(this.safeString(data, "L"), null));
             }
             if ((java.util.Objects.equals(type, "TRADE")) && Boolean.TRUE.equals(isExecution))
             {

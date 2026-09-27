@@ -608,33 +608,28 @@ public class Btcturk extends BtcturkApi
             percentage = null;
             average = null;
         }
-        final Object finalOpen = open;
-        final Object finalLast = last;
-        final Object finalChange = change;
-        final Object finalPercentage = percentage;
-        final Object finalAverage = average;
-        return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", symbol );
-            put( "timestamp", timestamp );
-            put( "datetime", Btcturk.this.iso8601(timestamp) );
-            put( "high", Btcturk.this.safeString(ticker, "high") );
-            put( "low", Btcturk.this.safeString(ticker, "low") );
-            put( "bid", Btcturk.this.safeString(ticker, "bid") );
-            put( "bidVolume", null );
-            put( "ask", Btcturk.this.safeString(ticker, "ask") );
-            put( "askVolume", null );
-            put( "vwap", null );
-            put( "open", finalOpen );
-            put( "close", finalLast );
-            put( "last", finalLast );
-            put( "previousClose", null );
-            put( "change", finalChange );
-            put( "percentage", finalPercentage );
-            put( "average", finalAverage );
-            put( "baseVolume", Btcturk.this.safeString(ticker, "volume") );
-            put( "quoteVolume", null );
-            put( "info", ticker );
-        }}, marketResolved);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("symbol", symbol);
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("high", this.safeString(ticker, "high"));
+        mapLiteral6.put("low", this.safeString(ticker, "low"));
+        mapLiteral6.put("bid", this.safeString(ticker, "bid"));
+        mapLiteral6.put("bidVolume", null);
+        mapLiteral6.put("ask", this.safeString(ticker, "ask"));
+        mapLiteral6.put("askVolume", null);
+        mapLiteral6.put("vwap", null);
+        mapLiteral6.put("open", open);
+        mapLiteral6.put("close", last);
+        mapLiteral6.put("last", last);
+        mapLiteral6.put("previousClose", null);
+        mapLiteral6.put("change", change);
+        mapLiteral6.put("percentage", percentage);
+        mapLiteral6.put("average", average);
+        mapLiteral6.put("baseVolume", this.safeString(ticker, "volume"));
+        mapLiteral6.put("quoteVolume", null);
+        mapLiteral6.put("info", ticker);
+        return this.safeTicker(mapLiteral6, marketResolved);
     }
 
     /**
@@ -734,21 +729,21 @@ public class Btcturk extends BtcturkApi
                 "currency", this.safeCurrencyCode(feeCurrency, (Map<String, Object>) null)
             );
         }
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("info", trade);
-        mapLiteral6.put("id", id);
-        mapLiteral6.put("order", order);
-        mapLiteral6.put("timestamp", timestamp);
-        mapLiteral6.put("datetime", this.iso8601(timestamp));
-        mapLiteral6.put("symbol", symbol);
-        mapLiteral6.put("type", null);
-        mapLiteral6.put("side", side);
-        mapLiteral6.put("takerOrMaker", null);
-        mapLiteral6.put("price", priceString);
-        mapLiteral6.put("amount", amountString);
-        mapLiteral6.put("cost", null);
-        mapLiteral6.put("fee", fee);
-        return this.safeTrade(mapLiteral6, market);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("info", trade);
+        mapLiteral7.put("id", id);
+        mapLiteral7.put("order", order);
+        mapLiteral7.put("timestamp", timestamp);
+        mapLiteral7.put("datetime", this.iso8601(timestamp));
+        mapLiteral7.put("symbol", symbol);
+        mapLiteral7.put("type", null);
+        mapLiteral7.put("side", side);
+        mapLiteral7.put("takerOrMaker", null);
+        mapLiteral7.put("price", priceString);
+        mapLiteral7.put("amount", amountString);
+        mapLiteral7.put("cost", null);
+        mapLiteral7.put("fee", fee);
+        return this.safeTrade(mapLiteral7, market);
     }
 
     /**

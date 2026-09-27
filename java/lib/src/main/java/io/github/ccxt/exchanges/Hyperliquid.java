@@ -2488,7 +2488,7 @@ public class Hyperliquid extends HyperliquidApi
             (this.initializeClient()).join();
             Map<String, Object> market = this.market(symbol);
             Object nonce = this.incrementingNonce();
-            Boolean isBuy = (java.util.Objects.equals(side, "BUY"));
+            Boolean isBuy = (java.util.Objects.equals(((String)((String)side)).toUpperCase(), "BUY"));
             Boolean randomize = (Boolean) this.safeBool(parameters, "randomize", false);
             Map<String, Object> paramsOmitted = this.omit(parameters, "randomize");
             io.github.ccxt.base.Pair<String, Map<String, Object>> vaultAddressOptionparamsVaultVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "createOrder", "vaultAddress", (String) null);
