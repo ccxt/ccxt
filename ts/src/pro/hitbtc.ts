@@ -187,12 +187,16 @@ export default class hitbtc extends hitbtcRest {
         if (symbol !== undefined) {
             messageHash = messageHash + '::' + symbol;
         }
+        const requestId = this.incrementingNonce ();
         const subscribe: Dict = {
             'method': name,
             'params': params,
-            'id': this.incrementingNonce (),
+            'id': requestId,
         };
-        return await this.watch (url, messageHash, subscribe, messageHash);
+        const subscription: Dict = {
+            'id': requestId,
+        };
+        return await this.watch (url, messageHash, subscribe, messageHash, subscription);
     }
 
     /**
