@@ -11331,7 +11331,7 @@ function g10kArrSelfTest (): string[] {
 
 // ===== G10K-gv-list: bare `x := GetValue(s, N)` on a `[]any` local -> native element read =====
 // Every read of x is a whole argument a helper derefScalars at entry, so GetValue's own deref is
-// redundant; the index read is guarded unless s is a two-slot pair producer and N is 0/1.
+// redundant; only a two-slot pair producer with N 0/1 is rewritten, anything else keeps GetValue.
 function gvListDerefSlots (): Map<string, number[]> {
     const m = new Map<string, number[]> ();
     for (const f of [ 'Add', 'Subtract', 'Multiply', 'Divide', 'Mod', 'IsEqual', 'IsGreaterThan', 'IsLessThan', 'IsGreaterThanOrEqual', 'IsLessThanOrEqual', 'InOp', 'GetIndexOf', 'StartsWith', 'EndsWith', 'Split', 'Join', 'GetValue' ]) {
@@ -11456,10 +11456,9 @@ function nativeDerefOnlyListReads (content: string): string {
             }
             const producer = /^\s*var \w+ \[\]any = this\.(\w+)\(/.exec (decl.line);
             const pair = (producer !== null) && GO_TUPLE_PAIR_PRODUCERS.includes (producer[1]) && !overridden.includes (producer[1]) && (slot === '0' || slot === '1');
-            const head = indent + name + ' ' + m[3] + ' ';
-            lines[k] = pair ? head + holder + '[' + slot + ']'
-                : head + 'func() any {\n' + indent + '\tif len(' + holder + ') > ' + slot + ' {\n' + indent + '\t\treturn ' + holder + '[' + slot + ']\n'
-                    + indent + '\t}\n' + indent + '\treturn nil\n' + indent + '}()';
+            if (pair) {
+                lines[k] = indent + name + ' ' + m[3] + ' ' + holder + '[' + slot + ']';
+            }
         }
     }
     return lines.join ('\n');
@@ -11473,7 +11472,7 @@ function gvListSelfTest (): string[] {
     const r1 = f (pairDecl + '\tx := GetValue(h, 0)\n\tif IsEqual(x, true) {\n\t}\n\tvar s *string = this.SafeString(x, "k")\n\t_ = s\n');
     ok (r1.indexOf ('\tx := h[0]\n') >= 0, 'pair slot read native: ' + r1);
     const r2 = f ('\tvar h []any = ListTyped(p)\n\tvar x any = nil\n\tx = GetValue(h, 2)\n\tif EvalTruthy(x) && IsLessThan(1, x) {\n\t}\n');
-    ok (r2.indexOf ('if len(h) > 2 {\n\t\t\treturn h[2]') >= 0 && r2.indexOf ('GetValue') < 0, 'guarded read for unknown length: ' + r2);
+    ok (r2.indexOf ('x = GetValue(h, 2)') >= 0, 'unknown length keeps GetValue: ' + r2);
     const keep = [
         pairDecl + '\tx := GetValue(h, 0)\n\tif x == true {\n\t}\n',
         pairDecl + '\tx := GetValue(h, 0)\n\tvar m any = map[string]any{"k": x}\n',
