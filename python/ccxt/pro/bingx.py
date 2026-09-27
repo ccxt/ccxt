@@ -105,7 +105,7 @@ class bingx(ccxt.async_support.bingx):
             },
         })
 
-    async def un_watch(self, messageHash: str, subMessageHash: str, subscribeHash: str, dataType: str, topic: str, market: Market, methodName: str, params={}) -> object:
+    async def un_watch(self, messageHash: str, subMessageHash: str, subscribeHash: str, dataType: str, topic: str, market: Market, methodName: str, params: dict = {}) -> object:
         marketType = None
         subType = None
         url = None

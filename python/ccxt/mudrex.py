@@ -303,7 +303,7 @@ class mudrex(Exchange, ImplicitAPI):
             endTime = now
         request['start_time'] = startTime
         request['end_time'] = endTime
-        response = None
+        response: dict
         if priceType == 'mark':
             response = self.marketGetPriceMarkKline(self.extend(request, paramsOmitted))
         else:
@@ -881,7 +881,7 @@ class mudrex(Exchange, ImplicitAPI):
         if limit is not None:
             q['limit'] = limit
         request = self.extend(q, params)
-        response = None
+        response: dict
         if state == 'closed':
             response = self.privateGetFuturesOrdersHistory(request)
         else:
@@ -1326,7 +1326,7 @@ class mudrex(Exchange, ImplicitAPI):
             tradeCurrency = self.safe_string_2(params, 'trade_currency', 'tradeCurrency')
             if tradeCurrency == 'INR':
                 useInr = True
-        response = None
+        response: dict
         if useInr:
             response = self.privatePostFuturesTransfersInr(self.extend(body, params))
         else:

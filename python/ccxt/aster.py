@@ -3826,7 +3826,7 @@ class aster(Exchange, ImplicitAPI):
         symbolsNormalized = self.market_symbols(symbols)
         return self.filter_by_array_positions(result, 'symbol', symbolsNormalized, False)
 
-    def load_leverage_brackets(self, reload=False, params: dict = {}) -> dict:
+    def load_leverage_brackets(self, reload: bool = False, params: dict = {}) -> dict:
         self.load_markets_and_sign_in()
         # by default cache the leverage bracket
         # it contains useful stuff like the maintenance margin and initial margin for positions

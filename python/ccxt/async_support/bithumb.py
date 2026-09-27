@@ -2689,7 +2689,7 @@ class bithumb(Exchange, ImplicitAPI):
         statuses = self.safe_dict(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    async def fetch_withdrawal_whitelist(self, params={}) -> object:
+    async def fetch_withdrawal_whitelist(self, params: dict = {}) -> object:
         """
         fetch a list of allowed withdrawal addresses
 

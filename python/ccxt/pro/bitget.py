@@ -753,7 +753,7 @@ class bitget(ccxt.async_support.bitget):
             channel += str(limit)
         return await self.un_watch_channel(symbol, channel, 'orderbook', 'watchOrderBook', paramsOmitted)
 
-    async def un_watch_channel(self, symbol: str, channel: str, messageHashTopic: str, methodName: str, params={}) -> object:
+    async def un_watch_channel(self, symbol: str, channel: str, messageHashTopic: str, methodName: str, params: dict = {}) -> object:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
