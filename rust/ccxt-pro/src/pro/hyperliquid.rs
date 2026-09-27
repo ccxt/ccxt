@@ -178,6 +178,7 @@ impl crate::exchange_generated::ExchangeBase for HyperliquidCore {
                 "create_order_ws" => self.create_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "create_orders_ws" => self.create_orders_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "edit_order_ws" => self.edit_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "expire_pending_unsubscribe" => self.expire_pending_unsubscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
                 "handle_active_asset_ctx" => self.handle_active_asset_ctx(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -196,6 +197,7 @@ impl crate::exchange_generated::ExchangeBase for HyperliquidCore {
                 "un_watch_ticker" => self.un_watch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "un_watch_tickers" => self.un_watch_tickers(&args[..]).await,
                 "un_watch_trades" => self.un_watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "wait_for_pending_unsubscribe" => self.wait_for_pending_unsubscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
                 "watch_balance" => self.watch_balance(&args[..]).await,
                 "watch_my_trades" => self.watch_my_trades(&args[..]).await,
                 "watch_ohlcv" => self.watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -224,6 +226,7 @@ impl HyperliquidCore {
             "create_order_ws" => { crate::exchange_stubs::enqueue_spawn("create_order_ws", args.to_vec()); crate::Value::Null },
             "create_orders_ws" => { crate::exchange_stubs::enqueue_spawn("create_orders_ws", args.to_vec()); crate::Value::Null },
             "edit_order_ws" => { crate::exchange_stubs::enqueue_spawn("edit_order_ws", args.to_vec()); crate::Value::Null },
+            "expire_pending_unsubscribe" => { crate::exchange_stubs::enqueue_spawn("expire_pending_unsubscribe", args.to_vec()); crate::Value::Null },
             "handle_active_asset_ctx" => self.handle_active_asset_ctx(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -262,6 +265,7 @@ impl HyperliquidCore {
             "un_watch_ticker" => { crate::exchange_stubs::enqueue_spawn("un_watch_ticker", args.to_vec()); crate::Value::Null },
             "un_watch_tickers" => { crate::exchange_stubs::enqueue_spawn("un_watch_tickers", args.to_vec()); crate::Value::Null },
             "un_watch_trades" => { crate::exchange_stubs::enqueue_spawn("un_watch_trades", args.to_vec()); crate::Value::Null },
+            "wait_for_pending_unsubscribe" => { crate::exchange_stubs::enqueue_spawn("wait_for_pending_unsubscribe", args.to_vec()); crate::Value::Null },
             "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.to_vec()); crate::Value::Null },
             "watch_my_trades" => { crate::exchange_stubs::enqueue_spawn("watch_my_trades", args.to_vec()); crate::Value::Null },
             "watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("watch_ohlcv", args.to_vec()); crate::Value::Null },
@@ -344,6 +348,7 @@ impl HyperliquidCore {
 }));
         m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("unsubscribeTimeout".to_string(), Value::Int(10000));
     m
 }));
         m.insert("streaming".to_string(), Value::Map({
@@ -637,6 +642,7 @@ impl HyperliquidCore {
             m
         });
         let mut message: Value = self.extend(request, &[params]);
+        self.wait_for_pending_unsubscribe(url.clone(), messageHash.clone()).await;
         let mut orderbook: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         return orderbook.limit();
 
@@ -775,6 +781,7 @@ impl HyperliquidCore {
 }));
             m
         });
+        self.wait_for_pending_unsubscribe(url.clone(), messageHash.clone()).await;
         let __ws_arg_0 = self.extend(request, &[params]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone()]).await;
 
@@ -870,6 +877,8 @@ impl HyperliquidCore {
             add_element_to_object(get_value_mut(&mut request, &Value::Str("subscription".into())), &Value::Str("type".into()), Value::Str("allMids".into()));
             add_element_to_object(get_value_mut(&mut request, &Value::Str("subscription".into())), &Value::Str("dex".into()), defaultDex);
         }
+        // unWatchTickers always registers the bare 'unsubscribe:tickers' hash, dex-scoped or not
+        self.wait_for_pending_unsubscribe(url.clone(), Value::Str("tickers".into())).await;
         let __ws_arg_2 = self.extend(request, &[paramsOmitted]);
         let mut tickers: Value = self.watch(url, messageHash.clone(), &[__ws_arg_2, messageHash.clone()]).await;
         if is_true(&self.newUpdates) {
@@ -967,6 +976,8 @@ impl HyperliquidCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() requires a user address".into()))));
         }
         let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:userFills::".into()), to_lower(&userAddress)).into());
+        // unWatchMyTrades registers 'unsubscribe:myTrades', not the per-user dedup hash
+        self.wait_for_pending_unsubscribe(url.clone(), Value::Str("myTrades".into())).await;
         let mut trades: Value = self.watch(url, messageHash, &[message, subscribeHash]).await;
         let mut limitResolved: Value = limit.clone();
         if is_true(&self.newUpdates) {
@@ -1242,6 +1253,7 @@ impl HyperliquidCore {
             m
         });
         let mut message: Value = self.extend(request, &[params]);
+        self.wait_for_pending_unsubscribe(url.clone(), messageHash.clone()).await;
         let mut trades: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if is_true(&self.newUpdates) {
@@ -1459,6 +1471,7 @@ impl HyperliquidCore {
         });
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue).into());
         let mut message: Value = self.extend(request, &[params]);
+        self.wait_for_pending_unsubscribe(url.clone(), messageHash.clone()).await;
         let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if is_true(&self.newUpdates) {
@@ -1634,6 +1647,10 @@ impl HyperliquidCore {
             m
         });
         let mut message: Value = self.extend(request, &[paramsValue2]);
+        // the swap topic 'clearinghouseState' is one server subscription shared
+        // with watchPositions, so a pending unWatchPositions delays this watch
+        // too - its ack tears the shared stream down and sweeps both futures
+        self.wait_for_pending_unsubscribe(url.clone(), topic.clone()).await;
         return self.watch(url, messageHash, &[message, topic]).await;
 
     Value::Null
@@ -1918,6 +1935,10 @@ impl HyperliquidCore {
             m
         });
         let mut message: Value = self.extend(request, &[paramsValue]);
+        // the topic 'clearinghouseState' is one server subscription shared with
+        // the swap watchBalance, so a pending unWatchBalance delays this watch
+        // too - its ack tears the shared stream down and sweeps both futures
+        self.wait_for_pending_unsubscribe(url.clone(), topic.clone()).await;
         let mut client: Value = self.client(&[url.clone()]);
         self.set_positions_cache(client, &[symbolsNormalized.clone()]);
         let mut cache: Value = self.positions.clone();
@@ -2088,6 +2109,8 @@ impl HyperliquidCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrders() requires a user address".into()))));
         }
         let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:orderUpdates::".into()), to_lower(&userAddress)).into());
+        // unWatchOrders registers 'unsubscribe:order', not the per-user dedup hash
+        self.wait_for_pending_unsubscribe(url.clone(), Value::Str("order".into())).await;
         let mut orders: Value = self.watch(url, messageHash, &[message, subscribeHash]).await;
         let mut limitResolved: Value = limit.clone();
         if is_true(&self.newUpdates) {
@@ -2296,6 +2319,48 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
+/*
+ * @method
+ * @name hyperliquid#waitForPendingUnsubscribe
+ * @ignore
+ * @description waits for the acknowledgement of a still-pending unsubscribe request for the same subscription before subscribing again — a watch armed inside that window would never send a subscribe (deduplicated against the stale entry) and its future would be rejected by the pending ack, see https://github.com/ccxt/ccxt/issues/30419
+ * @param {string} url the websocket endpoint the subscription lives on
+ * @param {string} subHash the subscription hash the watch call is about to register
+ * @returns {any} resolves once no unsubscribe request is pending for the subscription, or after options.unsubscribeTimeout ms
+ */
+    pub async fn wait_for_pending_unsubscribe(&mut self, mut url: Value, mut subHash: Value) -> Value {
+        if (in_op(&self.clients, &url)) {
+            let mut client: Value = self.client(&[url.clone()]);
+            let mut unsubHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subHash).into());
+            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &unsubHash)) {
+                // share the unWatch caller's future; a lost ack is timed out so the watch cannot hang
+                let mut timeout: Value = self.safe_integer_k(self.options.clone(), "unsubscribeTimeout", &[Value::Int(10000)]);
+                self.delay(timeout, &[Value::Str("expire_pending_unsubscribe".into()).clone(), client.clone(), subHash, unsubHash.clone()]).await;
+                let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+                    crate::exchange_stubs::ws_await_flight(&client.future(&[unsubHash.clone()])).await;
+                 #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+                    if !(matches!(&e, Value::Str(__s) if __s.contains("[RequestTimeout]"))) {
+                        panic!("{}", e);
+                    }
+                }
+            }
+        }
+        return Value::Null;
+
+    Value::Null
+}
+
+    pub async fn expire_pending_unsubscribe(&mut self, mut client: Value, mut subHash: Value, mut unsubHash: Value) -> Value {
+        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &unsubHash)) {
+            let mut error = Value::from(crate::exchange_errors::request_timeout(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unsubscribe ".into())).into()), subHash).into()), Value::Str(" was not acknowledged".into()))));
+            client.reject(&[Value::from(error), unsubHash.clone()]);
+            self.clean_unsubscription(client.clone(), subHash, unsubHash.clone(), &[]);
+        }
+
+    Value::Null
+}
+
     pub fn handle_order_book_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
         let __subscription_empty = indexmap::IndexMap::new();
         let subscription = subscription.as_map().unwrap_or(&__subscription_empty);
@@ -2496,7 +2561,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 self.handle_order_unsubscription(client.clone(), subscription.clone());
             }  else if (type_var.as_deref() == Some("userFills")) {
                 self.handle_my_trades_unsubscription(client.clone(), subscription.clone());
-            }  else if (type_var.as_deref() == Some("clearinghoustState")) {
+            }  else if (type_var.as_deref() == Some("clearinghouseState")) {
                 self.handle_positions_unsubscription(client.clone(), subscription.clone());
             }  else if (type_var.as_deref() == Some("spotState")) {
                 self.handle_spot_balance_unsubscription(client.clone(), subscription.clone());

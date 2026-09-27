@@ -2041,7 +2041,7 @@ impl LighterCore {
     Value::Null
 }
 
-    pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_error_message(&mut self, mut client: Value, mut message: Value) -> Value {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -2052,7 +2052,43 @@ impl LighterCore {
         //         }
         //     }
         //
+        //
+        //     {
+        //         "error": {
+        //             "code": 30003,
+        //             "message": "Already Subscribed to : market_stats:all"
+        //         }
+        //     }
+        //
+        //     {
+        //         "error": {
+        //             "code": 30002,
+        //             "message": "Not Subscribed to : order_book:0"
+        //         }
+        //     }
+        //
         let mut error: Value = (match __pro_message.get("error").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
+        let mut errorCode: Option<String> = self.safe_string_k(error.clone(), "code", &[]).as_str().map(str::to_owned);
+        if (errorCode.as_deref() == Some("30003")) {
+            return Value::Bool(true);
+        }
+        if (errorCode.as_deref() == Some("30002")) {
+            // the requested state is already reached, so the unWatch call resolves and only
+            // its own channel gets cleaned up. The channel is available solely inside the
+            // message text, a changed text format falls through to the generic reject below
+            let mut notSubscribedMessage: Value = self.safe_string_k(error.clone(), "message", &[Value::Str("".into())]);
+            let mut messageParts: Value = split(&notSubscribedMessage, &Value::Str(" : ".into()));
+            let mut notSubscribedChannel: Value = self.safe_string(messageParts, Value::Int(1), &[]);
+            if (notSubscribedChannel != Value::Null) {
+                let mut unsubscribed: Value = Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                        m.insert("channel".to_string(), notSubscribedChannel);
+                    m
+                });
+                self.handle_un_subscription(client.clone(), unsubscribed);
+                return Value::Bool(true);
+            }
+        }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (error != Value::Null) {
                 let mut code: Value = self.safe_string_k(error.clone(), "code", &[]);
