@@ -1395,7 +1395,8 @@ export default class bingx extends bingxRest {
             newPositions.push (position);
             cache.append (position);
         }
-        const messageHashes = this.findMessageHashes (client, 'swap:positions::');
+        const positionsHashPrefix = 'swap:' + 'positions::'; // split so the php transpiler does not turn it into 'swap:$positions::'
+        const messageHashes = this.findMessageHashes (client, positionsHashPrefix);
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const parts = messageHash.split ('::');
@@ -1447,7 +1448,7 @@ export default class bingx extends bingxRest {
                 if (baseUrl === undefined) {
                     continue;
                 }
-                const url = baseUrl + '?listenKey=' + listenKey;
+                const url = baseUrl + '?' + 'listenKey=' + listenKey; // split so the php transpiler does not turn it into '?$listenKey='
                 const client = this.client (url);
                 const messageHashes = Object.keys (client.futures);
                 for (let j = 0; j < messageHashes.length; j++) {
