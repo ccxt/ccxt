@@ -3720,7 +3720,118 @@ export function collapseRedundantNilChecks (content: string): string {
 // Methods whose generated Go signature already returns map[string]any: MapTyped around their call is
 // the identity and a `.(map[string]any)` assertion on it does not compile, so both are dropped.
 const GO_MARKET_ROW_METHODS = [ 'Market', 'SafeMarket' ];
-const GO_MAP_RETURNING_METHODS = [ 'Market', 'Currency', 'SafeCurrency', 'SafeMarket', 'Account', 'ParseOrderBook' ];
+const GO_MAP_RETURNING_METHODS = [ 'Market', 'Currency', 'SafeCurrency', 'SafeMarket', 'Account', 'ParseOrderBook',
+    'SafeOrder', 'SafeTicker', 'SafeLedgerEntry', 'ParseOrder', 'ParseTicker', 'ParseTransaction', 'ParseTransfer', 'ParseLedgerEntry' ];
+
+// Structure parsers retyped to `map[string]any` on the base, every override and IDerivedExchange; the
+// venue-only sub-parsers are the ones a retyped parser returns (kucoin/phemex dispatch).
+function goProvenParseMapMethods (): string[] {
+    return [ 'SafeOrder', 'SafeTicker', 'SafeLedgerEntry', 'ParseOrder', 'ParseTicker', 'ParseTransaction', 'ParseTransfer', 'ParseLedgerEntry',
+        'ParseContractTicker', 'ParseUtaOrder', 'ParseContractOrder', 'ParseSpotOrder', 'ParseSwapOrder' ];
+}
+
+// function-level `return` expressions of a Go body (func literal bodies skipped); undefined when unscannable
+function goFunctionLevelReturnExprs (body: string): string[] | undefined {
+    const inLiteral: boolean[] = [];
+    const stack: boolean[] = [];
+    let literalOpen = 0;
+    for (let i = 0; i < body.length; i++) {
+        inLiteral[i] = literalOpen > 0;
+        const c = body[i];
+        if ((c === '"') || (c === '`') || (c === "'") || ((c === '/') && (body[i + 1] === '/'))) {
+            const end = (c === '/') ? goSkipCommentText (body, i) - 1 : goSkipLiteralText (body, i);
+            for (let k = i + 1; k <= end; k++) {
+                inLiteral[k] = literalOpen > 0;
+            }
+            i = end;
+        } else if (c === '{') {
+            const lineStart = body.lastIndexOf ('\n', i - 1) + 1;
+            const isLiteral = /(^|[^\w.])func\s*\([^)]*\)/.test (body.substring (lineStart, i));
+            stack.push (isLiteral);
+            literalOpen += isLiteral ? 1 : 0;
+        } else if (c === '}') {
+            if (!stack.length) {
+                return undefined;
+            }
+            literalOpen -= stack.pop () ? 1 : 0;
+        }
+    }
+    if (stack.length) {
+        return undefined;
+    }
+    const exprs: string[] = [];
+    let offset = 0;
+    for (const line of body.split ('\n')) {
+        const trimmed = line.trim ();
+        if (!inLiteral[offset] && /^return([ \t]|$)/.test (trimmed)) {
+            exprs.push (trimmed.substring ('return'.length).trim ());
+        }
+        offset += line.length + 1;
+    }
+    return exprs;
+}
+
+/**
+ * Retypes every declaration of goProvenParseMapMethods() from `any` to `map[string]any`. A def is
+ * proven when each function-level return is a map literal, `this.Extend(..)` or a call of a method of
+ * the same family (itself retyped), or a local declared once from such an expression and never
+ * reassigned (that local is typed too); a def with no return must end in panic (base stubs). None of
+ * these can return nil. Go interfaces pin one signature, so an unproven def throws instead of staying `any`.
+ */
+export function retypeGoProvenParseMethods (content: string): string {
+    const names = goProvenParseMapMethods ();
+    const provenCall = new RegExp ('^(?:ccxt\\.)?this\\.(?:DerivedExchange\\.|base\\.)?(?:Extend|' + names.join ('|') + ')\\(');
+    const head = new RegExp ('\\nfunc \\(this \\*(\\w+)\\) (' + names.join ('|') + ')\\(([^)\\n]*)\\) any \\{\\n', 'g');
+    let out = '';
+    let cursor = 0;
+    for (let m = head.exec (content); m !== null; m = head.exec (content)) {
+        const open = m.index + m[0].length - 1;
+        const close = content.indexOf ('\n}\n', open);
+        const body = (close < 0) ? '' : content.substring (open, close + 1);
+        const exprs = goFunctionLevelReturnExprs (body);
+        const where = m[1] + '.' + m[2];
+        if ((close < 0) || (exprs === undefined)) {
+            throw new Error ('retypeGoProvenParseMethods: cannot scan ' + where);
+        }
+        if (!exprs.length && !/(^|\n)\tpanic\([^\n]*\)\n$/.test (body)) {
+            throw new Error ('retypeGoProvenParseMethods: ' + where + ' has no return and does not end in panic');
+        }
+        let newBody = body;
+        for (const expr of exprs) {
+            if (expr.startsWith ('map[string]any{') || provenCall.test (expr)) {
+                continue;
+            }
+            const local = /^\w+$/.test (expr) ? expr : undefined;
+            const declRe = (local === undefined) ? undefined : new RegExp ('\\n\\tvar ' + local + ' (?:any|map\\[string\\]any) = ([^\\n]*)');
+            const decl = (declRe === undefined) ? null : declRe.exec (newBody);
+            const writes = (local === undefined) ? [] : (newBody.match (new RegExp ('(^|[^\\w.])' + local + '(\\s*[-+*/]?=[^=]|\\s*:=|\\s*,[^\\n]*?=)', 'gm')) || []);
+            if ((decl === null) || !(decl[1].startsWith ('map[string]any{') || provenCall.test (decl[1])) || (writes.length !== 0)) {
+                throw new Error ('retypeGoProvenParseMethods: ' + where + ' returns unproven `' + expr.split ('\n')[0] + '`');
+            }
+            newBody = newBody.replace (declRe, '\n\tvar ' + local + ' map[string]any = $1');
+        }
+        out += content.substring (cursor, m.index) + m[0].replace (/ any \{\n$/, ' map[string]any {') + newBody;
+        cursor = close + 1;
+    }
+    return out + content.substring (cursor);
+}
+
+function goProvenParseSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, msg: string) => { if (!c) { problems.push ('typed-parse: ' + msg); } };
+    const fn = (name: string, body: string) => '\nfunc (this *X) ' + name + '(order any, optionalArgs ...any) any {\n' + body + '}\n';
+    const throws = (text: string) => { try { retypeGoProvenParseMethods (text); return false; } catch (e) { return true; } };
+    ok (retypeGoProvenParseMethods (fn ('ParseOrder', '\treturn this.SafeOrder(map[string]any{\n\t\t"a": 1,\n\t}, market)\n')).includes (') ParseOrder(order any, optionalArgs ...any) map[string]any {'), 'safe call');
+    ok (retypeGoProvenParseMethods (fn ('ParseTicker', '\tpanic(NotSupported("x"))\n')).includes (') map[string]any {'), 'panic stub');
+    ok (retypeGoProvenParseMethods (fn ('ParseOrder', '\tvar r any = this.SafeOrder(order)\n\treturn r\n')).includes ('\tvar r map[string]any = this.SafeOrder(order)'), 'returned local typed');
+    ok (retypeGoProvenParseMethods (fn ('ParseOrder', '\tf := func() any {\n\t\treturn nil\n\t}\n\t_ = f\n\treturn map[string]any{}\n')).includes ('map[string]any {'), 'closure return ignored');
+    ok (throws (fn ('ParseOrder', '\tif order == nil {\n\t\treturn nil\n\t}\n\treturn this.SafeOrder(order)\n')), 'nil return rejected');
+    ok (throws (fn ('ParseOrder', '\tvar r any = this.SafeOrder(order)\n\tr = nil\n\treturn r\n')), 'reassigned local rejected');
+    ok (throws (fn ('ParseOrder', '\treturn this.SafeString(order, "x")\n')), 'other call rejected');
+    ok (throws (fn ('ParseTicker', '\t_ = 1\n')), 'no return no panic rejected');
+    ok (retypeGoProvenParseMethods (fn ('ParseTrade', '\treturn nil\n')).includes (') any {'), 'other method untouched');
+    return problems;
+}
 
 function dropNoOpMapTyped (content: string): string {
     const callee = new RegExp ('^this\\.(?:DerivedExchange\\.|Exchange\\.)?(?:' + GO_MAP_RETURNING_METHODS.join ('|') + ')\\(');
@@ -3793,6 +3904,8 @@ function overwriteFileAndFolder (path: string, content: string) {
     // fs.writeFileSync below wrote every generated file a second time
     content = g10kNativeDerefs (path, content);
     content = g10kStrNativeStringHelpers (path, content);  // G10K-str
+    // after every rewrite, so the proof reads the text that is written
+    content = path.endsWith ('.go') ? retypeGoProvenParseMethods (content) : content;
     overwriteFile (path, content);
 }
 
@@ -8539,7 +8652,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ());
+        const problems = g10kArithSelfTest ().concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);

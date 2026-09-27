@@ -160,6 +160,9 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     'this.Currency': 'map[string]any',
     'this.SafeCurrency': 'map[string]any',
     'this.SafeMarket': 'map[string]any',
+    // structure parsers retyped by goTranspiler.ts#retypeGoProvenParseMethods (never nil, base + every override)
+    ...Object.fromEntries ([ 'SafeOrder', 'SafeTicker', 'SafeLedgerEntry', 'ParseOrder', 'ParseTicker', 'ParseTransaction', 'ParseTransfer', 'ParseLedgerEntry' ]
+        .flatMap ((name) => [ [ 'this.' + name, 'map[string]any' ], [ 'this.DerivedExchange.' + name, 'map[string]any' ] ])),
     // exchange_prediction.go: retyped by transpilePredictionBaseMethods (no venue overrides)
     'this.Outcome': 'map[string]any',
     'this.SafeOutcome': 'map[string]any',

@@ -393,13 +393,13 @@ type IDerivedExchange interface {
 	ParseGreeks(greeks any, optionalArgs ...any) any
 	ParseMarket(market any) any
 	ParseCurrency(rawCurrency any) any
-	ParseTransaction(transaction any, optionalArgs ...any) any
-	ParseTransfer(transfer any, optionalArgs ...any) any
+	ParseTransaction(transaction any, optionalArgs ...any) map[string]any
+	ParseTransfer(transfer any, optionalArgs ...any) map[string]any
 	ParseAccount(account any) any
-	ParseLedgerEntry(item any, optionalArgs ...any) any
+	ParseLedgerEntry(item any, optionalArgs ...any) map[string]any
 	ParseLastPrice(item any, optionalArgs ...any) any
-	ParseOrder(order any, optionalArgs ...any) any
-	ParseTicker(ticker any, optionalArgs ...any) any
+	ParseOrder(order any, optionalArgs ...any) map[string]any
+	ParseTicker(ticker any, optionalArgs ...any) map[string]any
 	ParseTickers(tickers any, optionalArgs ...any) any
 	ParseOrderBook(orderbook any, symbol any, optionalArgs ...any) map[string]any
 	ParsePosition(position any, optionalArgs ...any) any
