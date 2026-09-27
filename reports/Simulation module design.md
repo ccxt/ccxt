@@ -9,7 +9,7 @@ Background research: [Trading simulation design research.md](./Trading%20simulat
 - **One matching engine, three modes:** backtest, paper and live differ only in the data source and the clock. The matcher that decides fills is the same in backtest and paper.
 - **Pluggable data sources:** the simulator doesn't care where history comes from — ccxt's own backfill, the user's ccxt.pro recordings, exchange bulk dumps, or vendor data such as a user's own **Tardis.dev** subscription.
 - **Strategy and runner on top:** an optional, thin `ccxt.Strategy` contract plus a `ccxt.run()` runner. The runner executes one strategy unchanged in backtest, paper, sandbox and live, with guardrails, saved state and a journal. It supports a create → test → optimize → deploy → monitor → re-optimize loop that a developer or an AI agent can drive (see §10).
-- **Server is optional and last:** a hosted/lockstep server is a thin façade over the same core. A public CCXT-hosted archive of raw exchange data is legally blocked without licences (see §7).
+- **Everything runs on the user's side:** CCXT does not host runners or hold users' exchange or vendor keys. An optional *local* lockstep server (for notebooks or non-ccxt clients) is a thin façade over the same core. A public CCXT-hosted archive of raw exchange data is legally blocked without licences (see §7).
 
 ## 2. Backtest vs paper vs live
 
@@ -138,7 +138,7 @@ Technically yes, but licensing decides the shape:
 Viable options, in order of effort:
 
 1. **Bring your own data (default).** CCXT ships the software; each user supplies their own Tardis key, recordings or dumps. No licensing exposure. This is the tardis-machine model.
-2. **Hosted compute, user's key.** A CCXT-hosted simulation service that pulls data with the *user's* vendor credentials into their session. Useful for notebooks/web UIs; data rights stay between user and vendor.
+2. ~~Hosted compute with the user's key~~ — **ruled out**: CCXT will not hold users' exchange or vendor credentials. Everything runs on the user's machine or infrastructure.
 3. **Partnership.** A formal agreement with Tardis (or another vendor) so CCXT users get data through CCXT — possibly the premium offering. Needs a commercial conversation, not code.
 4. **Self-recorded archive.** CCXT records its own feeds with ccxt.pro. Still subject to exchange terms for redistribution, and expensive: full L2 for a top perp is ~1–2 GB per symbol-day compressed; top ~20 symbols × ~10 venues is roughly 10–100 TB/year.
 
@@ -288,7 +288,7 @@ What the runner owns, so strategy code doesn't have to:
 - **Recording:** a live or paper run can record its own market data (§5.2), which feeds the loop below.
 - **Observability:** a status endpoint and metrics (PnL, exposure, latency, errors); `--json` output everywhere.
 
-Deployment is plain: `ccxt strategy run ./sma-cross.ts --mode live --account binance-main`, a small Docker image, or any process manager. A hosted runner is a possible later offering (phase 5).
+Deployment is plain and always on the user's side: `ccxt strategy run ./sma-cross.ts --mode live --account binance-main`, a small Docker image, or any process manager. **There is no CCXT-hosted runner** — CCXT never holds users' keys. Keys stay in the user's local config, as in the ccxt MCP server.
 
 ### 10.3 The ideal workflow
 
@@ -352,7 +352,7 @@ ccxt strategy promote paper-run-17 --to live --max-order-value 100   # → waits
 | 4. L2 + Tardis | Raw-frame replay into `handleMessage` (recordings and Tardis raw); Tardis CSV converter; L2 matcher, queue and latency models |
 | 5. Strategy + runner | `ccxt.Strategy` contract, `ccxt.run()` for all four modes, guardrails, state and journal, run manifests, `ccxt strategy` CLI |
 | 6. Loop + agents | Walk-forward, sweeps, purged CV, deflated Sharpe; promotion gates; live-vs-replay reconciliation and model calibration; champion/challenger; MCP tools with human-approved promotion |
-| 7. Premium | Optional hosted runner and lockstep server; vendor partnerships |
+| 7. Premium | Optional local lockstep server; vendor partnerships (data only — no hosted runners or key custody) |
 
 Phase 5 can start as soon as phase 2 exists: a runner over backtest and live alone is already useful.
 
