@@ -15,7 +15,6 @@ type Polymarket struct {
 
 func newPolymarket() *Polymarket {
 	p := &Polymarket{}
-	ccxt.SetDefaults(p)
 	return p
 }
 

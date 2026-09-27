@@ -16,7 +16,6 @@ type Opinion struct {
 
 func newOpinion() *Opinion {
 	p := &Opinion{}
-	ccxt.SetDefaults(p)
 	return p
 }
 

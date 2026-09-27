@@ -17,7 +17,6 @@ func newBingx() *Bingx {
 	base := &ccxt.Bingx{}
 	p.base = base
 	p.Bingx = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

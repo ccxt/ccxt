@@ -18,7 +18,6 @@ func newWoo() *Woo {
 	base := &ccxt.Woo{}
 	p.base = base
 	p.Woo = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

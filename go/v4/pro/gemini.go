@@ -17,7 +17,6 @@ func newGemini() *Gemini {
 	base := &ccxt.Gemini{}
 	p.base = base
 	p.Gemini = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

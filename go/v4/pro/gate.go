@@ -18,7 +18,6 @@ func newGate() *Gate {
 	base := &ccxt.Gate{}
 	p.base = base
 	p.Gate = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

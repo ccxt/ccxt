@@ -17,7 +17,6 @@ func newPoloniex() *Poloniex {
 	base := &ccxt.Poloniex{}
 	p.base = base
 	p.Poloniex = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

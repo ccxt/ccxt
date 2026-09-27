@@ -17,7 +17,6 @@ func newExtended() *Extended {
 	base := &ccxt.Extended{}
 	p.base = base
 	p.Extended = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

@@ -15,7 +15,6 @@ func newNado() *Nado {
 	base := &ccxt.Nado{}
 	p.base = base
 	p.Nado = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

@@ -19,7 +19,6 @@ func newLbank() *Lbank {
 	base := &ccxt.Lbank{}
 	p.base = base
 	p.Lbank = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

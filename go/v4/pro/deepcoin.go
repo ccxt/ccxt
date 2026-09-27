@@ -15,7 +15,6 @@ func newDeepcoin() *Deepcoin {
 	base := &ccxt.Deepcoin{}
 	p.base = base
 	p.Deepcoin = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

@@ -14,7 +14,6 @@ type Predictfun struct {
 
 func newPredictfun() *Predictfun {
 	p := &Predictfun{}
-	ccxt.SetDefaults(p)
 	return p
 }
 

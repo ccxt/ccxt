@@ -18,7 +18,6 @@ func newBlofin() *Blofin {
 	base := &ccxt.Blofin{}
 	p.base = base
 	p.Blofin = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

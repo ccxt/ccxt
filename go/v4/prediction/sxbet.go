@@ -14,7 +14,6 @@ type Sxbet struct {
 
 func newSxbet() *Sxbet {
 	p := &Sxbet{}
-	ccxt.SetDefaults(p)
 	return p
 }
 

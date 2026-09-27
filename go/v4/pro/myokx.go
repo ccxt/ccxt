@@ -15,7 +15,6 @@ func newMyokx() *Myokx {
 	base := newOkx()
 	p.base = base
 	p.Okx = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

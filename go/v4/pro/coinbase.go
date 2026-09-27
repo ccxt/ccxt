@@ -17,7 +17,6 @@ func newCoinbase() *Coinbase {
 	base := &ccxt.Coinbase{}
 	p.base = base
 	p.Coinbase = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

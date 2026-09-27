@@ -17,7 +17,6 @@ func newDydx() *Dydx {
 	base := &ccxt.Dydx{}
 	p.base = base
 	p.Dydx = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

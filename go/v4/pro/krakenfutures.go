@@ -17,7 +17,6 @@ func newKrakenfutures() *Krakenfutures {
 	base := &ccxt.Krakenfutures{}
 	p.base = base
 	p.Krakenfutures = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

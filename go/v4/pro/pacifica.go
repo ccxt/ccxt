@@ -15,7 +15,6 @@ func newPacifica() *Pacifica {
 	base := &ccxt.Pacifica{}
 	p.base = base
 	p.Pacifica = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

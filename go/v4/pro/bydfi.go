@@ -18,7 +18,6 @@ func newBydfi() *Bydfi {
 	base := &ccxt.Bydfi{}
 	p.base = base
 	p.Bydfi = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

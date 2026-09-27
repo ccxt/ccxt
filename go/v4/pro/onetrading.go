@@ -15,7 +15,6 @@ func newOnetrading() *Onetrading {
 	base := &ccxt.Onetrading{}
 	p.base = base
 	p.Onetrading = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

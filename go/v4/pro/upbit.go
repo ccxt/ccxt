@@ -15,7 +15,6 @@ func newUpbit() *Upbit {
 	base := &ccxt.Upbit{}
 	p.base = base
 	p.Upbit = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

@@ -15,7 +15,6 @@ func newBithumb() *Bithumb {
 	base := &ccxt.Bithumb{}
 	p.base = base
 	p.Bithumb = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

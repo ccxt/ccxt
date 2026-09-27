@@ -17,7 +17,6 @@ func newBackpack() *Backpack {
 	base := &ccxt.Backpack{}
 	p.base = base
 	p.Backpack = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

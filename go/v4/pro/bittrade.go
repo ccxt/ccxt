@@ -18,7 +18,6 @@ func newBittrade() *Bittrade {
 	base := &ccxt.Bittrade{}
 	p.base = base
 	p.Bittrade = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

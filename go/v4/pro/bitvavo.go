@@ -18,7 +18,6 @@ func newBitvavo() *Bitvavo {
 	base := &ccxt.Bitvavo{}
 	p.base = base
 	p.Bitvavo = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

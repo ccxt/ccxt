@@ -15,7 +15,6 @@ func newKucoinfutures() *Kucoinfutures {
 	base := newKucoin()
 	p.base = base
 	p.Kucoin = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

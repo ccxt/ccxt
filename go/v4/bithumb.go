@@ -657,8 +657,8 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				"strike":         nil,
 				"optionType":     nil,
 				"precision": map[string]any{
-					"amount": ParseInt("4"),
-					"price":  ParseInt("4"),
+					"amount": int64(4),
+					"price":  int64(4),
 				},
 				"limits": map[string]any{
 					"leverage": map[string]any{
@@ -753,8 +753,8 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 					"strike":         nil,
 					"optionType":     nil,
 					"precision": map[string]any{
-						"amount": ParseInt("4"),
-						"price":  ParseInt("4"),
+						"amount": int64(4),
+						"price":  int64(4),
 					},
 					"limits": map[string]any{
 						"leverage": map[string]any{

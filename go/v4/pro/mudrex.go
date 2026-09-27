@@ -17,7 +17,6 @@ func newMudrex() *Mudrex {
 	base := &ccxt.Mudrex{}
 	p.base = base
 	p.Mudrex = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

@@ -18,7 +18,6 @@ func newApex() *Apex {
 	base := &ccxt.Apex{}
 	p.base = base
 	p.Apex = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

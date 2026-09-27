@@ -15,7 +15,6 @@ type Kalshi struct {
 
 func newKalshi() *Kalshi {
 	p := &Kalshi{}
-	ccxt.SetDefaults(p)
 	return p
 }
 

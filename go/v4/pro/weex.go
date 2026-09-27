@@ -17,7 +17,6 @@ func newWeex() *Weex {
 	base := &ccxt.Weex{}
 	p.base = base
 	p.Weex = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

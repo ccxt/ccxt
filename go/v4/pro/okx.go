@@ -18,7 +18,6 @@ func newOkx() *Okx {
 	base := &ccxt.Okx{}
 	p.base = base
 	p.Okx = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

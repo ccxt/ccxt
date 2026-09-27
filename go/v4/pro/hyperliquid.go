@@ -17,7 +17,6 @@ func newHyperliquid() *Hyperliquid {
 	base := &ccxt.Hyperliquid{}
 	p.base = base
 	p.Hyperliquid = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

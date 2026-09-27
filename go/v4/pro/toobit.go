@@ -17,7 +17,6 @@ func newToobit() *Toobit {
 	base := &ccxt.Toobit{}
 	p.base = base
 	p.Toobit = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

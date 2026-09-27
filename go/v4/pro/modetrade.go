@@ -17,7 +17,6 @@ func newModetrade() *Modetrade {
 	base := &ccxt.Modetrade{}
 	p.base = base
 	p.Modetrade = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

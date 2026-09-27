@@ -18,7 +18,6 @@ func newCex() *Cex {
 	base := &ccxt.Cex{}
 	p.base = base
 	p.Cex = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

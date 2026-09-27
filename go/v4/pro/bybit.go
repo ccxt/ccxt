@@ -18,7 +18,6 @@ func newBybit() *Bybit {
 	base := &ccxt.Bybit{}
 	p.base = base
 	p.Bybit = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

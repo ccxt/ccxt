@@ -14,7 +14,6 @@ type Myriad struct {
 
 func newMyriad() *Myriad {
 	p := &Myriad{}
-	ccxt.SetDefaults(p)
 	return p
 }
 

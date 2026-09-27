@@ -17,7 +17,6 @@ func newBitfinex() *Bitfinex {
 	base := &ccxt.Bitfinex{}
 	p.base = base
 	p.Bitfinex = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

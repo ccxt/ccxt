@@ -15,7 +15,6 @@ func newBlockchaincom() *Blockchaincom {
 	base := &ccxt.Blockchaincom{}
 	p.base = base
 	p.Blockchaincom = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

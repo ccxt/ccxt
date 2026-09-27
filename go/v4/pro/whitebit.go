@@ -17,7 +17,6 @@ func newWhitebit() *Whitebit {
 	base := &ccxt.Whitebit{}
 	p.base = base
 	p.Whitebit = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

@@ -17,7 +17,6 @@ func newGrvt() *Grvt {
 	base := &ccxt.Grvt{}
 	p.base = base
 	p.Grvt = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
