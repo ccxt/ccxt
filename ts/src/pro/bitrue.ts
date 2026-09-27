@@ -893,7 +893,7 @@ export default class bitrue extends bitrueRest {
                     throw new AuthenticationError (this.id + ' authenticate() received an empty listenKey');
                 }
                 this.options['listenKey'] = key;
-                this.options['listenKeyUrl'] = this.urls['api']['ws']['private'] + '/stream?listenKey=' + key;
+                this.options['listenKeyUrl'] = this.urls['api']['ws']['private'] + '/stream?' + 'listenKey=' + key; // split so the php transpiler does not turn it into '/stream?$listenKey='
                 client.resolve (key, messageHash);
             } catch (e) {
                 // reject the flight - all waiters throw and the next caller
