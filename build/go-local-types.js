@@ -145,6 +145,8 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     'this.SortBy': '[]any',
     'this.SortBy2': '[]any',
     'this.FilterBy': '[]any',
+    // hand-written (exchange.go): a slice on every path, a nil []any when the argument is not one
+    'this.ArraySlice': '[]any',
     'this.Sort': '[]any',
     'this.ExtractParams': '[]any',
     // arrayConcat is `(a: any[], b: any[]) => a.concat (b)` upstream: an array on every path,
