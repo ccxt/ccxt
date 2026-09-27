@@ -553,6 +553,18 @@ public partial class btcturk : Exchange
         object symbol = getValue(market, "symbol");
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
         string? last = this.safeString(ticker, "last");
+        string? open = this.safeString(ticker, "open");
+        string? change = this.safeString(ticker, "daily");
+        string? percentage = this.safeString(ticker, "dailyPercent");
+        string? average = this.safeString(ticker, "average");
+        if (((open != null)) && ((last != null)) && !Precise.stringEq(open, "0"))
+        {
+            // The reported daily fields can disagree with last - open.
+            // Let safeTicker derive the unified change, percentage and average from these prices.
+            change = null;
+            percentage = null;
+            average = null;
+        }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -564,13 +576,13 @@ public partial class btcturk : Exchange
             { "ask", this.safeString(ticker, "ask") },
             { "askVolume", null },
             { "vwap", null },
-            { "open", this.safeString(ticker, "open") },
+            { "open", open },
             { "close", last },
             { "last", last },
             { "previousClose", null },
-            { "change", this.safeString(ticker, "daily") },
-            { "percentage", this.safeString(ticker, "dailyPercent") },
-            { "average", this.safeString(ticker, "average") },
+            { "change", change },
+            { "percentage", percentage },
+            { "average", average },
             { "baseVolume", this.safeString(ticker, "volume") },
             { "quoteVolume", null },
             { "info", ticker },
