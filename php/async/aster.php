@@ -1934,7 +1934,7 @@ class aster extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRate() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRate() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2178,12 +2178,12 @@ class aster extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
         }
         $marginModeUpper = strtoupper($marginMode);
         $marginModeValue = ($marginModeUpper === 'CROSS') ? 'CROSSED' : $marginModeUpper;
         if (($marginModeValue !== 'ISOLATED') && ($marginModeValue !== 'CROSSED')) {
-            throw new BadRequest($this->id . ' $marginMode must be either isolated or cross');
+            throw new BadRequest($this->id . ' marginMode must be either isolated or cross');
         }
         Async\await($this->load_markets_and_sign_in());
         $market = $this->market($symbol);
@@ -2443,7 +2443,7 @@ class aster extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
         }
         Async\await($this->load_markets_and_sign_in());
         $market = $this->market($symbol);
@@ -2511,7 +2511,7 @@ class aster extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires a symbol argument');
         }
         Async\await($this->load_markets_and_sign_in());
         $market = $this->market($symbol);
@@ -2581,7 +2581,7 @@ class aster extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a symbol argument');
         }
         Async\await($this->load_markets_and_sign_in());
         $market = $this->market($symbol);
@@ -2661,7 +2661,7 @@ class aster extends Exchange {
         }
         if ($symbol === null) {
             if ($this->safe_bool($this->options['fetchOpenOrders'], 'warnIfNoSymbol', false)) {
-                throw new ExchangeError($this->id . ' fetchOpenOrders() => WARNING - this method without providing "symbol" argument uses 40 times more rate-$limit quota. If you acknowledge this warning, set ' . $this->id . '.options["fetchOpenOrders"]["warnIfNoSymbol"] = false to suppress this warning message.');
+                throw new ExchangeError($this->id . ' fetchOpenOrders() => WARNING - this method without providing "symbol" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set ' . $this->id . '.options["fetchOpenOrders"]["warnIfNoSymbol"] = false to suppress this warning message.');
             }
         } else {
             $market = $this->market($symbol);
@@ -2854,10 +2854,10 @@ class aster extends Exchange {
 
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         /**
          * @ignore
@@ -2983,7 +2983,7 @@ class aster extends Exchange {
         }
         if ($priceIsRequired) {
             if ($price === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for a ' . $type . ' order');
+                throw new InvalidOrder($this->id . ' createOrder() requires a price argument for a ' . $type . ' order');
             }
             $pricePrecision = $this->safe_string($market['precision'], 'price');
             $isPricePrecisionAvailable = ($pricePrecision !== null);
@@ -2995,7 +2995,7 @@ class aster extends Exchange {
         }
         if ($triggerPriceIsRequired) {
             if ($stopPrice === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice extra param for a ' . $type . ' order');
+                throw new InvalidOrder($this->id . ' createOrder() requires a stopPrice extra param for a ' . $type . ' order');
             }
             if ($stopPrice !== null) {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
@@ -3034,7 +3034,7 @@ class aster extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument');
         }
         Async\await($this->load_markets_and_sign_in());
         $market = $this->market($symbol);
@@ -3078,7 +3078,7 @@ class aster extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         Async\await($this->load_markets_and_sign_in());
         $market = $this->market($symbol);
@@ -3121,7 +3121,7 @@ class aster extends Exchange {
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument');
         }
         Async\await($this->load_markets_and_sign_in());
         $market = $this->market($symbol);
@@ -3193,10 +3193,10 @@ class aster extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if (($leverage < 1) || ($leverage > 125)) {
-            throw new BadRequest($this->id . ' $leverage should be between 1 and 125');
+            throw new BadRequest($this->id . ' leverage should be between 1 and 125');
         }
         Async\await($this->load_markets_and_sign_in());
         $market = $this->market($symbol);
@@ -3388,7 +3388,7 @@ class aster extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=margin-loan-structure margin structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMarginAdjustmentHistory () requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMarginAdjustmentHistory () requires a symbol argument');
         }
         Async\await($this->load_markets_and_sign_in());
         $market = $this->market($symbol);
@@ -3954,7 +3954,7 @@ class aster extends Exchange {
         } elseif ($defaultMethod === 'account') {
             return Async\await($this->fetch_account_positions($symbols, $paramsMethod));
         } else {
-            throw new NotSupported($this->id . '.options["fetchPositions"]["method"] or $params["method"] = "' . $defaultMethod . '" is invalid, please choose between "account" and "positionRisk"');
+            throw new NotSupported($this->id . '.options["fetchPositions"]["method"] or params["method"] = "' . $defaultMethod . '" is invalid, please choose between "account" and "positionRisk"');
         }
     }
 
@@ -4333,12 +4333,12 @@ class aster extends Exchange {
             $chainId = $this->safe_integer($chainIds, $network);
         }
         if ($chainId === null) {
-            throw new ArgumentsRequired($this->id . ' withdraw require $chainId or $network parameter');
+            throw new ArgumentsRequired($this->id . ' withdraw require chainId or network parameter');
         }
         $request['chainId'] = $chainId;
         $fee = $this->safe_string($paramsWithdrawTag, 'fee');
         if ($fee === null) {
-            throw new ArgumentsRequired($this->id . ' withdraw require $fee parameter');
+            throw new ArgumentsRequired($this->id . ' withdraw require fee parameter');
         }
         $request['fee'] = $fee;
         $paramsOmitted = $this->omit($paramsWithdrawTag, array( 'chainId', 'network', 'fee' ));
@@ -4412,7 +4412,7 @@ class aster extends Exchange {
             $type = 'FUTURE_SPOT';
         }
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' transfer() requires $fromAccount and $toAccount parameters to be either SPOT or FUTURE');
+            throw new ArgumentsRequired($this->id . ' transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE');
         }
         $defaultClientTranId = $this->number_to_string($this->milliseconds());
         $clientTranId = $this->safe_string($params, 'clientTranId', $defaultClientTranId);
@@ -4488,7 +4488,7 @@ class aster extends Exchange {
             }
             $signerAddress = $this->safe_string($this->options, 'signerAddress', $walletAddress); // default to user's wallet
             if ($signerAddress === null) {
-                throw new ArgumentsRequired($this->id . ' requires $signerAddress in options when use v3 api');
+                throw new ArgumentsRequired($this->id . ' requires signerAddress in options when use v3 api');
             }
             $domain = array(
                 'name' => 'AsterSignTransaction',

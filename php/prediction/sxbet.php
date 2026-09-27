@@ -606,7 +606,7 @@ class sxbet extends Exchange {
             $raw = $rawMarkets[$i];
             $parsed = $this->parse_sxbet_market($raw);
             if ($parsed === null) {
-                throw new ExchangeError($this->id . ' parseEvent() could not resolve $parsed market');
+                throw new ExchangeError($this->id . ' parseEvent() could not resolve parsed market');
             }
             $marketsList[] = $parsed;
             if ($parsed['active'] === true) {
@@ -803,7 +803,7 @@ class sxbet extends Exchange {
         $this->check_required_credentials();
         $amount = $this->safe_number($params, 'amount');
         if ($amount === null) {
-            throw new ArgumentsRequired($this->id . ' approve() requires $params->amount - the USDC $amount to move into the $proxy wallet');
+            throw new ArgumentsRequired($this->id . ' approve() requires params.amount - the USDC amount to move into the proxy wallet');
         }
         $proxy = Async\await($this->fetch_sxbet_proxy());
         $deployed = $this->safe_bool($proxy, 'deployed', false);
@@ -830,13 +830,13 @@ class sxbet extends Exchange {
         }
         list($spender, $paramsSpender) = $this->handle_option_string_and_params_2($params, 'approve', 'spender', 'transferToProxySpender', $executorAddress);
         if ($spender === null) {
-            throw new BadRequest($this->id . ' approve() could not resolve the transfer-to-$proxy executor from /metadata/obv3 - pass $params->spender');
+            throw new BadRequest($this->id . ' approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender');
         }
         $chains = $this->safe_dict($this->options, 'chains', array());
         $chainConfig = $this->safe_dict($chains, $this->number_to_string($chainId), array());
         $rpcUrl = $this->safe_string($paramsSpender, 'rpcUrl', $this->safe_string($chainConfig, 'rpcUrl'));
         if ($rpcUrl === null) {
-            throw new ArgumentsRequired($this->id . ' approve() has no RPC endpoint configured for $chainId ' . $this->number_to_string($chainId) . ' - pass $params->rpcUrl');
+            throw new ArgumentsRequired($this->id . ' approve() has no RPC endpoint configured for chainId ' . $this->number_to_string($chainId) . ' - pass params.rpcUrl');
         }
         $owner = $this->walletAddress;
         $nonceCallData = '0x7ecebe00' . $this->pad_hex_address($owner); // nonces(address)
@@ -907,16 +907,16 @@ class sxbet extends Exchange {
         Async\await($this->load_outcome($outcome));
         $outcomeObj = $this->outcome($outcome);
         if (($type !== 'limit') && ($type !== 'market')) {
-            throw new InvalidOrder($this->id . " createOrder() $type must be 'limit' or 'market', got " . $type);
+            throw new InvalidOrder($this->id . " createOrder() type must be 'limit' or 'market', got " . $type);
         }
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $price - the implied $probability of the requested outcome');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a price - the implied probability of the requested outcome');
         }
         // the venue has no post-only or trigger mechanics - reject the unified params instead
         // of forwarding fields the exchange would silently ignore
         $postOnly = $this->safe_bool($params, 'postOnly', false);
         if ($postOnly === true) {
-            throw new NotSupported($this->id . ' createOrder() does not support $postOnly - GTC orders may cross on entry');
+            throw new NotSupported($this->id . ' createOrder() does not support postOnly - GTC orders may cross on entry');
         }
         $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
         if ($triggerPrice !== null) {
@@ -958,7 +958,7 @@ class sxbet extends Exchange {
         // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         // contradicting the immediate-fill semantics the type promises
         if (($type === 'market') && ($timeInForce === 'GTC')) {
-            throw new InvalidOrder($this->id . " createOrder() market orders cannot be GTC - use $type 'limit' for a resting order");
+            throw new InvalidOrder($this->id . " createOrder() market orders cannot be GTC - use type 'limit' for a resting order");
         }
         $maker = $this->walletAddress;
         $messageTypes = array(
@@ -1166,7 +1166,7 @@ class sxbet extends Exchange {
         $this->check_required_credentials();
         $idsLength = count($ids);
         if ($idsLength === 0) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a non-empty $ids argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a non-empty ids argument');
         }
         // the venue caps one cancel request at maxCancelOrders ids (100, see /metadata/obv3) -
         // chunk larger batches instead of letting the whole request 400
@@ -1409,7 +1409,7 @@ class sxbet extends Exchange {
          */
         $this->check_required_credentials();
         if ($id === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires an $id argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires an id argument');
         }
         $outcomeObj = null;
         if ($outcome !== null) {
@@ -1440,7 +1440,7 @@ class sxbet extends Exchange {
          * @return {array[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
          */
         if ($outcome === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTrades() requires an $outcome argument - the venue requires the $trades listing to be scoped');
+            throw new ArgumentsRequired($this->id . ' fetchTrades() requires an outcome argument - the venue requires the trades listing to be scoped');
         }
         Async\await($this->load_outcome($outcome));
         $outcomeObj = $this->outcome($outcome);
@@ -1947,7 +1947,7 @@ class sxbet extends Exchange {
          * @return {array} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
          */
         if ($outcomes === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTickers() requires an $outcomes argument - sx.bet has thousands of markets and serves best odds per market list');
+            throw new ArgumentsRequired($this->id . ' fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list');
         }
         $outcomesList = $outcomes;
         $outcomesLength = count($outcomesList);
@@ -2850,7 +2850,7 @@ class sxbet extends Exchange {
         $apiGroup = gettype($api) === 'string' ? $api : $api[0];
         $accessLevel = gettype($api) === 'string' ? 'public' : $api[1];
         if (($accessLevel === 'private') && ($this->apiKey === null)) {
-            throw new AuthenticationError($this->id . ' ' . $path . ' is a private endpoint and requires the apiKey credential (the x-sx-$api-key header)');
+            throw new AuthenticationError($this->id . ' ' . $path . ' is a private endpoint and requires the apiKey credential (the x-sx-api-key header)');
         }
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['sxbet']);
@@ -2862,7 +2862,7 @@ class sxbet extends Exchange {
             'Content-Type' => 'application/json',
         ), $existingHeaders);
         if ($this->apiKey !== null) {
-            $headersExtended['x-sx-$api-key'] = $this->apiKey;
+            $headersExtended['x-sx-api-key'] = $this->apiKey;
         }
         // DELETE /orders-v3 carries its order ids in a JSON body; the other DELETE routes -
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET

@@ -1129,7 +1129,7 @@ class bitstamp extends Exchange {
         $currencyIds = is_array($tradeOmitted) ? array_keys($tradeOmitted) : array();
         $numCurrencyIds = count($currencyIds);
         if ($numCurrencyIds > 2) {
-            throw new ExchangeError($this->id . ' getMarketFromTrade() too many keys => ' . $this->json($currencyIds) . ' in the $trade => ' . $this->json($tradeOmitted));
+            throw new ExchangeError($this->id . ' getMarketFromTrade() too many keys => ' . $this->json($currencyIds) . ' in the trade => ' . $this->json($tradeOmitted));
         }
         if ($numCurrencyIds === 2) {
             $marketId = $currencyIds[0] . $currencyIds[1];
@@ -2837,7 +2837,7 @@ class bitstamp extends Exchange {
             $request['subAccount'] = $fromAccount;
             $response = Async\await($this->privatePostTransferToMain($this->extend($request, $params)));
         } else {
-            throw new BadRequest($this->id . ' $transfer() only supports from or to main');
+            throw new BadRequest($this->id . ' transfer() only supports from or to main');
         }
         //
         //    { status: 'ok' }

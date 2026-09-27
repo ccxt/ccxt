@@ -511,7 +511,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         Async\await($this->authenticate());
         $userId = $this->safe_string($this->options, 'userId');
         if ($userId === null) {
-            throw new AuthenticationError($this->id . ' unWatchOrders() requires a $userId from authenticate()');
+            throw new AuthenticationError($this->id . ' unWatchOrders() requires a userId from authenticate()');
         }
         $channel = 'private-my_orders_' . $market['id'] . '-' . $userId;
         return Async\await($this->un_watch_channel($channel, $channel, 'orders', array( $symbolValue ), $params));
@@ -582,7 +582,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         Async\await($this->authenticate());
         $userId = $this->safe_string($this->options, 'userId');
         if ($userId === null) {
-            throw new AuthenticationError($this->id . ' unWatchMyTrades() requires a $userId from authenticate()');
+            throw new AuthenticationError($this->id . ' unWatchMyTrades() requires a userId from authenticate()');
         }
         $channel = 'private-my_trades_' . $market['id'] . '-' . $userId;
         return Async\await($this->un_watch_channel($channel, $channel, 'myTrades', array( $symbolValue ), $params));
@@ -1102,7 +1102,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         Async\await($this->authenticate());
         $userId = $this->safe_string($this->options, 'userId');
         if ($userId === null) {
-            throw new AuthenticationError($this->id . ' subscribePrivate() requires a $userId from authenticate()');
+            throw new AuthenticationError($this->id . ' subscribePrivate() requires a userId from authenticate()');
         }
         $messageHashValue = $messageHash . ('-' . $userId);
         $request = array(

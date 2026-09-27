@@ -2285,10 +2285,10 @@ class coinex extends Exchange {
 
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $swap = $market['swap'];
@@ -2303,7 +2303,7 @@ class coinex extends Exchange {
         $reduceOnly = $this->safe_bool($params, 'reduceOnly');
         if ($reduceOnly === true) {
             if ($market['swap'] !== true) {
-                throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $market['type'] . ' orders, $reduceOnly orders are supported for $swap markets only');
+                throw new InvalidOrder($this->id . ' createOrder() does not support reduceOnly for ' . $market['type'] . ' orders, reduceOnly orders are supported for swap markets only');
             }
         }
         $request = array(
@@ -2374,7 +2374,7 @@ class coinex extends Exchange {
                 $createMarketBuyOrderRequiresPrice = $requiresPriceAndParams[0];
                 if ($createMarketBuyOrderRequiresPrice) {
                     if (($price === null) && ($cost === null)) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice $option or param to false and pass the $cost to spend in the $amount argument');
+                        throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
@@ -2677,7 +2677,7 @@ class coinex extends Exchange {
                 $symbol = $marketId;
             } else {
                 if ($symbol !== $marketId) {
-                    throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same symbol');
+                    throw new BadRequest($this->id . ' createOrders() requires all orders to have the same symbol');
                 }
             }
             $type = $this->safe_string($rawOrder, 'type');
@@ -2686,7 +2686,7 @@ class coinex extends Exchange {
             $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             if ($type !== 'limit') {
-                throw new NotSupported($this->id . ' createOrders() does not support ' . $type . ' $orders, only limit $orders are accepted');
+                throw new NotSupported($this->id . ' createOrders() does not support ' . $type . ' orders, only limit orders are accepted');
             }
             $reduceOnly = $this->safe_value($orderParams, 'reduceOnly');
             $triggerPrice = $this->safe_number_2($orderParams, 'stopPrice', 'triggerPrice');
@@ -2784,7 +2784,7 @@ class coinex extends Exchange {
                 throw new NotSupported($this->id . ' createOrders() does not support stopLossPrice or takeProfitPrice orders');
             } else {
                 if ($reduceOnly) {
-                    throw new NotSupported($this->id . ' createOrders() does not support $reduceOnly orders');
+                    throw new NotSupported($this->id . ' createOrders() does not support reduceOnly orders');
                 } else {
                     $response = Async\await($this->v2PrivatePostFuturesBatchOrder($request));
                     //
@@ -2870,7 +2870,7 @@ class coinex extends Exchange {
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3295,7 +3295,7 @@ class coinex extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3587,7 +3587,7 @@ class coinex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3639,7 +3639,7 @@ class coinex extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -4110,7 +4110,7 @@ class coinex extends Exchange {
         $currency = $this->currency($code);
         $network = $this->safe_string_2($params, 'chain', 'network');
         if ($network === null) {
-            throw new ArgumentsRequired($this->id . ' createDepositAddress() requires a $network parameter');
+            throw new ArgumentsRequired($this->id . ' createDepositAddress() requires a network parameter');
         }
         $paramsOmitted = $this->omit($params, 'network');
         $request = array(
@@ -4221,7 +4221,7 @@ class coinex extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -4325,7 +4325,7 @@ class coinex extends Exchange {
             if ((gettype($symbolsNormalized) === 'array' && array_keys($symbolsNormalized) === array_keys(array_keys($symbolsNormalized)))) {
                 $symbolsLength = count($symbolsNormalized);
                 if ($symbolsLength > 1) {
-                    throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');
+                    throw new BadRequest($this->id . ' fetchPositions() symbols argument cannot contain more than 1 symbol');
                 }
                 $symbol = $symbolsNormalized[0];
             } else {
@@ -4547,11 +4547,11 @@ class coinex extends Exchange {
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
         }
         $marginModeValue = strtolower($marginMode);
         if ($marginModeValue !== 'isolated' && $marginModeValue !== 'cross') {
-            throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
+            throw new BadRequest($this->id . ' setMarginMode() marginMode argument should be isolated or cross');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -4563,10 +4563,10 @@ class coinex extends Exchange {
         $leverage = $this->safe_integer($params, 'leverage');
         $maxLeverage = $this->safe_integer($market['limits']['leverage'], 'max', 100);
         if ($leverage === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a leverage parameter');
         }
         if (($leverage < 1) || ($leverage > $maxLeverage)) {
-            throw new BadRequest($this->id . ' setMarginMode() $leverage should be between 1 and ' . (string) $maxLeverage . ' for ' . $symbol);
+            throw new BadRequest($this->id . ' setMarginMode() leverage should be between 1 and ' . (string) $maxLeverage . ' for ' . $symbol);
         }
         $request = array(
             'market' => $market['id'],
@@ -4604,7 +4604,7 @@ class coinex extends Exchange {
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -4617,7 +4617,7 @@ class coinex extends Exchange {
         $minLeverage = $this->safe_integer($market['limits']['leverage'], 'min', 1);
         $maxLeverage = $this->safe_integer($market['limits']['leverage'], 'max', 100);
         if (($leverage < $minLeverage) || ($leverage > $maxLeverage)) {
-            throw new BadRequest($this->id . ' setLeverage() $leverage should be between ' . (string) $minLeverage . ' and ' . (string) $maxLeverage . ' for ' . $symbol);
+            throw new BadRequest($this->id . ' setLeverage() leverage should be between ' . (string) $minLeverage . ' and ' . (string) $maxLeverage . ' for ' . $symbol);
         }
         $request = array(
             'market' => $market['id'],
@@ -4916,7 +4916,7 @@ class coinex extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -5248,7 +5248,7 @@ class coinex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -5455,12 +5455,12 @@ class coinex extends Exchange {
         if (($fromAccount === 'margin') || ($toAccount === 'margin')) {
             $symbol = $this->safe_string($params, 'symbol');
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' transfer() the $symbol parameter must be defined for a margin account');
+                throw new ArgumentsRequired($this->id . ' transfer() the symbol parameter must be defined for a margin account');
             }
             $request['market'] = $this->market_id($symbol);
         }
         if (($fromAccount !== 'spot') && ($toAccount !== 'spot')) {
-            throw new BadRequest($this->id . ' transfer() can only be between spot and swap, or spot and margin, either the $fromAccount or $toAccount must be spot');
+            throw new BadRequest($this->id . ' transfer() can only be between spot and swap, or spot and margin, either the fromAccount or toAccount must be spot');
         }
         $response = Async\await($this->v2PrivatePostAssetsTransfer($this->extend($request, $paramsOmitted)));
         //
@@ -5527,7 +5527,7 @@ class coinex extends Exchange {
             Async\await($this->load_markets());
         }
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a code argument');
         }
         $currency = $this->currency($code);
         $request = array(
@@ -5753,7 +5753,7 @@ class coinex extends Exchange {
         }
         $code = $this->safe_string($params, 'code');
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchIsolatedBorrowRate() requires a $code parameter');
+            throw new ArgumentsRequired($this->id . ' fetchIsolatedBorrowRate() requires a code parameter');
         }
         $paramsOmitted = $this->omit($params, 'code');
         $currency = $this->currency($code);
@@ -6220,7 +6220,7 @@ class coinex extends Exchange {
         }
         $code = $this->safe_string($params, 'code');
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchLeverage() requires a $code parameter');
+            throw new ArgumentsRequired($this->id . ' fetchLeverage() requires a code parameter');
         }
         $paramsOmitted = $this->omit($params, 'code');
         $currency = $this->currency($code);
@@ -6590,12 +6590,12 @@ class coinex extends Exchange {
             Async\await($this->load_markets());
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMarginAdjustmentHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMarginAdjustmentHistory() requires a symbol argument');
         }
         $positionId = $this->safe_integer_2($params, 'positionId', 'position_id');
         $paramsOmitted = $this->omit($params, 'positionId');
         if ($positionId === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMarginAdjustmentHistory() requires a $positionId parameter');
+            throw new ArgumentsRequired($this->id . ' fetchMarginAdjustmentHistory() requires a positionId parameter');
         }
         $market = $this->market($symbol);
         $request = array(

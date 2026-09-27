@@ -1187,7 +1187,7 @@ class hitbtc extends Exchange {
             $response = Async\await($this->privateGetFuturesBalance($paramsOmitted));
         } else {
             $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new BadRequest($this->id . ' fetchBalance() $type parameter must be one of ' . implode(', ', $keys));
+            throw new BadRequest($this->id . ' fetchBalance() type parameter must be one of ' . implode(', ', $keys));
         }
         //
         //     [
@@ -1432,7 +1432,7 @@ class hitbtc extends Exchange {
             } elseif ($marketType === 'margin') {
                 $response = Async\await($this->privateGetMarginHistoryTrade($this->extend($request, $paramsOmitted)));
             } else {
-                throw new NotSupported($this->id . ' fetchMyTrades() not support this $market type');
+                throw new NotSupported($this->id . ' fetchMyTrades() not support this market type');
             }
         }
         return $this->parse_trades($response, $market, $since, $limit);
@@ -1875,7 +1875,7 @@ class hitbtc extends Exchange {
         } elseif ($market['type'] === 'swap') {
             $response = Async\await($this->privateGetFuturesFeeSymbol($this->extend($request, $params)));
         } else {
-            throw new NotSupported($this->id . ' fetchTradingFee() not support this $market type');
+            throw new NotSupported($this->id . ' fetchTradingFee() not support this market type');
         }
         //
         //     {
@@ -2097,7 +2097,7 @@ class hitbtc extends Exchange {
             } elseif ($marketType === 'margin') {
                 $response = Async\await($this->privateGetMarginHistoryOrder($this->extend($request, $paramsOmitted)));
             } else {
-                throw new NotSupported($this->id . ' fetchClosedOrders() not support this $market type');
+                throw new NotSupported($this->id . ' fetchClosedOrders() not support this market type');
             }
         }
         $parsed = $this->parse_orders($response, $market, $since, $limit);
@@ -2146,7 +2146,7 @@ class hitbtc extends Exchange {
             } elseif ($marketType === 'margin') {
                 $response = Async\await($this->privateGetMarginHistoryOrder($this->extend($request, $paramsOmitted)));
             } else {
-                throw new NotSupported($this->id . ' fetchOrder() not support this $market type');
+                throw new NotSupported($this->id . ' fetchOrder() not support this market type');
             }
         }
         //
@@ -2217,7 +2217,7 @@ class hitbtc extends Exchange {
             } elseif ($marketType === 'margin') {
                 $response = Async\await($this->privateGetMarginHistoryTrade($this->extend($request, $paramsOmitted)));
             } else {
-                throw new NotSupported($this->id . ' fetchOrderTrades() not support this $market type');
+                throw new NotSupported($this->id . ' fetchOrderTrades() not support this market type');
             }
         }
         //
@@ -2303,7 +2303,7 @@ class hitbtc extends Exchange {
             } elseif ($marketType === 'margin') {
                 $response = Async\await($this->privateGetMarginOrder($this->extend($request, $paramsOmitted)));
             } else {
-                throw new NotSupported($this->id . ' fetchOpenOrders() not support this $market type');
+                throw new NotSupported($this->id . ' fetchOpenOrders() not support this market type');
             }
         }
         //
@@ -2370,7 +2370,7 @@ class hitbtc extends Exchange {
             } elseif ($marketType === 'margin') {
                 $response = Async\await($this->privateGetMarginOrderClientOrderId($this->extend($request, $paramsOmitted)));
             } else {
-                throw new NotSupported($this->id . ' fetchOpenOrder() not support this $market type');
+                throw new NotSupported($this->id . ' fetchOpenOrder() not support this market type');
             }
         }
         return $this->parse_order($response, $market);
@@ -2416,7 +2416,7 @@ class hitbtc extends Exchange {
             } elseif ($marketType === 'margin') {
                 $response = Async\await($this->privateDeleteMarginOrder($this->extend($request, $paramsOmitted)));
             } else {
-                throw new NotSupported($this->id . ' cancelAllOrders() not support this $market type');
+                throw new NotSupported($this->id . ' cancelAllOrders() not support this market type');
             }
         }
         return $this->parse_orders($response, $market);
@@ -2464,7 +2464,7 @@ class hitbtc extends Exchange {
             } elseif ($marketType === 'margin') {
                 $response = Async\await($this->privateDeleteMarginOrderClientOrderId($this->extend($request, $paramsOmitted)));
             } else {
-                throw new NotSupported($this->id . ' cancelOrder() not support this $market type');
+                throw new NotSupported($this->id . ' cancelOrder() not support this market type');
             }
         }
         return $this->parse_order($response, $market);
@@ -2505,7 +2505,7 @@ class hitbtc extends Exchange {
             } elseif ($marketType === 'margin') {
                 $response = Async\await($this->privatePatchMarginOrderClientOrderId($this->extend($request, $paramsOmitted)));
             } else {
-                throw new NotSupported($this->id . ' editOrder() not support this $market type');
+                throw new NotSupported($this->id . ' editOrder() not support this market type');
             }
         }
         return $this->parse_order($response, $market);
@@ -2592,7 +2592,7 @@ class hitbtc extends Exchange {
         }
         if ($isLimit || ($type === 'stopLimit') || ($type === 'takeProfitLimit')) {
             if ($price === null) {
-                throw new ExchangeError($this->id . ' createOrder() requires a $price argument for limit orders');
+                throw new ExchangeError($this->id . ' createOrder() requires a price argument for limit orders');
             }
             $request['price'] = $this->price_to_precision($market['symbol'], $price);
         }
@@ -2610,7 +2610,7 @@ class hitbtc extends Exchange {
                 $request['type'] = 'stopMarket';
             }
         } elseif (($type === 'stopLimit') || ($type === 'stopMarket') || ($type === 'takeProfitLimit') || ($type === 'takeProfitMarket')) {
-            throw new ExchangeError($this->id . ' createOrder() requires a $triggerPrice parameter for stop-loss and take-profit orders');
+            throw new ExchangeError($this->id . ' createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders');
         }
         $paramsOmitted = $this->omit($params, array( 'triggerPrice', 'timeInForce', 'stopPrice', 'stop_price', 'reduceOnly', 'postOnly' ));
         if ($marketType === 'swap') {
@@ -2861,7 +2861,7 @@ class hitbtc extends Exchange {
         $fromId = $this->safe_string($accountsByType, $fromAccountValue, $fromAccountValue);
         $toId = $this->safe_string($accountsByType, $toAccountValue, $toAccountValue);
         if ($fromId === $toId) {
-            throw new BadRequest($this->id . ' transfer() $fromAccount and $toAccount arguments cannot be the same account');
+            throw new BadRequest($this->id . ' transfer() fromAccount and toAccount arguments cannot be the same account');
         }
         $request = array(
             'currency' => $currency['id'],
@@ -2916,11 +2916,11 @@ class hitbtc extends Exchange {
         $fromNetworkValue2 = $this->safe_string($networks, $fromNetworkValue); // handle ETH>ERC20 alias
         $toNetworkValue2 = $this->safe_string($networks, $toNetworkValue); // handle ETH>ERC20 alias
         if ($fromNetworkValue2 === $toNetworkValue2) {
-            throw new BadRequest($this->id . ' convertCurrencyNetwork() $fromNetwork cannot be the same as toNetwork');
+            throw new BadRequest($this->id . ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork');
         }
         if (($fromNetworkValue2 === null) || ($toNetworkValue2 === null)) {
             $keys = is_array($networks) ? array_keys($networks) : array();
-            throw new ArgumentsRequired($this->id . ' convertCurrencyNetwork() requires a $fromNetwork parameter and a $toNetwork parameter, supported $networks are ' . implode(', ', $keys));
+            throw new ArgumentsRequired($this->id . ' convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ' . implode(', ', $keys));
         }
         $request = array(
             'from_currency' => $fromNetworkValue2,
@@ -3254,7 +3254,7 @@ class hitbtc extends Exchange {
             } elseif ($marketType === 'margin') {
                 $response = Async\await($this->privateGetMarginAccountIsolatedSymbol($this->extend($request, $paramsOmitted)));
             } else {
-                throw new NotSupported($this->id . ' fetchPosition() not support this $market type');
+                throw new NotSupported($this->id . ' fetchPosition() not support this market type');
             }
         }
         //
@@ -3598,7 +3598,7 @@ class hitbtc extends Exchange {
         $leverage = $this->safe_string($params, 'leverage');
         if ($market['swap'] === true) {
             if ($leverage === null) {
-                throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a $leverage parameter for swap markets');
+                throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
         }
         $stringAmount = $this->number_to_string($amount);
@@ -3619,7 +3619,7 @@ class hitbtc extends Exchange {
         } elseif (($marketType === 'margin') || ($marketType === 'spot') || ($marginMode === 'isolated')) {
             $response = Async\await($this->privatePutMarginAccountIsolatedSymbol($this->extend($request, $paramsMarginMode)));
         } else {
-            throw new NotSupported($this->id . ' modifyMarginHelper() not support this $market type');
+            throw new NotSupported($this->id . ' modifyMarginHelper() not support this market type');
         }
         //
         //     {
@@ -3703,7 +3703,7 @@ class hitbtc extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         if ($this->number_to_string($amount) !== '0') {
-            throw new BadRequest($this->id . ' reduceMargin() on hitbtc requires the $amount to be 0 and that will remove the entire margin amount');
+            throw new BadRequest($this->id . ' reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount');
         }
         return Async\await($this->modify_margin_helper($symbol, $amount, 'reduce', $params));
     }
@@ -3765,7 +3765,7 @@ class hitbtc extends Exchange {
             } elseif ($market['type'] === 'margin') {
                 $response = Async\await($this->privateGetMarginAccountIsolatedSymbol($this->extend($request, $paramsOmitted)));
             } else {
-                throw new NotSupported($this->id . ' fetchLeverage() not support this $market type');
+                throw new NotSupported($this->id . ' fetchLeverage() not support this market type');
             }
         }
         //
@@ -3829,7 +3829,7 @@ class hitbtc extends Exchange {
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3844,7 +3844,7 @@ class hitbtc extends Exchange {
             throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
         }
         if (($leverage < 1) || ($leverage > $maxLeverage)) {
-            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and ' . (string) $maxLeverage . ' for ' . $symbol);
+            throw new BadRequest($this->id . ' setLeverage() leverage should be between 1 and ' . (string) $maxLeverage . ' for ' . $symbol);
         }
         $request = array(
             'symbol' => $market['id'],

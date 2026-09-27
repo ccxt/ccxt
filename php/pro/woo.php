@@ -528,7 +528,7 @@ class woo extends \ccxt\async\woo {
             Async\await($this->load_markets());
         }
         if ($symbols !== null) {
-            throw new NotSupported($this->id . ' unWatchTickers() does not support a $symbols argument. Only unwatch all tickers at once');
+            throw new NotSupported($this->id . ' unWatchTickers() does not support a symbols argument. Only unwatch all tickers at once');
         }
         $topic = 'ticker';
         $subHash = 'tickers';
@@ -629,7 +629,7 @@ class woo extends \ccxt\async\woo {
             Async\await($this->load_markets());
         }
         if ($symbols !== null) {
-            throw new NotSupported($this->id . ' unWatchBidsAsks() does not support a $symbols argument. Only unwatch all bidsAsks at once');
+            throw new NotSupported($this->id . ' unWatchBidsAsks() does not support a symbols argument. Only unwatch all bidsAsks at once');
         }
         $subHash = 'bbos';
         $topic = 'bidsasks';
@@ -712,7 +712,7 @@ class woo extends \ccxt\async\woo {
             Async\await($this->load_markets());
         }
         if (($timeframe !== '1m') && ($timeframe !== '5m') && ($timeframe !== '15m') && ($timeframe !== '30m') && ($timeframe !== '1h') && ($timeframe !== '1d') && ($timeframe !== '1w') && ($timeframe !== '1M')) {
-            throw new ExchangeError($this->id . ' watchOHLCV $timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
+            throw new ExchangeError($this->id . ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
         }
         $market = $this->market($symbol);
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -1405,11 +1405,11 @@ class woo extends \ccxt\async\woo {
         $symbolsNormalized = $this->market_symbols($symbols);
         if (!$this->is_empty($symbolsNormalized)) {
             if ($symbolsNormalized === null) {
-                throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
+                throw new ArgumentsRequired($this->id . ' watchPositions() symbols is required');
             }
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
                 if ($symbolsNormalized === null) {
-                    throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
+                    throw new ArgumentsRequired($this->id . ' watchPositions() symbols is required');
                 }
                 $symbol = $symbolsNormalized[$i];
                 $messageHashes[] = 'positions::' . $symbol;

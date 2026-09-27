@@ -1265,10 +1265,10 @@ class krakenfutures extends Exchange {
 
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
@@ -1326,7 +1326,7 @@ class krakenfutures extends Exchange {
         $isLimitOrder = ($typeValue === 'lmt') || ($typeValue === 'post') || ($typeValue === 'ioc');
         $limitPriceParam = $this->safe_string($paramsPostOnly, 'limitPrice'); // the venue's own field name, forwarded as-is by this.extend below
         if ($isLimitOrder && ($priceValue === null) && ($limitPriceParam === null)) {
-            throw new ArgumentsRequired($this->id . ' createOrder () requires a $price argument for ' . $typeValue . ' orders');
+            throw new ArgumentsRequired($this->id . ' createOrder () requires a price argument for ' . $typeValue . ' orders');
         }
         $isMarketOrder = ($typeValue === 'mkt');
         if (($priceValue !== null) && !$isMarketOrder) {
@@ -1770,7 +1770,7 @@ class krakenfutures extends Exchange {
         $orders = $this->fetch_orders(null, null, null, $this->extend($request, $params));
         $order = $this->safe_dict($orders, 0);
         if ($order === null) {
-            throw new OrderNotFound($this->id . ' fetchOrder could not find $order $id ' . $id);
+            throw new OrderNotFound($this->id . ' fetchOrder could not find order id ' . $id);
         }
         return $order;
     }
@@ -2900,7 +2900,7 @@ class krakenfutures extends Exchange {
         $datetime = $this->safe_string($response, 'serverTime');
         if ($type === 'marginAccount' || $type === 'margin') {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchBalance requires $symbol argument for margin accounts');
+                throw new ArgumentsRequired($this->id . ' fetchBalance requires symbol argument for margin accounts');
             }
             $type = $symbol;
         }
@@ -2921,7 +2921,7 @@ class krakenfutures extends Exchange {
             if ($symbol === null) {
                 $symbol = '';
             }
-            throw new BadRequest($this->id . ' fetchBalance has no $account for ' . $type);
+            throw new BadRequest($this->id . ' fetchBalance has no account for ' . $type);
         }
         $balance = $this->parse_balance($account);
         $balance['info'] = $response;
@@ -3143,7 +3143,7 @@ class krakenfutures extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -3223,7 +3223,7 @@ class krakenfutures extends Exchange {
         // longer call .length on a non-list value
         $positions = $this->safe_list($response, 'openPositions');
         if ($positions === null) {
-            throw new ExchangeNotAvailable($this->id . ' fetchPositions() returned a $response without an "openPositions" list');
+            throw new ExchangeNotAvailable($this->id . ' fetchPositions() returned a response without an "openPositions" list');
         }
         return $this->parse_positions($positions, $symbols);
     }
@@ -3648,14 +3648,14 @@ class krakenfutures extends Exchange {
         }
         $currency = $this->currency($code);
         if ($fromAccount === 'spot') {
-            throw new BadRequest($this->id . ' $transfer does not yet support transfers from spot');
+            throw new BadRequest($this->id . ' transfer does not yet support transfers from spot');
         }
         $request = array(
             'amount' => $amount,
         );
         if ($toAccount === 'spot') {
             if ($this->parse_account($fromAccount) !== 'cash') {
-                throw new BadRequest($this->id . ' $transfer cannot $transfer from ' . $fromAccount . ' to ' . $toAccount);
+                throw new BadRequest($this->id . ' transfer cannot transfer from ' . $fromAccount . ' to ' . $toAccount);
             }
             $request['currency'] = $currency['id'];
             $response = $this->privatePostWithdrawal($this->extend($request, $params));
@@ -3691,7 +3691,7 @@ class krakenfutures extends Exchange {
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -3751,7 +3751,7 @@ class krakenfutures extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchLeverage() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();

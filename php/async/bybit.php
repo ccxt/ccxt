@@ -2645,7 +2645,7 @@ class bybit extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTicker() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchTicker() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2744,11 +2744,11 @@ class bybit extends Exchange {
                 if ($currentType === null) {
                     $currentType = $this->safe_string($market, 'type');
                 } elseif ($market['type'] !== $currentType) {
-                    throw new BadRequest($this->id . ' fetchTickers can only accept a list of $symbols of the same type');
+                    throw new BadRequest($this->id . ' fetchTickers can only accept a list of symbols of the same type');
                 }
                 if ($market['option'] === true) {
                     if ($code !== null && $code !== $market['base']) {
-                        throw new BadRequest($this->id . ' fetchTickers the base currency must be the same for all $symbols, this endpoint only supports one base currency at a time. Read more about it here => https://bybit-exchange.github.io/docs/v5/market/tickers');
+                        throw new BadRequest($this->id . ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here => https://bybit-exchange.github.io/docs/v5/market/tickers');
                     }
                     if ($code === null) {
                         $code = $this->safe_string($market, 'base');
@@ -2886,7 +2886,7 @@ class bybit extends Exchange {
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3148,7 +3148,7 @@ class bybit extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3488,7 +3488,7 @@ class bybit extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3550,7 +3550,7 @@ class bybit extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrderBook() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrderBook() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -4360,10 +4360,10 @@ class bybit extends Exchange {
 
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array(), ?bool $isUTA = true): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
@@ -4423,7 +4423,7 @@ class bybit extends Exchange {
         list($method, $query) = $this->handle_option_string_and_params($params, 'createOrder', 'method', $defaultMethod);
         $endpointIsTradingStop = $method === 'privatePostV5PositionTradingStop';
         if (($price === null) && ($lowerCaseType === 'limit') && !$endpointIsTradingStop) {
-            throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for limit orders');
+            throw new ArgumentsRequired($this->id . ' createOrder requires a price argument for limit orders');
         }
         // workaround, bcz for some langs we have to allow 0.0 as input (bcz of type)
         $amountValue = null;
@@ -4434,7 +4434,7 @@ class bybit extends Exchange {
         $priceString = ($price !== null) ? $this->get_price($symbolValue, $this->number_to_string($price)) : null;
         if ($endpointIsTradingStop) {
             if ($hasStopLoss || $hasTakeProfit || $isTriggerOrder || ($market['spot'] === true)) {
-                throw new InvalidOrder($this->id . ' the API endpoint used only supports contract $trailingAmount, stopLossPrice and takeProfitPrice orders');
+                throw new InvalidOrder($this->id . ' the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders');
             }
             if ($isStopLossOrder || $isTakeProfitOrder) {
                 $tpslModeSl = null;
@@ -4476,7 +4476,7 @@ class bybit extends Exchange {
                     }
                 }
                 if ($isTakeProfitOrder && $isStopLossOrder && $tpslModeSl !== $tpslModeTp) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires both $stopLoss and $takeProfit to be full or partial when using combination');
+                    throw new InvalidOrder($this->id . ' createOrder() requires both stopLoss and takeProfit to be full or partial when using combination');
                 }
                 if ($tpslModeSl !== null) {
                     $request['tpslMode'] = $tpslModeSl;
@@ -4550,7 +4550,7 @@ class bybit extends Exchange {
             list($createMarketBuyOrderRequiresPrice, $query) = $this->handle_option_bool_and_params($query, 'createOrder', 'createMarketBuyOrderRequiresPrice', false);
             if ($createMarketBuyOrderRequiresPrice) {
                 if (($price === null) && ($cost === null)) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                    throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                 } else {
                     $quoteAmount = Precise::string_mul($this->number_to_string($amountValue), $priceString);
                     $costRequest = $quoteAmount;
@@ -4583,11 +4583,11 @@ class bybit extends Exchange {
             $query = $this->omit($query, array( 'triggerPrice', 'stopPrice', 'triggerDirection' ));
             if ($market['spot'] === true) {
                 if ($triggerDirection !== null) {
-                    throw new NotSupported($this->id . ' createOrder() : trigger order does not support $triggerDirection for spot markets yet');
+                    throw new NotSupported($this->id . ' createOrder() : trigger order does not support triggerDirection for spot markets yet');
                 }
             } else {
                 if ($triggerDirection === null) {
-                    throw new ArgumentsRequired($this->id . ' stop/trigger orders require a $triggerDirection parameter, either "ascending" or "descending" to determine the direction of the trigger.');
+                    throw new ArgumentsRequired($this->id . ' stop/trigger orders require a triggerDirection parameter, either "ascending" or "descending" to determine the direction of the trigger.');
                 }
                 $isAsending = (($triggerDirection === 'ascending') || ($triggerDirection === 'above') || ($triggerDirection === '1'));
                 $request['triggerDirection'] = $isAsending ? 1 : 2;
@@ -4624,7 +4624,7 @@ class bybit extends Exchange {
                 }
                 // for spot market, we need to add this
                 if (($market['spot'] === true) && $isMarketOrder) {
-                    throw new InvalidOrder($this->id . ' createOrder() => attached $stopLoss is not supported for spot $market orders');
+                    throw new InvalidOrder($this->id . ' createOrder() => attached stopLoss is not supported for spot market orders');
                 }
             }
             if ($hasTakeProfit) {
@@ -4643,7 +4643,7 @@ class bybit extends Exchange {
                 }
                 // for spot market, we need to add this
                 if (($market['spot'] === true) && $isMarketOrder) {
-                    throw new InvalidOrder($this->id . ' createOrder() => attached $takeProfit is not supported for spot $market orders');
+                    throw new InvalidOrder($this->id . ' createOrder() => attached takeProfit is not supported for spot market orders');
                 }
             }
         }
@@ -4703,7 +4703,7 @@ class bybit extends Exchange {
         $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 6);
         list($category, $paramsValue) = $this->get_bybit_type('createOrders', $market, $params);
         if (($category === 'inverse') && ($unifiedMarginStatus < 5)) {
-            throw new NotSupported($this->id . ' createOrders does not allow inverse $orders for non UTA2.0 account');
+            throw new NotSupported($this->id . ' createOrders does not allow inverse orders for non UTA2.0 account');
         }
         $request = array(
             'category' => $category,
@@ -4764,10 +4764,10 @@ class bybit extends Exchange {
 
     public function edit_order_request(?string $id, ?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -4935,7 +4935,7 @@ class bybit extends Exchange {
         $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 6);
         list($category, $paramsValue) = $this->get_bybit_type('editOrders', $market, $params);
         if (($category === 'inverse') && ($unifiedMarginStatus < 5)) {
-            throw new NotSupported($this->id . ' editOrders does not allow inverse $orders for non UTA2.0 account');
+            throw new NotSupported($this->id . ' editOrders does not allow inverse orders for non UTA2.0 account');
         }
         $request = array(
             'category' => $category,
@@ -5034,7 +5034,7 @@ class bybit extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -5075,7 +5075,7 @@ class bybit extends Exchange {
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -5228,7 +5228,7 @@ class bybit extends Exchange {
                 throw new NotSupported($this->id . ' cancelOrdersForSymbols does not allow inverse orders');
             }
             if (($category !== null) && ($category !== $currentCategory)) {
-                throw new ExchangeError($this->id . ' cancelOrdersForSymbols requires all $orders to be of the same $category (linear, spot or option))');
+                throw new ExchangeError($this->id . ' cancelOrdersForSymbols requires all orders to be of the same category (linear, spot or option))');
             }
             $category = $currentCategory;
             $id = $this->safe_string($order, 'id');
@@ -5389,7 +5389,7 @@ class bybit extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -5405,7 +5405,7 @@ class bybit extends Exchange {
         $length = count($result);
         if ($length === 0) {
             $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
-            $extra = ($isTrigger === true) ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
+            $extra = ($isTrigger === true) ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
         }
         if ($length > 1) {
@@ -5440,7 +5440,7 @@ class bybit extends Exchange {
         }
         list($acknowledge, $paramsAcknowledged) = $this->handle_option_bool_and_params($params, 'fetchOrder', 'acknowledged', false);
         if (!$acknowledge) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() can only access an $order if it is in last 500 orders (of any status) for your account. Set $params["acknowledged"] = true to hide this warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() can only access an order if it is in last 500 orders (of any status) for your account. Set params["acknowledged"] = true to hide this warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder');
         }
         $market = $this->market($symbol);
         list($marketType, $paramsValue) = $this->get_bybit_type('fetchOrder', $market, $paramsAcknowledged);
@@ -5509,7 +5509,7 @@ class bybit extends Exchange {
         // see https://github.com/ccxt/ccxt/pull/29602
         $innerListLength = count($innerList);
         if ($innerListLength === 0) {
-            $extra = ' If you are trying to fetch SL/TP conditional $order, you might try setting $params["trigger"] = true';
+            $extra = ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             if ($isTrigger === true) {
                 $extra = '';
             }
@@ -5662,7 +5662,7 @@ class bybit extends Exchange {
         $length = count($result);
         if ($length === 0) {
             $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
-            $extra = ($isTrigger === true) ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
+            $extra = ($isTrigger === true) ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
         }
         if ($length > 1) {
@@ -5703,7 +5703,7 @@ class bybit extends Exchange {
         $length = count($result);
         if ($length === 0) {
             $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
-            $extra = ($isTrigger === true) ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
+            $extra = ($isTrigger === true) ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
         }
         if ($length > 1) {
@@ -6878,7 +6878,7 @@ class bybit extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=$position-structure $position structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchPosition() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchPosition() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -7373,7 +7373,7 @@ class bybit extends Exchange {
         if ($isUnifiedAccount) {
             $unifiedMarginMode = $this->safe_string($marginModes, $marginMode);
             if ($unifiedMarginMode === null) {
-                throw new NotSupported($this->id . ' setMarginMode() $marginMode must be either [isolated, cross, portfolio]');
+                throw new NotSupported($this->id . ' setMarginMode() marginMode must be either [isolated, cross, portfolio]');
             }
             $request = array(
                 'setMarginMode' => $unifiedMarginMode,
@@ -7381,13 +7381,13 @@ class bybit extends Exchange {
             $response = Async\await($this->privatePostV5AccountSetMarginMode($this->extend($request, $params)));
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol parameter for non unified account');
+                throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol parameter for non unified account');
             }
             $market = $this->market($symbol);
             $isUsdcSettled = $market['settle'] === 'USDC';
             if ($isUsdcSettled) {
                 if (($marginMode !== 'cross') && ($marginMode !== 'portfolio')) {
-                    throw new NotSupported($this->id . ' setMarginMode() for usdc $market $marginMode must be either [cross, portfolio]');
+                    throw new NotSupported($this->id . ' setMarginMode() for usdc market marginMode must be either [cross, portfolio]');
                 }
                 $request = array(
                     'setMarginMode' => $this->safe_string($marginModes, $marginMode),
@@ -7401,7 +7401,7 @@ class bybit extends Exchange {
                 } elseif ($marginMode === 'isolated') {
                     $tradeMode = 1;
                 } else {
-                    throw new NotSupported($this->id . ' setMarginMode() with $symbol $marginMode must be either [isolated, cross]');
+                    throw new NotSupported($this->id . ' setMarginMode() with symbol marginMode must be either [isolated, cross]');
                 }
                 $sellLeverage = null;
                 $buyLeverage = null;
@@ -7411,7 +7411,7 @@ class bybit extends Exchange {
                     $sellLeverage = $this->safe_string_2($paramsType, 'sell_leverage', 'sellLeverage');
                     $buyLeverage = $this->safe_string_2($paramsType, 'buy_leverage', 'buyLeverage');
                     if ($sellLeverage === null && $buyLeverage === null) {
-                        throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter or sell_leverage and buy_leverage parameters');
+                        throw new ArgumentsRequired($this->id . ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters');
                     }
                     if ($buyLeverage === null) {
                         $buyLeverage = $sellLeverage;
@@ -7456,7 +7456,7 @@ class bybit extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -7718,7 +7718,7 @@ class bybit extends Exchange {
         }
         $market = $this->market($symbol);
         if (($market['spot'] === true) || ($market['option'] === true)) {
-            throw new BadRequest($this->id . ' fetchOpenInterestHistory() $symbol does not support $market ' . $symbol);
+            throw new BadRequest($this->id . ' fetchOpenInterestHistory() symbol does not support market ' . $symbol);
         }
         $request = array(
             'symbol' => $market['id'],
@@ -8332,7 +8332,7 @@ class bybit extends Exchange {
         $market = null;
         $market = $this->market($symbol);
         if (($market['spot'] === true) || ($market['option'] === true)) {
-            throw new BadRequest($this->id . ' fetchMarketLeverageTiers() $symbol does not support $market ' . $symbol);
+            throw new BadRequest($this->id . ' fetchMarketLeverageTiers() symbol does not support market ' . $symbol);
         }
         $request['symbol'] = $market['id'];
         return Async\await($this->fetch_derivatives_market_leverage_tiers($symbol, $params));
@@ -10191,7 +10191,7 @@ class bybit extends Exchange {
          * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
          */
         if ($symbols === null) {
-            throw new ArgumentsRequired($this->id . ' fetchPositionsADLRank() requires a $symbols argument');
+            throw new ArgumentsRequired($this->id . ' fetchPositionsADLRank() requires a symbols argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());

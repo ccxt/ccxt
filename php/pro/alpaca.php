@@ -695,9 +695,9 @@ class alpaca extends \ccxt\async\alpaca {
         //
         $code = $this->safe_string($message, 'code');
         $msg = $this->safe_string($message, 'msg');
-        $errorMessage = $this->id . ' $code => ' . $code;
+        $errorMessage = $this->id . ' code => ' . $code;
         if ($msg !== null) {
-            $errorMessage = $errorMessage . ' $message => ' . $msg;
+            $errorMessage = $errorMessage . ' message => ' . $msg;
         }
         throw new ExchangeError($errorMessage);
     }

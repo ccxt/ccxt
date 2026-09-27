@@ -386,7 +386,7 @@ class hyperliquid extends Exchange {
 
     public function market(?string $symbol): array {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' market() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' market() requires a symbol argument');
         }
         if ($this->markets === null) {
             throw new ExchangeError($this->id . ' markets not loaded');
@@ -1061,7 +1061,7 @@ class hyperliquid extends Exchange {
         $baseName = $this->safe_string($market, 'name');
         $base = $this->safe_currency_code($baseName);
         if ($base === null) {
-            throw new ExchangeError($this->id . ' parseMarket() missing $base currency');
+            throw new ExchangeError($this->id . ' parseMarket() missing base currency');
         }
         $base = str_replace(':', '-', $base); // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
         $quote = $this->safe_currency_code($quoteId);
@@ -1393,7 +1393,7 @@ class hyperliquid extends Exchange {
         $rates = Async\await($this->fetch_funding_rates(array( $market['symbol'] ), $params));
         $rate = $this->safe_dict($rates, $market['symbol']);
         if ($rate === null) {
-            throw new BadSymbol($this->id . ' fetchFundingRate() could not find a funding $rate for ' . $symbol);
+            throw new BadSymbol($this->id . ' fetchFundingRate() could not find a funding rate for ' . $symbol);
         }
         return $rate;
     }
@@ -1721,7 +1721,7 @@ class hyperliquid extends Exchange {
         // with grouping positionTpsl and size 0, so only reject a positive amount that
         // became zero after rounding, never an explicitly requested zero
         if (Precise::string_eq($result, '0') && Precise::string_gt($this->number_to_string($amount), '0')) {
-            throw new InvalidOrder($this->id . ' $amount of ' . $market['symbol'] . ' must be greater than minimum $amount precision of ' . $this->number_to_string($market['precision']['amount']));
+            throw new InvalidOrder($this->id . ' amount of ' . $market['symbol'] . ' must be greater than minimum amount precision of ' . $this->number_to_string($market['precision']['amount']));
         }
         return $result;
     }
@@ -2258,7 +2258,7 @@ class hyperliquid extends Exchange {
         Async\await($this->initialize_client());
         $market = $this->market($symbol);
         $nonce = $this->incrementing_nonce();
-        $isBuy = ($side === 'BUY');
+        $isBuy = (strtoupper($side) === 'BUY');
         $randomize = $this->safe_bool($params, 'randomize', false);
         $paramsOmitted = $this->omit($params, 'randomize');
         list($vaultAddressOption, $paramsVault) = $this->handle_option_string_and_params($paramsOmitted, 'createOrder', 'vaultAddress');
@@ -2366,10 +2366,10 @@ class hyperliquid extends Exchange {
 
     public function create_order_request(?string $symbol, ?string $type, ?string $side, string $amount, ?string $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $typeValue = strtoupper($type);
@@ -2395,7 +2395,7 @@ class hyperliquid extends Exchange {
         $px = null;
         if ($isMarket) {
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . '  $market orders require $price to calculate the max $slippage $price-> Default $slippage can be set in options (default is 5%).');
+                throw new ArgumentsRequired($this->id . '  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).');
             }
             $px = ($isBuy) ? Precise::string_mul($price, Precise::string_add('1', $slippage)) : Precise::string_mul($price, Precise::string_sub('1', $slippage));
             $px = $this->price_to_precision($symbol, $px); // round after adding slippage
@@ -2467,7 +2467,7 @@ class hyperliquid extends Exchange {
                 $orderParams = $this->safe_dict($rawOrder, 'params', array());
                 $clientOrderId = $this->safe_string_2($orderParams, 'clientOrderId', 'client_id');
                 if ($clientOrderId === null) {
-                    throw new ArgumentsRequired($this->id . ' createOrders() all $orders must have $clientOrderId if at least one has a clientOrderId');
+                    throw new ArgumentsRequired($this->id . ' createOrders() all orders must have clientOrderId if at least one has a clientOrderId');
                 }
             }
         }
@@ -2509,7 +2509,7 @@ class hyperliquid extends Exchange {
                 } elseif ($grouping === 'normalTpsl') {
                     $orderReq[] = $mainOrderObj;
                 } else {
-                    throw new NotSupported($this->id . ' only support $grouping normalTpsl and positionTpsl.');
+                    throw new NotSupported($this->id . ' only support grouping normalTpsl and positionTpsl.');
                 }
                 $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit', 'grouping' ));
                 $triggerOrderSide = '';
@@ -2616,7 +2616,7 @@ class hyperliquid extends Exchange {
          */
         $this->check_required_credentials();
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2672,7 +2672,7 @@ class hyperliquid extends Exchange {
             Async\await($this->load_markets());
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelTwapOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelTwapOrder() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $vaultAddress = null;
@@ -2820,10 +2820,10 @@ class hyperliquid extends Exchange {
             $id = $this->safe_string($order, 'id');
             $symbol = $this->safe_string($order, 'symbol');
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrdersForSymbols() requires a $symbol argument in each order');
+                throw new ArgumentsRequired($this->id . ' cancelOrdersForSymbols() requires a symbol argument in each order');
             }
             if ($id !== null && $cancelByCloid) {
-                throw new BadRequest($this->id . ' cancelOrdersForSymbols() all $orders must have either $id or clientOrderId');
+                throw new BadRequest($this->id . ' cancelOrdersForSymbols() all orders must have either id or clientOrderId');
             }
             $assetKey = $cancelByCloid ? 'asset' : 'a';
             $idKey = $cancelByCloid ? 'cloid' : 'o';
@@ -2925,7 +2925,7 @@ class hyperliquid extends Exchange {
                 $orderParams = $this->safe_dict($rawOrder, 'params', array());
                 $clientOrderId = $this->safe_string_2($orderParams, 'clientOrderId', 'client_id');
                 if ($clientOrderId === null) {
-                    throw new ArgumentsRequired($this->id . ' editOrders() all $orders must have $clientOrderId if at least one has a clientOrderId');
+                    throw new ArgumentsRequired($this->id . ' editOrders() all orders must have clientOrderId if at least one has a clientOrderId');
                 }
             }
         }
@@ -3066,7 +3066,7 @@ class hyperliquid extends Exchange {
             Async\await($this->load_markets());
         }
         if ($id === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires an $id argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires an id argument');
         }
         list($order, $globalParams) = $this->parse_create_edit_order_args($id, $symbol, $type, $side, $amount, $price, $params);
         $orders = Async\await($this->edit_orders(array( $order ), $globalParams));
@@ -3200,7 +3200,7 @@ class hyperliquid extends Exchange {
             Async\await($this->load_markets());
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -4109,7 +4109,7 @@ class hyperliquid extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -4117,7 +4117,7 @@ class hyperliquid extends Exchange {
         $market = $this->market($symbol);
         $leverage = $this->safe_integer($params, 'leverage');
         if ($leverage === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a leverage parameter');
         }
         $asset = $this->parse_to_int($market['baseId']);
         $isCross = ($marginMode === 'cross');
@@ -4172,7 +4172,7 @@ class hyperliquid extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -4428,7 +4428,7 @@ class hyperliquid extends Exchange {
             // Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
             // expects the token as "NAME:tokenId", e.g. "USDC:0x6d1e7cde53ba9467b783cb7c530ce054"
             if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' transfer() requires a $currency $code for spot sub-account transfers');
+                throw new ArgumentsRequired($this->id . ' transfer() requires a currency code for spot sub-account transfers');
             }
             $currency = $this->currency($code);
             $currencyInfo = $this->safe_dict($currency, 'info', array());
@@ -4835,7 +4835,7 @@ class hyperliquid extends Exchange {
         $until = $this->safe_integer($params2, 'until');
         if ($until !== null) {
             if ($since === null) {
-                throw new ArgumentsRequired($this->id . ' fetchDeposits requires $since while $until is set');
+                throw new ArgumentsRequired($this->id . ' fetchDeposits requires since while until is set');
             }
             $request['endTime'] = $until;
             $params2 = $this->omit($params2, array( 'until' ));
@@ -5204,7 +5204,7 @@ class hyperliquid extends Exchange {
         if (($this->walletAddress !== null) && ($this->walletAddress !== '')) {
             return array( $this->walletAddress, $paramsAddress );
         }
-        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $user parameter inside \'params\' or the wallet address set');
+        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a user parameter inside \'params\' or the wallet address set');
     }
 
     public function coin_to_market_id(?string $coin): ?string {

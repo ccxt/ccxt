@@ -455,7 +455,7 @@ class bitrue extends \ccxt\async\bitrue {
             $baseId = $this->safe_string_lower($candidate, 'baseId');
             $quoteId = $this->safe_string_lower($candidate, 'quoteId');
             if ($baseId === null || $quoteId === null) {
-                throw new ExchangeError($this->id . ' findSwapMarketByWsBaseQuote() market ' . $symbols[$i] . ' has no $baseId or quoteId');
+                throw new ExchangeError($this->id . ' findSwapMarketByWsBaseQuote() market ' . $symbols[$i] . ' has no baseId or quoteId');
             }
             if ($baseId . $quoteId === $wsBaseQuote) {
                 return $candidate;
@@ -635,7 +635,7 @@ class bitrue extends \ccxt\async\bitrue {
         $futuresTimeframes = $this->safe_dict($this->options, 'futuresTimeframes', array());
         $interval = $this->safe_string($futuresTimeframes, $timeframe);
         if ($interval === null) {
-            throw new NotSupported($this->id . ' watchOHLCV does not support $timeframe ' . $timeframe);
+            throw new NotSupported($this->id . ' watchOHLCV does not support timeframe ' . $timeframe);
         }
         $baseIdLower = $this->safe_string_lower($market, 'baseId');
         $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
@@ -946,7 +946,7 @@ class bitrue extends \ccxt\async\bitrue {
                 if ($wsUrl === null) {
                     throw new ExchangeError($this->id . ' authenticate() has no private websocket url');
                 }
-                $this->options['listenKeyUrl'] = $wsUrl . '/stream?$listenKey=' . $key;
+                $this->options['listenKeyUrl'] = $wsUrl . '/stream?listenKey=' . $key;
                 $client->resolve($key, $messageHash);
             } catch (Exception $e) {
                 // reject the flight - all waiters throw and the next caller

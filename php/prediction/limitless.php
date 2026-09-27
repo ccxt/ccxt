@@ -1158,7 +1158,7 @@ class limitless extends Exchange {
          * @return {array} a dictionary of [prediction $ticker structures](https://docs.ccxt.com/#/?id=prediction-$ticker-structure) indexed by outcome
          */
         if ($outcomes === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTickers() requires an $outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
+            throw new ArgumentsRequired($this->id . ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
         }
         $result = array();
         // resolve the uncached outcomes first, then group by parent market to fetch each
@@ -1523,7 +1523,7 @@ class limitless extends Exchange {
          * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
          */
         if ($outcome === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders requires an $outcome argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders requires an outcome argument');
         }
         Async\await($this->load_outcome($outcome));
         $outcomeObj = $this->outcome($outcome);
@@ -1578,7 +1578,7 @@ class limitless extends Exchange {
          * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
          */
         if ($outcome === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires an $outcome argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires an outcome argument');
         }
         Async\await($this->load_outcome($outcome));
         $paramsExtended = $this->extend($params, array(
@@ -1604,7 +1604,7 @@ class limitless extends Exchange {
          * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
          */
         if ($outcome === null) {
-            throw new ArgumentsRequired($this->id . ' fetchClosedOrders requires an $outcome argument');
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders requires an outcome argument');
         }
         Async\await($this->load_outcome($outcome));
         $paramsExtended = $this->extend($params, array(
@@ -1776,7 +1776,7 @@ class limitless extends Exchange {
         $orders = Async\await($this->fetch_orders_by_ids(array( $id ), $outcome, $params));
         $order = $this->safe_dict($orders, 0);
         if ($order === null) {
-            throw new OrderNotFound($this->id . ' fetchOrder() could not find $order ' . $id);
+            throw new OrderNotFound($this->id . ' fetchOrder() could not find order ' . $id);
         }
         return $order;
     }
@@ -2107,7 +2107,7 @@ class limitless extends Exchange {
         try {
             $this->check_address($maker);
         } catch (Exception $e) {
-            throw new InvalidAddress($this->id . ' createOrder requires a valid $maker address. Set the "maker" parameter to a valid address or set the "walletAddress" property in the constructor options.');
+            throw new InvalidAddress($this->id . ' createOrder requires a valid maker address. Set the "maker" parameter to a valid address or set the "walletAddress" property in the constructor options.');
         }
         // when the profile trades through a smart wallet the order must be signed by the
         // linked embedded (owner) wallet, not by the smart wallet itself
@@ -2122,14 +2122,14 @@ class limitless extends Exchange {
         try {
             $this->check_address($signer);
         } catch (Exception $e) {
-            throw new InvalidAddress($this->id . ' createOrder requires a valid $signer address. Set the "signer" parameter to a valid address or set the "walletAddress" property in the constructor options.');
+            throw new InvalidAddress($this->id . ' createOrder requires a valid signer address. Set the "signer" parameter to a valid address or set the "walletAddress" property in the constructor options.');
         }
         $taker = $this->safe_string($this->options, 'nullAddress', '0x0000000000000000000000000000000000000000');
         list($taker, $paramsValue) = $this->handle_option_and_params($paramsValue, 'createOrder', 'taker', $taker);
         try {
             $this->check_address($taker);
         } catch (Exception $e) {
-            throw new InvalidAddress($this->id . ' createOrder requires a valid $taker address. Set the "taker" parameter to a valid address or set the "nullAddress" property in the constructor options.');
+            throw new InvalidAddress($this->id . ' createOrder requires a valid taker address. Set the "taker" parameter to a valid address or set the "nullAddress" property in the constructor options.');
         }
         $nonce = $this->incrementing_nonce();
         $sides = array(
@@ -2181,7 +2181,7 @@ class limitless extends Exchange {
             $paramsValue = $this->omit($paramsValue, 'cost');
             if ($createMarketBuyOrderRequiresPrice) {
                 if (($price === null) && ($cost === null)) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                    throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                 } else {
                     $quoteAmount = $this->parse_to_numeric(Precise::string_mul($amountString, $priceString));
                     $costRequest = ($cost !== null) ? $cost : $quoteAmount;
@@ -2413,14 +2413,14 @@ class limitless extends Exchange {
         $conditionId = $this->safe_string_2($params, 'conditionId', 'condition_id');
         if ($conditionId === null) {
             if ($outcome === null) {
-                throw new ArgumentsRequired($this->id . ' redeem() requires an $outcome or a $params->conditionId');
+                throw new ArgumentsRequired($this->id . ' redeem() requires an outcome or a params.conditionId');
             }
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
             $conditionId = $this->safe_string($this->safe_dict($outcomeObj, 'info', array()), 'conditionId');
         }
         if ($conditionId === null) {
-            throw new ArgumentsRequired($this->id . ' redeem() could not resolve the market $conditionId - pass $params->conditionId (a bytes32 hex string)');
+            throw new ArgumentsRequired($this->id . ' redeem() could not resolve the market conditionId - pass params.conditionId (a bytes32 hex string)');
         }
         $request = array(
             'conditionId' => $conditionId,
@@ -2461,7 +2461,7 @@ class limitless extends Exchange {
         $failedLethgn = count($failed);
         if ($failedLethgn > 0) {
             $message = $this->json($response);
-            $feedback = $this->id . ' cancelOrders $failed => ' . $message;
+            $feedback = $this->id . ' cancelOrders failed => ' . $message;
             throw new OrderNotFound($feedback);
         }
         return $this->parse_prediction_orders($canceled);
@@ -2487,7 +2487,7 @@ class limitless extends Exchange {
             $warn = true;
             list($warn, $paramsValue) = $this->handle_option_and_params($paramsValue, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', $warn);
             if ($warn) {
-                throw new BadRequest($this->id . ' cancelAllOrders cancels all orders for entire $slug (both YES and NO outcomes). Please provide $params->slug to specify the $slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.');
+                throw new BadRequest($this->id . ' cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.');
             }
         }
         $request = array();
@@ -2496,7 +2496,7 @@ class limitless extends Exchange {
             $outcomeObj = Async\await($this->load_outcome($outcome));
             $request['slug'] = $this->safe_string($outcomeObj['info'], 'slug');
         } elseif ($slug === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders requires either an $outcome argument or a $slug parameter');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders requires either an outcome argument or a slug parameter');
         }
         $response = Async\await($this->limitlessPrivateDeleteOrdersAllSlug($this->extend($request, $paramsValue)));
         //
@@ -3186,7 +3186,7 @@ class limitless extends Exchange {
         }
         $categoryIdsLength = count($categoryIds);
         if ($categoryIdsLength === 0) {
-            throw new BadRequest($this->id . ' fetchEvents() could not match the requested $tags to any limitless $category — GET /categories lists the valid names');
+            throw new BadRequest($this->id . ' fetchEvents() could not match the requested tags to any limitless category — GET /categories lists the valid names');
         }
         $seen = array();
         $allRaw = array();

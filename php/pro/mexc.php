@@ -453,9 +453,9 @@ class mexc extends \ccxt\async\mexc {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, false, true);
         if ($symbolsNormalized === null) {
-            throw new ArgumentsRequired($this->id . ' watchBidsAsks required $symbols argument');
+            throw new ArgumentsRequired($this->id . ' watchBidsAsks required symbols argument');
         }
-        $markets = $this->require_value($this->markets_for_symbols($symbolsNormalized), 'watchBidsAsks() $markets is required');
+        $markets = $this->require_value($this->markets_for_symbols($symbolsNormalized), 'watchBidsAsks() markets is required');
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchBidsAsks', $markets[0], $params);
         $isSpot = $marketType === 'spot';
         if (!$isSpot) {
@@ -559,7 +559,7 @@ class mexc extends \ccxt\async\mexc {
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' watchSpotPrivate() has no spot websocket url');
         }
-        $url = $wsUrl . '?$listenKey=' . $listenKey;
+        $url = $wsUrl . '?listenKey=' . $listenKey;
         $request = array(
             'method' => 'SUBSCRIPTION',
             'params' => array( $channel ),
@@ -642,7 +642,7 @@ class mexc extends \ccxt\async\mexc {
             );
             $ohlcv = Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
         }
-        $ohlcv = $this->require_value($ohlcv, 'watchOHLCV() $ohlcv is required');
+        $ohlcv = $this->require_value($ohlcv, 'watchOHLCV() ohlcv is required');
         $limitResolved = $limit;
         if ($this->newUpdates) {
             $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
@@ -844,7 +844,7 @@ class mexc extends \ccxt\async\mexc {
             );
             $orderbook = Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
         }
-        $orderbook = $this->require_value($orderbook, 'watchOrderBook() $orderbook is required');
+        $orderbook = $this->require_value($orderbook, 'watchOrderBook() orderbook is required');
         return $orderbook->limit();
     }
 
@@ -1058,7 +1058,7 @@ class mexc extends \ccxt\async\mexc {
             );
             $trades = Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
         }
-        $trades = $this->require_value($trades, 'watchTrades() $trades is required');
+        $trades = $this->require_value($trades, 'watchTrades() trades is required');
         $limitResolved = $limit;
         if ($this->newUpdates) {
             $limitResolved = $trades->getLimit($symbolValue, $limit);
@@ -1180,7 +1180,7 @@ class mexc extends \ccxt\async\mexc {
         } else {
             $trades = Async\await($this->watch_swap_private($messageHash, $paramsMarketType));
         }
-        $trades = $this->require_value($trades, 'watchMyTrades() $trades is required');
+        $trades = $this->require_value($trades, 'watchMyTrades() trades is required');
         $limitResolved = $limit;
         if ($this->newUpdates) {
             $limitResolved = $trades->getLimit($symbolResolved, $limit);
@@ -1372,7 +1372,7 @@ class mexc extends \ccxt\async\mexc {
         } else {
             $orders = Async\await($this->watch_swap_private($messageHash, $paramsMarketType));
         }
-        $orders = $this->require_value($orders, 'watchOrders() $orders is required');
+        $orders = $this->require_value($orders, 'watchOrders() orders is required');
         $limitResolved = $limit;
         if ($this->newUpdates) {
             $limitResolved = $orders->getLimit($symbolResolved, $limit);
@@ -1916,9 +1916,9 @@ class mexc extends \ccxt\async\mexc {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, false, true);
         if ($symbolsNormalized === null) {
-            throw new ArgumentsRequired($this->id . ' watchBidsAsks required $symbols argument');
+            throw new ArgumentsRequired($this->id . ' watchBidsAsks required symbols argument');
         }
-        $markets = $this->require_value($this->markets_for_symbols($symbolsNormalized), 'unWatchBidsAsks() $markets is required');
+        $markets = $this->require_value($this->markets_for_symbols($symbolsNormalized), 'unWatchBidsAsks() markets is required');
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchBidsAsks', $markets[0], $params);
         $isSpot = $marketType === 'spot';
         if (!$isSpot) {
@@ -2175,7 +2175,7 @@ class mexc extends \ccxt\async\mexc {
             if ($wsUrl === null) {
                 throw new ExchangeError($this->id . ' keepAliveListenKey() has no spot websocket url');
             }
-            $url = $wsUrl . '?$listenKey=' . $listenKey;
+            $url = $wsUrl . '?listenKey=' . $listenKey;
             $client = $this->client($url);
             $this->options['listenKey'] = null;
             $client->reject($error);

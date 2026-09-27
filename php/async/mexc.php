@@ -1654,12 +1654,12 @@ class mexc extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
                 if ($until === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchTrades() requires an $until parameter when $since is provided');
+                    throw new ArgumentsRequired($this->id . ' fetchTrades() requires an until parameter when since is provided');
                 }
             }
             if ($until !== null) {
                 if ($since === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchTrades() requires a $since parameter when $until is provided');
+                    throw new ArgumentsRequired($this->id . ' fetchTrades() requires a since parameter when until is provided');
                 }
                 $request['endTime'] = $until;
             }
@@ -2458,7 +2458,7 @@ class mexc extends Exchange {
     public function create_spot_order_request(mixed $market, ?string $type, ?string $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
         $symbol = $market['symbol'];
         if (($type === null) || ($side === null)) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $type and a $side argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a type and a side argument');
         }
         $orderSide = strtoupper($side);
         $request = array(
@@ -2494,7 +2494,7 @@ class mexc extends Exchange {
         $paramsWithoutClientOrderId = ($clientOrderId !== null) ? $this->omit($paramsWithoutCost, array( 'type', 'clientOrderId' )) : $paramsWithoutCost;
         if ($marginMode !== null) {
             if ($marginMode !== 'isolated') {
-                throw new BadRequest($this->id . ' createOrder() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
+                throw new BadRequest($this->id . ' createOrder() does not support marginMode ' . $marginMode . ' for spot-margin trading');
             }
         }
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', $type === 'LIMIT_MAKER', $paramsWithoutClientOrderId);
@@ -2618,13 +2618,13 @@ class mexc extends Exchange {
             } elseif ($marginMode === 'isolated') {
                 $openType = 1;
             } else {
-                throw new ArgumentsRequired($this->id . ' createSwapOrder() $marginMode parameter should be either "cross" or "isolated"');
+                throw new ArgumentsRequired($this->id . ' createSwapOrder() marginMode parameter should be either "cross" or "isolated"');
             }
         } else {
             $openType = $this->safe_integer($params, 'openType', 2); // defaulting to cross margin
         }
         if (($type !== 'limit') && ($type !== 'market') && ($type !== 1) && ($type !== 2) && ($type !== 3) && ($type !== 4) && ($type !== 5) && ($type !== 6)) {
-            throw new InvalidOrder($this->id . ' createSwapOrder() order $type must either limit, $market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for $market orders or 6 to convert $market $price to current price');
+            throw new InvalidOrder($this->id . ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', $type === 2, $params);
         $orderType = null;
@@ -2668,7 +2668,7 @@ class mexc extends Exchange {
         if ($openType === 1) {
             $leverage = $this->safe_integer($paramsPostOnly, 'leverage');
             if ($leverage === null) {
-                throw new ArgumentsRequired($this->id . ' createSwapOrder() requires a $leverage parameter for isolated margin orders');
+                throw new ArgumentsRequired($this->id . ' createSwapOrder() requires a leverage parameter for isolated margin orders');
             }
         }
         $reduceOnly = $this->safe_bool($paramsPostOnly, 'reduceOnly', false);
@@ -2750,7 +2750,7 @@ class mexc extends Exchange {
                 $symbol = $marketId;
             } else {
                 if ($symbol !== $marketId) {
-                    throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same symbol');
+                    throw new BadRequest($this->id . ' createOrders() requires all orders to have the same symbol');
                 }
             }
             $type = $this->safe_string($rawOrder, 'type');
@@ -2808,7 +2808,7 @@ class mexc extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2829,7 +2829,7 @@ class mexc extends Exchange {
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrder', $paramsOmitted);
             if ($marginMode !== null) {
                 if ($marginMode !== 'isolated') {
-                    throw new BadRequest($this->id . ' fetchOrder() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
+                    throw new BadRequest($this->id . ' fetchOrder() does not support marginMode ' . $marginMode . ' for spot-margin trading');
                 }
                 $data = Async\await($this->spotPrivateGetMarginOrder($this->extend($request, $query)));
             } else {
@@ -2953,7 +2953,7 @@ class mexc extends Exchange {
         list($marketType, $query) = $this->handle_market_type_and_params('fetchOrders', $market, $paramsOmitted);
         if ($marketType === 'spot') {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument for spot market');
+                throw new ArgumentsRequired($this->id . ' fetchOrders() requires a symbol argument for spot market');
             }
             list($marginMode, $queryInner) = $this->handle_margin_mode_and_params('fetchOrders', $paramsOmitted);
             if ($since !== null) {
@@ -2967,7 +2967,7 @@ class mexc extends Exchange {
             }
             if ($marginMode !== null) {
                 if ($marginMode !== 'isolated') {
-                    throw new BadRequest($this->id . ' fetchOrders() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
+                    throw new BadRequest($this->id . ' fetchOrders() does not support marginMode ' . $marginMode . ' for spot-margin trading');
                 }
                 $response = Async\await($this->spotPrivateGetMarginAllOrders($this->extend($request, $queryInner)));
             } else {
@@ -3034,7 +3034,7 @@ class mexc extends Exchange {
                     $request['end_time'] = $this->sum($since, $maxTimeTillEnd);
                 } else {
                     if (($end - $since) > $maxTimeTillEnd) {
-                        throw new BadRequest($this->id . ' $end is invalid, i.e. exceeds allowed 90 days.');
+                        throw new BadRequest($this->id . ' end is invalid, i.e. exceeds allowed 90 days.');
                     } else {
                         $request['end_time'] = $until;
                     }
@@ -3221,7 +3221,7 @@ class mexc extends Exchange {
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOpenOrders', $paramsMarketType);
             if ($marginMode !== null) {
                 if ($marginMode !== 'isolated') {
-                    throw new BadRequest($this->id . ' fetchOpenOrders() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
+                    throw new BadRequest($this->id . ' fetchOpenOrders() does not support marginMode ' . $marginMode . ' for spot-margin trading');
                 }
                 $response = Async\await($this->spotPrivateGetMarginOpenOrders($this->extend($request, $query)));
             } else {
@@ -3381,7 +3381,7 @@ class mexc extends Exchange {
         list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelOrder', $paramsMarketType);
         if ($marketType === 'spot') {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
             }
             $requestInner = array(
                 'symbol' => $this->safe_string($market, 'id'),
@@ -3394,7 +3394,7 @@ class mexc extends Exchange {
             }
             if ($marginMode !== null) {
                 if ($marginMode !== 'isolated') {
-                    throw new BadRequest($this->id . ' cancelOrder() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
+                    throw new BadRequest($this->id . ' cancelOrder() does not support marginMode ' . $marginMode . ' for spot-margin trading');
                 }
                 $data = Async\await($this->spotPrivateDeleteMarginOrder($this->extend($requestInner, $query)));
             } else {
@@ -3462,7 +3462,7 @@ class mexc extends Exchange {
             $order = $this->safe_dict($data, 0);
             $errorMsg = $this->safe_string($order, 'errorMsg', '');
             if ($errorMsg !== 'success') {
-                throw new InvalidOrder($this->id . ' cancelOrder() the $order with $id ' . $id . ' cannot be cancelled => ' . $errorMsg);
+                throw new InvalidOrder($this->id . ' cancelOrder() the order with id ' . $id . ' cannot be cancelled => ' . $errorMsg);
             }
         }
         return $this->parse_order($data, $market);
@@ -4310,7 +4310,7 @@ class mexc extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -4425,7 +4425,7 @@ class mexc extends Exchange {
         $trades = array();
         if ($marketType === 'spot') {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
+                throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a symbol argument');
             }
             $request['symbol'] = $this->safe_string($market, 'id');
             $request['orderId'] = $id;
@@ -4489,7 +4489,7 @@ class mexc extends Exchange {
     private function do_modify_margin_helper(string $symbol, ?float $amount, ?string $addOrReduce, $params = array()) {
         $positionId = $this->safe_integer($params, 'positionId');
         if ($positionId === null) {
-            throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a $positionId parameter');
+            throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a positionId parameter');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -4571,7 +4571,7 @@ class mexc extends Exchange {
             $positionType = $this->safe_number($params, 'positionType'); // 1 or 2
             $market = ($symbol !== null) ? $this->market($symbol) : null;
             if (($openType === null) || ($positionType === null) || ($market === null)) {
-                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $positionId parameter or a $symbol argument with $openType and $positionType parameters, use $openType 1 or 2 for isolated or cross margin respectively, use $positionType 1 or 2 for long or short positions');
+                throw new ArgumentsRequired($this->id . ' setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions');
             } else {
                 $request['openType'] = $openType;
                 $request['symbol'] = $market['id'];
@@ -4795,7 +4795,7 @@ class mexc extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -5108,7 +5108,7 @@ class mexc extends Exchange {
         );
         $networkCode = $this->safe_string($params, 'network');
         if ($networkCode === null) {
-            throw new ArgumentsRequired($this->id . ' createDepositAddress requires a `$network` parameter');
+            throw new ArgumentsRequired($this->id . ' createDepositAddress requires a `network` parameter');
         }
         // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
         $networkId = null;
@@ -5217,7 +5217,7 @@ class mexc extends Exchange {
         }
         if ($limit !== null) {
             if ($limit > 1000) {
-                throw new ExchangeError('This exchange supports a maximum $limit of 1000');
+                throw new ExchangeError('This exchange supports a maximum limit of 1000');
             }
             $request['limit'] = $limit;
         }
@@ -5281,7 +5281,7 @@ class mexc extends Exchange {
         }
         if ($limit !== null) {
             if ($limit > 1000) {
-                throw new ExchangeError('This exchange supports a maximum $limit of 1000');
+                throw new ExchangeError('This exchange supports a maximum limit of 1000');
             }
             $request['limit'] = $limit;
         }
@@ -5742,13 +5742,13 @@ class mexc extends Exchange {
         if ($fromAccountType !== null) {
             $request['fromAccountType'] = $this->safe_string($accountTypes, $fromAccountType, $fromAccountType);
         } else {
-            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $fromAccountType parameter, one of "SPOT", "FUTURES"');
+            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a fromAccountType parameter, one of "SPOT", "FUTURES"');
         }
         list($toAccountType, $paramsToAccountType) = $this->handle_option_string_and_params($paramsFromAccountType, 'fetchTransfers', 'toAccountType');
         if ($toAccountType !== null) {
             $request['toAccountType'] = $this->safe_string($accountTypes, $toAccountType, $toAccountType);
         } else {
-            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $toAccountType parameter, one of "SPOT", "FUTURES"');
+            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a toAccountType parameter, one of "SPOT", "FUTURES"');
         }
         $resultList = array();
         if ($marketType === 'spot') {
@@ -5757,7 +5757,7 @@ class mexc extends Exchange {
             }
             if ($limit !== null) {
                 if ($limit > 100) {
-                    throw new ExchangeError('This exchange supports a maximum $limit of 50');
+                    throw new ExchangeError('This exchange supports a maximum limit of 50');
                 }
                 $request['size'] = $limit;
             }
@@ -5847,11 +5847,11 @@ class mexc extends Exchange {
         $toId = $this->safe_string($accounts, $toAccount, $toAccount);
         if ($fromId === null) {
             $keys = is_array($accounts) ? array_keys($accounts) : array();
-            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
+            throw new ExchangeError($this->id . ' fromAccount must be one of ' . implode(', ', $keys));
         }
         if ($toId === null) {
             $keys = is_array($accounts) ? array_keys($accounts) : array();
-            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
+            throw new ExchangeError($this->id . ' toAccount must be one of ' . implode(', ', $keys));
         }
         $request = array(
             'asset' => $currency['id'],
@@ -5863,7 +5863,7 @@ class mexc extends Exchange {
         if ($isIsolatedMargin) {
             $symbol = $this->safe_string($params, 'symbol');
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' transfer() requires a $symbol argument for isolated margin');
+                throw new ArgumentsRequired($this->id . ' transfer() requires a symbol argument for isolated margin');
             }
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
@@ -6015,7 +6015,7 @@ class mexc extends Exchange {
             );
             $toAccountType = $this->safe_string($paramsInternal, 'toAccountType');
             if ($toAccountType === null) {
-                throw new ArgumentsRequired($this->id . ' withdraw() requires a $toAccountType parameter for $internal transfer to be of => EMAIL | UID | MOBILE');
+                throw new ArgumentsRequired($this->id . ' withdraw() requires a toAccountType parameter for internal transfer to be of => EMAIL | UID | MOBILE');
             }
             $responseForInternal = Async\await($this->spotPrivatePostCapitalTransferInternal($this->extend($requestForInternal, $paramsInternal)));
             //
@@ -6517,11 +6517,11 @@ class mexc extends Exchange {
         }
         $marginModeLower = strtolower($marginMode);
         if ($marginModeLower !== 'isolated' && $marginModeLower !== 'cross') {
-            throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
+            throw new BadRequest($this->id . ' setMarginMode() marginMode argument should be isolated or cross');
         }
         $leverage = $this->safe_integer($params, 'leverage');
         if ($leverage === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a leverage parameter');
         }
         $direction = $this->safe_string_lower_2($params, 'direction', 'positionId');
         $request = array(

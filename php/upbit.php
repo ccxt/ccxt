@@ -780,9 +780,11 @@ class upbit extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => $this->safe_string($ticker, 'prev_closing_price'),
-            'change' => $this->safe_string($ticker, 'signed_change_price'),
-            // signed_change_rate is a ratio, and a ticker reports a percentage
-            'percentage' => Precise::string_mul($this->safe_string($ticker, 'signed_change_rate'), '100'),
+            // signed_change_* are measured against prev_closing_price, so safeTicker derives
+            // change/percentage from open instead; change, percentage and average are all
+            // undefined when opening_price is missing or zero.
+            'change' => null,
+            'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'acc_trade_volume_24h'),
             'quoteVolume' => $this->safe_string($ticker, 'acc_trade_price_24h'),
@@ -1233,7 +1235,7 @@ class upbit extends Exchange {
             $quoteAmount = $this->cost_to_precision($symbol, $cost);
         } elseif ($createMarketBuyOrderRequiresPrice === true) {
             if ($price === null || $amount === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires the $price and $amount argument for market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
+                throw new InvalidOrder($this->id . ' createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
             }
             $amountString = $this->number_to_string($amount);
             $priceString = $this->number_to_string($price);
@@ -1241,7 +1243,7 @@ class upbit extends Exchange {
             $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
         } else {
             if ($amount === null) {
-                throw new ArgumentsRequired($this->id . ' When $createMarketBuyOrderRequiresPrice is false, "amount" is required and should be the total quote $amount to spend.');
+                throw new ArgumentsRequired($this->id . ' When createMarketBuyOrderRequiresPrice is false, "amount" is required and should be the total quote amount to spend.');
             }
             $quoteAmount = $this->cost_to_precision($symbol, $amount);
         }
@@ -1284,7 +1286,7 @@ class upbit extends Exchange {
         $selfTradePrevention = $this->safe_string_2($params, 'selfTradePrevention', 'smp_type');
         $test = $this->safe_bool($params, 'test', false);
         if ($postOnly && ($selfTradePrevention !== null)) {
-            throw new ExchangeError($this->id . ' createOrder() does not support post_only and $selfTradePrevention simultaneously.');
+            throw new ExchangeError($this->id . ' createOrder() does not support post_only and selfTradePrevention simultaneously.');
         }
         $orderSide = null;
         if ($side === 'buy') {
@@ -1292,7 +1294,7 @@ class upbit extends Exchange {
         } elseif ($side === 'sell') {
             $orderSide = 'ask';
         } else {
-            throw new InvalidOrder($this->id . ' createOrder() supports only buy or sell in the $side argument.');
+            throw new InvalidOrder($this->id . ' createOrder() supports only buy or sell in the side argument.');
         }
         $request = array(
             'market' => $market['id'],
@@ -1301,7 +1303,7 @@ class upbit extends Exchange {
         );
         if ($type === 'limit') {
             if ($price === null || $amount === null) {
-                throw new ArgumentsRequired($this->id . ' the limit $type order in createOrder() is required $price and $amount->');
+                throw new ArgumentsRequired($this->id . ' the limit type order in createOrder() is required price and amount.');
             }
             $request['ord_type'] = 'limit';
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1313,13 +1315,13 @@ class upbit extends Exchange {
                 $request['price'] = $orderPrice;
             } else {
                 if ($amount === null) {
-                    throw new ArgumentsRequired($this->id . ' the $market sell $type order in createOrder() is required $amount->');
+                    throw new ArgumentsRequired($this->id . ' the market sell type order in createOrder() is required amount.');
                 }
                 $request['ord_type'] = 'market';
                 $request['volume'] = $this->amount_to_precision($symbol, $amount);
             }
         } else {
-            throw new InvalidOrder($this->id . ' createOrder() supports only limit or $market types in the $type argument.');
+            throw new InvalidOrder($this->id . ' createOrder() supports only limit or market types in the type argument.');
         }
         $paramsOrdType = ($customType === 'best') ? $this->omit($params, array( 'ordType', 'ord_type' )) : $params;
         if ($customType === 'best') {
@@ -1329,7 +1331,7 @@ class upbit extends Exchange {
                 $request['price'] = $orderPrice;
             } else {
                 if ($amount === null) {
-                    throw new ArgumentsRequired($this->id . ' the best sell $type order in createOrder() is required $amount->');
+                    throw new ArgumentsRequired($this->id . ' the best sell type order in createOrder() is required amount.');
                 }
                 $request['volume'] = $this->amount_to_precision($symbol, $amount);
             }
@@ -1339,7 +1341,7 @@ class upbit extends Exchange {
         }
         if ($postOnly) {
             if ($this->safe_string($request, 'ord_type') !== 'limit') {
-                throw new InvalidOrder($this->id . ' $postOnly orders are only supported for limit orders');
+                throw new InvalidOrder($this->id . ' postOnly orders are only supported for limit orders');
             }
             $request['time_in_force'] = 'post_only';
         }
@@ -1349,7 +1351,7 @@ class upbit extends Exchange {
             }
         }
         if ($this->safe_string($request, 'ord_type') === 'best' && $timeInForce === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $timeInForce parameter for best $type orders');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a timeInForce parameter for best type orders');
         }
         $paramsRequest = $this->omit($paramsOrdType, array( 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test' ));
         if ($test === true) {
@@ -1454,7 +1456,7 @@ class upbit extends Exchange {
         $timeInForce = $this->safe_string_lower_2($params, 'newTimeInForce', 'new_time_in_force');
         $selfTradePrevention = $this->safe_string_2($params, 'selfTradePrevention', 'new_smp_type');
         if ($postOnly && ($selfTradePrevention !== null)) {
-            throw new ExchangeError($this->id . ' editOrder() does not support post_only and $selfTradePrevention simultaneously.');
+            throw new ExchangeError($this->id . ' editOrder() does not support post_only and selfTradePrevention simultaneously.');
         }
         $paramsOmitted = $this->omit($params, 'clientOrderId');
         if ($id !== null) {
@@ -1462,11 +1464,11 @@ class upbit extends Exchange {
         } elseif ($prevClientOrderId !== null) {
             $request['prev_order_identifier'] = $prevClientOrderId;
         } else {
-            throw new ArgumentsRequired($this->id . ' editOrder() is required $id or $clientOrderId->');
+            throw new ArgumentsRequired($this->id . ' editOrder() is required id or clientOrderId.');
         }
         if ($type === 'limit') {
             if ($price === null || $amount === null) {
-                throw new ArgumentsRequired($this->id . ' editOrder() is required $price and $amount to create limit $type order.');
+                throw new ArgumentsRequired($this->id . ' editOrder() is required price and amount to create limit type order.');
             }
             $request['new_ord_type'] = 'limit';
             $request['new_price'] = $this->price_to_precision($symbol, $price);
@@ -1478,13 +1480,13 @@ class upbit extends Exchange {
                 $request['new_price'] = $orderPrice;
             } else {
                 if ($amount === null) {
-                    throw new ArgumentsRequired($this->id . ' editOrder() is required $amount to create market sell $type order.');
+                    throw new ArgumentsRequired($this->id . ' editOrder() is required amount to create market sell type order.');
                 }
                 $request['new_ord_type'] = 'market';
                 $request['new_volume'] = $this->amount_to_precision($symbol, $amount);
             }
         } else {
-            throw new InvalidOrder($this->id . ' editOrder() supports only limit or market types in the $type argument.');
+            throw new InvalidOrder($this->id . ' editOrder() supports only limit or market types in the type argument.');
         }
         $paramsOrdType = ($customType === 'best') ? $this->omit($paramsOmitted, array( 'newOrdType', 'new_ord_type' )) : $paramsOmitted;
         if ($customType === 'best') {
@@ -1494,7 +1496,7 @@ class upbit extends Exchange {
                 $request['new_price'] = $orderPrice;
             } else {
                 if ($amount === null) {
-                    throw new ArgumentsRequired($this->id . ' editOrder() is required $amount to create best sell order.');
+                    throw new ArgumentsRequired($this->id . ' editOrder() is required amount to create best sell order.');
                 }
                 $request['new_volume'] = $this->amount_to_precision($symbol, $amount);
             }
@@ -1507,7 +1509,7 @@ class upbit extends Exchange {
         }
         if ($postOnly) {
             if ($this->safe_string($request, 'new_ord_type') !== 'limit') {
-                throw new InvalidOrder($this->id . ' $postOnly orders are only supported for limit orders');
+                throw new InvalidOrder($this->id . ' postOnly orders are only supported for limit orders');
             }
             $request['new_time_in_force'] = 'post_only';
         }
@@ -1517,7 +1519,7 @@ class upbit extends Exchange {
             }
         }
         if ($this->safe_string($request, 'new_ord_type') === 'best' && $timeInForce === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $timeInForce parameter for best $type orders');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a timeInForce parameter for best type orders');
         }
         $paramsRequest = $this->omit($paramsOrdType, array( 'newTimeInForce', 'new_time_in_force', 'postOnly', 'newClientOrderId', 'cost', 'selfTradePrevention', 'new_smp_type' ));
         // console.log ('check the each request paramsOmitted: ', request);
@@ -2297,7 +2299,7 @@ class upbit extends Exchange {
         $currency = $this->currency($code);
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
         if ($networkCode === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires $params["network"]');
+            throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires params["network"]');
         }
         $response = $this->privateGetDepositsCoinAddress($this->extend(array(
             'currency' => $currency['id'],
@@ -2383,7 +2385,7 @@ class upbit extends Exchange {
             // 2023-05-23 Change to required parameters for digital assets
             $network = $this->safe_string_upper_2($paramsTag, 'network', 'net_type');
             if ($network === null) {
-                throw new ArgumentsRequired($this->id . ' withdraw() requires a $network argument');
+                throw new ArgumentsRequired($this->id . ' withdraw() requires a network argument');
             }
             $paramsOmitted = $this->omit($paramsTag, array( 'network' ));
             $request['net_type'] = $network;

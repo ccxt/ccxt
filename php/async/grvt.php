@@ -1304,7 +1304,7 @@ class grvt extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1373,7 +1373,7 @@ class grvt extends Exchange {
     public function get_sub_account_id(array $params): string {
         $subAccountId = $this->handle_option_and_params($params, 'getSubAccountId', 'accountId')[0];
         if ($subAccountId === null) {
-            throw new ArgumentsRequired($this->id . ' you should set "accountId" in options or $params, which can be found in the grvt dashboard, under Api-Keys page');
+            throw new ArgumentsRequired($this->id . ' you should set "accountId" in options or params, which can be found in the grvt dashboard, under Api-Keys page');
         }
         return (string) $subAccountId;
     }
@@ -1778,7 +1778,7 @@ class grvt extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a code argument');
         }
         Async\await($this->load_markets_and_sign_in());
         $request = array();
@@ -1878,7 +1878,7 @@ class grvt extends Exchange {
             list($tradingAccountId, $paramsTradingAccountId) = $this->handle_option_string_and_params($params, 'transfer', 'tradingAccountId');
             list($fundingAccountId, $paramsFunding) = $this->handle_option_string_and_params($paramsTradingAccountId, 'transfer', 'fundingAccountId');
             if ($tradingAccountId === null || $fundingAccountId === null) {
-                throw new ArgumentsRequired($this->id . ' transfer() => you should set (in the options or $params) "tradingAccountId" and "fundingAccountId" (you can use "0" as a main funding account id)');
+                throw new ArgumentsRequired($this->id . ' transfer() => you should set (in the options or params) "tradingAccountId" and "fundingAccountId" (you can use "0" as a main funding account id)');
             }
             $fromSubAccount = ($fromAccount === 'trading') ? $tradingAccountId : $fundingAccountId;
             $toSubAccount = ($toAccount === 'trading') ? $tradingAccountId : $fundingAccountId;
@@ -2119,7 +2119,7 @@ class grvt extends Exchange {
         } elseif ($side === 'buy') {
             $orderLeg['is_buying_asset'] = true;
         } else {
-            throw new InvalidOrder($this->id . ' createOrder() => order $side must be either "buy" or "sell"');
+            throw new InvalidOrder($this->id . ' createOrder() => order side must be either "buy" or "sell"');
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId === null) {
@@ -2190,7 +2190,7 @@ class grvt extends Exchange {
             } else {
                 $triggerDirection = $this->safe_string($paramsTriggerPrices, 'triggerDirection');
                 if ($triggerDirection === null) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerDirection parameter when $triggerPrice is specified, must be "ascending" or "descending"');
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a triggerDirection parameter when triggerPrice is specified, must be "ascending" or "descending"');
                 }
                 if ($triggerDirection !== null) {
                     if ($triggerDirection === 'ascending') {
@@ -2600,7 +2600,7 @@ class grvt extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         Async\await($this->load_markets_and_sign_in());
         $market = $this->market($symbol);
@@ -3480,7 +3480,7 @@ class grvt extends Exchange {
                 $accountId = $this->safe_string($this->options, 'AuthAccountId');
                 $cookieValue = $this->safe_string($this->options, 'AuthCookieValue');
                 if ($cookieValue === null || $accountId === null) {
-                    throw new AuthenticationError($this->id . ' : at first, you need to authenticate with exchange using signIn() $method->');
+                    throw new AuthenticationError($this->id . ' : at first, you need to authenticate with exchange using signIn() method.');
                 }
                 $requestHeaders['Cookie'] = $cookieValue;
                 $requestHeaders['X-Grvt-Account-Id'] = $accountId;
@@ -3499,7 +3499,7 @@ class grvt extends Exchange {
                 $this->options['AuthCookieValue'] = $cookieValue;
             }
             if ($this->safe_string($this->options, 'AuthCookieValue') === null || $this->safe_string($this->options, 'AuthAccountId') === null) {
-                throw new AuthenticationError($this->id . ' signIn() failed to receive auth-$cookie or account-id');
+                throw new AuthenticationError($this->id . ' signIn() failed to receive auth-cookie or account-id');
             }
         } else {
             $errorCode = $this->safe_string($response, 'code');

@@ -804,9 +804,9 @@ class cex extends Exchange {
             $request['toISO'] = $this->iso8601($this->milliseconds());
         }
         if ($since !== null && $until !== null && $limit !== null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV does not support fetching candles with both a $limit and since/until');
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV does not support fetching candles with both a limit and since/until');
         } elseif (($since !== null || $until !== null) && $limit === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $limit parameter when fetching candles with $since or until');
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a limit parameter when fetching candles with since or until');
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1290,7 +1290,7 @@ class cex extends Exchange {
          */
         list($accountId, $paramsAccountId) = $this->handle_option_string_and_params($params, 'createOrder', 'accountId');
         if ($accountId === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() : API trading is now allowed from main account, set $params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
+            throw new ArgumentsRequired($this->id . ' createOrder() : API trading is now allowed from main account, set params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1767,7 +1767,7 @@ class cex extends Exchange {
          */
         list($accountId, $paramsAccountId) = $this->handle_option_string_and_params($params, 'createOrder', 'accountId');
         if ($accountId === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set $params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
+            throw new ArgumentsRequired($this->id . ' fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1857,7 +1857,7 @@ class cex extends Exchange {
                 $fixed = $this->fix_stringified_json_members($body);
                 $responseFixed = $this->parse_json($fixed);
             } else {
-                throw new NullResponse($this->id . ' returned unparsed $response => ' . $body);
+                throw new NullResponse($this->id . ' returned unparsed response => ' . $body);
             }
         }
         $responseParsed = ($response === null) ? $responseFixed : $response;

@@ -1668,7 +1668,7 @@ class bitrue extends Exchange {
         } else {
             list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchTickers', null, $params);
             if ($marketType !== 'spot') {
-                throw new NotSupported($this->id . ' fetchTickers only support spot when $symbols are not proved');
+                throw new NotSupported($this->id . ' fetchTickers only support spot when symbols are not proved');
             }
             $response = $this->spotV1PublicGetTicker24hr($this->extend($request, $paramsMarketType));
             $data = $this->to_array($response);
@@ -2067,7 +2067,7 @@ class bitrue extends Exchange {
         );
         if ($uppercaseType === 'LIMIT') {
             if ($price === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $price argument');
+                throw new InvalidOrder($this->id . ' createOrder() requires a price argument');
             }
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
@@ -2092,7 +2092,7 @@ class bitrue extends Exchange {
             if ($isMarketBuyWithPrice) {
                 $cost = $this->safe_string($paramsRequiresPrice, 'cost');
                 if ($price === null && $cost === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with swap $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)');
+                    throw new InvalidOrder($this->id . ' createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the cost in the amount argument (the exchange-specific behaviour)');
                 } else {
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
@@ -2125,7 +2125,7 @@ class bitrue extends Exchange {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             $validOrderTypes = $this->safe_value($market['info'], 'orderTypes');
             if (!$this->in_array($uppercaseType, $validOrderTypes)) {
-                throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type in $market ' . $symbol);
+                throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order type in market ' . $symbol);
             }
             $clientOrderId = $this->safe_string_2($params, 'newClientOrderId', 'clientOrderId');
             if ($clientOrderId !== null) {
@@ -2179,7 +2179,7 @@ class bitrue extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2274,7 +2274,7 @@ class bitrue extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2336,7 +2336,7 @@ class bitrue extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2423,7 +2423,7 @@ class bitrue extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2541,7 +2541,7 @@ class bitrue extends Exchange {
             $this->load_markets();
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $response = null;
@@ -2630,7 +2630,7 @@ class bitrue extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a code argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2705,7 +2705,7 @@ class bitrue extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a code argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -3163,10 +3163,10 @@ class bitrue extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if (($leverage < 1) || ($leverage > 125)) {
-            throw new BadRequest($this->id . ' $leverage should be between 1 and 125');
+            throw new BadRequest($this->id . ' leverage should be between 1 and 125');
         }
         if ($this->markets === null) {
             $this->load_markets();

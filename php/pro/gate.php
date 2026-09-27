@@ -248,7 +248,7 @@ class gate extends \ccxt\async\gate {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrdersWs() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrdersWs() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -915,7 +915,7 @@ class gate extends \ccxt\async\gate {
         $url = $this->get_url_by_market($market);
         $channel = $messageType . '.' . $channelName;
         if ($callerMethodNameOption === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $callerMethodName argument');
+            throw new ArgumentsRequired($this->id . ' requires a callerMethodName argument');
         }
         $isWatchTickers = mb_strpos($callerMethodNameOption, 'watchTicker') !== false;
         $prefix = 'bidask';
@@ -1498,7 +1498,7 @@ class gate extends \ccxt\async\gate {
         $messageHash = $type . ':positions';
         if (!$this->is_empty($symbolsNormalized)) {
             if ($symbolsNormalized === null) {
-                throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
+                throw new ArgumentsRequired($this->id . ' watchPositions() symbols is required');
             }
             $messageHash .= '::' . implode(',', $symbolsNormalized);
         }
@@ -1632,7 +1632,7 @@ class gate extends \ccxt\async\gate {
                 $cache->append($position);
             }
         }
-        $messageHashes = $this->find_message_hashes($client, $type . ':$positions::');
+        $messageHashes = $this->find_message_hashes($client, $type . ':positions::');
         for ($i = 0; $i < count($messageHashes); $i++) {
             $messageHash = $messageHashes[$i];
             $parts = explode('::', $messageHash);
@@ -1692,7 +1692,7 @@ class gate extends \ccxt\async\gate {
         $isTrigger = false;
         list($isTrigger, $query) = $this->handle_param_bool_2($query, 'trigger', 'stop', false);
         if (($isTrigger === true) && ($typeId === 'options')) {
-            throw new NotSupported($this->id . ' watchOrders() does not support trigger $orders for options, see https://github.com/ccxt/ccxt/issues/27202');
+            throw new NotSupported($this->id . ' watchOrders() does not support trigger orders for options, see https://github.com/ccxt/ccxt/issues/27202');
         }
         // gate pushes trigger orders on dedicated channels, spot.priceorders and futures.autoorders,
         // see https://github.com/ccxt/ccxt/issues/27202
@@ -1870,14 +1870,14 @@ class gate extends \ccxt\async\gate {
         $messageHash = '';
         if ($this->is_empty($symbolsNormalized)) {
             if ($typeId !== 'futures' && !$isInverse) {
-                throw new BadRequest($this->id . ' watchMyLiquidationsForSymbols() does not support listening to all $symbols, you must call watchMyLiquidations() instead for each symbol you wish to watch.');
+                throw new BadRequest($this->id . ' watchMyLiquidationsForSymbols() does not support listening to all symbols, you must call watchMyLiquidations() instead for each symbol you wish to watch.');
             }
             $messageHash = 'myLiquidations';
             $payload[] = '!all';
         } else {
             $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength !== 1) {
-                throw new BadRequest($this->id . ' watchMyLiquidationsForSymbols() only allows one symbol at a time. To listen to several $symbols call watchMyLiquidationsForSymbols() several times.');
+                throw new BadRequest($this->id . ' watchMyLiquidationsForSymbols() only allows one symbol at a time. To listen to several symbols call watchMyLiquidationsForSymbols() several times.');
             }
             $messageHash = 'myLiquidations::' . $symbolsNormalized[0];
             $payload[] = $market['id'];

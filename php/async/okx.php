@@ -2883,7 +2883,7 @@ class okx extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rate-history-structure funding $rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3271,10 +3271,10 @@ class okx extends Exchange {
 
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $takeProfitPrice = $this->safe_value_2($params, 'takeProfitPrice', 'tpTriggerPx');
@@ -3419,7 +3419,7 @@ class okx extends Exchange {
                                 $notional = $this->parse_number($quoteAmount);
                             }
                         } elseif ($notional === null) {
-                            throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)");
+                            throw new InvalidOrder($this->id . " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)");
                         }
                     } else {
                         $notional = ($notional === null) ? $amount : $notional;
@@ -3454,7 +3454,7 @@ class okx extends Exchange {
             if ($hasStopLoss) {
                 $stopLossTriggerPrice = $this->safe_value_n($stopLoss, array( 'triggerPrice', 'stopPrice', 'slTriggerPx' ));
                 if ($stopLossTriggerPrice === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires a $trigger $price in $params["stopLoss"]["triggerPrice"], or $params["stopLoss"]["stopPrice"], or $params["stopLoss"]["slTriggerPx"] for a stop loss order');
+                    throw new InvalidOrder($this->id . ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order');
                 }
                 $slTriggerPx = $this->price_to_precision($symbol, $stopLossTriggerPrice);
                 $slOrder = array();
@@ -3465,10 +3465,10 @@ class okx extends Exchange {
                     $stopLossLimitOrderType = ($stopLossOrderType === 'limit');
                     $stopLossMarketOrderType = ($stopLossOrderType === 'market');
                     if ((!$stopLossLimitOrderType) && (!$stopLossMarketOrderType)) {
-                        throw new InvalidOrder($this->id . ' createOrder() $params["stopLoss"]["type"] must be either "limit" or "market"');
+                        throw new InvalidOrder($this->id . ' createOrder() params["stopLoss"]["type"] must be either "limit" or "market"');
                     } elseif ($stopLossLimitOrderType) {
                         if ($stopLossLimitPrice === null) {
-                            throw new InvalidOrder($this->id . ' createOrder() requires a limit $price in $params["stopLoss"]["price"] or $params["stopLoss"]["slOrdPx"] for a stop loss limit order');
+                            throw new InvalidOrder($this->id . ' createOrder() requires a limit price in params["stopLoss"]["price"] or params["stopLoss"]["slOrdPx"] for a stop loss limit order');
                         } else {
                             $slOrder['slOrdPx'] = $this->price_to_precision($symbol, $stopLossLimitPrice);
                         }
@@ -3483,7 +3483,7 @@ class okx extends Exchange {
                 $stopLossTriggerPriceType = $this->safe_string_2($stopLoss, 'triggerPriceType', 'slTriggerPxType', 'last');
                 if ($stopLossTriggerPriceType !== null) {
                     if (($stopLossTriggerPriceType !== 'last') && ($stopLossTriggerPriceType !== 'index') && ($stopLossTriggerPriceType !== 'mark')) {
-                        throw new InvalidOrder($this->id . ' createOrder() stop loss $trigger $price $type must be one of "last", "index" or "mark"');
+                        throw new InvalidOrder($this->id . ' createOrder() stop loss trigger price type must be one of "last", "index" or "mark"');
                     }
                     $slOrder['slTriggerPxType'] = $stopLossTriggerPriceType;
                 }
@@ -3492,7 +3492,7 @@ class okx extends Exchange {
             if ($hasTakeProfit) {
                 $takeProfitTriggerPrice = $this->safe_value_n($takeProfit, array( 'triggerPrice', 'stopPrice', 'tpTriggerPx' ));
                 if ($takeProfitTriggerPrice === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires a $trigger $price in $params["takeProfit"]["triggerPrice"], or $params["takeProfit"]["stopPrice"], or $params["takeProfit"]["tpTriggerPx"] for a take profit order');
+                    throw new InvalidOrder($this->id . ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["tpTriggerPx"] for a take profit order');
                 }
                 $tpOrder = array();
                 $tpOrder['tpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
@@ -3502,10 +3502,10 @@ class okx extends Exchange {
                     $takeProfitLimitOrderType = ($takeProfitOrderType === 'limit');
                     $takeProfitMarketOrderType = ($takeProfitOrderType === 'market');
                     if ((!$takeProfitLimitOrderType) && (!$takeProfitMarketOrderType)) {
-                        throw new InvalidOrder($this->id . ' createOrder() $params["takeProfit"]["type"] must be either "limit" or "market"');
+                        throw new InvalidOrder($this->id . ' createOrder() params["takeProfit"]["type"] must be either "limit" or "market"');
                     } elseif ($takeProfitLimitOrderType) {
                         if ($takeProfitLimitPrice === null) {
-                            throw new InvalidOrder($this->id . ' createOrder() requires a limit $price in $params["takeProfit"]["price"] or $params["takeProfit"]["tpOrdPx"] for a take profit limit order');
+                            throw new InvalidOrder($this->id . ' createOrder() requires a limit price in params["takeProfit"]["price"] or params["takeProfit"]["tpOrdPx"] for a take profit limit order');
                         } else {
                             $tpOrder['tpOrdKind'] = $takeProfitOrderType;
                             $tpOrder['tpOrdPx'] = $this->price_to_precision($symbol, $takeProfitLimitPrice);
@@ -3522,7 +3522,7 @@ class okx extends Exchange {
                 $takeProfitTriggerPriceType = $this->safe_string_2($takeProfit, 'triggerPriceType', 'tpTriggerPxType', 'last');
                 if ($takeProfitTriggerPriceType !== null) {
                     if (($takeProfitTriggerPriceType !== 'last') && ($takeProfitTriggerPriceType !== 'index') && ($takeProfitTriggerPriceType !== 'mark')) {
-                        throw new InvalidOrder($this->id . ' createOrder() take profit $trigger $price $type must be one of "last", "index" or "mark"');
+                        throw new InvalidOrder($this->id . ' createOrder() take profit trigger price type must be one of "last", "index" or "mark"');
                     }
                     $tpOrder['tpTriggerPxType'] = $takeProfitTriggerPriceType;
                 }
@@ -3754,7 +3754,7 @@ class okx extends Exchange {
         $hasTakeProfit = ($takeProfit !== null);
         if ($isAlgoOrder) {
             if (($stopLossTriggerPrice === null) && ($takeProfitTriggerPrice === null)) {
-                throw new BadRequest($this->id . ' editOrder() requires a $stopLossPrice or $takeProfitPrice parameter for editing an algo order');
+                throw new BadRequest($this->id . ' editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order');
             }
             if ($stopLossTriggerPrice !== null) {
                 if ($stopLossPrice === null) {
@@ -3905,7 +3905,7 @@ class okx extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $trailing = $this->safe_bool($params, 'trailing', false);
@@ -3969,7 +3969,7 @@ class okx extends Exchange {
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -4102,7 +4102,7 @@ class okx extends Exchange {
             $clientOrderId = $this->safe_string_2($order, 'clOrdId', 'clientOrderId');
             $symbol = $this->safe_string($order, 'symbol');
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol for each order');
+                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol for each order');
             }
             $market = $this->market($symbol);
             $idKey = 'ordId';
@@ -4517,7 +4517,7 @@ class okx extends Exchange {
          * @return ~@link https://docs.ccxt.com/?$id=$order-structure an $order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -5760,7 +5760,7 @@ class okx extends Exchange {
             $targetNetwork = ($networkCodeResolved === null) ? array() : $this->safe_dict($currency['networks'], $networkCodeResolved, array());
             $fee = $this->safe_string($targetNetwork, 'fee');
             if ($fee === null) {
-                throw new ArgumentsRequired($this->id . ' withdraw() requires a "fee" string parameter, $network $transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKX are $fee-free, please set "0". Withdrawing to external digital asset $address requires $network $transaction $fee->');
+                throw new ArgumentsRequired($this->id . ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.');
             }
         }
         $request['fee'] = $this->number_to_string($fee); // withdrawals to OKCoin or OKX are fee-free, please set 0
@@ -6214,7 +6214,7 @@ class okx extends Exchange {
         $defaultMarginMode = $this->safe_string($params, 'mgnMode', 'cross');
         list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('fetchLeverage', $params, $defaultMarginMode);
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' fetchLeverage() requires a $marginMode parameter that must be either cross or isolated');
+            throw new BadRequest($this->id . ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -6346,7 +6346,7 @@ class okx extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $position = $this->safe_dict($data, 0);
         if ($position === null) {
-            throw new NullResponse($this->id . ' fetchPosition() could not find a $position for ' . $symbol);
+            throw new NullResponse($this->id . ' fetchPosition() could not find a position for ' . $symbol);
         }
         return $this->parse_position($position, $market);
     }
@@ -7152,7 +7152,7 @@ class okx extends Exchange {
                 $ruleType = $this->safe_string($marketInfo, 'ruleType');
                 $isExtendedPerpetual = ($ruleType === 'xperp'); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
                 if (($market['swap'] !== true) && !$isExtendedPerpetual) {
-                    throw new BadRequest($this->id . ' fetchFundingRates() $symbols must be swap markets or XPERP futures, ' . $symbolsNormalized[$i] . ' is not');
+                    throw new BadRequest($this->id . ' fetchFundingRates() symbols must be swap markets or XPERP futures, ' . $symbolsNormalized[$i] . ' is not');
                 }
             }
         }
@@ -7369,12 +7369,12 @@ class okx extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (($leverage < 1) || ($leverage > 125)) {
-            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 125');
+            throw new BadRequest($this->id . ' setLeverage() leverage should be between 1 and 125');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -7384,7 +7384,7 @@ class okx extends Exchange {
         $defaultMarginMode = $this->safe_string($params, 'mgnMode', 'cross');
         list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('setLeverage', $params, $defaultMarginMode);
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' setLeverage() requires a $marginMode parameter that must be either cross or isolated');
+            throw new BadRequest($this->id . ' setLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
         $request = array(
             'lever' => $leverage,
@@ -7394,7 +7394,7 @@ class okx extends Exchange {
         $posSide = $this->safe_string($paramsMarginMode, 'posSide', 'net');
         if ($marginMode === 'isolated') {
             if ($posSide !== 'long' && $posSide !== 'short' && $posSide !== 'net') {
-                throw new BadRequest($this->id . ' setLeverage() requires the $posSide argument to be either "long", "short" or "net"');
+                throw new BadRequest($this->id . ' setLeverage() requires the posSide argument to be either "long", "short" or "net"');
             }
             $request['posSide'] = $posSide;
         }
@@ -7437,7 +7437,7 @@ class okx extends Exchange {
             $accountId = $this->safe_string($params, 'accountId');
             if ($accountId === null) {
                 $accountIds = $this->get_list_from_object_values($accounts, 'id');
-                throw new ExchangeError($this->id . ' fetchPositionMode() can not detect position mode, because you have multiple $accounts-> Set $params["accountId"] to desired id from => ' . implode(', ', $accountIds));
+                throw new ExchangeError($this->id . ' fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params["accountId"] to desired id from => ' . implode(', ', $accountIds));
             } else {
                 $accountsById = $this->index_by($accounts, 'id');
                 $selectedAccount = $this->safe_dict($accountsById, $accountId);
@@ -7510,13 +7510,13 @@ class okx extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         $marginModeValue = strtolower($marginMode);
         if (($marginModeValue !== 'cross') && ($marginModeValue !== 'isolated')) {
-            throw new BadRequest($this->id . ' setMarginMode() $marginMode must be either cross or isolated');
+            throw new BadRequest($this->id . ' setMarginMode() marginMode must be either cross or isolated');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -7524,7 +7524,7 @@ class okx extends Exchange {
         $market = $this->market($symbol);
         $lever = $this->safe_integer_2($params, 'lever', 'leverage');
         if (($lever === null) || ($lever < 1) || ($lever > 125)) {
-            throw new BadRequest($this->id . ' setMarginMode() $params["lever"] should be between 1 and 125');
+            throw new BadRequest($this->id . ' setMarginMode() params["lever"] should be between 1 and 125');
         }
         $paramsOmitted = $this->omit($params, array( 'leverage' ));
         $request = array(
@@ -8199,7 +8199,7 @@ class okx extends Exchange {
         $id = $this->safe_string_2($params, 'id', 'ordId');
         $paramsOmitted = $this->omit($params, 'id');
         if ($id === null) {
-            throw new ArgumentsRequired($this->id . ' repayCrossMargin() requires an $id parameter');
+            throw new ArgumentsRequired($this->id . ' repayCrossMargin() requires an id parameter');
         }
         $currency = $this->currency($code);
         $request = array(
@@ -8345,7 +8345,7 @@ class okx extends Exchange {
             $request['instFamily'] = $instFamily;
         }
         if ($instType === 'OPTION' && $uly === null && $instFamily === null) {
-            throw new BadRequest($this->id . ' fetchOpenInterests() requires either $uly or $instFamily parameter for OPTION markets');
+            throw new BadRequest($this->id . ' fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets');
         }
         $response = Async\await($this->publicGetPublicOpenInterest($this->extend($request, $paramsSubType)));
         //
@@ -8662,7 +8662,7 @@ class okx extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=settlement-history-structure settlement history objects~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchSettlementHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchSettlementHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -8901,7 +8901,7 @@ class okx extends Exchange {
                 $request['instFamily'] = $instFamily;
             }
             if (($uly === null) && ($instFamily === null)) {
-                throw new BadRequest($this->id . ' fetchAllGreeks() requires either a $uly or $instFamily parameter');
+                throw new BadRequest($this->id . ' fetchAllGreeks() requires either a uly or instFamily parameter');
             }
         }
         $market = null;
@@ -9662,7 +9662,7 @@ class okx extends Exchange {
         }
         $auto = $this->safe_bool($params, 'auto');
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMarginAdjustmentHistory () requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' fetchMarginAdjustmentHistory () requires a type argument');
         }
         $isAdd = $type === 'add';
         $subType = $isAdd ? '160' : '161';
@@ -9670,7 +9670,7 @@ class okx extends Exchange {
             if ($isAdd) {
                 $subType = '162';
             } else {
-                throw new BadRequest($this->id . ' cannot fetch margin adjustments for $type ' . $type);
+                throw new BadRequest($this->id . ' cannot fetch margin adjustments for type ' . $type);
             }
         }
         $request = array(
@@ -9853,7 +9853,7 @@ class okx extends Exchange {
             Async\await($this->load_markets());
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchLongShortRatioHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchLongShortRatioHistory() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $request = array(

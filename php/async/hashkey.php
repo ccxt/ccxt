@@ -1447,7 +1447,7 @@ class hashkey extends Exchange {
             //
         } elseif ($marketType === 'swap') {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $symbol argument for swap markets');
+                throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a symbol argument for swap markets');
             }
             $request['symbol'] = $this->safe_string($market, 'id');
             if ($accountId !== null) {
@@ -2472,11 +2472,11 @@ class hashkey extends Exchange {
          */
         $methodName = 'fetchLedger';
         if ($since === null) {
-            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $since argument');
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a since argument');
         }
         list($until, $paramsUntil) = $this->handle_option_and_params($params, $methodName, 'until');
         if ($until === null) {
-            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires an $until argument');
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires an until argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2616,7 +2616,7 @@ class hashkey extends Exchange {
         } elseif ($market['swap'] === true) {
             return Async\await($this->create_swap_order($symbol, $type, $side, $amount, $price, $params));
         } else {
-            throw new NotSupported($this->id . ' createOrder() is not supported for ' . $market['type'] . ' $type of markets');
+            throw new NotSupported($this->id . ' createOrder() is not supported for ' . $market['type'] . ' type of markets');
         }
     }
 
@@ -2680,7 +2680,7 @@ class hashkey extends Exchange {
         $isMarketBuy = ($type === 'market') && ($side === 'buy');
         $cost = $this->safe_string($params, 'cost');
         if ((!$isMarketBuy) && ($cost !== null)) {
-            throw new NotSupported($this->id . ' createOrder() supports $cost parameter for spot $market buy orders only');
+            throw new NotSupported($this->id . ' createOrder() supports cost parameter for spot market buy orders only');
         }
         $request = $this->create_spot_order_request($symbol, $type, $side, $amount, $price, $params);
         $response = array();
@@ -2774,10 +2774,10 @@ class hashkey extends Exchange {
 
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         if ($market['spot'] === true) {
@@ -2785,16 +2785,16 @@ class hashkey extends Exchange {
         } elseif ($market['swap'] === true) {
             return $this->create_swap_order_request($symbol, $type, $side, $amount, $price, $params);
         } else {
-            throw new NotSupported($this->id . ' ' . 'createOrderRequest() is not supported for ' . $market['type'] . ' $type of markets');
+            throw new NotSupported($this->id . ' ' . 'createOrderRequest() is not supported for ' . $market['type'] . ' type of markets');
         }
     }
 
     public function create_spot_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         /**
          * @ignore
@@ -3062,7 +3062,7 @@ class hashkey extends Exchange {
             //     }
             //
         } else {
-            throw new NotSupported($this->id . ' ' . 'createOrderRequest() is not supported for ' . $market['type'] . ' $type of markets');
+            throw new NotSupported($this->id . ' ' . 'createOrderRequest() is not supported for ' . $market['type'] . ' type of markets');
         }
         $result = $this->safe_list($response, 'result', array());
         $responseOrders = array();
@@ -3187,7 +3187,7 @@ class hashkey extends Exchange {
         // Does not cancel trigger orders. For canceling trigger order use cancelOrder() or cancelOrders()
         $methodName = 'cancelAllOrders';
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3518,7 +3518,7 @@ class hashkey extends Exchange {
         $methodName = 'fetchOpenSwapOrders';
         list($methodNameOption, $paramsMethodName) = $this->handle_param_string($params, 'methodName', $methodName);
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' ' . $methodNameOption . '() requires a $symbol argument for swap $market orders');
+            throw new ArgumentsRequired($this->id . ' ' . $methodNameOption . '() requires a symbol argument for swap market orders');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -3676,7 +3676,7 @@ class hashkey extends Exchange {
             //
         } elseif ($marketType === 'swap') {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $symbol argument for swap markets');
+                throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a symbol argument for swap markets');
             }
             $request['symbol'] = $this->safe_string($market, 'id');
             list($isTrigger, $paramsTrigger) = $this->handle_trigger_option_and_params($paramsMarketType, $methodName, false);
@@ -4084,7 +4084,7 @@ class hashkey extends Exchange {
             Async\await($this->load_markets());
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -4305,7 +4305,7 @@ class hashkey extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -4342,7 +4342,7 @@ class hashkey extends Exchange {
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -4350,7 +4350,7 @@ class hashkey extends Exchange {
         $marginModeUpper = strtoupper($marginMode);
         $marginModeValue = ($marginModeUpper === 'CROSSED') ? 'CROSS' : $marginModeUpper;
         if (($marginModeValue !== 'CROSS') && ($marginModeValue !== 'ISOLATED')) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() $marginMode must be either cross or isolated');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() marginMode must be either cross or isolated');
         }
         $market = $this->market($symbol);
         if ($market['swap'] !== true) {
@@ -4415,11 +4415,11 @@ class hashkey extends Exchange {
         }
         list($sideParam, $paramsSide) = $this->handle_param_string($params, 'side');
         if ($sideParam === null) {
-            throw new ArgumentsRequired($this->id . ' ' . $type . 'Margin() requires a $params["side"] argument, either "long" or "short"');
+            throw new ArgumentsRequired($this->id . ' ' . $type . 'Margin() requires a params["side"] argument, either "long" or "short"');
         }
         $side = strtoupper($sideParam);
         if (($side !== 'LONG') && ($side !== 'SHORT')) {
-            throw new ArgumentsRequired($this->id . ' ' . $type . 'Margin() $params["side"] must be either long or short');
+            throw new ArgumentsRequired($this->id . ' ' . $type . 'Margin() params["side"] must be either long or short');
         }
         $amountString = $this->number_to_string($amount);
         if ($type === 'reduce') {

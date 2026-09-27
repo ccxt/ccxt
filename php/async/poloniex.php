@@ -2186,10 +2186,10 @@ class poloniex extends Exchange {
             }
             if (($hedged !== null) && ($hedged !== '')) {
                 if ($marginMode === null) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $marginMode parameter "cross" or "isolated" for $hedged orders');
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a marginMode parameter "cross" or "isolated" for hedged orders');
                 }
                 if (!(is_array($query) && array_key_exists('posSide' ?? '', $query))) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires a posSide parameter "LONG" or "SHORT" for $hedged orders');
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a posSide parameter "LONG" or "SHORT" for hedged orders');
                 }
             }
         }
@@ -2218,7 +2218,7 @@ class poloniex extends Exchange {
                     $quoteAmount = $this->cost_to_precision($symbol, $cost);
                 } elseif ($createMarketBuyOrderRequiresPrice && ($market['spot'] === true)) {
                     if ($price === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
+                        throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
@@ -2337,7 +2337,7 @@ class poloniex extends Exchange {
         //
         Async\await($this->load_markets());
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $request = array();
@@ -2880,14 +2880,14 @@ class poloniex extends Exchange {
         $keys = is_array($response) ? array_keys($response) : array();
         $length = count($keys);
         if ($length < 1) {
-            throw new ExchangeError($this->id . ' fetchDepositAddress() returned an empty $response, you might need to try "createDepositAddress" at first and then use "fetchDepositAddress"');
+            throw new ExchangeError($this->id . ' fetchDepositAddress() returned an empty response, you might need to try "createDepositAddress" at first and then use "fetchDepositAddress"');
         }
         return $this->parse_deposit_address_special($response, $currency, $networkEntry);
     }
 
     public function prepare_request_for_deposit_address(string $code, $params = array()): mixed {
         if (!(is_array($this->currencies) && array_key_exists($code ?? '', $this->currencies))) {
-            throw new BadSymbol($this->id . ' fetchDepositAddress() => can not recognize ' . $code . ' $currency, you might try using unified $currency-$code and add provide specific "network" parameter, like => fetchDepositAddress("USDT", array( "network" => "TRC20" ))');
+            throw new BadSymbol($this->id . ' fetchDepositAddress() => can not recognize ' . $code . ' currency, you might try using unified currency-code and add provide specific "network" parameter, like => fetchDepositAddress("USDT", array( "network" => "TRC20" ))');
         }
         $currency = $this->currency($code);
         $networkCode = null;
@@ -3464,18 +3464,18 @@ class poloniex extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
         list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('setLeverage', $params);
         if ($marginMode === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $marginMode parameter "cross" or "isolated"');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a marginMode parameter "cross" or "isolated"');
         }
         list($hedged, $paramsHedged) = $this->handle_param_bool($paramsMarginMode, 'hedged', false);
         if ($hedged === true) {
             if (!(is_array($paramsHedged) && array_key_exists('posSide' ?? '', $paramsHedged))) {
-                throw new ArgumentsRequired($this->id . ' setLeverage() requires a posSide parameter for $hedged mode => "LONG" or "SHORT"');
+                throw new ArgumentsRequired($this->id . ' setLeverage() requires a posSide parameter for hedged mode => "LONG" or "SHORT"');
             }
         }
         $request = array(
@@ -3508,7 +3508,7 @@ class poloniex extends Exchange {
         );
         list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('fetchLeverage', $params);
         if ($marginMode === null) {
-            throw new ArgumentsRequired($this->id . ' fetchLeverage() requires a $marginMode parameter "cross" or "isolated"');
+            throw new ArgumentsRequired($this->id . ' fetchLeverage() requires a marginMode parameter "cross" or "isolated"');
         }
         $request['mgnMode'] = strtoupper($marginMode);
         $response = Async\await($this->swapPrivateGetV3PositionLeverages($this->extend($request, $paramsMarginMode)));

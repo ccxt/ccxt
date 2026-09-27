@@ -274,7 +274,7 @@ class coinex extends \ccxt\async\coinex {
         Async\await($this->authenticate($type));
         $url = $this->safe_string($this->urls['api']['ws'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         // coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
         $activeCurrencies = $this->filter_by($this->currencies_by_id, 'active', true);
@@ -454,7 +454,7 @@ class coinex extends \ccxt\async\coinex {
         Async\await($this->authenticate($type));
         $url = $this->safe_string($this->urls['api']['ws'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $subscribedSymbols = array();
         $messageHash = 'myTrades';
@@ -722,7 +722,7 @@ class coinex extends \ccxt\async\coinex {
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchTickers', $market, $params);
         $url = $this->safe_string($this->urls['api']['ws'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $subscriptionHashes = array( 'all@ticker' );
         $subscribe = array(
@@ -796,7 +796,7 @@ class coinex extends \ccxt\async\coinex {
         list($type, $paramsMarketType) = $this->handle_market_type_and_params($callerMethodName, $market, $paramsCallerMethodName);
         $url = $this->safe_string($this->urls['api']['ws'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         // const subscriptionHashes = [ 'trades' ];
         $subscribe = array(
@@ -838,18 +838,18 @@ class coinex extends \ccxt\async\coinex {
         $limits = $this->safe_list($options, 'limits', array());
         $limitResolved = ($limit === null) ? $this->safe_integer($options, 'defaultLimit', 50) : $limit;
         if (!$this->in_array($limitResolved, $limits)) {
-            throw new NotSupported($this->id . ' watchOrderBookForSymbols() $limit must be one of ' . implode(', ', $limits));
+            throw new NotSupported($this->id . ' watchOrderBookForSymbols() limit must be one of ' . implode(', ', $limits));
         }
         $defaultAggregation = $this->safe_string($options, 'defaultAggregation', '0');
         $aggregations = $this->safe_list($options, 'aggregations', array());
         $aggregation = $this->safe_string($paramsCallerMethodName, 'aggregation', $defaultAggregation);
         if (!$this->in_array($aggregation, $aggregations)) {
-            throw new NotSupported($this->id . ' watchOrderBookForSymbols() $aggregation must be one of ' . implode(', ', $aggregations));
+            throw new NotSupported($this->id . ' watchOrderBookForSymbols() aggregation must be one of ' . implode(', ', $aggregations));
         }
         $paramsOmitted = $this->omit($paramsCallerMethodName, 'aggregation');
         $symbolsDefined = ($symbols !== null);
         if (!$symbolsDefined) {
-            throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a symbol argument');
         }
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
@@ -867,7 +867,7 @@ class coinex extends \ccxt\async\coinex {
         // const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256);
         $url = $this->safe_string($this->urls['api']['ws'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $orderbooks = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($subscribe, $paramsMarketType), $messageHashes));
         if ($this->newUpdates) {
@@ -1029,7 +1029,7 @@ class coinex extends \ccxt\async\coinex {
         );
         $url = $this->safe_string($this->urls['api']['ws'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $request = $this->deep_extend($message, $paramsMarketType);
         $orders = Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
@@ -1355,7 +1355,7 @@ class coinex extends \ccxt\async\coinex {
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchBidsAsks', $market, $params);
         $url = $this->safe_string($this->urls['api']['ws'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $subscriptionHashes = array( 'all@bidsasks' );
         $subscribe = array(
@@ -1519,7 +1519,7 @@ class coinex extends \ccxt\async\coinex {
     private function do_authenticate(string $type) {
         $url = $this->safe_string($this->urls['api']['ws'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $client = $this->client($url);
         $time = $this->milliseconds();

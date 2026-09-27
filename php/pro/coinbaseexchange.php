@@ -72,7 +72,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
 
     private function do_subscribe(string $name, ?string $symbol = null, ?string $messageHashStart = null, $params = array()) {
         if ($messageHashStart === null) {
-            throw new ArgumentsRequired($this->id . ' ' . $name . ' subscription requires a $messageHashStart argument');
+            throw new ArgumentsRequired($this->id . ' ' . $name . ' subscription requires a messageHashStart argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -110,7 +110,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
 
     private function do_subscribe_multiple(string $name, array $symbols = array(), ?string $messageHashStart = null, $params = array()) {
         if ($messageHashStart === null) {
-            throw new ArgumentsRequired($this->id . ' ' . $name . ' subscription requires a $messageHashStart argument');
+            throw new ArgumentsRequired($this->id . ' ' . $name . ' subscription requires a messageHashStart argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());

@@ -176,7 +176,7 @@ class htx extends \ccxt\async\htx {
         $options = $this->safe_dict($this->options, 'watchTicker', array());
         $topic = $this->safe_string($options, 'name', 'market.{marketId}.detail');
         if ($topic === 'market.{marketId}.ticker' && $market['type'] !== 'spot') {
-            throw new BadRequest($this->id . ' watchTicker() with name $market->{marketId}.ticker is only allowed for spot markets, use $market->{marketId}.detail instead');
+            throw new BadRequest($this->id . ' watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead');
         }
         $messageHash = $this->implode_params($topic, array( 'marketId' => $market['id'] ));
         $url = $this->get_url_by_market_type($market['type'], $market['linear']);
@@ -206,7 +206,7 @@ class htx extends \ccxt\async\htx {
         $options = $this->safe_dict($this->options, 'watchTicker', array());
         $channel = $this->safe_string($options, 'name', 'market.{marketId}.detail');
         if ($channel === 'market.{marketId}.ticker' && $market['type'] !== 'spot') {
-            throw new BadRequest($this->id . ' watchTicker() with name $market->{marketId}.ticker is only allowed for spot markets, use $market->{marketId}.detail instead');
+            throw new BadRequest($this->id . ' watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead');
         }
         $subMessageHash = $this->implode_params($channel, array( 'marketId' => $market['id'] ));
         return Async\await($this->unsubscribe_public($market, $subMessageHash, $topic, $params));
@@ -506,7 +506,7 @@ class htx extends \ccxt\async\htx {
         $options = $this->safe_dict($this->options, 'watchOrderBook', array());
         $limitResolved = ($limit === null) ? $this->safe_integer($options, 'depth', 150) : $limit;
         if (!$this->in_array($limitResolved, $allowedLimits)) {
-            throw new ExchangeError($this->id . ' watchOrderBook $market accepts limits of 5, 20, 150 or 400 only');
+            throw new ExchangeError($this->id . ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only');
         }
         $messageHash = null;
         if ($market['spot'] === true) {
@@ -628,7 +628,7 @@ class htx extends \ccxt\async\htx {
                     }
                 } else {
                     // throw upon failing to synchronize in maxAttempts
-                    throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the $snapshot for $symbol ' . $symbol . ' in ' . (string) $maxAttempts . ' attempts');
+                    throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the snapshot for symbol ' . $symbol . ' in ' . (string) $maxAttempts . ' attempts');
                 }
             } else {
                 $orderbook->reset($snapshot);
@@ -970,7 +970,7 @@ class htx extends \ccxt\async\htx {
         );
         $trades = Async\await($this->subscribe_private($channel, $messageHash, $type, $subType, $paramsRequest, $subscriptionParams));
         if ($trades === null) {
-            throw new ArgumentsRequired($this->id . ' watchMyTrades() $trades is required');
+            throw new ArgumentsRequired($this->id . ' watchMyTrades() trades is required');
         }
         $limitResolved = $limit;
         if ($this->newUpdates) {
@@ -1856,7 +1856,7 @@ class htx extends \ccxt\async\htx {
         for ($i = 0; $i < count($marginModes); $i++) {
             $marginMode = $marginModes[$i];
             $marginModePositions = $this->safe_list($positionsByMarginMode, $marginMode, array());
-            $messageHashes = $this->find_message_hashes($client, $marginMode . ':$positions::');
+            $messageHashes = $this->find_message_hashes($client, $marginMode . ':positions::');
             for ($j = 0; $j < count($messageHashes); $j++) {
                 $messageHash = $messageHashes[$j];
                 $parts = explode('::', $messageHash);
@@ -2981,7 +2981,7 @@ class htx extends \ccxt\async\htx {
         $messageHash = 'unsubscribe::' . $subMessageHash;
         $isFeed = ($topic === 'orderbook');
         if ($market === null) {
-            throw new ArgumentsRequired($this->id . ' unsubscribePublic() $market is required');
+            throw new ArgumentsRequired($this->id . ' unsubscribePublic() market is required');
         }
         $url = $this->get_url_by_market_type($market['type'], $market['linear'], false, $isFeed);
         $subscription = array(
@@ -3047,7 +3047,7 @@ class htx extends \ccxt\async\htx {
         $hostname = $this->safe_string($params, 'hostname');
         $type = $this->safe_string($params, 'type');
         if ($url === null || $hostname === null || $type === null) {
-            throw new ArgumentsRequired($this->id . ' authenticate requires a $url, $hostname and $type argument');
+            throw new ArgumentsRequired($this->id . ' authenticate requires a url, hostname and type argument');
         }
         $this->check_required_credentials();
         $messageHash = 'auth';

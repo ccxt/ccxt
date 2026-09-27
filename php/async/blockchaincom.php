@@ -695,7 +695,7 @@ class blockchaincom extends Exchange {
         $paramsOmitted2 = $this->omit($paramsOmitted, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
         if ($uppercaseOrderType === 'STOP' || $uppercaseOrderType === 'STOPLIMIT') {
             if ($triggerPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPx or $triggerPrice param for a ' . $uppercaseOrderType . ' order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPx or triggerPrice param for a ' . $uppercaseOrderType . ' order');
             }
         }
         if ($triggerPrice !== null) {

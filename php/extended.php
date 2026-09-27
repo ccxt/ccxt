@@ -1320,7 +1320,7 @@ class extended extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         $this->load_markets();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
@@ -1815,10 +1815,10 @@ class extended extends Exchange {
         $currency = $this->currency($code);
         $chainId = $this->safe_string_upper_2($params, 'chainId', 'network', 'STRK');
         if ($chainId !== 'STRK') {
-            throw new BadRequest($this->id . ' withdraw() only supports Starknet withdrawals with $chainId STRK');
+            throw new BadRequest($this->id . ' withdraw() only supports Starknet withdrawals with chainId STRK');
         }
         if (strlen($address) <= 42) {
-            throw new BadRequest($this->id . ' withdraw() requires a Starknet $address for STRK withdrawals, EVM withdrawals require the bridge quote flow');
+            throw new BadRequest($this->id . ' withdraw() requires a Starknet address for STRK withdrawals, EVM withdrawals require the bridge quote flow');
         }
         $account = $this->fetch_extended_account();
         $amountString = $this->currency_to_precision($code, $amount);
@@ -1936,7 +1936,7 @@ class extended extends Exchange {
         $toVault = $this->safe_string_2($params, 'toVault', 'receiverPositionId');
         $toL2Key = $this->safe_string_2($params, 'toL2Key', 'receiverPublicKey');
         if (($toVault === null) || ($toL2Key === null)) {
-            throw new ArgumentsRequired($this->id . ' transfer() requires a $toAccount argument and $params["toVault"] and $params["toL2Key"]');
+            throw new ArgumentsRequired($this->id . ' transfer() requires a toAccount argument and params["toVault"] and params["toL2Key"]');
         }
         $amountString = $this->currency_to_precision($code, $amount);
         $settlement = $this->create_transfer_settlement_data($amountString, $currency, $account, $toVault, $toL2Key, $params);
@@ -2242,7 +2242,7 @@ class extended extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2554,7 +2554,7 @@ class extended extends Exchange {
         $resolution = $this->safe_integer($params, 'resolution', $this->safe_value_2($currencyInfo, 'starkexResolution', 'l1Resolution'));
         $starkKey = $this->safe_string($account, 'l2Key');
         if (($positionId === null) || ($collateralId === null) || ($resolution === null) || ($starkKey === null)) {
-            throw new BadRequest($this->id . ' withdraw() requires $currency starkexId/starkexResolution, $account l2Vault and $account l2Key');
+            throw new BadRequest($this->id . ' withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key');
         }
         $amount = $this->get_extended_stark_amount($amountString, $resolution);
         $settlement = array(
@@ -2586,7 +2586,7 @@ class extended extends Exchange {
         $collateralId = $this->safe_string_2($params, 'assetId', 'collateralId', $this->safe_string_2($currencyInfo, 'starkexId', 'l1Id'));
         $resolution = $this->safe_integer($params, 'resolution', $this->safe_value_2($currencyInfo, 'starkexResolution', 'l1Resolution'));
         if (($fromVault === null) || ($fromL2Key === null) || ($collateralId === null) || ($resolution === null)) {
-            throw new BadRequest($this->id . ' transfer() requires $currency starkexId/starkexResolution, $account l2Vault and $account l2Key');
+            throw new BadRequest($this->id . ' transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key');
         }
         $transferAmount = $this->get_extended_stark_amount($amountString, $resolution);
         $settlement = array(
@@ -2610,10 +2610,10 @@ class extended extends Exchange {
 
     public function create_extended_order_request(?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2623,10 +2623,10 @@ class extended extends Exchange {
             throw new BadRequest($this->id . ' createOrder() supports limit orders for spot markets only');
         }
         if (!$this->in_array($uppercaseType, array( 'LIMIT', 'MARKET', 'CONDITIONAL', 'TPSL' ))) {
-            throw new BadRequest($this->id . ' createOrder() supports limit, $market, conditional and tpsl orders only');
+            throw new BadRequest($this->id . ' createOrder() supports limit, market, conditional and tpsl orders only');
         }
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument');
         }
         $amountString = $this->amount_to_precision($symbol, $amount);
         $priceString = $this->price_to_precision($symbol, $price);
@@ -2667,7 +2667,7 @@ class extended extends Exchange {
         $syntheticResolution = $this->safe_integer($l2Config, 'syntheticResolution');
         $collateralResolution = $this->safe_integer($l2Config, 'collateralResolution');
         if (($syntheticId === null) || ($collateralId === null) || ($syntheticResolution === null) || ($collateralResolution === null)) {
-            throw new BadRequest($this->id . ' createOrder() requires $l2Config in $market info');
+            throw new BadRequest($this->id . ' createOrder() requires l2Config in market info');
         }
         $settlementParams = array(
             'totalFee' => $totalFee,
@@ -2774,7 +2774,7 @@ class extended extends Exchange {
             if ($triggerPriceStr !== null) {
                 $triggerDirection = $this->safe_string_upper($paramsBuilder, 'triggerDirection');
                 if ($triggerDirection === null) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires $triggerDirection for $trigger order');
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires triggerDirection for trigger order');
                 }
                 $trigger = array(
                     'triggerPrice' => $this->price_to_precision($symbol, $triggerPriceStr),
@@ -2880,7 +2880,7 @@ class extended extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($id === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires an $id argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires an id argument');
         }
         $amountValue = $amount;
         $priceValue = $price;
@@ -2911,10 +2911,10 @@ class extended extends Exchange {
             }
         }
         if ($amountValue === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument or an existing $order with qty');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires an amount argument or an existing order with qty');
         }
         if ($priceValue === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument or an existing $order with price');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a price argument or an existing order with price');
         }
         $paramsExtended = $this->extend(array(
             'postOnly' => $postOnly,
@@ -2972,7 +2972,7 @@ class extended extends Exchange {
             $response = $this->v1PrivateDeleteUserOrder($this->extend($request, $paramsOmitted));
         } else {
             if ($id === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires an $id argument');
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires an id argument');
             }
             $request = array(
                 'id' => $id,
@@ -3033,7 +3033,7 @@ class extended extends Exchange {
             }
         }
         if (!$hasOrderIds && !$hasClientOrderIds) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires an $ids argument or $clientOrderIds parameter');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires an ids argument or clientOrderIds parameter');
         }
         $this->v1PrivatePostUserOrderMassCancel($this->extend($request, $paramsOmitted));
         //
@@ -3126,7 +3126,7 @@ class extended extends Exchange {
             $order = $this->safe_dict($data, 0, array());
         } else {
             if ($id === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires an $id argument');
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires an id argument');
             }
             $request = array(
                 'id' => $id,

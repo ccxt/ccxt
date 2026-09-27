@@ -4600,7 +4600,7 @@ class BaseExchange {
 
     public function orderbook_checksum_message(?string $symbol) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' orderbookChecksumMessage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' orderbookChecksumMessage() requires a symbol argument');
         }
         return $symbol . ' : ' . 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
     }
@@ -6857,7 +6857,7 @@ class BaseExchange {
             if (!$isNewCandle) {
                 $candleTimestamp = $ohlcvs[$candle][$i_timestamp];
                 if ($candleTimestamp === null) {
-                    throw new ExchangeError($this->id . ' buildOHLCVC() missing $candle timestamp');
+                    throw new ExchangeError($this->id . ' buildOHLCVC() missing candle timestamp');
                 }
                 $isNewCandle = $openingTime >= $candleTimestamp . $ms;
             }
@@ -6943,7 +6943,7 @@ class BaseExchange {
                     return $markets[0];
                 } else {
                     if (($marketType === null) && ($market === null)) {
-                        throw new ArgumentsRequired($this->id . ' safeMarket() requires a fourth argument for ' . $marketId . ' to disambiguate between different $markets with the same $market id');
+                        throw new ArgumentsRequired($this->id . ' safeMarket() requires a fourth argument for ' . $marketId . ' to disambiguate between different markets with the same market id');
                     }
                     $marketTypeResolved = ($marketType === null) ? $this->safe_string($market, 'type', '') : $marketType;
                     for ($i = 0; $i < count($markets); $i++) {
@@ -7092,7 +7092,7 @@ class BaseExchange {
 
     public function get_supported_mapping(?string $key, array $mapping = array()) {
         if ($key === null) {
-            throw new ArgumentsRequired($this->id . ' getSupportedMapping() requires a $key argument');
+            throw new ArgumentsRequired($this->id . ' getSupportedMapping() requires a key argument');
         }
         if (is_array($mapping) && array_key_exists($key ?? '', $mapping)) {
             return $mapping[$key];
@@ -7389,7 +7389,7 @@ class BaseExchange {
             $ranks = $this->fetch_positions_adl_rank(array( $symbolResolved ), $params);
             $rank = $this->safe_dict($ranks, 0);
             if ($rank === null) {
-                throw new NullResponse($this->id . ' fetchPositionsADLRank() could not find a $rank for ' . $symbolResolved);
+                throw new NullResponse($this->id . ' fetchPositionsADLRank() could not find a rank for ' . $symbolResolved);
             } else {
                 return $rank;
             }
@@ -7728,9 +7728,9 @@ class BaseExchange {
         if ($result === '0') {
             $pricePrecision = $this->number_to_string($market['precision']['price']);
             if ($pricePrecision === null) {
-                throw new BadSymbol($this->id . ' priceToPrecision() $market ' . $market['symbol'] . ' has no $price precision');
+                throw new BadSymbol($this->id . ' priceToPrecision() market ' . $market['symbol'] . ' has no price precision');
             }
-            throw new InvalidOrder($this->id . ' $price of ' . $market['symbol'] . ' must be greater than minimum $price precision of ' . $pricePrecision);
+            throw new InvalidOrder($this->id . ' price of ' . $market['symbol'] . ' must be greater than minimum price precision of ' . $pricePrecision);
         }
         return $result;
     }
@@ -7744,9 +7744,9 @@ class BaseExchange {
         if ($result === '0') {
             $amountPrecision = $this->number_to_string($market['precision']['amount']);
             if ($amountPrecision === null) {
-                throw new BadSymbol($this->id . ' amountToPrecision() $market ' . $market['symbol'] . ' has no $amount precision');
+                throw new BadSymbol($this->id . ' amountToPrecision() market ' . $market['symbol'] . ' has no amount precision');
             }
-            throw new InvalidOrder($this->id . ' $amount of ' . $market['symbol'] . ' must be greater than minimum $amount precision of ' . $amountPrecision);
+            throw new InvalidOrder($this->id . ' amount of ' . $market['symbol'] . ' must be greater than minimum amount precision of ' . $amountPrecision);
         }
         return $result;
     }
@@ -8756,7 +8756,7 @@ class BaseExchange {
         $current = $this->milliseconds();
         $tasks = array();
         $time = $this->parse_timeframe($timeframe) * 1000;
-        $maxEntriesPerRequestValue = $this->require_value($maxEntriesPerRequestOption, 'fetchPaginatedCallDeterministic() $maxEntriesPerRequest is required');
+        $maxEntriesPerRequestValue = $this->require_value($maxEntriesPerRequestOption, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required');
         $step = $time * $maxEntriesPerRequestValue;
         $until = $this->safe_integer_2($paramsOmitted, 'until', 'till'); // do not omit it here
         $currentSince = $current - ($maxCallsPaginationCalls * $step) - 1;
@@ -8779,7 +8779,7 @@ class BaseExchange {
             }
             $requiredCalls = (int) ceil(($until - $since) / $step);
             if ($requiredCalls > $maxCallsPaginationCalls) {
-                throw new BadRequest($this->id . ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the $since-$until gap. Current paginationCalls $limit is ' . (string) $maxCallsPaginationCalls . ' required calls is ' . (string) $requiredCalls);
+                throw new BadRequest($this->id . ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' . (string) $maxCallsPaginationCalls . ' required calls is ' . (string) $requiredCalls);
             }
         }
         for ($i = 0; $i < $maxCallsPaginationCalls; $i++) {
@@ -9230,7 +9230,7 @@ class BaseExchange {
             $month = 'DEC';
         }
         if ($month === null) {
-            throw new BadSymbol($this->id . ' invalid expiry $date ' . $date);
+            throw new BadSymbol($this->id . ' invalid expiry date ' . $date);
         }
         $reconstructedDate = $day . $month . $year;
         return $reconstructedDate;
@@ -9265,7 +9265,7 @@ class BaseExchange {
         $month = $this->safe_string($monthMappping, $monthName);
         $day = mb_substr($datePadded, 5, 7 - 5);
         if ($month === null) {
-            throw new BadSymbol($this->id . ' invalid expiry $date ' . $date);
+            throw new BadSymbol($this->id . ' invalid expiry date ' . $date);
         }
         $reconstructedDate = $day . $month . $year;
         return $reconstructedDate;
@@ -9613,7 +9613,7 @@ class Exchange extends BaseExchange {
             $tickers = $this->fetchMarkPrices(array( $symbolResolved ), $params);
             $ticker = $this->safe_dict($tickers, $symbolResolved);
             if ($ticker === null) {
-                throw new NullResponse($this->id . ' fetchMarkPrices() could not find a $ticker for ' . $symbolResolved);
+                throw new NullResponse($this->id . ' fetchMarkPrices() could not find a ticker for ' . $symbolResolved);
             } else {
                 return $ticker;
             }
@@ -9969,7 +9969,7 @@ class Exchange extends BaseExchange {
             $tickers = $this->fetchTickersWs(array( $symbolResolved ), $params);
             $ticker = $this->safe_dict($tickers, $symbolResolved);
             if ($ticker === null) {
-                throw new NullResponse($this->id . ' fetchTickerWs() could not find a $ticker for ' . $symbolResolved);
+                throw new NullResponse($this->id . ' fetchTickerWs() could not find a ticker for ' . $symbolResolved);
             } else {
                 return $ticker;
             }
@@ -10080,7 +10080,7 @@ class Exchange extends BaseExchange {
             $tickers = $this->fetch_tickers(array( $symbolResolved ), $params);
             $ticker = $this->safe_dict($tickers, $symbolResolved);
             if ($ticker === null) {
-                throw new NullResponse($this->id . ' fetchTickers() could not find a $ticker for ' . $symbolResolved);
+                throw new NullResponse($this->id . ' fetchTickers() could not find a ticker for ' . $symbolResolved);
             } else {
                 return $ticker;
             }

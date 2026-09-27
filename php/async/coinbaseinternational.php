@@ -383,7 +383,7 @@ class coinbaseinternational extends Exchange {
                 return array( $portfolioId, $paramsPortfolio );
             }
         }
-        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $portfolio parameter or set the default $portfolio with $this->options["portfolio"]');
+        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a portfolio parameter or set the default portfolio with $this->options["portfolio"]');
     }
 
     public function handle_network_id_and_params(string $currencyCode, string $methodName, $params = array()): PromiseInterface {
@@ -400,7 +400,7 @@ class coinbaseinternational extends Exchange {
             if ($network === null) {
                 // find default network
                 if ($this->is_empty($networks)) {
-                    throw new BadRequest($this->id . ' createDepositAddress $network not found for currency ' . $currencyCode . ' please specify $networkId in params');
+                    throw new BadRequest($this->id . ' createDepositAddress network not found for currency ' . $currencyCode . ' please specify networkId in params');
                 }
                 $defaultNetwork = $this->find_default_network($networks);
                 $networkId = $defaultNetwork['id'];
@@ -503,10 +503,16 @@ class coinbaseinternational extends Exchange {
             'instrument' => $market['id'],
             'granularity' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
+        $duration = $this->parse_timeframe($timeframe);
         if ($since !== null) {
             $request['start'] = $this->iso8601($since);
         } else {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument');
+            $limitResolved = $limit;
+            if ($limitResolved === null) {
+                $limitResolved = 300; // the default of api
+            }
+            $sinceResolved = $this->sum($this->milliseconds(), -$limitResolved * $duration * 1000);
+            $request['start'] = $this->iso8601($sinceResolved);
         }
         $unitl = $this->safe_integer($paramsPaginate, 'until');
         if ($unitl !== null) {
@@ -571,7 +577,7 @@ class coinbaseinternational extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1919,7 +1925,7 @@ class coinbaseinternational extends Exchange {
         $request['type'] = $typeId;
         if ($type === 'limit') {
             if ($price === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $price parameter for a limit order types');
+                throw new InvalidOrder($this->id . ' createOrder() requires a price parameter for a limit order types');
             }
             $request['price'] = $price;
         }
@@ -1932,7 +1938,7 @@ class coinbaseinternational extends Exchange {
         // market orders must be IOC
         if ($typeId === 'MARKET') {
             if ($tif !== null && $tif !== 'IOC') {
-                throw new InvalidOrder($this->id . ' createOrder() $market orders must have $tif set to "IOC"');
+                throw new InvalidOrder($this->id . ' createOrder() market orders must have tif set to "IOC"');
             }
             $tif = 'IOC';
         } else {
@@ -2186,7 +2192,7 @@ class coinbaseinternational extends Exchange {
         }
         $clientOrderId = $this->safe_string_2($paramsPortfolio, 'client_order_id', 'clientOrderId');
         if ($clientOrderId === null) {
-            throw new BadRequest($this->id . ' editOrder() requires a $clientOrderId parameter');
+            throw new BadRequest($this->id . ' editOrder() requires a clientOrderId parameter');
         }
         $request['client_order_id'] = $clientOrderId;
         $order = Async\await($this->v1PrivatePutOrdersId($this->extend($request, $paramsPortfolio)));
@@ -2292,7 +2298,7 @@ class coinbaseinternational extends Exchange {
         }
         if ($limit !== null) {
             if ($limit > 100) {
-                throw new BadRequest($this->id . ' fetchOpenOrders() maximum $limit is 100');
+                throw new BadRequest($this->id . ' fetchOpenOrders() maximum limit is 100');
             }
             $request['result_limit'] = $limit;
         }
@@ -2376,7 +2382,7 @@ class coinbaseinternational extends Exchange {
         );
         if ($limit !== null) {
             if ($limit > 100) {
-                throw new BadRequest($this->id . ' fetchMyTrades() maximum $limit is 100. Consider setting $paginate to true to fetch more $trades->');
+                throw new BadRequest($this->id . ' fetchMyTrades() maximum limit is 100. Consider setting paginate to true to fetch more trades.');
             }
             $request['result_limit'] = $limit;
         }

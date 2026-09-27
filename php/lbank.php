@@ -3056,7 +3056,7 @@ class lbank extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');
         if ($apiUrl === null) {
-            throw new ExchangeError($this->id . ' $sign() has no API URL for this endpoint');
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . '/' . $this->version . '/' . $this->implode_params($path, $params);
         // Every spot endpoint ends with ".do"
@@ -3065,7 +3065,7 @@ class lbank extends Exchange {
         } else {
             $contractUrl = $this->safe_string($this->urls['api'], 'contract');
             if ($contractUrl === null) {
-                throw new ExchangeError($this->id . ' $sign() has no API URL for this endpoint');
+                throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
             }
             $url = $contractUrl . '/' . $this->implode_params($path, $params);
         }

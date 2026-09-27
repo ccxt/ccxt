@@ -256,7 +256,7 @@ class binance extends \ccxt\async\binance {
             $newNumSubscriptions = $subscriptionsByStream . $numSubscriptions;
             $subscriptionLimitByStream = $this->safe_integer($this->options['subscriptionLimitByStream'], $type, 200);
             if ($newNumSubscriptions > $subscriptionLimitByStream) {
-                throw new BadRequest($this->id . ' reached the limit of subscriptions by $stream-> Increase the number of streams, or increase the $stream limit or subscription limit by $stream if the exchange allows.');
+                throw new BadRequest($this->id . ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.');
             }
             $this->options['numSubscriptionsByStream'][$stream] = $subscriptionsByStream . $numSubscriptions;
         }
@@ -301,10 +301,10 @@ class binance extends \ccxt\async\binance {
 
     public function get_private_ws_url(?string $type, ?string $listenKey): string {
         if ($listenKey === null) {
-            throw new AuthenticationError($this->id . ' getPrivateWsUrl() requires a $listenKey from authenticate()');
+            throw new AuthenticationError($this->id . ' getPrivateWsUrl() requires a listenKey from authenticate()');
         }
         if ($type === 'future') {
-            return $this->get_ws_url($type, 'private') . '?$listenKey=' . $listenKey;
+            return $this->get_ws_url($type, 'private') . '?listenKey=' . $listenKey;
         }
         $wsUrl = $this->safe_string($this->urls['api']['ws'], $type);
         if ($wsUrl === null) {
@@ -790,7 +790,7 @@ class binance extends \ccxt\async\binance {
         if ($symbolsNormalized !== null) {
             $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength > 200) {
-                throw new BadRequest($this->id . ' watchOrderBookForSymbols() accepts 200 $symbols at most. To watch more $symbols call watchOrderBookForSymbols() multiple times');
+                throw new BadRequest($this->id . ' watchOrderBookForSymbols() accepts 200 symbols at most. To watch more symbols call watchOrderBookForSymbols() multiple times');
             }
             $streamHash .= '::' . implode(',', $symbolsNormalized);
         }
@@ -809,7 +809,7 @@ class binance extends \ccxt\async\binance {
             $messageHashes[] = 'orderbook::' . $symbol;
             $subscriptionHash = $market['lowercaseId'] . '@' . $name;
             if ($watchOrderBookRate === null) {
-                throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() $watchOrderBookRate is required');
+                throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() watchOrderBookRate is required');
             }
             $symbolHash = $subscriptionHash . '@' . (string) $watchOrderBookRate . 'ms';
             $subParams[] = $symbolHash;
@@ -953,7 +953,7 @@ class binance extends \ccxt\async\binance {
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $marketType);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
@@ -1288,7 +1288,7 @@ class binance extends \ccxt\async\binance {
         if ($symbolsNormalized !== null) {
             $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength > 200) {
-                throw new BadRequest($this->id . ' watchTradesForSymbols() accepts 200 $symbols at most. To watch more $symbols call watchTradesForSymbols() multiple times');
+                throw new BadRequest($this->id . ' watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times');
             }
             $streamHash .= '::' . implode(',', $symbolsNormalized);
         }
@@ -1377,7 +1377,7 @@ class binance extends \ccxt\async\binance {
         if ($symbolsNormalized !== null) {
             $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength > 200) {
-                throw new BadRequest($this->id . ' watchTradesForSymbols() accepts 200 $symbols at most. To watch more $symbols call watchTradesForSymbols() multiple times');
+                throw new BadRequest($this->id . ' watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times');
             }
             $streamHash .= '::' . implode(',', $symbolsNormalized);
         }
@@ -1793,7 +1793,7 @@ class binance extends \ccxt\async\binance {
             $market = $this->market($symbolString);
             $marketId = $market['lowercaseId'];
             if ($marketId === null) {
-                throw new ArgumentsRequired($this->id . ' watchOHLCVForSymbols() $marketId is required');
+                throw new ArgumentsRequired($this->id . ' watchOHLCVForSymbols() marketId is required');
             }
             if ($klineType === 'indexPriceKline') {
                 // weird behavior for index price kline we can't use the perp suffix
@@ -1876,7 +1876,7 @@ class binance extends \ccxt\async\binance {
             $market = $this->market($symbolString);
             $marketId = $market['lowercaseId'];
             if ($marketId === null) {
-                throw new ArgumentsRequired($this->id . ' unWatchOHLCVForSymbols() $marketId is required');
+                throw new ArgumentsRequired($this->id . ' unWatchOHLCVForSymbols() marketId is required');
             }
             if ($klineType === 'indexPriceKline') {
                 // weird behavior for index price kline we can't use the perp suffix
@@ -2038,7 +2038,7 @@ class binance extends \ccxt\async\binance {
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
@@ -2089,7 +2089,7 @@ class binance extends \ccxt\async\binance {
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $marketType);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
@@ -2264,7 +2264,7 @@ class binance extends \ccxt\async\binance {
         $symbolsNormalized = $symbols;
         if ($stock) {
             if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' watchTickers() with $stock stream requires symbols');
+                throw new ArgumentsRequired($this->id . ' watchTickers() with stock stream requires symbols');
             }
             $symbolsNormalized = $this->market_symbols($symbols, null, false, false, true);
             $stockResult = Async\await($this->watch_stock_market_stream(array( 'price' ), array( 'stock:price' ), $paramsStock));
@@ -2404,7 +2404,7 @@ class binance extends \ccxt\async\binance {
         list($stock, $paramsStock) = $this->handle_option_bool_and_params($params, 'watchBidsAsks', 'stock', false);
         if ($stock) {
             if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' watchBidsAsks() with $stock stream requires symbols');
+                throw new ArgumentsRequired($this->id . ' watchBidsAsks() with stock stream requires symbols');
             }
             $stockSymbols = $this->market_symbols($symbols, null, false, false, true);
             $stockStreams = array();
@@ -2530,13 +2530,13 @@ class binance extends \ccxt\async\binance {
             if ($marketType === 'option') {
                 $underlying = $this->safe_string_lower($paramsSubType, 'underlying');
                 if ($underlying === null) {
-                    throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires either $symbols or $params["underlying"] for eOptions');
+                    throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires either symbols or params["underlying"] for eOptions');
                 }
                 if ($isOptionTicker) {
                     // eOptions tickers are per underlying+expiry: <underlying>@optionTicker@<YYMMDD>
                     $expirationDate = $this->safe_string($paramsSubType, 'expirationDate');
                     if ($expirationDate === null) {
-                        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires $params["expirationDate"] (e.g. "260227") for eOptions tickers when no $symbols are provided');
+                        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires params["expirationDate"] (e.g. "260227") for eOptions tickers when no symbols are provided');
                     }
                     $subscriptionArgs[] = $underlying . '@optionTicker@' . $expirationDate;
                 } else {
@@ -2547,7 +2547,7 @@ class binance extends \ccxt\async\binance {
                 $unsubscribeMessageHashes[] = 'unsubscribe::' . $channelName;
             } elseif ($isBidAsk) {
                 if ($marketType === 'spot') {
-                    throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires $symbols for this channel for spot markets');
+                    throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires symbols for this channel for spot markets');
                 }
                 $subscriptionArgs[] = '!' . $channelName;
                 $messageHashes[] = $unifiedPrefix . 's:' . $channelName;
@@ -2950,7 +2950,7 @@ class binance extends \ccxt\async\binance {
          */
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $marketType);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $client = $this->client($url);
         $subscriptions = $client->subscriptions;
@@ -3035,7 +3035,7 @@ class binance extends \ccxt\async\binance {
          */
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], 'spot');
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $options = $this->safe_dict($this->options, $marketType, array());
         $lastAuthenticatedTime = $this->safe_integer($options, 'lastAuthenticatedTime', 0);
@@ -3062,7 +3062,7 @@ class binance extends \ccxt\async\binance {
                 $request = array();
                 if ($isIsolated === true) {
                     if ($symbol === null) {
-                        throw new ArgumentsRequired($this->id . ' ensureUserDataStreamWsSubscribeListenToken() requires a $symbol argument for isolated margin mode');
+                        throw new ArgumentsRequired($this->id . ' ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode');
                     }
                     $marketId = $this->market_id($symbol);
                     $request['symbol'] = $marketId;
@@ -3441,7 +3441,7 @@ class binance extends \ccxt\async\binance {
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
@@ -3585,7 +3585,7 @@ class binance extends \ccxt\async\binance {
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
@@ -3902,7 +3902,7 @@ class binance extends \ccxt\async\binance {
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $marketType);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
@@ -4076,7 +4076,7 @@ class binance extends \ccxt\async\binance {
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $marketType);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
@@ -4240,7 +4240,7 @@ class binance extends \ccxt\async\binance {
         $type = $this->get_market_type('cancelOrderWs', $market, $params);
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
@@ -4295,7 +4295,7 @@ class binance extends \ccxt\async\binance {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrdersWs() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrdersWs() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -4307,7 +4307,7 @@ class binance extends \ccxt\async\binance {
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
@@ -4357,7 +4357,7 @@ class binance extends \ccxt\async\binance {
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
@@ -4416,7 +4416,7 @@ class binance extends \ccxt\async\binance {
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
@@ -4490,7 +4490,7 @@ class binance extends \ccxt\async\binance {
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
@@ -4547,7 +4547,7 @@ class binance extends \ccxt\async\binance {
             $stockOptions = $this->safe_dict($this->options, 'stock', array());
             $stockListenKey = $this->safe_string($stockOptions, 'listenKey');
             if ($stockListenKey === null) {
-                throw new BadRequest($this->id . ' watchOrders() failed to initialize $stock listenKey');
+                throw new BadRequest($this->id . ' watchOrders() failed to initialize stock listenKey');
             }
             $stockUrl = $this->get_stock_ws_url('user');
             $stockStreamName = $stockListenKey . '@orderReport';
@@ -5189,7 +5189,7 @@ class binance extends \ccxt\async\binance {
         if (!$this->is_empty($symbolsNormalized)) {
             $market = $this->get_market_from_symbols($symbolsNormalized);
             if ($symbolsNormalized === null) {
-                throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
+                throw new ArgumentsRequired($this->id . ' watchPositions() symbols is required');
             }
             $messageHash = '::' . implode(',', $symbolsNormalized);
         }
@@ -5345,7 +5345,7 @@ class binance extends \ccxt\async\binance {
             $newPositions[] = $position;
             $cache->append($position);
         }
-        $messageHashes = $this->find_message_hashes($client, $accountType . ':$positions::');
+        $messageHashes = $this->find_message_hashes($client, $accountType . ':positions::');
         for ($i = 0; $i < count($messageHashes); $i++) {
             $messageHash = $messageHashes[$i];
             $parts = explode('::', $messageHash);
@@ -5493,7 +5493,7 @@ class binance extends \ccxt\async\binance {
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
@@ -5510,7 +5510,7 @@ class binance extends \ccxt\async\binance {
         }
         $fromId = $this->safe_integer($paramsReturnRateLimits, 'fromId');
         if ($fromId !== null && $since !== null) {
-            throw new BadRequest($this->id . ' fetchMyTradesWs does not support fetching by both $fromId and $since parameters at the same time');
+            throw new BadRequest($this->id . ' fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time');
         }
         $message = array(
             'id' => $messageHash,
@@ -5553,7 +5553,7 @@ class binance extends \ccxt\async\binance {
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
@@ -5877,7 +5877,7 @@ class binance extends \ccxt\async\binance {
             $newPositions[] = $position;
             $cache->append($position);
         }
-        $messageHashes = $this->find_message_hashes($client, $accountType . ':$positions::');
+        $messageHashes = $this->find_message_hashes($client, $accountType . ':positions::');
         for ($i = 0; $i < count($messageHashes); $i++) {
             $messageHash = $messageHashes[$i];
             $parts = explode('::', $messageHash);

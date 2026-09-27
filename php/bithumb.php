@@ -1340,7 +1340,7 @@ class bithumb extends Exchange {
             } else {
                 $timeframeInteger = $this->safe_integer($this->timeframes, $timeframe);
                 if ($timeframeInteger === null) {
-                    throw new BadRequest($this->id . ' fetchOHLCV() unsupported $timeframe ' . $timeframe);
+                    throw new BadRequest($this->id . ' fetchOHLCV() unsupported timeframe ' . $timeframe);
                 }
                 $request['unit'] = $timeframeInteger;
                 $response = $this->publicGetV1CandlesMinutesUnit($this->extend($request, $paramsGeneration));
@@ -1619,11 +1619,11 @@ class bithumb extends Exchange {
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'createOrders', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' createOrders is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' createOrders is only supported for the generation 2 API');
         }
         $ordersCount = count($orders);
         if ($ordersCount === 0) {
-            throw new ArgumentsRequired($this->id . ' createOrders() requires a non-empty $orders array');
+            throw new ArgumentsRequired($this->id . ' createOrders() requires a non-empty orders array');
         }
         $ordersRequests = array();
         $orderSymbols = array();
@@ -1694,7 +1694,7 @@ class bithumb extends Exchange {
         } elseif ($side === 'sell') {
             $sideRequest = 'ask';
         } else {
-            throw new InvalidOrder($this->id . ' createOrder() invalid $side ' . $side);
+            throw new InvalidOrder($this->id . ' createOrder() invalid side ' . $side);
         }
         $request['side'] = $sideRequest;
         $timeInForceRaw = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
@@ -1727,7 +1727,7 @@ class bithumb extends Exchange {
                 $paramsOrder = $paramsRequiresPrice;
                 if ($createMarketBuyOrderRequiresPrice) {
                     if (($price === null) && ($cost === null)) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                        throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
@@ -1850,7 +1850,7 @@ class bithumb extends Exchange {
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'createMarketBuyOrderWithCost', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' createMarketBuyOrderWithCost() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' createMarketBuyOrderWithCost() is only supported for the generation 2 API');
         }
         $paramsGeneration['createMarketBuyOrderRequiresPrice'] = false;
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $paramsGeneration);
@@ -1877,7 +1877,7 @@ class bithumb extends Exchange {
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'createTwapOrder', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' createTwapOrder() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' createTwapOrder() is only supported for the generation 2 API');
         }
         $market = $this->market($symbol);
         $durationString = $this->number_to_string($duration);
@@ -2003,13 +2003,13 @@ class bithumb extends Exchange {
             }
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
             }
             $marketDefined = $market;
             $base = $this->safe_string($marketDefined, 'base');
             $quote = $this->safe_string($marketDefined, 'quote');
             if (($base === null) || ($quote === null)) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $market with defined $base and quote');
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a market with defined base and quote');
             }
             $request['order_id'] = $id;
             $request['order_currency'] = $base;
@@ -2322,7 +2322,7 @@ class bithumb extends Exchange {
             return $this->filter_by_since_limit($orders, $since, $limit);
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a symbol argument');
             }
             $market = $this->market($symbol);
             if ($since !== null) {
@@ -2378,7 +2378,7 @@ class bithumb extends Exchange {
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchOrders', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' fetchOrders is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' fetchOrders is only supported for the generation 2 API');
         }
         $request = array();
         $twap = $this->safe_bool($paramsGeneration, 'twap', false);
@@ -2564,17 +2564,17 @@ class bithumb extends Exchange {
             }
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
             }
             $marketDefined = $market;
             $base = $this->safe_string($marketDefined, 'base');
             $quote = $this->safe_string($marketDefined, 'quote');
             if (($base === null) || ($quote === null)) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $market with defined $base and quote');
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a market with defined base and quote');
             }
             $side_in_params = (is_array($paramsRequest) && array_key_exists('side' ?? '', $paramsRequest));
             if (!$side_in_params) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$side` parameter (sell or buy)');
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `side` parameter (sell or buy)');
             }
             $side = null;
             if ($this->safe_string($paramsRequest, 'side') === 'buy') {
@@ -2617,7 +2617,7 @@ class bithumb extends Exchange {
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'cancelOrders', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' cancelOrders is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' cancelOrders is only supported for the generation 2 API');
         }
         $market = null;
         if ($symbol !== null) {
@@ -2701,7 +2701,7 @@ class bithumb extends Exchange {
         if ($requiresDestination) {
             $destination = $this->safe_string_2($paramsNetwork, 'destination', 'secondary_address');
             if (($tagWithdrawTag === null) && ($destination === null)) {
-                throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a $tag argument or an extra $destination param');
+                throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a tag argument or an extra destination param');
             } elseif ($tagWithdrawTag !== null) {
                 $destinationRequest = $tagWithdrawTag;
             } else {
@@ -2720,7 +2720,7 @@ class bithumb extends Exchange {
                 $response = $this->privatePostV1WithdrawsKrw($this->extend($krwRequest, $paramsReceiverType));
             } else {
                 if ($network === null) {
-                    throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a $network parameter');
+                    throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a network parameter');
                 }
                 $request['address'] = $address;
                 $request['currency'] = $currency['id'];
@@ -2883,7 +2883,7 @@ class bithumb extends Exchange {
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchWithdrawalWhitelist', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' fetchWithdrawalWhitelist() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' fetchWithdrawalWhitelist() is only supported for the generation 2 API');
         }
         $response = $this->privateGetV1WithdrawsCoinAddresses($paramsGeneration);
         //
@@ -2921,10 +2921,10 @@ class bithumb extends Exchange {
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchWithdrawal', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' fetchWithdrawal() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' fetchWithdrawal() is only supported for the generation 2 API');
         }
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires a code argument');
         }
         $currency = $this->currency($code);
         $request = array(
@@ -2976,7 +2976,7 @@ class bithumb extends Exchange {
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchWithdrawals', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' fetchWithdrawals() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' fetchWithdrawals() is only supported for the generation 2 API');
         }
         $request = array();
         if ($limit !== null) {
@@ -3032,10 +3032,10 @@ class bithumb extends Exchange {
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchDeposit', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' fetchDeposit() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' fetchDeposit() is only supported for the generation 2 API');
         }
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposit() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchDeposit() requires a code argument');
         }
         $currency = $this->currency($code);
         $request = array(
@@ -3087,7 +3087,7 @@ class bithumb extends Exchange {
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchDeposits', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' fetchDeposits() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' fetchDeposits() is only supported for the generation 2 API');
         }
         $request = array();
         if ($limit !== null) {
@@ -3142,7 +3142,7 @@ class bithumb extends Exchange {
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'createDepositAddress', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' createDepositAddress() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' createDepositAddress() is only supported for the generation 2 API');
         }
         $currency = $this->currency($code);
         $request = array(
@@ -3151,7 +3151,7 @@ class bithumb extends Exchange {
         $network = $this->safe_string_2($paramsGeneration, 'network', 'net_type');
         $paramsOmitted = $this->omit($paramsGeneration, 'network');
         if ($network === null) {
-            throw new ArgumentsRequired($this->id . ' ' . $code . ' createDepositAddress() requires a $network parameter');
+            throw new ArgumentsRequired($this->id . ' ' . $code . ' createDepositAddress() requires a network parameter');
         }
         $request['net_type'] = $network;
         $response = $this->privatePostV1DepositsGenerateCoinAddress($this->extend($request, $paramsOmitted));
@@ -3183,7 +3183,7 @@ class bithumb extends Exchange {
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchDepositAddress', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' fetchDepositAddress() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' fetchDepositAddress() is only supported for the generation 2 API');
         }
         $currency = $this->currency($code);
         $request = array(
@@ -3192,7 +3192,7 @@ class bithumb extends Exchange {
         $network = $this->safe_string_2($paramsGeneration, 'network', 'net_type');
         $paramsOmitted = $this->omit($paramsGeneration, 'network');
         if ($network === null) {
-            throw new ArgumentsRequired($this->id . ' ' . $code . ' fetchDepositAddress() requires a $network parameter');
+            throw new ArgumentsRequired($this->id . ' ' . $code . ' fetchDepositAddress() requires a network parameter');
         }
         $request['net_type'] = $network;
         $response = $this->privateGetV1DepositsCoinAddress($this->extend($request, $paramsOmitted));
@@ -3223,7 +3223,7 @@ class bithumb extends Exchange {
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchDepositAddresses', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' fetchDepositAddresses() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' fetchDepositAddresses() is only supported for the generation 2 API');
         }
         $response = $this->privateGetV1DepositsCoinAddresses($paramsGeneration);
         //

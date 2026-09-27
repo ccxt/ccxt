@@ -1886,9 +1886,9 @@ class tokocrypto extends Exchange {
         $validOrderTypes = $this->safe_value($market['info'], 'orderTypes');
         if (!$this->in_array($uppercaseType, $validOrderTypes)) {
             if ($initialUppercaseType !== $uppercaseType) {
-                throw new InvalidOrder($this->id . ' $triggerPrice parameter is not allowed for ' . $symbol . ' ' . $typeResolved . ' orders');
+                throw new InvalidOrder($this->id . ' triggerPrice parameter is not allowed for ' . $symbol . ' ' . $typeResolved . ' orders');
             } else {
-                throw new InvalidOrder($this->id . ' ' . $typeResolved . ' is not a valid order $type for the ' . $symbol . ' market');
+                throw new InvalidOrder($this->id . ' ' . $typeResolved . ' is not a valid order type for the ' . $symbol . ' market');
             }
         }
         $reverseOrderTypeMapping = array(
@@ -1947,7 +1947,7 @@ class tokocrypto extends Exchange {
                     $quoteAmount = $cost;
                 } elseif ($createMarketBuyOrderRequiresPrice) {
                     if ($price === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
+                        throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
@@ -1982,13 +1982,13 @@ class tokocrypto extends Exchange {
         }
         if ($priceIsRequired) {
             if ($price === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for a ' . $typeResolved . ' order');
+                throw new InvalidOrder($this->id . ' createOrder() requires a price argument for a ' . $typeResolved . ' order');
             }
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         if ($triggerPriceIsRequired) {
             if ($triggerPrice === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $triggerPrice extra param for a ' . $typeResolved . ' order');
+                throw new InvalidOrder($this->id . ' createOrder() requires a triggerPrice extra param for a ' . $typeResolved . ' order');
             } else {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             }
@@ -2098,7 +2098,7 @@ class tokocrypto extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2266,7 +2266,7 @@ class tokocrypto extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2725,7 +2725,7 @@ class tokocrypto extends Exchange {
                 $bodyStream = ($method !== 'GET') ? $this->urlencode($params) : $body;
                 return array( 'url' => $url, 'method' => $method, 'body' => $bodyStream, 'headers' => $headersStream );
             } else {
-                throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
+                throw new AuthenticationError($this->id . ' userDataStream endpoint requires `apiKey` credential');
             }
         } elseif (($api === 'private') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV3') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
             $this->check_required_credentials();

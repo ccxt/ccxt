@@ -79,7 +79,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         try {
             Async\await($client->send(array( 'id' => $this->safe_integer($message, 'id'), 'method' => 'public/respond-heartbeat' )));
         } catch (Exception $e) {
-            $error = new NetworkError($this->id . ' pong failed with $error ' . $this->exception_message($e));
+            $error = new NetworkError($this->id . ' pong failed with error ' . $this->exception_message($e));
             $client->reset($error);
         }
     }
@@ -1003,7 +1003,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $symbolsNormalized = $this->market_symbols($symbols);
         if (!$this->is_empty($symbolsNormalized)) {
             if ($symbolsNormalized === null) {
-                throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
+                throw new ArgumentsRequired($this->id . ' watchPositions() symbols is required');
             }
             $messageHash = 'positions::' . implode(',', $symbolsNormalized);
         }

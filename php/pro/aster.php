@@ -185,7 +185,7 @@ class aster extends \ccxt\async\aster {
         }
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $subscriptionArgs = array();
         $messageHashes = array();
@@ -243,7 +243,7 @@ class aster extends \ccxt\async\aster {
         }
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $subscriptionArgs = array();
         $messageHashes = array();
@@ -336,7 +336,7 @@ class aster extends \ccxt\async\aster {
         }
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $subscriptionArgs = array();
         $messageHashes = array();
@@ -398,7 +398,7 @@ class aster extends \ccxt\async\aster {
         }
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $subscriptionArgs = array();
         $messageHashes = array();
@@ -534,7 +534,7 @@ class aster extends \ccxt\async\aster {
         }
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $subscriptionArgs = array();
         $messageHashes = array();
@@ -590,7 +590,7 @@ class aster extends \ccxt\async\aster {
         }
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $subscriptionArgs = array();
         $messageHashes = array();
@@ -726,7 +726,7 @@ class aster extends \ccxt\async\aster {
         }
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $subscriptionArgs = array();
         $messageHashes = array();
@@ -784,7 +784,7 @@ class aster extends \ccxt\async\aster {
         }
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $subscriptionArgs = array();
         $messageHashes = array();
@@ -1064,7 +1064,7 @@ class aster extends \ccxt\async\aster {
         }
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $subscriptionArgs = array();
         $messageHashes = array();
@@ -1118,7 +1118,7 @@ class aster extends \ccxt\async\aster {
         }
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $subscriptionArgs = array();
         $messageHashes = array();
@@ -1260,7 +1260,7 @@ class aster extends \ccxt\async\aster {
         $type = $this->safe_string($firstMarket, 'type', 'swap');
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $subscriptionArgs = array();
         $messageHashes = array();
@@ -1325,7 +1325,7 @@ class aster extends \ccxt\async\aster {
         $type = $this->safe_string($firstMarket, 'type', 'swap');
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
-            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+            throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
         $subscriptionArgs = array();
         $messageHashes = array();
@@ -1913,7 +1913,7 @@ class aster extends \ccxt\async\aster {
         $type = null;
         list($typeMarketType, $paramsMarketType) = $this->handle_market_type_and_params('watchOrders', $market, $params, $type);
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' watchOrders() requires a $market type');
+            throw new ArgumentsRequired($this->id . ' watchOrders() requires a market type');
         }
         Async\await($this->authenticate($typeMarketType, $paramsMarketType));
         if ($market !== null) {
@@ -1961,7 +1961,7 @@ class aster extends \ccxt\async\aster {
         $type = null;
         list($typeMarketType, $paramsMarketType) = $this->handle_market_type_and_params('watchMyTrades', $market, $params, $type);
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a $market type');
+            throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a market type');
         }
         Async\await($this->authenticate($typeMarketType, $paramsMarketType));
         if ($market !== null) {

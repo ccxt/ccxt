@@ -628,7 +628,7 @@ class bydfi extends Exchange {
         $result = 1000;
         for ($i = 0; $i < count($limits); $i++) {
             if ($limit === null) {
-                throw new ArgumentsRequired($this->id . ' getClosestLimit() requires a $limit argument');
+                throw new ArgumentsRequired($this->id . ' getClosestLimit() requires a limit argument');
             }
             if ($limit <= $limits[$i]) {
                 $result = $limits[$i];
@@ -872,7 +872,7 @@ class bydfi extends Exchange {
             $until = $now;
         } elseif ($until === null) {
             if ($startTime === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since or $until argument');
+                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a since or until argument');
             }
             $until = $startTime . $timeDelta;
             if ($until > $now) {
@@ -1118,7 +1118,7 @@ class bydfi extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1248,14 +1248,14 @@ class bydfi extends Exchange {
 
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrderRequest() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createOrderRequest() requires a side argument');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -1312,7 +1312,7 @@ class bydfi extends Exchange {
             }
         } else {
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for a ' . $typeValue . ' order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for a ' . $typeValue . ' order');
             }
             $request['price'] = $this->price_to_precision($symbol, $price);
             if ($isStopLossOrder) {
@@ -1338,7 +1338,7 @@ class bydfi extends Exchange {
             $query = $this->omit($query, 'closePosition');
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         } elseif (($typeValue !== 'STOP_MARKET') && ($typeValue !== 'TAKE_PROFIT_MARKET')) {
-            throw new NotSupported($this->id . ' createOrder() $closePosition is only supported for stopLoss and takeProfit $market orders');
+            throw new NotSupported($this->id . ' createOrder() closePosition is only supported for stopLoss and takeProfit market orders');
         }
         $timeInForce = $this->handle_time_in_force($query);
         $postOnly = false;
@@ -1484,7 +1484,7 @@ class bydfi extends Exchange {
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         $request = array();
         if (($id === null) && ($clientOrderId === null)) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires an $id argument or a $clientOrderId parameter');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires an id argument or a clientOrderId parameter');
         } elseif ($id !== null) {
             $request['orderId'] = $id;
         }
@@ -1514,7 +1514,7 @@ class bydfi extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1579,7 +1579,7 @@ class bydfi extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1650,7 +1650,7 @@ class bydfi extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1661,7 +1661,7 @@ class bydfi extends Exchange {
         );
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if (($id === null) && ($clientOrderId === null)) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires an $id argument or a $clientOrderId parameter');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires an id argument or a clientOrderId parameter');
         } elseif ($id !== null) {
             $request['orderId'] = $id;
         }
@@ -1966,7 +1966,7 @@ class bydfi extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1996,7 +1996,7 @@ class bydfi extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchLeverage() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2400,11 +2400,11 @@ class bydfi extends Exchange {
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
         }
         $marginModeValue = strtolower($marginMode);
         if ($marginModeValue !== 'isolated' && $marginModeValue !== 'cross') {
-            throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
+            throw new BadRequest($this->id . ' setMarginMode() marginMode argument should be isolated or cross');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2438,7 +2438,7 @@ class bydfi extends Exchange {
          * @return {array} response from the exchange
          */
         if ($symbol !== null) {
-            throw new NotSupported($this->id . ' setPositionMode() does not support a $symbol argument. The position mode is set identically for all markets with same settle currency');
+            throw new NotSupported($this->id . ' setPositionMode() does not support a symbol argument. The position mode is set identically for all markets with same settle currency');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2682,7 +2682,7 @@ class bydfi extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a code argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2817,7 +2817,7 @@ class bydfi extends Exchange {
             $methodName = 'fetchDeposits';
         }
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a code argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
