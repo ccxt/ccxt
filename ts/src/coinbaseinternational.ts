@@ -488,11 +488,12 @@ export default class coinbaseinternational extends Exchange {
         if (since !== undefined) {
             request['start'] = this.iso8601 (since);
         } else {
-            if (limit === undefined) {
-                limit = 300; // the default of api
+            let limitResolved: Int = limit;
+            if (limitResolved === undefined) {
+                limitResolved = 300; // the default of api
             }
-            since = this.sum (this.milliseconds (), -limit * duration * 1000);
-            request['start'] = this.iso8601 (since);
+            const sinceResolved = this.sum (this.milliseconds (), -limitResolved * duration * 1000);
+            request['start'] = this.iso8601 (sinceResolved);
         }
         const unitl = this.safeInteger (paramsPaginate, 'until');
         if (unitl !== undefined) {
