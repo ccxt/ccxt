@@ -4041,7 +4041,7 @@ export default class aster extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
     }
 
-    async loadLeverageBrackets (reload = false, params: Dict = {}): Promise<Dict> {
+    async loadLeverageBrackets (reload: boolean = false, params: Dict = {}): Promise<Dict> {
         await this.loadMarketsAndSignIn ();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
