@@ -10,6 +10,7 @@ from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import RequestTimeout
 
 
 class hyperliquid(ccxt.async_support.hyperliquid):
@@ -57,6 +58,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 },
             },
             'options': {
+                'unsubscribeTimeout': 10000,  # ms a watch waits for a pending unsubscribe ack
             },
             'streaming': {
                 'ping': self.ping,
@@ -239,6 +241,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             },
         }
         message = self.extend(request, params)
+        await self.wait_for_pending_unsubscribe(url, messageHash)
         orderbook = await self.watch(url, messageHash, message, messageHash)
         return orderbook.limit()
 
@@ -347,6 +350,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 'coin': market['baseName'] if (market['swap'] is True) else market['id'],
             },
         }
+        await self.wait_for_pending_unsubscribe(url, messageHash)
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
     async def un_watch_ticker(self, symbol: str, params={}) -> object:
@@ -409,6 +413,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             messageHash = 'tickers:' + defaultDex
             request['subscription']['type'] = 'allMids'
             request['subscription']['dex'] = defaultDex
+        # unWatchTickers always registers the bare 'unsubscribe:tickers' hash, dex-scoped or not
+        await self.wait_for_pending_unsubscribe(url, 'tickers')
         tickers = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         if self.newUpdates:
             return self.filter_by_array_tickers(tickers, 'symbol', symbols)
@@ -473,6 +479,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         if userAddress is None:
             raise ArgumentsRequired(self.id + ' watchMyTrades() requires a user address')
         subscribeHash = 'subscribe:userFills::' + userAddress.lower()
+        # unWatchMyTrades registers 'unsubscribe:myTrades', not the per-user dedup hash
+        await self.wait_for_pending_unsubscribe(url, 'myTrades')
         trades = await self.watch(url, messageHash, message, subscribeHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -662,6 +670,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             },
         }
         message = self.extend(request, params)
+        await self.wait_for_pending_unsubscribe(url, messageHash)
         trades = await self.watch(url, messageHash, message, messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -822,6 +831,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         }
         messageHash = 'candles:' + timeframe + ':' + symbol
         message = self.extend(request, params)
+        await self.wait_for_pending_unsubscribe(url, messageHash)
         ohlcv = await self.watch(url, messageHash, message, messageHash)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
@@ -949,6 +959,10 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'subscription': subscription,
         }
         message = self.extend(request, params)
+        # the swap topic 'clearinghouseState' is one server subscription shared
+        # with watchPositions, so a pending unWatchPositions delays this watch
+        # too - its ack tears the shared stream down and sweeps both futures
+        await self.wait_for_pending_unsubscribe(url, topic)
         return await self.watch(url, messageHash, message, topic)
 
     async def un_watch_balance(self, params={}) -> object:
@@ -1160,6 +1174,10 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'subscription': subscription,
         }
         message = self.extend(request, params)
+        # the topic 'clearinghouseState' is one server subscription shared with
+        # the swap watchBalance, so a pending unWatchBalance delays this watch
+        # too - its ack tears the shared stream down and sweeps both futures
+        await self.wait_for_pending_unsubscribe(url, topic)
         client = self.client(url)
         self.set_positions_cache(client, symbols)
         cache = self.positions
@@ -1273,6 +1291,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         if userAddress is None:
             raise ArgumentsRequired(self.id + ' watchOrders() requires a user address')
         subscribeHash = 'subscribe:orderUpdates::' + userAddress.lower()
+        # unWatchOrders registers 'unsubscribe:order', not the per-user dedup hash
+        await self.wait_for_pending_unsubscribe(url, 'order')
         orders = await self.watch(url, messageHash, message, subscribeHash)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
@@ -1416,6 +1436,34 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             client.reject(e, id)
             return True
         return False
+
+    async def wait_for_pending_unsubscribe(self, url: str, subHash: str) -> object:
+        """
+ @ignore
+        waits for the acknowledgement of a still-pending unsubscribe request for the same subscription before subscribing again — a watch armed inside that window would never send a subscribe(deduplicated against the stale entry) and its future would be rejected by the pending ack, see https://github.com/ccxt/ccxt/issues/30419
+        :param str url: the websocket endpoint the subscription lives on
+        :param str subHash: the subscription hash the watch call is about to register
+        :returns any: resolves once no unsubscribe request is pending for the subscription, or after options.unsubscribeTimeout ms
+        """
+        if url in self.clients:
+            client = self.client(url)
+            unsubHash = 'unsubscribe:' + subHash
+            if unsubHash in client.subscriptions:
+                # share the unWatch caller's future; a lost ack is timed out so the watch cannot hang
+                timeout = self.safe_integer(self.options, 'unsubscribeTimeout', 10000)
+                self.delay(timeout, self.expire_pending_unsubscribe, client, subHash, unsubHash)
+                try:
+                    await client.future(unsubHash)
+                except Exception as e:
+                    if not (isinstance(e, RequestTimeout)):
+                        raise e
+        return None
+
+    async def expire_pending_unsubscribe(self, client: Client, subHash: str, unsubHash: str):
+        if unsubHash in client.subscriptions:
+            error = RequestTimeout(self.id + ' unsubscribe ' + subHash + ' was not acknowledged')
+            client.reject(error, unsubHash)
+            self.clean_unsubscription(client, subHash, unsubHash)
 
     def handle_order_book_unsubscription(self, client: Client, subscription: dict):
         #
@@ -1570,7 +1618,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 self.handle_order_unsubscription(client, subscription)
             elif type == 'userFills':
                 self.handle_my_trades_unsubscription(client, subscription)
-            elif type == 'clearinghoustState':
+            elif type == 'clearinghouseState':
                 self.handle_positions_unsubscription(client, subscription)
             elif type == 'spotState':
                 self.handle_spot_balance_unsubscription(client, subscription)

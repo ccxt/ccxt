@@ -1704,7 +1704,15 @@ class bingx(ccxt.async_support.bingx):
             data = self.safe_dict(message, 'o', {})
             type = self.safe_string(data, 'x')
             status = self.safe_string(data, 'X')
-            if (type == 'TRADE') and (status == 'FILLED'):
+            isExecution = (status == 'FILLED')
+            if (type == 'TRADE') and (status == 'PARTIALLY_FILLED'):
+                marketId = self.safe_string(data, 's')
+                market = self.safe_market(marketId, None, '-', 'swap')
+                # parseTrade gates its `l`/`L` last-fill preference on the same
+                # `market['linear'] === true`, so an unresolved market id must be skipped here:
+                # delivering it would report the order aggregate `q`/`p` as a single fill.
+                isExecution = (market['linear'] is True) and (self.safe_string(data, 'l') is not None) and (self.safe_string(data, 'L') is not None)
+            if (type == 'TRADE') and isExecution:
                 self.handle_my_trades(client, message)
         msgData = self.safe_dict(message, 'data')
         msgEvent = self.safe_string(msgData, 'e')
