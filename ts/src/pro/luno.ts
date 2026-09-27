@@ -1,9 +1,9 @@
 //  ---------------------------------------------------------------------------
 
 import lunoRest from '../luno.js';
-import { ArrayCache } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { InvalidNonce } from '../base/errors.js';
+import { ArrayCache } from '../base/ws/Cache.js';
 import type { Int, Trade, OrderBook, IndexType, Dict , Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
