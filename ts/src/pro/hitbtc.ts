@@ -274,8 +274,22 @@ export default class hitbtc extends hitbtcRest {
         //        }
         //    }
         //
-        const snapshot = this.safeDict (message, 'snapshot');
-        const data = this.safeDict2 (message, 'snapshot', 'update', {});
+        // partial orderbook ('orderbook/D{depth}/{speed}ms' and its '/batch' variant), every message is a full top-N snapshot
+        //
+        //    {
+        //        "ch": "orderbook/D5/500ms",
+        //        "data": {
+        //            "BTCUSDT": {
+        //                "t": 1790511595279,
+        //                "s": 1520022,
+        //                "a": [ [ "85025.97", "0.00732" ], [ "85037.31", "0.03659" ] ],
+        //                "b": [ [ "84995.48", "0.02769" ], [ "84994.29", "0.00724" ] ]
+        //            }
+        //        }
+        //    }
+        //
+        const snapshot = this.safeDict2 (message, 'snapshot', 'data');
+        const data = (snapshot !== undefined) ? snapshot : this.safeDict (message, 'update', {});
         const type = (snapshot !== undefined && snapshot !== null) ? 'snapshot' : 'update';
         const marketIds = Object.keys (data);
         for (let i = 0; i < marketIds.length; i++) {
