@@ -2034,7 +2034,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         self.initialize_client()
         market = self.market(symbol)
         nonce = self.incrementing_nonce()
-        isBuy = (side == 'BUY')
+        isBuy = (side.upper() == 'BUY')
         randomize = self.safe_bool(params, 'randomize', False)
         paramsOmitted = self.omit(params, 'randomize')
         vaultAddressOption, paramsVault = self.handle_option_string_and_params(paramsOmitted, 'createOrder', 'vaultAddress')
