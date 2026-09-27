@@ -746,6 +746,21 @@
                 "output": "{\"order_id\":\"1699457638000\",\"instrument_id\":\"LTCUSDTPERP\"}"
             }
         ],
+        "cancelOrders": [
+            {
+                "description": "cancelOrders - swap",
+                "method": "cancelOrders",
+                "url": "https://openapi.digifinex.com/swap/v2/trade/batch_cancel_order",
+                "input": [
+                    [
+                        "2104199400262733824",
+                        "1000000000000000001"
+                    ],
+                    "LTC/USDT:USDT"
+                ],
+                "output": "[{\"instrument_id\":\"LTCUSDTPERP\",\"order_id\":\"2104199400262733824\"},{\"instrument_id\":\"LTCUSDTPERP\",\"order_id\":\"1000000000000000001\"}]"
+            }
+        ],
         "fetchTime": [
             {
                 "description": "fetchTime",

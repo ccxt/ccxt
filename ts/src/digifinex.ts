@@ -2074,20 +2074,61 @@ export default class digifinex extends Exchange {
      * @name digifinex#cancelOrders
      * @description cancel multiple orders
      * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+     * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by cancelOrders ()
+     * @param {string} [symbol] unified market symbol, required for swap markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot', 'margin' or 'swap', defaults to the type of the symbol's market or options.defaultType
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelOrders (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const orderType = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType: Str = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
+        if (marketType === 'swap') {
+            if (market === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument for swap markets');
+            }
+            const marketId = market['id'];
+            const ordersRequests: Dict[] = [];
+            for (let i = 0; i < ids.length; i++) {
+                const orderId = ids[i];
+                ordersRequests.push ({
+                    'instrument_id': marketId,
+                    'order_id': orderId,
+                });
+            }
+            const swapResponse = await this.privateSwapPostTradeBatchCancelOrder (ordersRequests);
+            //
+            //     {
+            //         "code": 0,
+            //         "data": [
+            //             "1546771720487047168",
+            //             "1546771720487047169"
+            //         ]
+            //     }
+            //
+            const data = this.safeList (swapResponse, 'data', []);
+            const result: Order[] = [];
+            for (let i = 0; i < data.length; i++) {
+                const canceledId = data[i];
+                result.push (this.safeOrder ({
+                    'info': canceledId,
+                    'id': canceledId,
+                    'symbol': market['symbol'],
+                    'status': 'canceled',
+                }));
+            }
+            return result;
+        }
         const request: Dict = {
-            'market': orderType,
+            'market': marketType,
             'order_id': ids.join (','),
         };
         const response = await this.privateSpotPostSpotOrderCancel (this.extend (request, params));

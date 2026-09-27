@@ -864,6 +864,54 @@
                         "fee": null
                     }
                 ]
+            },
+            {
+                "description": "cancelOrders - swap, one canceled and one non-existent id",
+                "method": "cancelOrders",
+                "input": [
+                    [
+                        "2104199400262733824",
+                        "1000000000000000001"
+                    ],
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "data": [
+                        "2104199400262733824"
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": "2104199400262733824",
+                        "id": "2104199400262733824",
+                        "symbol": "ETH/USDT:USDT",
+                        "status": "canceled",
+                        "fees": [],
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    }
+                ]
             }
         ]
     }
