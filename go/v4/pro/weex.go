@@ -495,7 +495,7 @@ func (this *Weex) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any 
 		"last":          close,
 		"previousClose": this.SafeString(ticker, "x"),
 		"change":        this.SafeString(ticker, "p"),
-		"percentage":    this.SafeString(ticker, "P"),
+		"percentage":    ccxt.Precise.StringMul(this.SafeString(ticker, "P"), "100"),
 		"average":       this.SafeString(ticker, "w"),
 		"baseVolume":    this.SafeString(ticker, "v"),
 		"quoteVolume":   this.SafeString(ticker, "q"),

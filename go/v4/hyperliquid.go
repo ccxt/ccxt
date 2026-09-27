@@ -2784,7 +2784,7 @@ func (this *Hyperliquid) createTwapOrderBody(ch chan EndpointResult[map[string]a
 	}
 	var market map[string]any = this.Market(symbol)
 	var nonce any = this.IncrementingNonce()
-	var isBuy bool = (side == "BUY")
+	var isBuy bool = (strings.ToUpper(side) == "BUY")
 	var randomize *bool = this.SafeBool(params, "randomize", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, "randomize")
 	vaultAddressOption, paramsVault := this.HandleOptionStringAndParams(paramsOmitted, "createOrder", "vaultAddress")

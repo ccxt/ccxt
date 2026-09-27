@@ -62,7 +62,9 @@ func (this *Hyperliquid) Describe() any {
 				},
 			},
 		},
-		"options": map[string]any{},
+		"options": map[string]any{
+			"unsubscribeTimeout": 10000,
+		},
 		"streaming": map[string]any{
 			"ping":      this.Ping,
 			"keepAlive": 20000,
@@ -394,11 +396,16 @@ func (this *Hyperliquid) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbo
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	r1 := <-this.Watch(url, messageHash, message, messageHash)
+	r1 := <-this.WaitForPendingUnsubscribeAsync(url, messageHash)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
+
+	r2 := <-this.Watch(url, messageHash, message, messageHash)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	var orderbook ccxt.OrderBookInterface = r2.Value.(ccxt.OrderBookInterface)
 
 	ch <- ccxt.AsyncResult[any]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 	return nil
@@ -553,11 +560,16 @@ func (this *Hyperliquid) watchTickerBody(ch chan ccxt.AsyncResult[any], symbol s
 		},
 	}
 
-	r1 := <-this.Watch(url, messageHash, this.Extend(request, params), messageHash)
+	r1 := <-this.WaitForPendingUnsubscribeAsync(url, messageHash)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+
+	r2 := <-this.Watch(url, messageHash, this.Extend(request, params), messageHash)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r2.Value}
 	return nil
 }
 
@@ -671,12 +683,18 @@ func (this *Hyperliquid) watchTickersBody(ch chan ccxt.AsyncResult[any], optiona
 		ccxt.AddElementToObject(request["subscription"], "type", "allMids")
 		ccxt.AddElementToObject(request["subscription"], "dex", defaultDex)
 	}
+	// unWatchTickers always registers the bare 'unsubscribe:tickers' hash, dex-scoped or not
 
-	r1 := <-this.Watch(url, messageHash, this.Extend(request, paramsOmitted), messageHash)
+	r1 := <-this.WaitForPendingUnsubscribeAsync(url, "tickers")
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	tickers := r1.Value
+
+	r2 := <-this.Watch(url, messageHash, this.Extend(request, paramsOmitted), messageHash)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	tickers := r2.Value
 	if this.NewUpdates {
 
 		ch <- ccxt.AsyncResult[any]{Value: this.FilterByArrayTickers(tickers, "symbol", symbolsNormalized)}
@@ -800,12 +818,18 @@ func (this *Hyperliquid) watchMyTradesBody(ch chan ccxt.AsyncResult[any], option
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() requires a user address"))
 	}
 	var subscribeHash string = "subscribe:userFills::" + ccxt.ToLower(userAddress)
+	// unWatchMyTrades registers 'unsubscribe:myTrades', not the per-user dedup hash
 
-	r1 := <-this.Watch(url, messageHash, message, subscribeHash)
+	r1 := <-this.WaitForPendingUnsubscribeAsync(url, "myTrades")
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
+
+	r2 := <-this.Watch(url, messageHash, message, subscribeHash)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolResolved, limit)
@@ -1075,11 +1099,16 @@ func (this *Hyperliquid) watchTradesBody(ch chan ccxt.AsyncResult[any], symbol a
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	r1 := <-this.Watch(url, messageHash, message, messageHash)
+	r1 := <-this.WaitForPendingUnsubscribeAsync(url, messageHash)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
+
+	r2 := <-this.Watch(url, messageHash, message, messageHash)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolValue, limit)
@@ -1310,11 +1339,16 @@ func (this *Hyperliquid) watchOHLCVBody(ch chan ccxt.AsyncResult[any], symbol st
 	var messageHash string = "candles:" + timeframe + ":" + *symbolValue
 	var message map[string]any = this.Extend(request, params)
 
-	r1 := <-this.Watch(url, messageHash, message, messageHash)
+	r1 := <-this.WaitForPendingUnsubscribeAsync(url, messageHash)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
+
+	r2 := <-this.Watch(url, messageHash, message, messageHash)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(ohlcv).GetLimit(symbolValue, limit)
@@ -1504,12 +1538,20 @@ func (this *Hyperliquid) watchBalanceBody(ch chan ccxt.AsyncResult[any], optiona
 		"subscription": subscription,
 	}
 	var message map[string]any = this.Extend(request, paramsValue2)
+	// the swap topic 'clearinghouseState' is one server subscription shared
+	// with watchPositions, so a pending unWatchPositions delays this watch
+	// too - its ack tears the shared stream down and sweeps both futures
 
-	r2 := <-this.Watch(url, messageHash, message, topic)
+	r2 := <-this.WaitForPendingUnsubscribeAsync(url, topic)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r2.Value}
+
+	r3 := <-this.Watch(url, messageHash, message, topic)
+	if r3.Err != nil {
+		panic(r3.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r3.Value}
 	return nil
 }
 
@@ -1799,15 +1841,23 @@ func (this *Hyperliquid) watchPositionsBody(ch chan ccxt.AsyncResult[any], optio
 		"subscription": subscription,
 	}
 	var message map[string]any = this.Extend(request, paramsValue)
+	// the topic 'clearinghouseState' is one server subscription shared with
+	// the swap watchBalance, so a pending unWatchBalance delays this watch
+	// too - its ack tears the shared stream down and sweeps both futures
+
+	r1 := <-this.WaitForPendingUnsubscribeAsync(url, topic)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, symbolsNormalized)
 	var cache any = this.Positions
 
-	r1 := <-this.Watch(url, messageHash, message, topic)
-	if r1.Err != nil {
-		panic(r1.Err)
+	r2 := <-this.Watch(url, messageHash, message, topic)
+	if r2.Err != nil {
+		panic(r2.Err)
 	}
-	newPositions := r1.Value
+	newPositions := r2.Value
 	if this.NewUpdates {
 
 		ch <- ccxt.AsyncResult[any]{Value: newPositions}
@@ -1996,12 +2046,18 @@ func (this *Hyperliquid) watchOrdersBody(ch chan ccxt.AsyncResult[any], optional
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrders() requires a user address"))
 	}
 	var subscribeHash string = "subscribe:orderUpdates::" + ccxt.ToLower(userAddress)
+	// unWatchOrders registers 'unsubscribe:order', not the per-user dedup hash
 
-	r1 := <-this.Watch(url, messageHash, message, subscribeHash)
+	r1 := <-this.WaitForPendingUnsubscribeAsync(url, "order")
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
+
+	r2 := <-this.Watch(url, messageHash, message, subscribeHash)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(symbolResolved, limit)
@@ -2215,6 +2271,78 @@ func (this *Hyperliquid) HandleErrorMessage(client any, message any) any {
 	}
 	return false
 }
+
+/**
+ * @method
+ * @name hyperliquid#waitForPendingUnsubscribe
+ * @ignore
+ * @description waits for the acknowledgement of a still-pending unsubscribe request for the same subscription before subscribing again — a watch armed inside that window would never send a subscribe (deduplicated against the stale entry) and its future would be rejected by the pending ack, see https://github.com/ccxt/ccxt/issues/30419
+ * @param {string} url the websocket endpoint the subscription lives on
+ * @param {string} subHash the subscription hash the watch call is about to register
+ * @returns {any} resolves once no unsubscribe request is pending for the subscription, or after options.unsubscribeTimeout ms
+ */
+func (this *Hyperliquid) WaitForPendingUnsubscribeAsync(url any, subHash string) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.waitForPendingUnsubscribeBody(ch, url, subHash)
+	return ch
+}
+func (this *Hyperliquid) waitForPendingUnsubscribeBody(ch chan ccxt.AsyncResult[any], url any, subHash string) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	if ccxt.InOp(this.Clients, url) {
+		var client ccxt.ClientInterface = this.Client(url)
+		var unsubHash string = "unsubscribe:" + subHash
+		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), unsubHash) {
+			// share the unWatch caller's future; a lost ack is timed out so the watch cannot hang
+			var timeout *int64 = this.SafeInteger(this.Options, "unsubscribeTimeout", 10000)
+			this.Delay(timeout, this.ExpirePendingUnsubscribeAsync, client, subHash, unsubHash)
+
+			{
+				func(this *Hyperliquid) (ret_ any) {
+					defer func() {
+						if e := recover(); e != nil {
+							if e == "break" {
+								return
+							}
+							ret_ = func(this *Hyperliquid) any {
+								// catch block:
+								if !(ccxt.IsInstance(e, ccxt.RequestTimeout)) {
+									panic(e)
+								}
+								return nil
+							}(this)
+						}
+					}()
+					// try block:
+
+					r := <-client.(ccxt.ClientInterface).Future(unsubHash)
+					if r.Err != nil {
+						panic(r.Err)
+					}
+					return nil
+				}(this)
+
+			}
+		}
+	}
+
+	return nil
+}
+func (this *Hyperliquid) ExpirePendingUnsubscribeAsync(client any, subHash any, unsubHash any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.expirePendingUnsubscribeBody(ch, client, subHash, unsubHash)
+	return ch
+}
+func (this *Hyperliquid) expirePendingUnsubscribeBody(ch chan ccxt.AsyncResult[any], client any, subHash any, unsubHash any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), unsubHash) {
+		error := ccxt.RequestTimeout(ccxt.Add(ccxt.Add(this.Id+" unsubscribe ", subHash), " was not acknowledged"))
+		client.(ccxt.ClientInterface).Reject(error, unsubHash)
+		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
+	}
+	return nil
+}
 func (this *Hyperliquid) HandleOrderBookUnsubscription(client any, subscription map[string]any) {
 	//
 	//        "subscription":{
@@ -2380,7 +2508,7 @@ func (this *Hyperliquid) HandleSubscriptionResponse(client any, message map[stri
 			this.HandleOrderUnsubscription(client, subscription)
 		} else if typeVar != nil && *typeVar == "userFills" {
 			this.HandleMyTradesUnsubscription(client, subscription)
-		} else if typeVar != nil && *typeVar == "clearinghoustState" {
+		} else if typeVar != nil && *typeVar == "clearinghouseState" {
 			this.HandlePositionsUnsubscription(client, subscription)
 		} else if typeVar != nil && *typeVar == "spotState" {
 			this.HandleSpotBalanceUnsubscription(client, subscription)

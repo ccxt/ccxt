@@ -1988,7 +1988,45 @@ func (this *Lighter) HandleErrorMessage(client any, message any) bool {
 	//         }
 	//     }
 	//
+	//
+	//     {
+	//         "error": {
+	//             "code": 30003,
+	//             "message": "Already Subscribed to : market_stats:all"
+	//         }
+	//     }
+	//
+	//     {
+	//         "error": {
+	//             "code": 30002,
+	//             "message": "Not Subscribed to : order_book:0"
+	//         }
+	//     }
+	//
 	var error map[string]any = ccxt.SafeMapTyped(message, "error")
+	var errorCode *string = this.SafeString(error, "code")
+	if errorCode != nil && *errorCode == "30003" {
+		// a duplicate subscribe is harmless - the server-side subscription is intact and
+		// data keeps flowing, while the generic reject below would hit every pending
+		// future on the connection because the venue echoes no request id,
+		// same handling for the same notice on hyperliquid, apex and krakenfutures
+		return true
+	}
+	if errorCode != nil && *errorCode == "30002" {
+		// the requested state is already reached, so the unWatch call resolves and only
+		// its own channel gets cleaned up. The channel is available solely inside the
+		// message text, a changed text format falls through to the generic reject below
+		var notSubscribedMessage *string = this.SafeString(error, "message", "")
+		var messageParts []string = strings.Split(*notSubscribedMessage, " : ")
+		var notSubscribedChannel *string = this.SafeString(messageParts, 1)
+		if notSubscribedChannel != nil {
+			var unsubscribed map[string]any = map[string]any{
+				"channel": notSubscribedChannel,
+			}
+			this.HandleUnSubscription(client, unsubscribed)
+			return true
+		}
+	}
 
 	{
 		func(this *Lighter) (ret_ any) {

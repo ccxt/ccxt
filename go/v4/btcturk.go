@@ -608,6 +608,17 @@ func (this *Btcturk) ParseTicker(ticker any, optionalArgs ...any) map[string]any
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
 	var last *string = this.SafeString(ticker, "last")
+	var open *string = this.SafeString(ticker, "open")
+	var change *string = this.SafeString(ticker, "daily")
+	var percentage *string = this.SafeString(ticker, "dailyPercent")
+	var average *string = this.SafeString(ticker, "average")
+	if (open != nil) && (last != nil) && !Precise.StringEq(open, "0") {
+		// The reported daily fields can disagree with last - open.
+		// Let safeTicker derive the unified change, percentage and average from these prices.
+		change = nil
+		percentage = nil
+		average = nil
+	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -619,13 +630,13 @@ func (this *Btcturk) ParseTicker(ticker any, optionalArgs ...any) map[string]any
 		"ask":           this.SafeString(ticker, "ask"),
 		"askVolume":     nil,
 		"vwap":          nil,
-		"open":          this.SafeString(ticker, "open"),
+		"open":          open,
 		"close":         last,
 		"last":          last,
 		"previousClose": nil,
-		"change":        this.SafeString(ticker, "daily"),
-		"percentage":    this.SafeString(ticker, "dailyPercent"),
-		"average":       this.SafeString(ticker, "average"),
+		"change":        change,
+		"percentage":    percentage,
+		"average":       average,
 		"baseVolume":    this.SafeString(ticker, "volume"),
 		"quoteVolume":   nil,
 		"info":          ticker,
