@@ -1681,7 +1681,7 @@ export default class modetrade extends Exchange {
         const stopLoss = this.safeValue (params, 'stopLoss');
         const takeProfit = this.safeValue (params, 'takeProfit');
         const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
-        let response = undefined;
+        let response: Dict;
         if (isConditional) {
             response = await this.v1PrivatePostAlgoOrder (request);
             //
@@ -1828,7 +1828,7 @@ export default class modetrade extends Exchange {
             request[orderQtyKey] = this.amountToPrecision (symbol, amount);
         }
         const paramsOmitted: Dict = this.omit (params, [ 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ]);
-        let response = undefined;
+        let response: Dict;
         if (isConditional) {
             response = await this.v1PrivatePutAlgoOrder (this.extend (request, paramsOmitted));
         } else {
@@ -1972,7 +1972,7 @@ export default class modetrade extends Exchange {
         const clientOrderIds = this.safeListN (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const paramsOmitted: Dict = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const request: Dict = {};
-        let response = undefined;
+        let response: Dict;
         if (clientOrderIds !== undefined) {
             request['client_order_ids'] = clientOrderIds.join (',');
             response = await this.v1PrivateDeleteClientBatchOrder (this.extend (request, paramsOmitted));
@@ -2071,7 +2071,7 @@ export default class modetrade extends Exchange {
         const request: Dict = {};
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-        let response = undefined;
+        let response: Dict;
         if (trigger === true) {
             if (clientOrderId !== undefined && clientOrderId !== '') {
                 request['client_order_id'] = clientOrderId;
@@ -2166,7 +2166,7 @@ export default class modetrade extends Exchange {
             request['algo_type'] = 'STOP';
         }
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_t', request, paramsOmitted);
-        let response = undefined;
+        let response: Dict;
         if (isTrigger === true) {
             response = await this.v1PrivateGetAlgoOrders (this.extend (requestUntil, paramsUntil));
         } else {
