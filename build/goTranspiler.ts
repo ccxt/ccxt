@@ -1958,7 +1958,7 @@ function goMapWriteLocalNeverNil (maskedFunc: string, decl: any, name: string, d
         return false; // address taken or multi-value rebinding
     }
     for (const w of maskedFunc.matchAll (new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*=(?!=)\\s*([^\\n]*)', 'gm'))) {
-        if (!producer.test (w[1].trim ())) {
+        if (!producer.test (w[1].trim ()) && !w[1].trim ().startsWith ('this.OmitDict(' + name + ', ')) { // G10K-addelem: self-omit
             return false;
         }
     }
@@ -2671,7 +2671,7 @@ function formatGoSource (filePath: string, content: string): string {
     content = nativeLoopBoundedSliceReads (content);
     content = nativeTupleHolderReads (content);
     content = nativeAsyncTupleHolderReads (content);
-    content = nativeTypedContainerAccess (content);
+    content = nativeTypedContainerAccess (g10kAddElemRetypeMapLocals (content));
     content = h2kG13NativeKeysAndRemove (content);
     content = nativeDerefArgMapReads (content);
     content = nativeOrderBookSideReads (content);
@@ -10549,4 +10549,83 @@ function g10kIsEqualSelfTest (): string[] {
     ok (sd.indexOf ('if (*this.SafeInteger(p, "k", 0) != 0) || (*this.SafeString(p, "k", "") == "x") || IsEqual(this.SafeInteger(p, "k"), 0) {') >= 0, 'defaulted Safe* deref: ' + sd);
     ok (g10kIsEqualNative (pos) === pos, 'second application is a no-op');
     return problems;
+}
+
+// ===== G10K-addelem: `var x any` map locals retyped to map[string]any =====
+// Every write is a fresh non-nil map (literal, Extend/DeepExtend, OmitDict of x, HandleUntilOption(_, x, _)[0])
+// and no read observes the box, so the typed-container pass can print plain `x[k] = v` for its writes.
+function g10kAddElemMapWrite (rhs: string, n: string): string | undefined {
+    const r = rhs.trim ();
+    if (/^(?:map\[string\]any\{|this\.(?:Extend|DeepExtend)\()/.test (r)) {
+        return r;
+    }
+    const omit = new RegExp ('^this\\.Omit\\(' + n + ', ').exec (r);
+    return ((omit !== null) && (goMapWriteGroupEnd (r, r.indexOf ('(')) === r.length)) ? 'this.OmitDict(' + r.substring (omit[0].length - n.length - 2) : undefined;
+}
+
+function g10kAddElemRetypeFunc (lines: string[], masked: string[], start: number, end: number) {
+    const maskedFunc = masked.slice (start, end + 1).join ('\n');
+    const names = new Set ([ ...maskedFunc.matchAll (/(?<![\w.])(?:ccxt\.)?AddElementToObject\((\w+), /g) ].map ((m) => m[1]));
+    for (const name of names) {
+        const n = goAccessEscape (name);
+        const decl = goAccessSingleDeclaration (maskedFunc, lines[start], name);
+        if ((n !== name) || (decl === undefined) || (decl.type !== 'any') || (decl.index === undefined)
+            || new RegExp ('\\b' + n + '\\s*\\.\\s*\\(|&\\s*' + n + '\\b|\\b' + n + '\\s*[!=]=|[!=]=\\s*' + n + '\\b|IsEqual\\(' + n + ', nil\\)|\\b' + n + '\\s*(?:\\+\\+|--|[-+*/%]=)').test (maskedFunc)) {
+            continue;
+        }
+        const declRx = new RegExp ('^(\\s*var ' + n + ' )any( = )(.*)$');
+        const untilRx = new RegExp ('^\\s*' + n + ', \\w+ = this\\.HandleUntilOption\\([^,()\\n]*, ' + n + ', ');
+        const writeRx = new RegExp ('^(\\s*' + n + ' = )(.*)$');
+        const edits: [number, string][] = [];
+        let safe = true;
+        for (let k = start + 1; (k < end) && safe; k++) {
+            const d = declRx.exec (masked[k]);
+            const w = writeRx.exec (masked[k]);
+            if (d) {
+                const rhs = lines[k].substring (d[1].length + 3 + d[2].length);
+                safe = /^map\[string\]any\{/.test (rhs.trim ()) || /^this\.(?:Extend|DeepExtend)\(/.test (rhs.trim ());
+                edits.push ([ k, lines[k].replace (declRx, '$1map[string]any$2$3') ]);
+            } else if (w) {
+                const rhs = lines[k].substring (w[1].length);
+                const out = (goMapWriteGroupEnd (masked[k].substring (w[1].length), w[2].indexOf ('(') < 0 ? 0 : w[2].indexOf ('(')) >= 0) ? g10kAddElemMapWrite (rhs, n) : undefined;
+                safe = (out !== undefined) && (lines[k].indexOf ('//') < 0);
+                if (safe) {
+                    edits.push ([ k, w[1] + out ]);
+                }
+            } else if (untilRx.test (masked[k])) {
+                continue; // returns MapTyped(x): x itself
+            } else if (new RegExp ('(?:^|[^\\w.])' + n + '\\s*,[^=\\n]*=(?!=)|,\\s*' + n + '\\s*(?:,[^=\\n]*)?:?=(?!=)').test (masked[k])) {
+                safe = false;
+            } else if (goTextWritesName (masked[k], n) && !new RegExp ('\\b' + n + '\\s*\\[').test (masked[k])) {
+                safe = false;
+            }
+        }
+        if (safe && (edits.length > 0) && declRx.test (masked[edits[0][0]])) {
+            for (const [ k, text ] of edits) {
+                lines[k] = text;
+                masked[k] = goTextMaskLiteralsAndComments (text);
+            }
+        }
+    }
+}
+
+function g10kAddElemRetypeMapLocals (content: string): string {
+    if (!/\bAddElementToObject\(/.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    let start = -1;
+    for (let k = 0; k < lines.length; k++) {
+        if (lines[k].startsWith ('func ')) {
+            start = k;
+        } else if ((start >= 0) && (lines[k] === '}')) {
+            g10kAddElemRetypeFunc (lines, masked, start, k);
+            start = -1;
+        }
+    }
+    return lines.join ('\n');
 }
