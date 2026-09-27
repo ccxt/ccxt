@@ -777,7 +777,7 @@ impl WeexCore {
         m.insert("last".to_string(), close);
         m.insert("previousClose".to_string(), self.safe_string_k(ticker.clone(), "x", &[]));
         m.insert("change".to_string(), self.safe_string_k(ticker.clone(), "p", &[]));
-        m.insert("percentage".to_string(), self.safe_string_k(ticker.clone(), "P", &[]));
+        m.insert("percentage".to_string(), crate::precise::Precise::stringMul(&self.safe_string_k(ticker.clone(), "P", &[]), &Value::Str("100".into())));
         m.insert("average".to_string(), self.safe_string_k(ticker.clone(), "w", &[]));
         m.insert("baseVolume".to_string(), self.safe_string_k(ticker.clone(), "v", &[]));
         m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "q", &[]));
