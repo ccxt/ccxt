@@ -215,7 +215,7 @@ type ICoreExchange interface {
 	FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any
 	FetchLastPricesAsync(optionalArgs ...any) <-chan any
-	ParseOpenInterest(interest any, optionalArgs ...any) any
+	ParseOpenInterest(interest any, optionalArgs ...any) map[string]any
 	FetchMyLiquidationsAsync(optionalArgs ...any) <-chan any
 	ParseLiquidation(liquidation any, optionalArgs ...any) any
 	FetchGreeksAsync(symbol string, optionalArgs ...any) <-chan any
@@ -392,7 +392,7 @@ type IDerivedExchange interface {
 	ParseTrades(trades any, optionalArgs ...any) any
 	ParseGreeks(greeks any, optionalArgs ...any) any
 	ParseMarket(market any) any
-	ParseCurrency(rawCurrency any) any
+	ParseCurrency(rawCurrency any) map[string]any
 	ParseTransaction(transaction any, optionalArgs ...any) map[string]any
 	ParseTransfer(transfer any, optionalArgs ...any) map[string]any
 	ParseAccount(account any) any
@@ -403,8 +403,8 @@ type IDerivedExchange interface {
 	ParseTickers(tickers any, optionalArgs ...any) any
 	ParseOrderBook(orderbook any, symbol any, optionalArgs ...any) map[string]any
 	ParsePosition(position any, optionalArgs ...any) any
-	SafeMarketStructure(optionalArgs ...any) any
-	ParseOpenInterest(interest any, optionalArgs ...any) any
+	SafeMarketStructure(optionalArgs ...any) map[string]any
+	ParseOpenInterest(interest any, optionalArgs ...any) map[string]any
 	ParseLiquidation(liquidation any, optionalArgs ...any) any
 	ParseIncome(info any, optionalArgs ...any) any
 	ParseMarginMode(marginMode any, optionalArgs ...any) any

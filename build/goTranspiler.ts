@@ -3721,13 +3721,15 @@ export function collapseRedundantNilChecks (content: string): string {
 // the identity and a `.(map[string]any)` assertion on it does not compile, so both are dropped.
 const GO_MARKET_ROW_METHODS = [ 'Market', 'SafeMarket' ];
 const GO_MAP_RETURNING_METHODS = [ 'Market', 'Currency', 'SafeCurrency', 'SafeMarket', 'Account', 'ParseOrderBook',
-    'SafeOrder', 'SafeTicker', 'SafeLedgerEntry', 'ParseOrder', 'ParseTicker', 'ParseTransaction', 'ParseTransfer', 'ParseLedgerEntry' ];
+    'SafeOrder', 'SafeTicker', 'SafeLedgerEntry', 'ParseOrder', 'ParseTicker', 'ParseTransaction', 'ParseTransfer', 'ParseLedgerEntry',
+    'SafeMarketStructure', 'SafeCurrencyStructure', 'SafeOpenInterest', 'ParseCurrency', 'ParseOpenInterest' ];
 
 // Structure parsers retyped to `map[string]any` on the base, every override and IDerivedExchange; the
 // venue-only sub-parsers are the ones a retyped parser returns (kucoin/phemex dispatch).
 function goProvenParseMapMethods (): string[] {
     return [ 'SafeOrder', 'SafeTicker', 'SafeLedgerEntry', 'ParseOrder', 'ParseTicker', 'ParseTransaction', 'ParseTransfer', 'ParseLedgerEntry',
-        'ParseContractTicker', 'ParseUtaOrder', 'ParseContractOrder', 'ParseSpotOrder', 'ParseSwapOrder' ];
+        'ParseContractTicker', 'ParseUtaOrder', 'ParseContractOrder', 'ParseSpotOrder', 'ParseSwapOrder',
+        'SafeMarketStructure', 'SafeCurrencyStructure', 'SafeOpenInterest', 'ParseCurrency', 'ParseOpenInterest' ];
 }
 
 // function-level `return` expressions of a Go body (func literal bodies skipped); undefined when unscannable
@@ -3802,13 +3804,14 @@ export function retypeGoProvenParseMethods (content: string): string {
                 continue;
             }
             const local = /^\w+$/.test (expr) ? expr : undefined;
-            const declRe = (local === undefined) ? undefined : new RegExp ('\\n\\tvar ' + local + ' (?:any|map\\[string\\]any) = ([^\\n]*)');
+            const declRe = (local === undefined) ? undefined : new RegExp ('\\n(\\t+)var ' + local + ' (?:any|map\\[string\\]any) = ([^\\n]*)');
             const decl = (declRe === undefined) ? null : declRe.exec (newBody);
             const writes = (local === undefined) ? [] : (newBody.match (new RegExp ('(^|[^\\w.])' + local + '(\\s*[-+*/]?=[^=]|\\s*:=|\\s*,[^\\n]*?=)', 'gm')) || []);
-            if ((decl === null) || !(decl[1].startsWith ('map[string]any{') || provenCall.test (decl[1])) || (writes.length !== 0)) {
+            const declCount = (local === undefined) ? 0 : (newBody.match (new RegExp ('\\bvar ' + local + '\\b', 'g')) || []).length;
+            if ((decl === null) || (declCount !== 1) || !(decl[2].startsWith ('map[string]any{') || provenCall.test (decl[2])) || (writes.length !== 0)) {
                 throw new Error ('retypeGoProvenParseMethods: ' + where + ' returns unproven `' + expr.split ('\n')[0] + '`');
             }
-            newBody = newBody.replace (declRe, '\n\tvar ' + local + ' map[string]any = $1');
+            newBody = newBody.replace (declRe, '\n$1var ' + local + ' map[string]any = $2');
         }
         out += content.substring (cursor, m.index) + m[0].replace (/ any \{\n$/, ' map[string]any {') + newBody;
         cursor = close + 1;
@@ -3829,6 +3832,7 @@ function goProvenParseSelfTest (): string[] {
     ok (throws (fn ('ParseOrder', '\tvar r any = this.SafeOrder(order)\n\tr = nil\n\treturn r\n')), 'reassigned local rejected');
     ok (throws (fn ('ParseOrder', '\treturn this.SafeString(order, "x")\n')), 'other call rejected');
     ok (throws (fn ('ParseTicker', '\t_ = 1\n')), 'no return no panic rejected');
+    ok (throws (fn ('ParseOrder', '\tif a {\n\t\tvar r any = this.SafeOrder(order)\n\t\t_ = r\n\t}\n\tvar r any = this.SafeString(order, "x")\n\treturn r\n')), 'shadowed local rejected');
     ok (retypeGoProvenParseMethods (fn ('ParseTrade', '\treturn nil\n')).includes (') any {'), 'other method untouched');
     return problems;
 }
