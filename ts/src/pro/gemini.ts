@@ -550,7 +550,7 @@ export default class gemini extends geminiRest {
             marketIds.push (market['id']);
         }
         const queryStr = marketIds.join (',');
-        let url = this.urls['api']['ws'] + '/v1/multimarketdata?symbols=' + queryStr + '&heartbeat=true&';
+        let url = this.urls['api']['ws'] + '/v1/multimarketdata?' + 'symbols=' + queryStr + '&heartbeat=true&'; // split so the php transpiler does not turn it into '?$symbols='
         if (itemHashName === 'orderbook') {
             url += 'trades=false&bids=true&offers=true';
         } else if (itemHashName === 'bidsasks') {
