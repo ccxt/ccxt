@@ -2673,6 +2673,7 @@ function formatGoSource (filePath: string, content: string): string {
     content = nativeAsyncTupleHolderReads (content);
     content = nativeTypedContainerAccess (g10kAddElemRetypeMapLocals (content));
     content = h2kG13NativeKeysAndRemove (content);
+    content = g10kTypepredIsArray (content);
     content = nativeDerefArgMapReads (content);
     content = nativeOrderBookSideReads (content);
     content = nativeEndpointListReceives (content);
@@ -8534,7 +8535,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ());
+        const problems = g10kArithSelfTest ().concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -11055,5 +11056,76 @@ function g10kLenSelfTest (): string[] {
     ok (f ('s []string', '\tfor _, s := range t {\n\t\tn := GetArrayLength(s)\n\t}\n').includes ('GetArrayLength(s)'), 'range rebind keeps helper');
     ok (f ('', '\tvar u int = ccxt.GetLength(client.(ccxt.ClientInterface).GetUrl())\n').includes ('len(client.(ccxt.ClientInterface).GetUrl())'), 'GetUrl string');
     ok (f ('', '\tvar s string = "GetLength(x)"\n').includes ('"GetLength(x)"'), 'string literal untouched');
+    return problems;
+}
+
+// ===== G10K-typepred: IsArray folds on single-write Safe{List,Dict} locals =====
+// SafeList/SafeListN (nil default) hold an array box or nil -> IsArray is `x != nil`;
+// SafeDict (nil or `map[string]any{}` default) never holds an array -> IsArray is false.
+function g10kTypepredWriteCount (fn: string, x: string): number {
+    const w = new RegExp ('(?<![.\\w])' + x + '\\s*(?:,\\s*\\w+\\s*)*:?=(?!=)|,\\s*' + x + '\\s*(?:,\\s*\\w+\\s*)*:?=(?!=)|&' + x + '\\b|\\bfunc\\b[^{\\n]*[(,]\\s*' + x + ' |\\bfor\\b[^{\\n]*\\b' + x + '\\b[^{\\n]*range', 'g');
+    return (fn.match (w) || []).length;
+}
+function g10kTypepredKind (fn: string, x: string): string | undefined {
+    // the var declaration is not matched by the write scan: any match is a second write
+    if (g10kTypepredWriteCount (fn, x) !== 0 || (fn.match (new RegExp ('\\bvar ' + x + '\\b', 'g')) || []).length !== 1) {
+        return undefined;
+    }
+    const m = new RegExp ('\\n\\t*var ' + x + ' any = this\\.(SafeList|SafeListN|SafeDict)\\(([^\\n]*)\\)\\n').exec (fn);
+    if (!m || (m[2].split ('(').length !== m[2].split (')').length)) {
+        return undefined;
+    }
+    const args = goG14Args (m[2]);
+    if (args === undefined) {
+        return undefined;
+    }
+    if (m[1] === 'SafeDict') {
+        return ((args.length === 2) || ((args.length === 3) && (args[2] === 'nil' || args[2] === 'map[string]any{}'))) ? 'dict' : undefined;
+    }
+    return ((args.length === 2) || ((args.length === 3) && (args[2] === 'nil'))) ? 'list' : undefined;
+}
+function goG14Args (s: string): string[] | undefined {
+    const out: string[] = [];
+    let depth = 0, cur = '', inStr = false;
+    for (let i = 0; i < s.length; i++) {
+        const c = s[i];
+        if (inStr) { cur += c; if (c === '\\') { cur += s[++i]; } else if (c === '"') { inStr = false; } continue; }
+        if (c === '"') { inStr = true; } else if ('([{'.includes (c)) { depth++; } else if (')]}'.includes (c)) { if (--depth < 0) { return undefined; } }
+        if (c === ',' && depth === 0) { out.push (cur.trim ()); cur = ''; } else { cur += c; }
+    }
+    out.push (cur.trim ());
+    return (depth === 0 && !inStr) ? out : undefined;
+}
+function g10kTypepredFunc (fn: string): string {
+    const lines = fn.split ('\n');
+    return lines.map ((line) => line.replace (/(!?)(?<![.\w])((?:ccxt\.)?IsArray)\((\w+)\)/g, ((m: string, not: string, _h: string, x: string) => {
+        const kind = g10kTypepredKind (fn, x);
+        if (kind === 'dict') {
+            return not ? 'true' : 'false';
+        }
+        // a nil test of x already on the line would make the fold a redundant compare
+        if ((kind === 'list') && !new RegExp ('\\b' + x + ' [!=]= nil\\b').test (line)) {
+            return '(' + x + (not ? ' == nil)' : ' != nil)');
+        }
+        return m;
+    }) as any)).join ('\n');
+}
+export function g10kTypepredIsArray (content: string): string {
+    if (!/\bIsArray\(/.test (content)) {
+        return content;
+    }
+    return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => g10kTypepredFunc (fn)) as any);
+}
+function g10kTypepredSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, m: string) => { if (!c) { problems.push ('typepred: ' + m); } };
+    const f = (body: string) => g10kTypepredIsArray ('\nfunc (this *X) M(r any) any {\n' + body + '\treturn nil\n}\n');
+    ok (f ('\tvar a any = this.SafeList(r, "x")\n\tif IsArray(a) {\n\t}\n').includes ('if (a != nil) {'), 'SafeList');
+    ok (f ('\tvar a any = this.SafeList(r, "x")\n\tif !IsArray(a) {\n\t}\n').includes ('if (a == nil) {'), '!SafeList');
+    ok (f ('\tvar a any = this.SafeList(r, "x", []any{})\n\tif IsArray(a) {\n\t}\n').includes ('IsArray(a)'), 'defaulted SafeList keeps');
+    ok (f ('\tvar a any = this.SafeList(r, "x")\n\ta = r\n\tif IsArray(a) {\n\t}\n').includes ('IsArray(a)'), 'rewritten keeps');
+    ok (f ('\tvar a any = this.SafeList(r, "x")\n\tif (a != nil) && IsArray(a) {\n\t}\n').includes ('IsArray(a)'), 'guarded keeps');
+    ok (f ('\tvar d any = this.SafeDict(r, "x", map[string]any{})\n\tif ccxt.IsArray(d) {\n\t}\n').includes ('if false {'), 'SafeDict');
+    ok (f ('\tvar d any = this.SafeDict(r, "x", r)\n\tif IsArray(d) {\n\t}\n').includes ('IsArray(d)'), 'SafeDict any default keeps');
     return problems;
 }
