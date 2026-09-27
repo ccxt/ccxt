@@ -2790,7 +2790,6 @@ export default class binance extends Exchange {
                     'Too many requests. Please try again later.': RateLimitExceeded, // {"msg":"Too many requests. Please try again later.","success":false}
                     'This action is disabled on this account.': AccountSuspended, // {"code":-2011,"msg":"This action is disabled on this account."}
                     'Limit orders require GTC for this phase.': BadRequest,
-                    'This order type is not possible in this trading phase.': BadRequest,
                     'This type of sub-account exceeds the maximum number limit': OperationRejected, // {"code":-9000,"msg":"This type of sub-account exceeds the maximum number limit"}
                     'This symbol is restricted for this account.': PermissionDenied,
                     'This symbol is not permitted for this account.': PermissionDenied, // {"code":-2010,"msg":"This symbol is not permitted for this account."}
@@ -2799,6 +2798,7 @@ export default class binance extends Exchange {
                     'has no operation privilege': PermissionDenied,
                     'MAX_POSITION': BadRequest, // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                     'PERCENT_PRICE_BY_SIDE': InvalidOrder, // {"code":-1013,"msg":"Filter failure: PERCENT_PRICE_BY_SIDE"}
+                    'This order type is not possible': BadRequest, // matched broadly: the php transpiler mangles the full message as an exact key
                 },
             },
             'rollingWindowSize': 60000.0,
@@ -6779,7 +6779,8 @@ export default class binance extends Exchange {
         if (code !== undefined) {
             // cancelOrders/createOrders might have a partial success
             const msg = this.safeString (order, 'msg');
-            if ((code !== '200') && !((msg === 'success') || (msg === 'The operation of cancel all open order is done.'))) {
+            const cancelAllOrdersMessage = 'The operation of cancel all open ' + 'order is done.'; // split so the php transpiler does not turn it into 'open $order is done.'
+            if ((code !== '200') && !((msg === 'success') || (msg === cancelAllOrdersMessage))) {
                 return this.safeOrder ({ 'info': order, 'status': 'rejected' }, market);
             }
         }
