@@ -2296,7 +2296,7 @@ export default class coinsph extends Exchange {
             }
             query = this.urlEncodeQuery (query);
             const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
-            url = url + '?' + query + '&signature=' + signature;
+            url = url + '?' + query + '&' + 'signature=' + signature; // split so the php transpiler does not turn it into '&$signature='
             headers = {
                 'X-COINS-APIKEY': this.apiKey,
             };
