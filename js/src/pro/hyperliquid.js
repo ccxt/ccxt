@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import hyperliquidRest from '../hyperliquid.js';
-import { NotSupported, ExchangeError, ArgumentsRequired } from '../base/errors.js';
+import { NotSupported, ExchangeError, ArgumentsRequired, RequestTimeout } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class hyperliquid extends hyperliquidRest {
@@ -52,7 +52,9 @@ export default class hyperliquid extends hyperliquidRest {
                     },
                 },
             },
-            'options': {},
+            'options': {
+                'unsubscribeTimeout': 10000, // ms a watch waits for a pending unsubscribe ack
+            },
             'streaming': {
                 'ping': this.ping,
                 'keepAlive': 20000,
@@ -240,6 +242,7 @@ export default class hyperliquid extends hyperliquidRest {
             },
         };
         const message = this.extend(request, params);
+        await this.waitForPendingUnsubscribe(url, messageHash);
         const orderbook = await this.watch(url, messageHash, message, messageHash);
         return orderbook.limit();
     }
@@ -351,6 +354,7 @@ export default class hyperliquid extends hyperliquidRest {
                 'coin': (market['swap'] === true) ? market['baseName'] : market['id'],
             },
         };
+        await this.waitForPendingUnsubscribe(url, messageHash);
         return await this.watch(url, messageHash, this.extend(request, params), messageHash);
     }
     /**
@@ -418,6 +422,8 @@ export default class hyperliquid extends hyperliquidRest {
             request['subscription']['type'] = 'allMids';
             request['subscription']['dex'] = defaultDex;
         }
+        // unWatchTickers always registers the bare 'unsubscribe:tickers' hash, dex-scoped or not
+        await this.waitForPendingUnsubscribe(url, 'tickers');
         const tickers = await this.watch(url, messageHash, this.extend(request, params), messageHash);
         if (this.newUpdates) {
             return this.filterByArrayTickers(tickers, 'symbol', symbols);
@@ -487,6 +493,8 @@ export default class hyperliquid extends hyperliquidRest {
             throw new ArgumentsRequired(this.id + ' watchMyTrades() requires a user address');
         }
         const subscribeHash = 'subscribe:userFills::' + userAddress.toLowerCase();
+        // unWatchMyTrades registers 'unsubscribe:myTrades', not the per-user dedup hash
+        await this.waitForPendingUnsubscribe(url, 'myTrades');
         const trades = await this.watch(url, messageHash, message, subscribeHash);
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
@@ -687,6 +695,7 @@ export default class hyperliquid extends hyperliquidRest {
             },
         };
         const message = this.extend(request, params);
+        await this.waitForPendingUnsubscribe(url, messageHash);
         const trades = await this.watch(url, messageHash, message, messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
@@ -854,6 +863,7 @@ export default class hyperliquid extends hyperliquidRest {
         };
         const messageHash = 'candles:' + timeframe + ':' + symbol;
         const message = this.extend(request, params);
+        await this.waitForPendingUnsubscribe(url, messageHash);
         const ohlcv = await this.watch(url, messageHash, message, messageHash);
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
@@ -990,6 +1000,10 @@ export default class hyperliquid extends hyperliquidRest {
             'subscription': subscription,
         };
         const message = this.extend(request, params);
+        // the swap topic 'clearinghouseState' is one server subscription shared
+        // with watchPositions, so a pending unWatchPositions delays this watch
+        // too - its ack tears the shared stream down and sweeps both futures
+        await this.waitForPendingUnsubscribe(url, topic);
         return await this.watch(url, messageHash, message, topic);
     }
     /**
@@ -1217,6 +1231,10 @@ export default class hyperliquid extends hyperliquidRest {
             'subscription': subscription,
         };
         const message = this.extend(request, params);
+        // the topic 'clearinghouseState' is one server subscription shared with
+        // the swap watchBalance, so a pending unWatchBalance delays this watch
+        // too - its ack tears the shared stream down and sweeps both futures
+        await this.waitForPendingUnsubscribe(url, topic);
         const client = this.client(url);
         this.setPositionsCache(client, symbols);
         const cache = this.positions;
@@ -1342,6 +1360,8 @@ export default class hyperliquid extends hyperliquidRest {
             throw new ArgumentsRequired(this.id + ' watchOrders() requires a user address');
         }
         const subscribeHash = 'subscribe:orderUpdates::' + userAddress.toLowerCase();
+        // unWatchOrders registers 'unsubscribe:order', not the per-user dedup hash
+        await this.waitForPendingUnsubscribe(url, 'order');
         const orders = await this.watch(url, messageHash, message, subscribeHash);
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
@@ -1499,6 +1519,42 @@ export default class hyperliquid extends hyperliquidRest {
             return true;
         }
         return false;
+    }
+    /**
+     * @method
+     * @name hyperliquid#waitForPendingUnsubscribe
+     * @ignore
+     * @description waits for the acknowledgement of a still-pending unsubscribe request for the same subscription before subscribing again — a watch armed inside that window would never send a subscribe (deduplicated against the stale entry) and its future would be rejected by the pending ack, see https://github.com/ccxt/ccxt/issues/30419
+     * @param {string} url the websocket endpoint the subscription lives on
+     * @param {string} subHash the subscription hash the watch call is about to register
+     * @returns {any} resolves once no unsubscribe request is pending for the subscription, or after options.unsubscribeTimeout ms
+     */
+    async waitForPendingUnsubscribe(url, subHash) {
+        if (url in this.clients) {
+            const client = this.client(url);
+            const unsubHash = 'unsubscribe:' + subHash;
+            if (unsubHash in client.subscriptions) {
+                // share the unWatch caller's future; a lost ack is timed out so the watch cannot hang
+                const timeout = this.safeInteger(this.options, 'unsubscribeTimeout', 10000);
+                this.delay(timeout, this.expirePendingUnsubscribe, client, subHash, unsubHash);
+                try {
+                    await client.future(unsubHash);
+                }
+                catch (e) {
+                    if (!(e instanceof RequestTimeout)) {
+                        throw e;
+                    }
+                }
+            }
+        }
+        return undefined;
+    }
+    async expirePendingUnsubscribe(client, subHash, unsubHash) {
+        if (unsubHash in client.subscriptions) {
+            const error = new RequestTimeout(this.id + ' unsubscribe ' + subHash + ' was not acknowledged');
+            client.reject(error, unsubHash);
+            this.cleanUnsubscription(client, subHash, unsubHash);
+        }
     }
     handleOrderBookUnsubscription(client, subscription) {
         //
@@ -1670,7 +1726,7 @@ export default class hyperliquid extends hyperliquidRest {
             else if (type === 'userFills') {
                 this.handleMyTradesUnsubscription(client, subscription);
             }
-            else if (type === 'clearinghoustState') {
+            else if (type === 'clearinghouseState') {
                 this.handlePositionsUnsubscription(client, subscription);
             }
             else if (type === 'spotState') {

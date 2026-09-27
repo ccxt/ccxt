@@ -6,6 +6,7 @@ var sha2_js = require('@noble/hashes/sha2.js');
 var weex$1 = require('../weex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
+var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -343,7 +344,8 @@ class weex extends weex$1["default"] {
             'last': close,
             'previousClose': this.safeString(ticker, 'x'),
             'change': this.safeString(ticker, 'p'),
-            'percentage': this.safeString(ticker, 'P'),
+            // The live spot and contract streams report P as a relative change.
+            'percentage': Precise["default"].stringMul(this.safeString(ticker, 'P'), '100'),
             'average': this.safeString(ticker, 'w'),
             'baseVolume': this.safeString(ticker, 'v'),
             'quoteVolume': this.safeString(ticker, 'q'),
