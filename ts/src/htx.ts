@@ -6199,13 +6199,14 @@ export default class htx extends Exchange {
                 'status': 'canceled',
             }));
         }
+        const clientOrderIdKey = 'client-' + 'order-id'; // split so the php transpiler does not turn it into 'client-$order-id'
         for (let i = 0; i < failed.length; i++) {
             const order = failed[i];
             result.push (this.safeOrder ({
                 'info': order,
                 'id': this.safeString2 (order, 'order-id', 'order_id'),
                 'status': 'failed',
-                'clientOrderId': this.safeString (order, 'client-order-id'),
+                'clientOrderId': this.safeString (order, clientOrderIdKey),
             }));
         }
         return result;
