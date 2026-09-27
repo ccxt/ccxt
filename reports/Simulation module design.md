@@ -8,6 +8,7 @@ Background research: [Trading simulation design research.md](./Trading%20simulat
 - **Core:** an in-process simulated exchange (`ccxt.sim.<exchange>`) that implements the same unified methods as the real exchange class, driven by a **virtual clock and event queue** that the simulator owns.
 - **One matching engine, three modes:** backtest, paper and live differ only in the data source and the clock. The matcher that decides fills is the same in backtest and paper.
 - **Pluggable data sources:** the simulator doesn't care where history comes from — ccxt's own backfill, the user's ccxt.pro recordings, exchange bulk dumps, or vendor data such as a user's own **Tardis.dev** subscription.
+- **Strategy and runner on top:** an optional, thin `ccxt.Strategy` contract plus a `ccxt.run()` runner. The runner executes one strategy unchanged in backtest, paper, sandbox and live, with guardrails, saved state and a journal. It supports a create → test → optimize → deploy → monitor → re-optimize loop that a developer or an AI agent can drive (see §10).
 - **Server is optional and last:** a hosted/lockstep server is a thin façade over the same core. A public CCXT-hosted archive of raw exchange data is legally blocked without licences (see §7).
 
 ## 2. Backtest vs paper vs live
@@ -200,7 +201,147 @@ ccxt data record binance BTC/USDT --types trades,l2                             
 ccxt data info ./data                                                              # ranges, gaps, hashes
 ```
 
-## 10. Phases
+## 10. Strategy, runner and the development loop
+
+### 10.1 Should ccxt have a Strategy class?
+
+Yes, but as a **thin, optional contract, not a framework**. ccxt's value is being the exchange layer; it should not grow into Freqtrade (dataframe conventions, built-in indicators, Telegram bots). Two levels:
+
+1. **Function strategy (always supported):** any `async (exchange, ctx) => {}` that uses the unified API. This is maximum freedom and what the earlier examples use.
+2. **`ccxt.Strategy` class (opt-in):** the same code plus a few declarations that the tooling can read.
+
+The class earns its place because the declarations unlock features a plain function can't give:
+
+| Declaration | What it unlocks |
+|---|---|
+| `markets` / `subscriptions` (symbols, timeframes, data types) | The runner fetches or checks the dataset automatically in backtest, and opens the right `watch*` streams live |
+| `params` with types and ranges | The optimizer knows what to sweep; agents can read and change them without editing code |
+| `state` that can be serialised | Restart after a crash, resume after a deploy, and `snapshot()`/`restore()` in simulation |
+| `risk` limits | Enforced by the runner, not by strategy code |
+| Lifecycle hooks | One place for startup reconciliation and graceful shutdown |
+
+```ts
+import ccxt, { Strategy } from 'ccxt';
+
+export default class SmaCross extends Strategy {
+    static id = 'sma-cross';
+    static version = '1.3.0';
+    static params = {
+        symbol: { type: 'symbol', default: 'BTC/USDT' },
+        fast:   { type: 'int', default: 10, range: [ 5, 50 ] },
+        slow:   { type: 'int', default: 50, range: [ 20, 300 ] },
+        riskPct:{ type: 'float', default: 0.95, range: [ 0.1, 1 ] },
+    };
+    subscriptions () {
+        return [ { symbol: this.p.symbol, type: 'ohlcv', timeframe: '1h', history: this.p.slow } ];
+    }
+    async onStart (ctx) {                       // live: reconcile with open orders/positions on the exchange
+        await ctx.reconcile ();
+    }
+    async onCandle (ctx, symbol, candles) {     // called when a candle closes, in every mode
+        const closes = candles.map ((c) => c[4]);
+        const fast = ctx.ta.sma (closes, this.p.fast), slow = ctx.ta.sma (closes, this.p.slow);
+        const pos = ctx.position (symbol);
+        if (fast > slow && pos.isFlat) {
+            await ctx.exchange.createOrder (symbol, 'market', 'buy', ctx.sizeFor (symbol, this.p.riskPct));
+        } else if (fast < slow && !pos.isFlat) {
+            await ctx.exchange.createOrder (symbol, 'market', 'sell', pos.amount);
+        }
+    }
+    async onOrderUpdate (ctx, order) {}          // from watchOrders live, from the matcher in simulation
+    async onStop (ctx) {                        // shutdown policy is a runner option (keep, cancel, flatten)
+    }
+}
+```
+
+`ctx.exchange` is a normal ccxt exchange object (real or simulated), so nothing inside the class is special. The hooks are sugar over `watch*` loops. `ctx.ta` is a tiny optional helper; users can bring any indicator library.
+
+### 10.2 One runner for every mode
+
+Name it `run`, not `execute`. The same call is used everywhere; only `mode` changes:
+
+```ts
+const result = await ccxt.run (SmaCross, {
+    mode: 'backtest',                 // 'backtest' | 'paper' | 'sandbox' | 'live'
+    exchange: 'binance',
+    params: { fast: 12, slow: 60 },
+    data: ccxt.data.local ('./data'), // backtest only; missing ranges can be backfilled automatically
+    from: '2024-01-01', to: '2024-06-01',
+    balance: { USDT: 10_000 },        // backtest and paper
+    account: 'binance-main',          // sandbox and live: a named account from the local config, never raw keys
+    risk: { maxOrderValue: 500, maxPositionValue: 2_000, maxDailyLoss: 200, maxOpenOrders: 10 },
+});
+```
+
+| Mode | Exchange object | Purpose |
+|---|---|---|
+| `backtest` | `ccxt.sim.<id>` + historical data | Performance on the past, fast, deterministic |
+| `paper` | `ccxt.sim.<id>` + live data | Performance now, zero risk |
+| `sandbox` | real class with `setSandboxMode(true)` | **Integration test**: do the exchange's order types, params and error codes behave as the strategy expects? Not a performance measure (testnet books are unrealistic) |
+| `live` | real class | Real money |
+
+What the runner owns, so strategy code doesn't have to:
+
+- **Guardrails, enforced outside the strategy:** per-order and per-position notional caps, daily loss limit, max open orders, allowed symbols, and a kill switch that cancels orders and optionally flattens positions. The live tier must be switched on in local config, never from code or an agent conversation. This reuses the safety model already in the ccxt MCP server (config-only tiers, `"trading": "live"` plus `maxOrderValue`, confirmation, journal).
+- **Reliability:** reconnects, rate limits, clock-drift checks, and startup reconciliation (open orders and positions on the exchange versus saved state).
+- **State and journal:** strategy state saved on every change. An append-only journal of every signal, order, fill, error and parameter change, in the **same schema as a backtest report**, so live and simulated runs can be compared line by line.
+- **Recording:** a live or paper run can record its own market data (§5.2), which feeds the loop below.
+- **Observability:** a status endpoint and metrics (PnL, exposure, latency, errors); `--json` output everywhere.
+
+Deployment is plain: `ccxt strategy run ./sma-cross.ts --mode live --account binance-main`, a small Docker image, or any process manager. A hosted runner is a possible later offering (phase 5).
+
+### 10.3 The ideal workflow
+
+```
+ create ──► backtest ──► optimize (walk-forward) ──► paper ──► sandbox check ──► live (small) ──► live (full)
+   ▲                                                                                 │
+   └──── re-optimize ◄── compare live vs replay ◄── record data + journal ◄──────────┘
+```
+
+Each arrow is a **promotion gate** with explicit criteria, checked by the tooling rather than by eye:
+
+| Gate | Example criteria |
+|---|---|
+| backtest → optimize | Minimum number of trades; profitable after fees and funding; no look-ahead warnings |
+| optimize → paper | Out-of-sample (walk-forward) results close to in-sample; deflated Sharpe above a threshold given the number of trials tried |
+| paper → live small | N days of paper; paper results within tolerance of a backtest of the same period (replay-paper); no runner errors |
+| sandbox check | Every order type and param the strategy uses is accepted by the exchange |
+| live small → live full | Live fills within tolerance of the simulator's prediction for the same period; drawdown within limits |
+
+Every run produces a **run manifest**: strategy id and version, code hash, params, dataset hash, fill and latency models, and seed. Results are only compared between runs whose manifests are known, which makes the loop auditable.
+
+### 10.4 The continuous loop in production
+
+1. **Record.** The live runner records market data and journals its own orders and fills.
+2. **Reconcile.** Nightly, replay the recorded day through the simulator with the live parameters and compare with the live journal. The difference measures the simulator's error, and it is used to **calibrate** latency and slippage models for that exchange. A growing gap is an alert in itself.
+3. **Re-optimize.** On a rolling window (walk-forward), produce a *challenger* parameter set. A locked hold-out period is never used for tuning.
+4. **Challenge.** Run the challenger in paper mode alongside the live *champion* on the same live data.
+5. **Promote or reject.** Promote only if it beats the champion by a margin that survives the multiple-testing correction, with a minimum sample size. Promotion is a versioned parameter change, hot-reloaded by the runner, with one-command rollback.
+6. **Guardrails never change in the loop.** Risk limits and the live tier are set by a human in config.
+
+### 10.5 Making it work for AI agents
+
+An agent is fast at generating strategies and parameter sets, which also makes it a very efficient overfitting machine. The tooling should make the right thing easy and the dangerous thing impossible:
+
+- **Everything scriptable and machine-readable:** CLI with `--json`, stable report and journal schemas, and error messages that say which gate failed and why.
+- **MCP tools** on the existing ccxt MCP server: `strategy_validate`, `backtest_run`, `optimize_run`, `paper_start`, `paper_status`, `run_compare`, `promote_request`, `live_status`, `kill_switch`. `promote_request` to live **creates a request for a human to approve**; there is no tool that turns on live trading.
+- **Overfitting controls:** the optimizer counts every trial an agent runs against a dataset and reports deflated Sharpe; hold-out data is locked and only usable once per candidate; reports state "N trials tried" prominently.
+- **Budgets:** limits on trials, compute and paper-trading slots per agent.
+- **Scaffolding:** `ccxt strategy new <name>` creates a strategy file, a test and a config; strategies can have unit tests using the simulator's clock control and injected events (outages, disconnects), which is where agents are good at writing coverage.
+
+A typical agent session:
+
+```bash
+ccxt strategy new mean-reversion --template onCandle
+ccxt data backfill binance ETH/USDT --types ohlcv:1m,funding --from 2022-01-01 --json
+ccxt strategy backtest ./mean-reversion.ts --exchange binance --from 2022-01-01 --to 2025-01-01 --json
+ccxt strategy optimize ./mean-reversion.ts --walk-forward train=180d,test=30d --trials 200 --json
+ccxt strategy paper ./mean-reversion.ts --params best.json --days 14 --record --json
+ccxt strategy compare paper-run-17 --against replay --json      # paper vs simulator on the same period
+ccxt strategy promote paper-run-17 --to live --max-order-value 100   # → waits for human approval
+```
+
+## 11. Phases
 
 | Phase | Deliverable |
 |---|---|
@@ -209,12 +350,18 @@ ccxt data info ./data                                                           
 | 2. Backtest (bars + trades) | `ccxt.sim.<exchange>` with bar/trade fill models, ledger, fees, funding, tiered liquidation, time frontier, control API, reports |
 | 3. Paper + replay-paper | Same simulator on live `watch*` feeds, and on recordings |
 | 4. L2 + Tardis | Raw-frame replay into `handleMessage` (recordings and Tardis raw); Tardis CSV converter; L2 matcher, queue and latency models |
-| 5. Premium | Walk-forward, sweeps, purged CV, deflated Sharpe; optional hosted/lockstep server; vendor partnerships |
+| 5. Strategy + runner | `ccxt.Strategy` contract, `ccxt.run()` for all four modes, guardrails, state and journal, run manifests, `ccxt strategy` CLI |
+| 6. Loop + agents | Walk-forward, sweeps, purged CV, deflated Sharpe; promotion gates; live-vs-replay reconciliation and model calibration; champion/challenger; MCP tools with human-approved promotion |
+| 7. Premium | Optional hosted runner and lockstep server; vendor partnerships |
 
-## 11. Open questions
+Phase 5 can start as soon as phase 2 exists: a runner over backtest and live alone is already useful.
+
+## 12. Open questions
 
 1. Scope: new core module vs a separate `ccxt-sim` package first.
 2. Tardis redistribution terms and appetite for a partnership (§7).
 3. Old-format raw frames: keep versioned parsers, or rely on Tardis normalized data for older periods?
 4. Which exchange-specific `params` (post-only, reduce-only, TP/SL attached orders) the simulator supports in v1.
 5. Storage format per language (Parquet support is uneven in PHP).
+6. Should `ccxt.Strategy` and the runner live in every language, or start in TypeScript and Python only? The simulator core transpiles, but a long-running runner is more runtime-specific.
+7. Who owns the promotion gates' default thresholds, and should they be per strategy?
