@@ -370,18 +370,22 @@ func (this *Hollaex) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Hollaex) FetchMarketsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+func (this *Hollaex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = (<-this.PublicGetConstants(params)).Checked()
+	r := <-this.PublicGetConstants(params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var response map[string]any = r.Value
 	//
 	//     {
 	//         "coins": {
@@ -493,7 +497,7 @@ func (this *Hollaex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		})
 	}
 
-	ch <- result
+	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
 
@@ -505,18 +509,22 @@ func (this *Hollaex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Hollaex) FetchCurrenciesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
+func (this *Hollaex) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = (<-this.PublicGetConstants(params)).Checked()
+	r := <-this.PublicGetConstants(params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var response map[string]any = r.Value
 	//
 	//    {
 	//        "coins": {
@@ -586,7 +594,7 @@ func (this *Hollaex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var coins map[string]any = SafeMapTyped(response, "coins")
 	var values []any = ObjectValues(coins)
 
-	ch <- this.ParseCurrencies(values)
+	ch <- AsyncResult[any]{Value: this.ParseCurrencies(values)}
 	return nil
 }
 func (this *Hollaex) ParseCurrency(rawCurrency any) any {
@@ -682,10 +690,17 @@ func (this *Hollaex) fetchOrderBooksBody(ch chan EndpointResult[map[string]any],
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	var response map[string]any = (<-this.PublicGetOrderbooks(params)).Checked()
+	r1 := <-this.PublicGetOrderbooks(params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	var result map[string]any = map[string]any{}
 	var marketIds []string = nil
 	if response != nil {
@@ -716,12 +731,12 @@ func (this *Hollaex) fetchOrderBooksBody(ch chan EndpointResult[map[string]any],
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Hollaex) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Hollaex) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -730,14 +745,21 @@ func (this *Hollaex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderbook(this.Extend(request, params))).Raw))
+	r1 := <-this.PublicGetOrderbook(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = MapTyped(r1.Raw)
 	//
 	//     {
 	//         "btc-usdt": {
@@ -760,7 +782,7 @@ func (this *Hollaex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 	var orderbook map[string]any = SafeMapTyped(response, market["id"])
 	var timestamp *int64 = this.Parse8601(this.SafeString(orderbook, "timestamp"))
 
-	ch <- this.ParseOrderBook(orderbook, market["symbol"], timestamp)
+	ch <- AsyncResult[any]{Value: this.ParseOrderBook(orderbook, market["symbol"], timestamp)}
 	return nil
 }
 
@@ -773,26 +795,33 @@ func (this *Hollaex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Hollaex) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Hollaex) fetchTickerBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTicker(this.Extend(request, params))).Raw))
+	r1 := <-this.PublicGetTicker(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = MapTyped(r1.Raw)
 
 	//
 	//     {
@@ -805,7 +834,7 @@ func (this *Hollaex) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 	//         "timestamp": "2020-03-03T03:11:18.965Z"
 	//     }
 	//
-	ch <- this.ParseTicker(response, market)
+	ch <- AsyncResult[any]{Value: this.ParseTicker(response, market)}
 	return nil
 }
 
@@ -818,12 +847,12 @@ func (this *Hollaex) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Hollaex) FetchTickersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
+func (this *Hollaex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -832,11 +861,18 @@ func (this *Hollaex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickers(params)).Raw))
+	r1 := <-this.PublicGetTickers(params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = MapTyped(r1.Raw)
 
 	//
 	//     {
@@ -853,7 +889,7 @@ func (this *Hollaex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//         // ...
 	//     }
 	//
-	ch <- this.ParseTickers(response, symbolsNormalized)
+	ch <- AsyncResult[any]{Value: this.ParseTickers(response, symbolsNormalized)}
 	return nil
 }
 func (this *Hollaex) ParseTickers(tickers any, optionalArgs ...any) any {
@@ -942,12 +978,12 @@ func (this *Hollaex) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Hollaex) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Hollaex) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -958,14 +994,21 @@ func (this *Hollaex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTrades(this.Extend(request, params))).Raw))
+	r1 := <-this.PublicGetTrades(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = MapTyped(r1.Raw)
 	//
 	//     {
 	//         "btc-usdt": [
@@ -981,7 +1024,7 @@ func (this *Hollaex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	//
 	var trades []any = SafeListTypedDefault(response, market["id"], []any{})
 
-	ch <- this.ParseTrades(trades, market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseTrades(trades, market, since, limit)}
 	return nil
 }
 func (this *Hollaex) ParseTrade(trade any, optionalArgs ...any) any {
@@ -1052,22 +1095,29 @@ func (this *Hollaex) ParseTrade(trade any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *Hollaex) FetchTradingFeesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTradingFeesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
+func (this *Hollaex) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	var response map[string]any = (<-this.PublicGetTiers(params)).Checked()
+	r1 := <-this.PublicGetTiers(params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "1": {
@@ -1116,7 +1166,7 @@ func (this *Hollaex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		})
 	}
 
-	ch <- result
+	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
 
@@ -1133,12 +1183,12 @@ func (this *Hollaex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Hollaex) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Hollaex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1151,7 +1201,10 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1165,11 +1218,15 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	var paramsPaginate map[string]any = MapTyped(paginateOptionparamsPaginateVariable[1])
 	if EvalTruthy(paginateOption) {
 
-		var retRes95219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit))))
+		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var retRes95219 []any = ListTyped(r1.Value)
 		if retRes95219 == nil {
-			ch <- nil
+			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- retRes95219
+			ch <- AsyncResult[any]{Value: retRes95219}
 		}
 		return nil
 	}
@@ -1187,8 +1244,10 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	request["to"] = this.ParseToInt(Divide(until, 1000))   // convert to seconds
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, "until")
 
-	listEp1189 := (<-this.PublicGetChart(this.Extend(request, paramsOmitted)))
-	PanicOnError(listEp1189.Raw)
+	listEp1189 := <-this.PublicGetChart(this.Extend(request, paramsOmitted))
+	if listEp1189.Err != nil {
+		panic(listEp1189.Err)
+	}
 	var response []any = listEp1189.Value
 
 	//
@@ -1204,7 +1263,7 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	//         },
 	//     ]
 	//
-	ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)}
 	return nil
 }
 func (this *Hollaex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -1256,22 +1315,29 @@ func (this *Hollaex) ParseBalance(response any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Hollaex) FetchBalanceAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+func (this *Hollaex) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	var response map[string]any = (<-this.PrivateGetUserBalance(params)).Checked()
+	r1 := <-this.PrivateGetUserBalance(params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -1285,7 +1351,7 @@ func (this *Hollaex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//         // ...
 	//     }
 	//
-	ch <- this.ParseBalance(response)
+	ch <- AsyncResult[any]{Value: this.ParseBalance(response)}
 	return nil
 }
 
@@ -1299,12 +1365,12 @@ func (this *Hollaex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hollaex) FetchOpenOrderAsync(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) FetchOpenOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOpenOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Hollaex) fetchOpenOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1313,13 +1379,20 @@ func (this *Hollaex) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
 
-	var response map[string]any = (<-this.PrivateGetOrder(this.Extend(request, params))).Checked()
+	r1 := <-this.PrivateGetOrder(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -1345,7 +1418,7 @@ func (this *Hollaex) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any
 	//         }
 	//     }
 	//
-	ch <- this.ParseOrder(response)
+	ch <- AsyncResult[any]{Value: this.ParseOrder(response)}
 	return nil
 }
 
@@ -1360,12 +1433,12 @@ func (this *Hollaex) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hollaex) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Hollaex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1380,11 +1453,15 @@ func (this *Hollaex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"open": true,
 	}
 
-	var retRes111915 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	r := <-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params))
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var retRes111915 []any = ListTyped(r.Value)
 	if retRes111915 == nil {
-		ch <- nil
+		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- retRes111915
+		ch <- AsyncResult[any]{Value: retRes111915}
 	}
 	return nil
 }
@@ -1400,12 +1477,12 @@ func (this *Hollaex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hollaex) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) FetchClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Hollaex) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1420,11 +1497,15 @@ func (this *Hollaex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		"open": false,
 	}
 
-	var retRes113715 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	r := <-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params))
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var retRes113715 []any = ListTyped(r.Value)
 	if retRes113715 == nil {
-		ch <- nil
+		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- retRes113715
+		ch <- AsyncResult[any]{Value: retRes113715}
 	}
 	return nil
 }
@@ -1439,12 +1520,12 @@ func (this *Hollaex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hollaex) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Hollaex) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1453,14 +1534,20 @@ func (this *Hollaex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
 
-	response := (<-this.PrivateGetOrder(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	r1 := <-this.PrivateGetOrder(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	response := r1.Raw
 	//             {
 	//                 "id": "string",
 	//                 "side": "sell",
@@ -1488,7 +1575,7 @@ func (this *Hollaex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		panic(OrderNotFound(Add(this.Id+" fetchOrder() could not find order id ", id)))
 	}
 
-	ch <- this.ParseOrder(order)
+	ch <- AsyncResult[any]{Value: this.ParseOrder(order)}
 	return nil
 }
 
@@ -1503,12 +1590,12 @@ func (this *Hollaex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hollaex) FetchOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Hollaex) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1521,7 +1608,10 @@ func (this *Hollaex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
@@ -1536,7 +1626,11 @@ func (this *Hollaex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit // default 50, max 100
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrders(this.Extend(request, params))).Raw))
+	r1 := <-this.PrivateGetOrders(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = MapTyped(r1.Raw)
 	//
 	//     {
 	//         "count": 1,
@@ -1568,7 +1662,7 @@ func (this *Hollaex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- this.ParseOrders(data, market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseOrders(data, market, since, limit)}
 	return nil
 }
 func (this *Hollaex) ParseOrderStatus(status *string) *string {
@@ -1663,12 +1757,12 @@ func (this *Hollaex) ParseOrder(order any, optionalArgs ...any) any {
  * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hollaex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Hollaex) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1677,7 +1771,10 @@ func (this *Hollaex) createOrderBody(ch chan any, symbol string, typeVar string,
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1704,7 +1801,11 @@ func (this *Hollaex) createOrderBody(ch chan any, symbol string, typeVar string,
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"})
 
-	var response map[string]any = (<-this.PrivatePostOrder(this.Extend(request, paramsOmitted))).Checked()
+	r1 := <-this.PrivatePostOrder(this.Extend(request, paramsOmitted))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -1729,7 +1830,7 @@ func (this *Hollaex) createOrderBody(ch chan any, symbol string, typeVar string,
 	//         "stop": null
 	//     }
 	//
-	ch <- this.ParseOrder(response, market)
+	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 
@@ -1743,12 +1844,12 @@ func (this *Hollaex) createOrderBody(ch chan any, symbol string, typeVar string,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hollaex) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Hollaex) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1757,13 +1858,20 @@ func (this *Hollaex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
 
-	var response map[string]any = (<-this.PrivateDeleteOrder(this.Extend(request, params))).Checked()
+	r1 := <-this.PrivateDeleteOrder(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -1778,7 +1886,7 @@ func (this *Hollaex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	//         "filled": 0
 	//     }
 	//
-	ch <- this.ParseOrder(response)
+	ch <- AsyncResult[any]{Value: this.ParseOrder(response)}
 	return nil
 }
 
@@ -1791,12 +1899,12 @@ func (this *Hollaex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hollaex) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Hollaex) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1808,15 +1916,20 @@ func (this *Hollaex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	market = this.Market(symbol)
 	request["symbol"] = market["id"]
 
-	listEp1815 := (<-this.PrivateDeleteOrderAll(this.Extend(request, params)))
-	PanicOnError(listEp1815.Raw)
+	listEp1815 := <-this.PrivateDeleteOrderAll(this.Extend(request, params))
+	if listEp1815.Err != nil {
+		panic(listEp1815.Err)
+	}
 	var response []any = listEp1815.Value
 
 	//
@@ -1834,7 +1947,7 @@ func (this *Hollaex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	ch <- this.ParseOrders(response, market)
+	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market)}
 	return nil
 }
 
@@ -1849,12 +1962,12 @@ func (this *Hollaex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Hollaex) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+func (this *Hollaex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1867,7 +1980,10 @@ func (this *Hollaex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
@@ -1882,7 +1998,11 @@ func (this *Hollaex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["start_date"] = this.Iso8601(since)
 	}
 
-	var response map[string]any = (<-this.PrivateGetUserTrades(this.Extend(request, params))).Checked()
+	r1 := <-this.PrivateGetUserTrades(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "count": 1,
@@ -1900,7 +2020,7 @@ func (this *Hollaex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- this.ParseTrades(data, market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseTrades(data, market, since, limit)}
 	return nil
 }
 func (this *Hollaex) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
@@ -1945,12 +2065,12 @@ func (this *Hollaex) ParseDepositAddress(depositAddress any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Hollaex) FetchDepositAddressesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) FetchDepositAddressesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchDepositAddressesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchDepositAddressesBody(ch chan any, optionalArgs ...any) any {
+func (this *Hollaex) fetchDepositAddressesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1959,12 +2079,19 @@ func (this *Hollaex) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var network *string = this.SafeString(params, "network")
 	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 
-	var response map[string]any = (<-this.PrivateGetUser(paramsOmitted)).Checked()
+	r1 := <-this.PrivateGetUser(paramsOmitted)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "id":620,
@@ -2018,7 +2145,7 @@ func (this *Hollaex) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		addresses = this.FilterBy(wallet, "network", network)
 	}
 
-	ch <- this.ParseDepositAddresses(addresses, codes, false)
+	ch <- AsyncResult[any]{Value: this.ParseDepositAddresses(addresses, codes, false)}
 	return nil
 }
 
@@ -2033,12 +2160,12 @@ func (this *Hollaex) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Hollaex) FetchDepositsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) FetchDepositsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchDepositsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
+func (this *Hollaex) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2051,7 +2178,10 @@ func (this *Hollaex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
@@ -2066,7 +2196,11 @@ func (this *Hollaex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["start_date"] = this.Iso8601(since)
 	}
 
-	var response map[string]any = (<-this.PrivateGetUserDeposits(this.Extend(request, params))).Checked()
+	r1 := <-this.PrivateGetUserDeposits(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "count": 1,
@@ -2092,7 +2226,7 @@ func (this *Hollaex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- this.ParseTransactions(data, currency, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseTransactions(data, currency, since, limit)}
 	return nil
 }
 
@@ -2106,12 +2240,12 @@ func (this *Hollaex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Hollaex) FetchWithdrawalAsync(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) FetchWithdrawalAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchWithdrawalBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Hollaex) fetchWithdrawalBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2120,7 +2254,10 @@ func (this *Hollaex) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var request map[string]any = map[string]any{
 		"transaction_id": id,
@@ -2131,7 +2268,11 @@ func (this *Hollaex) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 		request["currency"] = GetValue(currency, "id")
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserWithdrawals(this.Extend(request, params))).Raw))
+	r1 := <-this.PrivateGetUserWithdrawals(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = MapTyped(r1.Raw)
 	//
 	//     {
 	//         "count": 1,
@@ -2158,7 +2299,7 @@ func (this *Hollaex) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 	var data []any = SafeListTyped(response, "data")
 	var transaction map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- this.ParseTransaction(transaction, currency)
+	ch <- AsyncResult[any]{Value: this.ParseTransaction(transaction, currency)}
 	return nil
 }
 
@@ -2173,12 +2314,12 @@ func (this *Hollaex) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Hollaex) FetchWithdrawalsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) FetchWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchWithdrawalsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
+func (this *Hollaex) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2191,7 +2332,10 @@ func (this *Hollaex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
@@ -2206,7 +2350,11 @@ func (this *Hollaex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		request["start_date"] = this.Iso8601(since)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserWithdrawals(this.Extend(request, params))).Raw))
+	r1 := <-this.PrivateGetUserWithdrawals(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = MapTyped(r1.Raw)
 	//
 	//     {
 	//         "count": 1,
@@ -2232,7 +2380,7 @@ func (this *Hollaex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- this.ParseTransactions(data, currency, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseTransactions(data, currency, since, limit)}
 	return nil
 }
 func (this *Hollaex) ParseTransaction(transaction any, optionalArgs ...any) any {
@@ -2348,12 +2496,12 @@ func (this *Hollaex) ParseTransaction(transaction any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Hollaex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+func (this *Hollaex) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2366,7 +2514,10 @@ func (this *Hollaex) withdrawBody(ch chan any, code string, amount any, address 
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var currency map[string]any = this.Currency(code)
 	var addressWithTag any = address
@@ -2385,7 +2536,11 @@ func (this *Hollaex) withdrawBody(ch chan any, code string, amount any, address 
 		"network":  this.NetworkCodeToId(network, code),
 	}
 
-	var response map[string]any = (<-this.PrivatePostUserWithdrawal(this.Extend(request, paramsOmitted))).Checked()
+	r1 := <-this.PrivatePostUserWithdrawal(this.Extend(request, paramsOmitted))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -2397,7 +2552,7 @@ func (this *Hollaex) withdrawBody(ch chan any, code string, amount any, address 
 	//         "fee_coin": "xht"
 	//     }
 	//
-	ch <- this.ParseTransaction(response, currency)
+	ch <- AsyncResult[any]{Value: this.ParseTransaction(response, currency)}
 	return nil
 }
 func (this *Hollaex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
@@ -2491,12 +2646,12 @@ func (this *Hollaex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Hollaex) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchDepositWithdrawFeesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any) any {
+func (this *Hollaex) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -2504,7 +2659,11 @@ func (this *Hollaex) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...a
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	var response map[string]any = (<-this.PublicGetConstants(params)).Checked()
+	r := <-this.PublicGetConstants(params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var response map[string]any = r.Value
 	//
 	//     {
 	//         "coins":{
@@ -2542,7 +2701,7 @@ func (this *Hollaex) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...a
 	//
 	var coins map[string]any = this.SafeDictMap(response, "coins", map[string]any{})
 
-	ch <- this.ParseDepositWithdrawFees(coins, codes, "symbol")
+	ch <- AsyncResult[any]{Value: this.ParseDepositWithdrawFees(coins, codes, "symbol")}
 	return nil
 }
 func (this *Hollaex) Sign(path string, optionalArgs ...any) any {
@@ -2657,11 +2816,11 @@ func (this *Hollaex) Init(userConfig map[string]any) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Hollaex) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	raw := <-this.FetchMarketsAsync(params...)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchMarketsAsync(params...)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
 	return res, nil
 }
 
@@ -2674,11 +2833,11 @@ func (this *Hollaex) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *Hollaex) FetchCurrencies(params ...any) (Currencies, error) {
-	raw := <-this.FetchCurrenciesAsync(params...)
-	if IsError(raw) {
-		return Currencies{}, CreateReturnError(raw)
+	r := <-this.FetchCurrenciesAsync(params...)
+	if r.Err != nil {
+		return Currencies{}, r.Err
 	}
-	var res Currencies = NewCurrencies(raw)
+	var res Currencies = NewCurrencies(r.Value)
 	return res, nil
 }
 
@@ -2700,8 +2859,8 @@ func (this *Hollaex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBo
 		opt(&opts)
 	}
 	r := <-this.FetchOrderBooksAsync(opts.Symbols, opts.Limit, opts.Params)
-	if IsError(r.Raw) {
-		return OrderBooks{}, CreateReturnError(r.Raw)
+	if r.Err != nil {
+		return OrderBooks{}, r.Err
 	}
 	var res OrderBooks = NewOrderBooks(r.Raw)
 	return res, nil
@@ -2724,11 +2883,11 @@ func (this *Hollaex) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return OrderBook{}, CreateReturnError(raw)
+	r := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return OrderBook{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(raw)
+	var res OrderBook = NewOrderBook(r.Value)
 	return res, nil
 }
 
@@ -2748,11 +2907,11 @@ func (this *Hollaex) FetchTicker(symbol string, options ...FetchTickerOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTickerAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return Ticker{}, CreateReturnError(raw)
+	r := <-this.FetchTickerAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(raw)
+	var res Ticker = NewTicker(r.Value)
 	return res, nil
 }
 
@@ -2772,11 +2931,11 @@ func (this *Hollaex) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return Tickers{}, CreateReturnError(raw)
+	r := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(raw)
+	var res Tickers = NewTickers(r.Value)
 	return res, nil
 }
 
@@ -2798,11 +2957,11 @@ func (this *Hollaex) FetchTrades(symbol string, options ...FetchTradesOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(raw)
+	var res []Trade = NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -2815,11 +2974,11 @@ func (this *Hollaex) FetchTrades(symbol string, options ...FetchTradesOptions) (
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Hollaex) FetchTradingFees(params ...any) (TradingFees, error) {
-	raw := <-this.FetchTradingFeesAsync(params...)
-	if IsError(raw) {
-		return TradingFees{}, CreateReturnError(raw)
+	r := <-this.FetchTradingFeesAsync(params...)
+	if r.Err != nil {
+		return TradingFees{}, r.Err
 	}
-	var res TradingFees = NewTradingFees(raw)
+	var res TradingFees = NewTradingFees(r.Value)
 	return res, nil
 }
 
@@ -2843,11 +3002,11 @@ func (this *Hollaex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(raw)
+	var res []OHLCV = NewOHLCVArray(r.Value)
 	return res, nil
 }
 
@@ -2860,11 +3019,11 @@ func (this *Hollaex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Hollaex) FetchBalance(params ...any) (Balances, error) {
-	raw := <-this.FetchBalanceAsync(params...)
-	if IsError(raw) {
-		return Balances{}, CreateReturnError(raw)
+	r := <-this.FetchBalanceAsync(params...)
+	if r.Err != nil {
+		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(raw)
+	var res Balances = NewBalances(r.Value)
 	return res, nil
 }
 
@@ -2885,11 +3044,11 @@ func (this *Hollaex) FetchOpenOrder(id string, options ...FetchOpenOrderOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOpenOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.FetchOpenOrderAsync(id, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Value)
 	return res, nil
 }
 
@@ -2911,11 +3070,11 @@ func (this *Hollaex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -2937,11 +3096,11 @@ func (this *Hollaex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -2962,11 +3121,11 @@ func (this *Hollaex) FetchOrder(id string, options ...FetchOrderOptions) (Order,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Value)
 	return res, nil
 }
 
@@ -2988,11 +3147,11 @@ func (this *Hollaex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -3018,11 +3177,11 @@ func (this *Hollaex) CreateOrder(symbol string, typeVar string, side string, amo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Value)
 	return res, nil
 }
 
@@ -3043,11 +3202,11 @@ func (this *Hollaex) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Value)
 	return res, nil
 }
 
@@ -3067,11 +3226,11 @@ func (this *Hollaex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CancelAllOrdersAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.CancelAllOrdersAsync(opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -3093,11 +3252,11 @@ func (this *Hollaex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(raw)
+	var res []Trade = NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -3117,11 +3276,11 @@ func (this *Hollaex) FetchDepositAddresses(options ...FetchDepositAddressesOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchDepositAddressesAsync(opts.Codes, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchDepositAddressesAsync(opts.Codes, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []DepositAddress = NewDepositAddressArray(raw)
+	var res []DepositAddress = NewDepositAddressArray(r.Value)
 	return res, nil
 }
 
@@ -3143,11 +3302,11 @@ func (this *Hollaex) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(raw)
+	var res []Transaction = NewTransactionArray(r.Value)
 	return res, nil
 }
 
@@ -3168,11 +3327,11 @@ func (this *Hollaex) FetchWithdrawal(id string, options ...FetchWithdrawalOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchWithdrawalAsync(id, opts.Code, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.FetchWithdrawalAsync(id, opts.Code, opts.Params)
+	if r.Err != nil {
+		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Value)
 	return res, nil
 }
 
@@ -3194,11 +3353,11 @@ func (this *Hollaex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(raw)
+	var res []Transaction = NewTransactionArray(r.Value)
 	return res, nil
 }
 
@@ -3221,11 +3380,11 @@ func (this *Hollaex) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(raw) {
-		return Transaction{}, CreateReturnError(raw)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if r.Err != nil {
+		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(raw)
+	var res Transaction = NewTransaction(r.Value)
 	return res, nil
 }
 
@@ -3245,11 +3404,11 @@ func (this *Hollaex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFee
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchDepositWithdrawFeesAsync(opts.Codes, opts.Params)
-	if IsError(raw) {
-		return DepositWithdrawFees{}, CreateReturnError(raw)
+	r := <-this.FetchDepositWithdrawFeesAsync(opts.Codes, opts.Params)
+	if r.Err != nil {
+		return DepositWithdrawFees{}, r.Err
 	}
-	var res DepositWithdrawFees = NewDepositWithdrawFees(raw)
+	var res DepositWithdrawFees = NewDepositWithdrawFees(r.Value)
 	return res, nil
 }
 

@@ -66,12 +66,12 @@ func (this *Backpack) Describe() any {
 		},
 	})
 }
-func (this *Backpack) WatchPublicAsync(topics any, messageHashes any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) WatchPublicAsync(topics any, messageHashes any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPublicBody(ch, topics, messageHashes, optionalArgs...)
 	return ch
 }
-func (this *Backpack) watchPublicBody(ch chan any, topics any, messageHashes any, optionalArgs ...any) any {
+func (this *Backpack) watchPublicBody(ch chan ccxt.AsyncResult[any], topics any, messageHashes any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -80,7 +80,10 @@ func (this *Backpack) watchPublicBody(ch chan any, topics any, messageHashes any
 	_ = unwatch
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
 	var method string = "SUBSCRIBE"
@@ -98,15 +101,19 @@ func (this *Backpack) watchPublicBody(ch chan any, topics any, messageHashes any
 		return nil
 	}
 
-	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, message, messageHashes)))
+	r1 := <-this.WatchMultiple(url, messageHashes, message, messageHashes)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Backpack) WatchPrivateAsync(topics any, messageHashes any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) WatchPrivateAsync(topics any, messageHashes any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPrivateBody(ch, topics, messageHashes, optionalArgs...)
 	return ch
 }
-func (this *Backpack) watchPrivateBody(ch chan any, topics any, messageHashes any, optionalArgs ...any) any {
+func (this *Backpack) watchPrivateBody(ch chan ccxt.AsyncResult[any], topics any, messageHashes any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -138,7 +145,11 @@ func (this *Backpack) watchPrivateBody(ch chan any, topics any, messageHashes an
 		return nil
 	}
 
-	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, message, messageHashes)))
+	r := <-this.WatchMultiple(url, messageHashes, message, messageHashes)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
 func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message map[string]any) {
@@ -256,26 +267,33 @@ func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Backpack) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Backpack) watchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Backpack) watchTickerBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var topic *string = ccxt.SafeStringPtr(ccxt.Add("ticker"+".", market["id"]))
 	var messageHash string = "ticker" + ":" + *symbolValue
 
-	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync([]any{topic}, []any{messageHash}, params)))
+	r1 := <-this.WatchPublicAsync([]any{topic}, []any{messageHash}, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 
@@ -288,18 +306,22 @@ func (this *Backpack) watchTickerBody(ch chan any, symbol string, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Backpack) UnWatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) UnWatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Backpack) unWatchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Backpack) unWatchTickerBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	ch <- ccxt.PanicOnError((<-this.UnWatchTickersAsync([]any{symbol}, params)))
+	r := <-this.UnWatchTickersAsync([]any{symbol}, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
 
@@ -312,12 +334,12 @@ func (this *Backpack) unWatchTickerBody(ch chan any, symbol string, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Backpack) WatchTickersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) WatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Backpack) watchTickersBody(ch chan any, optionalArgs ...any) any {
+func (this *Backpack) watchTickersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -326,7 +348,10 @@ func (this *Backpack) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var messageHashes []any = []any{}
@@ -338,9 +363,12 @@ func (this *Backpack) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		topics = append(topics, ccxt.Add("ticker.", marketId))
 	}
 
-	ccxt.PanicOnError((<-this.WatchPublicAsync(topics, messageHashes, params)))
+	r1 := <-this.WatchPublicAsync(topics, messageHashes, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 
-	ch <- this.FilterByArray(this.Tickers, "symbol", symbolsNormalized)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterByArray(this.Tickers, "symbol", symbolsNormalized)}
 	return nil
 }
 
@@ -353,12 +381,12 @@ func (this *Backpack) watchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Backpack) UnWatchTickersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) UnWatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Backpack) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
+func (this *Backpack) unWatchTickersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -367,7 +395,10 @@ func (this *Backpack) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var topics []any = []any{}
@@ -379,7 +410,11 @@ func (this *Backpack) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		messageHashes = append(messageHashes, "unsubscribe:ticker:"+symbol)
 	}
 
-	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync(topics, messageHashes, params, true)))
+	r1 := <-this.WatchPublicAsync(topics, messageHashes, params, true)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 func (this *Backpack) HandleTicker(client any, message any) {
@@ -466,12 +501,12 @@ func (this *Backpack) ParseWsTicker(ticker map[string]any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Backpack) WatchBidsAsksAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) WatchBidsAsksAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchBidsAsksBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Backpack) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
+func (this *Backpack) watchBidsAsksBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -480,7 +515,10 @@ func (this *Backpack) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var topics []any = []any{}
@@ -492,9 +530,12 @@ func (this *Backpack) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		messageHashes = append(messageHashes, "bidask:"+symbol)
 	}
 
-	ccxt.PanicOnError((<-this.WatchPublicAsync(topics, messageHashes, params)))
+	r1 := <-this.WatchPublicAsync(topics, messageHashes, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 
-	ch <- this.FilterByArray(this.Bidsasks, "symbol", symbolsNormalized)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterByArray(this.Bidsasks, "symbol", symbolsNormalized)}
 	return nil
 }
 
@@ -506,12 +547,12 @@ func (this *Backpack) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Backpack) UnWatchBidsAsksAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) UnWatchBidsAsksAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchBidsAsksBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Backpack) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
+func (this *Backpack) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -520,7 +561,10 @@ func (this *Backpack) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var topics []any = []any{}
@@ -532,7 +576,11 @@ func (this *Backpack) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any 
 		messageHashes = append(messageHashes, "unsubscribe:bidask:"+symbol)
 	}
 
-	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync(topics, messageHashes, params, true)))
+	r1 := <-this.WatchPublicAsync(topics, messageHashes, params, true)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 func (this *Backpack) HandleBidAsk(client any, message any) {
@@ -609,12 +657,12 @@ func (this *Backpack) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Backpack) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Backpack) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Backpack) watchOHLCVBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -626,9 +674,13 @@ func (this *Backpack) watchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var result map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, since, limit, params))))
+	r := <-this.WatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, since, limit, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var result map[string]any = ccxt.MapTyped(r.Value)
 
-	ch <- ccxt.GetValue(ccxt.GetValue(result, symbol), timeframe)
+	ch <- ccxt.AsyncResult[any]{Value: ccxt.GetValue(ccxt.GetValue(result, symbol), timeframe)}
 	return nil
 }
 
@@ -642,12 +694,12 @@ func (this *Backpack) watchOHLCVBody(ch chan any, symbol string, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Backpack) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Backpack) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Backpack) unWatchOHLCVBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -655,7 +707,11 @@ func (this *Backpack) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	ch <- ccxt.PanicOnError((<-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, params)))
+	r := <-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
 
@@ -670,12 +726,12 @@ func (this *Backpack) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Backpack) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
 }
-func (this *Backpack) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any, optionalArgs ...any) any {
+func (this *Backpack) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[any], symbolsAndTimeframes any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -690,7 +746,10 @@ func (this *Backpack) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes
 	}
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
@@ -703,7 +762,11 @@ func (this *Backpack) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes
 		topics = append(topics, ccxt.Add(ccxt.Add(ccxt.Add("kline.", interval), "."), market["id"]))
 		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("candles:", market["symbol"]), ":"), interval))
 	}
-	symboltimeframecandlesVariable := (<-this.WatchPublicAsync(topics, messageHashes, params))
+	r1 := <-this.WatchPublicAsync(topics, messageHashes, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	symboltimeframecandlesVariable := r1.Value
 	symbol := ccxt.GetValue(symboltimeframecandlesVariable, 0)
 	timeframe := ccxt.GetValue(symboltimeframecandlesVariable, 1)
 	candles := ccxt.GetValue(symboltimeframecandlesVariable, 2)
@@ -713,7 +776,7 @@ func (this *Backpack) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes
 	}
 	var filtered any = this.FilterBySinceLimit(candles, since, limitResolved, 0, true)
 
-	ch <- this.CreateOHLCVObject(symbol, timeframe, filtered)
+	ch <- ccxt.AsyncResult[any]{Value: this.CreateOHLCVObject(symbol, timeframe, filtered)}
 	return nil
 }
 
@@ -726,12 +789,12 @@ func (this *Backpack) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Backpack) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
 }
-func (this *Backpack) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any, optionalArgs ...any) any {
+func (this *Backpack) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[any], symbolsAndTimeframes any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -742,7 +805,10 @@ func (this *Backpack) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimefram
 	}
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
@@ -756,7 +822,11 @@ func (this *Backpack) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimefram
 		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:candles:", market["symbol"]), ":"), interval))
 	}
 
-	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync(topics, messageHashes, params, true)))
+	r1 := <-this.WatchPublicAsync(topics, messageHashes, params, true)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 func (this *Backpack) HandleOHLCV(client any, message any) {
@@ -833,12 +903,12 @@ func (this *Backpack) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Backpack) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Backpack) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Backpack) watchTradesBody(ch chan ccxt.AsyncResult[any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -848,7 +918,11 @@ func (this *Backpack) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
+	r := <-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
 
@@ -861,18 +935,22 @@ func (this *Backpack) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Backpack) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Backpack) unWatchTradesBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Backpack) unWatchTradesBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	ch <- ccxt.PanicOnError((<-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params)))
+	r := <-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
 
@@ -887,12 +965,12 @@ func (this *Backpack) unWatchTradesBody(ch chan any, symbol string, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Backpack) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Backpack) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
+func (this *Backpack) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[any], symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -903,7 +981,10 @@ func (this *Backpack) watchTradesForSymbolsBody(ch chan any, symbols any, option
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var symbolsLength int = len(symbolsNormalized)
@@ -919,7 +1000,11 @@ func (this *Backpack) watchTradesForSymbolsBody(ch chan any, symbols any, option
 		messageHashes = append(messageHashes, "trades:"+symbol)
 	}
 
-	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicAsync(topics, messageHashes, params))))
+	r1 := <-this.WatchPublicAsync(topics, messageHashes, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
@@ -928,7 +1013,7 @@ func (this *Backpack) watchTradesForSymbolsBody(ch chan any, symbols any, option
 	}
 	var result any = this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)
 
-	ch <- this.SortBy(result, "timestamp") // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
+	ch <- ccxt.AsyncResult[any]{Value: this.SortBy(result, "timestamp")} // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
 	return nil
 }
 
@@ -941,19 +1026,22 @@ func (this *Backpack) watchTradesForSymbolsBody(ch chan any, symbols any, option
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Backpack) UnWatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) UnWatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Backpack) unWatchTradesForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
+func (this *Backpack) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[any], symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var symbolsLength int = len(symbolsNormalized)
@@ -969,7 +1057,11 @@ func (this *Backpack) unWatchTradesForSymbolsBody(ch chan any, symbols any, opti
 		messageHashes = append(messageHashes, "unsubscribe:trades:"+symbol)
 	}
 
-	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync(topics, messageHashes, params, true)))
+	r1 := <-this.WatchPublicAsync(topics, messageHashes, params, true)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 func (this *Backpack) HandleTrades(client any, message any) {
@@ -1077,12 +1169,12 @@ func (this *Backpack) ParseWsTrade(trade any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Backpack) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Backpack) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Backpack) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1090,7 +1182,11 @@ func (this *Backpack) watchOrderBookBody(ch chan any, symbol string, optionalArg
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
+	r := <-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
 
@@ -1105,12 +1201,12 @@ func (this *Backpack) watchOrderBookBody(ch chan any, symbol string, optionalArg
  * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Backpack) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Backpack) watchOrderBookForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
+func (this *Backpack) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[any], symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1119,7 +1215,10 @@ func (this *Backpack) watchOrderBookForSymbolsBody(ch chan any, symbols any, opt
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var marketIds any = this.MarketIds(symbolsNormalized)
@@ -1133,9 +1232,13 @@ func (this *Backpack) watchOrderBookForSymbolsBody(ch chan any, symbols any, opt
 		topics = append(topics, topic)
 	}
 
-	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync(topics, messageHashes, params))).(ccxt.OrderBookInterface)
+	r1 := <-this.WatchPublicAsync(topics, messageHashes, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- orderbook.(ccxt.OrderBookInterface).Limit() // todo check if limit is needed
+	ch <- ccxt.AsyncResult[any]{Value: orderbook.(ccxt.OrderBookInterface).Limit()} // todo check if limit is needed
 	return nil
 }
 
@@ -1147,18 +1250,22 @@ func (this *Backpack) watchOrderBookForSymbolsBody(ch chan any, symbols any, opt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Backpack) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Backpack) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Backpack) unWatchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	ch <- ccxt.PanicOnError((<-this.UnWatchOrderBookForSymbolsAsync([]any{symbol}, params)))
+	r := <-this.UnWatchOrderBookForSymbolsAsync([]any{symbol}, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
 
@@ -1171,19 +1278,22 @@ func (this *Backpack) unWatchOrderBookBody(ch chan any, symbol string, optionalA
  * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Backpack) UnWatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) UnWatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Backpack) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
+func (this *Backpack) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[any], symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var marketIds any = this.MarketIds(symbolsNormalized)
@@ -1197,7 +1307,11 @@ func (this *Backpack) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, o
 		topics = append(topics, topic)
 	}
 
-	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync(topics, messageHashes, params, true)))
+	r1 := <-this.WatchPublicAsync(topics, messageHashes, params, true)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 func (this *Backpack) HandleOrderBook(client any, message any) {
@@ -1308,12 +1422,12 @@ func (this *Backpack) GetCacheIndex(orderbook any, cache any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Backpack) WatchOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Backpack) watchOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Backpack) watchOrdersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1326,7 +1440,10 @@ func (this *Backpack) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = nil
 	if symbol != nil {
@@ -1345,13 +1462,17 @@ func (this *Backpack) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add("orders:", symbolResolved)
 	}
 
-	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync([]any{topic}, []any{messageHash}, params))))
+	r1 := <-this.WatchPrivateAsync([]any{topic}, []any{messageHash}, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true)}
 	return nil
 }
 
@@ -1364,12 +1485,12 @@ func (this *Backpack) watchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Backpack) UnWatchOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) UnWatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Backpack) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Backpack) unWatchOrdersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1378,7 +1499,10 @@ func (this *Backpack) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = nil
 	if symbol != nil {
@@ -1397,7 +1521,11 @@ func (this *Backpack) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add("unsubscribe:orders:", symbolResolved)
 	}
 
-	ch <- ccxt.PanicOnError((<-this.WatchPrivateAsync([]any{topic}, []any{messageHash}, params, true)))
+	r1 := <-this.WatchPrivateAsync([]any{topic}, []any{messageHash}, params, true)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 func (this *Backpack) HandleOrder(client any, message any) {
@@ -1552,12 +1680,12 @@ func (this *Backpack) ParseWsOrderSide(side *string) *string {
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
  */
-func (this *Backpack) WatchPositionsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) WatchPositionsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Backpack) watchPositionsBody(ch chan any, optionalArgs ...any) any {
+func (this *Backpack) watchPositionsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -1570,7 +1698,10 @@ func (this *Backpack) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var messageHashes []any = []any{}
@@ -1586,15 +1717,18 @@ func (this *Backpack) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		topics = append(topics, "account.positionUpdate")
 	}
 
-	positions := (<-this.WatchPrivateAsync(topics, messageHashes, params))
-	ccxt.PanicOnError(positions)
+	r1 := <-this.WatchPrivateAsync(topics, messageHashes, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	positions := r1.Value
 	if this.NewUpdates {
 
-		ch <- positions
+		ch <- ccxt.AsyncResult[any]{Value: positions}
 		return nil
 	}
 
-	ch <- this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true)}
 	return nil
 }
 
@@ -1607,12 +1741,12 @@ func (this *Backpack) watchPositionsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
  */
-func (this *Backpack) UnWatchPositionsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Backpack) UnWatchPositionsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Backpack) unWatchPositionsBody(ch chan any, optionalArgs ...any) any {
+func (this *Backpack) unWatchPositionsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -1621,7 +1755,10 @@ func (this *Backpack) unWatchPositionsBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var messageHashes []any = []any{}
@@ -1637,7 +1774,11 @@ func (this *Backpack) unWatchPositionsBody(ch chan any, optionalArgs ...any) any
 		topics = append(topics, "account.positionUpdate")
 	}
 
-	ch <- ccxt.PanicOnError((<-this.WatchPrivateAsync(topics, messageHashes, params, true)))
+	r1 := <-this.WatchPrivateAsync(topics, messageHashes, params, true)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 func (this *Backpack) HandlePositions(client any, message any) {
@@ -1848,11 +1989,11 @@ func (this *Backpack) WatchTicker(symbol string, options ...ccxt.WatchTickerOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchTickerAsync(symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Ticker{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchTickerAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return ccxt.Ticker{}, r.Err
 	}
-	var res ccxt.Ticker = ccxt.NewTicker(raw)
+	var res ccxt.Ticker = ccxt.NewTicker(r.Value)
 	return res, nil
 }
 
@@ -1872,11 +2013,11 @@ func (this *Backpack) UnWatchTicker(symbol string, options ...ccxt.UnWatchTicker
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchTickerAsync(symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchTickerAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -1895,11 +2036,11 @@ func (this *Backpack) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Ti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Tickers{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return ccxt.Tickers{}, r.Err
 	}
-	var res ccxt.Tickers = ccxt.NewTickers(raw)
+	var res ccxt.Tickers = ccxt.NewTickers(r.Value)
 	return res, nil
 }
 
@@ -1919,11 +2060,11 @@ func (this *Backpack) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchTickersAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchTickersAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -1942,11 +2083,11 @@ func (this *Backpack) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchBidsAsksAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Tickers{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchBidsAsksAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return ccxt.Tickers{}, r.Err
 	}
-	var res ccxt.Tickers = ccxt.NewTickers(raw)
+	var res ccxt.Tickers = ccxt.NewTickers(r.Value)
 	return res, nil
 }
 
@@ -1965,11 +2106,11 @@ func (this *Backpack) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (a
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchBidsAsksAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchBidsAsksAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -1991,11 +2132,11 @@ func (this *Backpack) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(raw)
+	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(r.Value)
 	return res, nil
 }
 
@@ -2016,11 +2157,11 @@ func (this *Backpack) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -2041,11 +2182,11 @@ func (this *Backpack) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return map[string]map[string][]ccxt.OHLCV{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return map[string]map[string][]ccxt.OHLCV{}, r.Err
 	}
-	var res map[string]map[string][]ccxt.OHLCV = raw.(map[string]map[string][]ccxt.OHLCV)
+	var res map[string]map[string][]ccxt.OHLCV = r.Value.(map[string]map[string][]ccxt.OHLCV)
 	return res, nil
 }
 
@@ -2065,11 +2206,11 @@ func (this *Backpack) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, op
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -2090,11 +2231,11 @@ func (this *Backpack) WatchTrades(symbol string, options ...ccxt.WatchTradesOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -2114,11 +2255,11 @@ func (this *Backpack) UnWatchTrades(symbol string, options ...ccxt.UnWatchTrades
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchTradesAsync(symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchTradesAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -2139,11 +2280,11 @@ func (this *Backpack) WatchTradesForSymbols(symbols []string, options ...ccxt.Wa
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -2163,11 +2304,11 @@ func (this *Backpack) UnWatchTradesForSymbols(symbols []string, options ...ccxt.
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchTradesForSymbolsAsync(symbols, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchTradesForSymbolsAsync(symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -2187,11 +2328,11 @@ func (this *Backpack) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.OrderBook{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return ccxt.OrderBook{}, r.Err
 	}
-	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(raw)
+	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(r.Value)
 	return res, nil
 }
 
@@ -2213,11 +2354,11 @@ func (this *Backpack) WatchOrderBookForSymbols(symbols []string, options ...ccxt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.OrderBook{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return ccxt.OrderBook{}, r.Err
 	}
-	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(raw)
+	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(r.Value)
 	return res, nil
 }
 
@@ -2236,11 +2377,11 @@ func (this *Backpack) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrd
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchOrderBookAsync(symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchOrderBookAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -2259,11 +2400,11 @@ func (this *Backpack) UnWatchOrderBookForSymbols(symbols []string, options ...cc
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchOrderBookForSymbolsAsync(symbols, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchOrderBookForSymbolsAsync(symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -2284,11 +2425,11 @@ func (this *Backpack) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Or
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(raw)
+	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -2308,11 +2449,11 @@ func (this *Backpack) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (any, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchOrdersAsync(opts.Symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchOrdersAsync(opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -2333,11 +2474,11 @@ func (this *Backpack) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]c
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchPositionsAsync(opts.Symbols, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchPositionsAsync(opts.Symbols, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Position = ccxt.NewPositionArray(raw)
+	var res []ccxt.Position = ccxt.NewPositionArray(r.Value)
 	return res, nil
 }
 
@@ -2357,9 +2498,9 @@ func (this *Backpack) UnWatchPositions(options ...ccxt.UnWatchPositionsOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchPositionsAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchPositionsAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }

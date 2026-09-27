@@ -375,22 +375,29 @@ func (this *Bit2c) ParseBalance(response any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Bit2c) FetchBalanceAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bit2c) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bit2c) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+func (this *Bit2c) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	var response map[string]any = (<-this.PrivateGetAccountBalanceV2(params)).Checked()
+	r1 := <-this.PrivateGetAccountBalanceV2(params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -434,7 +441,7 @@ func (this *Bit2c) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	ch <- this.ParseBalance(response)
+	ch <- AsyncResult[any]{Value: this.ParseBalance(response)}
 	return nil
 }
 
@@ -448,12 +455,12 @@ func (this *Bit2c) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Bit2c) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bit2c) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bit2c) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Bit2c) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -462,14 +469,21 @@ func (this *Bit2c) fetchOrderBookBody(ch chan any, symbol string, optionalArgs .
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
 
-	var orderbook map[string]any = (<-this.PublicGetExchangesPairOrderbook(this.Extend(request, params))).Checked()
+	r1 := <-this.PublicGetExchangesPairOrderbook(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var orderbook map[string]any = r1.Value
 	// the full orderbook.json snapshot can contain dead orders - rows
 	// published with a zero amount at their limit price, hours-stable and
 	// sometimes crossing the real market. per the api docs the endpoint
@@ -510,7 +524,7 @@ func (this *Bit2c) fetchOrderBookBody(ch chan any, symbol string, optionalArgs .
 		"asks": asks,
 	}
 
-	ch <- this.ParseOrderBook(filtered, symbol)
+	ch <- AsyncResult[any]{Value: this.ParseOrderBook(filtered, symbol)}
 	return nil
 }
 func (this *Bit2c) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -553,28 +567,35 @@ func (this *Bit2c) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Bit2c) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bit2c) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bit2c) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Bit2c) fetchTickerBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
 
-	var response map[string]any = (<-this.PublicGetExchangesPairTicker(this.Extend(request, params))).Checked()
+	r1 := <-this.PublicGetExchangesPairTicker(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 
-	ch <- this.ParseTicker(response, market)
+	ch <- AsyncResult[any]{Value: this.ParseTicker(response, market)}
 	return nil
 }
 
@@ -590,12 +611,12 @@ func (this *Bit2c) fetchTickerBody(ch chan any, symbol string, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bit2c) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bit2c) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bit2c) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bit2c) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -606,7 +627,10 @@ func (this *Bit2c) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var optionValue *string = this.SafeString(this.Options, "fetchTradesMethod") // kept here for backward compatibility #29154
@@ -623,8 +647,11 @@ func (this *Bit2c) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	var responseList []any = []any{}
 	if IsEqual(method, "public_get_exchanges_pair_trades") {
 
-		response := (<-this.PublicGetExchangesPairTrades(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		r1 := <-this.PublicGetExchangesPairTrades(this.Extend(request, params))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response := r1.Raw
 		//
 		//     [
 		//         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
@@ -638,15 +665,18 @@ func (this *Bit2c) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		responseList = this.ToArray(response)
 	} else {
 
-		response := (<-this.PublicGetExchangesPairLasttrades(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		r2 := <-this.PublicGetExchangesPairLasttrades(this.Extend(request, params))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response := r2.Raw
 		if IsString(response) {
 			panic(ExchangeError(response))
 		}
 		responseList = this.ToArray(response)
 	}
 
-	ch <- this.ParseTrades(responseList, market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseTrades(responseList, market, since, limit)}
 	return nil
 }
 
@@ -658,22 +688,29 @@ func (this *Bit2c) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *Bit2c) FetchTradingFeesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bit2c) FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTradingFeesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bit2c) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
+func (this *Bit2c) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	var response map[string]any = (<-this.PrivateGetAccountBalance(params)).Checked()
+	r1 := <-this.PrivateGetAccountBalance(params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "AVAILABLE_NIS": 0.0,
@@ -723,7 +760,7 @@ func (this *Bit2c) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		})
 	}
 
-	ch <- result
+	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
 
@@ -740,12 +777,12 @@ func (this *Bit2c) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bit2c) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bit2c) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bit2c) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Bit2c) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -754,7 +791,10 @@ func (this *Bit2c) createOrderBody(ch chan any, symbol string, typeVar string, s
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -765,10 +805,18 @@ func (this *Bit2c) createOrderBody(ch chan any, symbol string, typeVar string, s
 	if typeVar == "market" {
 		if side == "buy" {
 
-			response = (<-this.PrivatePostOrderAddOrderMarketPriceBuy(this.Extend(request, params))).Checked()
+			r1 := <-this.PrivatePostOrderAddOrderMarketPriceBuy(this.Extend(request, params))
+			if r1.Err != nil {
+				panic(r1.Err)
+			}
+			response = r1.Value
 		} else {
 
-			response = (<-this.PrivatePostOrderAddOrderMarketPriceSell(this.Extend(request, params))).Checked()
+			r2 := <-this.PrivatePostOrderAddOrderMarketPriceSell(this.Extend(request, params))
+			if r2.Err != nil {
+				panic(r2.Err)
+			}
+			response = r2.Value
 		}
 	} else {
 		request["Price"] = price
@@ -777,10 +825,14 @@ func (this *Bit2c) createOrderBody(ch chan any, symbol string, typeVar string, s
 		request["Total"] = this.ParseToNumeric(Precise.StringMul(amountString, priceString))
 		request["IsBid"] = (side == "buy")
 
-		response = (<-this.PrivatePostOrderAddOrder(this.Extend(request, params))).Checked()
+		r3 := <-this.PrivatePostOrderAddOrder(this.Extend(request, params))
+		if r3.Err != nil {
+			panic(r3.Err)
+		}
+		response = r3.Value
 	}
 
-	ch <- this.ParseOrder(response, market)
+	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 
@@ -794,12 +846,12 @@ func (this *Bit2c) createOrderBody(ch chan any, symbol string, typeVar string, s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bit2c) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bit2c) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bit2c) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Bit2c) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -810,9 +862,13 @@ func (this *Bit2c) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 		"id": id,
 	}
 
-	var response map[string]any = (<-this.PrivatePostOrderCancelOrder(this.Extend(request, params))).Checked()
+	r := <-this.PrivatePostOrderCancelOrder(this.Extend(request, params))
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var response map[string]any = r.Value
 
-	ch <- this.ParseOrder(response)
+	ch <- AsyncResult[any]{Value: this.ParseOrder(response)}
 	return nil
 }
 
@@ -827,12 +883,12 @@ func (this *Bit2c) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bit2c) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bit2c) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bit2c) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Bit2c) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -848,19 +904,26 @@ func (this *Bit2c) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
 
-	var response map[string]any = (<-this.PrivateGetOrderMyOrders(this.Extend(request, params))).Checked()
+	r1 := <-this.PrivateGetOrderMyOrders(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	var orders map[string]any = SafeMapTyped(response, market["id"])
 	var asks []any = SafeListTypedDefault(orders, "ask", []any{})
 	var bids []any = SafeListTypedDefault(orders, "bid", []any{})
 
-	ch <- this.ParseOrders(this.ArrayConcat(asks, bids), market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseOrders(this.ArrayConcat(asks, bids), market, since, limit)}
 	return nil
 }
 
@@ -874,12 +937,12 @@ func (this *Bit2c) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bit2c) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bit2c) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bit2c) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Bit2c) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -888,14 +951,21 @@ func (this *Bit2c) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"id": id,
 	}
 
-	var response map[string]any = (<-this.PrivateGetOrderGetById(this.Extend(request, params))).Checked()
+	r1 := <-this.PrivateGetOrderGetById(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 
 	//
 	//         {
@@ -911,7 +981,7 @@ func (this *Bit2c) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	//             "initialAmount": 2.00000000
 	//         }
 	//
-	ch <- this.ParseOrder(response, market)
+	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) any {
@@ -1041,12 +1111,12 @@ func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Bit2c) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bit2c) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bit2c) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+func (this *Bit2c) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1059,7 +1129,10 @@ func (this *Bit2c) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
@@ -1076,8 +1149,11 @@ func (this *Bit2c) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["pair"] = market["id"]
 	}
 
-	response := (<-this.PrivateGetOrderOrderHistory(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	r1 := <-this.PrivateGetOrderOrderHistory(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	response := r1.Raw
 	//
 	//     [
 	//         {
@@ -1121,7 +1197,7 @@ func (this *Bit2c) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		responseList = this.ToArray(response)
 	}
 
-	ch <- this.ParseTrades(responseList, market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseTrades(responseList, market, since, limit)}
 	return nil
 }
 func (this *Bit2c) RemoveCommaFromValue(str any) any {
@@ -1275,19 +1351,22 @@ func (this *Bit2c) IsFiat(code any) bool {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Bit2c) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bit2c) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Bit2c) fetchDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
+func (this *Bit2c) fetchDepositAddressBody(ch chan AsyncResult[any], code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var currency map[string]any = this.Currency(code)
 	if this.IsFiat(code) {
@@ -1297,7 +1376,11 @@ func (this *Bit2c) fetchDepositAddressBody(ch chan any, code string, optionalArg
 		"Coin": currency["id"],
 	}
 
-	var response map[string]any = (<-this.PrivatePostFundsAddCoinFundsRequest(this.Extend(request, params))).Checked()
+	r1 := <-this.PrivatePostFundsAddCoinFundsRequest(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -1305,7 +1388,7 @@ func (this *Bit2c) fetchDepositAddressBody(ch chan any, code string, optionalArg
 	//         "hasTx": False
 	//     }
 	//
-	ch <- this.ParseDepositAddress(response, currency)
+	ch <- AsyncResult[any]{Value: this.ParseDepositAddress(response, currency)}
 	return nil
 }
 func (this *Bit2c) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
@@ -1438,11 +1521,11 @@ func (this *Bit2c) Init(userConfig map[string]any) {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Bit2c) FetchBalance(params ...any) (Balances, error) {
-	raw := <-this.FetchBalanceAsync(params...)
-	if IsError(raw) {
-		return Balances{}, CreateReturnError(raw)
+	r := <-this.FetchBalanceAsync(params...)
+	if r.Err != nil {
+		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(raw)
+	var res Balances = NewBalances(r.Value)
 	return res, nil
 }
 
@@ -1463,11 +1546,11 @@ func (this *Bit2c) FetchOrderBook(symbol string, options ...FetchOrderBookOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return OrderBook{}, CreateReturnError(raw)
+	r := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return OrderBook{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(raw)
+	var res OrderBook = NewOrderBook(r.Value)
 	return res, nil
 }
 
@@ -1487,11 +1570,11 @@ func (this *Bit2c) FetchTicker(symbol string, options ...FetchTickerOptions) (Ti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTickerAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return Ticker{}, CreateReturnError(raw)
+	r := <-this.FetchTickerAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(raw)
+	var res Ticker = NewTicker(r.Value)
 	return res, nil
 }
 
@@ -1514,11 +1597,11 @@ func (this *Bit2c) FetchTrades(symbol string, options ...FetchTradesOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(raw)
+	var res []Trade = NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -1531,11 +1614,11 @@ func (this *Bit2c) FetchTrades(symbol string, options ...FetchTradesOptions) ([]
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Bit2c) FetchTradingFees(params ...any) (TradingFees, error) {
-	raw := <-this.FetchTradingFeesAsync(params...)
-	if IsError(raw) {
-		return TradingFees{}, CreateReturnError(raw)
+	r := <-this.FetchTradingFeesAsync(params...)
+	if r.Err != nil {
+		return TradingFees{}, r.Err
 	}
-	var res TradingFees = NewTradingFees(raw)
+	var res TradingFees = NewTradingFees(r.Value)
 	return res, nil
 }
 
@@ -1559,11 +1642,11 @@ func (this *Bit2c) CreateOrder(symbol string, typeVar string, side string, amoun
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Value)
 	return res, nil
 }
 
@@ -1584,11 +1667,11 @@ func (this *Bit2c) CancelOrder(id string, options ...CancelOrderOptions) (Order,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Value)
 	return res, nil
 }
 
@@ -1610,11 +1693,11 @@ func (this *Bit2c) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -1635,11 +1718,11 @@ func (this *Bit2c) FetchOrder(id string, options ...FetchOrderOptions) (Order, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Value)
 	return res, nil
 }
 
@@ -1661,11 +1744,11 @@ func (this *Bit2c) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, erro
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(raw)
+	var res []Trade = NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -1685,11 +1768,11 @@ func (this *Bit2c) FetchDepositAddress(code string, options ...FetchDepositAddre
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchDepositAddressAsync(code, opts.Params)
-	if IsError(raw) {
-		return DepositAddress{}, CreateReturnError(raw)
+	r := <-this.FetchDepositAddressAsync(code, opts.Params)
+	if r.Err != nil {
+		return DepositAddress{}, r.Err
 	}
-	var res DepositAddress = NewDepositAddress(raw)
+	var res DepositAddress = NewDepositAddress(r.Value)
 	return res, nil
 }
 

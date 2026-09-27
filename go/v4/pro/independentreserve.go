@@ -59,12 +59,12 @@ func (this *Independentreserve) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Independentreserve) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Independentreserve) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Independentreserve) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Independentreserve) watchTradesBody(ch chan ccxt.AsyncResult[any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -75,7 +75,10 @@ func (this *Independentreserve) watchTradesBody(ch chan any, symbol any, optiona
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
@@ -86,9 +89,13 @@ func (this *Independentreserve) watchTradesBody(ch chan any, symbol any, optiona
 	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(*wsUrl+"?subscribe=ticker-", market["base"]), "-"), market["quote"]))
 	var messageHash string = "trades:" + *symbolValue
 
-	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash))))
+	r1 := <-this.Watch(url, messageHash, nil, messageHash)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 
-	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySinceLimit(trades, since, limit, "timestamp", true)}
 	return nil
 }
 func (this *Independentreserve) HandleTrades(client any, message map[string]any) {
@@ -168,12 +175,12 @@ func (this *Independentreserve) ParseWsTrade(trade any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Independentreserve) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Independentreserve) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Independentreserve) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Independentreserve) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -182,7 +189,10 @@ func (this *Independentreserve) watchOrderBookBody(ch chan any, symbol string, o
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
@@ -203,9 +213,13 @@ func (this *Independentreserve) watchOrderBookBody(ch chan any, symbol string, o
 		"receivedSnapshot": false,
 	}
 
-	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash, subscription))).(ccxt.OrderBookInterface)
+	r1 := <-this.Watch(url, messageHash, nil, messageHash, subscription)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+	ch <- ccxt.AsyncResult[any]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 	return nil
 }
 func (this *Independentreserve) HandleOrderBook(client any, message map[string]any) {
@@ -395,11 +409,11 @@ func (this *Independentreserve) WatchTrades(symbol string, options ...ccxt.Watch
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -419,10 +433,10 @@ func (this *Independentreserve) WatchOrderBook(symbol string, options ...ccxt.Wa
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.OrderBook{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return ccxt.OrderBook{}, r.Err
 	}
-	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(raw)
+	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(r.Value)
 	return res, nil
 }

@@ -51,12 +51,12 @@ func (this *Kucoinfutures) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Kucoinfutures) FetchBidsAsksAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Kucoinfutures) FetchBidsAsksAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchBidsAsksBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Kucoinfutures) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
+func (this *Kucoinfutures) fetchBidsAsksBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -68,11 +68,15 @@ func (this *Kucoinfutures) fetchBidsAsksBody(ch chan any, optionalArgs ...any) a
 	}
 	var extendedRequest map[string]any = this.Extend(request, params)
 
-	var retRes5715 map[string]any = MapTyped(PanicOnError((<-this.FetchTickersAsync(symbols, extendedRequest))))
+	r := <-this.FetchTickersAsync(symbols, extendedRequest)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var retRes5715 map[string]any = MapTyped(r.Value)
 	if retRes5715 == nil {
-		ch <- nil
+		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- retRes5715
+		ch <- AsyncResult[any]{Value: retRes5715}
 	}
 	return nil
 }
@@ -88,19 +92,22 @@ func (this *Kucoinfutures) fetchBidsAsksBody(ch chan any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Kucoinfutures) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Kucoinfutures) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Kucoinfutures) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Kucoinfutures) transferBody(ch chan AsyncResult[any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var currency map[string]any = this.Currency(code)
 	var amountToPrecision any = this.CurrencyToPrecision(code, amount)
@@ -113,21 +120,29 @@ func (this *Kucoinfutures) transferBody(ch chan any, code string, amount any, fr
 	if (toAccountString != nil && *toAccountString == "TRADE") || (toAccountString != nil && *toAccountString == "MAIN") {
 		request["recAccountType"] = toAccountString
 
-		response = (<-this.FuturesPrivatePostTransferOut(this.Extend(request, params))).Checked()
+		r1 := <-this.FuturesPrivatePostTransferOut(this.Extend(request, params))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
 	} else if (toAccount == "future") || (toAccount == "swap") || (toAccount == "contract") {
 		request["payAccountType"] = this.ParseTransferType(fromAccount)
 
-		response = (<-this.FuturesPrivatePostTransferIn(this.Extend(request, params))).Checked()
+		r2 := <-this.FuturesPrivatePostTransferIn(this.Extend(request, params))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
 	} else {
 		panic(BadRequest(this.Id + " transfer() only supports transfers between future/swap, spot and funding accounts"))
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- this.Extend(this.ParseTransfer(data, currency), map[string]any{
+	ch <- AsyncResult[any]{Value: this.Extend(this.ParseTransfer(data, currency), map[string]any{
 		"amount":      this.ParseNumber(amountToPrecision),
 		"fromAccount": fromAccount,
 		"toAccount":   toAccount,
-	})
+	})}
 	return nil
 }
 func (this *Kucoinfutures) ParseTransferType(transferType any) *string {
@@ -167,11 +182,11 @@ func (this *Kucoinfutures) FetchBidsAsks(options ...FetchBidsAsksOptions) (Ticke
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchBidsAsksAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return Tickers{}, CreateReturnError(raw)
+	r := <-this.FetchBidsAsksAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(raw)
+	var res Tickers = NewTickers(r.Value)
 	return res, nil
 }
 
@@ -193,10 +208,10 @@ func (this *Kucoinfutures) Transfer(code string, amount float64, fromAccount str
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params)
-	if IsError(raw) {
-		return TransferEntry{}, CreateReturnError(raw)
+	r := <-this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params)
+	if r.Err != nil {
+		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(raw)
+	var res TransferEntry = NewTransferEntry(r.Value)
 	return res, nil
 }

@@ -232,8 +232,12 @@ function goErrFunc (fn: string, q: string, stats?: GoErrStats): string {
                 text = fn.substring (ws, rs) + recvText + ')';
             } else if ((selM !== null) && (selM[1] !== 'Raw')) {
                 text = recvText + '.Checked()';
-            } else {
+            } else if (selM !== null) {
                 text = q + 'PanicOnError(' + recvText + ')';
+            } else {
+                // a bare receive handed on as a value (a promiseAll element): the AsyncResult itself travels on
+                goErrBump (stats, 'handed-on');
+                continue;
             }
             fn = fn.substring (0, ws) + text + fn.substring (we);
             cursor = ws + text.length;
@@ -241,25 +245,31 @@ function goErrFunc (fn: string, q: string, stats?: GoErrStats): string {
             continue;
         }
         const name = goErrFreshName (fn);
-        const hoist = indent + name + ' := <-' + operand + '\n' + indent + 'if ' + name + '.Err != nil {\n' + indent + '\tpanic(' + name + '.Err)\n' + indent + '}\n';
+        // a trailing comment of a dropped statement stays on the receive line
+        const whole = /^\t*$/.test (prefix) && /^\s*$/.test (suffix);
+        const lineEnd = (fn.indexOf ('\n', stmtEnd) < 0) ? fn.length : fn.indexOf ('\n', stmtEnd);
+        const comment = whole ? fn.substring (stmtEnd, lineEnd).replace (/\s+$/, '') : '';
+        const hoist = indent + name + ' := <-' + operand + comment + '\n' + indent + 'if ' + name + '.Err != nil {\n' + indent + '\tpanic(' + name + '.Err)\n' + indent + '}\n';
         let rest = fn.substring (ls, ws) + name + '.' + sel + fn.substring (we, stmtEnd);
         let restEnd = stmtEnd;
-        if (/^\t*$/.test (prefix) && /^\s*$/.test (suffix)) {
+        if (whole) {
             rest = '';
-            restEnd = (fn[stmtEnd] === '\n') ? stmtEnd + 1 : stmtEnd;
+            restEnd = Math.min (fn.length, lineEnd + 1);
         } else {
             // `x := RECV` + `PanicOnError(x)`: the check is the hoisted one
             const decl = /^\t*(?:var (\w+) [^=\n]+ = |(\w+) :?= )$/.exec (prefix);
             const target = (decl === null) ? undefined : (decl[1] || decl[2]);
             if ((target !== undefined) && !wrapped && /^\s*$/.test (suffix)) {
-                const next = new RegExp ('^\\n\\t*(?:ccxt\\.)?PanicOnError\\(' + target + '\\)[ \\t]*(?=\\n)').exec (fn.substring (stmtEnd));
+                const next = new RegExp ('^\\n\\t*(?:ccxt\\.)?PanicOnError\\(' + target + '\\)([ \\t]*//[^\\n]*)?[ \\t]*(?=\\n)').exec (fn.substring (stmtEnd));
                 if (next !== null) {
                     restEnd = stmtEnd + next[0].length;
+                    rest += (next[1] || '').replace (/\s+$/, '');
                 }
             }
         }
         fn = fn.substring (0, ls) + hoist + rest + fn.substring (restEnd);
-        cursor = ls + hoist.length;
+        // receives nested in the operand are visited next
+        cursor = ls + indent.length + name.length + ' := <-'.length;
         goErrBump (stats, 'hoisted');
     }
 }
@@ -351,8 +361,8 @@ export function goErrSelfTest (): string[] {
     ok (goErrValuePass (out) === out, 'idempotent');
     out = run ('\tvar r any = nil\n\tresponse := (<-this.PublicGetTime(a))\n\tPanicOnError(response)\n\tch <- response\n');
     ok (out.includes ('\tr1 := <-this.PublicGetTime(a)\n' + check ('\t', 'r1') + '\tresponse := r1.Value\n\tch <- '), 'decl + adjacent check, fresh name: ' + out);
-    out = run ('\tresponse = (<-this.FapiPublicGetTime(a)).Raw\n\tPanicOnError(response)\n');
-    ok (out.includes ('\tresponse = r.Raw\n\treturn nil'), 'Raw selector: ' + out);
+    out = run ('\tresponse = (<-this.FapiPublicGetTime(a)).Raw\n\tPanicOnError(response) // c\n');
+    ok (out.includes ('\tresponse = r.Raw // c\n\treturn nil'), 'Raw selector: ' + out);
     out = run ('\tvar results []any = ListTyped(PanicOnError((<-promiseAll(a))))\n\tvar m map[string]any = (<-this.Bar(this.Extend(a, map[string]any{\n\t\t"k": a,\n\t}))).Checked()\n');
     ok (out.includes ('\tr := <-promiseAll(a)\n' + check ('\t') + '\tvar results []any = ListTyped(r.Value)\n'), 'conversion kept: ' + out);
     ok (out.includes ('\tr1 := <-this.Bar(this.Extend(a, map[string]any{\n\t\t"k": a,\n\t}))\n' + check ('\t', 'r1') + '\tvar m map[string]any = r1.Value\n'), 'multi-line Checked: ' + out);
@@ -362,6 +372,10 @@ export function goErrSelfTest (): string[] {
     ok (out.includes ('\tch <- <-this.K()\n'), 'forward: ' + out);
     ok (out.includes ('\tr := <-this.G()\n' + check ('\t') + '\ty := this.F(a, r.Value)\n'), 'identifier operands hoist: ' + out);
     ok (goErrValuePass (out) === out, 'kept idempotent');
+    out = run ('\tPanicOnError((<-promiseAll([]any{this.L(), <-this.S()})))\n');
+    ok (out.includes ('\tr := <-promiseAll([]any{this.L(), <-this.S()})\n'), 'nested receive: ' + out);
+    out = run ('\tPanicOnError((<-this.G())) // note\n');
+    ok (out.includes ('\tr := <-this.G() // note\n' + check ('\t') + '\treturn nil'), 'trailing comment: ' + out);
     out = run ('\tlistEp1 := (<-this.E(a))\n\tPanicOnError(listEp1.Raw)\n\tvar h []any = listEp1.Value\n\tvar m map[string]any = this.M(a)\n\tPanicOnError(m)\n\tvar v any = this.M(a)\n\tPanicOnError(v)\n');
     ok (out.includes ('\tlistEp1 := <-this.E(a)\n' + check ('\t', 'listEp1') + '\tvar h []any = listEp1.Value\n'), 'listEp: ' + out);
     ok (!out.includes ('PanicOnError(m)') && out.includes ('PanicOnError(v)'), 'no-op check dropped only when typed: ' + out);

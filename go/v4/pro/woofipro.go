@@ -84,12 +84,12 @@ func (this *Woofipro) RequestId(url any) int64 {
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "requestId"), url, newValue)
 	return newValue
 }
-func (this *Woofipro) WatchPublicAsync(messageHash any, message any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Woofipro) WatchPublicAsync(messageHash any, message any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPublicBody(ch, messageHash, message)
 	return ch
 }
-func (this *Woofipro) watchPublicBody(ch chan any, messageHash any, message any) any {
+func (this *Woofipro) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHash any, message any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// the default id
@@ -104,7 +104,11 @@ func (this *Woofipro) watchPublicBody(ch chan any, messageHash any, message any)
 	}
 	var request map[string]any = this.Extend(subscribe, message)
 
-	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscribe)))
+	r := <-this.Watch(url, messageHash, request, messageHash, subscribe)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
 
@@ -118,12 +122,12 @@ func (this *Woofipro) watchPublicBody(ch chan any, messageHash any, message any)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Woofipro) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Woofipro) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Woofipro) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -132,7 +136,10 @@ func (this *Woofipro) watchOrderBookBody(ch chan any, symbol string, optionalArg
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var name string = "orderbook"
 	var market map[string]any = this.Market(symbol)
@@ -143,9 +150,13 @@ func (this *Woofipro) watchOrderBookBody(ch chan any, symbol string, optionalArg
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync(topic, message))).(ccxt.OrderBookInterface)
+	r1 := <-this.WatchPublicAsync(topic, message)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+	ch <- ccxt.AsyncResult[any]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 	return nil
 }
 func (this *Woofipro) HandleOrderBook(client any, message map[string]any) {
@@ -194,19 +205,22 @@ func (this *Woofipro) HandleOrderBook(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Woofipro) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Woofipro) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) watchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Woofipro) watchTickerBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var name string = "ticker"
 	var market map[string]any = this.Market(symbol)
@@ -217,7 +231,11 @@ func (this *Woofipro) watchTickerBody(ch chan any, symbol string, optionalArgs .
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync(topic, message)))
+	r1 := <-this.WatchPublicAsync(topic, message)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 func (this *Woofipro) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any {
@@ -297,12 +315,12 @@ func (this *Woofipro) HandleTicker(client any, message map[string]any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Woofipro) WatchTickersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Woofipro) WatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) watchTickersBody(ch chan any, optionalArgs ...any) any {
+func (this *Woofipro) watchTickersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -311,7 +329,10 @@ func (this *Woofipro) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var name string = "tickers"
@@ -322,10 +343,13 @@ func (this *Woofipro) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	tickers := (<-this.WatchPublicAsync(topic, message))
-	ccxt.PanicOnError(tickers)
+	r1 := <-this.WatchPublicAsync(topic, message)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	tickers := r1.Value
 
-	ch <- this.FilterByArray(tickers, "symbol", symbolsNormalized)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterByArray(tickers, "symbol", symbolsNormalized)}
 	return nil
 }
 func (this *Woofipro) HandleTickers(client any, message map[string]any) {
@@ -383,12 +407,12 @@ func (this *Woofipro) HandleTickers(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Woofipro) WatchBidsAsksAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Woofipro) WatchBidsAsksAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchBidsAsksBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
+func (this *Woofipro) watchBidsAsksBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -397,7 +421,10 @@ func (this *Woofipro) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var name string = "bbos"
@@ -408,10 +435,13 @@ func (this *Woofipro) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	tickers := (<-this.WatchPublicAsync(topic, message))
-	ccxt.PanicOnError(tickers)
+	r1 := <-this.WatchPublicAsync(topic, message)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	tickers := r1.Value
 
-	ch <- this.FilterByArray(tickers, "symbol", symbolsNormalized)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterByArray(tickers, "symbol", symbolsNormalized)}
 	return nil
 }
 func (this *Woofipro) HandleBidAsk(client any, message map[string]any) {
@@ -481,12 +511,12 @@ func (this *Woofipro) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Woofipro) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Woofipro) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Woofipro) watchOHLCVBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -499,7 +529,10 @@ func (this *Woofipro) watchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	if (timeframe != "1m") && (timeframe != "5m") && (timeframe != "15m") && (timeframe != "30m") && (timeframe != "1h") && (timeframe != "1d") && (timeframe != "1w") && (timeframe != "1M") {
 		panic(ccxt.NotSupported(this.Id + " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M"))
@@ -514,13 +547,17 @@ func (this *Woofipro) watchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicAsync(topic, message))))
+	r1 := <-this.WatchPublicAsync(topic, message)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(ohlcv).GetLimit(market["symbol"], limit)
 	}
 
-	ch <- this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true)}
 	return nil
 }
 func (this *Woofipro) HandleOHLCV(client any, message map[string]any) {
@@ -574,12 +611,12 @@ func (this *Woofipro) HandleOHLCV(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Woofipro) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Woofipro) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Woofipro) watchTradesBody(ch chan ccxt.AsyncResult[any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -590,7 +627,10 @@ func (this *Woofipro) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
@@ -601,13 +641,17 @@ func (this *Woofipro) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicAsync(topic, message))))
+	r1 := <-this.WatchPublicAsync(topic, message)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(market["symbol"], limit)
 	}
 
-	ch <- this.FilterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true)}
 	return nil
 }
 func (this *Woofipro) HandleTrade(client any, message map[string]any) {
@@ -746,12 +790,12 @@ func (this *Woofipro) HandleAuth(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Woofipro) AuthenticateAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Woofipro) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.authenticateBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) authenticateBody(ch chan any, optionalArgs ...any) any {
+func (this *Woofipro) authenticateBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -789,21 +833,28 @@ func (this *Woofipro) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
-	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
+	r := <-future.(*ccxt.Future).Await()
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Woofipro) WatchPrivateAsync(messageHash any, message any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Woofipro) WatchPrivateAsync(messageHash any, message any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPrivateBody(ch, messageHash, message, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) watchPrivateBody(ch chan any, messageHash any, message any, optionalArgs ...any) any {
+func (this *Woofipro) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash any, message any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	ccxt.PanicOnError((<-this.AuthenticateAsync(params)))
+	r := <-this.AuthenticateAsync(params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "/"), this.AccountId))
 	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
@@ -811,21 +862,28 @@ func (this *Woofipro) watchPrivateBody(ch chan any, messageHash any, message any
 	}
 	var request map[string]any = this.Extend(subscribe, message)
 
-	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscribe)))
+	r1 := <-this.Watch(url, messageHash, request, messageHash, subscribe)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Woofipro) WatchPrivateMultipleAsync(messageHashes any, message any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Woofipro) WatchPrivateMultipleAsync(messageHashes any, message any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPrivateMultipleBody(ch, messageHashes, message, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) watchPrivateMultipleBody(ch chan any, messageHashes any, message any, optionalArgs ...any) any {
+func (this *Woofipro) watchPrivateMultipleBody(ch chan ccxt.AsyncResult[any], messageHashes any, message any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	ccxt.PanicOnError((<-this.AuthenticateAsync(params)))
+	r := <-this.AuthenticateAsync(params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "/"), this.AccountId))
 	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
@@ -833,7 +891,11 @@ func (this *Woofipro) watchPrivateMultipleBody(ch chan any, messageHashes any, m
 	}
 	var request map[string]any = this.Extend(subscribe, message)
 
-	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscribe)))
+	r1 := <-this.WatchMultiple(url, messageHashes, request, messageHashes, subscribe)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 
@@ -850,12 +912,12 @@ func (this *Woofipro) watchPrivateMultipleBody(ch chan any, messageHashes any, m
  * @param {bool} [params.trigger] true if trigger order
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Woofipro) WatchOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Woofipro) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) watchOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Woofipro) watchOrdersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -868,7 +930,10 @@ func (this *Woofipro) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
 	var topic string = "executionreport"
@@ -896,13 +961,17 @@ func (this *Woofipro) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var message map[string]any = this.Extend(request, paramsOmitted)
 
-	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, message))))
+	r1 := <-this.WatchPrivateAsync(messageHash, message)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true)}
 	return nil
 }
 
@@ -919,12 +988,12 @@ func (this *Woofipro) watchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {bool} [params.trigger] true if trigger order
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Woofipro) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Woofipro) WatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
+func (this *Woofipro) watchMyTradesBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -937,7 +1006,10 @@ func (this *Woofipro) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
 	var topic string = "executionreport"
@@ -965,13 +1037,17 @@ func (this *Woofipro) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var message map[string]any = this.Extend(request, paramsOmitted)
 
-	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, message))))
+	r1 := <-this.WatchPrivateAsync(messageHash, message)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true)}
 	return nil
 }
 func (this *Woofipro) ParseWsOrder(order any, optionalArgs ...any) any {
@@ -1234,12 +1310,12 @@ func (this *Woofipro) HandleMyTrade(client any, message any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
  */
-func (this *Woofipro) WatchPositionsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Woofipro) WatchPositionsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) watchPositionsBody(ch chan any, optionalArgs ...any) any {
+func (this *Woofipro) watchPositionsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -1252,7 +1328,10 @@ func (this *Woofipro) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var messageHashes []any = []any{}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
@@ -1277,9 +1356,13 @@ func (this *Woofipro) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && ((this.Positions == nil)) {
 
-		var snapshot ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))))
+		r1 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var snapshot ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 
-		ch <- this.FilterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true)
+		ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true)}
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -1287,15 +1370,18 @@ func (this *Woofipro) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		"topic": "position",
 	}
 
-	newPositions := (<-this.WatchPrivateMultipleAsync(messageHashes, request, params))
-	ccxt.PanicOnError(newPositions)
+	r2 := <-this.WatchPrivateMultipleAsync(messageHashes, request, params)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	newPositions := r2.Value
 	if this.NewUpdates {
 
-		ch <- newPositions
+		ch <- ccxt.AsyncResult[any]{Value: newPositions}
 		return nil
 	}
 
-	ch <- this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true)}
 	return nil
 }
 func (this *Woofipro) SetPositionsCache(client any, optionalArgs ...any) {
@@ -1312,17 +1398,20 @@ func (this *Woofipro) SetPositionsCache(client any, optionalArgs ...any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 }
-func (this *Woofipro) LoadPositionsSnapshotAsync(client any, messageHash any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Woofipro) LoadPositionsSnapshotAsync(client any, messageHash any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash)
 	return ch
 }
-func (this *Woofipro) loadPositionsSnapshotBody(ch chan any, client any, messageHash any) any {
+func (this *Woofipro) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[any], client any, messageHash any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
-	positions := (<-this.FetchPositionsAsync())
-	ccxt.PanicOnError(positions)
+	r := <-this.FetchPositionsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	positions := r.Value
 	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	var cache any = this.Positions
 	for i := 0; i < ccxt.GetArrayLength(positions); i++ {
@@ -1480,19 +1569,22 @@ func (this *Woofipro) ParseWsPosition(position any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Woofipro) WatchBalanceAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Woofipro) WatchBalanceAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) watchBalanceBody(ch chan any, optionalArgs ...any) any {
+func (this *Woofipro) watchBalanceBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var topic string = "balance"
 	var messageHash string = topic
@@ -1502,7 +1594,11 @@ func (this *Woofipro) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	ch <- ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, message)))
+	r1 := <-this.WatchPrivateAsync(messageHash, message)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 func (this *Woofipro) HandleBalance(client any, message map[string]any) {
@@ -1677,18 +1773,21 @@ func (this *Woofipro) Ping(client any) any {
 		"event": "ping",
 	}
 }
-func (this *Woofipro) PongAsync(client any, message any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Woofipro) PongAsync(client any, message any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.pongBody(ch, client, message)
 	return ch
 }
-func (this *Woofipro) pongBody(ch chan any, client any, message any) any {
+func (this *Woofipro) pongBody(ch chan ccxt.AsyncResult[any], client any, message any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
-	ccxt.PanicOnError((<-client.(ccxt.ClientInterface).SendAsync(map[string]any{
+	r := <-client.(ccxt.ClientInterface).SendAsync(map[string]any{
 		"event": "pong",
-	})))
+	})
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	return nil
 }
 func (this *Woofipro) HandlePing(client any, message map[string]any) {
@@ -1744,11 +1843,11 @@ func (this *Woofipro) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.OrderBook{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return ccxt.OrderBook{}, r.Err
 	}
-	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(raw)
+	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(r.Value)
 	return res, nil
 }
 
@@ -1768,11 +1867,11 @@ func (this *Woofipro) WatchTicker(symbol string, options ...ccxt.WatchTickerOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchTickerAsync(symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Ticker{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchTickerAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return ccxt.Ticker{}, r.Err
 	}
-	var res ccxt.Ticker = ccxt.NewTicker(raw)
+	var res ccxt.Ticker = ccxt.NewTicker(r.Value)
 	return res, nil
 }
 
@@ -1792,11 +1891,11 @@ func (this *Woofipro) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Ti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Tickers{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return ccxt.Tickers{}, r.Err
 	}
-	var res ccxt.Tickers = ccxt.NewTickers(raw)
+	var res ccxt.Tickers = ccxt.NewTickers(r.Value)
 	return res, nil
 }
 
@@ -1816,11 +1915,11 @@ func (this *Woofipro) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchBidsAsksAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Tickers{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchBidsAsksAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return ccxt.Tickers{}, r.Err
 	}
-	var res ccxt.Tickers = ccxt.NewTickers(raw)
+	var res ccxt.Tickers = ccxt.NewTickers(r.Value)
 	return res, nil
 }
 
@@ -1843,11 +1942,11 @@ func (this *Woofipro) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(raw)
+	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(r.Value)
 	return res, nil
 }
 
@@ -1869,11 +1968,11 @@ func (this *Woofipro) WatchTrades(symbol string, options ...ccxt.WatchTradesOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -1897,11 +1996,11 @@ func (this *Woofipro) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Or
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(raw)
+	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -1925,11 +2024,11 @@ func (this *Woofipro) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccx
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -1951,11 +2050,11 @@ func (this *Woofipro) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]c
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchPositionsAsync(opts.Symbols, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchPositionsAsync(opts.Symbols, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Position = ccxt.NewPositionArray(raw)
+	var res []ccxt.Position = ccxt.NewPositionArray(r.Value)
 	return res, nil
 }
 
@@ -1968,10 +2067,10 @@ func (this *Woofipro) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]c
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Woofipro) WatchBalance(params ...any) (ccxt.Balances, error) {
-	raw := <-this.WatchBalanceAsync(params...)
-	if ccxt.IsError(raw) {
-		return ccxt.Balances{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchBalanceAsync(params...)
+	if r.Err != nil {
+		return ccxt.Balances{}, r.Err
 	}
-	var res ccxt.Balances = ccxt.NewBalances(raw)
+	var res ccxt.Balances = ccxt.NewBalances(r.Value)
 	return res, nil
 }

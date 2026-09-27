@@ -39,34 +39,42 @@ func (this *Binancecoinm) Describe() any {
 		},
 	})
 }
-func (this *Binancecoinm) TransferInAsync(code any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Binancecoinm) TransferInAsync(code any, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.transferInBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Binancecoinm) transferInBody(ch chan any, code any, amount any, optionalArgs ...any) any {
+func (this *Binancecoinm) transferInBody(ch chan AsyncResult[any], code any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// transfer from spot wallet to coinm futures wallet
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	ch <- PanicOnError((<-this.FuturesTransferAsync(code, amount, 3, params)))
+	r := <-this.FuturesTransferAsync(code, amount, 3, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Binancecoinm) TransferOutAsync(code any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Binancecoinm) TransferOutAsync(code any, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.transferOutBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Binancecoinm) transferOutBody(ch chan any, code any, amount any, optionalArgs ...any) any {
+func (this *Binancecoinm) transferOutBody(ch chan AsyncResult[any], code any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// transfer from coinm futures wallet to spot wallet
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	ch <- PanicOnError((<-this.FuturesTransferAsync(code, amount, 4, params)))
+	r := <-this.FuturesTransferAsync(code, amount, 4, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- AsyncResult[any]{Value: r.Value}
 	return nil
 }
 
@@ -90,11 +98,11 @@ func (this *Binancecoinm) TransferIn(code string, amount float64, options ...Tra
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.TransferInAsync(code, amount, opts.Params)
-	if IsError(raw) {
-		return TransferEntry{}, CreateReturnError(raw)
+	r := <-this.TransferInAsync(code, amount, opts.Params)
+	if r.Err != nil {
+		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(raw)
+	var res TransferEntry = NewTransferEntry(r.Value)
 	return res, nil
 }
 func (this *Binancecoinm) TransferOut(code string, amount float64, options ...TransferOutOptions) (TransferEntry, error) {
@@ -104,10 +112,10 @@ func (this *Binancecoinm) TransferOut(code string, amount float64, options ...Tr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.TransferOutAsync(code, amount, opts.Params)
-	if IsError(raw) {
-		return TransferEntry{}, CreateReturnError(raw)
+	r := <-this.TransferOutAsync(code, amount, opts.Params)
+	if r.Err != nil {
+		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(raw)
+	var res TransferEntry = NewTransferEntry(r.Value)
 	return res, nil
 }

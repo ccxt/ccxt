@@ -63,7 +63,7 @@ func (this *Dydx) IndexerGetFundingPaymentsParentSubaccount(args ...any) <-chan 
 }
 
 // IndexerGetHeight returns a channel that yields a JSON object.
-func (this *Dydx) IndexerGetHeight(args ...any) <-chan any {
+func (this *Dydx) IndexerGetHeight(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("indexerGetHeight", args...)
 }
 

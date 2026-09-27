@@ -114,12 +114,12 @@ func (this *Pacifica) SetupApiKeyHeaders(optionalArgs ...any) {
  * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Pacifica) CreateOrderWsAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Pacifica) CreateOrderWsAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.createOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) createOrderWsBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Pacifica) createOrderWsBody(ch chan ccxt.AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -128,7 +128,10 @@ func (this *Pacifica) createOrderWsBody(ch chan any, symbol string, typeVar stri
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	requestoperationTypeVariable := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	var request map[string]any = ccxt.MapTyped(ccxt.GetValue(requestoperationTypeVariable, 0))
@@ -150,8 +153,11 @@ func (this *Pacifica) createOrderWsBody(ch chan any, symbol string, typeVar stri
 		panic(ccxt.NotSupported(this.Id + " createOrderWs() do not support set position tpsl type of order. Check provided arguments correctly!"))
 	}
 
-	response := (<-this.Watch(url, requestId, wsRequest, requestId))
-	ccxt.PanicOnError(response)
+	r1 := <-this.Watch(url, requestId, wsRequest, requestId)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	response := r1.Value
 	//
 	// market order
 	// {
@@ -194,13 +200,13 @@ func (this *Pacifica) createOrderWsBody(ch chan any, symbol string, typeVar stri
 	var orderId *string = this.SafeString(order, "i")
 	var clientOrderId *string = this.SafeString(order, "I")
 
-	ch <- this.SafeOrder(map[string]any{
+	ch <- ccxt.AsyncResult[any]{Value: this.SafeOrder(map[string]any{
 		"id":            orderId,
 		"clientOrderId": clientOrderId,
 		"status":        status,
 		"info":          response,
 		"symbol":        symbol,
-	})
+	})}
 	return nil
 }
 
@@ -222,12 +228,12 @@ func (this *Pacifica) createOrderWsBody(ch chan any, symbol string, typeVar stri
  * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Pacifica) EditOrderWsAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Pacifica) EditOrderWsAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.editOrderWsBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) editOrderWsBody(ch chan any, id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
+func (this *Pacifica) editOrderWsBody(ch chan ccxt.AsyncResult[any], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	amount := ccxt.GetArg(optionalArgs, 0, nil)
@@ -239,7 +245,10 @@ func (this *Pacifica) editOrderWsBody(ch chan any, id string, symbol string, typ
 	var batchOperationType string = "edit_order"
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, market, params)
@@ -255,8 +264,11 @@ func (this *Pacifica) editOrderWsBody(ch chan any, id string, symbol string, typ
 	var wsRequest any = this.WrapAsPostAction(batchOperationType, request)
 	var requestId *string = this.SafeString(wsRequest, "id")
 
-	response := (<-this.Watch(url, requestId, wsRequest, requestId))
-	ccxt.PanicOnError(response)
+	r1 := <-this.Watch(url, requestId, wsRequest, requestId)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	response := r1.Value
 	// {
 	//   "code": 200,
 	//   "data": {
@@ -283,13 +295,13 @@ func (this *Pacifica) editOrderWsBody(ch chan any, id string, symbol string, typ
 	var orderId *string = this.SafeString(order, "i")
 	var clientOrderId *string = this.SafeString(order, "I")
 
-	ch <- this.SafeOrder(map[string]any{
+	ch <- ccxt.AsyncResult[any]{Value: this.SafeOrder(map[string]any{
 		"id":            orderId,
 		"clientOrderId": clientOrderId,
 		"status":        status,
 		"info":          response,
 		"symbol":        symbol,
-	})
+	})}
 	return nil
 }
 
@@ -308,12 +320,12 @@ func (this *Pacifica) editOrderWsBody(ch chan any, id string, symbol string, typ
  * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Pacifica) CancelOrdersWsAsync(ids any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Pacifica) CancelOrdersWsAsync(ids any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.cancelOrdersWsBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...any) any {
+func (this *Pacifica) cancelOrdersWsBody(ch chan ccxt.AsyncResult[any], ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -323,7 +335,10 @@ func (this *Pacifica) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...a
 	var batchOperationType string = "batch_orders"
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + "cancelOrders() requires a \"symbol\" argument!"))
@@ -341,8 +356,11 @@ func (this *Pacifica) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...a
 	var wsRequest any = this.WrapAsPostAction(batchOperationType, request)
 	var requestId *string = this.SafeString(wsRequest, "id")
 
-	response := (<-this.Watch(url, requestId, wsRequest, requestId))
-	ccxt.PanicOnError(response)
+	r1 := <-this.Watch(url, requestId, wsRequest, requestId)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	response := r1.Value
 	//
 	// {
 	//   "code": 200,
@@ -392,7 +410,7 @@ func (this *Pacifica) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...a
 		}))
 	}
 
-	ch <- ordersToReturn
+	ch <- ccxt.AsyncResult[any]{Value: ordersToReturn}
 	return nil
 }
 
@@ -411,12 +429,12 @@ func (this *Pacifica) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...a
  * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Pacifica) CancelOrderWsAsync(id string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Pacifica) CancelOrderWsAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.cancelOrderWsBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) cancelOrderWsBody(ch chan any, id string, optionalArgs ...any) any {
+func (this *Pacifica) cancelOrderWsBody(ch chan ccxt.AsyncResult[any], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -426,7 +444,10 @@ func (this *Pacifica) cancelOrderWsBody(ch chan any, id string, optionalArgs ...
 	var operationType string = "cancel_order"
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " cancelOrderWs() requires a symbol argument"))
@@ -444,8 +465,11 @@ func (this *Pacifica) cancelOrderWsBody(ch chan any, id string, optionalArgs ...
 	var wsRequest any = this.WrapAsPostAction(operationType, request)
 	var requestId *string = this.SafeString(wsRequest, "id")
 
-	response := (<-this.Watch(url, requestId, wsRequest, requestId))
-	ccxt.PanicOnError(response)
+	r1 := <-this.Watch(url, requestId, wsRequest, requestId)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	response := r1.Value
 	//
 	//  {
 	//   "code": 200,
@@ -474,13 +498,13 @@ func (this *Pacifica) cancelOrderWsBody(ch chan any, id string, optionalArgs ...
 	var orderId *string = this.SafeString(order, "i")
 	var clientOrderId *string = this.SafeString(order, "I")
 
-	ch <- this.SafeOrder(map[string]any{
+	ch <- ccxt.AsyncResult[any]{Value: this.SafeOrder(map[string]any{
 		"id":            orderId,
 		"clientOrderId": clientOrderId,
 		"status":        status,
 		"info":          response,
 		"symbol":        symbol,
-	})
+	})}
 	return nil
 }
 
@@ -497,12 +521,12 @@ func (this *Pacifica) cancelOrderWsBody(ch chan any, id string, optionalArgs ...
  * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Pacifica) CancelAllOrdersWsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Pacifica) CancelAllOrdersWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.cancelAllOrdersWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
+func (this *Pacifica) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	symbol := ccxt.GetArg(optionalArgs, 0, nil)
@@ -511,7 +535,10 @@ func (this *Pacifica) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var operationType string = "cancel_all_orders"
 	var request any = this.CancelAllOrdersRequest(symbol, params)
@@ -527,8 +554,11 @@ func (this *Pacifica) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) an
 	var wsRequest any = this.WrapAsPostAction(operationType, request)
 	var requestId *string = this.SafeString(wsRequest, "id")
 
-	response := (<-this.Watch(url, requestId, wsRequest, requestId))
-	ccxt.PanicOnError(response)
+	r1 := <-this.Watch(url, requestId, wsRequest, requestId)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	response := r1.Value
 
 	//  {
 	//   "code": 200,
@@ -540,9 +570,9 @@ func (this *Pacifica) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) an
 	//   "type": "cancel_all_orders"
 	// }
 	//
-	ch <- []any{this.SafeOrder(map[string]any{
+	ch <- ccxt.AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
 		"info": response,
-	})}
+	})}}
 	return nil
 }
 
@@ -557,12 +587,12 @@ func (this *Pacifica) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) an
  * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Pacifica) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Pacifica) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Pacifica) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -572,7 +602,10 @@ func (this *Pacifica) watchOrderBookBody(ch chan any, symbol string, optionalArg
 	this.SetupApiKeyHeaders()
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	aggLevel, paramsAggLevel := this.HandleOptionIntegerAndParams(params, "watchOrderBook", "aggLevel", 1)
@@ -596,9 +629,13 @@ func (this *Pacifica) watchOrderBookBody(ch chan any, symbol string, optionalArg
 	}
 	var message map[string]any = this.Extend(request, paramsAggLevel)
 
-	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash))).(ccxt.OrderBookInterface)
+	r1 := <-this.Watch(url, messageHash, message, messageHash)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+	ch <- ccxt.AsyncResult[any]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 	return nil
 }
 
@@ -612,19 +649,22 @@ func (this *Pacifica) watchOrderBookBody(ch chan any, symbol string, optionalArg
  * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Pacifica) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Pacifica) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Pacifica) unWatchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	aggLevel, paramsAggLevel := this.HandleOptionIntegerAndParams(params, "watchOrderBook", "aggLevel", 1)
@@ -649,7 +689,11 @@ func (this *Pacifica) unWatchOrderBookBody(ch chan any, symbol string, optionalA
 	}
 	var message map[string]any = this.Extend(request, paramsAggLevel)
 
-	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
+	r1 := <-this.Watch(url, messageHash, message, messageHash)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
@@ -720,20 +764,24 @@ func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Pacifica) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Pacifica) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) watchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Pacifica) watchTickerBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var tickers map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchTickersAsync([]any{symbol}, params))))
+	r := <-this.WatchTickersAsync([]any{symbol}, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var tickers map[string]any = ccxt.MapTyped(r.Value)
 
-	ch <- ccxt.GetValue(tickers, symbol)
+	ch <- ccxt.AsyncResult[any]{Value: ccxt.GetValue(tickers, symbol)}
 	return nil
 }
 
@@ -746,12 +794,12 @@ func (this *Pacifica) watchTickerBody(ch chan any, symbol string, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Pacifica) WatchTickersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Pacifica) WatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) watchTickersBody(ch chan any, optionalArgs ...any) any {
+func (this *Pacifica) watchTickersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -761,7 +809,10 @@ func (this *Pacifica) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	this.SetupApiKeyHeaders()
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true)
 	var messageHash string = "tickers"
@@ -781,15 +832,18 @@ func (this *Pacifica) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		},
 	}
 
-	tickers := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(tickers)
+	r1 := <-this.Watch(url, messageHash, this.Extend(request, params), messageHash)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	tickers := r1.Value
 	if this.NewUpdates {
 
-		ch <- this.FilterByArrayTickers(tickers, "symbol", symbolsNormalized)
+		ch <- ccxt.AsyncResult[any]{Value: this.FilterByArrayTickers(tickers, "symbol", symbolsNormalized)}
 		return nil
 	}
 
-	ch <- this.Tickers
+	ch <- ccxt.AsyncResult[any]{Value: this.Tickers}
 	return nil
 }
 
@@ -802,12 +856,12 @@ func (this *Pacifica) watchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Pacifica) UnWatchTickersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Pacifica) UnWatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
+func (this *Pacifica) unWatchTickersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -816,7 +870,10 @@ func (this *Pacifica) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	this.MarketSymbols(symbols, nil, true)
 	var subMessageHash string = "tickers"
@@ -837,7 +894,11 @@ func (this *Pacifica) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		},
 	}
 
-	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash)))
+	r1 := <-this.Watch(url, messageHash, this.Extend(request, params), messageHash)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 
@@ -853,12 +914,12 @@ func (this *Pacifica) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Pacifica) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Pacifica) WatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
+func (this *Pacifica) watchMyTradesBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -874,7 +935,10 @@ func (this *Pacifica) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paramsOriginAndSingleAddress map[string]any = ccxt.MapTyped(ccxt.GetValue(userAddressparamsOriginAndSingleAddressVariable, 1))
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var messageHash any = "myTrades"
 	var symbolResolved any = nil
@@ -900,13 +964,17 @@ func (this *Pacifica) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var message map[string]any = this.Extend(request, paramsOriginAndSingleAddress)
 
-	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash))))
+	r1 := <-this.Watch(url, messageHash, message, messageHash)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true)}
 	return nil
 }
 
@@ -920,12 +988,12 @@ func (this *Pacifica) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Pacifica) UnWatchMyTradesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Pacifica) UnWatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
+func (this *Pacifica) unWatchMyTradesBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -934,7 +1002,10 @@ func (this *Pacifica) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	if symbol != nil {
 		panic(ccxt.NotSupported(this.Id + " unWatchMyTrades does not support a symbol argument, unWatch from all markets only"))
@@ -961,7 +1032,11 @@ func (this *Pacifica) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	}
 	var message map[string]any = this.Extend(request, paramsOriginAndSingleAddress)
 
-	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
+	r1 := <-this.Watch(url, messageHash, message, messageHash)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 func (this *Pacifica) HandleWsTickers(client any, message map[string]any) bool {
@@ -1087,12 +1162,12 @@ func (this *Pacifica) HandleMyTrades(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Pacifica) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Pacifica) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Pacifica) watchTradesBody(ch chan ccxt.AsyncResult[any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1103,7 +1178,10 @@ func (this *Pacifica) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1126,13 +1204,17 @@ func (this *Pacifica) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash))))
+	r1 := <-this.Watch(url, messageHash, message, messageHash)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolValue, limit)
 	}
 
-	ch <- this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)}
 	return nil
 }
 
@@ -1145,19 +1227,22 @@ func (this *Pacifica) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Pacifica) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Pacifica) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) unWatchTradesBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Pacifica) unWatchTradesBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1181,7 +1266,11 @@ func (this *Pacifica) unWatchTradesBody(ch chan any, symbol string, optionalArgs
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
+	r1 := <-this.Watch(url, messageHash, message, messageHash)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 func (this *Pacifica) HandleTrades(client any, message map[string]any) {
@@ -1323,12 +1412,12 @@ func (this *Pacifica) ParseWsTrade(trade any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Pacifica) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Pacifica) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Pacifica) watchOHLCVBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -1341,7 +1430,10 @@ func (this *Pacifica) watchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1366,13 +1458,17 @@ func (this *Pacifica) watchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 	var messageHash string = "candles:" + *parsedTf + ":" + *symbolValue
 	var message map[string]any = this.Extend(request, params)
 
-	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash))))
+	r1 := <-this.Watch(url, messageHash, message, messageHash)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(ohlcv).GetLimit(symbolValue, limit)
 	}
 
-	ch <- this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true)}
 	return nil
 }
 
@@ -1386,12 +1482,12 @@ func (this *Pacifica) watchOHLCVBody(ch chan any, symbol string, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Pacifica) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Pacifica) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Pacifica) unWatchOHLCVBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -1400,7 +1496,10 @@ func (this *Pacifica) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs 
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1425,7 +1524,11 @@ func (this *Pacifica) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs 
 	var messagehash string = "unsubscribe:" + subMessageHash
 	var message map[string]any = this.Extend(request, params)
 
-	ch <- ccxt.PanicOnError((<-this.Watch(url, messagehash, message, messagehash)))
+	r1 := <-this.Watch(url, messagehash, message, messagehash)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 func (this *Pacifica) HandleOHLCV(client any, message map[string]any) {
@@ -1482,12 +1585,12 @@ func (this *Pacifica) HandleOHLCV(client any, message map[string]any) {
  * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Pacifica) WatchOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Pacifica) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) watchOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Pacifica) watchOrdersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1500,7 +1603,10 @@ func (this *Pacifica) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	userAddressparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("watchOrders", params)
 	var userAddress *string = ccxt.SafeStringPtr(ccxt.GetValue(userAddressparamsOriginAndSingleAddressVariable, 0))
@@ -1535,13 +1641,17 @@ func (this *Pacifica) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var message map[string]any = this.Extend(request, paramsOriginAndSingleAddress)
 
-	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash))))
+	r1 := <-this.Watch(url, messageHash, message, messageHash)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true)}
 	return nil
 }
 
@@ -1555,12 +1665,12 @@ func (this *Pacifica) watchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Pacifica) UnWatchOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Pacifica) UnWatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Pacifica) unWatchOrdersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1569,7 +1679,10 @@ func (this *Pacifica) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	if symbol != nil {
 		panic(ccxt.NotSupported(this.Id + " unWatchOrders() does not support a symbol argument, unWatch from all markets only"))
@@ -1596,7 +1709,11 @@ func (this *Pacifica) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var message map[string]any = this.Extend(request, paramsOriginAndSingleAddress)
 
-	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
+	r1 := <-this.Watch(url, messageHash, message, messageHash)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 func (this *Pacifica) HandleOrder(client any, message map[string]any) {
@@ -1970,11 +2087,11 @@ func (this *Pacifica) CreateOrderWs(symbol string, typeVar string, side string, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CreateOrderWsAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Order{}, ccxt.CreateReturnError(raw)
+	r := <-this.CreateOrderWsAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if r.Err != nil {
+		return ccxt.Order{}, r.Err
 	}
-	var res ccxt.Order = ccxt.NewOrder(raw)
+	var res ccxt.Order = ccxt.NewOrder(r.Value)
 	return res, nil
 }
 
@@ -2003,11 +2120,11 @@ func (this *Pacifica) EditOrderWs(id string, symbol string, typeVar string, side
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.EditOrderWsAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Order{}, ccxt.CreateReturnError(raw)
+	r := <-this.EditOrderWsAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params)
+	if r.Err != nil {
+		return ccxt.Order{}, r.Err
 	}
-	var res ccxt.Order = ccxt.NewOrder(raw)
+	var res ccxt.Order = ccxt.NewOrder(r.Value)
 	return res, nil
 }
 
@@ -2033,11 +2150,11 @@ func (this *Pacifica) CancelOrdersWs(ids []string, options ...ccxt.CancelOrdersW
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CancelOrdersWsAsync(ids, opts.Symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.CancelOrdersWsAsync(ids, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(raw)
+	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -2063,11 +2180,11 @@ func (this *Pacifica) CancelOrderWs(id string, options ...ccxt.CancelOrderWsOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CancelOrderWsAsync(id, opts.Symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Order{}, ccxt.CreateReturnError(raw)
+	r := <-this.CancelOrderWsAsync(id, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return ccxt.Order{}, r.Err
 	}
-	var res ccxt.Order = ccxt.NewOrder(raw)
+	var res ccxt.Order = ccxt.NewOrder(r.Value)
 	return res, nil
 }
 
@@ -2091,11 +2208,11 @@ func (this *Pacifica) CancelAllOrdersWs(options ...ccxt.CancelAllOrdersWsOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CancelAllOrdersWsAsync(opts.Symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.CancelAllOrdersWsAsync(opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(raw)
+	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -2117,11 +2234,11 @@ func (this *Pacifica) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.OrderBook{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return ccxt.OrderBook{}, r.Err
 	}
-	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(raw)
+	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(r.Value)
 	return res, nil
 }
 
@@ -2142,11 +2259,11 @@ func (this *Pacifica) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrd
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchOrderBookAsync(symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchOrderBookAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -2165,11 +2282,11 @@ func (this *Pacifica) WatchTicker(symbol string, options ...ccxt.WatchTickerOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchTickerAsync(symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Ticker{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchTickerAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return ccxt.Ticker{}, r.Err
 	}
-	var res ccxt.Ticker = ccxt.NewTicker(raw)
+	var res ccxt.Ticker = ccxt.NewTicker(r.Value)
 	return res, nil
 }
 
@@ -2189,11 +2306,11 @@ func (this *Pacifica) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Ti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Tickers{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return ccxt.Tickers{}, r.Err
 	}
-	var res ccxt.Tickers = ccxt.NewTickers(raw)
+	var res ccxt.Tickers = ccxt.NewTickers(r.Value)
 	return res, nil
 }
 
@@ -2213,11 +2330,11 @@ func (this *Pacifica) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchTickersAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchTickersAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -2239,11 +2356,11 @@ func (this *Pacifica) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccx
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -2264,11 +2381,11 @@ func (this *Pacifica) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (a
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchMyTradesAsync(opts.Symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchMyTradesAsync(opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -2289,11 +2406,11 @@ func (this *Pacifica) WatchTrades(symbol string, options ...ccxt.WatchTradesOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -2313,11 +2430,11 @@ func (this *Pacifica) UnWatchTrades(symbol string, options ...ccxt.UnWatchTrades
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchTradesAsync(symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchTradesAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -2339,11 +2456,11 @@ func (this *Pacifica) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(raw)
+	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(r.Value)
 	return res, nil
 }
 
@@ -2364,11 +2481,11 @@ func (this *Pacifica) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -2390,11 +2507,11 @@ func (this *Pacifica) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Or
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(raw)
+	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -2415,9 +2532,9 @@ func (this *Pacifica) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (any, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchOrdersAsync(opts.Symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchOrdersAsync(opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }

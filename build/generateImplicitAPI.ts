@@ -958,7 +958,7 @@ function goChannelElement (exchange: string, method: string, resolvable: any): s
 // the channel type as written in the signature; the carrier is package-local in ccxt and is
 // reached through the ccxt import in ccxtprediction
 function goChannelType (element: string, pkgPrefix: string): string {
-    return (element === 'any') ? 'any' : (pkgPrefix + 'EndpointResult[' + element + ']')
+    return (element === 'any') ? (pkgPrefix + 'AsyncResult[any]') : (pkgPrefix + 'EndpointResult[' + element + ']')
 }
 
 function goEndpointBody (method: string, resolvable: any, callEndpoint: string, pkgPrefix: string, element: string): string {
@@ -1024,12 +1024,8 @@ function createImplicitMethodsGo(){
         }
         const ownMethodNames = methodNames.filter (method => !(capitalize(method) in inherited));
         const resolvable: Map<string, Dict> = storedResolvableNames[exchange] || new Map<string, Dict> ();
-        let bakedAny = false;
         const methods = ownMethodNames.map(method => {
             const own = resolvable.get (method);
-            if (goBakes (own)) {
-                bakedAny = true;
-            }
             const element = goChannelElement (exchange, method, own);
             return [
                 `// ${capitalize(method)} returns a channel that yields ${proseReturnShape (exchange, method)}.`,
@@ -1047,9 +1043,8 @@ function createImplicitMethodsGo(){
             // ].join('\n')
         });
         // methods.unshift (reusableMethod);
-        if (isPrediction && bakedAny && goPredictionNeedsCcxtImport (methods)) {
-            // the baked bodies thin args through the package-level GetArg, which
-            // ccxtprediction takes from package ccxt
+        if (isPrediction && goPredictionNeedsCcxtImport (methods)) {
+            // baked bodies (GetArg) and every channel type (AsyncResult) name package ccxt
             storedGoMethods[exchange].push (`import ccxt "github.com/ccxt/ccxt/go/v4"`, '')
         }
         storedGoMethods[exchange] = storedGoMethods[exchange].concat (methods)

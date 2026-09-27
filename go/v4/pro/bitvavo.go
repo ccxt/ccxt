@@ -82,19 +82,22 @@ func (this *Bitvavo) Describe() any {
 		},
 	})
 }
-func (this *Bitvavo) WatchPublicAsync(name string, symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) WatchPublicAsync(name string, symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPublicBody(ch, name, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) watchPublicBody(ch chan any, name string, symbol any, optionalArgs ...any) any {
+func (this *Bitvavo) watchPublicBody(ch chan ccxt.AsyncResult[any], name string, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+"@", market["id"]))
@@ -108,22 +111,29 @@ func (this *Bitvavo) watchPublicBody(ch chan any, name string, symbol any, optio
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
+	r1 := <-this.Watch(url, messageHash, message, messageHash)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Bitvavo) WatchPublicMultipleAsync(methodName string, channelName string, symbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) WatchPublicMultipleAsync(methodName string, channelName string, symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPublicMultipleBody(ch, methodName, channelName, symbols, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) watchPublicMultipleBody(ch chan any, methodName string, channelName string, symbols any, optionalArgs ...any) any {
+func (this *Bitvavo) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], methodName string, channelName string, symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var messageHashes []any = []any{methodName}
@@ -142,7 +152,11 @@ func (this *Bitvavo) watchPublicMultipleBody(ch chan any, methodName string, cha
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, message, messageHashes)))
+	r1 := <-this.WatchMultiple(url, messageHashes, message, messageHashes)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 
@@ -155,18 +169,22 @@ func (this *Bitvavo) watchPublicMultipleBody(ch chan any, methodName string, cha
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Bitvavo) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) watchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Bitvavo) watchTickerBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync("ticker24h", symbol, params)))
+	r := <-this.WatchPublicAsync("ticker24h", symbol, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
 
@@ -179,12 +197,12 @@ func (this *Bitvavo) watchTickerBody(ch chan any, symbol string, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Bitvavo) WatchTickersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) WatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) watchTickersBody(ch chan any, optionalArgs ...any) any {
+func (this *Bitvavo) watchTickersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -193,15 +211,21 @@ func (this *Bitvavo) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var channel string = "ticker24h"
 
-	tickers := (<-this.WatchPublicMultipleAsync(channel, channel, symbolsNormalized, params))
-	ccxt.PanicOnError(tickers)
+	r1 := <-this.WatchPublicMultipleAsync(channel, channel, symbolsNormalized, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	tickers := r1.Value
 
-	ch <- this.FilterByArray(tickers, "symbol", symbolsNormalized)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterByArray(tickers, "symbol", symbolsNormalized)}
 	return nil
 }
 func (this *Bitvavo) HandleTicker(client any, message map[string]any) {
@@ -260,12 +284,12 @@ func (this *Bitvavo) HandleTicker(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Bitvavo) WatchBidsAsksAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) WatchBidsAsksAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchBidsAsksBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
+func (this *Bitvavo) watchBidsAsksBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -274,15 +298,21 @@ func (this *Bitvavo) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var channel string = "ticker24h"
 
-	tickers := (<-this.WatchPublicMultipleAsync("bidask", channel, symbolsNormalized, params))
-	ccxt.PanicOnError(tickers)
+	r1 := <-this.WatchPublicMultipleAsync("bidask", channel, symbolsNormalized, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	tickers := r1.Value
 
-	ch <- this.FilterByArray(tickers, "symbol", symbolsNormalized)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterByArray(tickers, "symbol", symbolsNormalized)}
 	return nil
 }
 func (this *Bitvavo) HandleBidAsk(client any, message map[string]any) {
@@ -334,12 +364,12 @@ func (this *Bitvavo) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bitvavo) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitvavo) watchTradesBody(ch chan ccxt.AsyncResult[any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -350,17 +380,24 @@ func (this *Bitvavo) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolValue any = this.Symbol(symbol)
 
-	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicAsync("trades", symbolValue, params))))
+	r1 := <-this.WatchPublicAsync("trades", symbolValue, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolValue, limit)
 	}
 
-	ch <- this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)}
 	return nil
 }
 func (this *Bitvavo) HandleTrade(client any, message map[string]any) {
@@ -402,12 +439,12 @@ func (this *Bitvavo) HandleTrade(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bitvavo) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
+func (this *Bitvavo) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[any], symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -418,7 +455,10 @@ func (this *Bitvavo) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var name string = "trades"
@@ -439,7 +479,11 @@ func (this *Bitvavo) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, message, messageHashes))))
+	r1 := <-this.WatchMultiple(url, messageHashes, message, messageHashes)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
@@ -447,7 +491,7 @@ func (this *Bitvavo) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
 
-	ch <- this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)}
 	return nil
 }
 
@@ -460,18 +504,22 @@ func (this *Bitvavo) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} status of the unwatch request
  */
-func (this *Bitvavo) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) unWatchTradesBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Bitvavo) unWatchTradesBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	ch <- ccxt.PanicOnError((<-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params)))
+	r := <-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
 
@@ -484,19 +532,22 @@ func (this *Bitvavo) unWatchTradesBody(ch chan any, symbol string, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} status of the unwatch request
  */
-func (this *Bitvavo) UnWatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) UnWatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) unWatchTradesForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
+func (this *Bitvavo) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[any], symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var name string = "trades"
@@ -515,7 +566,11 @@ func (this *Bitvavo) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
 		"symbols": symbolsNormalized,
 	}
 
-	ch <- ccxt.PanicOnError((<-this.UnWatchChannelsAsync("trades", channels, subMessageHashes, subscriptionArgs, params)))
+	r1 := <-this.UnWatchChannelsAsync("trades", channels, subMessageHashes, subscriptionArgs, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 
@@ -530,12 +585,12 @@ func (this *Bitvavo) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Bitvavo) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Bitvavo) watchOHLCVBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -548,7 +603,10 @@ func (this *Bitvavo) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
@@ -567,13 +625,17 @@ func (this *Bitvavo) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash))))
+	r1 := <-this.Watch(url, messageHash, message, messageHash)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(ohlcv).GetLimit(symbolValue, limit)
 	}
 
-	ch <- this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true)}
 	return nil
 }
 func (this *Bitvavo) HandleFetchOHLCV(client any, message map[string]any) {
@@ -651,12 +713,12 @@ func (this *Bitvavo) HandleOHLCV(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [symbol, timeframe] keyed arrays of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Bitvavo) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any, optionalArgs ...any) any {
+func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[any], symbolsAndTimeframes any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -667,7 +729,10 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var name string = "candles"
 	var messageHashes []any = []any{}
@@ -727,7 +792,11 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 		"channels": channels,
 	}
 	var message map[string]any = this.Extend(request, params)
-	symboltimeframecandlesVariable := (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
+	r1 := <-this.WatchMultiple(url, messageHashes, message, messageHashes)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	symboltimeframecandlesVariable := r1.Value
 	symbol := ccxt.GetValue(symboltimeframecandlesVariable, 0)
 	timeframe := ccxt.GetValue(symboltimeframecandlesVariable, 1)
 	candles := ccxt.GetValue(symboltimeframecandlesVariable, 2)
@@ -737,7 +806,7 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	}
 	var filtered any = this.FilterBySinceLimit(candles, since, limitResolved, 0, true)
 
-	ch <- this.CreateOHLCVObject(symbol, timeframe, filtered)
+	ch <- ccxt.AsyncResult[any]{Value: this.CreateOHLCVObject(symbol, timeframe, filtered)}
 	return nil
 }
 
@@ -751,12 +820,12 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} status of the unwatch request
  */
-func (this *Bitvavo) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Bitvavo) unWatchOHLCVBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -764,7 +833,11 @@ func (this *Bitvavo) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs .
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	ch <- ccxt.PanicOnError((<-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, params)))
+	r := <-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
 
@@ -777,19 +850,22 @@ func (this *Bitvavo) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} status of the unwatch request
  */
-func (this *Bitvavo) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any, optionalArgs ...any) any {
+func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[any], symbolsAndTimeframes any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var name string = "candles"
 	var subMessageHashes []any = []any{}
@@ -849,7 +925,11 @@ func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 		"symbolsAndTimeframes": symbolsAndTimeframes,
 	}
 
-	ch <- ccxt.PanicOnError((<-this.UnWatchChannelsAsync("ohlcv", channels, subMessageHashes, subscriptionArgs, params)))
+	r1 := <-this.UnWatchChannelsAsync("ohlcv", channels, subMessageHashes, subscriptionArgs, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 
@@ -862,12 +942,12 @@ func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Bitvavo) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Bitvavo) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -876,7 +956,10 @@ func (this *Bitvavo) watchOrderBookBody(ch chan any, symbol string, optionalArgs
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
@@ -901,9 +984,13 @@ func (this *Bitvavo) watchOrderBookBody(ch chan any, symbol string, optionalArgs
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash, subscription))).(ccxt.OrderBookInterface)
+	r1 := <-this.Watch(url, messageHash, message, messageHash, subscription)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+	ch <- ccxt.AsyncResult[any]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 	return nil
 }
 
@@ -917,12 +1004,12 @@ func (this *Bitvavo) watchOrderBookBody(ch chan any, symbol string, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Bitvavo) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) watchOrderBookForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
+func (this *Bitvavo) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[any], symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -931,7 +1018,10 @@ func (this *Bitvavo) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var name string = "book"
@@ -960,9 +1050,13 @@ func (this *Bitvavo) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, message, messageHashes, subscription))).(ccxt.OrderBookInterface)
+	r1 := <-this.WatchMultiple(url, messageHashes, message, messageHashes, subscription)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+	ch <- ccxt.AsyncResult[any]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 	return nil
 }
 
@@ -975,18 +1069,22 @@ func (this *Bitvavo) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} status of the unwatch request
  */
-func (this *Bitvavo) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Bitvavo) unWatchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	ch <- ccxt.PanicOnError((<-this.UnWatchOrderBookForSymbolsAsync([]any{symbol}, params)))
+	r := <-this.UnWatchOrderBookForSymbolsAsync([]any{symbol}, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
 
@@ -999,19 +1097,22 @@ func (this *Bitvavo) unWatchOrderBookBody(ch chan any, symbol string, optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} status of the unwatch request
  */
-func (this *Bitvavo) UnWatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) UnWatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
+func (this *Bitvavo) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[any], symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var name string = "book"
@@ -1030,7 +1131,11 @@ func (this *Bitvavo) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, op
 		"symbols": symbolsNormalized,
 	}
 
-	ch <- ccxt.PanicOnError((<-this.UnWatchChannelsAsync("orderbook", channels, subMessageHashes, subscriptionArgs, params)))
+	r1 := <-this.UnWatchChannelsAsync("orderbook", channels, subMessageHashes, subscriptionArgs, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 func (this *Bitvavo) HandleDelta(bookside any, delta any) {
@@ -1108,12 +1213,12 @@ func (this *Bitvavo) HandleOrderBook(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
 }
-func (this *Bitvavo) WatchOrderBookSnapshotAsync(client any, message any, subscription any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) WatchOrderBookSnapshotAsync(client any, message any, subscription any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchOrderBookSnapshotBody(ch, client, message, subscription)
 	return ch
 }
-func (this *Bitvavo) watchOrderBookSnapshotBody(ch chan any, client any, message any, subscription any) any {
+func (this *Bitvavo) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[any], client any, message any, subscription any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.SafeMapTyped(subscription, "params")
@@ -1135,9 +1240,13 @@ func (this *Bitvavo) watchOrderBookSnapshotBody(ch chan any, client any, message
 		"market": marketId,
 	}
 
-	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))).(ccxt.OrderBookInterface)
+	r := <-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var orderbook ccxt.OrderBookInterface = r.Value.(ccxt.OrderBookInterface)
 
-	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+	ch <- ccxt.AsyncResult[any]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 	return nil
 }
 func (this *Bitvavo) HandleOrderBookSnapshot(client any, message map[string]any) {
@@ -1220,12 +1329,12 @@ func (this *Bitvavo) HandleOrderBookSubscriptions(client any, message map[string
 		}
 	}
 }
-func (this *Bitvavo) UnWatchChannelsAsync(topic string, channels any, subMessageHashes any, subscriptionArgs any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) UnWatchChannelsAsync(topic string, channels any, subMessageHashes any, subscriptionArgs any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchChannelsBody(ch, topic, channels, subMessageHashes, subscriptionArgs, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) unWatchChannelsBody(ch chan any, topic string, channels any, subMessageHashes any, subscriptionArgs any, optionalArgs ...any) any {
+func (this *Bitvavo) unWatchChannelsBody(ch chan ccxt.AsyncResult[any], topic string, channels any, subMessageHashes any, subscriptionArgs any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1246,7 +1355,11 @@ func (this *Bitvavo) unWatchChannelsBody(ch chan any, topic string, channels any
 	}, subscriptionArgs)
 	var message map[string]any = this.Extend(request, params)
 
-	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, unsubHashes, message, unsubHashes, subscription)))
+	r := <-this.WatchMultiple(url, unsubHashes, message, unsubHashes, subscription)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
 func (this *Bitvavo) HandleUnsubscriptionStatus(client any, message map[string]any) any {
@@ -1292,12 +1405,12 @@ func (this *Bitvavo) HandleUnsubscriptionStatus(client any, message map[string]a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) WatchOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) watchOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Bitvavo) watchOrdersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1313,10 +1426,16 @@ func (this *Bitvavo) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	ccxt.PanicOnError((<-this.AuthenticateAsync()))
+	r1 := <-this.AuthenticateAsync()
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
@@ -1331,13 +1450,17 @@ func (this *Bitvavo) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		}},
 	}
 
-	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash))))
+	r2 := <-this.Watch(url, messageHash, request, messageHash)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(symbolValue, limit)
 	}
 
-	ch <- this.FilterBySymbolSinceLimit(orders, symbolValue, since, limitResolved, true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(orders, symbolValue, since, limitResolved, true)}
 	return nil
 }
 
@@ -1351,12 +1474,12 @@ func (this *Bitvavo) watchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Bitvavo) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) WatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
+func (this *Bitvavo) watchMyTradesBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1372,10 +1495,16 @@ func (this *Bitvavo) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	ccxt.PanicOnError((<-this.AuthenticateAsync()))
+	r1 := <-this.AuthenticateAsync()
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
@@ -1390,13 +1519,17 @@ func (this *Bitvavo) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		}},
 	}
 
-	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash))))
+	r2 := <-this.Watch(url, messageHash, request, messageHash)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolValue, limit)
 	}
 
-	ch <- this.FilterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true)}
 	return nil
 }
 
@@ -1424,12 +1557,12 @@ func (this *Bitvavo) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {bool} [params.responseRequired] ccxt.Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) CreateOrderWsAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) CreateOrderWsAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.createOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) createOrderWsBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Bitvavo) createOrderWsBody(ch chan ccxt.AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1438,13 +1571,23 @@ func (this *Bitvavo) createOrderWsBody(ch chan any, symbol string, typeVar strin
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	ccxt.PanicOnError((<-this.AuthenticateAsync()))
+	r1 := <-this.AuthenticateAsync()
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 	var request map[string]any = ccxt.MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 
-	ch <- ccxt.PanicOnError((<-this.WatchRequestAsync("privateCreateOrder", request)))
+	r2 := <-this.WatchRequestAsync("privateCreateOrder", request)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r2.Value}
 	return nil
 }
 
@@ -1462,12 +1605,12 @@ func (this *Bitvavo) createOrderWsBody(ch chan any, symbol string, typeVar strin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) EditOrderWsAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) EditOrderWsAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.editOrderWsBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) editOrderWsBody(ch chan any, id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
+func (this *Bitvavo) editOrderWsBody(ch chan ccxt.AsyncResult[any], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var amount *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1478,13 +1621,23 @@ func (this *Bitvavo) editOrderWsBody(ch chan any, id string, symbol string, type
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	ccxt.PanicOnError((<-this.AuthenticateAsync()))
+	r1 := <-this.AuthenticateAsync()
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 	var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
 
-	ch <- ccxt.PanicOnError((<-this.WatchRequestAsync("privateUpdateOrder", request)))
+	r2 := <-this.WatchRequestAsync("privateUpdateOrder", request)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r2.Value}
 	return nil
 }
 
@@ -1498,12 +1651,12 @@ func (this *Bitvavo) editOrderWsBody(ch chan any, id string, symbol string, type
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) CancelOrderWsAsync(id string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) CancelOrderWsAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.cancelOrderWsBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) cancelOrderWsBody(ch chan any, id string, optionalArgs ...any) any {
+func (this *Bitvavo) cancelOrderWsBody(ch chan ccxt.AsyncResult[any], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1512,13 +1665,23 @@ func (this *Bitvavo) cancelOrderWsBody(ch chan any, id string, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	ccxt.PanicOnError((<-this.AuthenticateAsync()))
+	r1 := <-this.AuthenticateAsync()
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 	var request any = this.CancelOrderRequest(id, symbol, params)
 
-	ch <- ccxt.PanicOnError((<-this.WatchRequestAsync("privateCancelOrder", request)))
+	r2 := <-this.WatchRequestAsync("privateCancelOrder", request)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r2.Value}
 	return nil
 }
 
@@ -1531,12 +1694,12 @@ func (this *Bitvavo) cancelOrderWsBody(ch chan any, id string, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) CancelAllOrdersWsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) CancelAllOrdersWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.cancelAllOrdersWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
+func (this *Bitvavo) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1545,10 +1708,16 @@ func (this *Bitvavo) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	ccxt.PanicOnError((<-this.AuthenticateAsync()))
+	r1 := <-this.AuthenticateAsync()
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 	var request map[string]any = map[string]any{}
 	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(params, "cancelAllOrdersWs", "operatorId")
 	operatorId := ccxt.GetValue(operatorIdparamsOperatorIdVariable, 0)
@@ -1564,7 +1733,11 @@ func (this *Bitvavo) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any
 		request["market"] = market["id"]
 	}
 
-	ch <- ccxt.PanicOnError((<-this.WatchRequestAsync("privateCancelOrders", this.Extend(request, paramsOperatorId))))
+	r2 := <-this.WatchRequestAsync("privateCancelOrders", this.Extend(request, paramsOperatorId))
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r2.Value}
 	return nil
 }
 func (this *Bitvavo) HandleMultipleOrders(client any, message map[string]any) {
@@ -1598,12 +1771,12 @@ func (this *Bitvavo) HandleMultipleOrders(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) FetchOrderWsAsync(id string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) FetchOrderWsAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.fetchOrderWsBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchOrderWsBody(ch chan any, id string, optionalArgs ...any) any {
+func (this *Bitvavo) fetchOrderWsBody(ch chan ccxt.AsyncResult[any], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1615,17 +1788,27 @@ func (this *Bitvavo) fetchOrderWsBody(ch chan any, id string, optionalArgs ...an
 	}
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	ccxt.PanicOnError((<-this.AuthenticateAsync()))
+	r1 := <-this.AuthenticateAsync()
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"orderId": id,
 		"market":  market["id"],
 	}
 
-	ch <- ccxt.PanicOnError((<-this.WatchRequestAsync("privateGetOrder", this.Extend(request, params))))
+	r2 := <-this.WatchRequestAsync("privateGetOrder", this.Extend(request, params))
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r2.Value}
 	return nil
 }
 
@@ -1640,12 +1823,12 @@ func (this *Bitvavo) fetchOrderWsBody(ch chan any, id string, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {ccxt.Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) FetchOrdersWsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) FetchOrdersWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.fetchOrdersWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchOrdersWsBody(ch chan any, optionalArgs ...any) any {
+func (this *Bitvavo) fetchOrdersWsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1661,15 +1844,25 @@ func (this *Bitvavo) fetchOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	}
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	ccxt.PanicOnError((<-this.AuthenticateAsync()))
+	r1 := <-this.AuthenticateAsync()
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 	var request any = this.FetchOrdersRequest(symbol, since, limit, params)
 
-	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchRequestAsync("privateGetOrders", request))))
+	r2 := <-this.WatchRequestAsync("privateGetOrders", request)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
 
-	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(orders, symbol, since, limit)}
 	return nil
 }
 func (this *Bitvavo) RequestId() int64 {
@@ -1678,12 +1871,12 @@ func (this *Bitvavo) RequestId() int64 {
 	var randomPart string = strconv.FormatInt(randomNumber, 10)
 	return ccxt.ParseInt(ts + randomPart)
 }
-func (this *Bitvavo) WatchRequestAsync(action string, request any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) WatchRequestAsync(action string, request any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchRequestBody(ch, action, request)
 	return ch
 }
-func (this *Bitvavo) watchRequestBody(ch chan any, action string, request any) any {
+func (this *Bitvavo) watchRequestBody(ch chan ccxt.AsyncResult[any], action string, request any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var messageHash int64 = this.RequestId()
@@ -1692,7 +1885,11 @@ func (this *Bitvavo) watchRequestBody(ch chan any, action string, request any) a
 	ccxt.AddElementToObject(request, "requestId", messageHash)
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 
-	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHashStr, request, messageHashStr)))
+	r := <-this.Watch(url, messageHashStr, request, messageHashStr)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
 
@@ -1706,12 +1903,12 @@ func (this *Bitvavo) watchRequestBody(ch chan any, action string, request any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {ccxt.Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) FetchOpenOrdersWsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) FetchOpenOrdersWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.fetchOpenOrdersWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any {
+func (this *Bitvavo) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1724,10 +1921,16 @@ func (this *Bitvavo) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	ccxt.PanicOnError((<-this.AuthenticateAsync()))
+	r1 := <-this.AuthenticateAsync()
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if symbol != nil {
@@ -1735,9 +1938,13 @@ func (this *Bitvavo) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any
 		request["market"] = market["id"]
 	}
 
-	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchRequestAsync("privateGetOrdersOpen", this.Extend(request, params)))))
+	r2 := <-this.WatchRequestAsync("privateGetOrdersOpen", this.Extend(request, params))
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
 
-	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(orders, symbol, since, limit)}
 	return nil
 }
 
@@ -1752,12 +1959,12 @@ func (this *Bitvavo) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {ccxt.Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Bitvavo) FetchMyTradesWsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) FetchMyTradesWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.fetchMyTradesWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchMyTradesWsBody(ch chan any, optionalArgs ...any) any {
+func (this *Bitvavo) fetchMyTradesWsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1773,15 +1980,25 @@ func (this *Bitvavo) fetchMyTradesWsBody(ch chan any, optionalArgs ...any) any {
 	}
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	ccxt.PanicOnError((<-this.AuthenticateAsync()))
+	r1 := <-this.AuthenticateAsync()
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 	var request any = this.FetchMyTradesRequest(symbol, since, limit, params)
 
-	var myTrades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchRequestAsync("privateGetTrades", request))))
+	r2 := <-this.WatchRequestAsync("privateGetTrades", request)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	var myTrades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
 
-	ch <- this.FilterBySymbolSinceLimit(myTrades, symbol, since, limit)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(myTrades, symbol, since, limit)}
 	return nil
 }
 func (this *Bitvavo) HandleMyTrades(client any, message map[string]any) {
@@ -1826,12 +2043,12 @@ func (this *Bitvavo) HandleMyTrades(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitvavo) WithdrawWsAsync(code string, amount any, address string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) WithdrawWsAsync(code string, amount any, address string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.withdrawWsBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) withdrawWsBody(ch chan any, code string, amount any, address string, optionalArgs ...any) any {
+func (this *Bitvavo) withdrawWsBody(ch chan ccxt.AsyncResult[any], code string, amount any, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var tag *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1844,13 +2061,23 @@ func (this *Bitvavo) withdrawWsBody(ch chan any, code string, amount any, addres
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	ccxt.PanicOnError((<-this.AuthenticateAsync()))
+	r1 := <-this.AuthenticateAsync()
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 	var request any = this.WithdrawRequest(code, amount, address, tagWithdrawTag, paramsWithdrawTag)
 
-	ch <- ccxt.PanicOnError((<-this.WatchRequestAsync("privateWithdrawAssets", request)))
+	r2 := <-this.WatchRequestAsync("privateWithdrawAssets", request)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r2.Value}
 	return nil
 }
 func (this *Bitvavo) HandleWithdraw(client any, message map[string]any) {
@@ -1883,12 +2110,12 @@ func (this *Bitvavo) HandleWithdraw(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitvavo) FetchWithdrawalsWsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) FetchWithdrawalsWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.fetchWithdrawalsWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchWithdrawalsWsBody(ch chan any, optionalArgs ...any) any {
+func (this *Bitvavo) fetchWithdrawalsWsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var code *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1901,15 +2128,25 @@ func (this *Bitvavo) fetchWithdrawalsWsBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	ccxt.PanicOnError((<-this.AuthenticateAsync()))
+	r1 := <-this.AuthenticateAsync()
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 	var request any = this.FetchWithdrawalsRequest(code, since, limit, params)
 
-	var withdraws ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchRequestAsync("privateGetWithdrawalHistory", request))))
+	r2 := <-this.WatchRequestAsync("privateGetWithdrawalHistory", request)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	var withdraws ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
 
-	ch <- this.FilterByCurrencySinceLimit(withdraws, code, since, limit)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterByCurrencySinceLimit(withdraws, code, since, limit)}
 	return nil
 }
 func (this *Bitvavo) HandleWithdraws(client any, message map[string]any) {
@@ -1950,12 +2187,12 @@ func (this *Bitvavo) HandleWithdraws(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Bitvavo) FetchOHLCVWsAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) FetchOHLCVWsAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.fetchOHLCVWsBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchOHLCVWsBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Bitvavo) fetchOHLCVWsBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -1968,14 +2205,21 @@ func (this *Bitvavo) fetchOHLCVWsBody(ch chan any, symbol string, optionalArgs .
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var request any = this.FetchOHLCVRequest(symbol, timeframe, since, limit, params)
 	var action string = "getCandles"
 
-	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchRequestAsync(action, request))))
+	r1 := <-this.WatchRequestAsync(action, request)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 
-	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySinceLimit(ohlcv, since, limit, 0, true)}
 	return nil
 }
 
@@ -1990,12 +2234,12 @@ func (this *Bitvavo) fetchOHLCVWsBody(ch chan any, symbol string, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitvavo) FetchDepositsWsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) FetchDepositsWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.fetchDepositsWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchDepositsWsBody(ch chan any, optionalArgs ...any) any {
+func (this *Bitvavo) fetchDepositsWsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var code *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2008,15 +2252,25 @@ func (this *Bitvavo) fetchDepositsWsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	ccxt.PanicOnError((<-this.AuthenticateAsync()))
+	r1 := <-this.AuthenticateAsync()
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 	var request any = this.FetchDepositsRequest(code, since, limit, params)
 
-	var deposits ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchRequestAsync("privateGetDepositHistory", request))))
+	r2 := <-this.WatchRequestAsync("privateGetDepositHistory", request)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	var deposits ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
 
-	ch <- this.FilterByCurrencySinceLimit(deposits, code, since, limit)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterByCurrencySinceLimit(deposits, code, since, limit)}
 	return nil
 }
 func (this *Bitvavo) HandleDeposits(client any, message map[string]any) {
@@ -2051,24 +2305,34 @@ func (this *Bitvavo) HandleDeposits(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *Bitvavo) FetchTradingFeesWsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) FetchTradingFeesWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.fetchTradingFeesWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchTradingFeesWsBody(ch chan any, optionalArgs ...any) any {
+func (this *Bitvavo) fetchTradingFeesWsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	ccxt.PanicOnError((<-this.AuthenticateAsync()))
+	r1 := <-this.AuthenticateAsync()
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 
-	ch <- ccxt.PanicOnError((<-this.WatchRequestAsync("privateGetAccount", params)))
+	r2 := <-this.WatchRequestAsync("privateGetAccount", params)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r2.Value}
 	return nil
 }
 
@@ -2080,18 +2344,22 @@ func (this *Bitvavo) fetchTradingFeesWsBody(ch chan any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Bitvavo) FetchMarketsWsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) FetchMarketsWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.fetchMarketsWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchMarketsWsBody(ch chan any, optionalArgs ...any) any {
+func (this *Bitvavo) fetchMarketsWsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	ch <- ccxt.PanicOnError((<-this.WatchRequestAsync("getMarkets", params)))
+	r := <-this.WatchRequestAsync("getMarkets", params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
 
@@ -2103,22 +2371,29 @@ func (this *Bitvavo) fetchMarketsWsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Bitvavo) FetchCurrenciesWsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) FetchCurrenciesWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.fetchCurrenciesWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchCurrenciesWsBody(ch chan any, optionalArgs ...any) any {
+func (this *Bitvavo) fetchCurrenciesWsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	ch <- ccxt.PanicOnError((<-this.WatchRequestAsync("getAssets", params)))
+	r1 := <-this.WatchRequestAsync("getAssets", params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 func (this *Bitvavo) HandleFetchCurrencies(client any, message map[string]any) {
@@ -2174,24 +2449,34 @@ func (this *Bitvavo) HandleTradingFees(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
  */
-func (this *Bitvavo) FetchBalanceWsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) FetchBalanceWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.fetchBalanceWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchBalanceWsBody(ch chan any, optionalArgs ...any) any {
+func (this *Bitvavo) fetchBalanceWsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	ccxt.PanicOnError((<-this.AuthenticateAsync()))
+	r1 := <-this.AuthenticateAsync()
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 
-	ch <- ccxt.PanicOnError((<-this.WatchRequestAsync("privateGetBalance", params)))
+	r2 := <-this.WatchRequestAsync("privateGetBalance", params)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r2.Value}
 	return nil
 }
 func (this *Bitvavo) HandleFetchBalance(client any, message map[string]any) {
@@ -2397,12 +2682,12 @@ func (this *Bitvavo) HandleSubscriptionStatus(client any, message map[string]any
 	}
 	return message
 }
-func (this *Bitvavo) AuthenticateAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitvavo) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.authenticateBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) authenticateBody(ch chan any, optionalArgs ...any) any {
+func (this *Bitvavo) authenticateBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2425,12 +2710,15 @@ func (this *Bitvavo) authenticateBody(ch chan any, optionalArgs ...any) any {
 		}
 		var message map[string]any = this.Extend(request, params)
 
-		future = (<-this.Watch(url, messageHash, message, messageHash))
-		ccxt.PanicOnError(future)
+		r := <-this.Watch(url, messageHash, message, messageHash)
+		if r.Err != nil {
+			panic(r.Err)
+		}
+		future = r.Value
 		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, future)
 	}
 
-	ch <- future
+	ch <- ccxt.AsyncResult[any]{Value: future}
 	return nil
 }
 func (this *Bitvavo) HandleAuthenticationMessage(client any, message map[string]any) {
@@ -2626,11 +2914,11 @@ func (this *Bitvavo) WatchTicker(symbol string, options ...ccxt.WatchTickerOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchTickerAsync(symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Ticker{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchTickerAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return ccxt.Ticker{}, r.Err
 	}
-	var res ccxt.Ticker = ccxt.NewTicker(raw)
+	var res ccxt.Ticker = ccxt.NewTicker(r.Value)
 	return res, nil
 }
 
@@ -2650,11 +2938,11 @@ func (this *Bitvavo) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tic
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Tickers{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return ccxt.Tickers{}, r.Err
 	}
-	var res ccxt.Tickers = ccxt.NewTickers(raw)
+	var res ccxt.Tickers = ccxt.NewTickers(r.Value)
 	return res, nil
 }
 
@@ -2674,11 +2962,11 @@ func (this *Bitvavo) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.T
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchBidsAsksAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Tickers{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchBidsAsksAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return ccxt.Tickers{}, r.Err
 	}
-	var res ccxt.Tickers = ccxt.NewTickers(raw)
+	var res ccxt.Tickers = ccxt.NewTickers(r.Value)
 	return res, nil
 }
 
@@ -2699,11 +2987,11 @@ func (this *Bitvavo) WatchTrades(symbol string, options ...ccxt.WatchTradesOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -2725,11 +3013,11 @@ func (this *Bitvavo) WatchTradesForSymbols(symbols []string, options ...ccxt.Wat
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -2749,11 +3037,11 @@ func (this *Bitvavo) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchTradesAsync(symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchTradesAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -2772,11 +3060,11 @@ func (this *Bitvavo) UnWatchTradesForSymbols(symbols []string, options ...ccxt.U
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchTradesForSymbolsAsync(symbols, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchTradesForSymbolsAsync(symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -2797,11 +3085,11 @@ func (this *Bitvavo) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(raw)
+	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(r.Value)
 	return res, nil
 }
 
@@ -2823,11 +3111,11 @@ func (this *Bitvavo) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return map[string]map[string][]ccxt.OHLCV{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return map[string]map[string][]ccxt.OHLCV{}, r.Err
 	}
-	var res map[string]map[string][]ccxt.OHLCV = raw.(map[string]map[string][]ccxt.OHLCV)
+	var res map[string]map[string][]ccxt.OHLCV = r.Value.(map[string]map[string][]ccxt.OHLCV)
 	return res, nil
 }
 
@@ -2848,11 +3136,11 @@ func (this *Bitvavo) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -2871,11 +3159,11 @@ func (this *Bitvavo) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, opt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -2894,11 +3182,11 @@ func (this *Bitvavo) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBoo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.OrderBook{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return ccxt.OrderBook{}, r.Err
 	}
-	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(raw)
+	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(r.Value)
 	return res, nil
 }
 
@@ -2919,11 +3207,11 @@ func (this *Bitvavo) WatchOrderBookForSymbols(symbols []string, options ...ccxt.
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.OrderBook{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return ccxt.OrderBook{}, r.Err
 	}
-	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(raw)
+	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(r.Value)
 	return res, nil
 }
 
@@ -2943,11 +3231,11 @@ func (this *Bitvavo) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchOrderBookAsync(symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchOrderBookAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -2966,11 +3254,11 @@ func (this *Bitvavo) UnWatchOrderBookForSymbols(symbols []string, options ...ccx
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchOrderBookForSymbolsAsync(symbols, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchOrderBookForSymbolsAsync(symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -2990,11 +3278,11 @@ func (this *Bitvavo) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Ord
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(raw)
+	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -3015,11 +3303,11 @@ func (this *Bitvavo) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -3054,11 +3342,11 @@ func (this *Bitvavo) CreateOrderWs(symbol string, typeVar string, side string, a
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CreateOrderWsAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Order{}, ccxt.CreateReturnError(raw)
+	r := <-this.CreateOrderWsAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if r.Err != nil {
+		return ccxt.Order{}, r.Err
 	}
-	var res ccxt.Order = ccxt.NewOrder(raw)
+	var res ccxt.Order = ccxt.NewOrder(r.Value)
 	return res, nil
 }
 
@@ -3083,11 +3371,11 @@ func (this *Bitvavo) EditOrderWs(id string, symbol string, typeVar string, side 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.EditOrderWsAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Order{}, ccxt.CreateReturnError(raw)
+	r := <-this.EditOrderWsAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params)
+	if r.Err != nil {
+		return ccxt.Order{}, r.Err
 	}
-	var res ccxt.Order = ccxt.NewOrder(raw)
+	var res ccxt.Order = ccxt.NewOrder(r.Value)
 	return res, nil
 }
 
@@ -3108,11 +3396,11 @@ func (this *Bitvavo) CancelOrderWs(id string, options ...ccxt.CancelOrderWsOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CancelOrderWsAsync(id, opts.Symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Order{}, ccxt.CreateReturnError(raw)
+	r := <-this.CancelOrderWsAsync(id, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return ccxt.Order{}, r.Err
 	}
-	var res ccxt.Order = ccxt.NewOrder(raw)
+	var res ccxt.Order = ccxt.NewOrder(r.Value)
 	return res, nil
 }
 
@@ -3132,11 +3420,11 @@ func (this *Bitvavo) CancelAllOrdersWs(options ...ccxt.CancelAllOrdersWsOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CancelAllOrdersWsAsync(opts.Symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.CancelAllOrdersWsAsync(opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(raw)
+	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -3157,11 +3445,11 @@ func (this *Bitvavo) FetchOrderWs(id string, options ...ccxt.FetchOrderWsOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrderWsAsync(id, opts.Symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Order{}, ccxt.CreateReturnError(raw)
+	r := <-this.FetchOrderWsAsync(id, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return ccxt.Order{}, r.Err
 	}
-	var res ccxt.Order = ccxt.NewOrder(raw)
+	var res ccxt.Order = ccxt.NewOrder(r.Value)
 	return res, nil
 }
 
@@ -3183,19 +3471,19 @@ func (this *Bitvavo) FetchOrdersWs(options ...ccxt.FetchOrdersWsOptions) ([]ccxt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrdersWsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.FetchOrdersWsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(raw)
+	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
 	return res, nil
 }
 func (this *Bitvavo) WatchRequest(action string, request map[string]any) (map[string]any, error) {
-	raw := <-this.WatchRequestAsync(action, request)
-	if ccxt.IsError(raw) {
-		return map[string]any{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchRequestAsync(action, request)
+	if r.Err != nil {
+		return map[string]any{}, r.Err
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value.(map[string]any)
 	return res, nil
 }
 
@@ -3216,11 +3504,11 @@ func (this *Bitvavo) FetchOpenOrdersWs(options ...ccxt.FetchOpenOrdersWsOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOpenOrdersWsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.FetchOpenOrdersWsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(raw)
+	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -3242,11 +3530,11 @@ func (this *Bitvavo) FetchMyTradesWs(options ...ccxt.FetchMyTradesWsOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchMyTradesWsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.FetchMyTradesWsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -3268,11 +3556,11 @@ func (this *Bitvavo) WithdrawWs(code string, amount float64, address string, opt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WithdrawWsAsync(code, amount, address, opts.Tag, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Transaction{}, ccxt.CreateReturnError(raw)
+	r := <-this.WithdrawWsAsync(code, amount, address, opts.Tag, opts.Params)
+	if r.Err != nil {
+		return ccxt.Transaction{}, r.Err
 	}
-	var res ccxt.Transaction = ccxt.NewTransaction(raw)
+	var res ccxt.Transaction = ccxt.NewTransaction(r.Value)
 	return res, nil
 }
 
@@ -3294,11 +3582,11 @@ func (this *Bitvavo) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchWithdrawalsWsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.FetchWithdrawalsWsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Transaction = ccxt.NewTransactionArray(raw)
+	var res []ccxt.Transaction = ccxt.NewTransactionArray(r.Value)
 	return res, nil
 }
 
@@ -3321,11 +3609,11 @@ func (this *Bitvavo) FetchOHLCVWs(symbol string, options ...ccxt.FetchOHLCVWsOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOHLCVWsAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.FetchOHLCVWsAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(raw)
+	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(r.Value)
 	return res, nil
 }
 
@@ -3347,11 +3635,11 @@ func (this *Bitvavo) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchDepositsWsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.FetchDepositsWsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Transaction = ccxt.NewTransactionArray(raw)
+	var res []ccxt.Transaction = ccxt.NewTransactionArray(r.Value)
 	return res, nil
 }
 
@@ -3364,11 +3652,11 @@ func (this *Bitvavo) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) ([]
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Bitvavo) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error) {
-	raw := <-this.FetchTradingFeesWsAsync(params...)
-	if ccxt.IsError(raw) {
-		return ccxt.TradingFees{}, ccxt.CreateReturnError(raw)
+	r := <-this.FetchTradingFeesWsAsync(params...)
+	if r.Err != nil {
+		return ccxt.TradingFees{}, r.Err
 	}
-	var res ccxt.TradingFees = ccxt.NewTradingFees(raw)
+	var res ccxt.TradingFees = ccxt.NewTradingFees(r.Value)
 	return res, nil
 }
 
@@ -3381,10 +3669,10 @@ func (this *Bitvavo) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error)
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
  */
 func (this *Bitvavo) FetchBalanceWs(params ...any) (ccxt.Balances, error) {
-	raw := <-this.FetchBalanceWsAsync(params...)
-	if ccxt.IsError(raw) {
-		return ccxt.Balances{}, ccxt.CreateReturnError(raw)
+	r := <-this.FetchBalanceWsAsync(params...)
+	if r.Err != nil {
+		return ccxt.Balances{}, r.Err
 	}
-	var res ccxt.Balances = ccxt.NewBalances(raw)
+	var res ccxt.Balances = ccxt.NewBalances(r.Value)
 	return res, nil
 }

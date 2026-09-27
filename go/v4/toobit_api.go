@@ -123,32 +123,32 @@ func (this *Toobit) PrivateGetApiV1AccountCheckApiKey(args ...any) <-chan Endpoi
 }
 
 // PrivateGetApiV1SpotOrder returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV1SpotOrder(args ...any) <-chan any {
+func (this *Toobit) PrivateGetApiV1SpotOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetApiV1SpotOrder", args...)
 }
 
 // PrivateGetApiV1SpotOpenOrders returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV1SpotOpenOrders(args ...any) <-chan any {
+func (this *Toobit) PrivateGetApiV1SpotOpenOrders(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetApiV1SpotOpenOrders", args...)
 }
 
 // PrivateGetApiV1FuturesOpenOrders returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV1FuturesOpenOrders(args ...any) <-chan any {
+func (this *Toobit) PrivateGetApiV1FuturesOpenOrders(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetApiV1FuturesOpenOrders", args...)
 }
 
 // PrivateGetApiV1SpotTradeOrders returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV1SpotTradeOrders(args ...any) <-chan any {
+func (this *Toobit) PrivateGetApiV1SpotTradeOrders(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetApiV1SpotTradeOrders", args...)
 }
 
 // PrivateGetApiV1FuturesHistoryOrders returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV1FuturesHistoryOrders(args ...any) <-chan any {
+func (this *Toobit) PrivateGetApiV1FuturesHistoryOrders(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetApiV1FuturesHistoryOrders", args...)
 }
 
 // PrivateGetApiV1AccountTrades returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV1AccountTrades(args ...any) <-chan any {
+func (this *Toobit) PrivateGetApiV1AccountTrades(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetApiV1AccountTrades", args...)
 }
 
@@ -193,12 +193,12 @@ func (this *Toobit) PrivateGetApiV1FuturesAccountLeverage(args ...any) <-chan En
 }
 
 // PrivateGetApiV1FuturesOrder returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV1FuturesOrder(args ...any) <-chan any {
+func (this *Toobit) PrivateGetApiV1FuturesOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetApiV1FuturesOrder", args...)
 }
 
 // PrivateGetApiV1FuturesPositions returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV1FuturesPositions(args ...any) <-chan any {
+func (this *Toobit) PrivateGetApiV1FuturesPositions(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetApiV1FuturesPositions", args...)
 }
 
@@ -213,7 +213,7 @@ func (this *Toobit) PrivateGetApiV1FuturesBalance(args ...any) <-chan EndpointRe
 }
 
 // PrivateGetApiV1FuturesUserTrades returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV1FuturesUserTrades(args ...any) <-chan any {
+func (this *Toobit) PrivateGetApiV1FuturesUserTrades(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetApiV1FuturesUserTrades", args...)
 }
 
@@ -308,37 +308,37 @@ func (this *Toobit) PrivateGetApiV2AccountBalanceFlow(args ...any) <-chan Endpoi
 }
 
 // PrivateGetApiV2FuturesOrder returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV2FuturesOrder(args ...any) <-chan any {
+func (this *Toobit) PrivateGetApiV2FuturesOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetApiV2FuturesOrder", args...)
 }
 
 // PrivateGetApiV2FuturesOpenOrders returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV2FuturesOpenOrders(args ...any) <-chan any {
+func (this *Toobit) PrivateGetApiV2FuturesOpenOrders(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetApiV2FuturesOpenOrders", args...)
 }
 
 // PrivateGetApiV2FuturesHistoryOrders returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV2FuturesHistoryOrders(args ...any) <-chan any {
+func (this *Toobit) PrivateGetApiV2FuturesHistoryOrders(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetApiV2FuturesHistoryOrders", args...)
 }
 
 // PrivateGetApiV2FuturesUserTrades returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV2FuturesUserTrades(args ...any) <-chan any {
+func (this *Toobit) PrivateGetApiV2FuturesUserTrades(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetApiV2FuturesUserTrades", args...)
 }
 
 // PrivateGetApiV2FuturesAlgoOrder returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV2FuturesAlgoOrder(args ...any) <-chan any {
+func (this *Toobit) PrivateGetApiV2FuturesAlgoOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetApiV2FuturesAlgoOrder", args...)
 }
 
 // PrivateGetApiV2FuturesOpenAlgoOrders returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV2FuturesOpenAlgoOrders(args ...any) <-chan any {
+func (this *Toobit) PrivateGetApiV2FuturesOpenAlgoOrders(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetApiV2FuturesOpenAlgoOrders", args...)
 }
 
 // PrivateGetApiV2FuturesHistoryAlgoOrders returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV2FuturesHistoryAlgoOrders(args ...any) <-chan any {
+func (this *Toobit) PrivateGetApiV2FuturesHistoryAlgoOrders(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetApiV2FuturesHistoryAlgoOrders", args...)
 }
 
@@ -348,22 +348,22 @@ func (this *Toobit) PrivateGetApiV2FuturesVoucherList(args ...any) <-chan Endpoi
 }
 
 // PrivatePostApiV1SpotOrderTest returns a channel that yields a JSON object.
-func (this *Toobit) PrivatePostApiV1SpotOrderTest(args ...any) <-chan any {
+func (this *Toobit) PrivatePostApiV1SpotOrderTest(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostApiV1SpotOrderTest", args...)
 }
 
 // PrivatePostApiV1SpotOrder returns a channel that yields a JSON object.
-func (this *Toobit) PrivatePostApiV1SpotOrder(args ...any) <-chan any {
+func (this *Toobit) PrivatePostApiV1SpotOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostApiV1SpotOrder", args...)
 }
 
 // PrivatePostApiV1FuturesOrder returns a channel that yields a JSON object.
-func (this *Toobit) PrivatePostApiV1FuturesOrder(args ...any) <-chan any {
+func (this *Toobit) PrivatePostApiV1FuturesOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostApiV1FuturesOrder", args...)
 }
 
 // PrivatePostApiV1SpotBatchOrders returns a channel that yields a JSON object.
-func (this *Toobit) PrivatePostApiV1SpotBatchOrders(args ...any) <-chan any {
+func (this *Toobit) PrivatePostApiV1SpotBatchOrders(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostApiV1SpotBatchOrders", args...)
 }
 
@@ -388,12 +388,12 @@ func (this *Toobit) PrivatePostApiV1FuturesLeverage(args ...any) <-chan Endpoint
 }
 
 // PrivatePostApiV1FuturesBatchOrders returns a channel that yields a JSON object.
-func (this *Toobit) PrivatePostApiV1FuturesBatchOrders(args ...any) <-chan any {
+func (this *Toobit) PrivatePostApiV1FuturesBatchOrders(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostApiV1FuturesBatchOrders", args...)
 }
 
 // PrivatePostApiV1FuturesPositionTradingStop returns a channel that yields a JSON object.
-func (this *Toobit) PrivatePostApiV1FuturesPositionTradingStop(args ...any) <-chan any {
+func (this *Toobit) PrivatePostApiV1FuturesPositionTradingStop(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostApiV1FuturesPositionTradingStop", args...)
 }
 
@@ -403,7 +403,7 @@ func (this *Toobit) PrivatePostApiV1FuturesPositionMargin(args ...any) <-chan En
 }
 
 // PrivatePostApiV1FuturesOrderUpdate returns a channel that yields a JSON object.
-func (this *Toobit) PrivatePostApiV1FuturesOrderUpdate(args ...any) <-chan any {
+func (this *Toobit) PrivatePostApiV1FuturesOrderUpdate(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostApiV1FuturesOrderUpdate", args...)
 }
 
@@ -438,32 +438,32 @@ func (this *Toobit) PrivatePostApiV1ListenKey(args ...any) <-chan EndpointResult
 }
 
 // PrivateDeleteApiV1SpotOrder returns a channel that yields a JSON object.
-func (this *Toobit) PrivateDeleteApiV1SpotOrder(args ...any) <-chan any {
+func (this *Toobit) PrivateDeleteApiV1SpotOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateDeleteApiV1SpotOrder", args...)
 }
 
 // PrivateDeleteApiV1FuturesOrder returns a channel that yields a JSON object.
-func (this *Toobit) PrivateDeleteApiV1FuturesOrder(args ...any) <-chan any {
+func (this *Toobit) PrivateDeleteApiV1FuturesOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateDeleteApiV1FuturesOrder", args...)
 }
 
 // PrivateDeleteApiV1SpotOpenOrders returns a channel that yields a JSON object.
-func (this *Toobit) PrivateDeleteApiV1SpotOpenOrders(args ...any) <-chan any {
+func (this *Toobit) PrivateDeleteApiV1SpotOpenOrders(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateDeleteApiV1SpotOpenOrders", args...)
 }
 
 // PrivateDeleteApiV1FuturesBatchOrders returns a channel that yields a JSON object.
-func (this *Toobit) PrivateDeleteApiV1FuturesBatchOrders(args ...any) <-chan any {
+func (this *Toobit) PrivateDeleteApiV1FuturesBatchOrders(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateDeleteApiV1FuturesBatchOrders", args...)
 }
 
 // PrivateDeleteApiV1SpotCancelOrderByIds returns a channel that yields a JSON object.
-func (this *Toobit) PrivateDeleteApiV1SpotCancelOrderByIds(args ...any) <-chan any {
+func (this *Toobit) PrivateDeleteApiV1SpotCancelOrderByIds(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateDeleteApiV1SpotCancelOrderByIds", args...)
 }
 
 // PrivateDeleteApiV1FuturesCancelOrderByIds returns a channel that yields a JSON object.
-func (this *Toobit) PrivateDeleteApiV1FuturesCancelOrderByIds(args ...any) <-chan any {
+func (this *Toobit) PrivateDeleteApiV1FuturesCancelOrderByIds(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateDeleteApiV1FuturesCancelOrderByIds", args...)
 }
 

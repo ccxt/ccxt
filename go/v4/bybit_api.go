@@ -378,37 +378,37 @@ func (this *Bybit) PrivateGetV2PrivateWalletFundRecords(args ...any) <-chan Endp
 }
 
 // PrivateGetSpotV3PrivateOrder returns a channel that yields a JSON object.
-func (this *Bybit) PrivateGetSpotV3PrivateOrder(args ...any) <-chan any {
+func (this *Bybit) PrivateGetSpotV3PrivateOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetSpotV3PrivateOrder", args...)
 }
 
 // PrivateGetSpotV3PrivateOpenOrders returns a channel that yields a JSON object.
-func (this *Bybit) PrivateGetSpotV3PrivateOpenOrders(args ...any) <-chan any {
+func (this *Bybit) PrivateGetSpotV3PrivateOpenOrders(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetSpotV3PrivateOpenOrders", args...)
 }
 
 // PrivateGetSpotV3PrivateHistoryOrders returns a channel that yields a JSON object.
-func (this *Bybit) PrivateGetSpotV3PrivateHistoryOrders(args ...any) <-chan any {
+func (this *Bybit) PrivateGetSpotV3PrivateHistoryOrders(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetSpotV3PrivateHistoryOrders", args...)
 }
 
 // PrivateGetSpotV3PrivateMyTrades returns a channel that yields a JSON object.
-func (this *Bybit) PrivateGetSpotV3PrivateMyTrades(args ...any) <-chan any {
+func (this *Bybit) PrivateGetSpotV3PrivateMyTrades(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetSpotV3PrivateMyTrades", args...)
 }
 
 // PrivateGetSpotV3PrivateAccount returns a channel that yields a JSON object.
-func (this *Bybit) PrivateGetSpotV3PrivateAccount(args ...any) <-chan any {
+func (this *Bybit) PrivateGetSpotV3PrivateAccount(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetSpotV3PrivateAccount", args...)
 }
 
 // PrivateGetSpotV3PrivateReference returns a channel that yields a JSON object.
-func (this *Bybit) PrivateGetSpotV3PrivateReference(args ...any) <-chan any {
+func (this *Bybit) PrivateGetSpotV3PrivateReference(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetSpotV3PrivateReference", args...)
 }
 
 // PrivateGetSpotV3PrivateRecord returns a channel that yields a JSON object.
-func (this *Bybit) PrivateGetSpotV3PrivateRecord(args ...any) <-chan any {
+func (this *Bybit) PrivateGetSpotV3PrivateRecord(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetSpotV3PrivateRecord", args...)
 }
 
@@ -633,7 +633,7 @@ func (this *Bybit) PrivateGetAssetV3PrivateTransferAssetInfoQuery(args ...any) <
 }
 
 // PrivateGetAssetV3PublicDepositAllowedDepositListQuery returns a channel that yields a JSON object.
-func (this *Bybit) PrivateGetAssetV3PublicDepositAllowedDepositListQuery(args ...any) <-chan any {
+func (this *Bybit) PrivateGetAssetV3PublicDepositAllowedDepositListQuery(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetAssetV3PublicDepositAllowedDepositListQuery", args...)
 }
 
@@ -763,7 +763,7 @@ func (this *Bybit) PrivateGetV5AccountInfo(args ...any) <-chan EndpointResult[ma
 }
 
 // PrivateGetV5AccountTransactionLog returns a channel that yields a JSON object.
-func (this *Bybit) PrivateGetV5AccountTransactionLog(args ...any) <-chan any {
+func (this *Bybit) PrivateGetV5AccountTransactionLog(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetV5AccountTransactionLog", args...)
 }
 
@@ -813,17 +813,17 @@ func (this *Bybit) PrivateGetV5AssetAssetOverview(args ...any) <-chan EndpointRe
 }
 
 // PrivateGetV5AssetExchangeQueryCoinList returns a channel that yields a JSON object.
-func (this *Bybit) PrivateGetV5AssetExchangeQueryCoinList(args ...any) <-chan any {
+func (this *Bybit) PrivateGetV5AssetExchangeQueryCoinList(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetV5AssetExchangeQueryCoinList", args...)
 }
 
 // PrivateGetV5AssetExchangeConvertResultQuery returns a channel that yields a JSON object.
-func (this *Bybit) PrivateGetV5AssetExchangeConvertResultQuery(args ...any) <-chan any {
+func (this *Bybit) PrivateGetV5AssetExchangeConvertResultQuery(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetV5AssetExchangeConvertResultQuery", args...)
 }
 
 // PrivateGetV5AssetExchangeQueryConvertHistory returns a channel that yields a JSON object.
-func (this *Bybit) PrivateGetV5AssetExchangeQueryConvertHistory(args ...any) <-chan any {
+func (this *Bybit) PrivateGetV5AssetExchangeQueryConvertHistory(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateGetV5AssetExchangeQueryConvertHistory", args...)
 }
 
@@ -1403,32 +1403,32 @@ func (this *Bybit) PrivateGetV5AlphaPredictionSportsTimelineStages(args ...any) 
 }
 
 // PrivatePostSpotV3PrivateOrder returns a channel that yields a JSON object.
-func (this *Bybit) PrivatePostSpotV3PrivateOrder(args ...any) <-chan any {
+func (this *Bybit) PrivatePostSpotV3PrivateOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostSpotV3PrivateOrder", args...)
 }
 
 // PrivatePostSpotV3PrivateCancelOrder returns a channel that yields a JSON object.
-func (this *Bybit) PrivatePostSpotV3PrivateCancelOrder(args ...any) <-chan any {
+func (this *Bybit) PrivatePostSpotV3PrivateCancelOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostSpotV3PrivateCancelOrder", args...)
 }
 
 // PrivatePostSpotV3PrivateCancelOrders returns a channel that yields a JSON object.
-func (this *Bybit) PrivatePostSpotV3PrivateCancelOrders(args ...any) <-chan any {
+func (this *Bybit) PrivatePostSpotV3PrivateCancelOrders(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostSpotV3PrivateCancelOrders", args...)
 }
 
 // PrivatePostSpotV3PrivateCancelOrdersByIds returns a channel that yields a JSON object.
-func (this *Bybit) PrivatePostSpotV3PrivateCancelOrdersByIds(args ...any) <-chan any {
+func (this *Bybit) PrivatePostSpotV3PrivateCancelOrdersByIds(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostSpotV3PrivateCancelOrdersByIds", args...)
 }
 
 // PrivatePostSpotV3PrivatePurchase returns a channel that yields a JSON object.
-func (this *Bybit) PrivatePostSpotV3PrivatePurchase(args ...any) <-chan any {
+func (this *Bybit) PrivatePostSpotV3PrivatePurchase(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostSpotV3PrivatePurchase", args...)
 }
 
 // PrivatePostSpotV3PrivateRedeem returns a channel that yields a JSON object.
-func (this *Bybit) PrivatePostSpotV3PrivateRedeem(args ...any) <-chan any {
+func (this *Bybit) PrivatePostSpotV3PrivateRedeem(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostSpotV3PrivateRedeem", args...)
 }
 
@@ -1533,7 +1533,7 @@ func (this *Bybit) PrivatePostContractV3PrivateCopytradingWalletTransfer(args ..
 }
 
 // PrivatePostContractV3PrivateCopytradingOrderTradingStop returns a channel that yields a JSON object.
-func (this *Bybit) PrivatePostContractV3PrivateCopytradingOrderTradingStop(args ...any) <-chan any {
+func (this *Bybit) PrivatePostContractV3PrivateCopytradingOrderTradingStop(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingOrderTradingStop", args...)
 }
 
@@ -1633,32 +1633,32 @@ func (this *Bybit) PrivatePostUnifiedV3PrivateOrderCancelAll(args ...any) <-chan
 }
 
 // PrivatePostUnifiedV3PrivatePositionSetLeverage returns a channel that yields a JSON object.
-func (this *Bybit) PrivatePostUnifiedV3PrivatePositionSetLeverage(args ...any) <-chan any {
+func (this *Bybit) PrivatePostUnifiedV3PrivatePositionSetLeverage(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionSetLeverage", args...)
 }
 
 // PrivatePostUnifiedV3PrivatePositionTpslSwitchMode returns a channel that yields a JSON object.
-func (this *Bybit) PrivatePostUnifiedV3PrivatePositionTpslSwitchMode(args ...any) <-chan any {
+func (this *Bybit) PrivatePostUnifiedV3PrivatePositionTpslSwitchMode(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionTpslSwitchMode", args...)
 }
 
 // PrivatePostUnifiedV3PrivatePositionSetRiskLimit returns a channel that yields a JSON object.
-func (this *Bybit) PrivatePostUnifiedV3PrivatePositionSetRiskLimit(args ...any) <-chan any {
+func (this *Bybit) PrivatePostUnifiedV3PrivatePositionSetRiskLimit(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionSetRiskLimit", args...)
 }
 
 // PrivatePostUnifiedV3PrivatePositionTradingStop returns a channel that yields a JSON object.
-func (this *Bybit) PrivatePostUnifiedV3PrivatePositionTradingStop(args ...any) <-chan any {
+func (this *Bybit) PrivatePostUnifiedV3PrivatePositionTradingStop(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionTradingStop", args...)
 }
 
 // PrivatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount returns a channel that yields a JSON object.
-func (this *Bybit) PrivatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount(args ...any) <-chan any {
+func (this *Bybit) PrivatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount", args...)
 }
 
 // PrivatePostUnifiedV3PrivateAccountSetMarginMode returns a channel that yields a JSON object.
-func (this *Bybit) PrivatePostUnifiedV3PrivateAccountSetMarginMode(args ...any) <-chan any {
+func (this *Bybit) PrivatePostUnifiedV3PrivateAccountSetMarginMode(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostUnifiedV3PrivateAccountSetMarginMode", args...)
 }
 
@@ -1683,7 +1683,7 @@ func (this *Bybit) PrivatePostFhtComplianceTaxV3PrivateUrl(args ...any) <-chan E
 }
 
 // PrivatePostV5OrderCreate returns a channel that yields a JSON object.
-func (this *Bybit) PrivatePostV5OrderCreate(args ...any) <-chan any {
+func (this *Bybit) PrivatePostV5OrderCreate(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostV5OrderCreate", args...)
 }
 
@@ -1693,7 +1693,7 @@ func (this *Bybit) PrivatePostV5OrderAmend(args ...any) <-chan EndpointResult[ma
 }
 
 // PrivatePostV5OrderCancel returns a channel that yields a JSON object.
-func (this *Bybit) PrivatePostV5OrderCancel(args ...any) <-chan any {
+func (this *Bybit) PrivatePostV5OrderCancel(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostV5OrderCancel", args...)
 }
 
@@ -1943,12 +1943,12 @@ func (this *Bybit) PrivatePostV5UserCreateDemoMember(args ...any) <-chan Endpoin
 }
 
 // PrivatePostV5SpotLeverTokenPurchase returns a channel that yields a JSON object.
-func (this *Bybit) PrivatePostV5SpotLeverTokenPurchase(args ...any) <-chan any {
+func (this *Bybit) PrivatePostV5SpotLeverTokenPurchase(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostV5SpotLeverTokenPurchase", args...)
 }
 
 // PrivatePostV5SpotLeverTokenRedeem returns a channel that yields a JSON object.
-func (this *Bybit) PrivatePostV5SpotLeverTokenRedeem(args ...any) <-chan any {
+func (this *Bybit) PrivatePostV5SpotLeverTokenRedeem(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostV5SpotLeverTokenRedeem", args...)
 }
 
@@ -1978,17 +1978,17 @@ func (this *Bybit) PrivatePostV5SpotMarginTradeFixedborrowRenew(args ...any) <-c
 }
 
 // PrivatePostV5SpotCrossMarginTradeLoan returns a channel that yields a JSON object.
-func (this *Bybit) PrivatePostV5SpotCrossMarginTradeLoan(args ...any) <-chan any {
+func (this *Bybit) PrivatePostV5SpotCrossMarginTradeLoan(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostV5SpotCrossMarginTradeLoan", args...)
 }
 
 // PrivatePostV5SpotCrossMarginTradeRepay returns a channel that yields a JSON object.
-func (this *Bybit) PrivatePostV5SpotCrossMarginTradeRepay(args ...any) <-chan any {
+func (this *Bybit) PrivatePostV5SpotCrossMarginTradeRepay(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostV5SpotCrossMarginTradeRepay", args...)
 }
 
 // PrivatePostV5SpotCrossMarginTradeSwitch returns a channel that yields a JSON object.
-func (this *Bybit) PrivatePostV5SpotCrossMarginTradeSwitch(args ...any) <-chan any {
+func (this *Bybit) PrivatePostV5SpotCrossMarginTradeSwitch(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privatePostV5SpotCrossMarginTradeSwitch", args...)
 }
 

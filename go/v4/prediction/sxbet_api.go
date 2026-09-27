@@ -46,7 +46,7 @@ func (this *Sxbet) SxbetPublicGetMarketsActive(args ...any) <-chan ccxt.Endpoint
 }
 
 // SxbetPublicGetMarketsFind returns a channel that yields a JSON object or a JSON array.
-func (this *Sxbet) SxbetPublicGetMarketsFind(args ...any) <-chan any {
+func (this *Sxbet) SxbetPublicGetMarketsFind(args ...any) <-chan ccxt.AsyncResult[any] {
 	var params any
 	if len(args) > 0 {
 		params = args[0]
@@ -55,7 +55,7 @@ func (this *Sxbet) SxbetPublicGetMarketsFind(args ...any) <-chan any {
 }
 
 // SxbetPublicGetMarketsPopular returns a channel that yields a JSON object or a JSON array.
-func (this *Sxbet) SxbetPublicGetMarketsPopular(args ...any) <-chan any {
+func (this *Sxbet) SxbetPublicGetMarketsPopular(args ...any) <-chan ccxt.AsyncResult[any] {
 	var params any
 	if len(args) > 0 {
 		params = args[0]
@@ -64,7 +64,7 @@ func (this *Sxbet) SxbetPublicGetMarketsPopular(args ...any) <-chan any {
 }
 
 // SxbetPublicGetTradesConsolidated returns a channel that yields a JSON object or a JSON array.
-func (this *Sxbet) SxbetPublicGetTradesConsolidated(args ...any) <-chan any {
+func (this *Sxbet) SxbetPublicGetTradesConsolidated(args ...any) <-chan ccxt.AsyncResult[any] {
 	var params any
 	if len(args) > 0 {
 		params = args[0]
@@ -73,7 +73,7 @@ func (this *Sxbet) SxbetPublicGetTradesConsolidated(args ...any) <-chan any {
 }
 
 // SxbetPublicGetTradesOrders returns a channel that yields a JSON object or a JSON array.
-func (this *Sxbet) SxbetPublicGetTradesOrders(args ...any) <-chan any {
+func (this *Sxbet) SxbetPublicGetTradesOrders(args ...any) <-chan ccxt.AsyncResult[any] {
 	var params any
 	if len(args) > 0 {
 		params = args[0]
@@ -82,7 +82,7 @@ func (this *Sxbet) SxbetPublicGetTradesOrders(args ...any) <-chan any {
 }
 
 // SxbetPublicGetTradesPortfolioRefunds returns a channel that yields a JSON object or a JSON array.
-func (this *Sxbet) SxbetPublicGetTradesPortfolioRefunds(args ...any) <-chan any {
+func (this *Sxbet) SxbetPublicGetTradesPortfolioRefunds(args ...any) <-chan ccxt.AsyncResult[any] {
 	var params any
 	if len(args) > 0 {
 		params = args[0]
@@ -91,7 +91,7 @@ func (this *Sxbet) SxbetPublicGetTradesPortfolioRefunds(args ...any) <-chan any 
 }
 
 // SxbetPublicGetFixtureActive returns a channel that yields a JSON object or a JSON array.
-func (this *Sxbet) SxbetPublicGetFixtureActive(args ...any) <-chan any {
+func (this *Sxbet) SxbetPublicGetFixtureActive(args ...any) <-chan ccxt.AsyncResult[any] {
 	var params any
 	if len(args) > 0 {
 		params = args[0]
@@ -100,7 +100,7 @@ func (this *Sxbet) SxbetPublicGetFixtureActive(args ...any) <-chan any {
 }
 
 // SxbetPublicGetFixtureStatus returns a channel that yields a JSON object or a JSON array.
-func (this *Sxbet) SxbetPublicGetFixtureStatus(args ...any) <-chan any {
+func (this *Sxbet) SxbetPublicGetFixtureStatus(args ...any) <-chan ccxt.AsyncResult[any] {
 	var params any
 	if len(args) > 0 {
 		params = args[0]
@@ -109,7 +109,7 @@ func (this *Sxbet) SxbetPublicGetFixtureStatus(args ...any) <-chan any {
 }
 
 // SxbetPublicGetSports returns a channel that yields a JSON object or a JSON array.
-func (this *Sxbet) SxbetPublicGetSports(args ...any) <-chan any {
+func (this *Sxbet) SxbetPublicGetSports(args ...any) <-chan ccxt.AsyncResult[any] {
 	var params any
 	if len(args) > 0 {
 		params = args[0]
@@ -118,7 +118,7 @@ func (this *Sxbet) SxbetPublicGetSports(args ...any) <-chan any {
 }
 
 // SxbetPublicGetLeagues returns a channel that yields a JSON object or a JSON array.
-func (this *Sxbet) SxbetPublicGetLeagues(args ...any) <-chan any {
+func (this *Sxbet) SxbetPublicGetLeagues(args ...any) <-chan ccxt.AsyncResult[any] {
 	var params any
 	if len(args) > 0 {
 		params = args[0]
@@ -127,7 +127,7 @@ func (this *Sxbet) SxbetPublicGetLeagues(args ...any) <-chan any {
 }
 
 // SxbetPublicGetLeaguesActive returns a channel that yields a JSON object or a JSON array.
-func (this *Sxbet) SxbetPublicGetLeaguesActive(args ...any) <-chan any {
+func (this *Sxbet) SxbetPublicGetLeaguesActive(args ...any) <-chan ccxt.AsyncResult[any] {
 	var params any
 	if len(args) > 0 {
 		params = args[0]
@@ -136,7 +136,7 @@ func (this *Sxbet) SxbetPublicGetLeaguesActive(args ...any) <-chan any {
 }
 
 // SxbetPublicGetTeams returns a channel that yields a JSON object or a JSON array.
-func (this *Sxbet) SxbetPublicGetTeams(args ...any) <-chan any {
+func (this *Sxbet) SxbetPublicGetTeams(args ...any) <-chan ccxt.AsyncResult[any] {
 	var params any
 	if len(args) > 0 {
 		params = args[0]
@@ -145,7 +145,7 @@ func (this *Sxbet) SxbetPublicGetTeams(args ...any) <-chan any {
 }
 
 // SxbetPublicGetLiveScores returns a channel that yields a JSON object or a JSON array.
-func (this *Sxbet) SxbetPublicGetLiveScores(args ...any) <-chan any {
+func (this *Sxbet) SxbetPublicGetLiveScores(args ...any) <-chan ccxt.AsyncResult[any] {
 	var params any
 	if len(args) > 0 {
 		params = args[0]
@@ -181,7 +181,7 @@ func (this *Sxbet) SxbetPrivateGetUserBalanceV3(args ...any) <-chan ccxt.Endpoin
 }
 
 // SxbetPrivateGetUserTransferToProxyPending returns a channel that yields a JSON object or a JSON array.
-func (this *Sxbet) SxbetPrivateGetUserTransferToProxyPending(args ...any) <-chan any {
+func (this *Sxbet) SxbetPrivateGetUserTransferToProxyPending(args ...any) <-chan ccxt.AsyncResult[any] {
 	var params any
 	if len(args) > 0 {
 		params = args[0]
@@ -190,7 +190,7 @@ func (this *Sxbet) SxbetPrivateGetUserTransferToProxyPending(args ...any) <-chan
 }
 
 // SxbetPrivateGetUserTransferToProxyStatus returns a channel that yields a JSON object or a JSON array.
-func (this *Sxbet) SxbetPrivateGetUserTransferToProxyStatus(args ...any) <-chan any {
+func (this *Sxbet) SxbetPrivateGetUserTransferToProxyStatus(args ...any) <-chan ccxt.AsyncResult[any] {
 	var params any
 	if len(args) > 0 {
 		params = args[0]
@@ -289,7 +289,7 @@ func (this *Sxbet) SxbetPrivatePostOrdersV3(args ...any) <-chan ccxt.EndpointRes
 }
 
 // SxbetPrivatePostUserDeployProxy returns a channel that yields a JSON object or a JSON array.
-func (this *Sxbet) SxbetPrivatePostUserDeployProxy(args ...any) <-chan any {
+func (this *Sxbet) SxbetPrivatePostUserDeployProxy(args ...any) <-chan ccxt.AsyncResult[any] {
 	var params any
 	if len(args) > 0 {
 		params = args[0]
@@ -307,7 +307,7 @@ func (this *Sxbet) SxbetPrivatePostUserTransferToProxy(args ...any) <-chan ccxt.
 }
 
 // SxbetPrivatePostHeartbeatV3 returns a channel that yields a JSON object or a JSON array.
-func (this *Sxbet) SxbetPrivatePostHeartbeatV3(args ...any) <-chan any {
+func (this *Sxbet) SxbetPrivatePostHeartbeatV3(args ...any) <-chan ccxt.AsyncResult[any] {
 	var params any
 	if len(args) > 0 {
 		params = args[0]

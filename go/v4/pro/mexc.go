@@ -100,26 +100,33 @@ func (this *Mexc) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Mexc) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Mexc) watchTickerBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", market["symbol"]))
 	if market["spot"] == true {
 		var channel *string = ccxt.SafeStringPtr(ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", market["id"]))
 
-		ch <- ccxt.PanicOnError((<-this.WatchSpotPublicAsync(channel, messageHash, params)))
+		r1 := <-this.WatchSpotPublicAsync(channel, messageHash, params)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 		return nil
 	} else {
 		var channel string = "sub.ticker"
@@ -127,7 +134,11 @@ func (this *Mexc) watchTickerBody(ch chan any, symbol string, optionalArgs ...an
 			"symbol": market["id"],
 		}
 
-		ch <- ccxt.PanicOnError((<-this.WatchSwapPublicAsync(channel, messageHash, requestParams, params)))
+		r2 := <-this.WatchSwapPublicAsync(channel, messageHash, requestParams, params)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		ch <- ccxt.AsyncResult[any]{Value: r2.Value}
 		return nil
 	}
 }
@@ -229,12 +240,12 @@ func (this *Mexc) HandleTicker(client any, message any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Mexc) WatchTickersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) WatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchTickersBody(ch chan any, optionalArgs ...any) any {
+func (this *Mexc) watchTickersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -243,7 +254,10 @@ func (this *Mexc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil)
 	var messageHashes []any = []any{}
@@ -269,8 +283,11 @@ func (this *Mexc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		messageHashes = append(messageHashes, "ticker")
 	}
 
-	ticker := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, paramsMarketType), messageHashes))
-	ccxt.PanicOnError(ticker)
+	r1 := <-this.WatchMultiple(url, messageHashes, this.Extend(request, paramsMarketType), messageHashes)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ticker := r1.Value
 	if isSpot && this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
@@ -278,11 +295,11 @@ func (this *Mexc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 			ccxt.AddElementToObject(result, tickerSymbol, ticker)
 		}
 
-		ch <- result
+		ch <- ccxt.AsyncResult[any]{Value: result}
 		return nil
 	}
 
-	ch <- this.FilterByArray(this.Tickers, "symbol", symbolsNormalized)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterByArray(this.Tickers, "symbol", symbolsNormalized)}
 	return nil
 }
 func (this *Mexc) HandleTickers(client any, message map[string]any) {
@@ -459,12 +476,12 @@ func (this *Mexc) ParseWsTicker(ticker any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Mexc) WatchBidsAsksAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) WatchBidsAsksAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchBidsAsksBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
+func (this *Mexc) watchBidsAsksBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -473,7 +490,10 @@ func (this *Mexc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, false, true)
 	if symbolsNormalized == nil {
@@ -500,8 +520,11 @@ func (this *Mexc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		"params": topics,
 	}
 
-	ticker := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, paramsMarketType), messageHashes))
-	ccxt.PanicOnError(ticker)
+	r1 := <-this.WatchMultiple(url, messageHashes, this.Extend(request, paramsMarketType), messageHashes)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ticker := r1.Value
 	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
@@ -509,11 +532,11 @@ func (this *Mexc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 			ccxt.AddElementToObject(tickers, tickerSymbol, ticker)
 		}
 
-		ch <- tickers
+		ch <- ccxt.AsyncResult[any]{Value: tickers}
 		return nil
 	}
 
-	ch <- this.FilterByArray(this.Bidsasks, "symbol", symbolsNormalized)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterByArray(this.Bidsasks, "symbol", symbolsNormalized)}
 	return nil
 }
 func (this *Mexc) HandleBidAsk(client any, message any) {
@@ -558,12 +581,12 @@ func (this *Mexc) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
 		"info":      ticker,
 	}, marketResolved)
 }
-func (this *Mexc) WatchSpotPublicAsync(channel any, messageHash any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) WatchSpotPublicAsync(channel any, messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchSpotPublicBody(ch, channel, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchSpotPublicBody(ch chan any, channel any, messageHash any, optionalArgs ...any) any {
+func (this *Mexc) watchSpotPublicBody(ch chan ccxt.AsyncResult[any], channel any, messageHash any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -580,23 +603,30 @@ func (this *Mexc) watchSpotPublicBody(ch chan any, channel any, messageHash any,
 		"params": []any{channel},
 	}
 
-	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, paramsOmitted), messageHash)))
+	r := <-this.Watch(url, messageHash, this.Extend(request, paramsOmitted), messageHash)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Mexc) WatchSpotPrivateAsync(channel string, messageHash any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) WatchSpotPrivateAsync(channel string, messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchSpotPrivateBody(ch, channel, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchSpotPrivateBody(ch chan any, channel string, messageHash any, optionalArgs ...any) any {
+func (this *Mexc) watchSpotPrivateBody(ch chan ccxt.AsyncResult[any], channel string, messageHash any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 
-	listenKey := (<-this.AuthenticateAsync(channel))
-	ccxt.PanicOnError(listenKey)
+	r := <-this.AuthenticateAsync(channel)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	listenKey := r.Value
 	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "spot")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchSpotPrivate() has no spot websocket url"))
@@ -607,15 +637,19 @@ func (this *Mexc) watchSpotPrivateBody(ch chan any, channel string, messageHash 
 		"params": []any{channel},
 	}
 
-	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), channel)))
+	r1 := <-this.Watch(url, messageHash, this.Extend(request, params), channel)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Mexc) WatchSwapPublicAsync(channel string, messageHash any, requestParams any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) WatchSwapPublicAsync(channel string, messageHash any, requestParams any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchSwapPublicBody(ch, channel, messageHash, requestParams, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchSwapPublicBody(ch chan any, channel string, messageHash any, requestParams any, optionalArgs ...any) any {
+func (this *Mexc) watchSwapPublicBody(ch chan ccxt.AsyncResult[any], channel string, messageHash any, requestParams any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -627,15 +661,19 @@ func (this *Mexc) watchSwapPublicBody(ch chan any, channel string, messageHash a
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
+	r := <-this.Watch(url, messageHash, message, messageHash)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Mexc) WatchSwapPrivateAsync(messageHash any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) WatchSwapPrivateAsync(messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchSwapPrivateBody(ch, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchSwapPrivateBody(ch chan any, messageHash any, optionalArgs ...any) any {
+func (this *Mexc) watchSwapPrivateBody(ch chan ccxt.AsyncResult[any], messageHash any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -656,7 +694,11 @@ func (this *Mexc) watchSwapPrivateBody(ch chan any, messageHash any, optionalArg
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, channel)))
+	r := <-this.Watch(url, messageHash, message, channel)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
 
@@ -673,12 +715,12 @@ func (this *Mexc) watchSwapPrivateBody(ch chan any, messageHash any, optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Mexc) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Mexc) watchOHLCVBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -691,7 +733,10 @@ func (this *Mexc) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
@@ -702,8 +747,11 @@ func (this *Mexc) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 	if market["spot"] == true {
 		var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("spot@public.kline.v3.api.pb@", market["id"]), "@"), timeframeId))
 
-		ohlcv = (<-this.WatchSpotPublicAsync(channel, messageHash, params))
-		ccxt.PanicOnError(ohlcv)
+		r1 := <-this.WatchSpotPublicAsync(channel, messageHash, params)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		ohlcv = r1.Value
 	} else {
 		var channel string = "sub.kline"
 		var requestParams map[string]any = map[string]any{
@@ -711,8 +759,11 @@ func (this *Mexc) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 			"interval": timeframeId,
 		}
 
-		ohlcv = (<-this.WatchSwapPublicAsync(channel, messageHash, requestParams, params))
-		ccxt.PanicOnError(ohlcv)
+		r2 := <-this.WatchSwapPublicAsync(channel, messageHash, requestParams, params)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		ohlcv = r2.Value
 	}
 	ohlcv = this.RequireValue(ohlcv, "watchOHLCV() ohlcv is required")
 	var limitResolved *int64 = limit
@@ -720,7 +771,7 @@ func (this *Mexc) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 		limitResolved = ccxt.ToGetsLimit(ohlcv).GetLimit(symbolValue, limit)
 	}
 
-	ch <- this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true)}
 	return nil
 }
 func (this *Mexc) HandleOHLCV(client any, message any) {
@@ -889,12 +940,12 @@ func (this *Mexc) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Mexc) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Mexc) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -903,7 +954,10 @@ func (this *Mexc) watchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
@@ -913,20 +967,26 @@ func (this *Mexc) watchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 		frequency, paramsFrequency := this.HandleOptionStringAndParams(params, "watchOrderBook", "frequency", "100ms")
 		var channel *string = ccxt.SafeStringPtr(ccxt.Add("spot@public.aggre.depth.v3.api.pb@"+*frequency+"@", market["id"]))
 
-		orderbook = (<-this.WatchSpotPublicAsync(channel, messageHash, paramsFrequency))
-		ccxt.PanicOnError(orderbook)
+		r1 := <-this.WatchSpotPublicAsync(channel, messageHash, paramsFrequency)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		orderbook = r1.Value
 	} else {
 		var channel string = "sub.depth"
 		var requestParams map[string]any = map[string]any{
 			"symbol": market["id"],
 		}
 
-		orderbook = (<-this.WatchSwapPublicAsync(channel, messageHash, requestParams, params))
-		ccxt.PanicOnError(orderbook)
+		r2 := <-this.WatchSwapPublicAsync(channel, messageHash, requestParams, params)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		orderbook = r2.Value
 	}
 	orderbook = this.RequireValue(orderbook, "watchOrderBook() orderbook is required")
 
-	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+	ch <- ccxt.AsyncResult[any]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 	return nil
 }
 func (this *Mexc) HandleOrderBookSubscription(client any, message map[string]any) {
@@ -1134,12 +1194,12 @@ func (this *Mexc) HandleBookDelta(orderbook any, delta any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Mexc) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Mexc) watchTradesBody(ch chan ccxt.AsyncResult[any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1150,7 +1210,10 @@ func (this *Mexc) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1159,16 +1222,22 @@ func (this *Mexc) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	if market["spot"] == true {
 		var channel *string = ccxt.SafeStringPtr(ccxt.Add("spot@public.aggre.deals.v3.api.pb@100ms@", market["id"]))
 
-		trades = (<-this.WatchSpotPublicAsync(channel, messageHash, params))
-		ccxt.PanicOnError(trades)
+		r1 := <-this.WatchSpotPublicAsync(channel, messageHash, params)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		trades = r1.Value
 	} else {
 		var channel string = "sub.deal"
 		var requestParams map[string]any = map[string]any{
 			"symbol": market["id"],
 		}
 
-		trades = (<-this.WatchSwapPublicAsync(channel, messageHash, requestParams, params))
-		ccxt.PanicOnError(trades)
+		r2 := <-this.WatchSwapPublicAsync(channel, messageHash, requestParams, params)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		trades = r2.Value
 	}
 	trades = this.RequireValue(trades, "watchTrades() trades is required")
 	var limitResolved *int64 = limit
@@ -1176,7 +1245,7 @@ func (this *Mexc) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolValue, limit)
 	}
 
-	ch <- this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)}
 	return nil
 }
 func (this *Mexc) HandleTrades(client any, message any) {
@@ -1269,12 +1338,12 @@ func (this *Mexc) HandleTrades(client any, message any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Mexc) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) WatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
+func (this *Mexc) watchMyTradesBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1287,7 +1356,10 @@ func (this *Mexc) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var messageHash any = "myTrades"
 	var market map[string]any = nil
@@ -1308,12 +1380,18 @@ func (this *Mexc) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if typeVar != nil && *typeVar == "spot" {
 		var channel string = "spot@private.deals.v3.api.pb"
 
-		trades = (<-this.WatchSpotPrivateAsync(channel, messageHash, paramsMarketType))
-		ccxt.PanicOnError(trades)
+		r1 := <-this.WatchSpotPrivateAsync(channel, messageHash, paramsMarketType)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		trades = r1.Value
 	} else {
 
-		trades = (<-this.WatchSwapPrivateAsync(messageHash, paramsMarketType))
-		ccxt.PanicOnError(trades)
+		r2 := <-this.WatchSwapPrivateAsync(messageHash, paramsMarketType)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		trades = r2.Value
 	}
 	trades = this.RequireValue(trades, "watchMyTrades() trades is required")
 	var limitResolved *int64 = limit
@@ -1321,7 +1399,7 @@ func (this *Mexc) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true)}
 	return nil
 }
 func (this *Mexc) HandleMyTrade(client any, message any, optionalArgs ...any) {
@@ -1492,12 +1570,12 @@ func (this *Mexc) ParseWsTrade(trade any, optionalArgs ...any) any {
  * @param {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'swap'
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Mexc) WatchOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Mexc) watchOrdersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1510,7 +1588,10 @@ func (this *Mexc) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var messageHash any = "orders"
 	var market map[string]any = nil
@@ -1531,12 +1612,18 @@ func (this *Mexc) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if typeVar != nil && *typeVar == "spot" {
 		var channel string = "spot@private.orders.v3.api.pb"
 
-		orders = (<-this.WatchSpotPrivateAsync(channel, messageHash, paramsMarketType))
-		ccxt.PanicOnError(orders)
+		r1 := <-this.WatchSpotPrivateAsync(channel, messageHash, paramsMarketType)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		orders = r1.Value
 	} else {
 
-		orders = (<-this.WatchSwapPrivateAsync(messageHash, paramsMarketType))
-		ccxt.PanicOnError(orders)
+		r2 := <-this.WatchSwapPrivateAsync(messageHash, paramsMarketType)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		orders = r2.Value
 	}
 	orders = this.RequireValue(orders, "watchOrders() orders is required")
 	var limitResolved *int64 = limit
@@ -1544,7 +1631,7 @@ func (this *Mexc) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true)
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true)}
 	return nil
 }
 func (this *Mexc) HandleOrder(client any, message any) {
@@ -1813,30 +1900,41 @@ func (this *Mexc) ParseWsTimeInForce(timeInForce *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Mexc) WatchBalanceAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) WatchBalanceAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchBalanceBody(ch chan any, optionalArgs ...any) any {
+func (this *Mexc) watchBalanceBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	var messageHash string = "balance:" + *typeVar
 	if typeVar != nil && *typeVar == "spot" {
 		var channel string = "spot@private.account.v3.api.pb"
 
-		ch <- ccxt.PanicOnError((<-this.WatchSpotPrivateAsync(channel, messageHash, paramsMarketType)))
+		r1 := <-this.WatchSpotPrivateAsync(channel, messageHash, paramsMarketType)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 		return nil
 	} else {
 
-		ch <- ccxt.PanicOnError((<-this.WatchSwapPrivateAsync(messageHash, paramsMarketType)))
+		r2 := <-this.WatchSwapPrivateAsync(messageHash, paramsMarketType)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		ch <- ccxt.AsyncResult[any]{Value: r2.Value}
 		return nil
 	}
 }
@@ -1911,19 +2009,22 @@ func (this *Mexc) HandleBalance(client any, message any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Mexc) WatchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) WatchFundingRateAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Mexc) watchFundingRateBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("fundingRate:", market["symbol"]))
@@ -1932,7 +2033,11 @@ func (this *Mexc) watchFundingRateBody(ch chan any, symbol string, optionalArgs 
 		"symbol": market["id"],
 	}
 
-	ch <- ccxt.PanicOnError((<-this.WatchSwapPublicAsync(channel, messageHash, requestParams, params)))
+	r1 := <-this.WatchSwapPublicAsync(channel, messageHash, requestParams, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 
@@ -1945,19 +2050,22 @@ func (this *Mexc) watchFundingRateBody(ch chan any, symbol string, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Mexc) UnWatchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) UnWatchFundingRateAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mexc) unWatchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Mexc) unWatchFundingRateBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:fundingRate:", market["symbol"]))
@@ -2004,19 +2112,22 @@ func (this *Mexc) HandleFundingRate(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Mexc) UnWatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) UnWatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mexc) unWatchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Mexc) unWatchTickerBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:ticker:", market["symbol"]))
@@ -2049,12 +2160,12 @@ func (this *Mexc) unWatchTickerBody(ch chan any, symbol string, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Mexc) UnWatchTickersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) UnWatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Mexc) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
+func (this *Mexc) unWatchTickersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -2063,7 +2174,10 @@ func (this *Mexc) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil)
 	var messageHashes []any = []any{}
@@ -2103,12 +2217,12 @@ func (this *Mexc) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Mexc) UnWatchBidsAsksAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) UnWatchBidsAsksAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchBidsAsksBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Mexc) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
+func (this *Mexc) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -2117,7 +2231,10 @@ func (this *Mexc) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, false, true)
 	if symbolsNormalized == nil {
@@ -2160,12 +2277,12 @@ func (this *Mexc) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Mexc) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mexc) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Mexc) unWatchOHLCVBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -2174,7 +2291,10 @@ func (this *Mexc) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
@@ -2211,19 +2331,22 @@ func (this *Mexc) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
  * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Mexc) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mexc) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Mexc) unWatchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
@@ -2258,19 +2381,22 @@ func (this *Mexc) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs 
  * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Mexc) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mexc) unWatchTradesBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Mexc) unWatchTradesBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
@@ -2376,12 +2502,12 @@ func (this *Mexc) HandleUnsubscriptions(client any, messageHashes any) {
 		}
 	}
 }
-func (this *Mexc) AuthenticateAsync(subscriptionHash any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) AuthenticateAsync(subscriptionHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.authenticateBody(ch, subscriptionHash, optionalArgs...)
 	return ch
 }
-func (this *Mexc) authenticateBody(ch chan any, subscriptionHash any, optionalArgs ...any) any {
+func (this *Mexc) authenticateBody(ch chan ccxt.AsyncResult[any], subscriptionHash any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// we only need one listenKey since ccxt shares connections
@@ -2390,7 +2516,7 @@ func (this *Mexc) authenticateBody(ch chan any, subscriptionHash any, optionalAr
 	var listenKey *string = this.SafeString(this.Options, "listenKey")
 	if listenKey != nil {
 
-		ch <- listenKey
+		ch <- ccxt.AsyncResult[any]{Value: listenKey}
 		return nil
 	}
 	// guard against concurrent listenKey requests with a future on the base
@@ -2402,9 +2528,12 @@ func (this *Mexc) authenticateBody(ch chan any, subscriptionHash any, optionalAr
 	var isFetching *bool = this.SafeBool(this.Options, "listenKeyFetching", false)
 	if isFetching != nil && *isFetching == true {
 
-		ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future(messageHash)))
+		r := <-client.(ccxt.ClientInterface).Future(messageHash)
+		if r.Err != nil {
+			panic(r.Err)
+		}
 
-		ch <- this.SafeString(this.Options, "listenKey")
+		ch <- ccxt.AsyncResult[any]{Value: this.SafeString(this.Options, "listenKey")}
 		return nil
 	}
 	this.Options.Store("listenKeyFetching", true)
@@ -2429,7 +2558,11 @@ func (this *Mexc) authenticateBody(ch chan any, subscriptionHash any, optionalAr
 			}()
 			// try block:
 
-			response = (<-this.SpotPrivatePostUserDataStream(params)).Checked()
+			r1 := <-this.SpotPrivatePostUserDataStream(params)
+			if r1.Err != nil {
+				panic(r1.Err)
+			}
+			response = r1.Value
 			return nil
 		}(this)
 
@@ -2446,15 +2579,15 @@ func (this *Mexc) authenticateBody(ch chan any, subscriptionHash any, optionalAr
 	var listenKeyRefreshRate *int64 = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1200000)
 	this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, listenKey, params)
 
-	ch <- listenKey
+	ch <- ccxt.AsyncResult[any]{Value: listenKey}
 	return nil
 }
-func (this *Mexc) KeepAliveListenKeyAsync(listenKey any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) KeepAliveListenKeyAsync(listenKey any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.keepAliveListenKeyBody(ch, listenKey, optionalArgs...)
 	return ch
 }
-func (this *Mexc) keepAliveListenKeyBody(ch chan any, listenKey any, optionalArgs ...any) any {
+func (this *Mexc) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[any], listenKey any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2491,7 +2624,10 @@ func (this *Mexc) keepAliveListenKeyBody(ch chan any, listenKey any, optionalArg
 			}()
 			// try block:
 
-			ccxt.PanicOnError((<-this.SpotPrivatePutUserDataStream(this.Extend(request, params))).Raw)
+			r := <-this.SpotPrivatePutUserDataStream(this.Extend(request, params))
+			if r.Err != nil {
+				panic(r.Err)
+			}
 			var listenKeyRefreshRate *int64 = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1200000)
 			this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, listenKey, params)
 			return nil
@@ -2660,11 +2796,11 @@ func (this *Mexc) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchTickerAsync(symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Ticker{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchTickerAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return ccxt.Ticker{}, r.Err
 	}
-	var res ccxt.Ticker = ccxt.NewTicker(raw)
+	var res ccxt.Ticker = ccxt.NewTicker(r.Value)
 	return res, nil
 }
 
@@ -2684,11 +2820,11 @@ func (this *Mexc) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Ticker
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Tickers{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return ccxt.Tickers{}, r.Err
 	}
-	var res ccxt.Tickers = ccxt.NewTickers(raw)
+	var res ccxt.Tickers = ccxt.NewTickers(r.Value)
 	return res, nil
 }
 
@@ -2708,11 +2844,11 @@ func (this *Mexc) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Tick
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchBidsAsksAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.Tickers{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchBidsAsksAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return ccxt.Tickers{}, r.Err
 	}
-	var res ccxt.Tickers = ccxt.NewTickers(raw)
+	var res ccxt.Tickers = ccxt.NewTickers(r.Value)
 	return res, nil
 }
 
@@ -2736,11 +2872,11 @@ func (this *Mexc) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(raw)
+	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(r.Value)
 	return res, nil
 }
 
@@ -2763,11 +2899,11 @@ func (this *Mexc) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.OrderBook{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return ccxt.OrderBook{}, r.Err
 	}
-	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(raw)
+	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(r.Value)
 	return res, nil
 }
 
@@ -2790,11 +2926,11 @@ func (this *Mexc) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -2817,11 +2953,11 @@ func (this *Mexc) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Tr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -2845,11 +2981,11 @@ func (this *Mexc) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(raw)
+	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -2863,11 +2999,11 @@ func (this *Mexc) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order,
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Mexc) WatchBalance(params ...any) (ccxt.Balances, error) {
-	raw := <-this.WatchBalanceAsync(params...)
-	if ccxt.IsError(raw) {
-		return ccxt.Balances{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchBalanceAsync(params...)
+	if r.Err != nil {
+		return ccxt.Balances{}, r.Err
 	}
-	var res ccxt.Balances = ccxt.NewBalances(raw)
+	var res ccxt.Balances = ccxt.NewBalances(r.Value)
 	return res, nil
 }
 
@@ -2887,11 +3023,11 @@ func (this *Mexc) WatchFundingRate(symbol string, options ...ccxt.WatchFundingRa
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.WatchFundingRateAsync(symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return ccxt.FundingRate{}, ccxt.CreateReturnError(raw)
+	r := <-this.WatchFundingRateAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return ccxt.FundingRate{}, r.Err
 	}
-	var res ccxt.FundingRate = ccxt.NewFundingRate(raw)
+	var res ccxt.FundingRate = ccxt.NewFundingRate(r.Value)
 	return res, nil
 }
 
@@ -2911,11 +3047,11 @@ func (this *Mexc) UnWatchFundingRate(symbol string, options ...ccxt.UnWatchFundi
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchFundingRateAsync(symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchFundingRateAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -2933,11 +3069,11 @@ func (this *Mexc) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchTickerAsync(symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchTickerAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -2955,11 +3091,11 @@ func (this *Mexc) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchTickersAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchTickersAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -2977,11 +3113,11 @@ func (this *Mexc) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchBidsAsksAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchBidsAsksAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -3001,11 +3137,11 @@ func (this *Mexc) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -3024,11 +3160,11 @@ func (this *Mexc) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchOrderBookAsync(symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchOrderBookAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }
 
 /**
@@ -3047,9 +3183,9 @@ func (this *Mexc) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.UnWatchTradesAsync(symbol, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.UnWatchTradesAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return raw, nil
+	return r.Value, nil
 }

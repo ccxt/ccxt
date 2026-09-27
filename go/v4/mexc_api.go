@@ -68,7 +68,7 @@ func (this *Mexc) SpotPublicGetAvgPrice(args ...any) <-chan EndpointResult[map[s
 }
 
 // SpotPublicGetTicker24hr returns a channel that yields a JSON object or a JSON array.
-func (this *Mexc) SpotPublicGetTicker24hr(args ...any) <-chan any {
+func (this *Mexc) SpotPublicGetTicker24hr(args ...any) <-chan AsyncResult[any] {
 	return this.Fetch2Async("ticker/24hr", []string{"spot", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
 }
 

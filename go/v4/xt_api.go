@@ -158,12 +158,12 @@ func (this *Xt) PublicLinearGetFutureMarketV1PublicQTickers(args ...any) <-chan 
 }
 
 // PublicLinearGetFutureMarketV1PublicSymbolCoins returns a channel that yields a JSON object.
-func (this *Xt) PublicLinearGetFutureMarketV1PublicSymbolCoins(args ...any) <-chan any {
+func (this *Xt) PublicLinearGetFutureMarketV1PublicSymbolCoins(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicSymbolCoins", args...)
 }
 
 // PublicLinearGetFutureMarketV1PublicSymbolDetail returns a channel that yields a JSON object.
-func (this *Xt) PublicLinearGetFutureMarketV1PublicSymbolDetail(args ...any) <-chan any {
+func (this *Xt) PublicLinearGetFutureMarketV1PublicSymbolDetail(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicSymbolDetail", args...)
 }
 
@@ -263,12 +263,12 @@ func (this *Xt) PublicInverseGetFutureMarketV1PublicQTickers(args ...any) <-chan
 }
 
 // PublicInverseGetFutureMarketV1PublicSymbolCoins returns a channel that yields a JSON object.
-func (this *Xt) PublicInverseGetFutureMarketV1PublicSymbolCoins(args ...any) <-chan any {
+func (this *Xt) PublicInverseGetFutureMarketV1PublicSymbolCoins(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicSymbolCoins", args...)
 }
 
 // PublicInverseGetFutureMarketV1PublicSymbolDetail returns a channel that yields a JSON object.
-func (this *Xt) PublicInverseGetFutureMarketV1PublicSymbolDetail(args ...any) <-chan any {
+func (this *Xt) PublicInverseGetFutureMarketV1PublicSymbolDetail(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicSymbolDetail", args...)
 }
 
@@ -333,7 +333,7 @@ func (this *Xt) PrivateSpotGetWithdrawHistory(args ...any) <-chan EndpointResult
 }
 
 // PrivateSpotPostOrder returns a channel that yields a JSON object.
-func (this *Xt) PrivateSpotPostOrder(args ...any) <-chan any {
+func (this *Xt) PrivateSpotPostOrder(args ...any) <-chan AsyncResult[any] {
 	return this.callEndpointAsync("privateSpotPostOrder", args...)
 }
 

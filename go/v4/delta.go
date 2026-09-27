@@ -534,22 +534,26 @@ func (this *Delta) SafeMarket(optionalArgs ...any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Delta) FetchTimeAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTimeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchTimeBody(ch chan any, optionalArgs ...any) any {
+func (this *Delta) fetchTimeBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = (<-this.PublicGetSettings(params)).Checked()
+	r := <-this.PublicGetSettings(params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var response map[string]any = r.Value
 	// full response sample under `fetchStatus`
 	var result map[string]any = SafeMapTyped(response, "result")
 
-	ch <- this.SafeIntegerProduct(result, "server_time", 0.001)
+	ch <- AsyncResult[any]{Value: this.SafeIntegerProduct(result, "server_time", 0.001)}
 	return nil
 }
 
@@ -571,8 +575,11 @@ func (this *Delta) fetchStatusBody(ch chan EndpointResult[map[string]any], optio
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetSettings(params)).Raw
-	PanicOnError(response)
+	r := <-this.PublicGetSettings(params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	response := r.Raw
 	//
 	//     {
 	//         "result": {
@@ -653,18 +660,22 @@ func (this *Delta) fetchStatusBody(ch chan EndpointResult[map[string]any], optio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Delta) FetchCurrenciesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
+func (this *Delta) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAssets(params)).Raw))
+	r := <-this.PublicGetAssets(params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var response map[string]any = MapTyped(r.Raw)
 	//
 	//    {
 	//        "result": [
@@ -715,7 +726,7 @@ func (this *Delta) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//
 	var currencies []any = SafeListTypedDefault(response, "result", []any{})
 
-	ch <- this.ParseCurrencies(currencies)
+	ch <- AsyncResult[any]{Value: this.ParseCurrencies(currencies)}
 	return nil
 }
 func (this *Delta) ParseCurrency(rawCurrency any) any {
@@ -781,12 +792,12 @@ func (this *Delta) ParseCurrency(rawCurrency any) any {
 		"type":     "crypto",
 	})
 }
-func (this *Delta) LoadMarketsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) LoadMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.loadMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Delta) loadMarketsBody(ch chan any, optionalArgs ...any) any {
+func (this *Delta) loadMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var reload bool = GetArgBool(optionalArgs, 0, false)
@@ -794,8 +805,11 @@ func (this *Delta) loadMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	markets := (<-this.Exchange.LoadMarketsAsync(reload, params))
-	PanicOnError(markets)
+	r := <-this.Exchange.LoadMarketsAsync(reload, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	markets := r.Value
 	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId")
 	if ((currenciesByNumericId == nil)) || (reload == true) {
 		this.Options.Store("currenciesByNumericId", this.IndexByStringifiedNumericId(this.Currencies))
@@ -805,7 +819,7 @@ func (this *Delta) loadMarketsBody(ch chan any, optionalArgs ...any) any {
 		this.Options.Store("marketsByNumericId", this.IndexByStringifiedNumericId(this.Markets))
 	}
 
-	ch <- markets
+	ch <- AsyncResult[any]{Value: markets}
 	return nil
 }
 func (this *Delta) IndexByStringifiedNumericId(input any) any {
@@ -834,18 +848,22 @@ func (this *Delta) IndexByStringifiedNumericId(input any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Delta) FetchMarketsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+func (this *Delta) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetProducts(params)).Raw))
+	r := <-this.PublicGetProducts(params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var response map[string]any = MapTyped(r.Raw)
 	//
 	//     {
 	//         "meta":{ "after":null, "before":null, "limit":100, "total_count":81 },
@@ -1167,7 +1185,7 @@ func (this *Delta) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}))
 	}
 
-	ch <- result
+	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
 func (this *Delta) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -1340,24 +1358,31 @@ func (this *Delta) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Delta) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Delta) fetchTickerBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = (<-this.PublicGetTickersSymbol(this.Extend(request, params))).Checked()
+	r1 := <-this.PublicGetTickersSymbol(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	// spot
 	//
@@ -1484,7 +1509,7 @@ func (this *Delta) fetchTickerBody(ch chan any, symbol string, optionalArgs ...a
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- this.ParseTicker(result, market)
+	ch <- AsyncResult[any]{Value: this.ParseTicker(result, market)}
 	return nil
 }
 
@@ -1497,12 +1522,12 @@ func (this *Delta) fetchTickerBody(ch chan any, symbol string, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Delta) FetchTickersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchTickersBody(ch chan any, optionalArgs ...any) any {
+func (this *Delta) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1510,10 +1535,17 @@ func (this *Delta) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickers(params)).Raw))
+	r1 := <-this.PublicGetTickers(params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = MapTyped(r1.Raw)
 	//
 	// spot
 	//
@@ -1664,7 +1696,7 @@ func (this *Delta) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	ch <- this.FilterByArrayTickers(result, "symbol", symbolsNormalized)
+	ch <- AsyncResult[any]{Value: this.FilterByArrayTickers(result, "symbol", symbolsNormalized)}
 	return nil
 }
 
@@ -1678,12 +1710,12 @@ func (this *Delta) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Delta) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Delta) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1691,7 +1723,10 @@ func (this *Delta) fetchOrderBookBody(ch chan any, symbol string, optionalArgs .
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -1700,7 +1735,11 @@ func (this *Delta) fetchOrderBookBody(ch chan any, symbol string, optionalArgs .
 		request["depth"] = limit
 	}
 
-	var response map[string]any = (<-this.PublicGetL2orderbookSymbol(this.Extend(request, params))).Checked()
+	r1 := <-this.PublicGetL2orderbookSymbol(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "result":{
@@ -1721,7 +1760,7 @@ func (this *Delta) fetchOrderBookBody(ch chan any, symbol string, optionalArgs .
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- this.ParseOrderBook(result, market["symbol"], nil, "buy", "sell", "price", "size")
+	ch <- AsyncResult[any]{Value: this.ParseOrderBook(result, market["symbol"], nil, "buy", "sell", "price", "size")}
 	return nil
 }
 func (this *Delta) ParseTrade(trade any, optionalArgs ...any) any {
@@ -1837,12 +1876,12 @@ func (this *Delta) ParseTrade(trade any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Delta) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Delta) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1852,13 +1891,20 @@ func (this *Delta) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = (<-this.PublicGetTradesSymbol(this.Extend(request, params))).Checked()
+	r1 := <-this.PublicGetTradesSymbol(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "result":[
@@ -1876,7 +1922,7 @@ func (this *Delta) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	//
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
-	ch <- this.ParseTrades(result, market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseTrades(result, market, since, limit)}
 	return nil
 }
 func (this *Delta) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -1908,12 +1954,12 @@ func (this *Delta) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {string} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Delta) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Delta) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1925,7 +1971,10 @@ func (this *Delta) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -1972,7 +2021,11 @@ func (this *Delta) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"price", "until"})
 
-	var response map[string]any = (<-this.PublicGetHistoryCandles(this.Extend(request, paramsOmitted))).Checked()
+	r1 := <-this.PublicGetHistoryCandles(this.Extend(request, paramsOmitted))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "success":true,
@@ -1985,7 +2038,7 @@ func (this *Delta) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 	//
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
-	ch <- this.ParseOHLCVs(result, market, timeframe, since, limitValue)
+	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(result, market, timeframe, since, limitValue)}
 	return nil
 }
 func (this *Delta) ParseBalance(response any) any {
@@ -2020,20 +2073,27 @@ func (this *Delta) ParseBalance(response any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Delta) FetchBalanceAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+func (this *Delta) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 
-	var response map[string]any = (<-this.PrivateGetWalletBalances(params)).Checked()
+	r1 := <-this.PrivateGetWalletBalances(params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -2056,7 +2116,7 @@ func (this *Delta) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//         "success":true
 	//     }
 	//
-	ch <- this.ParseBalance(response)
+	ch <- AsyncResult[any]{Value: this.ParseBalance(response)}
 	return nil
 }
 
@@ -2069,24 +2129,31 @@ func (this *Delta) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Delta) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchPositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Delta) fetchPositionBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_id": market["numericId"],
 	}
 
-	var response map[string]any = (<-this.PrivateGetPositions(this.Extend(request, params))).Checked()
+	r1 := <-this.PrivateGetPositions(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "result":{
@@ -2099,7 +2166,7 @@ func (this *Delta) fetchPositionBody(ch chan any, symbol any, optionalArgs ...an
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- this.ParsePosition(result, market)
+	ch <- AsyncResult[any]{Value: this.ParsePosition(result, market)}
 	return nil
 }
 
@@ -2112,12 +2179,12 @@ func (this *Delta) fetchPositionBody(ch chan any, symbol any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Delta) FetchPositionsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
+func (this *Delta) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -2125,9 +2192,16 @@ func (this *Delta) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 
-	var response map[string]any = (<-this.PrivateGetPositionsMargined(params)).Checked()
+	r1 := <-this.PrivateGetPositionsMargined(params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "success": true,
@@ -2151,7 +2225,7 @@ func (this *Delta) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
-	ch <- this.ParsePositions(result, symbols)
+	ch <- AsyncResult[any]{Value: this.ParsePositions(result, symbols)}
 	return nil
 }
 func (this *Delta) ParsePosition(position any, optionalArgs ...any) any {
@@ -2379,12 +2453,12 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) any {
  * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Delta) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Delta) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Delta) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2392,7 +2466,10 @@ func (this *Delta) createOrderBody(ch chan any, symbol string, typeVar string, s
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var orderType string = typeVar + "_order"
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -2420,7 +2497,11 @@ func (this *Delta) createOrderBody(ch chan any, symbol string, typeVar string, s
 		return paramsOmitted
 	}()
 
-	var response map[string]any = (<-this.PrivatePostOrders(this.Extend(request, paramsOmitted2))).Checked()
+	r1 := <-this.PrivatePostOrders(this.Extend(request, paramsOmitted2))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "result":{
@@ -2459,7 +2540,7 @@ func (this *Delta) createOrderBody(ch chan any, symbol string, typeVar string, s
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- this.ParseOrder(result, market)
+	ch <- AsyncResult[any]{Value: this.ParseOrder(result, market)}
 	return nil
 }
 
@@ -2477,12 +2558,12 @@ func (this *Delta) createOrderBody(ch chan any, symbol string, typeVar string, s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Delta) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Delta) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Delta) editOrderBody(ch chan AsyncResult[any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2492,7 +2573,10 @@ func (this *Delta) editOrderBody(ch chan any, id string, symbol any, typeVar any
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"id":         ParseInt(id),
@@ -2509,7 +2593,11 @@ func (this *Delta) editOrderBody(ch chan any, id string, symbol any, typeVar any
 		request["limit_price"] = this.PriceToPrecision(symbol, price)
 	}
 
-	var response map[string]any = (<-this.PrivatePutOrders(this.Extend(request, params))).Checked()
+	r1 := <-this.PrivatePutOrders(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "success": true,
@@ -2529,7 +2617,7 @@ func (this *Delta) editOrderBody(ch chan any, id string, symbol any, typeVar any
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- this.ParseOrder(result, market)
+	ch <- AsyncResult[any]{Value: this.ParseOrder(result, market)}
 	return nil
 }
 
@@ -2543,12 +2631,12 @@ func (this *Delta) editOrderBody(ch chan any, id string, symbol any, typeVar any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Delta) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Delta) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Delta) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2559,14 +2647,21 @@ func (this *Delta) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"id":         ParseInt(id),
 		"product_id": market["numericId"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteOrders(this.Extend(request, params))).Raw))
+	r1 := <-this.PrivateDeleteOrders(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = MapTyped(r1.Raw)
 	//
 	//     {
 	//         "result":{
@@ -2605,7 +2700,7 @@ func (this *Delta) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- this.ParseOrder(result, market)
+	ch <- AsyncResult[any]{Value: this.ParseOrder(result, market)}
 	return nil
 }
 
@@ -2618,12 +2713,12 @@ func (this *Delta) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Delta) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Delta) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Delta) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2634,7 +2729,10 @@ func (this *Delta) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires a symbol argument"))
 	}
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_id": market["numericId"],
@@ -2647,9 +2745,9 @@ func (this *Delta) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         "success":true
 	//     }
 	//
-	ch <- []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
 		"info": response,
-	})}
+	})}}
 	return nil
 }
 
@@ -2665,12 +2763,12 @@ func (this *Delta) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.clientOrderId] client order id of the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Delta) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Delta) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2678,7 +2776,10 @@ func (this *Delta) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2690,11 +2791,19 @@ func (this *Delta) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	if clientOrderId != nil {
 		request["client_oid"] = clientOrderId
 
-		response = (<-this.PrivateGetOrdersClientOrderIdClientOid(this.Extend(request, paramsOmitted))).Checked()
+		r1 := <-this.PrivateGetOrdersClientOrderIdClientOid(this.Extend(request, paramsOmitted))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
 	} else {
 		request["order_id"] = id
 
-		response = (<-this.PrivateGetOrdersOrderId(this.Extend(request, paramsOmitted))).Checked()
+		r2 := <-this.PrivateGetOrdersOrderId(this.Extend(request, paramsOmitted))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
 	}
 	//
 	//     {
@@ -2722,7 +2831,7 @@ func (this *Delta) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- this.ParseOrder(result, market)
+	ch <- AsyncResult[any]{Value: this.ParseOrder(result, market)}
 	return nil
 }
 
@@ -2737,12 +2846,12 @@ func (this *Delta) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Delta) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Delta) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2754,11 +2863,15 @@ func (this *Delta) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes233515 []any = ListTyped(PanicOnError((<-this.FetchOrdersWithMethodAsync("privateGetOrders", symbol, since, limit, params))))
+	r := <-this.FetchOrdersWithMethodAsync("privateGetOrders", symbol, since, limit, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var retRes233515 []any = ListTyped(r.Value)
 	if retRes233515 == nil {
-		ch <- nil
+		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- retRes233515
+		ch <- AsyncResult[any]{Value: retRes233515}
 	}
 	return nil
 }
@@ -2774,12 +2887,12 @@ func (this *Delta) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Delta) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Delta) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2791,20 +2904,24 @@ func (this *Delta) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes235015 []any = ListTyped(PanicOnError((<-this.FetchOrdersWithMethodAsync("privateGetOrdersHistory", symbol, since, limit, params))))
+	r := <-this.FetchOrdersWithMethodAsync("privateGetOrdersHistory", symbol, since, limit, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var retRes235015 []any = ListTyped(r.Value)
 	if retRes235015 == nil {
-		ch <- nil
+		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- retRes235015
+		ch <- AsyncResult[any]{Value: retRes235015}
 	}
 	return nil
 }
-func (this *Delta) FetchOrdersWithMethodAsync(method string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchOrdersWithMethodAsync(method string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrdersWithMethodBody(ch, method, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchOrdersWithMethodBody(ch chan any, method string, optionalArgs ...any) any {
+func (this *Delta) fetchOrdersWithMethodBody(ch chan AsyncResult[any], method string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2816,7 +2933,10 @@ func (this *Delta) fetchOrdersWithMethodBody(ch chan any, method string, optiona
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if symbol != nil {
@@ -2832,10 +2952,18 @@ func (this *Delta) fetchOrdersWithMethodBody(ch chan any, method string, optiona
 	var response map[string]any = nil
 	if method == "privateGetOrders" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetOrders(this.Extend(request, params))).Raw))
+		r1 := <-this.PrivateGetOrders(this.Extend(request, params))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = MapTyped(r1.Raw)
 	} else if method == "privateGetOrdersHistory" {
 
-		response = (<-this.PrivateGetOrdersHistory(this.Extend(request, params))).Checked()
+		r2 := <-this.PrivateGetOrdersHistory(this.Extend(request, params))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
 	}
 	//
 	//     {
@@ -2862,7 +2990,7 @@ func (this *Delta) fetchOrdersWithMethodBody(ch chan any, method string, optiona
 	//
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
-	ch <- this.ParseOrders(result, market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseOrders(result, market, since, limit)}
 	return nil
 }
 
@@ -2877,12 +3005,12 @@ func (this *Delta) fetchOrdersWithMethodBody(ch chan any, method string, optiona
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Delta) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+func (this *Delta) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2894,7 +3022,10 @@ func (this *Delta) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if symbol != nil {
@@ -2908,7 +3039,11 @@ func (this *Delta) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["page_size"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFills(this.Extend(request, params))).Raw))
+	r1 := <-this.PrivateGetFills(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = MapTyped(r1.Raw)
 	//
 	//     {
 	//         "meta":{
@@ -2956,7 +3091,7 @@ func (this *Delta) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
-	ch <- this.ParseTrades(result, market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseTrades(result, market, since, limit)}
 	return nil
 }
 
@@ -2971,12 +3106,12 @@ func (this *Delta) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-func (this *Delta) FetchLedgerAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchLedgerAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchLedgerBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
+func (this *Delta) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2988,7 +3123,10 @@ func (this *Delta) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
@@ -2999,7 +3137,11 @@ func (this *Delta) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["page_size"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWalletTransactions(this.Extend(request, params))).Raw))
+	r1 := <-this.PrivateGetWalletTransactions(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = MapTyped(r1.Raw)
 	//
 	//     {
 	//         "meta":{"after":null,"before":null,"limit":10,"total_count":1},
@@ -3023,7 +3165,7 @@ func (this *Delta) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
-	ch <- this.ParseLedger(result, currency, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseLedger(result, currency, since, limit)}
 	return nil
 }
 func (this *Delta) ParseLedgerEntryType(typeVar *string) *string {
@@ -3111,18 +3253,21 @@ func (this *Delta) ParseLedgerEntry(item any, optionalArgs ...any) any {
  * @param {string} [params.network] unified network code
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Delta) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
+func (this *Delta) fetchDepositAddressBody(ch chan AsyncResult[any], code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"asset_symbol": currency["id"],
@@ -3138,7 +3283,11 @@ func (this *Delta) fetchDepositAddressBody(ch chan any, code string, optionalArg
 		return params
 	}()
 
-	var response map[string]any = (<-this.PrivateGetDepositsAddress(this.Extend(request, paramsOmitted))).Checked()
+	r1 := <-this.PrivateGetDepositsAddress(this.Extend(request, paramsOmitted))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	//    {
 	//        "success": true,
@@ -3158,7 +3307,7 @@ func (this *Delta) fetchDepositAddressBody(ch chan any, code string, optionalArg
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- this.ParseDepositAddress(result, currency)
+	ch <- AsyncResult[any]{Value: this.ParseDepositAddress(result, currency)}
 	return nil
 }
 func (this *Delta) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
@@ -3201,18 +3350,21 @@ func (this *Delta) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Delta) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Delta) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	if market["swap"] != true {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
@@ -3221,7 +3373,11 @@ func (this *Delta) fetchFundingRateBody(ch chan any, symbol string, optionalArgs
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = (<-this.PublicGetTickersSymbol(this.Extend(request, params))).Checked()
+	r1 := <-this.PublicGetTickersSymbol(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "result": {
@@ -3269,7 +3425,7 @@ func (this *Delta) fetchFundingRateBody(ch chan any, symbol string, optionalArgs
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- this.ParseFundingRate(result, market)
+	ch <- AsyncResult[any]{Value: this.ParseFundingRate(result, market)}
 	return nil
 }
 
@@ -3282,12 +3438,12 @@ func (this *Delta) fetchFundingRateBody(ch chan any, symbol string, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
-func (this *Delta) FetchFundingRatesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchFundingRatesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
+func (this *Delta) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -3295,13 +3451,20 @@ func (this *Delta) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{
 		"contract_types": "perpetual_futures",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickers(this.Extend(request, params))).Raw))
+	r1 := <-this.PublicGetTickers(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = MapTyped(r1.Raw)
 	//
 	//     {
 	//         "result": [
@@ -3351,7 +3514,7 @@ func (this *Delta) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	//
 	var rates []any = SafeListTypedDefault(response, "result", []any{})
 
-	ch <- this.ParseFundingRates(rates, symbolsNormalized)
+	ch <- AsyncResult[any]{Value: this.ParseFundingRates(rates, symbolsNormalized)}
 	return nil
 }
 func (this *Delta) ParseFundingRate(contract any, optionalArgs ...any) any {
@@ -3435,22 +3598,26 @@ func (this *Delta) ParseFundingRate(contract any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Delta) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Delta) addMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
+func (this *Delta) addMarginBody(ch chan AsyncResult[any], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes290515 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))))
+	r := <-this.ModifyMarginHelperAsync(symbol, amount, "add", params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var retRes290515 map[string]any = MapTyped(r.Value)
 	if retRes290515 == nil {
-		ch <- nil
+		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- retRes290515
+		ch <- AsyncResult[any]{Value: retRes290515}
 	}
 	return nil
 }
@@ -3476,7 +3643,11 @@ func (this *Delta) reduceMarginBody(ch chan EndpointResult[map[string]any], symb
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes291915 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
+	r := <-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var retRes291915 map[string]any = MapTyped(r.Value)
 	if retRes291915 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
@@ -3484,18 +3655,21 @@ func (this *Delta) reduceMarginBody(ch chan EndpointResult[map[string]any], symb
 	}
 	return nil
 }
-func (this *Delta) ModifyMarginHelperAsync(symbol string, amount any, typeVar string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) ModifyMarginHelperAsync(symbol string, amount any, typeVar string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Delta) modifyMarginHelperBody(ch chan any, symbol string, amount any, typeVar string, optionalArgs ...any) any {
+func (this *Delta) modifyMarginHelperBody(ch chan AsyncResult[any], symbol string, amount any, typeVar string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var amountString string = ToString(amount)
 	var deltaMargin *string = func() *string {
@@ -3509,7 +3683,11 @@ func (this *Delta) modifyMarginHelperBody(ch chan any, symbol string, amount any
 		"delta_margin": deltaMargin,
 	}
 
-	var response map[string]any = (<-this.PrivatePostPositionsChangeMargin(this.Extend(request, params))).Checked()
+	r1 := <-this.PrivatePostPositionsChangeMargin(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "result": {
@@ -3535,7 +3713,7 @@ func (this *Delta) modifyMarginHelperBody(ch chan any, symbol string, amount any
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- this.ParseMarginModification(result, market)
+	ch <- AsyncResult[any]{Value: this.ParseMarginModification(result, market)}
 	return nil
 }
 func (this *Delta) ParseMarginModification(data any, optionalArgs ...any) any {
@@ -3586,18 +3764,21 @@ func (this *Delta) ParseMarginModification(data any, optionalArgs ...any) any {
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Delta) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Delta) fetchOpenInterestBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	if market["contract"] != true {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
@@ -3606,7 +3787,11 @@ func (this *Delta) fetchOpenInterestBody(ch chan any, symbol string, optionalArg
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = (<-this.PublicGetTickersSymbol(this.Extend(request, params))).Checked()
+	r1 := <-this.PublicGetTickersSymbol(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "result": {
@@ -3661,7 +3846,7 @@ func (this *Delta) fetchOpenInterestBody(ch chan any, symbol string, optionalArg
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- this.ParseOpenInterest(result, market)
+	ch <- AsyncResult[any]{Value: this.ParseOpenInterest(result, market)}
 	return nil
 }
 func (this *Delta) ParseOpenInterest(interest any, optionalArgs ...any) any {
@@ -3739,24 +3924,31 @@ func (this *Delta) ParseOpenInterest(interest any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Delta) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Delta) fetchLeverageBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_id": market["numericId"],
 	}
 
-	var response map[string]any = (<-this.PrivateGetProductsProductIdOrdersLeverage(this.Extend(request, params))).Checked()
+	r1 := <-this.PrivateGetProductsProductIdOrdersLeverage(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "result": {
@@ -3772,7 +3964,7 @@ func (this *Delta) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...an
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- this.ParseLeverage(result, market)
+	ch <- AsyncResult[any]{Value: this.ParseLeverage(result, market)}
 	return nil
 }
 func (this *Delta) ParseLeverage(leverage any, optionalArgs ...any) any {
@@ -3799,12 +3991,12 @@ func (this *Delta) ParseLeverage(leverage any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Delta) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Delta) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
+func (this *Delta) setLeverageBody(ch chan AsyncResult[any], leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3815,7 +4007,10 @@ func (this *Delta) setLeverageBody(ch chan any, leverage int64, optionalArgs ...
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol argument"))
 	}
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_id": market["numericId"],
@@ -3833,7 +4028,11 @@ func (this *Delta) setLeverageBody(ch chan any, leverage int64, optionalArgs ...
 	//         "success": true
 	//     }
 	//
-	ch <- PanicOnError((<-this.PrivatePostProductsProductIdOrdersLeverage(this.Extend(request, params))).Raw)
+	r1 := <-this.PrivatePostProductsProductIdOrdersLeverage(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- AsyncResult[any]{Value: r1.Raw}
 	return nil
 }
 
@@ -3848,12 +4047,12 @@ func (this *Delta) setLeverageBody(ch chan any, leverage int64, optionalArgs ...
  * @param {object} [params] exchange specific params
  * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
-func (this *Delta) FetchSettlementHistoryAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchSettlementHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchSettlementHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) any {
+func (this *Delta) fetchSettlementHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3865,7 +4064,10 @@ func (this *Delta) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) 
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -3877,7 +4079,11 @@ func (this *Delta) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) 
 		request["page_size"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetProducts(this.Extend(request, params))).Raw))
+	r1 := <-this.PublicGetProducts(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = MapTyped(r1.Raw)
 	//
 	//     {
 	//         "result": [
@@ -3940,7 +4146,7 @@ func (this *Delta) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) 
 	var settlements any = this.ParseSettlements(result, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
+	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)}
 	return nil
 }
 func (this *Delta) ParseSettlement(settlement any, market any) map[string]any {
@@ -4029,24 +4235,31 @@ func (this *Delta) ParseSettlements(settlements []any, market any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
-func (this *Delta) FetchGreeksAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchGreeksAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchGreeksBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchGreeksBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Delta) fetchGreeksBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = (<-this.PublicGetTickersSymbol(this.Extend(request, params))).Checked()
+	r1 := <-this.PublicGetTickersSymbol(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "result": {
@@ -4101,7 +4314,7 @@ func (this *Delta) fetchGreeksBody(ch chan any, symbol string, optionalArgs ...a
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- this.ParseGreeks(result, market)
+	ch <- AsyncResult[any]{Value: this.ParseGreeks(result, market)}
 	return nil
 }
 func (this *Delta) ParseGreeks(greeks any, optionalArgs ...any) any {
@@ -4193,30 +4406,37 @@ func (this *Delta) ParseGreeks(greeks any, optionalArgs ...any) any {
  * @param {int} [params.user_id] the users id
  * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Delta) CloseAllPositionsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) CloseAllPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.closeAllPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Delta) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
+func (this *Delta) closeAllPositionsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var request map[string]any = map[string]any{
 		"close_all_portfolio": true,
 		"close_all_isolated":  true,
 	}
 
-	var response map[string]any = (<-this.PrivatePostPositionsCloseAll(this.Extend(request, params))).Checked()
+	r1 := <-this.PrivatePostPositionsCloseAll(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	// {"result":{},"success":true}
 	//
 	var position map[string]any = MapTyped(this.ParsePosition(this.SafeDict(response, "result", map[string]any{})))
 
-	ch <- []any{position}
+	ch <- AsyncResult[any]{Value: []any{position}}
 	return nil
 }
 
@@ -4229,24 +4449,31 @@ func (this *Delta) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func (this *Delta) FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Delta) fetchMarginModeBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = nil
 	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 	}
 
-	var response map[string]any = (<-this.PrivateGetProfile(params)).Checked()
+	r1 := <-this.PrivateGetProfile(params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "result": {
@@ -4312,7 +4539,7 @@ func (this *Delta) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- this.ParseMarginMode(result, market)
+	ch <- AsyncResult[any]{Value: this.ParseMarginMode(result, market)}
 	return nil
 }
 func (this *Delta) ParseMarginMode(marginMode any, optionalArgs ...any) any {
@@ -4340,12 +4567,12 @@ func (this *Delta) ParseMarginMode(marginMode any, optionalArgs ...any) any {
  * @param {string} params.subaccount_user_id the user id of the subaccount
  * @returns {object} response from the exchange
  */
-func (this *Delta) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
-func (this *Delta) setMarginModeBody(ch chan any, marginMode string, optionalArgs ...any) any {
+func (this *Delta) setMarginModeBody(ch chan AsyncResult[any], marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4359,7 +4586,11 @@ func (this *Delta) setMarginModeBody(ch chan any, marginMode string, optionalArg
 		"margin_mode": marginMode,
 	}
 
-	ch <- PanicOnError((<-this.PrivatePutUsersMarginMode(this.Extend(request, params))).Raw)
+	r := <-this.PrivatePutUsersMarginMode(this.Extend(request, params))
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- AsyncResult[any]{Value: r.Raw}
 	return nil
 }
 
@@ -4372,24 +4603,31 @@ func (this *Delta) setMarginModeBody(ch chan any, marginMode string, optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
-func (this *Delta) FetchOptionAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchOptionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOptionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchOptionBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Delta) fetchOptionBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = (<-this.PublicGetTickersSymbol(this.Extend(request, params))).Checked()
+	r1 := <-this.PublicGetTickersSymbol(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "result": {
@@ -4444,7 +4682,7 @@ func (this *Delta) fetchOptionBody(ch chan any, symbol string, optionalArgs ...a
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- this.ParseOption(result, nil, market)
+	ch <- AsyncResult[any]{Value: this.ParseOption(result, nil, market)}
 	return nil
 }
 func (this *Delta) ParseOption(chain any, optionalArgs ...any) any {
@@ -4535,12 +4773,12 @@ func (this *Delta) ParseOption(chain any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
  */
-func (this *Delta) FetchPositionsADLRankAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Delta) FetchPositionsADLRankAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchPositionsADLRankBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) any {
+func (this *Delta) fetchPositionsADLRankBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -4548,10 +4786,17 @@ func (this *Delta) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) a
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	PanicOnError((<-this.LoadMarketsAsync()))
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 
-	var response map[string]any = (<-this.PrivateGetPositionsMargined(params)).Checked()
+	r1 := <-this.PrivateGetPositionsMargined(params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "result":
@@ -4724,7 +4969,7 @@ func (this *Delta) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) a
 	//
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
-	ch <- this.ParseADLRanks(result, symbolsNormalized)
+	ch <- AsyncResult[any]{Value: this.ParseADLRanks(result, symbolsNormalized)}
 	return nil
 }
 func (this *Delta) ParseADLRank(info any, optionalArgs ...any) any {
@@ -5014,11 +5259,11 @@ func (this *Delta) Init(userConfig map[string]any) {
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
 func (this *Delta) FetchTime(params ...any) (int64, error) {
-	raw := <-this.FetchTimeAsync(params...)
-	if IsError(raw) {
-		return -1, CreateReturnError(raw)
+	r := <-this.FetchTimeAsync(params...)
+	if r.Err != nil {
+		return -1, r.Err
 	}
-	var res int64 = raw.(int64)
+	var res int64 = r.Value.(int64)
 	return res, nil
 }
 
@@ -5031,8 +5276,8 @@ func (this *Delta) FetchTime(params ...any) (int64, error) {
  */
 func (this *Delta) FetchStatus(params ...any) (Status, error) {
 	r := <-this.FetchStatusAsync(params...)
-	if IsError(r.Raw) {
-		return Status{}, CreateReturnError(r.Raw)
+	if r.Err != nil {
+		return Status{}, r.Err
 	}
 	var res Status = NewStatus(r.Raw)
 	return res, nil
@@ -5047,11 +5292,11 @@ func (this *Delta) FetchStatus(params ...any) (Status, error) {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *Delta) FetchCurrencies(params ...any) (Currencies, error) {
-	raw := <-this.FetchCurrenciesAsync(params...)
-	if IsError(raw) {
-		return Currencies{}, CreateReturnError(raw)
+	r := <-this.FetchCurrenciesAsync(params...)
+	if r.Err != nil {
+		return Currencies{}, r.Err
 	}
-	var res Currencies = NewCurrencies(raw)
+	var res Currencies = NewCurrencies(r.Value)
 	return res, nil
 }
 
@@ -5064,11 +5309,11 @@ func (this *Delta) FetchCurrencies(params ...any) (Currencies, error) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Delta) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	raw := <-this.FetchMarketsAsync(params...)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchMarketsAsync(params...)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
 	return res, nil
 }
 
@@ -5088,11 +5333,11 @@ func (this *Delta) FetchTicker(symbol string, options ...FetchTickerOptions) (Ti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTickerAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return Ticker{}, CreateReturnError(raw)
+	r := <-this.FetchTickerAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(raw)
+	var res Ticker = NewTicker(r.Value)
 	return res, nil
 }
 
@@ -5112,11 +5357,11 @@ func (this *Delta) FetchTickers(options ...FetchTickersOptions) (Tickers, error)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return Tickers{}, CreateReturnError(raw)
+	r := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(raw)
+	var res Tickers = NewTickers(r.Value)
 	return res, nil
 }
 
@@ -5137,11 +5382,11 @@ func (this *Delta) FetchOrderBook(symbol string, options ...FetchOrderBookOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return OrderBook{}, CreateReturnError(raw)
+	r := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return OrderBook{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(raw)
+	var res OrderBook = NewOrderBook(r.Value)
 	return res, nil
 }
 
@@ -5163,11 +5408,11 @@ func (this *Delta) FetchTrades(symbol string, options ...FetchTradesOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(raw)
+	var res []Trade = NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -5191,11 +5436,11 @@ func (this *Delta) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OH
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(raw)
+	var res []OHLCV = NewOHLCVArray(r.Value)
 	return res, nil
 }
 
@@ -5208,11 +5453,11 @@ func (this *Delta) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OH
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Delta) FetchBalance(params ...any) (Balances, error) {
-	raw := <-this.FetchBalanceAsync(params...)
-	if IsError(raw) {
-		return Balances{}, CreateReturnError(raw)
+	r := <-this.FetchBalanceAsync(params...)
+	if r.Err != nil {
+		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(raw)
+	var res Balances = NewBalances(r.Value)
 	return res, nil
 }
 
@@ -5232,11 +5477,11 @@ func (this *Delta) FetchPosition(symbol string, options ...FetchPositionOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return Position{}, CreateReturnError(raw)
+	r := <-this.FetchPositionAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return Position{}, r.Err
 	}
-	var res Position = NewPosition(raw)
+	var res Position = NewPosition(r.Value)
 	return res, nil
 }
 
@@ -5256,11 +5501,11 @@ func (this *Delta) FetchPositions(options ...FetchPositionsOptions) ([]Position,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionsAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchPositionsAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(raw)
+	var res []Position = NewPositionArray(r.Value)
 	return res, nil
 }
 
@@ -5285,11 +5530,11 @@ func (this *Delta) CreateOrder(symbol string, typeVar string, side string, amoun
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Value)
 	return res, nil
 }
 
@@ -5314,11 +5559,11 @@ func (this *Delta) EditOrder(id string, symbol string, typeVar string, side stri
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.EditOrderAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.EditOrderAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Value)
 	return res, nil
 }
 
@@ -5339,11 +5584,11 @@ func (this *Delta) CancelOrder(id string, options ...CancelOrderOptions) (Order,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Value)
 	return res, nil
 }
 
@@ -5363,11 +5608,11 @@ func (this *Delta) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CancelAllOrdersAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.CancelAllOrdersAsync(opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -5390,11 +5635,11 @@ func (this *Delta) FetchOrder(id string, options ...FetchOrderOptions) (Order, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Value)
 	return res, nil
 }
 
@@ -5416,11 +5661,11 @@ func (this *Delta) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -5442,11 +5687,11 @@ func (this *Delta) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Ord
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 func (this *Delta) FetchOrdersWithMethod(method string, options ...FetchOrdersWithMethodOptions) ([]Order, error) {
@@ -5456,11 +5701,11 @@ func (this *Delta) FetchOrdersWithMethod(method string, options ...FetchOrdersWi
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrdersWithMethodAsync(method, opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchOrdersWithMethodAsync(method, opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -5482,11 +5727,11 @@ func (this *Delta) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, erro
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(raw)
+	var res []Trade = NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -5508,11 +5753,11 @@ func (this *Delta) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchLedgerAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchLedgerAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []LedgerEntry = NewLedgerEntryArray(raw)
+	var res []LedgerEntry = NewLedgerEntryArray(r.Value)
 	return res, nil
 }
 
@@ -5532,11 +5777,11 @@ func (this *Delta) FetchDepositAddress(code string, options ...FetchDepositAddre
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchDepositAddressAsync(code, opts.Params)
-	if IsError(raw) {
-		return DepositAddress{}, CreateReturnError(raw)
+	r := <-this.FetchDepositAddressAsync(code, opts.Params)
+	if r.Err != nil {
+		return DepositAddress{}, r.Err
 	}
-	var res DepositAddress = NewDepositAddress(raw)
+	var res DepositAddress = NewDepositAddress(r.Value)
 	return res, nil
 }
 
@@ -5556,11 +5801,11 @@ func (this *Delta) FetchFundingRate(symbol string, options ...FetchFundingRateOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchFundingRateAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return FundingRate{}, CreateReturnError(raw)
+	r := <-this.FetchFundingRateAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return FundingRate{}, r.Err
 	}
-	var res FundingRate = NewFundingRate(raw)
+	var res FundingRate = NewFundingRate(r.Value)
 	return res, nil
 }
 
@@ -5580,11 +5825,11 @@ func (this *Delta) FetchFundingRates(options ...FetchFundingRatesOptions) (Fundi
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchFundingRatesAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return FundingRates{}, CreateReturnError(raw)
+	r := <-this.FetchFundingRatesAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return FundingRates{}, r.Err
 	}
-	var res FundingRates = NewFundingRates(raw)
+	var res FundingRates = NewFundingRates(r.Value)
 	return res, nil
 }
 
@@ -5604,11 +5849,11 @@ func (this *Delta) FetchOpenInterest(symbol string, options ...FetchOpenInterest
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOpenInterestAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return OpenInterest{}, CreateReturnError(raw)
+	r := <-this.FetchOpenInterestAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return OpenInterest{}, r.Err
 	}
-	var res OpenInterest = NewOpenInterest(raw)
+	var res OpenInterest = NewOpenInterest(r.Value)
 	return res, nil
 }
 
@@ -5628,11 +5873,11 @@ func (this *Delta) FetchLeverage(symbol string, options ...FetchLeverageOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchLeverageAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return Leverage{}, CreateReturnError(raw)
+	r := <-this.FetchLeverageAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return Leverage{}, r.Err
 	}
-	var res Leverage = NewLeverage(raw)
+	var res Leverage = NewLeverage(r.Value)
 	return res, nil
 }
 
@@ -5653,11 +5898,11 @@ func (this *Delta) SetLeverage(leverage int64, options ...SetLeverageOptions) (m
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.SetLeverageAsync(leverage, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.SetLeverageAsync(leverage, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return map[string]any{}, r.Err
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value.(map[string]any)
 	return res, nil
 }
 
@@ -5679,11 +5924,11 @@ func (this *Delta) FetchSettlementHistory(options ...FetchSettlementHistoryOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchSettlementHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchSettlementHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []map[string]any = NewMapArray(raw)
+	var res []map[string]any = NewMapArray(r.Value)
 	return res, nil
 }
 
@@ -5703,11 +5948,11 @@ func (this *Delta) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Gr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchGreeksAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return Greeks{}, CreateReturnError(raw)
+	r := <-this.FetchGreeksAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return Greeks{}, r.Err
 	}
-	var res Greeks = NewGreeks(raw)
+	var res Greeks = NewGreeks(r.Value)
 	return res, nil
 }
 
@@ -5727,11 +5972,11 @@ func (this *Delta) FetchMarginMode(symbol string, options ...FetchMarginModeOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchMarginModeAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return MarginMode{}, CreateReturnError(raw)
+	r := <-this.FetchMarginModeAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return MarginMode{}, r.Err
 	}
-	var res MarginMode = NewMarginMode(raw)
+	var res MarginMode = NewMarginMode(r.Value)
 	return res, nil
 }
 
@@ -5753,11 +5998,11 @@ func (this *Delta) SetMarginMode(marginMode string, options ...SetMarginModeOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.SetMarginModeAsync(marginMode, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.SetMarginModeAsync(marginMode, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return map[string]any{}, r.Err
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value.(map[string]any)
 	return res, nil
 }
 
@@ -5777,11 +6022,11 @@ func (this *Delta) FetchOption(symbol string, options ...FetchOptionOptions) (Op
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOptionAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return Option{}, CreateReturnError(raw)
+	r := <-this.FetchOptionAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return Option{}, r.Err
 	}
-	var res Option = NewOption(raw)
+	var res Option = NewOption(r.Value)
 	return res, nil
 }
 
@@ -5801,11 +6046,11 @@ func (this *Delta) FetchPositionsADLRank(options ...FetchPositionsADLRankOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionsADLRankAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchPositionsADLRankAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []ADL = NewADLArray(raw)
+	var res []ADL = NewADLArray(r.Value)
 	return res, nil
 }
 

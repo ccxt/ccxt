@@ -23,7 +23,7 @@ func (this *Coinsph) PublicGetOpenapiV1UserIp(args ...any) <-chan EndpointResult
 }
 
 // PublicGetOpenapiQuoteV1Ticker24hr returns a channel that yields a JSON object or a JSON array.
-func (this *Coinsph) PublicGetOpenapiQuoteV1Ticker24hr(args ...any) <-chan any {
+func (this *Coinsph) PublicGetOpenapiQuoteV1Ticker24hr(args ...any) <-chan AsyncResult[any] {
 	return this.Fetch2Async("openapi/quote/v1/ticker/24hr", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 

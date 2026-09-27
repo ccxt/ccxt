@@ -113,7 +113,7 @@ func (this *Aster) FapiPublicGetV1PremiumIndex(args ...any) <-chan EndpointResul
 }
 
 // FapiPublicGetV3PremiumIndex returns a channel that yields a JSON object or a JSON array.
-func (this *Aster) FapiPublicGetV3PremiumIndex(args ...any) <-chan any {
+func (this *Aster) FapiPublicGetV3PremiumIndex(args ...any) <-chan AsyncResult[any] {
 	return this.Fetch2Async("v3/premiumIndex", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
@@ -143,7 +143,7 @@ func (this *Aster) FapiPublicGetV1Ticker24hr(args ...any) <-chan EndpointResult[
 }
 
 // FapiPublicGetV3Ticker24hr returns a channel that yields a JSON object or a JSON array.
-func (this *Aster) FapiPublicGetV3Ticker24hr(args ...any) <-chan any {
+func (this *Aster) FapiPublicGetV3Ticker24hr(args ...any) <-chan AsyncResult[any] {
 	return this.Fetch2Async("v3/ticker/24hr", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
@@ -733,7 +733,7 @@ func (this *Aster) SapiPublicGetV3Klines(args ...any) <-chan EndpointResult[[]an
 }
 
 // SapiPublicGetV3Ticker24hr returns a channel that yields a JSON object or a JSON array.
-func (this *Aster) SapiPublicGetV3Ticker24hr(args ...any) <-chan any {
+func (this *Aster) SapiPublicGetV3Ticker24hr(args ...any) <-chan AsyncResult[any] {
 	return this.Fetch2Async("v3/ticker/24hr", "sapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 

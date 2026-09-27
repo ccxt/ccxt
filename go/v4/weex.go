@@ -872,8 +872,11 @@ func (this *Weex) fetchStatusBody(ch chan EndpointResult[map[string]any], option
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetApiV3Ping(params)).Raw
-	PanicOnError(response)
+	r := <-this.PublicGetApiV3Ping(params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	response := r.Raw
 
 	// returns an empty response if the exchange is alive, otherwise will trigger an error
 	chValue := map[string]any{
@@ -897,12 +900,12 @@ func (this *Weex) fetchStatusBody(ch chan EndpointResult[map[string]any], option
  * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Weex) FetchTimeAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTimeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchTimeBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -911,10 +914,18 @@ func (this *Weex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if typeVar == nil || *typeVar != "spot" {
 
-		response = (<-this.ContractGetCapiV3MarketTime(paramsMarketType)).Checked()
+		r := <-this.ContractGetCapiV3MarketTime(paramsMarketType)
+		if r.Err != nil {
+			panic(r.Err)
+		}
+		response = r.Value
 	} else {
 
-		response = (<-this.PublicGetApiV3Time(paramsMarketType)).Checked()
+		r1 := <-this.PublicGetApiV3Time(paramsMarketType)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
 	}
 
 	//
@@ -922,7 +933,7 @@ func (this *Weex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	//         "serverTime": 1764505776347
 	//     }
 	//
-	ch <- this.SafeInteger(response, "serverTime")
+	ch <- AsyncResult[any]{Value: this.SafeInteger(response, "serverTime")}
 	return nil
 }
 
@@ -934,19 +945,21 @@ func (this *Weex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Weex) FetchCurrenciesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp946 := (<-this.PublicGetApiV3Coins(params))
-	PanicOnError(listEp946.Raw)
+	listEp946 := <-this.PublicGetApiV3Coins(params)
+	if listEp946.Err != nil {
+		panic(listEp946.Err)
+	}
 	var response []any = listEp946.Value
 
 	//
@@ -1059,7 +1072,7 @@ func (this *Weex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	ch <- this.ParseCurrencies(response)
+	ch <- AsyncResult[any]{Value: this.ParseCurrencies(response)}
 	return nil
 }
 func (this *Weex) ParseCurrency(rawCurrency any) any {
@@ -1149,29 +1162,36 @@ func (this *Weex) ParseCurrency(rawCurrency any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Weex) FetchMarketsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
-		PanicOnError((<-this.LoadTimeDifferenceAsync()))
+		r := <-this.LoadTimeDifferenceAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var promises []any = []any{this.PublicGetApiV3ExchangeInfo(params), this.ContractGetCapiV3MarketExchangeInfo(params)}
-	var spotResponsecontractResponseVariable []any = ListTyped(PanicOnError((<-promiseAll(promises))))
+	r1 := <-promiseAll(promises)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var spotResponsecontractResponseVariable []any = ListTyped(r1.Value)
 	spotResponse := GetValue(spotResponsecontractResponseVariable, 0)
 	contractResponse := GetValue(spotResponsecontractResponseVariable, 1)
 	var spotArray []any = SafeListTypedDefault(spotResponse, "symbols", []any{})
 	var contractArray []any = SafeListTypedDefault(contractResponse, "symbols", []any{})
 	var result []any = this.ArrayConcat(spotArray, contractArray)
 
-	ch <- this.ParseMarkets(result)
+	ch <- AsyncResult[any]{Value: this.ParseMarkets(result)}
 	return nil
 }
 func (this *Weex) ParseMarket(market any) any {
@@ -1361,12 +1381,12 @@ func (this *Weex) ParseMarket(market any) any {
  * @param {string} [params.type] 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Weex) FetchTickersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1375,7 +1395,10 @@ func (this *Weex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
@@ -1413,8 +1436,11 @@ func (this *Weex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		//     ]
 		//
 
-		response = (<-this.PublicGetApiV3MarketTicker24hr(this.Extend(request, paramsMarketType)))
-		PanicOnError(response)
+		r1 := <-this.PublicGetApiV3MarketTicker24hr(this.Extend(request, paramsMarketType))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
 	} else {
 		//
 		//     [
@@ -1436,14 +1462,17 @@ func (this *Weex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		//     ]
 		//
 
-		response = (<-this.ContractGetCapiV3MarketTicker24hr(this.Extend(request, paramsMarketType))).Raw
-		PanicOnError(response)
+		r2 := <-this.ContractGetCapiV3MarketTicker24hr(this.Extend(request, paramsMarketType))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Raw
 	}
 	if !IsArray(response) {
 		response = []any{response}
 	}
 
-	ch <- this.ParseTickers(response, symbolsNormalized)
+	ch <- AsyncResult[any]{Value: this.ParseTickers(response, symbolsNormalized)}
 	return nil
 }
 
@@ -1458,12 +1487,12 @@ func (this *Weex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.type] 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Weex) FetchBidsAsksAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchBidsAsksAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchBidsAsksBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchBidsAsksBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1472,7 +1501,10 @@ func (this *Weex) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
@@ -1480,13 +1512,17 @@ func (this *Weex) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var response []any = nil
 	if marketType != nil && *marketType == "spot" {
 
-		listEp1469 := (<-this.PublicGetApiV3MarketTickerBookTicker(paramsMarketType))
-		PanicOnError(listEp1469.Raw)
+		listEp1469 := <-this.PublicGetApiV3MarketTickerBookTicker(paramsMarketType)
+		if listEp1469.Err != nil {
+			panic(listEp1469.Err)
+		}
 		response = listEp1469.Value
 	} else {
 
-		listEp1472 := (<-this.ContractGetCapiV3MarketTickerBookTicker(paramsMarketType))
-		PanicOnError(listEp1472.Raw)
+		listEp1472 := <-this.ContractGetCapiV3MarketTickerBookTicker(paramsMarketType)
+		if listEp1472.Err != nil {
+			panic(listEp1472.Err)
+		}
 		response = listEp1472.Value
 	}
 	if response == nil {
@@ -1501,7 +1537,7 @@ func (this *Weex) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		results = append(results, this.ParseTicker(rawTicker, tickerMarket))
 	}
 
-	ch <- this.FilterByArrayTickers(results, "symbol", symbolsNormalized)
+	ch <- AsyncResult[any]{Value: this.FilterByArrayTickers(results, "symbol", symbolsNormalized)}
 	return nil
 }
 func (this *Weex) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -1611,12 +1647,12 @@ func (this *Weex) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of lastprice structures
  */
-func (this *Weex) FetchLastPricesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchLastPricesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchLastPricesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchLastPricesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1625,7 +1661,10 @@ func (this *Weex) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
@@ -1634,8 +1673,10 @@ func (this *Weex) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 		panic(NotSupported(this.Id + " fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets"))
 	}
 
-	listEp1619 := (<-this.PublicGetApiV3MarketTickerPrice(paramsMarketType))
-	PanicOnError(listEp1619.Raw)
+	listEp1619 := <-this.PublicGetApiV3MarketTickerPrice(paramsMarketType)
+	if listEp1619.Err != nil {
+		panic(listEp1619.Err)
+	}
 	var response []any = listEp1619.Value
 
 	//
@@ -1646,7 +1687,7 @@ func (this *Weex) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	ch <- this.ParseLastPrices(response, symbolsNormalized)
+	ch <- AsyncResult[any]{Value: this.ParseLastPrices(response, symbolsNormalized)}
 	return nil
 }
 func (this *Weex) ParseLastPrice(entry any, optionalArgs ...any) any {
@@ -1680,19 +1721,22 @@ func (this *Weex) ParseLastPrice(entry any, optionalArgs ...any) any {
  * @param {string} [params.priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the ticker
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Weex) FetchMarkPriceAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchMarkPriceAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchMarkPriceBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchMarkPriceBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Weex) fetchMarkPriceBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	if market["contract"] != true {
@@ -1704,8 +1748,11 @@ func (this *Weex) fetchMarkPriceBody(ch chan any, symbol string, optionalArgs ..
 		"priceType": priceType,
 	}
 
-	response := (<-this.ContractGetCapiV3MarketSymbolPrice(this.Extend(request, paramsPriceType))).Raw
-	PanicOnError(response)
+	r1 := <-this.ContractGetCapiV3MarketSymbolPrice(this.Extend(request, paramsPriceType))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	response := r1.Raw
 	//
 	//     {
 	//         "symbol": "ETHUSDT",
@@ -1721,7 +1768,7 @@ func (this *Weex) fetchMarkPriceBody(ch chan any, symbol string, optionalArgs ..
 		ticker["markPrice"] = this.SafeString(ticker, "price")
 	}
 
-	ch <- this.ParseTicker(ticker, market)
+	ch <- AsyncResult[any]{Value: this.ParseTicker(ticker, market)}
 	return nil
 }
 
@@ -1734,12 +1781,12 @@ func (this *Weex) fetchMarkPriceBody(ch chan any, symbol string, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Weex) FetchMarkPricesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchMarkPricesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchMarkPricesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchMarkPricesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1748,12 +1795,17 @@ func (this *Weex) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, "swap") // reject non-contract symbols instead of silently filtering the result to an empty dict
 
-	listEp1735 := (<-this.ContractGetCapiV3MarketPremiumIndex(params))
-	PanicOnError(listEp1735.Raw)
+	listEp1735 := <-this.ContractGetCapiV3MarketPremiumIndex(params)
+	if listEp1735.Err != nil {
+		panic(listEp1735.Err)
+	}
 	var response []any = listEp1735.Value
 
 	//
@@ -1771,7 +1823,7 @@ func (this *Weex) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	ch <- this.ParseTickers(response, symbolsNormalized)
+	ch <- AsyncResult[any]{Value: this.ParseTickers(response, symbolsNormalized)}
 	return nil
 }
 
@@ -1786,12 +1838,12 @@ func (this *Weex) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Weex) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Weex) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1800,7 +1852,10 @@ func (this *Weex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1812,10 +1867,18 @@ func (this *Weex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	var response map[string]any = nil
 	if market["spot"] == true {
 
-		response = (<-this.PublicGetApiV3MarketDepth(this.Extend(request, params))).Checked()
+		r1 := <-this.PublicGetApiV3MarketDepth(this.Extend(request, params))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
 	} else {
 
-		response = (<-this.ContractGetCapiV3MarketDepth(this.Extend(request, params))).Checked()
+		r2 := <-this.ContractGetCapiV3MarketDepth(this.Extend(request, params))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
 	}
 	//
 	//     {
@@ -1837,7 +1900,7 @@ func (this *Weex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	var orderbook map[string]any = this.ParseOrderBook(response, symbol)
 	orderbook["nonce"] = this.SafeInteger(response, "lastUpdateId")
 
-	ch <- orderbook
+	ch <- AsyncResult[any]{Value: orderbook}
 	return nil
 }
 
@@ -1858,12 +1921,12 @@ func (this *Weex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
  * Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in params
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Weex) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Weex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1876,25 +1939,36 @@ func (this *Weex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	if market["spot"] == true {
 
-		var retRes154619 []any = ListTyped(PanicOnError((<-this.FetchSpotOHLCVAsync(symbol, timeframe, since, limit, params))))
+		r1 := <-this.FetchSpotOHLCVAsync(symbol, timeframe, since, limit, params)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var retRes154619 []any = ListTyped(r1.Value)
 		if retRes154619 == nil {
-			ch <- nil
+			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- retRes154619
+			ch <- AsyncResult[any]{Value: retRes154619}
 		}
 		return nil
 	} else {
 
-		var retRes154819 []any = ListTyped(PanicOnError((<-this.FetchContractOHLCVAsync(symbol, timeframe, since, limit, params))))
+		r2 := <-this.FetchContractOHLCVAsync(symbol, timeframe, since, limit, params)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		var retRes154819 []any = ListTyped(r2.Value)
 		if retRes154819 == nil {
-			ch <- nil
+			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- retRes154819
+			ch <- AsyncResult[any]{Value: retRes154819}
 		}
 		return nil
 	}
@@ -1913,12 +1987,12 @@ func (this *Weex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Weex) FetchSpotOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchSpotOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchSpotOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchSpotOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Weex) fetchSpotOHLCVBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1931,7 +2005,10 @@ func (this *Weex) fetchSpotOHLCVBody(ch chan any, symbol string, optionalArgs ..
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1939,11 +2016,13 @@ func (this *Weex) fetchSpotOHLCVBody(ch chan any, symbol string, optionalArgs ..
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 
-	listEp1920 := (<-this.PublicGetApiV3MarketKlines(this.Extend(request, params)))
-	PanicOnError(listEp1920.Raw)
+	listEp1920 := <-this.PublicGetApiV3MarketKlines(this.Extend(request, params))
+	if listEp1920.Err != nil {
+		panic(listEp1920.Err)
+	}
 	var response []any = listEp1920.Value
 
-	ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)}
 	return nil
 }
 
@@ -1966,12 +2045,12 @@ func (this *Weex) fetchSpotOHLCVBody(ch chan any, symbol string, optionalArgs ..
  * @param {boolean} [params.historical] whether to fetch historical klines (default is false). If false, will fetch last price klines
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Weex) FetchContractOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchContractOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchContractOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Weex) fetchContractOHLCVBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1984,7 +2063,10 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol string, optionalArg
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var maxHistoricalLimit int = 100
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
@@ -1993,11 +2075,15 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol string, optionalArg
 			"historical": true,
 		})
 
-		var retRes160519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsExtended, maxHistoricalLimit))))
+		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsExtended, maxHistoricalLimit)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var retRes160519 []any = ListTyped(r1.Value)
 		if retRes160519 == nil {
-			ch <- nil
+			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- retRes160519
+			ch <- AsyncResult[any]{Value: retRes160519}
 		}
 		return nil
 	}
@@ -2049,8 +2135,10 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol string, optionalArg
 		request["startTime"] = startTime
 		request["endTime"] = endTime
 
-		listEp2028 := (<-this.ContractGetCapiV3MarketHistoryKlines(this.Extend(request, paramsOmitted)))
-		PanicOnError(listEp2028.Raw)
+		listEp2028 := <-this.ContractGetCapiV3MarketHistoryKlines(this.Extend(request, paramsOmitted))
+		if listEp2028.Err != nil {
+			panic(listEp2028.Err)
+		}
 		response = listEp2028.Value
 	} else {
 		if limitResolved != nil {
@@ -2058,23 +2146,29 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol string, optionalArg
 		}
 		if priceType != nil && *priceType == "MARK" {
 
-			listEp2035 := (<-this.ContractGetCapiV3MarketMarkPriceKlines(this.Extend(request, paramsOmitted)))
-			PanicOnError(listEp2035.Raw)
+			listEp2035 := <-this.ContractGetCapiV3MarketMarkPriceKlines(this.Extend(request, paramsOmitted))
+			if listEp2035.Err != nil {
+				panic(listEp2035.Err)
+			}
 			response = listEp2035.Value
 		} else if priceType != nil && *priceType == "INDEX" {
 
-			listEp2038 := (<-this.ContractGetCapiV3MarketIndexPriceKlines(this.Extend(request, paramsOmitted)))
-			PanicOnError(listEp2038.Raw)
+			listEp2038 := <-this.ContractGetCapiV3MarketIndexPriceKlines(this.Extend(request, paramsOmitted))
+			if listEp2038.Err != nil {
+				panic(listEp2038.Err)
+			}
 			response = listEp2038.Value
 		} else {
 
-			listEp2041 := (<-this.ContractGetCapiV3MarketKlines(this.Extend(request, paramsOmitted)))
-			PanicOnError(listEp2041.Raw)
+			listEp2041 := <-this.ContractGetCapiV3MarketKlines(this.Extend(request, paramsOmitted))
+			if listEp2041.Err != nil {
+				panic(listEp2041.Err)
+			}
 			response = listEp2041.Value
 		}
 	}
 
-	ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limitResolved)
+	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limitResolved)}
 	return nil
 }
 func (this *Weex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -2095,12 +2189,12 @@ func (this *Weex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Weex) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Weex) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2111,7 +2205,10 @@ func (this *Weex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -2123,13 +2220,17 @@ func (this *Weex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var response []any = nil
 	if market["spot"] == true {
 
-		listEp2094 := (<-this.PublicGetApiV3MarketTrades(this.Extend(request, params)))
-		PanicOnError(listEp2094.Raw)
+		listEp2094 := <-this.PublicGetApiV3MarketTrades(this.Extend(request, params))
+		if listEp2094.Err != nil {
+			panic(listEp2094.Err)
+		}
 		response = listEp2094.Value
 	} else {
 
-		listEp2097 := (<-this.ContractGetCapiV3MarketTrades(this.Extend(request, params)))
-		PanicOnError(listEp2097.Raw)
+		listEp2097 := <-this.ContractGetCapiV3MarketTrades(this.Extend(request, params))
+		if listEp2097.Err != nil {
+			panic(listEp2097.Err)
+		}
 		response = listEp2097.Value
 	}
 	//
@@ -2150,7 +2251,7 @@ func (this *Weex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		responseList = this.ToArray(response)
 	}
 
-	ch <- this.ParseTrades(responseList, market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseTrades(responseList, market, since, limit)}
 	return nil
 }
 func (this *Weex) ParseTrade(trade any, optionalArgs ...any) any {
@@ -2291,28 +2392,35 @@ func (this *Weex) ParseTrade(trade any, optionalArgs ...any) any {
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Weex) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Weex) fetchOpenInterestBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = (<-this.ContractGetCapiV3MarketOpenInterest(this.Extend(request, params))).Checked()
+	r1 := <-this.ContractGetCapiV3MarketOpenInterest(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 
-	ch <- this.ParseOpenInterest(response, market)
+	ch <- AsyncResult[any]{Value: this.ParseOpenInterest(response, market)}
 	return nil
 }
 func (this *Weex) ParseOpenInterest(interest any, optionalArgs ...any) any {
@@ -2348,12 +2456,12 @@ func (this *Weex) ParseOpenInterest(interest any, optionalArgs ...any) any {
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
-func (this *Weex) FetchFundingRatesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchFundingRatesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -2362,7 +2470,10 @@ func (this *Weex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var symbolsLength int = 0
@@ -2375,8 +2486,10 @@ func (this *Weex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = this.SafeString(market, "id")
 	}
 
-	listEp2342 := (<-this.ContractGetCapiV3MarketPremiumIndex(this.Extend(request, params)))
-	PanicOnError(listEp2342.Raw)
+	listEp2342 := <-this.ContractGetCapiV3MarketPremiumIndex(this.Extend(request, params))
+	if listEp2342.Err != nil {
+		panic(listEp2342.Err)
+	}
 	var response []any = listEp2342.Value
 
 	//
@@ -2394,7 +2507,7 @@ func (this *Weex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	ch <- this.ParseFundingRates(response, symbolsNormalized)
+	ch <- AsyncResult[any]{Value: this.ParseFundingRates(response, symbolsNormalized)}
 	return nil
 }
 func (this *Weex) ParseFundingRate(contract any, optionalArgs ...any) any {
@@ -2444,12 +2557,12 @@ func (this *Weex) ParseFundingRate(contract any, optionalArgs ...any) any {
  * @param {int} [params.until] timestamp in ms of the latest funding rate
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func (this *Weex) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2465,7 +2578,10 @@ func (this *Weex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	}
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -2479,11 +2595,13 @@ func (this *Weex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp2444 := (<-this.ContractGetCapiV3MarketFundingRate(this.Extend(requestUntil, paramsUntil)))
-	PanicOnError(listEp2444.Raw)
+	listEp2444 := <-this.ContractGetCapiV3MarketFundingRate(this.Extend(requestUntil, paramsUntil))
+	if listEp2444.Err != nil {
+		panic(listEp2444.Err)
+	}
 	var response []any = listEp2444.Value
 
-	ch <- this.ParseFundingRateHistories(response, market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseFundingRateHistories(response, market, since, limit)}
 	return nil
 }
 func (this *Weex) ParseFundingRateHistory(contract any, optionalArgs ...any) any {
@@ -2520,12 +2638,12 @@ func (this *Weex) ParseFundingRateHistory(contract any, optionalArgs ...any) any
  * @param {string} [params.type] 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default)
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Weex) FetchBalanceAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2570,8 +2688,11 @@ func (this *Weex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		//     }
 		//
 
-		response = (<-this.PrivateGetApiV3Account(paramsMarketType)).Raw
-		PanicOnError(response)
+		r := <-this.PrivateGetApiV3Account(paramsMarketType)
+		if r.Err != nil {
+			panic(r.Err)
+		}
+		response = r.Raw
 	} else {
 		//
 		//     [
@@ -2586,16 +2707,22 @@ func (this *Weex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		//
 		if sandboxMode != nil && *sandboxMode == true {
 
-			response = (<-this.ContractPrivateGetCapiV3SimBalance(paramsMarketType)).Raw
-			PanicOnError(response)
+			r1 := <-this.ContractPrivateGetCapiV3SimBalance(paramsMarketType)
+			if r1.Err != nil {
+				panic(r1.Err)
+			}
+			response = r1.Raw
 		} else {
 
-			response = (<-this.ContractPrivateGetCapiV3AccountBalance(paramsMarketType)).Raw
-			PanicOnError(response)
+			r2 := <-this.ContractPrivateGetCapiV3AccountBalance(paramsMarketType)
+			if r2.Err != nil {
+				panic(r2.Err)
+			}
+			response = r2.Raw
 		}
 	}
 
-	ch <- this.ParseBalance(response)
+	ch <- AsyncResult[any]{Value: this.ParseBalance(response)}
 	return nil
 }
 func (this *Weex) ParseBalance(response any) any {
@@ -2634,12 +2761,12 @@ func (this *Weex) ParseBalance(response any) any {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Weex) FetchTransfersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchTransfersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTransfersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2652,7 +2779,10 @@ func (this *Weex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
@@ -2663,11 +2793,15 @@ func (this *Weex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
 	if paginate {
 
-		var retRes212619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, paramsPaginate, maxLimit))))
+		r1 := <-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, paramsPaginate, maxLimit)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var retRes212619 []any = ListTyped(r1.Value)
 		if retRes212619 == nil {
-			ch <- nil
+			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- retRes212619
+			ch <- AsyncResult[any]{Value: retRes212619}
 		}
 		return nil
 	}
@@ -2679,8 +2813,10 @@ func (this *Weex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("before", request, paramsPaginate)
 
-	listEp2642 := (<-this.PrivateGetApiV3AccountTransferRecords(this.Extend(requestUntil, paramsUntil)))
-	PanicOnError(listEp2642.Raw)
+	listEp2642 := <-this.PrivateGetApiV3AccountTransferRecords(this.Extend(requestUntil, paramsUntil))
+	if listEp2642.Err != nil {
+		panic(listEp2642.Err)
+	}
 	var response []any = listEp2642.Value
 
 	//
@@ -2697,7 +2833,7 @@ func (this *Weex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	ch <- this.ParseTransfers(response, currency, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseTransfers(response, currency, since, limit)}
 	return nil
 }
 func (this *Weex) ParseTransfer(transfer any, optionalArgs ...any) any {
@@ -2744,12 +2880,12 @@ func (this *Weex) ParseTransferStatus(status *string) *string {
  * Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in params
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Weex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Weex) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Weex) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2758,16 +2894,23 @@ func (this *Weex) createOrderBody(ch chan any, symbol string, typeVar string, si
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	if market["contract"] == true {
 
-		var retRes220219 map[string]any = MapTyped(PanicOnError((<-this.CreateContractOrderAsync(symbol, typeVar, side, amount, price, params))))
+		r1 := <-this.CreateContractOrderAsync(symbol, typeVar, side, amount, price, params)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var retRes220219 map[string]any = MapTyped(r1.Value)
 		if retRes220219 == nil {
-			ch <- nil
+			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- retRes220219
+			ch <- AsyncResult[any]{Value: retRes220219}
 		}
 		return nil
 	} else {
@@ -2776,11 +2919,15 @@ func (this *Weex) createOrderBody(ch chan any, symbol string, typeVar string, si
 			panic(NotSupported(this.Id + " createOrder() only supports swap markets in sandbox mode"))
 		}
 
-		var retRes220819 map[string]any = MapTyped(PanicOnError((<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params))))
+		r2 := <-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		var retRes220819 map[string]any = MapTyped(r2.Value)
 		if retRes220819 == nil {
-			ch <- nil
+			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- retRes220819
+			ch <- AsyncResult[any]{Value: retRes220819}
 		}
 		return nil
 	}
@@ -2801,12 +2948,12 @@ func (this *Weex) createOrderBody(ch chan any, symbol string, typeVar string, si
  * @param {string} [params.timeInForce] 'GTC', 'IOC', or 'FOK'
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Weex) CreateSpotOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) CreateSpotOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.createSpotOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Weex) createSpotOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Weex) createSpotOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2815,13 +2962,19 @@ func (this *Weex) createSpotOrderBody(ch chan any, symbol string, typeVar string
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = this.CreateSpotOrderRequest(symbol, typeVar, side, amount, price, params)
 
-	response := (<-this.PrivatePostApiV3Order(request)).Raw
-	PanicOnError(response)
+	r1 := <-this.PrivatePostApiV3Order(request)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	response := r1.Raw
 	//
 	//     {
 	//         "symbol": "DOGEUSDT",
@@ -2834,7 +2987,7 @@ func (this *Weex) createSpotOrderBody(ch chan any, symbol string, typeVar string
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
-	ch <- this.ParseOrder(response, market)
+	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 func (this *Weex) CreateSpotOrderRequest(symbol any, typeVar string, side string, amount any, optionalArgs ...any) map[string]any {
@@ -2903,12 +3056,12 @@ func (this *Weex) CreateSpotOrderRequest(symbol any, typeVar string, side string
  * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Weex) CreateContractOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) CreateContractOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.createContractOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Weex) createContractOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Weex) createContractOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2917,7 +3070,10 @@ func (this *Weex) createContractOrderBody(ch chan any, symbol string, typeVar st
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request any = this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -2929,19 +3085,31 @@ func (this *Weex) createContractOrderBody(ch chan any, symbol string, typeVar st
 			panic(NotSupported(this.Id + " createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode"))
 		}
 
-		response = (<-this.ContractPrivatePostCapiV3AlgoOrder(request)).Checked()
+		r1 := <-this.ContractPrivatePostCapiV3AlgoOrder(request)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
 	} else if sandboxMode != nil && *sandboxMode == true {
 
-		response = (<-this.ContractPrivatePostCapiV3SimOrder(request)).Checked()
+		r2 := <-this.ContractPrivatePostCapiV3SimOrder(request)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
 	} else {
 
-		response = (<-this.ContractPrivatePostCapiV3Order(request)).Checked()
+		r3 := <-this.ContractPrivatePostCapiV3Order(request)
+		if r3.Err != nil {
+			panic(r3.Err)
+		}
+		response = r3.Value
 	}
 	if response == nil {
 		panic(NullResponse(this.Id + " createOrder() returned empty response"))
 	}
 
-	ch <- this.ParseOrder(response, market)
+	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 func (this *Weex) CreateContractOrderRequest(symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
@@ -3130,12 +3298,12 @@ func (this *Weex) EncodeTriggerPriceType(triggerPriceType any) any {
  * @param {string} [params.clientOrderId] *non-trigger orders only* a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Weex) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Weex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Weex) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3144,7 +3312,10 @@ func (this *Weex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = nil
 	if symbol != nil {
@@ -3180,13 +3351,25 @@ func (this *Weex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		//     }
 		//
 
-		response = (<-this.PrivateDeleteApiV3Order(this.Extend(request, paramsOmitted))).Checked()
+		r1 := <-this.PrivateDeleteApiV3Order(this.Extend(request, paramsOmitted))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
 	} else if trigger != nil && *trigger == true {
 
-		response = (<-this.ContractPrivateDeleteCapiV3AlgoOrder(this.Extend(request, paramsOmitted))).Checked()
+		r2 := <-this.ContractPrivateDeleteCapiV3AlgoOrder(this.Extend(request, paramsOmitted))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
 	} else {
 
-		response = (<-this.ContractPrivateDeleteCapiV3Order(this.Extend(request, paramsOmitted))).Checked()
+		r3 := <-this.ContractPrivateDeleteCapiV3Order(this.Extend(request, paramsOmitted))
+		if r3.Err != nil {
+			panic(r3.Err)
+		}
+		response = r3.Value
 	}
 	if response == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
@@ -3194,7 +3377,7 @@ func (this *Weex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	var order map[string]any = MapTyped(this.ParseOrder(response, market))
 	order["status"] = "canceled"
 
-	ch <- order
+	ch <- AsyncResult[any]{Value: order}
 	return nil
 }
 
@@ -3211,12 +3394,12 @@ func (this *Weex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
  * @param {boolean} [params.trigger] *swap only* true for cancelling trigger orders (default is false)
  * @returns Response from the exchange
  */
-func (this *Weex) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3225,7 +3408,10 @@ func (this *Weex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
@@ -3242,25 +3428,31 @@ func (this *Weex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 			panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires a symbol argument for spot markets"))
 		}
 
-		listEp3203 := (<-this.PrivateDeleteApiV3OpenOrders(this.Extend(request, paramsOmitted)))
-		PanicOnError(listEp3203.Raw)
+		listEp3203 := <-this.PrivateDeleteApiV3OpenOrders(this.Extend(request, paramsOmitted))
+		if listEp3203.Err != nil {
+			panic(listEp3203.Err)
+		}
 		response = listEp3203.Value
 	} else if trigger != nil && *trigger == true {
 
-		listEp3206 := (<-this.ContractPrivateDeleteCapiV3AlgoOpenOrders(this.Extend(request, paramsOmitted)))
-		PanicOnError(listEp3206.Raw)
+		listEp3206 := <-this.ContractPrivateDeleteCapiV3AlgoOpenOrders(this.Extend(request, paramsOmitted))
+		if listEp3206.Err != nil {
+			panic(listEp3206.Err)
+		}
 		response = listEp3206.Value
 	} else {
 
-		listEp3209 := (<-this.ContractPrivateDeleteCapiV3AllOpenOrders(this.Extend(request, paramsOmitted)))
-		PanicOnError(listEp3209.Raw)
+		listEp3209 := <-this.ContractPrivateDeleteCapiV3AllOpenOrders(this.Extend(request, paramsOmitted))
+		if listEp3209.Err != nil {
+			panic(listEp3209.Err)
+		}
 		response = listEp3209.Value
 	}
 	var extendedParams map[string]any = map[string]any{
 		"status": "canceled",
 	}
 
-	ch <- this.ParseOrders(response, market, nil, nil, extendedParams)
+	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market, nil, nil, extendedParams)}
 	return nil
 }
 
@@ -3277,12 +3469,12 @@ func (this *Weex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Weex) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Weex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any {
+func (this *Weex) cancelOrdersBody(ch chan AsyncResult[any], ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3291,7 +3483,10 @@ func (this *Weex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
@@ -3320,17 +3515,25 @@ func (this *Weex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	var response map[string]any = nil
 	if isSpot {
 
-		response = (<-this.PrivateDeleteApiV3OrderBatch(this.Extend(request, paramsOmitted))).Checked()
+		r1 := <-this.PrivateDeleteApiV3OrderBatch(this.Extend(request, paramsOmitted))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
 	} else {
 
-		response = (<-this.ContractPrivateDeleteCapiV3BatchOrders(this.Extend(request, paramsOmitted))).Checked()
+		r2 := <-this.ContractPrivateDeleteCapiV3BatchOrders(this.Extend(request, paramsOmitted))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
 	}
 	var ordersResponse []any = SafeListTypedDefault(response, "orderList", []any{})
 	var extendedParams map[string]any = map[string]any{
 		"status": "canceled",
 	}
 
-	ch <- this.ParseOrders(ordersResponse, market, nil, nil, extendedParams)
+	ch <- AsyncResult[any]{Value: this.ParseOrders(ordersResponse, market, nil, nil, extendedParams)}
 	return nil
 }
 
@@ -3347,12 +3550,12 @@ func (this *Weex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
  * @param {string} [params.clientOrderId] *spot only* a unique id for the order, used if id is not provided
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Weex) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Weex) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3361,7 +3564,10 @@ func (this *Weex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = nil
 	if symbol != nil {
@@ -3403,16 +3609,24 @@ func (this *Weex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		//     }
 		//
 
-		response = (<-this.PrivateGetApiV3Order(this.Extend(request, paramsOmitted))).Checked()
+		r1 := <-this.PrivateGetApiV3Order(this.Extend(request, paramsOmitted))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
 	} else {
 
-		response = (<-this.ContractPrivateGetCapiV3Order(this.Extend(request, paramsOmitted))).Checked()
+		r2 := <-this.ContractPrivateGetCapiV3Order(this.Extend(request, paramsOmitted))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
 	}
 	if response == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
-	ch <- this.ParseOrder(response, market)
+	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 
@@ -3431,12 +3645,12 @@ func (this *Weex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
  * @param {boolean} [params.trigger] *swap only* whether to fetch trigger orders (default is false)
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Weex) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3449,7 +3663,10 @@ func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = nil
 	if symbol != nil {
@@ -3464,11 +3681,15 @@ func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			panic(NotSupported(this.Id + " fetchOpenOrders() pagination is not supported for spot markets"))
 		}
 
-		var retRes275919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, paramsPaginate, maxLimit))))
+		r1 := <-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, paramsPaginate, maxLimit)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var retRes275919 []any = ListTyped(r1.Value)
 		if retRes275919 == nil {
-			ch <- nil
+			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- retRes275919
+			ch <- AsyncResult[any]{Value: retRes275919}
 		}
 		return nil
 	}
@@ -3499,8 +3720,10 @@ func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		//     ]
 		//
 
-		listEp3454 := (<-this.PrivateGetApiV3OpenOrders(this.Extend(request, paramsPaginate)))
-		PanicOnError(listEp3454.Raw)
+		listEp3454 := <-this.PrivateGetApiV3OpenOrders(this.Extend(request, paramsPaginate))
+		if listEp3454.Err != nil {
+			panic(listEp3454.Err)
+		}
 		response = listEp3454.Value
 	} else {
 		if since != nil {
@@ -3545,8 +3768,10 @@ func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			//     ]
 			//
 
-			listEp3498 := (<-this.ContractPrivateGetCapiV3OpenAlgoOrders(this.Extend(requestUntil, paramsOmitted)))
-			PanicOnError(listEp3498.Raw)
+			listEp3498 := <-this.ContractPrivateGetCapiV3OpenAlgoOrders(this.Extend(requestUntil, paramsOmitted))
+			if listEp3498.Err != nil {
+				panic(listEp3498.Err)
+			}
 			response = listEp3498.Value
 		} else {
 			//
@@ -3574,8 +3799,10 @@ func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			//     ]
 			//
 
-			listEp3525 := (<-this.ContractPrivateGetCapiV3OpenOrders(this.Extend(requestUntil, paramsUntil)))
-			PanicOnError(listEp3525.Raw)
+			listEp3525 := <-this.ContractPrivateGetCapiV3OpenOrders(this.Extend(requestUntil, paramsUntil))
+			if listEp3525.Err != nil {
+				panic(listEp3525.Err)
+			}
 			response = listEp3525.Value
 		}
 	}
@@ -3583,7 +3810,7 @@ func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"status": "open",
 	}
 
-	ch <- this.ParseOrders(response, market, since, limit, extendedParams)
+	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market, since, limit, extendedParams)}
 	return nil
 }
 
@@ -3602,12 +3829,12 @@ func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Weex) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3620,7 +3847,10 @@ func (this *Weex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = nil
 	if symbol != nil {
@@ -3633,15 +3863,21 @@ func (this *Weex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 			panic(ArgumentsRequired(this.Id + " fetchClosedOrders() requires a symbol argument for spot markets"))
 		}
 
-		orders = (<-this.FetchOrdersAsync(symbol, since, nil, paramsMarketType))
-		PanicOnError(orders)
+		r1 := <-this.FetchOrdersAsync(symbol, since, nil, paramsMarketType)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		orders = r1.Value
 	} else {
 
-		orders = (<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, paramsMarketType))
-		PanicOnError(orders)
+		r2 := <-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, paramsMarketType)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		orders = r2.Value
 	}
 
-	ch <- this.FilterBy(orders, "status", "closed")
+	ch <- AsyncResult[any]{Value: this.FilterBy(orders, "status", "closed")}
 	return nil
 }
 
@@ -3660,12 +3896,12 @@ func (this *Weex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Weex) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3678,7 +3914,10 @@ func (this *Weex) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = nil
 	if symbol != nil {
@@ -3691,15 +3930,21 @@ func (this *Weex) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any 
 			panic(ArgumentsRequired(this.Id + " fetchCanceledOrders() requires a symbol argument for spot markets"))
 		}
 
-		orders = (<-this.FetchOrdersAsync(symbol, since, nil, paramsMarketType))
-		PanicOnError(orders)
+		r1 := <-this.FetchOrdersAsync(symbol, since, nil, paramsMarketType)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		orders = r1.Value
 	} else {
 
-		orders = (<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, paramsMarketType))
-		PanicOnError(orders)
+		r2 := <-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, paramsMarketType)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		orders = r2.Value
 	}
 
-	ch <- this.FilterBy(orders, "status", "canceled")
+	ch <- AsyncResult[any]{Value: this.FilterBy(orders, "status", "canceled")}
 	return nil
 }
 
@@ -3716,12 +3961,12 @@ func (this *Weex) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any 
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Weex) FetchOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3737,7 +3982,10 @@ func (this *Weex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	if market["spot"] != true {
@@ -3747,11 +3995,15 @@ func (this *Weex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
 	if paginate {
 
-		var retRes296419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, paramsPaginate, maxLimit))))
+		r1 := <-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, paramsPaginate, maxLimit)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var retRes296419 []any = ListTyped(r1.Value)
 		if retRes296419 == nil {
-			ch <- nil
+			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- retRes296419
+			ch <- AsyncResult[any]{Value: retRes296419}
 		}
 		return nil
 	}
@@ -3766,8 +4018,10 @@ func (this *Weex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 
-	listEp3715 := (<-this.PrivateGetApiV3AllOrders(this.Extend(requestUntil, paramsUntil)))
-	PanicOnError(listEp3715.Raw)
+	listEp3715 := <-this.PrivateGetApiV3AllOrders(this.Extend(requestUntil, paramsUntil))
+	if listEp3715.Err != nil {
+		panic(listEp3715.Err)
+	}
 	var response []any = listEp3715.Value
 
 	//
@@ -3790,7 +4044,7 @@ func (this *Weex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	ch <- this.ParseOrders(response, market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market, since, limit)}
 	return nil
 }
 
@@ -3809,12 +4063,12 @@ func (this *Weex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Weex) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchCanceledAndClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3827,7 +4081,10 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market any = nil
 	if symbol != nil {
@@ -3841,11 +4098,15 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...
 	var maxLimit int = 1000
 	if paginate {
 
-		var retRes303019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchCanceledAndClosedOrders", symbol, since, limit, paramsPaginate, maxLimit))))
+		r1 := <-this.FetchPaginatedCallDynamicAsync("fetchCanceledAndClosedOrders", symbol, since, limit, paramsPaginate, maxLimit)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var retRes303019 []any = ListTyped(r1.Value)
 		if retRes303019 == nil {
-			ch <- nil
+			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- retRes303019
+			ch <- AsyncResult[any]{Value: retRes303019}
 		}
 		return nil
 	}
@@ -3864,13 +4125,17 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...
 	var response []any = nil
 	if sandboxMode != nil && *sandboxMode == true {
 
-		listEp3811 := (<-this.ContractPrivateGetCapiV3SimOrderHistory(this.Extend(requestUntil, paramsUntil)))
-		PanicOnError(listEp3811.Raw)
+		listEp3811 := <-this.ContractPrivateGetCapiV3SimOrderHistory(this.Extend(requestUntil, paramsUntil))
+		if listEp3811.Err != nil {
+			panic(listEp3811.Err)
+		}
 		response = listEp3811.Value
 	} else {
 
-		listEp3814 := (<-this.ContractPrivateGetCapiV3OrderHistory(this.Extend(requestUntil, paramsUntil)))
-		PanicOnError(listEp3814.Raw)
+		listEp3814 := <-this.ContractPrivateGetCapiV3OrderHistory(this.Extend(requestUntil, paramsUntil))
+		if listEp3814.Err != nil {
+			panic(listEp3814.Err)
+		}
 		response = listEp3814.Value
 	}
 
@@ -3898,7 +4163,7 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...
 	//         }
 	//     ]
 	//
-	ch <- this.ParseOrders(response, market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market, since, limit)}
 	return nil
 }
 func (this *Weex) ParseOrder(order any, optionalArgs ...any) any {
@@ -4135,12 +4400,12 @@ func (this *Weex) HandleOrderOrPositionError(errorCode any, errorMessage any, or
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Weex) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
+func (this *Weex) fetchOrderTradesBody(ch chan AsyncResult[any], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4153,17 +4418,24 @@ func (this *Weex) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var request map[string]any = map[string]any{
 		"orderId": id,
 	}
 
-	var retRes330415 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(request, params)))))
+	r1 := <-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var retRes330415 []any = ListTyped(r1.Value)
 	if retRes330415 == nil {
-		ch <- nil
+		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- retRes330415
+		ch <- AsyncResult[any]{Value: retRes330415}
 	}
 	return nil
 }
@@ -4182,12 +4454,12 @@ func (this *Weex) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...a
  * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Weex) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4200,7 +4472,10 @@ func (this *Weex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = nil
 	if symbol != nil {
@@ -4215,11 +4490,15 @@ func (this *Weex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var maxLimit int = 100
 	if paginate {
 
-		var retRes333719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsPaginate, maxLimit))))
+		r1 := <-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsPaginate, maxLimit)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var retRes333719 []any = ListTyped(r1.Value)
 		if retRes333719 == nil {
-			ch <- nil
+			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- retRes333719
+			ch <- AsyncResult[any]{Value: retRes333719}
 		}
 		return nil
 	}
@@ -4252,8 +4531,10 @@ func (this *Weex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		//     ]
 		//
 
-		listEp4195 := (<-this.PrivateGetApiV3MyTrades(this.Extend(requestUntil, paramsUntil)))
-		PanicOnError(listEp4195.Raw)
+		listEp4195 := <-this.PrivateGetApiV3MyTrades(this.Extend(requestUntil, paramsUntil))
+		if listEp4195.Err != nil {
+			panic(listEp4195.Err)
+		}
 		response = listEp4195.Value
 	} else {
 		//
@@ -4277,8 +4558,10 @@ func (this *Weex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		//     ]
 		//
 
-		listEp4218 := (<-this.ContractPrivateGetCapiV3UserTrades(this.Extend(requestUntil, paramsUntil)))
-		PanicOnError(listEp4218.Raw)
+		listEp4218 := <-this.ContractPrivateGetCapiV3UserTrades(this.Extend(requestUntil, paramsUntil))
+		if listEp4218.Err != nil {
+			panic(listEp4218.Err)
+		}
 		response = listEp4218.Value
 	}
 	var responseList []any = []any{}
@@ -4286,7 +4569,7 @@ func (this *Weex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		responseList = this.ToArray(response)
 	}
 
-	ch <- this.ParseTrades(responseList, market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseTrades(responseList, market, since, limit)}
 	return nil
 }
 
@@ -4306,12 +4589,12 @@ func (this *Weex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-func (this *Weex) FetchLedgerAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchLedgerAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchLedgerBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4324,17 +4607,24 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchLedger", "paginate", false)
 	var maxLimit int = 100
 	if paginate {
 
-		var retRes342119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, paramsPaginate, maxLimit))))
+		r1 := <-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, paramsPaginate, maxLimit)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var retRes342119 []any = ListTyped(r1.Value)
 		if retRes342119 == nil {
-			ch <- nil
+			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- retRes342119
+			ch <- AsyncResult[any]{Value: retRes342119}
 		}
 		return nil
 	}
@@ -4359,7 +4649,11 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		}
 		requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsMarketType)
 
-		var contractResponse map[string]any = (<-this.ContractPrivatePostCapiV3AccountIncome(this.Extend(requestUntil, paramsUntil))).Checked()
+		r2 := <-this.ContractPrivatePostCapiV3AccountIncome(this.Extend(requestUntil, paramsUntil))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		var contractResponse map[string]any = r2.Value
 		items = this.SafeList(contractResponse, "items", []any{})
 	} else if accountType != nil && *accountType == "funding" {
 		if since != nil {
@@ -4370,7 +4664,11 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		}
 		requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsMarketType)
 
-		var fundingResponse map[string]any = (<-this.PrivatePostApiV3AccountFundingBills(this.Extend(requestUntil, paramsUntil))).Checked()
+		r3 := <-this.PrivatePostApiV3AccountFundingBills(this.Extend(requestUntil, paramsUntil))
+		if r3.Err != nil {
+			panic(r3.Err)
+		}
+		var fundingResponse map[string]any = r3.Value
 		items = this.SafeList(fundingResponse, "items", []any{})
 	} else {
 		if since != nil {
@@ -4381,13 +4679,15 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		}
 		requestUntil, paramsUntil := this.HandleUntilOption("before", request, paramsMarketType)
 
-		listEp4320 := (<-this.PrivatePostApiV3AccountBills(this.Extend(requestUntil, paramsUntil)))
-		PanicOnError(listEp4320.Raw)
+		listEp4320 := <-this.PrivatePostApiV3AccountBills(this.Extend(requestUntil, paramsUntil))
+		if listEp4320.Err != nil {
+			panic(listEp4320.Err)
+		}
 		var billsResponse []any = listEp4320.Value
 		items = this.ToArray(billsResponse)
 	}
 
-	ch <- this.ParseLedger(items, currency, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseLedger(items, currency, since, limit)}
 	return nil
 }
 func (this *Weex) ParseLedgerEntry(item any, optionalArgs ...any) any {
@@ -4516,12 +4816,12 @@ func (this *Weex) ParseLedgerType(typeVar *string) *string {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func (this *Weex) FetchFundingHistoryAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchFundingHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchFundingHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4534,16 +4834,23 @@ func (this *Weex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingHistory", "paginate", false)
 	if paginate {
 
-		var retRes359219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchFundingHistory", symbol, since, limit, paramsPaginate, 100))))
+		r1 := <-this.FetchPaginatedCallDynamicAsync("fetchFundingHistory", symbol, since, limit, paramsPaginate, 100)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var retRes359219 []any = ListTyped(r1.Value)
 		if retRes359219 == nil {
-			ch <- nil
+			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- retRes359219
+			ch <- AsyncResult[any]{Value: retRes359219}
 		}
 		return nil
 	}
@@ -4574,7 +4881,11 @@ func (this *Weex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		panic(ArgumentsRequired(this.Id + " fetchFundingHistory() requires since to be set when until is used"))
 	}
 
-	var response map[string]any = (<-this.ContractPrivatePostCapiV3AccountIncome(this.Extend(requestUntil, paramsUntil))).Checked()
+	r2 := <-this.ContractPrivatePostCapiV3AccountIncome(this.Extend(requestUntil, paramsUntil))
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	var response map[string]any = r2.Value
 	//
 	//     {
 	//         "hasNextPage": false,
@@ -4596,7 +4907,7 @@ func (this *Weex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	//
 	var items []any = SafeListTypedDefault(response, "items", []any{})
 
-	ch <- this.ParseIncomes(items, market, since, limit)
+	ch <- AsyncResult[any]{Value: this.ParseIncomes(items, market, since, limit)}
 	return nil
 }
 func (this *Weex) ParseIncome(income any, optionalArgs ...any) any {
@@ -4639,12 +4950,12 @@ func (this *Weex) ParseIncome(income any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Weex) FetchPositionsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -4653,24 +4964,31 @@ func (this *Weex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var response []any = nil
 	if sandboxMode != nil && *sandboxMode == true {
 
-		listEp4594 := (<-this.ContractPrivateGetCapiV3SimPositionAllPosition(params))
-		PanicOnError(listEp4594.Raw)
+		listEp4594 := <-this.ContractPrivateGetCapiV3SimPositionAllPosition(params)
+		if listEp4594.Err != nil {
+			panic(listEp4594.Err)
+		}
 		response = listEp4594.Value
 	} else {
 
-		listEp4597 := (<-this.ContractPrivateGetCapiV3AccountPositionAllPosition(params))
-		PanicOnError(listEp4597.Raw)
+		listEp4597 := <-this.ContractPrivateGetCapiV3AccountPositionAllPosition(params)
+		if listEp4597.Err != nil {
+			panic(listEp4597.Err)
+		}
 		response = listEp4597.Value
 	}
 
-	ch <- this.ParsePositions(response, symbolsNormalized)
+	ch <- AsyncResult[any]{Value: this.ParsePositions(response, symbolsNormalized)}
 	return nil
 }
 
@@ -4683,20 +5001,24 @@ func (this *Weex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Weex) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchPositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Weex) fetchPositionBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var positions []any = ListTyped(PanicOnError((<-this.FetchPositionsForSymbolAsync(StringArg(symbol), params))))
+	r := <-this.FetchPositionsForSymbolAsync(StringArg(symbol), params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var positions []any = ListTyped(r.Value)
 
-	ch <- this.SafeDict(positions, 0)
+	ch <- AsyncResult[any]{Value: this.SafeDict(positions, 0)}
 	return nil
 }
 
@@ -4710,30 +5032,37 @@ func (this *Weex) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Weex) FetchPositionsForSymbolAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchPositionsForSymbolAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchPositionsForSymbolBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchPositionsForSymbolBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Weex) fetchPositionsForSymbolBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	if sandboxMode != nil && *sandboxMode == true {
 
-		var retRes372919 []any = ListTyped(PanicOnError((<-this.FetchPositionsAsync([]any{market["symbol"]}, params))))
+		r1 := <-this.FetchPositionsAsync([]any{market["symbol"]}, params)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var retRes372919 []any = ListTyped(r1.Value)
 		// the demo trading API does not provide a single-position endpoint
 		if retRes372919 == nil {
-			ch <- nil
+			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- retRes372919
+			ch <- AsyncResult[any]{Value: retRes372919}
 		}
 		return nil
 	}
@@ -4741,11 +5070,13 @@ func (this *Weex) fetchPositionsForSymbolBody(ch chan any, symbol string, option
 		"symbol": market["id"],
 	}
 
-	listEp4671 := (<-this.ContractPrivateGetCapiV3AccountPositionSinglePosition(this.Extend(request, params)))
-	PanicOnError(listEp4671.Raw)
+	listEp4671 := <-this.ContractPrivateGetCapiV3AccountPositionSinglePosition(this.Extend(request, params))
+	if listEp4671.Err != nil {
+		panic(listEp4671.Err)
+	}
 	var response []any = listEp4671.Value
 
-	ch <- this.ParsePositions(response, []any{market["symbol"]})
+	ch <- AsyncResult[any]{Value: this.ParsePositions(response, []any{market["symbol"]})}
 	return nil
 }
 func (this *Weex) ParsePosition(position any, optionalArgs ...any) any {
@@ -4877,23 +5208,28 @@ func (this *Weex) ParsePosition(position any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Weex) CloseAllPositionsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) CloseAllPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.closeAllPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) closeAllPositionsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 
-	listEp4820 := (<-this.ContractPrivatePostCapiV3ClosePositions(params))
-	PanicOnError(listEp4820.Raw)
+	listEp4820 := <-this.ContractPrivatePostCapiV3ClosePositions(params)
+	if listEp4820.Err != nil {
+		panic(listEp4820.Err)
+	}
 	var response []any = listEp4820.Value
 
 	//
@@ -4906,7 +5242,7 @@ func (this *Weex) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	ch <- this.ParsePositions(response)
+	ch <- AsyncResult[any]{Value: this.ParsePositions(response)}
 	return nil
 }
 
@@ -4920,12 +5256,12 @@ func (this *Weex) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Weex) ClosePositionAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) ClosePositionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.closePositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) closePositionBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Weex) closePositionBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var side *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4934,19 +5270,24 @@ func (this *Weex) closePositionBody(ch chan any, symbol string, optionalArgs ...
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 
-	listEp4867 := (<-this.ContractPrivatePostCapiV3ClosePositions(this.Extend(request, params)))
-	PanicOnError(listEp4867.Raw)
+	listEp4867 := <-this.ContractPrivatePostCapiV3ClosePositions(this.Extend(request, params))
+	if listEp4867.Err != nil {
+		panic(listEp4867.Err)
+	}
 	var response []any = listEp4867.Value
 	var orders []any = ArrayTyped(this.ParseOrders(response, market))
 
-	ch <- this.SafeDict(orders, 0)
+	ch <- AsyncResult[any]{Value: this.SafeDict(orders, 0)}
 	return nil
 }
 
@@ -4959,19 +5300,22 @@ func (this *Weex) closePositionBody(ch chan any, symbol string, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Weex) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Weex) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	if market["spot"] == true {
@@ -4981,7 +5325,11 @@ func (this *Weex) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs .
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = (<-this.ContractPrivateGetCapiV3AccountCommissionRate(this.Extend(request, params))).Checked()
+	r1 := <-this.ContractPrivateGetCapiV3AccountCommissionRate(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -4990,7 +5338,7 @@ func (this *Weex) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs .
 	//         "takerCommissionRate": "0.0008"
 	//     }
 	//
-	ch <- this.ParseTradingFee(response, market)
+	ch <- AsyncResult[any]{Value: this.ParseTradingFee(response, market)}
 	return nil
 }
 func (this *Weex) ParseTradingFee(fee any, optionalArgs ...any) any {
@@ -5024,27 +5372,32 @@ func (this *Weex) ParseTradingFee(fee any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func (this *Weex) FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Weex) fetchMarginModeBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 
-	listEp4967 := (<-this.ContractPrivateGetCapiV3AccountSymbolConfig(this.Extend(request, params)))
-	PanicOnError(listEp4967.Raw)
+	listEp4967 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(this.Extend(request, params))
+	if listEp4967.Err != nil {
+		panic(listEp4967.Err)
+	}
 	var response []any = listEp4967.Value
 	//
 	//     [
@@ -5060,7 +5413,7 @@ func (this *Weex) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...a
 	//
 	var marginMode map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
-	ch <- this.ParseMarginMode(marginMode, market)
+	ch <- AsyncResult[any]{Value: this.ParseMarginMode(marginMode, market)}
 	return nil
 }
 
@@ -5073,12 +5426,12 @@ func (this *Weex) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func (this *Weex) FetchMarginModesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchMarginModesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchMarginModesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchMarginModesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -5087,15 +5440,20 @@ func (this *Weex) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp5013 := (<-this.ContractPrivateGetCapiV3AccountSymbolConfig(params))
-	PanicOnError(listEp5013.Raw)
+	listEp5013 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(params)
+	if listEp5013.Err != nil {
+		panic(listEp5013.Err)
+	}
 	var response []any = listEp5013.Value
 
-	ch <- this.ParseMarginModes(this.ToArray(response), symbolsNormalized, "symbol", "swap")
+	ch <- AsyncResult[any]{Value: this.ParseMarginModes(this.ToArray(response), symbolsNormalized, "symbol", "swap")}
 	return nil
 }
 func (this *Weex) ParseMarginMode(marginMode any, optionalArgs ...any) any {
@@ -5127,12 +5485,12 @@ func (this *Weex) ParseMarginType(marginType *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Weex) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
-func (this *Weex) setMarginModeBody(ch chan any, marginMode string, optionalArgs ...any) any {
+func (this *Weex) setMarginModeBody(ch chan AsyncResult[any], marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -5144,7 +5502,10 @@ func (this *Weex) setMarginModeBody(ch chan any, marginMode string, optionalArgs
 	}
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -5152,7 +5513,11 @@ func (this *Weex) setMarginModeBody(ch chan any, marginMode string, optionalArgs
 		"marginType": this.EncodeMarginMode(marginMode),
 	}
 
-	ch <- PanicOnError((<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params))).Raw)
+	r1 := <-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- AsyncResult[any]{Value: r1.Raw}
 	return nil
 }
 func (this *Weex) EncodeMarginMode(marginMode any) any {
@@ -5176,31 +5541,36 @@ func (this *Weex) EncodeMarginMode(marginMode any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Weex) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Weex) fetchLeverageBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 
-	listEp5115 := (<-this.ContractPrivateGetCapiV3AccountSymbolConfig(this.Extend(request, params)))
-	PanicOnError(listEp5115.Raw)
+	listEp5115 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(this.Extend(request, params))
+	if listEp5115.Err != nil {
+		panic(listEp5115.Err)
+	}
 	var response []any = listEp5115.Value
 	var marginMode map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
-	ch <- this.ParseLeverage(marginMode, market)
+	ch <- AsyncResult[any]{Value: this.ParseLeverage(marginMode, market)}
 	return nil
 }
 
@@ -5213,12 +5583,12 @@ func (this *Weex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Weex) FetchLeveragesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchLeveragesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.fetchLeveragesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchLeveragesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -5227,15 +5597,20 @@ func (this *Weex) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp5149 := (<-this.ContractPrivateGetCapiV3AccountSymbolConfig(params))
-	PanicOnError(listEp5149.Raw)
+	listEp5149 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(params)
+	if listEp5149.Err != nil {
+		panic(listEp5149.Err)
+	}
 	var response []any = listEp5149.Value
 
-	ch <- this.ParseLeverages(this.ToArray(response), symbolsNormalized, "symbol", "swap")
+	ch <- AsyncResult[any]{Value: this.ParseLeverages(this.ToArray(response), symbolsNormalized, "symbol", "swap")}
 	return nil
 }
 func (this *Weex) ParseLeverage(leverage any, optionalArgs ...any) any {
@@ -5279,12 +5654,12 @@ func (this *Weex) ParseLeverage(leverage any, optionalArgs ...any) any {
  * the leverage value will be applied to cross leverage
  * @returns {object} response from the exchange
  */
-func (this *Weex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Weex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
+func (this *Weex) setLeverageBody(ch chan AsyncResult[any], leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -5296,7 +5671,10 @@ func (this *Weex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...a
 	}
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -5318,7 +5696,11 @@ func (this *Weex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...a
 		}
 	}
 
-	ch <- PanicOnError((<-this.ContractPrivatePostCapiV3AccountLeverage(this.Extend(request, paramsMarginMode))).Raw)
+	r1 := <-this.ContractPrivatePostCapiV3AccountLeverage(this.Extend(request, paramsMarginMode))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- AsyncResult[any]{Value: r1.Raw}
 	return nil
 }
 
@@ -5345,15 +5727,21 @@ func (this *Weex) fetchPositionModeBody(ch chan EndpointResult[map[string]any], 
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 
-	response := (<-this.ContractPrivateGetCapiV3AccountSymbolConfig(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	r1 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	response := r1.Raw
 	var entry map[string]any = SafeMapTyped(response, 0)
 	var separatedType *string = this.SafeString(entry, "separatedType")
 
@@ -5376,12 +5764,12 @@ func (this *Weex) fetchPositionModeBody(ch chan EndpointResult[map[string]any], 
  * @param {string} params.marginMode 'cross' or 'isolated' (default is 'cross')
  * @returns {object} response from the exchange
  */
-func (this *Weex) SetPositionModeAsync(hedged any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) SetPositionModeAsync(hedged any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.setPositionModeBody(ch, hedged, optionalArgs...)
 	return ch
 }
-func (this *Weex) setPositionModeBody(ch chan any, hedged any, optionalArgs ...any) any {
+func (this *Weex) setPositionModeBody(ch chan AsyncResult[any], hedged any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -5393,7 +5781,10 @@ func (this *Weex) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 	}
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("setPositionMode", params)
@@ -5410,22 +5801,29 @@ func (this *Weex) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 		"separatedType": separatedType,
 	}
 
-	ch <- PanicOnError((<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, paramsMarginMode))).Raw)
+	r1 := <-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, paramsMarginMode))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- AsyncResult[any]{Value: r1.Raw}
 	return nil
 }
-func (this *Weex) ModifyMarginHelperAsync(symbol string, amount any, typeVar any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) ModifyMarginHelperAsync(symbol string, amount any, typeVar any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Weex) modifyMarginHelperBody(ch chan any, symbol string, amount any, typeVar any, optionalArgs ...any) any {
+func (this *Weex) modifyMarginHelperBody(ch chan AsyncResult[any], symbol string, amount any, typeVar any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		PanicOnError((<-this.LoadMarketsAsync()))
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var isolatedPositionId *string = this.SafeStringN(params, []any{"positionId", "id", "isolatedPositionId"})
 	if isolatedPositionId == nil {
@@ -5443,12 +5841,16 @@ func (this *Weex) modifyMarginHelperBody(ch chan any, symbol string, amount any,
 		parsedType = "add"
 	}
 
-	var response map[string]any = (<-this.ContractPrivatePostCapiV3AccountPositionMargin(this.Extend(request, paramsOmitted))).Checked()
+	r1 := <-this.ContractPrivatePostCapiV3AccountPositionMargin(this.Extend(request, paramsOmitted))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 
-	ch <- this.Extend(this.ParseMarginModification(response, market), map[string]any{
+	ch <- AsyncResult[any]{Value: this.Extend(this.ParseMarginModification(response, market), map[string]any{
 		"amount": this.ParseNumber(amount),
 		"type":   parsedType,
-	})
+	})}
 	return nil
 }
 func (this *Weex) ParseMarginModification(data any, optionalArgs ...any) any {
@@ -5503,7 +5905,11 @@ func (this *Weex) reduceMarginBody(ch chan EndpointResult[map[string]any], symbo
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes430015 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 2, params))))
+	r := <-this.ModifyMarginHelperAsync(symbol, amount, 2, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var retRes430015 map[string]any = MapTyped(r.Value)
 	if retRes430015 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
@@ -5523,22 +5929,26 @@ func (this *Weex) reduceMarginBody(ch chan EndpointResult[map[string]any], symbo
  * @param {string} params.positionId the id of the position to add margin to, required
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Weex) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Weex) addMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
+func (this *Weex) addMarginBody(ch chan AsyncResult[any], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes431515 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 1, params))))
+	r := <-this.ModifyMarginHelperAsync(symbol, amount, 1, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var retRes431515 map[string]any = MapTyped(r.Value)
 	if retRes431515 == nil {
-		ch <- nil
+		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- retRes431515
+		ch <- AsyncResult[any]{Value: retRes431515}
 	}
 	return nil
 }
@@ -5696,8 +6106,8 @@ func (this *Weex) Init(userConfig map[string]any) {
  */
 func (this *Weex) FetchStatus(params ...any) (Status, error) {
 	r := <-this.FetchStatusAsync(params...)
-	if IsError(r.Raw) {
-		return Status{}, CreateReturnError(r.Raw)
+	if r.Err != nil {
+		return Status{}, r.Err
 	}
 	var res Status = NewStatus(r.Raw)
 	return res, nil
@@ -5714,11 +6124,11 @@ func (this *Weex) FetchStatus(params ...any) (Status, error) {
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
 func (this *Weex) FetchTime(params ...any) (int64, error) {
-	raw := <-this.FetchTimeAsync(params...)
-	if IsError(raw) {
-		return -1, CreateReturnError(raw)
+	r := <-this.FetchTimeAsync(params...)
+	if r.Err != nil {
+		return -1, r.Err
 	}
-	var res int64 = raw.(int64)
+	var res int64 = r.Value.(int64)
 	return res, nil
 }
 
@@ -5731,11 +6141,11 @@ func (this *Weex) FetchTime(params ...any) (int64, error) {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *Weex) FetchCurrencies(params ...any) (Currencies, error) {
-	raw := <-this.FetchCurrenciesAsync(params...)
-	if IsError(raw) {
-		return Currencies{}, CreateReturnError(raw)
+	r := <-this.FetchCurrenciesAsync(params...)
+	if r.Err != nil {
+		return Currencies{}, r.Err
 	}
-	var res Currencies = NewCurrencies(raw)
+	var res Currencies = NewCurrencies(r.Value)
 	return res, nil
 }
 
@@ -5749,11 +6159,11 @@ func (this *Weex) FetchCurrencies(params ...any) (Currencies, error) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Weex) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	raw := <-this.FetchMarketsAsync(params...)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchMarketsAsync(params...)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
 	return res, nil
 }
 
@@ -5775,11 +6185,11 @@ func (this *Weex) FetchTickers(options ...FetchTickersOptions) (Tickers, error) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return Tickers{}, CreateReturnError(raw)
+	r := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(raw)
+	var res Tickers = NewTickers(r.Value)
 	return res, nil
 }
 
@@ -5801,11 +6211,11 @@ func (this *Weex) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchBidsAsksAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return Tickers{}, CreateReturnError(raw)
+	r := <-this.FetchBidsAsksAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(raw)
+	var res Tickers = NewTickers(r.Value)
 	return res, nil
 }
 
@@ -5825,11 +6235,11 @@ func (this *Weex) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchLastPricesAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return LastPrices{}, CreateReturnError(raw)
+	r := <-this.FetchLastPricesAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return LastPrices{}, r.Err
 	}
-	var res LastPrices = NewLastPrices(raw)
+	var res LastPrices = NewLastPrices(r.Value)
 	return res, nil
 }
 
@@ -5850,11 +6260,11 @@ func (this *Weex) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchMarkPriceAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return Ticker{}, CreateReturnError(raw)
+	r := <-this.FetchMarkPriceAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(raw)
+	var res Ticker = NewTicker(r.Value)
 	return res, nil
 }
 
@@ -5874,11 +6284,11 @@ func (this *Weex) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchMarkPricesAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return Tickers{}, CreateReturnError(raw)
+	r := <-this.FetchMarkPricesAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(raw)
+	var res Tickers = NewTickers(r.Value)
 	return res, nil
 }
 
@@ -5900,11 +6310,11 @@ func (this *Weex) FetchOrderBook(symbol string, options ...FetchOrderBookOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return OrderBook{}, CreateReturnError(raw)
+	r := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return OrderBook{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(raw)
+	var res OrderBook = NewOrderBook(r.Value)
 	return res, nil
 }
 
@@ -5932,11 +6342,11 @@ func (this *Weex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHL
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(raw)
+	var res []OHLCV = NewOHLCVArray(r.Value)
 	return res, nil
 }
 
@@ -5960,11 +6370,11 @@ func (this *Weex) FetchSpotOHLCV(symbol string, options ...FetchSpotOHLCVOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchSpotOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchSpotOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(raw)
+	var res []OHLCV = NewOHLCVArray(r.Value)
 	return res, nil
 }
 
@@ -5994,11 +6404,11 @@ func (this *Weex) FetchContractOHLCV(symbol string, options ...FetchContractOHLC
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchContractOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchContractOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(raw)
+	var res []OHLCV = NewOHLCVArray(r.Value)
 	return res, nil
 }
 
@@ -6021,11 +6431,11 @@ func (this *Weex) FetchTrades(symbol string, options ...FetchTradesOptions) ([]T
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(raw)
+	var res []Trade = NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -6045,11 +6455,11 @@ func (this *Weex) FetchOpenInterest(symbol string, options ...FetchOpenInterestO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOpenInterestAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return OpenInterest{}, CreateReturnError(raw)
+	r := <-this.FetchOpenInterestAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return OpenInterest{}, r.Err
 	}
-	var res OpenInterest = NewOpenInterest(raw)
+	var res OpenInterest = NewOpenInterest(r.Value)
 	return res, nil
 }
 
@@ -6070,11 +6480,11 @@ func (this *Weex) FetchFundingRates(options ...FetchFundingRatesOptions) (Fundin
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchFundingRatesAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return FundingRates{}, CreateReturnError(raw)
+	r := <-this.FetchFundingRatesAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return FundingRates{}, r.Err
 	}
-	var res FundingRates = NewFundingRates(raw)
+	var res FundingRates = NewFundingRates(r.Value)
 	return res, nil
 }
 
@@ -6097,11 +6507,11 @@ func (this *Weex) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchFundingRateHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchFundingRateHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []FundingRateHistory = NewFundingRateHistoryArray(raw)
+	var res []FundingRateHistory = NewFundingRateHistoryArray(r.Value)
 	return res, nil
 }
 
@@ -6117,11 +6527,11 @@ func (this *Weex) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpti
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Weex) FetchBalance(params ...any) (Balances, error) {
-	raw := <-this.FetchBalanceAsync(params...)
-	if IsError(raw) {
-		return Balances{}, CreateReturnError(raw)
+	r := <-this.FetchBalanceAsync(params...)
+	if r.Err != nil {
+		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(raw)
+	var res Balances = NewBalances(r.Value)
 	return res, nil
 }
 
@@ -6144,11 +6554,11 @@ func (this *Weex) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEn
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTransfersAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchTransfersAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []TransferEntry = NewTransferEntryArray(raw)
+	var res []TransferEntry = NewTransferEntryArray(r.Value)
 	return res, nil
 }
 
@@ -6177,11 +6587,11 @@ func (this *Weex) CreateOrder(symbol string, typeVar string, side string, amount
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Value)
 	return res, nil
 }
 
@@ -6206,11 +6616,11 @@ func (this *Weex) CancelOrder(id string, options ...CancelOrderOptions) (Order, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Value)
 	return res, nil
 }
 
@@ -6234,11 +6644,11 @@ func (this *Weex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CancelAllOrdersAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.CancelAllOrdersAsync(opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -6262,11 +6672,11 @@ func (this *Weex) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CancelOrdersAsync(ids, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.CancelOrdersAsync(ids, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -6290,11 +6700,11 @@ func (this *Weex) FetchOrder(id string, options ...FetchOrderOptions) (Order, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return Order{}, CreateReturnError(raw)
+	r := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
 	}
-	var res Order = NewOrder(raw)
+	var res Order = NewOrder(r.Value)
 	return res, nil
 }
 
@@ -6320,11 +6730,11 @@ func (this *Weex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -6350,11 +6760,11 @@ func (this *Weex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Orde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -6380,11 +6790,11 @@ func (this *Weex) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchCanceledOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchCanceledOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -6408,11 +6818,11 @@ func (this *Weex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -6438,11 +6848,11 @@ func (this *Weex) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosed
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchCanceledAndClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchCanceledAndClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
 
@@ -6466,11 +6876,11 @@ func (this *Weex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrderTradesAsync(id, opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchOrderTradesAsync(id, opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(raw)
+	var res []Trade = NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -6495,11 +6905,11 @@ func (this *Weex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(raw)
+	var res []Trade = NewTradeArray(r.Value)
 	return res, nil
 }
 
@@ -6526,11 +6936,11 @@ func (this *Weex) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, err
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchLedgerAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchLedgerAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []LedgerEntry = NewLedgerEntryArray(raw)
+	var res []LedgerEntry = NewLedgerEntryArray(r.Value)
 	return res, nil
 }
 
@@ -6554,11 +6964,11 @@ func (this *Weex) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchFundingHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchFundingHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []FundingHistory = NewFundingHistoryArray(raw)
+	var res []FundingHistory = NewFundingHistoryArray(r.Value)
 	return res, nil
 }
 
@@ -6579,11 +6989,11 @@ func (this *Weex) FetchPositions(options ...FetchPositionsOptions) ([]Position, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionsAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchPositionsAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(raw)
+	var res []Position = NewPositionArray(r.Value)
 	return res, nil
 }
 
@@ -6603,11 +7013,11 @@ func (this *Weex) FetchPosition(symbol string, options ...FetchPositionOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return Position{}, CreateReturnError(raw)
+	r := <-this.FetchPositionAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return Position{}, r.Err
 	}
-	var res Position = NewPosition(raw)
+	var res Position = NewPosition(r.Value)
 	return res, nil
 }
 
@@ -6628,11 +7038,11 @@ func (this *Weex) FetchPositionsForSymbol(symbol string, options ...FetchPositio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionsForSymbolAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchPositionsForSymbolAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(raw)
+	var res []Position = NewPositionArray(r.Value)
 	return res, nil
 }
 
@@ -6652,11 +7062,11 @@ func (this *Weex) FetchTradingFee(symbol string, options ...FetchTradingFeeOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTradingFeeAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return TradingFeeInterface{}, CreateReturnError(raw)
+	r := <-this.FetchTradingFeeAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return TradingFeeInterface{}, r.Err
 	}
-	var res TradingFeeInterface = NewTradingFeeInterface(raw)
+	var res TradingFeeInterface = NewTradingFeeInterface(r.Value)
 	return res, nil
 }
 
@@ -6676,11 +7086,11 @@ func (this *Weex) FetchMarginMode(symbol string, options ...FetchMarginModeOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchMarginModeAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return MarginMode{}, CreateReturnError(raw)
+	r := <-this.FetchMarginModeAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return MarginMode{}, r.Err
 	}
-	var res MarginMode = NewMarginMode(raw)
+	var res MarginMode = NewMarginMode(r.Value)
 	return res, nil
 }
 
@@ -6700,11 +7110,11 @@ func (this *Weex) FetchMarginModes(options ...FetchMarginModesOptions) (MarginMo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchMarginModesAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return MarginModes{}, CreateReturnError(raw)
+	r := <-this.FetchMarginModesAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return MarginModes{}, r.Err
 	}
-	var res MarginModes = NewMarginModes(raw)
+	var res MarginModes = NewMarginModes(r.Value)
 	return res, nil
 }
 
@@ -6725,11 +7135,11 @@ func (this *Weex) SetMarginMode(marginMode string, options ...SetMarginModeOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.SetMarginModeAsync(marginMode, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.SetMarginModeAsync(marginMode, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return map[string]any{}, r.Err
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value.(map[string]any)
 	return res, nil
 }
 
@@ -6749,11 +7159,11 @@ func (this *Weex) FetchLeverage(symbol string, options ...FetchLeverageOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchLeverageAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return Leverage{}, CreateReturnError(raw)
+	r := <-this.FetchLeverageAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return Leverage{}, r.Err
 	}
-	var res Leverage = NewLeverage(raw)
+	var res Leverage = NewLeverage(r.Value)
 	return res, nil
 }
 
@@ -6773,11 +7183,11 @@ func (this *Weex) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchLeveragesAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return Leverages{}, CreateReturnError(raw)
+	r := <-this.FetchLeveragesAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return Leverages{}, r.Err
 	}
-	var res Leverages = NewLeverages(raw)
+	var res Leverages = NewLeverages(r.Value)
 	return res, nil
 }
 
@@ -6807,11 +7217,11 @@ func (this *Weex) SetLeverage(leverage int64, options ...SetLeverageOptions) (ma
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.SetLeverageAsync(leverage, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.SetLeverageAsync(leverage, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return map[string]any{}, r.Err
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value.(map[string]any)
 	return res, nil
 }
 
@@ -6832,8 +7242,8 @@ func (this *Weex) FetchPositionMode(options ...FetchPositionModeOptions) (Positi
 		opt(&opts)
 	}
 	r := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
-	if IsError(r.Raw) {
-		return PositionModeInfo{}, CreateReturnError(r.Raw)
+	if r.Err != nil {
+		return PositionModeInfo{}, r.Err
 	}
 	var res PositionModeInfo = NewPositionModeInfo(r.Raw)
 	return res, nil
@@ -6857,11 +7267,11 @@ func (this *Weex) SetPositionMode(hedged bool, options ...SetPositionModeOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.SetPositionModeAsync(hedged, opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.SetPositionModeAsync(hedged, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return map[string]any{}, r.Err
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value.(map[string]any)
 	return res, nil
 }
 

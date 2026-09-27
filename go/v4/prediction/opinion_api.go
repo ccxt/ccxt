@@ -46,7 +46,7 @@ func (this *Opinion) OpinionPublicGetMarketSlugSlug(args ...any) <-chan ccxt.End
 }
 
 // OpinionPublicGetLabel returns a channel that yields a JSON object or a JSON array.
-func (this *Opinion) OpinionPublicGetLabel(args ...any) <-chan any {
+func (this *Opinion) OpinionPublicGetLabel(args ...any) <-chan ccxt.AsyncResult[any] {
 	var params any
 	if len(args) > 0 {
 		params = args[0]

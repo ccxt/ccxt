@@ -38,7 +38,7 @@ func (this *Weex) PublicGetApiV3MarketTickerPrice(args ...any) <-chan EndpointRe
 }
 
 // PublicGetApiV3MarketTicker24hr returns a channel that yields a JSON object or a JSON array.
-func (this *Weex) PublicGetApiV3MarketTicker24hr(args ...any) <-chan any {
+func (this *Weex) PublicGetApiV3MarketTicker24hr(args ...any) <-chan AsyncResult[any] {
 	return this.Fetch2Async("api/v3/market/ticker/24hr", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
