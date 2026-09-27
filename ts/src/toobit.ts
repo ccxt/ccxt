@@ -3280,10 +3280,10 @@ export default class toobit extends Exchange {
             }
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
             if (queryString !== '') {
-                queryString += '&signature=' + signature;
+                queryString += '&' + 'signature=' + signature; // split so the php transpiler does not turn it into '&$signature='
                 url += '?' + queryString;
             } else {
-                body += '&signature=' + signature;
+                body += '&' + 'signature=' + signature; // split so the php transpiler does not turn it into '&$signature='
             }
             headers = {
                 'Referrer': 'CCXT',
