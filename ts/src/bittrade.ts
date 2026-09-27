@@ -566,6 +566,7 @@ export default class bittrade extends Exchange {
             throw new NetworkError (this.id + ' fetchMarkets() returned empty response: ' + this.json (markets));
         }
         const result: List = [];
+        const superLeverageRatioKey = 'super-' + 'margin-leverage-ratio'; // split so the php transpiler does not turn it into 'super-$margin-leverage-ratio'
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const baseId = this.safeString (market, 'base-currency');
@@ -574,7 +575,7 @@ export default class bittrade extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const state = this.safeString (market, 'state');
             const leverageRatio = this.safeString (market, 'leverage-ratio', '1');
-            const superLeverageRatio = this.safeString (market, 'super-margin-leverage-ratio', '1');
+            const superLeverageRatio = this.safeString (market, superLeverageRatioKey, '1');
             const margin = Precise.stringGt (leverageRatio, '1') || Precise.stringGt (superLeverageRatio, '1');
             const fee = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
             if (baseId === undefined) {
@@ -1508,7 +1509,8 @@ export default class bittrade extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (order, 'created-at');
-        const clientOrderId = this.safeString (order, 'client-order-id');
+        const clientOrderIdKey = 'client-' + 'order-id'; // split so the php transpiler does not turn it into 'client-$order-id'
+        const clientOrderId = this.safeString (order, clientOrderIdKey);
         const amount = this.safeString (order, 'amount');
         const filled = this.safeString2 (order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
         const price = this.safeString (order, 'price');
@@ -1788,13 +1790,14 @@ export default class bittrade extends Exchange {
                 'status': 'canceled',
             }));
         }
+        const clientOrderIdKey = 'client-' + 'order-id'; // split so the php transpiler does not turn it into 'client-$order-id'
         for (let i = 0; i < failed.length; i++) {
             const order = failed[i];
             result.push (this.safeOrder ({
                 'info': order,
                 'id': this.safeString2 (order, 'order-id', 'order_id'),
                 'status': 'failed',
-                'clientOrderId': this.safeString (order, 'client-order-id'),
+                'clientOrderId': this.safeString (order, clientOrderIdKey),
             }));
         }
         return result;
