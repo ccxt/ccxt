@@ -2502,7 +2502,7 @@ func (this *Htx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var types any = map[string]any{}
 	var paramsTypes map[string]any = map[string]any{}
 	var typesparamsTypesVariable []any = this.HandleOptionAndParams(params, "fetchMarkets", "types", map[string]any{})
-	types = GetValue(typesparamsTypesVariable, 0)
+	types = typesparamsTypesVariable[0]
 	paramsTypes = MapTyped(typesparamsTypesVariable[1])
 	var allMarkets []any = []any{}
 	var promises any = []any{}
@@ -4185,7 +4185,7 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
 	var priceType *string = this.SafeString2(paramsPaginate, "priceType", "price")
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"priceType", "price"}))
 	var untilparamsUntilVariable []any = this.HandleParamInteger(paramsOmitted, "until")
-	until := GetValue(untilparamsUntilVariable, 0)
+	until := untilparamsUntilVariable[0]
 	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 	var untilSeconds any = func() any {
 		if !IsEqual(until, nil) {

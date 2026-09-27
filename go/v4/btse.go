@@ -995,7 +995,7 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 		request["start"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginate, "fetchOHLCV", "until")
-	until := GetValue(untilparamsUntilVariable, 0)
+	until := untilparamsUntilVariable[0]
 	paramsUntil := untilparamsUntilVariable[1]
 	if !IsEqual(until, nil) {
 		if since != nil {
@@ -1168,7 +1168,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		"period": period,
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPeriod, "fetchFundingRateHistory", "until")
-	until := GetValue(untilparamsUntilVariable, 0)
+	until := untilparamsUntilVariable[0]
 	paramsUntil := untilparamsUntilVariable[1]
 
 	var response map[string]any = (<-this.PublicGetPublicApiMarketV1RecentFundingHistory(this.Extend(request, paramsUntil))).Checked()
@@ -1933,7 +1933,7 @@ func (this *Btse) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	// the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchTrades", "until")
-	until := GetValue(untilparamsUntilVariable, 0)
+	until := untilparamsUntilVariable[0]
 	paramsUntil := untilparamsUntilVariable[1]
 
 	var response map[string]any = (<-this.PublicGetPublicApiMarketV1Trades(this.Extend(request, paramsUntil))).Checked()
