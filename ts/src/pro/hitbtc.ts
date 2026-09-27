@@ -232,12 +232,12 @@ export default class hitbtc extends hitbtcRest {
         const options = this.safeDict (this.options, 'watchOrderBook');
         const defaultMethod = this.safeString (options, 'method', 'orderbook/full');
         let name = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
-        const depth = this.safeString (params, 'depth', '20');
-        const speed = this.safeString (params, 'depth', '100');
+        const depthValue = this.safeString (params, 'depth', '20'); // not named depth: the php transpiler would turn the '{depth}' literals into '{$depth}'
+        const speedValue = this.safeString (params, 'depth', '100'); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
         if (name === 'orderbook/{depth}/{speed}') {
-            name = 'orderbook/D' + depth + '/' + speed + 'ms';
+            name = 'orderbook/D' + depthValue + '/' + speedValue + 'ms';
         } else if (name === 'orderbook/{depth}/{speed}/batch') {
-            name = 'orderbook/D' + depth + '/' + speed + 'ms/batch';
+            name = 'orderbook/D' + depthValue + '/' + speedValue + 'ms/batch';
         }
         const market = this.market (symbol);
         const request: Dict = {
@@ -358,8 +358,8 @@ export default class hitbtc extends hitbtcRest {
         const options = this.safeDict (this.options, 'watchTicker');
         const defaultMethod = this.safeString (options, 'method', 'ticker/{speed}/batch');
         const method = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
-        const speed = this.safeString (params, 'speed', '1s');
-        const name = this.implodeParams (method, { 'speed': speed });
+        const speedValue = this.safeString (params, 'speed', '1s'); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
+        const name = this.implodeParams (method, { 'speed': speedValue });
         params = this.omit (params, [ 'method', 'speed' ]);
         const marketIds: string[] = [];
         if (symbols === undefined) {
@@ -519,8 +519,8 @@ export default class hitbtc extends hitbtcRest {
         const options = this.safeDict (this.options, 'watchBidsAsks');
         const defaultMethod = this.safeString (options, 'method', 'orderbook/top/{speed}/batch');
         const method = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
-        const speed = this.safeString (params, 'speed', '100ms');
-        const name = this.implodeParams (method, { 'speed': speed });
+        const speedValue = this.safeString (params, 'speed', '100ms'); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
+        const name = this.implodeParams (method, { 'speed': speedValue });
         params = this.omit (params, [ 'method', 'speed' ]);
         const marketIds = this.marketIds (symbols);
         const request: Dict = {
