@@ -2062,9 +2062,8 @@ export default class digifinex extends Exchange {
             const order = error[i];
             result.push (this.safeOrder ({
                 'info': order,
-                'id': this.safeString2 (order, 'order-id', 'order_id'),
+                'id': order,
                 'status': 'failed',
-                'clientOrderId': this.safeString (order, 'client-order-id'),
             }));
         }
         return result;
