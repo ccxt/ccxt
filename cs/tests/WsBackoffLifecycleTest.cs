@@ -58,6 +58,7 @@ public partial class BaseTest
     {
         await testWsBackoffDelayIsHonored();
         await testWsCloseCancelsDelayedConnection();
+        await testWsConnectLeavesCallerContext();
         testWsBackoffStateResetsOnClose();
         await testWsBackoffConcurrentUpdates();
     }
@@ -93,6 +94,64 @@ public partial class BaseTest
         Assert(!server.Accepted.IsCompletedSuccessfully, "Close must cancel a pending delayed dial");
         Assert(client.connected.Task.IsFaulted, "Close must release callers waiting for a delayed connection");
         client.webSocket.Dispose();
+    }
+
+    // runs posted work on the thread pool, but counts it, like a UI context would receive it
+    private sealed class CountingSynchronizationContext : SynchronizationContext
+    {
+        public int posts = 0;
+
+        public override void Post(SendOrPostCallback callback, object? state)
+        {
+            Interlocked.Increment(ref this.posts);
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                var prior = SynchronizationContext.Current;
+                SynchronizationContext.SetSynchronizationContext(this);
+                try
+                {
+                    callback(state);
+                }
+                finally
+                {
+                    SynchronizationContext.SetSynchronizationContext(prior);
+                }
+            });
+        }
+    }
+
+    private async Task testWsConnectLeavesCallerContext()
+    {
+        using var server = new BackoffProbeServer();
+        var handled = new TaskCompletionSource<SynchronizationContext?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var client = new BaseExchange.WebSocketClient(server.url, null, (c, m) => handled.TrySetResult(SynchronizationContext.Current));
+        client.keepAlive = null;
+        var callerContext = new CountingSynchronizationContext();
+        var previous = SynchronizationContext.Current;
+        Task connected;
+        SynchronizationContext.SetSynchronizationContext(callerContext);
+        try
+        {
+            connected = client.connect();
+        }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(previous);
+        }
+        try
+        {
+            await connected.WaitAsync(TimeSpan.FromSeconds(5));
+            var serverSide = await server.Accepted.WaitAsync(TimeSpan.FromSeconds(5));
+            await serverSide.SendAsync(System.Text.Encoding.UTF8.GetBytes("{\"probe\":1}"), WebSocketMessageType.Text, true, CancellationToken.None);
+            var handlerContext = await handled.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert(!ReferenceEquals(handlerContext, callerContext), "frames must be handled off the caller's SynchronizationContext");
+            Assert(callerContext.posts == 0, "connect must not resume the dial on the caller's SynchronizationContext");
+        }
+        finally
+        {
+            await client.Close();
+            client.webSocket.Dispose();
+        }
     }
 
     private void testWsBackoffStateResetsOnClose()

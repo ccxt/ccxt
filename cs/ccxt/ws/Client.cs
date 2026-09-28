@@ -248,7 +248,11 @@ public partial class BaseExchange
                     }
                     else
                     {
-                        this.connectTask = Connect(backoffDelay, this.connectCancellation.Token);
+                        // run the dial on the thread pool: called inline it would capture the
+                        // caller's SynchronizationContext (a UI thread) and marshal onOpen and
+                        // the whole receive loop onto it
+                        var cancellationToken = this.connectCancellation.Token;
+                        this.connectTask = Task.Run(() => this.Connect(backoffDelay, cancellationToken));
                     }
                 }
             }
@@ -382,7 +386,9 @@ public partial class BaseExchange
                     Console.WriteLine("WebSocket connected to " + url);
                 }
                 this.onOpen();
-                _ = Receiving(webSocket);
+                // start the receive loop off this path: inline, it would handle frames that
+                // are already buffered while the process-wide _connectSemaphore is still held
+                _ = Task.Run(() => this.Receiving(webSocket));
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
