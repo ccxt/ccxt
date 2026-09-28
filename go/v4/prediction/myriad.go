@@ -1311,11 +1311,11 @@ func (this *Myriad) createOrderbookOrderBody(ch chan ccxt.AsyncResult[map[string
 	var parsed map[string]any = this.ParsePredictionOrder(wrapper, outcomeObj)
 	// the POST /orders response is minimal (hash + status), so backfill the known request values
 	// side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
-	var sideStr any = func() any {
+	var sideStr *string = func() *string {
 		if ccxt.IsEqual(side, nil) {
 			return nil
 		}
-		return ccxt.ToLower(side)
+		return ccxt.SafeStringPtr(ccxt.ToLower(side))
 	}()
 	var typeStr string = func() string {
 		if ccxt.IsEqual(typeVar, nil) {

@@ -954,11 +954,11 @@ func (this *Blofin) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symb
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
-	var limitValue any = func() any {
+	var limitValue int64 = func() int64 {
 		if limit == nil {
 			return 50
 		}
-		return limit
+		return *limit
 	}()
 	if !IsEqual(limitValue, nil) {
 		request["size"] = limitValue // max 100

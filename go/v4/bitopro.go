@@ -2372,13 +2372,13 @@ func (this *Bitopro) withdrawBody(ch chan EndpointResult[map[string]any], code s
 	if hasNetwork {
 		var networks map[string]any = SafeMapTyped(this.Options, "networks")
 		var requestedNetwork *string = this.SafeStringUpper(paramsWithdrawTag, "network")
-		var networkId any = func() any {
+		var networkId *string = func() *string {
 			if requestedNetwork == nil {
 				return nil
 			}
 			return this.SafeString(networks, requestedNetwork)
 		}()
-		if IsEqual(networkId, nil) {
+		if networkId == nil {
 			panic(ExchangeError(Add(this.Id+" invalid network ", requestedNetwork)))
 		}
 		request["protocol"] = networkId

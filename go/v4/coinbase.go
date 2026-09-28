@@ -5037,11 +5037,11 @@ func (this *Coinbase) fetchOrdersByStatusBody(ch chan AsyncResult[[]any], status
 	if market != nil {
 		request["product_id"] = market["id"]
 	}
-	var limitResolved any = func() any {
+	var limitResolved int64 = func() int64 {
 		if limit == nil {
 			return 100
 		}
-		return limit
+		return *limit
 	}()
 	request["limit"] = limitResolved
 	if since != nil {

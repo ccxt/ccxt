@@ -2840,11 +2840,11 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchOpenOrders", "generation", 2)
-	var limitResolved any = func() any {
+	var limitResolved int64 = func() int64 {
 		if limit == nil {
 			return 100
 		}
-		return limit
+		return *limit
 	}()
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil

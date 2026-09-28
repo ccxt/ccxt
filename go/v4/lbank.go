@@ -1220,11 +1220,11 @@ func (this *Lbank) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var limitResolved any = func() any {
+	var limitResolved int64 = func() int64 {
 		if limit == nil {
 			return 60
 		}
-		return limit
+		return *limit
 	}()
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],

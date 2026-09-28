@@ -6078,17 +6078,17 @@ func (this *Phemex) setLeverageBody(ch chan AsyncResult[any], leverage int64, op
 		if (isHedged == nil || *isHedged != true) && (longLeverageRr == nil) && (shortLeverageRr == nil) {
 			request["leverageRr"] = leverage
 		} else {
-			var longVar any = func() any {
+			var longVar *int64 = func() *int64 {
 				if longLeverageRr != nil {
 					return longLeverageRr
 				}
-				return leverage
+				return Int64PtrTyped(leverage)
 			}()
-			var shortVar any = func() any {
+			var shortVar *int64 = func() *int64 {
 				if shortLeverageRr != nil {
 					return shortLeverageRr
 				}
-				return leverage
+				return Int64PtrTyped(leverage)
 			}()
 			request["longLeverageRr"] = longVar
 			request["shortLeverageRr"] = shortVar

@@ -1240,11 +1240,11 @@ func (this *Apex) fetchTradesBody(ch chan AsyncResult[any], symbol any, optional
 	var request map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id2"),
 	}
-	var limitResolved any = func() any {
+	var limitResolved int64 = func() int64 {
 		if limit == nil {
 			return 500
 		}
-		return limit
+		return *limit
 	}() // default is 50
 	request["limit"] = limitResolved
 

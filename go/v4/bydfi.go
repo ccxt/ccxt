@@ -3585,11 +3585,11 @@ func (this *Bydfi) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ...
 	until := GetValue(untilparamsUntilVariable, 0)
 	paramsUntil := untilparamsUntilVariable[1]
 	// exchange requires endTime, and startTime but allows any value
-	var sinceResolved any = func() any {
+	var sinceResolved int64 = func() int64 {
 		if since == nil {
 			return 1
 		}
-		return since
+		return *since
 	}()
 	request["startTime"] = sinceResolved
 	request["endTime"] = func() any {
