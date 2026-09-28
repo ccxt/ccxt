@@ -21,5 +21,11 @@
     "FetchConvertTrade": "map[string]any",
     "CreateOrderbookOrder": "map[string]any",
     "CreateAmmOrder": "map[string]any",
-    "CreateMarketOrderWithCost": "map[string]any"
+    "CreateMarketOrderWithCost": "map[string]any",
+    "FetchFundingRate": "map[string]any",
+    "FetchLeverage": "map[string]any",
+    "FetchTradingFee": "map[string]any",
+    "FetchMarginMode": "map[string]any",
+    "FetchCrossBorrowRate": "map[string]any",
+    "FetchIsolatedBorrowRate": "map[string]any"
 }

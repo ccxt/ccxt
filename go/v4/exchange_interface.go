@@ -242,7 +242,7 @@ type ICoreExchange interface {
 	OmitZero(v any) any
 	FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
 	FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[any]
-	FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any]
+	FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchMarketLeverageTiersAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
 	FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	SafeCurrency(currencyId any, optionalArgs ...any) map[string]any
@@ -253,7 +253,7 @@ type ICoreExchange interface {
 	FetchTransactionsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchTransfersAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchFundingHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any]
-	FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
+	FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchLedgerAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	ArrayConcat(aa, bb any) []any

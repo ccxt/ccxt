@@ -3737,7 +3737,7 @@ function goProvenParseMapMethods (): string[] {
         'ParseContractTicker', 'ParseUtaOrder', 'ParseContractOrder', 'ParseSpotOrder', 'ParseSwapOrder',
         'SafeMarketStructure', 'SafeCurrencyStructure', 'SafeOpenInterest', 'ParseCurrency', 'ParseOpenInterest',
         'SafePredictionOrder', 'SafePredictionTicker', 'SafePredictionOrderBook', 'ParsePredictionOrder', 'ParsePredictionTicker', 'ParsePredictionOpenInterest',
-        'ParseSpotOrUtaTicker', 'ParseContractOrderBook', 'ParseFundingRate', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositAddress', 'ParseMarginMode', 'ParseGreeks', 'ParseOption', 'ParseBorrowRate', 'ParseIsolatedBorrowRate', 'ParseConversion', 'ParseMarginModification', 'ParseTradeTx' ];
+        'ParseSpotOrUtaTicker', 'ParseContractOrderBook', 'ParseFundingRate', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositAddress', 'ParseMarginMode', 'ParseGreeks', 'ParseOption', 'ParseBorrowRate', 'ParseIsolatedBorrowRate', 'ParseConversion', 'ParseMarginModification', 'ParseTradeTx', 'ParseLeverageFromMarket', 'ParseLeverageFromSetting', 'ParseMarginModeFromSetting' ];
 }
 
 // function-level `return` expressions of a Go body (func literal bodies skipped); undefined when unscannable
