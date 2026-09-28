@@ -944,6 +944,178 @@
                     }
                 ]
             }
+        ],
+        "cancelOrdersForSymbols": [
+            {
+                "description": "cancelOrdersForSymbols - spot, two symbols",
+                "method": "cancelOrdersForSymbols",
+                "disabledCS": true,
+                "input": [
+                    [
+                        {
+                            "id": "8bdde1dae469ad9827e735090e8bd177",
+                            "symbol": "XRP/USDT"
+                        },
+                        {
+                            "id": "5667eab645ada5c784c95f71d2b0be78",
+                            "symbol": "LTC/USDT"
+                        }
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "date": 1790584079,
+                    "success": [
+                        "5667eab645ada5c784c95f71d2b0be78",
+                        "8bdde1dae469ad9827e735090e8bd177"
+                    ],
+                    "error": []
+                },
+                "parsedResponse": [
+                    {
+                        "info": "5667eab645ada5c784c95f71d2b0be78",
+                        "id": "5667eab645ada5c784c95f71d2b0be78",
+                        "symbol": "LTC/USDT",
+                        "status": "canceled",
+                        "fees": [],
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    },
+                    {
+                        "info": "8bdde1dae469ad9827e735090e8bd177",
+                        "id": "8bdde1dae469ad9827e735090e8bd177",
+                        "symbol": "XRP/USDT",
+                        "status": "canceled",
+                        "fees": [],
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    }
+                ]
+            },
+            {
+                "description": "cancelOrdersForSymbols - swap, two symbols",
+                "method": "cancelOrdersForSymbols",
+                "disabledCS": true,
+                "input": [
+                    [
+                        {
+                            "id": "2104487950191431681",
+                            "symbol": "ETH/USDT:USDT"
+                        },
+                        {
+                            "id": "2104487959884468224",
+                            "symbol": "LTC/USDT:USDT"
+                        }
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "data": [
+                        "2104487959884468224",
+                        "2104487950191431681"
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": "2104487950191431681",
+                        "id": "2104487950191431681",
+                        "symbol": "ETH/USDT:USDT",
+                        "status": "canceled",
+                        "fees": [],
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    },
+                    {
+                        "info": "2104487959884468224",
+                        "id": "2104487959884468224",
+                        "symbol": "LTC/USDT:USDT",
+                        "status": "canceled",
+                        "fees": [],
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    }
+                ]
+            }
         ]
     }
 }
