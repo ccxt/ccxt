@@ -8,6 +8,7 @@ public partial class BaseExchange
 {
 
     private Dictionary<string, long[]> wsBackoffState = new Dictionary<string, long[]>();
+    private readonly object wsBackoffStateSync = new object();
 
     // exponential reconnect backoff with rng-free jitter, mirrors ts/src/base/Exchange.ts
     // calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
@@ -20,31 +21,42 @@ public partial class BaseExchange
         var maxDelay = this.safeInteger(backoff, "max", 60000) ?? 60000;
         var stableAfter = this.safeInteger(backoff, "stableAfter", 30000) ?? 30000;
         var now = this.milliseconds();
-        long attempts = 0;
-        long lastAttempt = 0;
-        if (this.wsBackoffState.ContainsKey(url))
+        lock (wsBackoffStateSync)
         {
-            attempts = this.wsBackoffState[url][0];
-            lastAttempt = this.wsBackoffState[url][1];
+            long attempts = 0;
+            long lastAttempt = 0;
+            if (this.wsBackoffState.TryGetValue(url, out var history))
+            {
+                attempts = history[0];
+                lastAttempt = history[1];
+            }
+            if ((lastAttempt > 0) && ((now - lastAttempt) > stableAfter))
+            {
+                attempts = 0; // the previous connection was healthy long enough, start fresh
+            }
+            this.wsBackoffState[url] = new long[] { attempts + 1, now };
+            if (attempts == 0)
+            {
+                return 0; // first dial or recovered, connect immediately
+            }
+            var delay = baseDelay;
+            var capped = Math.Min(attempts, 20); // overflow guard
+            for (long i = 1; i < capped; i++)
+            {
+                delay = delay * factor;
+            }
+            var jitterMillis = now % 1000; // rng-free jitter
+            var jittered = (long)(delay * (0.8 + (jitterMillis / 2500.0))); // 0.8x .. 1.2x
+            return (int)Math.Min(jittered, maxDelay); // the ceiling holds regardless of jitter
         }
-        if ((lastAttempt > 0) && ((now - lastAttempt) > stableAfter))
+    }
+
+    private void clearWsBackoffState()
+    {
+        lock (wsBackoffStateSync)
         {
-            attempts = 0; // the previous connection was healthy long enough, start fresh
+            this.wsBackoffState.Clear();
         }
-        this.wsBackoffState[url] = new long[] { attempts + 1, now };
-        if (attempts == 0)
-        {
-            return 0; // first dial or recovered, connect immediately
-        }
-        var delay = baseDelay;
-        var capped = Math.Min(attempts, 20); // overflow guard
-        for (long i = 1; i < capped; i++)
-        {
-            delay = delay * factor;
-        }
-        var jitterMillis = now % 1000; // rng-free jitter
-        var jittered = (long)(delay * (0.8 + (jitterMillis / 2500.0))); // 0.8x .. 1.2x
-        return (int)Math.Min(jittered, maxDelay); // the ceiling holds regardless of jitter
     }
     public ConcurrentDictionary<string, WebSocketClient> clients = new ConcurrentDictionary<string, WebSocketClient>();
     public static ClientWebSocket ws = null;
