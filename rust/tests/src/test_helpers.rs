@@ -532,6 +532,7 @@ pub trait ExchangeOps {
     fn sort_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value;
     fn parse_to_int(&self, n: Value) -> Value;
     fn parse_to_numeric(&self, n: Value) -> Value;
+    fn is_round_number(&self, n: Value) -> Value;
     fn sum(&self, optional_args: &[Value]) -> Value;
     fn convert_to_safe_dictionary(&self, v: Value) -> Value;
     fn market(&self, symbol: Value) -> Value;
@@ -582,6 +583,7 @@ impl ExchangeOps for Value {
     fn sort_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.sort_by(arr, key, o)) }
     fn parse_to_int(&self, n: Value) -> Value { with_base(|e| e.parse_to_int(n)) }
     fn parse_to_numeric(&self, n: Value) -> Value { with_base(|e| e.parse_to_numeric(n)) }
+    fn is_round_number(&self, n: Value) -> Value { with_base(|e| e.is_round_number(n)) }
     fn sum(&self, optional_args: &[Value]) -> Value { with_base(|e| e.sum(optional_args)) }
     fn convert_to_safe_dictionary(&self, v: Value) -> Value { v }
     /// `market(symbol)` — look the unified symbol up in this exchange
