@@ -165,7 +165,6 @@ public class Lighter extends LighterApi
                 put( "4h", "4h" );
                 put( "12h", "12h" );
                 put( "1d", "1d" );
-                put( "1w", "1w" );
             }} );
             put( "hostname", "zklighter.elliot.ai" );
             put( "urls", new HashMap<String, Object>() {{
