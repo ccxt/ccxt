@@ -228,8 +228,67 @@ export function goChan3Table (): Map<string, string> {
     return GO_CHAN3_TABLE;
 }
 
-export function goChan3SetTableForTest (table: Map<string, string> | undefined) {
+export function goChan3SetTableForTest (table: Map<string, string> | undefined, resolved?: Set<string>) {
     GO_CHAN3_TABLE = table;
+    GO_CHAN3_RESOLVED = resolved;
+}
+
+// ===== GO-CHAN3 WS2: the Future resolution boundary =====
+// Methods in chan3-ws2.json (watch*/ *Ws) may send what a ws handler resolved (Client.Resolve takes any): such a
+// send becomes an inline type switch (T, *sync.Map snapshot / ArrayCache ToArray, nil) that panics on any other type.
+let GO_CHAN3_RESOLVED: Set<string> | undefined = undefined;
+
+export function goChan3Resolved (): Set<string> {
+    if (GO_CHAN3_RESOLVED === undefined) {
+        const f = path.join (GO_CHAN3_DIR, 'chan3-ws2.json');
+        GO_CHAN3_RESOLVED = new Set (fs.existsSync (f) ? Object.keys (JSON.parse (fs.readFileSync (f, 'utf8'))) : []);
+    }
+    return GO_CHAN3_RESOLVED;
+}
+
+function goChan3ResolvedOk (want: string | undefined, method: string): boolean {
+    return (want !== undefined) && goChan3Resolved ().has (method) && /^(?:map\[string\]any|\[\]any)$/.test (want);
+}
+
+// `var <v> T` + a type switch over `expr` + the typed send, as statements at indent `ind` (first line unindented)
+function goChan3ResolvedStmts (ind: string, expr: string, want: string, q: string, v: string): string {
+    const box = v + 'Box';
+    const conv = (want === '[]any')
+        ? [ 'case ' + q + 'IArrayCache:', '\t' + v + ' = ' + box + '.ToArray()' ]
+        : [ 'case *sync.Map:', '\t' + v + ' = ' + q + 'SafeMapToMap(' + box + ')' ];
+    const lines = [
+        'var ' + v + ' ' + want,
+        'switch ' + box + ' := ' + expr + '.(type) {',
+        'case ' + want + ':', '\t' + v + ' = ' + box,
+        ...conv,
+        'case nil:',
+        'default:', '\tpanic(' + q + 'ExchangeError("resolved value is not ' + want + '"))',
+        '}',
+        'ch <- ' + q + 'AsyncResult[' + want + ']{Value: ' + v + '}',
+    ];
+    return lines.map ((l, i) => ((i === 0) ? '' : ind) + l).join ('\n');
+}
+
+function goChan3ResolvedName (fn: string, taken: Set<string>): string {
+    for (let k = 0; ; k++) {
+        const name = 'resolved' + ((k === 0) ? '' : k);
+        if (!taken.has (name) && !new RegExp ('\\b' + name + '(?:Box)?\\b').test (fn)) {
+            taken.add (name);
+            return name;
+        }
+    }
+}
+
+// `import "sync"` for a file whose ws2 switches read *sync.Map
+function goChan3ResolvedImports (content: string): string {
+    if ((content.indexOf ('case *sync.Map:') < 0) || /^import "sync"$|^\s+"sync"$/m.test (content)) {
+        return content;
+    }
+    const m = /^import ccxt "[^"]+"\n/m.exec (content);
+    if (m === null) {
+        throw new Error ('GOCHAN3: ws2 switch needs import "sync" but the file has no ccxt import line');
+    }
+    return content.substring (0, m.index + m[0].length) + 'import "sync"\n' + content.substring (m.index + m[0].length);
 }
 
 type Edit = { start: number, end: number, text: string };
@@ -408,6 +467,7 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
         const bodyEnd = (headAt < 0) ? -1 : masked.indexOf ('\n}\n', bodyStart) + 3;
         const edits: Edit[] = [];
         const joins = new Map<string, { type?: string, reason?: string, edits: Edit[] }> ();
+        const freshTaken = new Set<string> ();
         if (headAt >= 0) {
             const fnMasked = masked.substring (bodyStart, bodyEnd);
             const fnText = content.substring (bodyStart, bodyEnd);
@@ -431,6 +491,15 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                 if (fnMasked.startsWith ('<-', at)) {
                     const fwd = goChan3ReceiveMethod (fnMasked, at, table);
                     const ft = (fwd === undefined) ? undefined : table.get (fwd);
+                    const lineEnd = goChanExprEnd (fnMasked, at);
+                    if ((ft === undefined) && goChan3ResolvedOk (want, method)) {
+                        const rn = goChan3FreshName (fnText, freshTaken);
+                        const ind = fnMasked.substring (fnMasked.lastIndexOf ('\n', u.index) + 1, u.index);
+                        const stmts = goChan3ResolvedStmts (ind, rn + '.Value', want as string, q, goChan3ResolvedName (fnText, freshTaken));
+                        edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + lineEnd, 'text': rn + ' := ' + fnText.substring (at, lineEnd) + '\n' + ind + 'if ' + rn + '.Err != nil {\n' + ind + '\tpanic(' + rn + '.Err)\n' + ind + '}\n' + ind + stmts });
+                        types.add (want as string);
+                        continue;
+                    }
                     if ((ft === undefined) || ((want !== undefined) && (ft !== want))) {
                         fail ('forward-untabled:' + (/^<-\s*[\w.()]*?\.?(\w+)\(/.exec (fnMasked.substring (at, at + 200)) || [ '', '?' ])[1]);
                     } else {
@@ -471,6 +540,12 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                         edits.push ({ 'start': bodyStart + open + 1, 'end': bodyStart + close - 1, 'text': 'Value: ' + ws });
                         type = want as string;
                     }
+                    if ((type === undefined) && (fm === undefined) && (bind !== null) && goChan3ResolvedOk (want, method) && /^\s*$/.test (fnMasked.substring (close, fnMasked.indexOf ('\n', close)))) {
+                        const ind = fnMasked.substring (fnMasked.lastIndexOf ('\n', u.index) + 1, u.index);
+                        edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + close, 'text': goChan3ResolvedStmts (ind, expr, want as string, q, goChan3ResolvedName (fnText, freshTaken)) });
+                        types.add (want as string);
+                        continue;
+                    }
                     if (type === undefined) {
                         const name = (bind === null) ? '?' : ((/^<-\s*[\w.()]*?\.?(\w+)\(/.exec (fnMasked.substring (bind.index + bind[0].length - 2, bind.index + bind[0].length + 200)) || [ '', '?' ])[1]);
                         fail ('forward-untabled:' + name);
@@ -495,6 +570,11 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                         type = want as string;
                     } else if (proof.nil) {
                         type = 'nil';
+                    } else if ((proof.reason !== undefined) && goChan3ResolvedOk (want, method) && /^\s*$/.test (fnMasked.substring (close, fnMasked.indexOf ('\n', close)))) {
+                        const ind = fnMasked.substring (fnMasked.lastIndexOf ('\n', u.index) + 1, u.index);
+                        edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + close, 'text': goChan3ResolvedStmts (ind, fnText.substring (open + 1 + 7, close - 1), want as string, q, goChan3ResolvedName (fnText, freshTaken)) });
+                        types.add (want as string);
+                        continue;
                     } else if (proof.reason !== undefined) {
                         const callee = /^(?:ccxt\.)?(?:this\.)?(\w+)\(/.exec (expr);
                         fail (proof.reason + ((callee !== null) ? (':' + callee[1]) : ((proof.reason.startsWith ('local')) ? (':' + expr) : '')));
@@ -791,7 +871,7 @@ function goChan3PromiseAllPass (content: string, table: Map<string, string>): st
 
 // the shared pass: retypes tabled cores, their consumers and interface lines (idempotent)
 export function goChan3Pass (content: string, table: Map<string, string> = goChan3Table ()): string {
-    return goChan3LowerAbsent (goChan3PassMarked (content, table), table);
+    return goChan3ResolvedImports (goChan3LowerAbsent (goChan3PassMarked (content, table), table));
 }
 
 function goChan3PassMarked (content: string, table: Map<string, string>): string {
@@ -947,6 +1027,13 @@ export function goChan3SelfTest (): string[] {
     ok (run (pt) === pt, 'typed promiseAll idempotent');
     ok (run (pall.replace ('this.PubGetA(p)})', 'this.PubGetL(p)})')) === pall.replace ('this.PubGetA(p)})', 'this.PubGetL(p)})'), 'mixed promiseAll untouched');
     ok (run (pall.replace ('x := GetValue(v, 0)', 'x := v')) === pall.replace ('x := GetValue(v, 0)', 'x := v'), 'whole-list read untouched');
+    // WS2 Future boundary: untabled Watch forwards convert through an inline type switch
+    goChan3SetTableForTest (new Map ([ [ 'WatchX', 'map[string]any' ] ]), new Set ([ 'WatchX' ]));
+    const w = run ('package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n' + core ('X', '\tr := <-this.Watch(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tif a == nil {\n\t\tch <- <-this.WatchMultiple(a)\n\t\treturn nil\n\t}\n\tch <- ccxt.AsyncResult[any]{Value: r.Value}\n\treturn nil\n', 'WatchX', 'ccxt.'), goChan3Table ());
+    ok (w.includes ('\tvar resolved1 map[string]any\n\tswitch resolved1Box := r.Value.(type) {\n\tcase map[string]any:\n\t\tresolved1 = resolved1Box\n\tcase *sync.Map:\n\t\tresolved1 = ccxt.SafeMapToMap(resolved1Box)\n\tcase nil:\n\tdefault:\n\t\tpanic(ccxt.ExchangeError("resolved value is not map[string]any"))\n\t}\n\tch <- ccxt.AsyncResult[map[string]any]{Value: resolved1}\n')
+        && w.includes ('\t\tr1 := <-this.WatchMultiple(a)\n\t\tif r1.Err != nil {\n\t\t\tpanic(r1.Err)\n\t\t}\n\t\tvar resolved map[string]any\n') && w.includes ('import "sync"\n') && (w.indexOf ('ResolvedAs') < 0), 'ws2 boundary: ' + w);
+    ok (run (w, goChan3Table ()) === w, 'ws2 idempotent');
+    goChan3SetTableForTest (undefined, undefined);
     goChan3SetStubsForTest (undefined);
     goChanSetBaseReturnsForTest (undefined);
     return problems;

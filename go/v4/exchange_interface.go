@@ -51,10 +51,10 @@ type IFetchTickers interface {
 	FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any]
 }
 type ICancelOrderWs interface {
-	CancelOrderWsAsync(id string, optionalArgs ...any) <-chan AsyncResult[any]
+	CancelOrderWsAsync(id string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 }
 type ICreateOrderWs interface {
-	CreateOrderWsAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any]
+	CreateOrderWsAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 }
 type IFetchOrdersWs interface {
 	FetchOrdersWsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
@@ -69,7 +69,7 @@ type IFetchBidsAsks interface {
 	FetchBidsAsksAsync(optionalArgs ...any) <-chan AsyncResult[any]
 }
 type IWatchBidsAsks interface {
-	WatchBidsAsksAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	WatchBidsAsksAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 }
 type IWatchOrderBookForSymbols interface {
 	WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[OrderBookInterface]
@@ -78,7 +78,7 @@ type IWatchPosition interface {
 	WatchPositionAsync(optionalArgs ...any) <-chan AsyncResult[any]
 }
 type IWatchTradesForSymbols interface {
-	WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[any]
+	WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]any]
 }
 
 type IBaseExchange interface {
@@ -356,20 +356,20 @@ type ICoreExchange interface {
 	UnWatchMarkPricesAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
 	UnWatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[any]
-	WatchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	WatchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	WatchLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
 	WatchLiquidationsForSymbolsAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any]
 	WatchMyLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
 	WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[any]
-	WatchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any]
-	WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
+	WatchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
 	WatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan AsyncResult[any]
 	WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBookInterface]
-	WatchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any]
-	WatchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any]
-	WatchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
-	WatchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any]
-	WatchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any]
+	WatchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	WatchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	WatchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
+	WatchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
+	WatchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]any]
 	WithdrawWsAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[any]
 	Close(cleanInstanceCache ...any) []error
 	CleanWsData()
@@ -454,7 +454,7 @@ type IDerivedExchange interface {
 	OnError(client any, err any)
 	OnClose(client any, err any)
 	OnConnected(client any, err any)
-	WatchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	WatchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	WatchLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[any]
 	WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[any]
 	ParseWsTrade(trade any, optionalArgs ...any) any
