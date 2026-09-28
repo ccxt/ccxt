@@ -68,13 +68,20 @@ func TestArrayCacheRemoveSymbolPollingScopes(t *testing.T) {
 			}
 			check := func(got, want any) {
 				t.Helper()
-				if got != want { t.Fatalf("global=%v scoped=%v: got %v want %v", global, scoped, got, want) }
+				if got != want {
+					t.Fatalf("global=%v scoped=%v: got %v want %v", global, scoped, got, want)
+				}
 			}
 			c.Append(row("ETH", "long", 4))
 			c.Append(row("LTC", "long", 2))
 			c.Append(row("ETH", "short", 5))
-			if global { check(c.GetLimit(nil, nil), 3) }
-			if scoped { check(c.GetLimit("ETH", nil), 2); check(c.GetLimit("LTC", nil), 1) }
+			if global {
+				check(c.GetLimit(nil, nil), 3)
+			}
+			if scoped {
+				check(c.GetLimit("ETH", nil), 2)
+				check(c.GetLimit("LTC", nil), 1)
+			}
 			c.Remove("MISSING")
 			check(len(c.Data), 3)
 			c.Remove("LTC")
@@ -85,11 +92,15 @@ func TestArrayCacheRemoveSymbolPollingScopes(t *testing.T) {
 			c.Remove("LTC")
 			c.Append(row("LTC", "both", 0))
 			want := 3
-			if global { want = 1 }
+			if global {
+				want = 1
+			}
 			check(c.GetLimit(nil, nil), want)
 			c.Append(row("ETH", "long", 6))
 			want = 2
-			if scoped { want = 1 }
+			if scoped {
+				want = 1
+			}
 			check(c.GetLimit("ETH", nil), want)
 			check(len(c.Data), 3)
 		}
