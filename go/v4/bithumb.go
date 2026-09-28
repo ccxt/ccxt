@@ -5406,7 +5406,7 @@ func (this *Bithumb) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Bithumb) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bithumb) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bithumb) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bithumb) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

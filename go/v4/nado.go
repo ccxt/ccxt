@@ -5243,7 +5243,7 @@ func (this *Nado) FetchOrderStatus(id string, options ...FetchOrderStatusOptions
 func (this *Nado) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Nado) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Nado) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Nado) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

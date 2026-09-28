@@ -2104,7 +2104,7 @@ func (this *Mercado) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Mercado) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Mercado) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Mercado) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Mercado) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

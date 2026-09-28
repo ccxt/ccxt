@@ -6153,7 +6153,7 @@ func (this *Poloniex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderB
 func (this *Poloniex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Poloniex) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Poloniex) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Poloniex) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

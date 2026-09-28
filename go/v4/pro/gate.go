@@ -701,12 +701,12 @@ func (this *Gate) fetchOrdersByStatusWsBody(ch chan ccxt.AsyncResult[any], statu
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Gate) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Gate) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Gate) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Gate) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	limit := ccxt.GetArg(optionalArgs, 0, nil)
@@ -778,7 +778,7 @@ func (this *Gate) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol strin
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[any]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 	return nil
 }
 

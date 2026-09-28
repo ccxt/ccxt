@@ -4014,7 +4014,7 @@ func (this *Gemini) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Gemini) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Gemini) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Gemini) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Gemini) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

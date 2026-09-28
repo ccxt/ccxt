@@ -500,12 +500,12 @@ func (this *Bithumb) ParseWsTicker(ticker any, optionalArgs ...any) any {
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Bithumb) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Bithumb) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Bithumb) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -552,7 +552,7 @@ func (this *Bithumb) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol st
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[any]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 	return nil
 }
 func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {

@@ -179,12 +179,12 @@ func (this *Woo) unwatchPublicBody(ch chan ccxt.AsyncResult[any], subHash any, s
  * @param {string} [params.method] either (default) 'orderbook' or 'orderbookupdate', default is 'orderbook'
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Woo) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Woo) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woo) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Woo) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -229,7 +229,7 @@ func (this *Woo) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[any]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 	return nil
 }
 

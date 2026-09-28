@@ -50,7 +50,7 @@ func testWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[any], exchange cc
 				if r.Err != nil {
 					panic(r.Err)
 				}
-				response = r.Value
+				response = ccxt.BoxAbsent(r.Value)
 				return nil
 			}()
 

@@ -8495,7 +8495,7 @@ func (this *Phemex) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Phemex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Phemex) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Phemex) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Phemex) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

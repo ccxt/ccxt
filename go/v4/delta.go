@@ -6302,7 +6302,7 @@ func (this *Delta) FetchOrderStatus(id string, options ...FetchOrderStatusOption
 func (this *Delta) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Delta) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Delta) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Delta) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

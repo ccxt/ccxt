@@ -940,12 +940,12 @@ func (this *Mexc) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Mexc) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Mexc) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Mexc) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -986,7 +986,7 @@ func (this *Mexc) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol strin
 	}
 	orderbook = this.RequireValue(orderbook, "watchOrderBook() orderbook is required")
 
-	ch <- ccxt.AsyncResult[any]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 	return nil
 }
 func (this *Mexc) HandleOrderBookSubscription(client any, message map[string]any) {

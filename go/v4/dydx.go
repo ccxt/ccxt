@@ -4379,7 +4379,7 @@ func (this *Dydx) FetchOrderStatus(id string, options ...FetchOrderStatusOptions
 func (this *Dydx) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Dydx) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Dydx) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Dydx) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

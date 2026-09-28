@@ -6038,7 +6038,7 @@ func (this *Lighter) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Lighter) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Lighter) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Lighter) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Lighter) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

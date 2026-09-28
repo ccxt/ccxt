@@ -2154,7 +2154,7 @@ func (this *Cryptomus) FetchOrderStatus(id string, options ...FetchOrderStatusOp
 func (this *Cryptomus) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Cryptomus) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Cryptomus) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Cryptomus) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

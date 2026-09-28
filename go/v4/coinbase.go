@@ -9007,7 +9007,7 @@ func (this *Coinbase) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 func (this *Coinbase) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Coinbase) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Coinbase) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Coinbase) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

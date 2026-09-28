@@ -3814,7 +3814,7 @@ func (this *Hyperliquid) FetchOrderTrades(id string, params map[string]any, opti
 	var res []ccxt.PredictionTrade = ccxt.NewPredictionTradeArray(r.Value)
 	return res, nil
 }
-func (this *Hyperliquid) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Hyperliquid) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 

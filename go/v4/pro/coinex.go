@@ -988,12 +988,12 @@ func (this *Coinex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[any], sym
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Coinex) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinex) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Coinex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[any], symbols any, optionalArgs ...any) any {
+func (this *Coinex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	limit := ccxt.GetArg(optionalArgs, 0, nil)
@@ -1063,11 +1063,11 @@ func (this *Coinex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[any], 
 	orderbooks := r1.Value
 	if this.NewUpdates {
 
-		ch <- ccxt.AsyncResult[any]{Value: orderbooks}
+		ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: ccxt.OrderBookTyped(orderbooks)}
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: orderbooks.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbooks.(ccxt.OrderBookInterface).Limit()}
 	return nil
 }
 
@@ -1082,12 +1082,12 @@ func (this *Coinex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[any], 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Coinex) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinex) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinex) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Coinex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1100,7 +1100,7 @@ func (this *Coinex) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r.Value}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: r.Value}
 	return nil
 }
 func (this *Coinex) HandleDelta(bookside any, delta any) {

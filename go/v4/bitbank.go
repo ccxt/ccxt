@@ -2263,7 +2263,7 @@ func (this *Bitbank) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Bitbank) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bitbank) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bitbank) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bitbank) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

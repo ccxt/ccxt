@@ -2322,7 +2322,7 @@ func (this *Independentreserve) FetchOrderStatus(id string, options ...FetchOrde
 func (this *Independentreserve) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Independentreserve) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Independentreserve) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Independentreserve) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

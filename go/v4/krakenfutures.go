@@ -6039,7 +6039,7 @@ func (this *Krakenfutures) FetchOrderStatus(id string, options ...FetchOrderStat
 func (this *Krakenfutures) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Krakenfutures) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Krakenfutures) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Krakenfutures) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

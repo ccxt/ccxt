@@ -5581,7 +5581,7 @@ func (this *Blofin) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Blofin) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Blofin) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Blofin) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Blofin) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

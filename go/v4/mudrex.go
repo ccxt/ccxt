@@ -3018,7 +3018,7 @@ func (this *Mudrex) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Mudrex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Mudrex) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Mudrex) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Mudrex) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

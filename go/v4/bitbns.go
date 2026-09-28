@@ -2468,7 +2468,7 @@ func (this *Bitbns) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Bitbns) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bitbns) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bitbns) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bitbns) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

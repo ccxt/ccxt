@@ -2869,7 +2869,7 @@ func (this *Btcmarkets) FetchOrderStatus(id string, options ...FetchOrderStatusO
 func (this *Btcmarkets) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Btcmarkets) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Btcmarkets) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Btcmarkets) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

@@ -6312,7 +6312,7 @@ func (this *Btse) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 func (this *Btse) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Btse) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Btse) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Btse) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
