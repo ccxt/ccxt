@@ -442,7 +442,11 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[any], optionalA
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		rawTopics = ccxt.BoxAbsent(r2.Value)
+		if r2.Value == nil {
+			rawTopics = nil
+		} else {
+			rawTopics = r2.Value
+		}
 	} else {
 		var request map[string]any = map[string]any{}
 		var tags any = this.SafeList(paramsValue, "tags", []any{})

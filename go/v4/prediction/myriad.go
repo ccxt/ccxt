@@ -1231,7 +1231,11 @@ func (this *Myriad) createOrderBody(ch chan ccxt.AsyncResult[map[string]any], ou
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		ch <- ccxt.AsyncResult[map[string]any]{Value: r1.Value}
+		var r1ValueBox any = nil
+		if r1.Value != nil {
+			r1ValueBox = r1.Value
+		}
+		ch <- ccxt.AsyncResult[map[string]any]{Value: r1ValueBox}
 		return nil
 	}
 	// the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
@@ -1245,7 +1249,11 @@ func (this *Myriad) createOrderBody(ch chan ccxt.AsyncResult[map[string]any], ou
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: r2.Value}
+	var r2ValueBox any = nil
+	if r2.Value != nil {
+		r2ValueBox = r2.Value
+	}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: r2ValueBox}
 	return nil
 }
 
@@ -1482,7 +1490,10 @@ func (this *Myriad) createOrdersBody(ch chan ccxt.AsyncResult[any], orders any, 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		placed := ccxt.BoxAbsent(r1.Value)
+		var placed any = nil
+		if r1.Value != nil {
+			placed = r1.Value
+		}
 		result = append(result, placed)
 	}
 
@@ -1537,7 +1548,11 @@ func (this *Myriad) editOrderBody(ch chan ccxt.AsyncResult[map[string]any], id s
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: r2.Value}
+	var r2ValueBox1 any = nil
+	if r2.Value != nil {
+		r2ValueBox1 = r2.Value
+	}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: r2ValueBox1}
 	return nil
 }
 
@@ -4716,7 +4731,10 @@ func (this *Myriad) seedOrderBookBody(ch chan ccxt.AsyncResult[any], outcome str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	snapshot := ccxt.BoxAbsent(r.Value)
+	var snapshot any = nil
+	if r.Value != nil {
+		snapshot = r.Value
+	}
 	var orderbook any = this.OrderBook(map[string]any{})
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	ccxt.AddElementToObject(this.Orderbooks, sym, orderbook)

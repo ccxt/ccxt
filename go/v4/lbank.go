@@ -3853,7 +3853,11 @@ func (this *Lbank) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], option
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
-			response = BoxAbsent(r2.Value)
+			if r2.Value == nil {
+				response = nil
+			} else {
+				response = r2.Value
+			}
 		}
 	} else {
 
@@ -4358,7 +4362,7 @@ func (this *Lbank) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(BoxAbsent(r.Value))
+	var res int64 = ParseInt(r.Value)
 	return res, nil
 }
 

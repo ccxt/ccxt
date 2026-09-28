@@ -1510,14 +1510,22 @@ func (this *Hyperliquid) fetchTickersBody(ch chan AsyncResult[any], optionalArgs
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = BoxAbsent(r2.Value)
+		if r2.Value == nil {
+			response = nil
+		} else {
+			response = r2.Value
+		}
 	} else if typeVar != nil && *typeVar == "swap" {
 
 		r3 := <-this.FetchSwapMarketsAsync(paramsHip3)
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		response = BoxAbsent(r3.Value)
+		if r3.Value == nil {
+			response = nil
+		} else {
+			response = r3.Value
+		}
 	} else {
 
 		r4 := <-this.FetchMarketsAsync(paramsHip3)
@@ -6327,7 +6335,10 @@ func (this *Hyperliquid) fetchOpenInterestsBody(ch chan AsyncResult[any], option
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	swapMarkets := BoxAbsent(r1.Value)
+	var swapMarkets any = nil
+	if r1.Value != nil {
+		swapMarkets = r1.Value
+	}
 
 	ch <- AsyncResult[any]{Value: this.ParseOpenInterests(swapMarkets, symbolsNormalized)}
 	return nil
@@ -6848,7 +6859,7 @@ func (this *Hyperliquid) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(BoxAbsent(r.Value))
+	var res int64 = ParseInt(r.Value)
 	return res, nil
 }
 

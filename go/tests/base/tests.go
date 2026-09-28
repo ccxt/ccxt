@@ -1904,7 +1904,10 @@ func (this *testMainClass) testReturnResponseHeadersBody(ch chan ccxt.AsyncResul
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ticker := ccxt.BoxAbsent(r.Value)
+	var ticker any = nil
+	if r.Value != nil {
+		ticker = r.Value
+	}
 	var info map[string]any = MapTyped(GetValue(ticker, "info"))
 	var headers any = info["responseHeaders"]
 	var headersKeys []string = ObjectKeys(headers)

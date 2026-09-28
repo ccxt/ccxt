@@ -1319,8 +1319,14 @@ func (this *Phemex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...a
 		panic(r.Err)
 	}
 	var v2Productsv1ProductsVariable []map[string]any = r.Value
-	v2Products := BoxAbsent(v2Productsv1ProductsVariable[0])
-	v1Products := BoxAbsent(v2Productsv1ProductsVariable[1])
+	var v2Products any = nil
+	if v2Productsv1ProductsVariable[0] != nil {
+		v2Products = v2Productsv1ProductsVariable[0]
+	}
+	var v1Products any = nil
+	if v2Productsv1ProductsVariable[1] != nil {
+		v1Products = v2Productsv1ProductsVariable[1]
+	}
 	var v1ProductsData []any = SafeListTyped(v1Products, "data")
 	//
 	//     {

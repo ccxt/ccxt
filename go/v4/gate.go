@@ -2234,8 +2234,14 @@ func (this *Gate) fetchSpotMarketsBody(ch chan AsyncResult[[]any], optionalArgs 
 		panic(r.Err)
 	}
 	var marginResponsespotMarketsResponseVariable [][]any = r.Value
-	marginResponse := BoxAbsent(marginResponsespotMarketsResponseVariable[0])
-	spotMarketsResponse := BoxAbsent(marginResponsespotMarketsResponseVariable[1])
+	var marginResponse any = nil
+	if marginResponsespotMarketsResponseVariable[0] != nil {
+		marginResponse = marginResponsespotMarketsResponseVariable[0]
+	}
+	var spotMarketsResponse any = nil
+	if marginResponsespotMarketsResponseVariable[1] != nil {
+		spotMarketsResponse = marginResponsespotMarketsResponseVariable[1]
+	}
 	var marginMarkets map[string]any = this.IndexBy(marginResponse, "id")
 	//
 	//  Spot
@@ -12063,7 +12069,7 @@ func (this *Gate) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(BoxAbsent(r.Value))
+	var res int64 = ParseInt(r.Value)
 	return res, nil
 }
 

@@ -4165,7 +4165,10 @@ func (this *Coinex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	openOrders := BoxAbsent(r.Value)
+	var openOrders any = nil
+	if r.Value != nil {
+		openOrders = r.Value
+	}
 	for i := 0; i < GetArrayLength(openOrders); i++ {
 		AddElementToObject(GetValue(openOrders, i), "status", "open")
 	}
@@ -7514,7 +7517,7 @@ func (this *Coinex) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(BoxAbsent(r.Value))
+	var res int64 = ParseInt(r.Value)
 	return res, nil
 }
 

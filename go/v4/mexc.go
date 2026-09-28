@@ -1641,8 +1641,14 @@ func (this *Mexc) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any
 		panic(r1.Err)
 	}
 	var spotMarketswapMarketVariable [][]any = r1.Value
-	spotMarket := BoxAbsent(spotMarketswapMarketVariable[0])
-	swapMarket := BoxAbsent(spotMarketswapMarketVariable[1])
+	var spotMarket any = nil
+	if spotMarketswapMarketVariable[0] != nil {
+		spotMarket = spotMarketswapMarketVariable[0]
+	}
+	var swapMarket any = nil
+	if spotMarketswapMarketVariable[1] != nil {
+		swapMarket = spotMarketswapMarketVariable[1]
+	}
 
 	ch <- AsyncResult[any]{Value: this.ArrayConcat(spotMarket, swapMarket)}
 	return nil
@@ -4129,7 +4135,11 @@ func (this *Mexc) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3918, _ := r.Value, r.Value != nil
+	var rValueBox any = nil
+	if r.Value != nil {
+		rValueBox = r.Value
+	}
+	listRecv3918, _ := rValueBox, r.Value != nil
 	var retRes321315 []any = listRecv3918
 	if retRes321315 == nil {
 		ch <- AsyncResult[any]{Value: nil}
@@ -4173,7 +4183,11 @@ func (this *Mexc) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3957, _ := r.Value, r.Value != nil
+	var rValueBox1 any = nil
+	if r.Value != nil {
+		rValueBox1 = r.Value
+	}
+	listRecv3957, _ := rValueBox1, r.Value != nil
 	var retRes323015 []any = listRecv3957
 	if retRes323015 == nil {
 		ch <- AsyncResult[[]any]{Value: nil}
@@ -8357,7 +8371,7 @@ func (this *Mexc) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(BoxAbsent(r.Value))
+	var res int64 = ParseInt(r.Value)
 	return res, nil
 }
 

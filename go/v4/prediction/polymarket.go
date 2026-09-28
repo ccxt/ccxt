@@ -615,7 +615,11 @@ func (this *Polymarket) fetchMarketsBody(ch chan ccxt.AsyncResult[any], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		rawEvents = ccxt.BoxAbsent(r1.Value)
+		if r1.Value == nil {
+			rawEvents = nil
+		} else {
+			rawEvents = r1.Value
+		}
 	}
 	var flatMarkets []any = []any{}
 	var eventsDict map[string]any = map[string]any{}
@@ -3728,7 +3732,11 @@ func (this *Polymarket) fetchEventsBody(ch chan ccxt.AsyncResult[any], optionalA
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		rawEvents = ccxt.BoxAbsent(r2.Value)
+		if r2.Value == nil {
+			rawEvents = nil
+		} else {
+			rawEvents = r2.Value
+		}
 	}
 	// Parse and merge into class-level caches
 	if ccxt.IsEqual(this.Events, nil) {
@@ -5264,7 +5272,7 @@ func (this *Polymarket) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ccxt.ParseInt(ccxt.BoxAbsent(r.Value))
+	var res int64 = ccxt.ParseInt(r.Value)
 	return res, nil
 }
 

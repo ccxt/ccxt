@@ -8062,7 +8062,11 @@ func (this *Kucoin) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	listRecv7396, _ := r2.Value, r2.Value != nil
+	var r2ValueBox any = nil
+	if r2.Value != nil {
+		r2ValueBox = r2.Value
+	}
+	listRecv7396, _ := r2ValueBox, r2.Value != nil
 	var retRes590515 []any = listRecv7396
 	if retRes590515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
@@ -8142,7 +8146,11 @@ func (this *Kucoin) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	listRecv7464, _ := r2.Value, r2.Value != nil
+	var r2ValueBox1 any = nil
+	if r2.Value != nil {
+		r2ValueBox1 = r2.Value
+	}
+	listRecv7464, _ := r2ValueBox1, r2.Value != nil
 	var retRes594315 []any = listRecv7464
 	if retRes594315 == nil {
 		ch <- AsyncResult[any]{Value: nil}
@@ -16354,7 +16362,7 @@ func (this *Kucoin) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(BoxAbsent(r.Value))
+	var res int64 = ParseInt(r.Value)
 	return res, nil
 }
 

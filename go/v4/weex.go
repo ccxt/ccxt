@@ -3876,7 +3876,11 @@ func (this *Weex) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs .
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		orders = BoxAbsent(r2.Value)
+		if r2.Value == nil {
+			orders = nil
+		} else {
+			orders = r2.Value
+		}
 	}
 
 	ch <- AsyncResult[any]{Value: this.FilterBy(orders, "status", "closed")}
@@ -3943,7 +3947,11 @@ func (this *Weex) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalAr
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		orders = BoxAbsent(r2.Value)
+		if r2.Value == nil {
+			orders = nil
+		} else {
+			orders = r2.Value
+		}
 	}
 
 	ch <- AsyncResult[[]any]{Value: this.FilterBy(orders, "status", "canceled")}
@@ -6130,7 +6138,7 @@ func (this *Weex) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(BoxAbsent(r.Value))
+	var res int64 = ParseInt(r.Value)
 	return res, nil
 }
 

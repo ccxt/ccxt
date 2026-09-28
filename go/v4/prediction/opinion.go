@@ -2665,7 +2665,10 @@ func (this *Opinion) seedOrderBookBody(ch chan ccxt.AsyncResult[any], outcome st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	snapshot := ccxt.BoxAbsent(r.Value)
+	var snapshot any = nil
+	if r.Value != nil {
+		snapshot = r.Value
+	}
 	var orderbook any = this.OrderBook(map[string]any{})
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	ccxt.AddElementToObject(this.Orderbooks, sym, orderbook)

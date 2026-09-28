@@ -1628,7 +1628,15 @@ func (this *Xt) fetchSwapAndFutureMarketsBody(ch chan AsyncResult[[]any], option
 	//         ]
 	//     }
 	//
-	var swapAndFutureMarkets []any = this.ArrayConcat(this.SafeList(BoxAbsent(markets[0]), "result", []any{}), this.SafeList(BoxAbsent(markets[1]), "result", []any{}))
+	var markets0Box any = nil
+	if markets[0] != nil {
+		markets0Box = markets[0]
+	}
+	var markets1Box any = nil
+	if markets[1] != nil {
+		markets1Box = markets[1]
+	}
+	var swapAndFutureMarkets []any = this.ArrayConcat(this.SafeList(markets0Box, "result", []any{}), this.SafeList(markets1Box, "result", []any{}))
 
 	ch <- AsyncResult[[]any]{Value: this.ParseMarkets(swapAndFutureMarkets)}
 	return nil
@@ -8031,7 +8039,7 @@ func (this *Xt) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(BoxAbsent(r.Value))
+	var res int64 = ParseInt(r.Value)
 	return res, nil
 }
 

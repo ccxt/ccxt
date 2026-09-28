@@ -1088,8 +1088,14 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs
 		panic(r.Err)
 	}
 	var tokenResponsechainResponseVariable []map[string]any = r.Value
-	tokenResponse := BoxAbsent(tokenResponsechainResponseVariable[0])
-	chainResponse := BoxAbsent(tokenResponsechainResponseVariable[1])
+	var tokenResponse any = nil
+	if tokenResponsechainResponseVariable[0] != nil {
+		tokenResponse = tokenResponsechainResponseVariable[0]
+	}
+	var chainResponse any = nil
+	if tokenResponsechainResponseVariable[1] != nil {
+		chainResponse = tokenResponsechainResponseVariable[1]
+	}
 	var tokenData map[string]any = SafeMapTyped(tokenResponse, "data")
 	var tokenRows []any = SafeListTyped(tokenData, "rows")
 	var chainData map[string]any = SafeMapTyped(chainResponse, "data")
@@ -5192,7 +5198,7 @@ func (this *Woofipro) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(BoxAbsent(r.Value))
+	var res int64 = ParseInt(r.Value)
 	return res, nil
 }
 

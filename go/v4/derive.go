@@ -910,9 +910,18 @@ func (this *Derive) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...a
 		panic(r.Err)
 	}
 	var spotMarketsswapMarketsoptionMarketsVariable [][]any = r.Value
-	spotMarkets := BoxAbsent(spotMarketsswapMarketsoptionMarketsVariable[0])
-	swapMarkets := BoxAbsent(spotMarketsswapMarketsoptionMarketsVariable[1])
-	optionMarkets := BoxAbsent(spotMarketsswapMarketsoptionMarketsVariable[2])
+	var spotMarkets any = nil
+	if spotMarketsswapMarketsoptionMarketsVariable[0] != nil {
+		spotMarkets = spotMarketsswapMarketsoptionMarketsVariable[0]
+	}
+	var swapMarkets any = nil
+	if spotMarketsswapMarketsoptionMarketsVariable[1] != nil {
+		swapMarkets = spotMarketsswapMarketsoptionMarketsVariable[1]
+	}
+	var optionMarkets any = nil
+	if spotMarketsswapMarketsoptionMarketsVariable[2] != nil {
+		optionMarkets = spotMarketsswapMarketsoptionMarketsVariable[2]
+	}
 	//
 	// {
 	//     "result": {
@@ -3762,7 +3771,7 @@ func (this *Derive) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(BoxAbsent(r.Value))
+	var res int64 = ParseInt(r.Value)
 	return res, nil
 }
 

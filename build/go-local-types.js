@@ -6472,11 +6472,15 @@ function installCcxtGoAsyncForwardRebox (goTranspiler) {
         if (m === null) {
             return ccxtGoElideBoxedForward (printed);
         }
-        const send = new RegExp ('^(\\s*ch <- )' + m[2] + '(\\s*(?://.*)?)$', 'm');
+        const send = new RegExp ('^([ \\t]*)ch <- ' + m[2] + '([ \\t]*(?://.*)?)$', 'm');
         if (!send.test (printed)) {
             throw new Error ('go typed forward without its send: ' + printed.slice (0, 120));
         }
-        return printed.replace (send, '$1BoxAbsent(' + m[2] + ')$2');
+        // a nil map/slice is sent as untyped nil (typed-nil trap), anything else as itself
+        return printed.replace (send, (all, ind, tail) => {
+            const inner = ind + ((ind.indexOf ('\t') >= 0) ? '\t' : '    ');
+            return ind + 'if ' + m[2] + ' == nil {\n' + inner + 'ch <- nil\n' + ind + '} else {\n' + inner + 'ch <- ' + m[2] + tail + '\n' + ind + '}';
+        });
     };
     goTranspiler.__ccxtGoAsyncForwardReboxInstalled = true;
 }

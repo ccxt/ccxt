@@ -25,6 +25,143 @@ export function goChan3Nilable (type: string): boolean {
     return /^(?:map\[|\[\]|\*)/.test (type) || goChan3WsInterface (type);
 }
 
+// a nil T boxed into `any` must read as untyped nil (typed-nil trap): only map[string]any / []any fold
+export function goChan3FoldsAbsent (type: string): boolean {
+    return (type === 'map[string]any') || (type === '[]any');
+}
+
+// `<ind>x := v` / `x = v` / `ch <- C{Value: v<tail>}` of a T value as native statements: a folding T
+// gets `if v == nil` arms (absent stays untyped nil), any other T is its own box
+function goChan3AbsentStmt (ind: string, kind: 'decl' | 'set' | 'send', lhs: string, v: string, type: string, tail = ''): string {
+    const fold = goChan3FoldsAbsent (type);
+    if (kind === 'decl') {
+        return fold ? (ind + 'var ' + lhs + ' any = nil\n' + ind + 'if ' + v + ' != nil {\n' + ind + '\t' + lhs + ' = ' + v + '\n' + ind + '}') : (ind + 'var ' + lhs + ' any = ' + v);
+    }
+    const put = (e: string) => (kind === 'set') ? (lhs + ' = ' + e) : (lhs + 'Value: ' + e + tail);
+    return fold ? (ind + 'if ' + v + ' == nil {\n' + ind + '\t' + put ('nil') + '\n' + ind + '} else {\n' + ind + '\t' + put (v) + '\n' + ind + '}') : (ind + put (v));
+}
+
+// `v` read inside the arm of an emitted `if v == nil {..} else {` / `if v != nil {` guard (idempotency)
+function goChan3AbsentGuarded (masked: string, ls: number, v: string): boolean {
+    const head = masked.substring (Math.max (0, ls - 400), ls);
+    const e = v.replace (/[.[\]]/g, '\\$&');
+    return new RegExp ('if ' + e + ' != nil \\{\\n$').test (head) || new RegExp ('if ' + e + ' == nil \\{\\n[^\\n]*\\n\\t*\\} else \\{\\n$').test (head)
+        || new RegExp ('if ' + e + ' == nil \\{\\n$').test (head);
+}
+
+// the `any` box of T value `v` spanning [start, end) (the bare read, or a legacy BoxAbsent(v) call) as native
+// statements: `x := V` / `x = V` / a channel send split into nil arms; elsewhere a guarded temp is hoisted
+// before a self-contained statement line. Anything else throws (fail closed).
+function goChan3AbsentEdits (content: string, masked: string, start: number, end: number, v: string, type: string, taken: Set<string>): Edit[] {
+    if (!goChan3FoldsAbsent (type)) {
+        return [ { start, end, 'text': v } ];   // pointer / interface T: its box is already the nil verdict
+    }
+    const ls = masked.lastIndexOf ('\n', start) + 1;
+    let le = masked.indexOf ('\n', end);
+    le = (le < 0) ? masked.length : le;
+    const before = masked.substring (ls, start);
+    const after = masked.substring (end, le);
+    const tail = content.substring (end, le);
+    let m = /^(\t+)(\w+) := $/.exec (before) || /^(\t+)var (\w+) any = $/.exec (before);
+    if ((m !== null) && /^\s*$/.test (after)) {
+        return [ { 'start': ls, 'end': le, 'text': goChan3AbsentStmt (m[1], 'decl', m[2], v, type) } ];
+    }
+    m = /^(\t+)(\w+) = $/.exec (before);
+    if ((m !== null) && /^\s*$/.test (after)) {
+        return [ { 'start': ls, 'end': le, 'text': goChan3AbsentStmt (m[1], 'set', m[2], v, type) } ];
+    }
+    m = /^(\t+)(\w+ <- (?:ccxt\.)?AsyncResult\[any\]\{)Value: $/.exec (before);
+    const close = /^((?:, Err: \w+\.Err)?\})\s*$/.exec (after);
+    if ((m !== null) && (close !== null)) {
+        return [ { 'start': ls, 'end': le, 'text': goChan3AbsentStmt (m[1], 'send', m[2], v, type, tail.replace (/\s+$/, '')) } ];
+    }
+    // hoist: the line must be one whole statement at block level (not a case/else/continuation line)
+    const [ fs0 ] = goChan3Func (masked, start);
+    let depth = 0;
+    for (let i = fs0; i < ls; i++) {
+        const c = masked[i];
+        depth += ((c === '(') || (c === '[')) ? 1 : (((c === ')') || (c === ']')) ? -1 : 0);
+    }
+    const line = masked.substring (ls, le);
+    const stmt = line.replace (/\{\s*$/, '');
+    const balanced = (goChanClose ('(' + stmt + ')', 0) === stmt.length + 2) && (stmt.split ('{').length === stmt.split ('}').length);
+    const ind = /^\t+/.exec (line);
+    const prev = masked.substring (masked.lastIndexOf ('\n', ls - 2) + 1, Math.max (ls - 1, 0)).trimEnd ();
+    if ((depth !== 0) || !balanced || (ind === null) || /^\s*(?:\}|case\b|default\b|for\b|switch\b|select\b|go\b|defer\b)/.test (line) || /[,(\[]\s*$/.test (line)
+        || /(?:&&|\|\||[+\-*/%,(\[=:.])$/.test (prev)) {
+        throw new Error ('GOCHAN3: absent-folding read of ' + v + ' in an unsupported position: ' + line.trim ());
+    }
+    const base = v.replace (/\W+/g, '') + 'Box';
+    let name = base;
+    for (let k = 1; taken.has (name) || new RegExp ('\\b' + name + '\\b').test (masked.substring (fs0, goChan3Func (masked, start)[1])); k++) {
+        name = base + k;
+    }
+    taken.add (name);
+    return [
+        { 'start': ls, 'end': ls, 'text': goChan3AbsentStmt (ind[0], 'decl', name, v, type) + '\n' },
+        { start, end, 'text': name },
+    ];
+}
+
+// T of the value `v` read in the function holding `at`: `rN.Value` of a tabled receive, `V[k]` of a
+// `var V []T`, or a `var retResN T` forward; undefined when unproven
+function goChan3AbsentType (masked: string, at: number, v: string, table: Map<string, string>): string | undefined {
+    const [ fs0, fe0 ] = goChan3Func (masked, at);
+    const fn = masked.substring (fs0, at);
+    let m = /^(\w+)\.Value$/.exec (v);
+    if (m !== null) {
+        const binds = [ ...fn.matchAll (new RegExp ('\\n\\t+' + m[1] + ' := <-[^\\n]*?\\.(\\w+)Async\\(', 'g')) ];
+        return binds.length ? table.get (binds[binds.length - 1][1]) : undefined;
+    }
+    m = /^(\w+)\[\d+\]$/.exec (v) || /^(retRes\d+)$/.exec (v);
+    if (m !== null) {
+        const whole = masked.substring (fs0, fe0);
+        const decls = [ ...whole.matchAll (new RegExp ('\\n\\t+var ' + m[1] + ' ([^=\\n]+?) = ', 'g')) ];
+        if (decls.length !== 1) {
+            return undefined;
+        }
+        const t = decls[0][1];
+        return v.endsWith (']') ? (t.startsWith ('[]') ? t.slice (2) : undefined) : t;
+    }
+    return undefined;
+}
+
+// final lowering: every intermediate `BoxAbsent(v)` marker the passes above left becomes native Go
+export function goChan3LowerAbsent (content: string, table: Map<string, string>): string {
+    for (let round = 0; (round < 64) && /(?<![\w.])(?:ccxt\.)?BoxAbsent\(/.test (content); round++) {
+        const masked = goChanMask (content);
+        const re = /(?<![\w.])(?:ccxt\.)?BoxAbsent\(/g;
+        const edits: Edit[] = [];
+        const taken = new Set<string> ();
+        let lastLine = -1;
+        for (let m = re.exec (masked); m !== null; m = re.exec (masked)) {
+            const ls = masked.lastIndexOf ('\n', m.index) + 1;
+            if (ls === lastLine) {
+                continue;   // one marker per line per round: hoists on the same line would overlap
+            }
+            if (/^func /.test (masked.substring (ls, m.index))) {
+                continue;
+            }
+            const close = goChanClose (masked, m.index + m[0].length - 1);
+            const v = content.substring (m.index + m[0].length, close - 1).trim ();
+            if (!/^(?:\w+\.Value|\w+\[\d+\]|retRes\d+)$/.test (v)) {
+                throw new Error ('GOCHAN3: unlowerable absent box of ' + v);
+            }
+            const type = goChan3AbsentType (masked, m.index, v, table);
+            if (type === undefined) {
+                throw new Error ('GOCHAN3: absent box of ' + v + ' without a proven element type');
+            }
+            edits.push (...goChan3AbsentEdits (content, masked, m.index, close, v, type, taken));
+            lastLine = ls;
+        }
+        if (!edits.length) {
+            break;
+        }
+        content = goChan3Splice (content, edits);
+    }
+    return content;
+}
+
 // ===== GO-CHAN3 WS: ws cache objects travel as a Go interface element (never MapTyped: that nils them) =====
 // OrderBookInterface: every watchOrderBook* core sends the live book (`ob.(OrderBookInterface).Limit()`, now typed)
 // or forwards an untabled Watch/WatchMultiple receive, unboxed at the send with OrderBookTyped.
@@ -470,6 +607,10 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
             const le = masked.indexOf ('\n', at);
             const before = masked.substring (ls, at);
             const after = masked.substring (end, le);
+            // native absent fold already emitted (`if r.Value == nil {` and its arms): idempotent
+            if ((nilable && /^\s*[!=]= nil\b/.test (after)) || goChan3AbsentGuarded (masked, ls, name + '.Value')) {
+                continue;
+            }
             const assert = /^\.\(([^()]+)\)/.exec (after);
             if (assert !== null) {
                 if (assert[1] !== goChan3QualType (type, q)) {
@@ -650,6 +791,10 @@ function goChan3PromiseAllPass (content: string, table: Map<string, string>): st
 
 // the shared pass: retypes tabled cores, their consumers and interface lines (idempotent)
 export function goChan3Pass (content: string, table: Map<string, string> = goChan3Table ()): string {
+    return goChan3LowerAbsent (goChan3PassMarked (content, table), table);
+}
+
+function goChan3PassMarked (content: string, table: Map<string, string>): string {
     content = goChan3PromiseAllPass (content, table);
     if ((table.size === 0) || (content.indexOf ('Async') < 0)) {
         return content;
@@ -765,10 +910,10 @@ export function goChan3SelfTest (): string[] {
     const c = run (consumer);
     ok (c.includes ('\tvar m map[string]any = r.Value\n'), 'MapTyped dropped');
     ok (c.includes ('\tvar n int64 = r1.Value\n'), 'assertion dropped');
-    ok (c.includes ('\tresponse := BoxAbsent(r2.Value)\n'), 'nilable any-handoff boxed: ' + c);
+    ok (c.includes ('\tvar response any = nil\n\tif r2.Value != nil {\n\t\tresponse = r2.Value\n\t}\n') && !c.includes ('BoxAbsent'), 'nilable any-handoff native fold: ' + c);
     ok (c.includes ('\tt := r3.Value\n'), 'scalar typed local kept');
     ok (c.includes ('\tvar s any = r4.Value\n\ts = nil\n'), 'rebound local stays any');
-    ok (c.includes ('NewOrder(r5.Value)') && c.includes ('AppendToArray(&list, BoxAbsent(r5.Value))'), 'wrapper conv kept, handoff boxed');
+    ok (c.includes ('NewOrder(r5.Value)') && c.includes ('\tvar r5ValueBox any = nil\n\tif r5.Value != nil {\n\t\tr5ValueBox = r5.Value\n\t}\n\tAppendToArray(&list, r5ValueBox)'), 'wrapper conv kept, handoff hoisted native');
     ok (c.includes ('[]any{this.SetXAsync(5), this.OtherAsync()}') && c.includes ('this.Spawn(this.SetXAsync, 6)') && c.includes ('PanicOnError((<-this.SetXAsync(7)))'), 'reflective consumers untouched');
     ok (run (c) === c, 'consumer idempotent');
     ok ((() => { try { run ('package ccxt\n\nfunc (this *Y) f() {\n\tr := <-this.SetXAsync(1)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\t_ = r.Value.([]any)\n}\n'); return false; } catch (e) { return true; } }) (), 'mismatched assertion throws');
@@ -776,10 +921,11 @@ export function goChan3SelfTest (): string[] {
     ok (okForm.includes ('\tv, ok := r.Value, r.Value != nil\n'), 'comma-ok assertion keeps its nil verdict');
     // forward of a tabled receive into an untabled core
     const into = run ('package ccxt\n' + core ('X', '\tch <- <-this.DerivedExchange.SetXAsync(a)\n\treturn nil\n', 'Other'));
-    ok (into.includes ('\tr := <-this.DerivedExchange.SetXAsync(a)\n\tch <- AsyncResult[any]{Value: BoxAbsent(r.Value), Err: r.Err}\n'), 'forward into any core: ' + into);
+    ok (into.includes ('\tr := <-this.DerivedExchange.SetXAsync(a)\n\tif r.Value == nil {\n\t\tch <- AsyncResult[any]{Value: nil, Err: r.Err}\n\t} else {\n\t\tch <- AsyncResult[any]{Value: r.Value, Err: r.Err}\n\t}\n'), 'forward into any core: ' + into);
     ok (run (into) === into, 'forward idempotent');
     const into2 = run ('package ccxt\n' + core ('X', '\tr := <-this.SetXAsync(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tch <- AsyncResult[any]{Value: r.Value}\n\treturn nil\n', 'Other'));
-    ok (into2.includes ('ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}'), 'value forward into any core');
+    ok (into2.includes ('\tif r.Value == nil {\n\t\tch <- AsyncResult[any]{Value: nil}\n\t} else {\n\t\tch <- AsyncResult[any]{Value: r.Value}\n\t}\n'), 'value forward into any core: ' + into2);
+    ok (run (into2) === into2, 'value forward idempotent');
     // interface lines
     const itf = run ('package ccxt\n\ntype I interface {\n\tSetXAsync(a any, optionalArgs ...any) <-chan AsyncResult[any]\n\tOtherAsync() <-chan AsyncResult[any]\n}\n');
     ok (itf.includes ('\tSetXAsync(a any, optionalArgs ...any) <-chan AsyncResult[map[string]any]\n\tOtherAsync() <-chan AsyncResult[any]\n'), 'interface line');
@@ -797,7 +943,7 @@ export function goChan3SelfTest (): string[] {
     // typed promiseAll
     const pall = 'package ccxt\n\nfunc (this *Y) f(p any) any {\n\tvar a any = EndpointRaw(this.PubGetA(p))\n\tr := <-promiseAll([]any{a, this.PubGetA(p)})\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tvar v []any = ListTyped(r.Value)\n\tx := GetValue(v, 0)\n\treturn []any{x, GetValue(v, 1)}\n}\n';
     const pt = run (pall);
-    ok (pt.includes ('\ta := this.PubGetA(p)\n\tr := <-PromiseAllTyped[map[string]any, EndpointResult[map[string]any]](a, this.PubGetA(p))\n') && pt.includes ('\tvar v []map[string]any = r.Value\n\tx := BoxAbsent(v[0])\n\treturn []any{x, BoxAbsent(v[1])}'), 'typed promiseAll: ' + pt);
+    ok (pt.includes ('\ta := this.PubGetA(p)\n\tr := <-PromiseAllTyped[map[string]any, EndpointResult[map[string]any]](a, this.PubGetA(p))\n') && pt.includes ('\tvar v []map[string]any = r.Value\n\tvar x any = nil\n\tif v[0] != nil {\n\t\tx = v[0]\n\t}\n\tvar v1Box any = nil\n\tif v[1] != nil {\n\t\tv1Box = v[1]\n\t}\n\treturn []any{x, v1Box}'), 'typed promiseAll: ' + pt);
     ok (run (pt) === pt, 'typed promiseAll idempotent');
     ok (run (pall.replace ('this.PubGetA(p)})', 'this.PubGetL(p)})')) === pall.replace ('this.PubGetA(p)})', 'this.PubGetL(p)})'), 'mixed promiseAll untouched');
     ok (run (pall.replace ('x := GetValue(v, 0)', 'x := v')) === pall.replace ('x := GetValue(v, 0)', 'x := v'), 'whole-list read untouched');

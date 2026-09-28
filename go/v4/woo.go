@@ -1598,8 +1598,14 @@ func (this *Woo) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...a
 		panic(r.Err)
 	}
 	var tokenResponsetokenNetworkResponseVariable []map[string]any = r.Value
-	tokenResponse := BoxAbsent(tokenResponsetokenNetworkResponseVariable[0])
-	tokenNetworkResponse := BoxAbsent(tokenResponsetokenNetworkResponseVariable[1])
+	var tokenResponse any = nil
+	if tokenResponsetokenNetworkResponseVariable[0] != nil {
+		tokenResponse = tokenResponsetokenNetworkResponseVariable[0]
+	}
+	var tokenNetworkResponse any = nil
+	if tokenResponsetokenNetworkResponseVariable[1] != nil {
+		tokenNetworkResponse = tokenResponsetokenNetworkResponseVariable[1]
+	}
 	var tokenRows []any = SafeListTyped(tokenResponse, "rows")
 	var tokenNetworkRows []any = SafeListTyped(tokenNetworkResponse, "rows")
 	var networksById map[string]any = this.GroupBy(tokenNetworkRows, "token")
@@ -3554,8 +3560,14 @@ func (this *Woo) fetchAccountsBody(ch chan AsyncResult[any], optionalArgs ...any
 		panic(r.Err)
 	}
 	var mainAccountResponsesubAccountResponseVariable []map[string]any = r.Value
-	mainAccountResponse := BoxAbsent(mainAccountResponsesubAccountResponseVariable[0])
-	subAccountResponse := BoxAbsent(mainAccountResponsesubAccountResponseVariable[1])
+	var mainAccountResponse any = nil
+	if mainAccountResponsesubAccountResponseVariable[0] != nil {
+		mainAccountResponse = mainAccountResponsesubAccountResponseVariable[0]
+	}
+	var subAccountResponse any = nil
+	if mainAccountResponsesubAccountResponseVariable[1] != nil {
+		subAccountResponse = mainAccountResponsesubAccountResponseVariable[1]
+	}
 	var mainData map[string]any = this.SafeDictMap(mainAccountResponse, "data", map[string]any{})
 	var mainRows []any = []any{mainData}
 	var subData map[string]any = SafeMapTyped(subAccountResponse, "data")
@@ -6363,7 +6375,7 @@ func (this *Woo) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(BoxAbsent(r.Value))
+	var res int64 = ParseInt(r.Value)
 	return res, nil
 }
 

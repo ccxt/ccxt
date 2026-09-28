@@ -1624,7 +1624,11 @@ func (this *PredictionExchange) createMarketBuyOrderWithCostBody(ch chan AsyncRe
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+		if r.Value == nil {
+			ch <- AsyncResult[any]{Value: nil}
+		} else {
+			ch <- AsyncResult[any]{Value: r.Value}
+		}
 		return nil
 	}
 	panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() is not supported yet"))
@@ -1655,7 +1659,11 @@ func (this *PredictionExchange) createMarketSellOrderWithCostBody(ch chan AsyncR
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+		if r.Value == nil {
+			ch <- AsyncResult[any]{Value: nil}
+		} else {
+			ch <- AsyncResult[any]{Value: r.Value}
+		}
 		return nil
 	}
 	panic(NotSupported(this.Id + " createMarketSellOrderWithCost() is not supported yet"))

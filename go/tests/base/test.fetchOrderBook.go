@@ -19,7 +19,10 @@ func testFetchOrderBookBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreEx
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	orderbook := ccxt.BoxAbsent(r.Value)
+	var orderbook any = nil
+	if r.Value != nil {
+		orderbook = r.Value
+	}
 	TestOrderBook(exchange, skippedProperties, method, orderbook, symbol)
 
 	ch <- ccxt.AsyncResult[any]{Value: true}

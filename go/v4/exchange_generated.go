@@ -6779,7 +6779,7 @@ func (this *BaseExchange) loadTimeDifferenceBody(ch chan AsyncResult[any], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	serverTime := BoxAbsent(r.Value)
+	serverTime := r.Value
 	var after int64 = this.Milliseconds()
 	if IsEqual(serverTime, nil) {
 		panic(ExchangeError(this.Id + " loadTimeDifference() missing serverTime"))
@@ -7415,7 +7415,10 @@ func (this *BaseExchange) fetchFundingIntervalBody(ch chan AsyncResult[map[strin
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		rates := BoxAbsent(r1.Value)
+		var rates any = nil
+		if r1.Value != nil {
+			rates = r1.Value
+		}
 		var rate map[string]any = SafeMapTyped(rates, symbolResolved)
 		if IsEqual(rate, nil) {
 			panic(NullResponse(this.Id + " fetchFundingInterval() returned no data for " + *symbolResolved))
@@ -9329,7 +9332,10 @@ func (this *Exchange) fetchPositionHistoryBody(ch chan AsyncResult[any], symbol 
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		positions := BoxAbsent(r.Value)
+		var positions any = nil
+		if r.Value != nil {
+			positions = r.Value
+		}
 
 		ch <- AsyncResult[any]{Value: positions}
 		return nil
@@ -10255,7 +10261,10 @@ func (this *Exchange) fetchClosedOrdersWsBody(ch chan EndpointResult[[]any], opt
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		orders := BoxAbsent(r.Value)
+		var orders any = nil
+		if r.Value != nil {
+			orders = r.Value
+		}
 
 		chValue := this.FilterBy(orders, "status", "closed")
 		ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue}
@@ -10303,7 +10312,10 @@ func (this *Exchange) fetchOpenOrdersWsBody(ch chan AsyncResult[any], optionalAr
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		orders := BoxAbsent(r.Value)
+		var orders any = nil
+		if r.Value != nil {
+			orders = r.Value
+		}
 
 		ch <- AsyncResult[any]{Value: this.FilterBy(orders, "status", "open")}
 		return nil
@@ -10535,7 +10547,10 @@ func (this *Exchange) fetchRestOrderBookSafeBody(ch chan AsyncResult[any], symbo
 				if r.Err != nil {
 					panic(r.Err)
 				}
-				orderBook := BoxAbsent(r.Value)
+				var orderBook any = nil
+				if r.Value != nil {
+					orderBook = r.Value
+				}
 
 				ch <- AsyncResult[any]{Value: orderBook}
 				chSent = true
@@ -10607,7 +10622,10 @@ func (this *Exchange) fetchL2OrderBookBody(ch chan EndpointResult[map[string]any
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	orderbook := BoxAbsent(r.Value)
+	var orderbook any = nil
+	if r.Value != nil {
+		orderbook = r.Value
+	}
 
 	chValue := this.Extend(orderbook, map[string]any{
 		"asks": this.SortBy(this.Aggregate(GetValue(orderbook, "asks")), 0),
@@ -10673,7 +10691,11 @@ func (this *Exchange) editLimitOrderBody(ch chan AsyncResult[any], id string, sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+	if r.Value == nil {
+		ch <- AsyncResult[any]{Value: nil}
+	} else {
+		ch <- AsyncResult[any]{Value: r.Value}
+	}
 	return nil
 }
 func (this *Exchange) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
@@ -10700,7 +10722,11 @@ func (this *Exchange) editOrderBody(ch chan AsyncResult[map[string]any], id stri
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- AsyncResult[map[string]any]{Value: r1.Value}
+	var r1ValueBox any = nil
+	if r1.Value != nil {
+		r1ValueBox = r1.Value
+	}
+	ch <- AsyncResult[map[string]any]{Value: r1ValueBox}
 	return nil
 }
 func (this *Exchange) EditOrderWithClientOrderIdAsync(clientOrderId string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -10725,7 +10751,11 @@ func (this *Exchange) editOrderWithClientOrderIdBody(ch chan AsyncResult[any], c
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+	if r.Value == nil {
+		ch <- AsyncResult[any]{Value: nil}
+	} else {
+		ch <- AsyncResult[any]{Value: r.Value}
+	}
 	return nil
 }
 func (this *Exchange) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -10917,7 +10947,11 @@ func (this *Exchange) fetchOrderWithClientOrderIdBody(ch chan AsyncResult[any], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+	if r.Value == nil {
+		ch <- AsyncResult[any]{Value: nil}
+	} else {
+		ch <- AsyncResult[any]{Value: r.Value}
+	}
 	return nil
 }
 func (this *Exchange) FetchOrderStatusAsync(id string, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -10939,7 +10973,10 @@ func (this *Exchange) fetchOrderStatusBody(ch chan AsyncResult[any], id string, 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	order := BoxAbsent(r.Value)
+	var order any = nil
+	if r.Value != nil {
+		order = r.Value
+	}
 
 	ch <- AsyncResult[any]{Value: GetValue(order, "status")}
 	return nil
@@ -10959,7 +10996,11 @@ func (this *Exchange) fetchUnifiedOrderBody(ch chan AsyncResult[any], order any,
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+	if r.Value == nil {
+		ch <- AsyncResult[any]{Value: nil}
+	} else {
+		ch <- AsyncResult[any]{Value: r.Value}
+	}
 	return nil
 }
 func (this *Exchange) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
@@ -11019,7 +11060,11 @@ func (this *Exchange) createTrailingAmountOrderBody(ch chan AsyncResult[any], sy
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+		if r.Value == nil {
+			ch <- AsyncResult[any]{Value: nil}
+		} else {
+			ch <- AsyncResult[any]{Value: r.Value}
+		}
 		return nil
 	}
 	panic(NotSupported(this.Id + " createTrailingAmountOrder() is not supported yet"))
@@ -11067,7 +11112,11 @@ func (this *Exchange) createTrailingPercentOrderBody(ch chan AsyncResult[any], s
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+		if r.Value == nil {
+			ch <- AsyncResult[any]{Value: nil}
+		} else {
+			ch <- AsyncResult[any]{Value: r.Value}
+		}
 		return nil
 	}
 	panic(NotSupported(this.Id + " createTrailingPercentOrder() is not supported yet"))
@@ -11098,7 +11147,11 @@ func (this *Exchange) createMarketOrderWithCostBody(ch chan AsyncResult[map[stri
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		ch <- AsyncResult[map[string]any]{Value: r.Value}
+		var rValueBox any = nil
+		if r.Value != nil {
+			rValueBox = r.Value
+		}
+		ch <- AsyncResult[map[string]any]{Value: rValueBox}
 		return nil
 	}
 	panic(NotSupported(this.Id + " createMarketOrderWithCost() is not supported yet"))
@@ -11128,7 +11181,11 @@ func (this *Exchange) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any],
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+		if r.Value == nil {
+			ch <- AsyncResult[any]{Value: nil}
+		} else {
+			ch <- AsyncResult[any]{Value: r.Value}
+		}
 		return nil
 	}
 	panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() is not supported yet"))
@@ -11158,7 +11215,11 @@ func (this *Exchange) createMarketSellOrderWithCostBody(ch chan AsyncResult[any]
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+		if r.Value == nil {
+			ch <- AsyncResult[any]{Value: nil}
+		} else {
+			ch <- AsyncResult[any]{Value: r.Value}
+		}
 		return nil
 	}
 	panic(NotSupported(this.Id + " createMarketSellOrderWithCost() is not supported yet"))
@@ -11202,7 +11263,11 @@ func (this *Exchange) createTriggerOrderBody(ch chan AsyncResult[any], symbol st
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+		if r.Value == nil {
+			ch <- AsyncResult[any]{Value: nil}
+		} else {
+			ch <- AsyncResult[any]{Value: r.Value}
+		}
 		return nil
 	}
 	panic(NotSupported(this.Id + " createTriggerOrder() is not supported yet"))
@@ -11246,7 +11311,11 @@ func (this *Exchange) createStopLossOrderBody(ch chan AsyncResult[any], symbol s
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+		if r.Value == nil {
+			ch <- AsyncResult[any]{Value: nil}
+		} else {
+			ch <- AsyncResult[any]{Value: r.Value}
+		}
 		return nil
 	}
 	panic(NotSupported(this.Id + " createStopLossOrder() is not supported yet"))
@@ -11290,7 +11359,11 @@ func (this *Exchange) createTakeProfitOrderBody(ch chan AsyncResult[any], symbol
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+		if r.Value == nil {
+			ch <- AsyncResult[any]{Value: nil}
+		} else {
+			ch <- AsyncResult[any]{Value: r.Value}
+		}
 		return nil
 	}
 	panic(NotSupported(this.Id + " createTakeProfitOrder() is not supported yet"))
@@ -11340,7 +11413,11 @@ func (this *Exchange) createOrderWithTakeProfitAndStopLossBody(ch chan AsyncResu
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+		if r.Value == nil {
+			ch <- AsyncResult[any]{Value: nil}
+		} else {
+			ch <- AsyncResult[any]{Value: r.Value}
+		}
 		return nil
 	}
 	panic(NotSupported(this.Id + " createOrderWithTakeProfitAndStopLoss() is not supported yet"))
@@ -11401,7 +11478,11 @@ func (this *Exchange) cancelOrderWithClientOrderIdBody(ch chan AsyncResult[any],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+	if r.Value == nil {
+		ch <- AsyncResult[any]{Value: nil}
+	} else {
+		ch <- AsyncResult[any]{Value: r.Value}
+	}
 	return nil
 }
 func (this *Exchange) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -11483,7 +11564,11 @@ func (this *Exchange) cancelUnifiedOrderBody(ch chan AsyncResult[any], order any
 	_ = params
 
 	r := <-this.DerivedExchange.CancelOrderAsync(this.SafeString(order, "id"), this.SafeString(order, "symbol"), params)
-	ch <- AsyncResult[any]{Value: BoxAbsent(r.Value), Err: r.Err}
+	if r.Value == nil {
+		ch <- AsyncResult[any]{Value: nil, Err: r.Err}
+	} else {
+		ch <- AsyncResult[any]{Value: r.Value, Err: r.Err}
+	}
 	return nil
 }
 func (this *Exchange) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
@@ -11670,7 +11755,11 @@ func (this *Exchange) createLimitOrderBody(ch chan AsyncResult[any], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+	if r.Value == nil {
+		ch <- AsyncResult[any]{Value: nil}
+	} else {
+		ch <- AsyncResult[any]{Value: r.Value}
+	}
 	return nil
 }
 func (this *Exchange) CreateMarketOrderAsync(symbol string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -11690,7 +11779,11 @@ func (this *Exchange) createMarketOrderBody(ch chan AsyncResult[any], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+	if r.Value == nil {
+		ch <- AsyncResult[any]{Value: nil}
+	} else {
+		ch <- AsyncResult[any]{Value: r.Value}
+	}
 	return nil
 }
 func (this *Exchange) CreateLimitBuyOrderAsync(symbol string, amount any, price any, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -11708,7 +11801,11 @@ func (this *Exchange) createLimitBuyOrderBody(ch chan AsyncResult[any], symbol s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+	if r.Value == nil {
+		ch <- AsyncResult[any]{Value: nil}
+	} else {
+		ch <- AsyncResult[any]{Value: r.Value}
+	}
 	return nil
 }
 func (this *Exchange) CreateLimitSellOrderAsync(symbol string, amount any, price any, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -11726,7 +11823,11 @@ func (this *Exchange) createLimitSellOrderBody(ch chan AsyncResult[any], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+	if r.Value == nil {
+		ch <- AsyncResult[any]{Value: nil}
+	} else {
+		ch <- AsyncResult[any]{Value: r.Value}
+	}
 	return nil
 }
 func (this *Exchange) CreateMarketBuyOrderAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -11744,7 +11845,11 @@ func (this *Exchange) createMarketBuyOrderBody(ch chan AsyncResult[any], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+	if r.Value == nil {
+		ch <- AsyncResult[any]{Value: nil}
+	} else {
+		ch <- AsyncResult[any]{Value: r.Value}
+	}
 	return nil
 }
 func (this *Exchange) CreateMarketSellOrderAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -11762,7 +11867,11 @@ func (this *Exchange) createMarketSellOrderBody(ch chan AsyncResult[any], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+	if r.Value == nil {
+		ch <- AsyncResult[any]{Value: nil}
+	} else {
+		ch <- AsyncResult[any]{Value: r.Value}
+	}
 	return nil
 }
 func (this *Exchange) CreatePostOnlyOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -11788,7 +11897,11 @@ func (this *Exchange) createPostOnlyOrderBody(ch chan AsyncResult[any], symbol s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+	if r.Value == nil {
+		ch <- AsyncResult[any]{Value: nil}
+	} else {
+		ch <- AsyncResult[any]{Value: r.Value}
+	}
 	return nil
 }
 func (this *Exchange) CreateReduceOnlyOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -11814,7 +11927,11 @@ func (this *Exchange) createReduceOnlyOrderBody(ch chan AsyncResult[any], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+	if r.Value == nil {
+		ch <- AsyncResult[any]{Value: nil}
+	} else {
+		ch <- AsyncResult[any]{Value: r.Value}
+	}
 	return nil
 }
 func (this *Exchange) CreateStopOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -11845,7 +11962,11 @@ func (this *Exchange) createStopOrderBody(ch chan AsyncResult[any], symbol strin
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+	if r.Value == nil {
+		ch <- AsyncResult[any]{Value: nil}
+	} else {
+		ch <- AsyncResult[any]{Value: r.Value}
+	}
 	return nil
 }
 func (this *Exchange) CreateStopLimitOrderAsync(symbol string, side string, amount any, price any, triggerPrice any, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -11869,7 +11990,11 @@ func (this *Exchange) createStopLimitOrderBody(ch chan AsyncResult[any], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+	if r.Value == nil {
+		ch <- AsyncResult[any]{Value: nil}
+	} else {
+		ch <- AsyncResult[any]{Value: r.Value}
+	}
 	return nil
 }
 func (this *Exchange) CreateStopMarketOrderAsync(symbol string, side string, amount any, triggerPrice any, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -11893,7 +12018,11 @@ func (this *Exchange) createStopMarketOrderBody(ch chan AsyncResult[any], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: BoxAbsent(r.Value)}
+	if r.Value == nil {
+		ch <- AsyncResult[any]{Value: nil}
+	} else {
+		ch <- AsyncResult[any]{Value: r.Value}
+	}
 	return nil
 }
 func (this *Exchange) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
