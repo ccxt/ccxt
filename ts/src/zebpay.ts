@@ -1882,7 +1882,6 @@ export default class zebpay extends Exchange {
         const bidVolume = this.safeString (ticker, 'bidVolume');
         const askVolume = this.safeString (ticker, 'askVolume');
         return this.safeTicker ({
-            'id': marketId,
             'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
