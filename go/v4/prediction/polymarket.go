@@ -615,7 +615,7 @@ func (this *Polymarket) fetchMarketsBody(ch chan ccxt.AsyncResult[any], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		rawEvents = r1.Value
+		rawEvents = ccxt.BoxAbsent(r1.Value)
 	}
 	var flatMarkets []any = []any{}
 	var eventsDict map[string]any = map[string]any{}
@@ -842,12 +842,12 @@ func (this *Polymarket) TagToSlug(tag any) string {
  * @param {int} [params.limit] max number of events to fetch (default options.fetchMarketsLimit); the listing is ordered by 24h volume so the most active markets come first
  * @returns {object[]} an array of raw gamma event objects
  */
-func (this *Polymarket) FetchRawEventsListAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Polymarket) FetchRawEventsListAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
+	ch := make(chan ccxt.AsyncResult[[]any], 1)
 	go this.fetchRawEventsListBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) fetchRawEventsListBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Polymarket) fetchRawEventsListBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// gamma hard-caps each response at 100 events regardless of the requested limit, so the
@@ -896,7 +896,7 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan ccxt.AsyncResult[any], op
 			if r.Err != nil {
 				panic(r.Err)
 			}
-			var tagEvents []any = ccxt.ListTyped(r.Value)
+			var tagEvents []any = r.Value
 			for ei := 0; ei < len(tagEvents); ei++ {
 				var rawEvent any = ccxt.GetValue(tagEvents, ei)
 				var eventId *string = this.SafeString(rawEvent, "id")
@@ -913,7 +913,7 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan ccxt.AsyncResult[any], op
 			}
 		}
 
-		ch <- ccxt.AsyncResult[any]{Value: unioned}
+		ch <- ccxt.AsyncResult[[]any]{Value: unioned}
 		return nil
 	}
 	if requestedTagsLength > 0 {
@@ -992,11 +992,11 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan ccxt.AsyncResult[any], op
 	var allRawEventsLength int = len(allRawEvents)
 	if ccxt.IsGreaterThan(allRawEventsLength, limit) {
 
-		ch <- ccxt.AsyncResult[any]{Value: this.ArraySlice(allRawEvents, 0, limit)}
+		ch <- ccxt.AsyncResult[[]any]{Value: this.ArraySlice(allRawEvents, 0, limit)}
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: allRawEvents}
+	ch <- ccxt.AsyncResult[[]any]{Value: allRawEvents}
 	return nil
 }
 func (this *Polymarket) ParseEventToMarkets(event any) any {
@@ -3725,7 +3725,7 @@ func (this *Polymarket) fetchEventsBody(ch chan ccxt.AsyncResult[any], optionalA
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		rawEvents = r2.Value
+		rawEvents = ccxt.BoxAbsent(r2.Value)
 	}
 	// Parse and merge into class-level caches
 	if ccxt.IsEqual(this.Events, nil) {

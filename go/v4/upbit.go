@@ -572,7 +572,7 @@ func (this *Upbit) fetchMarketBody(ch chan EndpointResult[map[string]any], symbo
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes39915 map[string]any = MapTyped(r1.Value)
+	var retRes39915 map[string]any = r1.Value
 	if retRes39915 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
@@ -580,12 +580,12 @@ func (this *Upbit) fetchMarketBody(ch chan EndpointResult[map[string]any], symbo
 	}
 	return nil
 }
-func (this *Upbit) FetchMarketByIdAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Upbit) FetchMarketByIdAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchMarketByIdBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Upbit) fetchMarketByIdBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Upbit) fetchMarketByIdBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// this method is for retrieving trading fees and limits per market
@@ -653,7 +653,7 @@ func (this *Upbit) fetchMarketByIdBody(ch chan AsyncResult[any], id any, optiona
 		fee = &derefNum
 	}
 
-	ch <- AsyncResult[any]{Value: this.SafeMarketStructure(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"symbol":         *base + "/" + *quote,
 		"base":           base,

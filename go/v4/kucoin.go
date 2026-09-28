@@ -11672,7 +11672,7 @@ func (this *Kucoin) transferBody(ch chan AsyncResult[any], code string, amount a
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes856419 map[string]any = MapTyped(r2.Value)
+		var retRes856419 map[string]any = r2.Value
 		if retRes856419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
@@ -11685,7 +11685,7 @@ func (this *Kucoin) transferBody(ch chan AsyncResult[any], code string, amount a
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	var retRes856615 map[string]any = MapTyped(r3.Value)
+	var retRes856615 map[string]any = r3.Value
 	if retRes856615 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -11709,12 +11709,12 @@ func (this *Kucoin) transferBody(ch chan AsyncResult[any], code string, amount a
  * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB or SUB_TO_SUB
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Kucoin) TransferUtaAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Kucoin) TransferUtaAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.transferUtaBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) transferUtaBody(ch chan AsyncResult[any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Kucoin) transferUtaBody(ch chan AsyncResult[map[string]any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -11811,7 +11811,7 @@ func (this *Kucoin) transferUtaBody(ch chan AsyncResult[any], code string, amoun
 		transfer["status"] = "ok"
 	}
 
-	ch <- AsyncResult[any]{Value: transfer}
+	ch <- AsyncResult[map[string]any]{Value: transfer}
 	return nil
 }
 
@@ -11830,12 +11830,12 @@ func (this *Kucoin) transferUtaBody(ch chan AsyncResult[any], code string, amoun
  * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Kucoin) TransferClassicAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Kucoin) TransferClassicAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.transferClassicBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) transferClassicBody(ch chan AsyncResult[any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Kucoin) transferClassicBody(ch chan AsyncResult[map[string]any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -11930,7 +11930,7 @@ func (this *Kucoin) transferClassicBody(ch chan AsyncResult[any], code string, a
 		transfer["status"] = "ok"
 	}
 
-	ch <- AsyncResult[any]{Value: transfer}
+	ch <- AsyncResult[map[string]any]{Value: transfer}
 	return nil
 }
 func (this *Kucoin) IsHfOrMining(fromId any, toId any) bool {

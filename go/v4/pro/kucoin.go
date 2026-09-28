@@ -144,12 +144,12 @@ func (this *Kucoin) negotiateBody(ch chan ccxt.AsyncResult[any], privateChannel 
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Kucoin) NegotiateHelperAsync(privateChannel any, connectId any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Kucoin) NegotiateHelperAsync(privateChannel any, connectId any, optionalArgs ...any) <-chan ccxt.AsyncResult[string] {
+	ch := make(chan ccxt.AsyncResult[string], 1)
 	go this.negotiateHelperBody(ch, privateChannel, connectId, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) negotiateHelperBody(ch chan ccxt.AsyncResult[any], privateChannel any, connectId any, optionalArgs ...any) any {
+func (this *Kucoin) negotiateHelperBody(ch chan ccxt.AsyncResult[string], privateChannel any, connectId any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	chSent := false
@@ -221,7 +221,7 @@ func (this *Kucoin) negotiateHelperBody(ch chan ccxt.AsyncResult[any], privateCh
 			var client ccxt.ClientInterface = this.Client(result)
 			client.(ccxt.ClientInterface).SetKeepAlive(pingInterval)
 
-			ch <- ccxt.AsyncResult[any]{Value: result}
+			ch <- ccxt.AsyncResult[string]{Value: result}
 			chSent = true
 			return nil
 
