@@ -1658,7 +1658,7 @@ class testMainClass {
         return count;
     }
 
-    assertNewAndStoredOutputInner (exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck = true, assertingKey: Str = undefined) {
+    assertNewAndStoredOutputInner (exchange: Exchange, skipKeys: string[], skipValues: string[], newOutput: any, storedOutput: any, strictTypeCheck = true, assertingKey: Str = undefined) {
         if (isNullValue (newOutput) && isNullValue (storedOutput)) {
             return true;
             // c# requirement
@@ -1710,6 +1710,9 @@ class testMainClass {
                     }
                     this.assertStaticError (false, 'output key missing: ' + key, storedOutput, newOutput);
                 }
+                if (exchange.inArray (key, skipValues)) {
+                    continue; // the key must be present (asserted above), but its value is volatile
+                }
                 const storedValue = storedOutput[key];
                 const newValue = newOutput[key];
                 // Recurse into the *inner* (non-try/catch) variant: the
@@ -1719,7 +1722,7 @@ class testMainClass {
                 // of a result's thousands of nodes made `--responseTests`
                 // take minutes. A failure still unwinds to the single
                 // top-level wrapper.
-                this.assertNewAndStoredOutputInner (exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
+                this.assertNewAndStoredOutputInner (exchange, skipKeys, skipValues, newValue, storedValue, strictTypeCheck, key);
             }
         // `newOutput !== undefined` is redundant in JS (Array.isArray (undefined) is false) but
         // required in C#: Array.isArray transpiles to a `.GetType()` probe that throws on null,
@@ -1731,7 +1734,7 @@ class testMainClass {
             for (let i = 0; i < storedOutput.length; i++) {
                 const storedItem = storedOutput[i];
                 const newItem = newOutput[i];
-                this.assertNewAndStoredOutputInner (exchange, skipKeys, newItem, storedItem, strictTypeCheck);
+                this.assertNewAndStoredOutputInner (exchange, skipKeys, skipValues, newItem, storedItem, strictTypeCheck);
             }
         } else {
             // built-in types like strings, numbers, booleans
@@ -1827,10 +1830,10 @@ class testMainClass {
         return true; // c# requ
     }
 
-    assertNewAndStoredOutput (exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck = true, assertingKey: Str = undefined) {
+    assertNewAndStoredOutput (exchange: Exchange, skipKeys: string[], skipValues: string[], newOutput: any, storedOutput: any, strictTypeCheck = true, assertingKey: Str = undefined) {
         let res = true;
         try {
-            res = this.assertNewAndStoredOutputInner (exchange, skipKeys, newOutput, storedOutput, strictTypeCheck, assertingKey);
+            res = this.assertNewAndStoredOutputInner (exchange, skipKeys, skipValues, newOutput, storedOutput, strictTypeCheck, assertingKey);
         } catch (e) {
             if (this.info) {
                 const errorMessage = this.varToString (newOutput) + '(calculated)' + ' != ' + this.varToString (storedOutput) + '(stored)';
@@ -1853,7 +1856,7 @@ class testMainClass {
         return newString;
     }
 
-    assertStaticRequestOutput (exchange: any, type: Str, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput: any, newOutput: any) {
+    assertStaticRequestOutput (exchange: any, type: Str, skipKeys: string[], skipValues: string[], storedUrl: string, requestUrl: string, storedOutput: any, newOutput: any) {
         if (storedUrl !== requestUrl) {
             // remove the host part from the url
             const firstPath = this.removeHostnamefromUrl (storedUrl);
@@ -1875,7 +1878,7 @@ class testMainClass {
                 }
                 const storedUrlParams = this.urlencodedToDict (storedUrlQuery);
                 const newUrlParams = this.urlencodedToDict (newUrlQuery);
-                this.assertNewAndStoredOutput (exchange, skipKeys, newUrlParams, storedUrlParams);
+                this.assertNewAndStoredOutput (exchange, skipKeys, skipValues, newUrlParams, storedUrlParams);
                 return true;
             }
         // body is defined
@@ -1900,12 +1903,12 @@ class testMainClass {
 
             }
         }
-        this.assertNewAndStoredOutput (exchange, skipKeys, newOutput, storedOutput);
+        this.assertNewAndStoredOutput (exchange, skipKeys, skipValues, newOutput, storedOutput);
         return true;
     }
 
-    assertStaticResponseOutput (exchange: Exchange, skipKeys: string[], computedResult: any, storedResult: any) {
-        this.assertNewAndStoredOutput (exchange, skipKeys, computedResult, storedResult, false);
+    assertStaticResponseOutput (exchange: Exchange, skipKeys: string[], skipValues: string[], computedResult: any, storedResult: any) {
+        this.assertNewAndStoredOutput (exchange, skipKeys, skipValues, computedResult, storedResult, false);
     }
 
     sanitizeDataInput (input: any) {
@@ -1925,7 +1928,7 @@ class testMainClass {
         return newInput;
     }
 
-    async testRequestStatically (exchange: any, method: string, data: Dict, type: Str, skipKeys: string[]) {
+    async testRequestStatically (exchange: any, method: string, data: Dict, type: Str, skipKeys: string[], skipValues: string[]) {
         let output: Str = undefined;
         let requestUrl: Str = undefined;
         if (this.info) {
@@ -1948,7 +1951,7 @@ class testMainClass {
         }
         try {
             const callOutput = exchange.safeValue (data, 'output');
-            this.assertStaticRequestOutput (exchange, type, skipKeys, data['url'], requestUrl as string, callOutput, output);
+            this.assertStaticRequestOutput (exchange, type, skipKeys, skipValues, data['url'], requestUrl as string, callOutput, output);
             // optional per-test header pinning. only the keys the fixture lists are compared, so a
             // fixture can pin one auth header without freezing the whole header set. this is the
             // only cross-language assertion on header *names*, which the php transpiler can
@@ -1973,7 +1976,7 @@ class testMainClass {
         return true;
     }
 
-    async testResponseStatically (exchange: any, method: string, skipKeys: string[], data: Dict) {
+    async testResponseStatically (exchange: any, method: string, skipKeys: string[], skipValues: string[], data: Dict) {
         const expectedResult = exchange.safeValue (data, 'parsedResponse');
         // 'httpResponseByUrl' serves a body per url fragment for methods that call several
         // endpoints; the typed ports narrow each body to the shape its api leaf declares,
@@ -1991,10 +1994,10 @@ class testMainClass {
         try {
             if (!isSync ()) {
                 const unifiedResult = await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
-                this.assertStaticResponseOutput (mockedExchange, skipKeys, unifiedResult, expectedResult);
+                this.assertStaticResponseOutput (mockedExchange, skipKeys, skipValues, unifiedResult, expectedResult);
             } else {
                 const unifiedResultSync = callExchangeMethodDynamicallySync (exchange, method, this.sanitizeDataInput (data['input']));
-                this.assertStaticResponseOutput (mockedExchange, skipKeys, unifiedResultSync, expectedResult);
+                this.assertStaticResponseOutput (mockedExchange, skipKeys, skipValues, unifiedResultSync, expectedResult);
             }
         }
         catch (e) {
@@ -2050,7 +2053,7 @@ class testMainClass {
         return true; // c# methods used with promiseAll need to return something
     }
 
-    async watchAndAssertSequence (exchange: any, url: string, method: string, input: any, skipKeys: string[], expectedResults: List) {
+    async watchAndAssertSequence (exchange: any, url: string, method: string, input: any, skipKeys: string[], skipValues: string[], expectedResults: List) {
         // await the watch method once per expected result: each injected frame
         // resolves the pending future, so successive awaits observe the
         // successive states (e.g. an order going from open to closed)
@@ -2061,7 +2064,7 @@ class testMainClass {
                 // runtimes — roundtrip through json so the deep-compare sees plain
                 // dicts in every language
                 const unifiedResult = jsonParse (jsonStringify (result));
-                this.assertStaticResponseOutput (exchange, skipKeys, unifiedResult, expectedResults[i]);
+                this.assertStaticResponseOutput (exchange, skipKeys, skipValues, unifiedResult, expectedResults[i]);
             }
         } catch (e) {
             // let the injector's rejection loop exit before the caller reports
@@ -2084,17 +2087,18 @@ class testMainClass {
         // ids/signatures/timestamps inside outgoing frames can be volatile —
         // exclude them per entry without touching the response skipKeys
         const sentSkipKeys = exchange.safeList (data, 'sentSkipKeys', []);
+        const sentSkipValues = exchange.safeList (data, 'sentSkipValues', []);
         const sentMessages = getWsSentMessages (exchange, url);
         const sentLength = sentMessages.length;
         const expectedLength = expectedSent.length;
         assert (sentLength === expectedLength, 'sent ws messages count mismatch: sent ' + sentLength.toString () + ', expected ' + expectedLength.toString () + ' ' + jsonStringify (sentMessages));
         for (let i = 0; i < expectedLength; i++) {
             const unifiedSent = jsonParse (jsonStringify (sentMessages[i]));
-            this.assertStaticResponseOutput (exchange, sentSkipKeys, unifiedSent, expectedSent[i]);
+            this.assertStaticResponseOutput (exchange, sentSkipKeys, sentSkipValues, unifiedSent, expectedSent[i]);
         }
     }
 
-    async testWsStatically (exchange: any, method: string, skipKeys: string[], data: Dict) {
+    async testWsStatically (exchange: any, method: string, skipKeys: string[], skipValues: string[], data: Dict) {
         const url = exchange.safeString (data, 'url');
         setupWsMockTransport (exchange, url);
         const httpResponse = exchange.safeValue (data, 'httpResponse');
@@ -2119,7 +2123,7 @@ class testMainClass {
                 // buried on top of
                 const promises = [
                     this.injectWsMessages (exchange, url, messages, true),
-                    this.watchAndAssertSequence (exchange, url, method, input, skipKeys, expectedResults),
+                    this.watchAndAssertSequence (exchange, url, method, input, skipKeys, skipValues, expectedResults),
                 ];
                 await Promise.all (promises);
                 this.assertWsSentMessages (exchange, url, data);
@@ -2133,7 +2137,7 @@ class testMainClass {
                 ];
                 const results = await Promise.all (promises);
                 const unifiedResult = jsonParse (jsonStringify (results[0]));
-                this.assertStaticResponseOutput (exchange, skipKeys, unifiedResult, data['parsedResponse']);
+                this.assertStaticResponseOutput (exchange, skipKeys, skipValues, unifiedResult, data['parsedResponse']);
                 this.assertWsSentMessages (exchange, url, data);
             }
         } catch (e) {
@@ -2194,7 +2198,12 @@ class testMainClass {
                 const testExchangeOptions = exchange.safeValue (result, 'options', {});
                 exchange.extendExchangeOptions (testExchangeOptions);
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
-                await this.testWsStatically (exchange, method, skipKeys, result);
+                // 'skipValues' keys must still be present in the output, only their values
+                // are exempt from comparison; an entry-level list extends the file-level one
+                const fileSkipValues = exchange.safeList (exchangeData, 'skipValues', []);
+                const entrySkipValues = exchange.safeList (result, 'skipValues', []);
+                const skipValues = exchange.arrayConcat (fileSkipValues, entrySkipValues);
+                await this.testWsStatically (exchange, method, skipKeys, skipValues, result);
                 if (!isSync ()) {
                     await close (exchange);
                 }
@@ -2393,7 +2402,12 @@ class testMainClass {
                 }
                 const type = exchange.safeString (exchangeData, 'outputType');
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
-                await this.testRequestStatically (exchange, method, result, type, skipKeys);
+                // 'skipValues' keys must still be present in the output, only their values
+                // are exempt from comparison; an entry-level list extends the file-level one
+                const fileSkipValues = exchange.safeList (exchangeData, 'skipValues', []);
+                const entrySkipValues = exchange.safeList (result, 'skipValues', []);
+                const skipValues = exchange.arrayConcat (fileSkipValues, entrySkipValues);
+                await this.testRequestStatically (exchange, method, result, type, skipKeys, skipValues);
                 // reset options
                 exchange.options = exchange.convertToSafeDictionary (exchange.deepExtend (oldExchangeOptions, {}));
                 // exchange.extendExchangeOptions (exchange.deepExtend (oldExchangeOptions, {}));
@@ -2472,7 +2486,12 @@ class testMainClass {
                     continue;
                 }
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
-                await this.testResponseStatically (exchange, method, skipKeys, result);
+                // 'skipValues' keys must still be present in the output, only their values
+                // are exempt from comparison; an entry-level list extends the file-level one
+                const fileSkipValues = exchange.safeList (exchangeData, 'skipValues', []);
+                const entrySkipValues = exchange.safeList (result, 'skipValues', []);
+                const skipValues = exchange.arrayConcat (fileSkipValues, entrySkipValues);
+                await this.testResponseStatically (exchange, method, skipKeys, skipValues, result);
                 // reset options
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, {});
                 exchange.extendExchangeOptions (exchange.deepExtend (oldExchangeOptions, {}));
