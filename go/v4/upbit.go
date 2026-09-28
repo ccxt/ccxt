@@ -1016,8 +1016,9 @@ func (this *Upbit) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, o
 		panic(r.Err)
 	}
 	var orderbooks map[string]any = r.Value
+	var orderbook map[string]any = SafeMapTyped(orderbooks, symbol)
 
-	ch <- AsyncResult[any]{Value: this.SafeDict(orderbooks, symbol)}
+	ch <- AsyncResult[any]{Value: orderbook}
 	return nil
 }
 func (this *Upbit) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
@@ -1245,8 +1246,9 @@ func (this *Upbit) fetchTickerBody(ch chan AsyncResult[any], symbol string, opti
 		panic(r.Err)
 	}
 	var tickers map[string]any = MapTyped(r.Value)
+	var ticker map[string]any = SafeMapTyped(tickers, symbol)
 
-	ch <- AsyncResult[any]{Value: this.SafeDict(tickers, symbol)}
+	ch <- AsyncResult[any]{Value: ticker}
 	return nil
 }
 func (this *Upbit) ParseTrade(trade any, optionalArgs ...any) any {
@@ -1368,11 +1370,11 @@ func (this *Upbit) fetchTradesBody(ch chan AsyncResult[any], symbol any, optiona
 		"count":  limitResolved,
 	}
 
-	listEp1306 := <-this.PublicGetTradesTicks(this.Extend(request, params))
-	if listEp1306.Err != nil {
-		panic(listEp1306.Err)
+	listEp1308 := <-this.PublicGetTradesTicks(this.Extend(request, params))
+	if listEp1308.Err != nil {
+		panic(listEp1308.Err)
 	}
-	var response []any = listEp1306.Value
+	var response []any = listEp1308.Value
 
 	//
 	//     [ {             market: "BTC-ETH",
@@ -1637,18 +1639,18 @@ func (this *Upbit) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optio
 		var numMinutes float64 = math.Round(float64(timeframePeriod) / 60)
 		request["unit"] = numMinutes
 
-		listEp1555 := <-this.PublicGetCandlesTimeframeUnit(this.Extend(request, params))
-		if listEp1555.Err != nil {
-			panic(listEp1555.Err)
+		listEp1557 := <-this.PublicGetCandlesTimeframeUnit(this.Extend(request, params))
+		if listEp1557.Err != nil {
+			panic(listEp1557.Err)
 		}
-		response = listEp1555.Value
+		response = listEp1557.Value
 	} else {
 
-		listEp1558 := <-this.PublicGetCandlesTimeframe(this.Extend(request, params))
-		if listEp1558.Err != nil {
-			panic(listEp1558.Err)
+		listEp1560 := <-this.PublicGetCandlesTimeframe(this.Extend(request, params))
+		if listEp1560.Err != nil {
+			panic(listEp1560.Err)
 		}
-		response = listEp1558.Value
+		response = listEp1560.Value
 	}
 	//
 	//     [

@@ -816,8 +816,9 @@ func (this *Nado) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs
 	}
 	listRecv779, _ := r.Value.([]any)
 	var orders []any = listRecv779
+	var canceled map[string]any = SafeMapTyped(orders, 0)
 
-	ch <- AsyncResult[any]{Value: this.SafeDict(orders, 0)}
+	ch <- AsyncResult[any]{Value: canceled}
 	return nil
 }
 
@@ -1343,11 +1344,11 @@ func (this *Nado) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes104819 []any = ListTyped(r1.Value)
-		if retRes104819 == nil {
+		var retRes104919 []any = ListTyped(r1.Value)
+		if retRes104919 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes104819}
+			ch <- AsyncResult[any]{Value: retRes104919}
 		}
 		return nil
 	}
@@ -1456,11 +1457,11 @@ func (this *Nado) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes112419 []any = ListTyped(r1.Value)
-		if retRes112419 == nil {
+		var retRes112519 []any = ListTyped(r1.Value)
+		if retRes112519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes112419}
+			ch <- AsyncResult[any]{Value: retRes112519}
 		}
 		return nil
 	}
@@ -1557,11 +1558,11 @@ func (this *Nado) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArgs
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes118815 []any = ListTyped(r.Value)
-	if retRes118815 == nil {
+	var retRes118915 []any = ListTyped(r.Value)
+	if retRes118915 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes118815}
+		ch <- AsyncResult[any]{Value: retRes118915}
 	}
 	return nil
 }
@@ -1601,11 +1602,11 @@ func (this *Nado) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[any], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes120815 []any = ListTyped(r.Value)
-	if retRes120815 == nil {
+	var retRes120915 []any = ListTyped(r.Value)
+	if retRes120915 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes120815}
+		ch <- AsyncResult[any]{Value: retRes120915}
 	}
 	return nil
 }
@@ -1816,11 +1817,11 @@ func (this *Nado) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...an
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes135315 []any = ListTyped(r.Value)
-	if retRes135315 == nil {
+	var retRes135415 []any = ListTyped(r.Value)
+	if retRes135415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes135315}
+		ch <- AsyncResult[any]{Value: retRes135415}
 	}
 	return nil
 }
@@ -1859,11 +1860,11 @@ func (this *Nado) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ..
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes137015 []any = ListTyped(r.Value)
-	if retRes137015 == nil {
+	var retRes137115 []any = ListTyped(r.Value)
+	if retRes137115 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes137015}
+		ch <- AsyncResult[any]{Value: retRes137115}
 	}
 	return nil
 }
@@ -2425,11 +2426,11 @@ func (this *Nado) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp2255 := <-this.GatewayV2PublicGetAssets(params)
-	if listEp2255.Err != nil {
-		panic(listEp2255.Err)
+	listEp2256 := <-this.GatewayV2PublicGetAssets(params)
+	if listEp2256.Err != nil {
+		panic(listEp2256.Err)
 	}
-	var response []any = listEp2255.Value
+	var response []any = listEp2256.Value
 	var result map[string]any = map[string]any{}
 	var assets []any = this.ToArray(response)
 	for i := 0; i < len(assets); i++ {
@@ -3034,11 +3035,11 @@ func (this *Nado) fetchTradesBody(ch chan AsyncResult[any], symbol any, optional
 		request["limit"] = mathMin(limit, 500)
 	}
 
-	listEp2801 := <-this.ArchiveV2PublicGetTrades(this.Extend(request, params))
-	if listEp2801.Err != nil {
-		panic(listEp2801.Err)
+	listEp2802 := <-this.ArchiveV2PublicGetTrades(this.Extend(request, params))
+	if listEp2802.Err != nil {
+		panic(listEp2802.Err)
 	}
-	var response []any = listEp2801.Value
+	var response []any = listEp2802.Value
 
 	//
 	//     [

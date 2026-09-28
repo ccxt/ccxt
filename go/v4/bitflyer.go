@@ -1299,8 +1299,9 @@ func (this *Bitflyer) fetchOrderBody(ch chan AsyncResult[any], id any, optionalA
 	orders := r.Value
 	var ordersById map[string]any = this.IndexBy(orders, "id")
 	if InOp(ordersById, id) {
+		var found map[string]any = SafeMapTyped(ordersById, id)
 
-		ch <- AsyncResult[any]{Value: GetValue(ordersById, id)}
+		ch <- AsyncResult[any]{Value: found}
 		return nil
 	}
 	panic(OrderNotFound(Add(this.Id+" No order found with id ", id)))
@@ -1351,11 +1352,11 @@ func (this *Bitflyer) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 		request["count"] = limit
 	}
 
-	listEp1258 := <-this.PrivateGetGetexecutions(this.Extend(request, params))
-	if listEp1258.Err != nil {
-		panic(listEp1258.Err)
+	listEp1259 := <-this.PrivateGetGetexecutions(this.Extend(request, params))
+	if listEp1259.Err != nil {
+		panic(listEp1259.Err)
 	}
-	var response []any = listEp1258.Value
+	var response []any = listEp1259.Value
 
 	//
 	//    [
@@ -1538,11 +1539,11 @@ func (this *Bitflyer) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs .
 		request["count"] = limit // default 100
 	}
 
-	listEp1424 := <-this.PrivateGetGetcoinins(this.Extend(request, params))
-	if listEp1424.Err != nil {
-		panic(listEp1424.Err)
+	listEp1425 := <-this.PrivateGetGetcoinins(this.Extend(request, params))
+	if listEp1425.Err != nil {
+		panic(listEp1425.Err)
 	}
-	var response []any = listEp1424.Value
+	var response []any = listEp1425.Value
 
 	//
 	//     [
@@ -1605,11 +1606,11 @@ func (this *Bitflyer) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArg
 		request["count"] = limit // default 100
 	}
 
-	listEp1484 := <-this.PrivateGetGetcoinouts(this.Extend(request, params))
-	if listEp1484.Err != nil {
-		panic(listEp1484.Err)
+	listEp1485 := <-this.PrivateGetGetcoinouts(this.Extend(request, params))
+	if listEp1485.Err != nil {
+		panic(listEp1485.Err)
 	}
-	var response []any = listEp1484.Value
+	var response []any = listEp1485.Value
 
 	//
 	//     [

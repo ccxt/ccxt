@@ -1034,8 +1034,9 @@ func (this *Lbank) fetchTickerBody(ch chan AsyncResult[any], symbol string, opti
 			panic(r1.Err)
 		}
 		var responseForSwap map[string]any = MapTyped(r1.Value)
+		var swapTicker map[string]any = SafeMapTyped(responseForSwap, market["symbol"])
 
-		ch <- AsyncResult[any]{Value: this.SafeDict(responseForSwap, market["symbol"])}
+		ch <- AsyncResult[any]{Value: swapTicker}
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -2146,11 +2147,11 @@ func (this *Lbank) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], sy
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes164415 map[string]any = MapTyped(r1.Value)
-	if retRes164415 == nil {
+	var retRes164515 map[string]any = MapTyped(r1.Value)
+	if retRes164515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes164415}
+		ch <- AsyncResult[any]{Value: retRes164515}
 	}
 	return nil
 }
@@ -2484,11 +2485,11 @@ func (this *Lbank) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes192919 map[string]any = r1.Value
-		if retRes192919 == nil {
+		var retRes193019 map[string]any = r1.Value
+		if retRes193019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes192919}
+			ch <- AsyncResult[any]{Value: retRes193019}
 		}
 		return nil
 	}
@@ -2497,11 +2498,11 @@ func (this *Lbank) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes193115 map[string]any = r2.Value
-	if retRes193115 == nil {
+	var retRes193215 map[string]any = r2.Value
+	if retRes193215 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes193115}
+		ch <- AsyncResult[any]{Value: retRes193215}
 	}
 	return nil
 }

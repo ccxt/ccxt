@@ -956,7 +956,8 @@ export default class alpaca extends Exchange {
         }
         const symbolValue: string = this.symbol (symbol);
         const tickers = await this.fetchTickers ([ symbolValue ], params);
-        return this.safeDict (tickers, symbolValue) as Ticker;
+        const ticker = this.safeDict (tickers, symbolValue);
+        return ticker as Ticker;
     }
 
     /**

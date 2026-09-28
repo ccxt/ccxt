@@ -1702,8 +1702,9 @@ func (this *Poloniex) fetchTickerBody(ch chan AsyncResult[any], symbol string, o
 			panic(r1.Err)
 		}
 		var tickers map[string]any = MapTyped(r1.Value)
+		var contractTicker map[string]any = SafeMapTyped(tickers, symbol)
 
-		ch <- AsyncResult[any]{Value: this.SafeDict(tickers, symbol)}
+		ch <- AsyncResult[any]{Value: contractTicker}
 		return nil
 	}
 
@@ -1939,11 +1940,11 @@ func (this *Poloniex) fetchTradesBody(ch chan AsyncResult[any], symbol any, opti
 		return nil
 	}
 
-	listEp1878 := <-this.PublicGetMarketsSymbolTrades(this.Extend(request, params))
-	if listEp1878.Err != nil {
-		panic(listEp1878.Err)
+	listEp1879 := <-this.PublicGetMarketsSymbolTrades(this.Extend(request, params))
+	if listEp1879.Err != nil {
+		panic(listEp1879.Err)
 	}
-	var trades []any = listEp1878.Value
+	var trades []any = listEp1879.Value
 
 	//
 	//     [
@@ -2004,11 +2005,11 @@ func (this *Poloniex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes157619 []any = ListTyped(r1.Value)
-		if retRes157619 == nil {
+		var retRes157719 []any = ListTyped(r1.Value)
+		if retRes157719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes157619}
+			ch <- AsyncResult[any]{Value: retRes157719}
 		}
 		return nil
 	}
@@ -2081,11 +2082,11 @@ func (this *Poloniex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 		return nil
 	}
 
-	listEp2005 := <-this.PrivateGetTrades(this.Extend(requestUntil, paramsUntil))
-	if listEp2005.Err != nil {
-		panic(listEp2005.Err)
+	listEp2006 := <-this.PrivateGetTrades(this.Extend(requestUntil, paramsUntil))
+	if listEp2006.Err != nil {
+		panic(listEp2006.Err)
 	}
-	var response []any = listEp2005.Value
+	var response []any = listEp2006.Value
 	//
 	//     [
 	//         {
@@ -3208,11 +3209,11 @@ func (this *Poloniex) fetchOrderTradesBody(ch chan AsyncResult[any], id string, 
 		"id": id,
 	}
 
-	listEp3038 := <-this.PrivateGetOrdersIdTrades(this.Extend(request, params))
-	if listEp3038.Err != nil {
-		panic(listEp3038.Err)
+	listEp3039 := <-this.PrivateGetOrdersIdTrades(this.Extend(request, params))
+	if listEp3039.Err != nil {
+		panic(listEp3039.Err)
 	}
-	var trades []any = listEp3038.Value
+	var trades []any = listEp3039.Value
 
 	//
 	//     [
@@ -4907,11 +4908,11 @@ func (this *Poloniex) reduceMarginBody(ch chan EndpointResult[map[string]any], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes369115 map[string]any = MapTyped(r.Value)
-	if retRes369115 == nil {
+	var retRes369215 map[string]any = MapTyped(r.Value)
+	if retRes369215 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes369115, Raw: retRes369115}
+		ch <- EndpointResult[map[string]any]{Value: retRes369215, Raw: retRes369215}
 	}
 	return nil
 }
@@ -4940,11 +4941,11 @@ func (this *Poloniex) addMarginBody(ch chan AsyncResult[any], symbol string, amo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes370415 map[string]any = MapTyped(r.Value)
-	if retRes370415 == nil {
+	var retRes370515 map[string]any = MapTyped(r.Value)
+	if retRes370515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes370415}
+		ch <- AsyncResult[any]{Value: retRes370515}
 	}
 	return nil
 }

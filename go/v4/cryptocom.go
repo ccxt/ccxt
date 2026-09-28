@@ -1336,8 +1336,9 @@ func (this *Cryptocom) fetchTickerBody(ch chan AsyncResult[any], symbol string, 
 		panic(r1.Err)
 	}
 	var tickers map[string]any = MapTyped(r1.Value)
+	var ticker map[string]any = SafeMapTyped(tickers, symbolValue)
 
-	ch <- AsyncResult[any]{Value: this.SafeValue(tickers, symbolValue)}
+	ch <- AsyncResult[any]{Value: ticker}
 	return nil
 }
 
@@ -1384,11 +1385,11 @@ func (this *Cryptocom) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes97419 []any = ListTyped(r1.Value)
-		if retRes97419 == nil {
+		var retRes97519 []any = ListTyped(r1.Value)
+		if retRes97519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes97419}
+			ch <- AsyncResult[any]{Value: retRes97519}
 		}
 		return nil
 	}
@@ -1502,11 +1503,11 @@ func (this *Cryptocom) fetchTradesBody(ch chan AsyncResult[any], symbol any, opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes105719 []any = ListTyped(r1.Value)
-		if retRes105719 == nil {
+		var retRes105819 []any = ListTyped(r1.Value)
+		if retRes105819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes105719}
+			ch <- AsyncResult[any]{Value: retRes105819}
 		}
 		return nil
 	}
@@ -1602,11 +1603,11 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes112019 []any = ListTyped(r1.Value)
-		if retRes112019 == nil {
+		var retRes112119 []any = ListTyped(r1.Value)
+		if retRes112119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes112019}
+			ch <- AsyncResult[any]{Value: retRes112119}
 		}
 		return nil
 	}
@@ -2753,11 +2754,11 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes196419 []any = ListTyped(r1.Value)
-		if retRes196419 == nil {
+		var retRes196519 []any = ListTyped(r1.Value)
+		if retRes196519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes196419}
+			ch <- AsyncResult[any]{Value: retRes196519}
 		}
 		return nil
 	}
@@ -4285,11 +4286,11 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan AsyncResult[any], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes319419 []any = ListTyped(r1.Value)
-		if retRes319419 == nil {
+		var retRes319519 []any = ListTyped(r1.Value)
+		if retRes319519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes319419}
+			ch <- AsyncResult[any]{Value: retRes319519}
 		}
 		return nil
 	}

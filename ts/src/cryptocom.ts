@@ -950,7 +950,8 @@ export default class cryptocom extends Exchange {
         }
         const symbolValue: string = this.symbol (symbol);
         const tickers = await this.fetchTickers ([ symbolValue ], params);
-        return this.safeValue (tickers, symbolValue) as Ticker;
+        const ticker = this.safeDict (tickers, symbolValue);
+        return ticker as Ticker;
     }
 
     /**

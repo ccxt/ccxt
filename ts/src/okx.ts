@@ -3821,7 +3821,8 @@ export default class okx extends Exchange {
         const isTrigger = (trigger === true);
         if (isTrigger || (trailing === true)) {
             const orderInner = await this.cancelOrders ([ id ], symbol, params);
-            return this.safeDict (orderInner, 0) as Order;
+            const canceledInner = this.safeDict (orderInner, 0);
+            return canceledInner as Order;
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();

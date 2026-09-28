@@ -1627,9 +1627,11 @@ func (this *Phemex) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, 
 	var book map[string]any = SafeDict2Typed(result, "book", "orderbook_p", map[string]any{})
 	var timestamp *int64 = this.SafeIntegerProduct(result, "timestamp", 0.000001)
 	var orderbook any = this.CustomParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market)
-	AddElementToObject(orderbook, "nonce", this.SafeInteger(result, "sequence"))
+	var nonce *int64 = this.SafeInteger(result, "sequence")
 
-	ch <- AsyncResult[any]{Value: orderbook}
+	ch <- AsyncResult[any]{Value: this.Extend(orderbook, map[string]any{
+		"nonce": nonce,
+	})}
 	return nil
 }
 func (this *Phemex) ToEn(n any, scale any) any {

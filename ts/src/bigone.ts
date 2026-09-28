@@ -924,7 +924,8 @@ export default class bigone extends Exchange {
             return this.parseTicker (ticker, market);
         } else {
             const tickers = await this.fetchTickers ([ symbol ], paramsMarketType);
-            return this.safeValue (tickers, symbol);
+            const spotTicker = this.safeDict (tickers, symbol);
+            return spotTicker as Ticker;
         }
     }
 

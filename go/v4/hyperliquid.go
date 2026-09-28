@@ -2740,8 +2740,9 @@ func (this *Hyperliquid) createOrderBody(ch chan AsyncResult[any], symbol string
 		panic(r1.Err)
 	}
 	var orders []any = ListTyped(r1.Value)
+	var created map[string]any = SafeMapTyped(orders, 0)
 
-	ch <- AsyncResult[any]{Value: GetValue(orders, 0)}
+	ch <- AsyncResult[any]{Value: created}
 	return nil
 }
 
@@ -3182,11 +3183,11 @@ func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[any], id any, optio
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes249119 map[string]any = r.Value
-		if retRes249119 == nil {
+		var retRes249219 map[string]any = r.Value
+		if retRes249219 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes249119}
+			ch <- AsyncResult[any]{Value: retRes249219}
 		}
 		return nil
 	}
@@ -3195,10 +3196,11 @@ func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[any], id any, optio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv3046, _ := r1.Value.([]any)
-	var orders []any = listRecv3046
+	listRecv3047, _ := r1.Value.([]any)
+	var orders []any = listRecv3047
+	var canceled map[string]any = SafeMapTyped(orders, 0)
 
-	ch <- AsyncResult[any]{Value: this.SafeDict(orders, 0)}
+	ch <- AsyncResult[any]{Value: canceled}
 	return nil
 }
 
@@ -3826,8 +3828,9 @@ func (this *Hyperliquid) editOrderBody(ch chan AsyncResult[any], id string, symb
 		panic(r1.Err)
 	}
 	var orders []any = ListTyped(r1.Value)
+	var edited map[string]any = SafeMapTyped(orders, 0)
 
-	ch <- AsyncResult[any]{Value: GetValue(orders, 0)}
+	ch <- AsyncResult[any]{Value: edited}
 	return nil
 }
 
@@ -5366,11 +5369,11 @@ func (this *Hyperliquid) addMarginBody(ch chan AsyncResult[any], symbol string, 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes407215 map[string]any = MapTyped(r.Value)
-	if retRes407215 == nil {
+	var retRes407515 map[string]any = MapTyped(r.Value)
+	if retRes407515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes407215}
+		ch <- AsyncResult[any]{Value: retRes407515}
 	}
 	return nil
 }
@@ -5402,11 +5405,11 @@ func (this *Hyperliquid) reduceMarginBody(ch chan EndpointResult[map[string]any]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes408815 map[string]any = MapTyped(r.Value)
-	if retRes408815 == nil {
+	var retRes409115 map[string]any = MapTyped(r.Value)
+	if retRes409115 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes408815, Raw: retRes408815}
+		ch <- EndpointResult[map[string]any]{Value: retRes409115, Raw: retRes409115}
 	}
 	return nil
 }
@@ -6362,8 +6365,9 @@ func (this *Hyperliquid) fetchOpenInterestBody(ch chan AsyncResult[any], symbol 
 		panic(r1.Err)
 	}
 	ois := r1.Value
+	var openInterest map[string]any = SafeMapTyped(ois, symbolValue)
 
-	ch <- AsyncResult[any]{Value: GetValue(ois, symbolValue)}
+	ch <- AsyncResult[any]{Value: openInterest}
 	return nil
 }
 func (this *Hyperliquid) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {

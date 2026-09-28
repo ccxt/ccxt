@@ -1309,8 +1309,8 @@ export default class phemex extends Exchange {
         const book = this.safeDict2 (result, 'book', 'orderbook_p', {});
         const timestamp = this.safeIntegerProduct (result, 'timestamp', 0.000001);
         const orderbook = this.customParseOrderBook (book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
-        orderbook['nonce'] = this.safeInteger (result, 'sequence');
-        return orderbook as OrderBook;
+        const nonce = this.safeInteger (result, 'sequence');
+        return this.extend (orderbook, { 'nonce': nonce }) as OrderBook;
     }
 
     toEn (n: any, scale: Int) {

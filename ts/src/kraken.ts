@@ -1415,7 +1415,8 @@ export default class kraken extends Exchange {
 
     override async fetchLedgerEntry (id: string, code: Str = undefined, params: Dict = {}): Promise<LedgerEntry> {
         const items = await this.fetchLedgerEntriesByIds ([ id ], code, params);
-        return items[0];
+        const entry = this.safeDict (items, 0);
+        return entry as LedgerEntry;
     }
 
     override parseTrade (trade: Dict | List | string, market: Market = undefined): Trade {

@@ -1799,8 +1799,9 @@ func (this *Kraken) fetchLedgerEntryBody(ch chan AsyncResult[any], id string, op
 		panic(r.Err)
 	}
 	var items []any = ListTyped(r.Value)
+	var entry map[string]any = SafeMapTyped(items, 0)
 
-	ch <- AsyncResult[any]{Value: GetValue(items, 0)}
+	ch <- AsyncResult[any]{Value: entry}
 	return nil
 }
 func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
@@ -2167,11 +2168,11 @@ func (this *Kraken) createMarketOrderWithCostBody(ch chan AsyncResult[any], symb
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes169415 map[string]any = MapTyped(r1.Value)
-	if retRes169415 == nil {
+	var retRes169515 map[string]any = MapTyped(r1.Value)
+	if retRes169515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes169415}
+		ch <- AsyncResult[any]{Value: retRes169515}
 	}
 	return nil
 }
@@ -2208,11 +2209,11 @@ func (this *Kraken) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes171115 map[string]any = MapTyped(r1.Value)
-	if retRes171115 == nil {
+	var retRes171215 map[string]any = MapTyped(r1.Value)
+	if retRes171215 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes171115}
+		ch <- AsyncResult[any]{Value: retRes171215}
 	}
 	return nil
 }
@@ -4242,11 +4243,11 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes320519 []any = ListTyped(r1.Value)
-		if retRes320519 == nil {
+		var retRes320619 []any = ListTyped(r1.Value)
+		if retRes320619 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes320519}
+			ch <- AsyncResult[any]{Value: retRes320619}
 		}
 		return nil
 	}
@@ -4364,11 +4365,11 @@ func (this *Kraken) createDepositAddressBody(ch chan AsyncResult[any], code stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes329615 map[string]any = MapTyped(r.Value)
-	if retRes329615 == nil {
+	var retRes329715 map[string]any = MapTyped(r.Value)
+	if retRes329715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes329615}
+		ch <- AsyncResult[any]{Value: retRes329715}
 	}
 	return nil
 }
@@ -4799,11 +4800,11 @@ func (this *Kraken) transferOutBody(ch chan AsyncResult[any], code any, amount a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes361715 map[string]any = MapTyped(r.Value)
-	if retRes361715 == nil {
+	var retRes361815 map[string]any = MapTyped(r.Value)
+	if retRes361815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes361715}
+		ch <- AsyncResult[any]{Value: retRes361815}
 	}
 	return nil
 }

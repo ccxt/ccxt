@@ -18794,8 +18794,8 @@ func (this *Binance) fetchOpenInterestBody(ch chan AsyncResult[any], symbol stri
 		var symbolValue *string = SafeStringPtr(market["symbol"])
 		var result any = this.ParseOpenInterestsHistory(response, market)
 		for i := 0; i < GetArrayLength(result); i++ {
-			var item any = GetValue(result, i)
-			if IsEqual(GetValue(item, "symbol"), symbolValue) {
+			var item map[string]any = SafeMapTyped(result, i)
+			if this.SafeString(item, "symbol") == symbolValue || (this.SafeString(item, "symbol") != nil && symbolValue != nil && *this.SafeString(item, "symbol") == *symbolValue) {
 
 				ch <- AsyncResult[any]{Value: item}
 				return nil

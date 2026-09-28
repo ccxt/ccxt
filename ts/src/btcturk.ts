@@ -575,7 +575,8 @@ export default class btcturk extends Exchange {
             await this.loadMarkets ();
         }
         const tickers = await this.fetchTickers ([ symbol ], params);
-        return this.safeDict (tickers, symbol) as Ticker;
+        const ticker = this.safeDict (tickers, symbol);
+        return ticker as Ticker;
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {

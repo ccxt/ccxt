@@ -570,7 +570,8 @@ export default class cex extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.fetchTickers ([ symbol ], params);
-        return this.safeDict (response, symbol, {}) as Ticker;
+        const ticker = this.safeDict (response, symbol, {});
+        return ticker as Ticker;
     }
 
     /**

@@ -1048,8 +1048,9 @@ func (this *Bigone) fetchTickerBody(ch chan AsyncResult[any], symbol string, opt
 			panic(r2.Err)
 		}
 		var tickers map[string]any = MapTyped(r2.Value)
+		var spotTicker map[string]any = SafeMapTyped(tickers, symbol)
 
-		ch <- AsyncResult[any]{Value: this.SafeValue(tickers, symbol)}
+		ch <- AsyncResult[any]{Value: spotTicker}
 		return nil
 	}
 }
@@ -1133,11 +1134,11 @@ func (this *Bigone) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
 		data = this.SafeList(response, "data", []any{})
 	} else {
 
-		listEp1110 := <-this.ContractPublicGetInstruments(paramsMarketType)
-		if listEp1110.Err != nil {
-			panic(listEp1110.Err)
+		listEp1111 := <-this.ContractPublicGetInstruments(paramsMarketType)
+		if listEp1111.Err != nil {
+			panic(listEp1111.Err)
 		}
-		var instruments []any = listEp1110.Value
+		var instruments []any = listEp1111.Value
 		data = this.ToArray(instruments)
 	}
 	var tickers any = this.ParseTickers(data, symbolsNormalized)
@@ -1871,11 +1872,11 @@ func (this *Bigone) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes158915 map[string]any = MapTyped(r1.Value)
-	if retRes158915 == nil {
+	var retRes159015 map[string]any = MapTyped(r1.Value)
+	if retRes159015 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes158915}
+		ch <- AsyncResult[any]{Value: retRes159015}
 	}
 	return nil
 }
@@ -2420,11 +2421,11 @@ func (this *Bigone) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes195615 []any = ListTyped(r.Value)
-	if retRes195615 == nil {
+	var retRes195715 []any = ListTyped(r.Value)
+	if retRes195715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes195615}
+		ch <- AsyncResult[any]{Value: retRes195715}
 	}
 	return nil
 }
@@ -2464,11 +2465,11 @@ func (this *Bigone) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes197415 []any = ListTyped(r.Value)
-	if retRes197415 == nil {
+	var retRes197515 []any = ListTyped(r.Value)
+	if retRes197515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes197415}
+		ch <- AsyncResult[any]{Value: retRes197515}
 	}
 	return nil
 }

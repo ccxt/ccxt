@@ -715,8 +715,9 @@ func (this *Btcturk) fetchTickerBody(ch chan AsyncResult[any], symbol string, op
 		panic(r1.Err)
 	}
 	var tickers map[string]any = MapTyped(r1.Value)
+	var ticker map[string]any = SafeMapTyped(tickers, symbol)
 
-	ch <- AsyncResult[any]{Value: this.SafeDict(tickers, symbol)}
+	ch <- AsyncResult[any]{Value: ticker}
 	return nil
 }
 func (this *Btcturk) ParseTrade(trade any, optionalArgs ...any) any {

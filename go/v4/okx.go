@@ -5449,8 +5449,9 @@ func (this *Okx) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs 
 			panic(r.Err)
 		}
 		var orderInner []any = ListTyped(r.Value)
+		var canceledInner map[string]any = SafeMapTyped(orderInner, 0)
 
-		ch <- AsyncResult[any]{Value: this.SafeDict(orderInner, 0)}
+		ch <- AsyncResult[any]{Value: canceledInner}
 		return nil
 	}
 	if this.Markets == nil {
@@ -6341,11 +6342,11 @@ func (this *Okx) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes458019 []any = ListTyped(r1.Value)
-		if retRes458019 == nil {
+		var retRes458119 []any = ListTyped(r1.Value)
+		if retRes458119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes458019}
+			ch <- AsyncResult[any]{Value: retRes458119}
 		}
 		return nil
 	}
@@ -6763,11 +6764,11 @@ func (this *Okx) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes493619 []any = ListTyped(r1.Value)
-		if retRes493619 == nil {
+		var retRes493719 []any = ListTyped(r1.Value)
+		if retRes493719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes493619}
+			ch <- AsyncResult[any]{Value: retRes493719}
 		}
 		return nil
 	}
@@ -6986,11 +6987,11 @@ func (this *Okx) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes511619 []any = ListTyped(r1.Value)
-		if retRes511619 == nil {
+		var retRes511719 []any = ListTyped(r1.Value)
+		if retRes511719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes511619}
+			ch <- AsyncResult[any]{Value: retRes511719}
 		}
 		return nil
 	}
@@ -7082,11 +7083,11 @@ func (this *Okx) fetchOrderTradesBody(ch chan AsyncResult[any], id string, optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes519115 []any = ListTyped(r.Value)
-	if retRes519115 == nil {
+	var retRes519215 []any = ListTyped(r.Value)
+	if retRes519215 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes519115}
+		ch <- AsyncResult[any]{Value: retRes519215}
 	}
 	return nil
 }
@@ -7137,11 +7138,11 @@ func (this *Okx) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...any) 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes521619 []any = ListTyped(r1.Value)
-		if retRes521619 == nil {
+		var retRes521719 []any = ListTyped(r1.Value)
+		if retRes521719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes521619}
+			ch <- AsyncResult[any]{Value: retRes521719}
 		}
 		return nil
 	}
@@ -7720,11 +7721,11 @@ func (this *Okx) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...any
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes567319 []any = ListTyped(r1.Value)
-		if retRes567319 == nil {
+		var retRes567419 []any = ListTyped(r1.Value)
+		if retRes567419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes567319}
+			ch <- AsyncResult[any]{Value: retRes567419}
 		}
 		return nil
 	}
@@ -7884,11 +7885,11 @@ func (this *Okx) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes578419 []any = ListTyped(r1.Value)
-		if retRes578419 == nil {
+		var retRes578519 []any = ListTyped(r1.Value)
+		if retRes578519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes578419}
+			ch <- AsyncResult[any]{Value: retRes578519}
 		}
 		return nil
 	}
@@ -8520,11 +8521,11 @@ func (this *Okx) fetchPositionsForSymbolBody(ch chan AsyncResult[any], symbol st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes630215 []any = ListTyped(r.Value)
-	if retRes630215 == nil {
+	var retRes630315 []any = ListTyped(r.Value)
+	if retRes630315 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes630215}
+		ch <- AsyncResult[any]{Value: retRes630315}
 	}
 	return nil
 }
@@ -9258,11 +9259,11 @@ func (this *Okx) fetchFundingIntervalBody(ch chan AsyncResult[any], symbol strin
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes689815 map[string]any = MapTyped(r.Value)
-	if retRes689815 == nil {
+	var retRes689915 map[string]any = MapTyped(r.Value)
+	if retRes689915 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes689815}
+		ch <- AsyncResult[any]{Value: retRes689915}
 	}
 	return nil
 }
@@ -10300,11 +10301,11 @@ func (this *Okx) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes769315 map[string]any = MapTyped(r.Value)
-	if retRes769315 == nil {
+	var retRes769415 map[string]any = MapTyped(r.Value)
+	if retRes769415 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes769315, Raw: retRes769315}
+		ch <- EndpointResult[map[string]any]{Value: retRes769415, Raw: retRes769415}
 	}
 	return nil
 }
@@ -10334,11 +10335,11 @@ func (this *Okx) addMarginBody(ch chan AsyncResult[any], symbol string, amount a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes770715 map[string]any = MapTyped(r.Value)
-	if retRes770715 == nil {
+	var retRes770815 map[string]any = MapTyped(r.Value)
+	if retRes770815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes770715}
+		ch <- AsyncResult[any]{Value: retRes770815}
 	}
 	return nil
 }

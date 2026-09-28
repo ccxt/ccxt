@@ -14258,9 +14258,9 @@ export default class binance extends Exchange {
             const symbolValue: string = market['symbol'];
             const result = this.parseOpenInterestsHistory (response, market);
             for (let i = 0; i < result.length; i++) {
-                const item = result[i];
-                if (item['symbol'] === symbolValue) {
-                    return item;
+                const item = this.safeDict (result, i);
+                if (this.safeString (item, 'symbol') === symbolValue) {
+                    return item as OpenInterest;
                 }
             }
             throw new NullResponse (this.id + ' fetchOpenInterest() could not find open interest for ' + symbolValue);

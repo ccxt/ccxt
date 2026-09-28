@@ -695,8 +695,9 @@ func (this *Cex) fetchTickerBody(ch chan AsyncResult[any], symbol string, option
 		panic(r1.Err)
 	}
 	var response map[string]any = MapTyped(r1.Value)
+	var ticker map[string]any = this.SafeDictMap(response, symbol, map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.SafeDict(response, symbol, map[string]any{})}
+	ch <- AsyncResult[any]{Value: ticker}
 	return nil
 }
 
@@ -1462,11 +1463,11 @@ func (this *Cex) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes112515 []any = ListTyped(r.Value)
-	if retRes112515 == nil {
+	var retRes112615 []any = ListTyped(r.Value)
+	if retRes112615 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes112515}
+		ch <- AsyncResult[any]{Value: retRes112615}
 	}
 	return nil
 }
@@ -1503,11 +1504,11 @@ func (this *Cex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes114015 []any = ListTyped(r.Value)
-	if retRes114015 == nil {
+	var retRes114115 []any = ListTyped(r.Value)
+	if retRes114115 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes114015}
+		ch <- AsyncResult[any]{Value: retRes114115}
 	}
 	return nil
 }
@@ -1549,8 +1550,8 @@ func (this *Cex) fetchOpenOrderBody(ch chan AsyncResult[any], id any, optionalAr
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv1459, _ := r1.Value.([]any)
-	var result []any = listRecv1459
+	listRecv1460, _ := r1.Value.([]any)
+	var result []any = listRecv1460
 
 	ch <- AsyncResult[any]{Value: GetValue(result, 0)}
 	return nil
@@ -1593,8 +1594,8 @@ func (this *Cex) fetchClosedOrderBody(ch chan AsyncResult[any], id any, optional
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv1495, _ := r1.Value.([]any)
-	var result []any = listRecv1495
+	listRecv1496, _ := r1.Value.([]any)
+	var result []any = listRecv1496
 
 	ch <- AsyncResult[any]{Value: GetValue(result, 0)}
 	return nil
