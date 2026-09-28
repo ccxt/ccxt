@@ -668,7 +668,10 @@ export default class lighter extends Exchange {
         } catch (e) {
             this.options['builderFee'] = false;
         }
-        return !standardTier;
+        if (standardTier) {
+            return false;
+        }
+        return true;
     }
 
     async checkIfStandardTier (accountIndex: number) {
