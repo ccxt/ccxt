@@ -1,7 +1,7 @@
 use ccxt_base::{Value,get_value};
 use ccxt_base::pro::cache::ArrayCacheBySymbolBySide;
 use ccxt_base::runtime::is_equal;
-fn s(v:&str)->Value{Value::Str(v.to_string())}
+fn s(v:&str)->Value{Value::Str(v.to_string().into())}
 fn row(symbol:&str,side:&str,n:i64)->Value{Value::Map(vec![("symbol".to_string(),s(symbol)),("side".to_string(),s(side)),("contracts".to_string(),Value::Int(n))].into_iter().collect())}
 fn check(v:Value,n:i64){assert!(is_equal(&v,&Value::Int(n)),"counter mismatch");}
 #[test]
