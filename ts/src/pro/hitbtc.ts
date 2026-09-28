@@ -1470,6 +1470,7 @@ export default class hitbtc extends hitbtcRest {
                 this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
                 throw new ExchangeError (feedback); // unknown message
             } catch (e) {
+                const id = this.safeString (message, 'id');
                 if (e instanceof AuthenticationError) {
                     const messageHash = 'authenticated';
                     client.reject (e, messageHash);
@@ -1477,17 +1478,18 @@ export default class hitbtc extends hitbtcRest {
                         delete client.subscriptions[messageHash];
                     }
                 } else {
-                    const id = this.safeString (message, 'id');
                     client.reject (e, id); // trade requests use the request id as the message hash
-                    // subscriptions keep the request id, reject the futures waiting for a subscription refused by the exchange
-                    const subscriptionHashes = Object.keys (client.subscriptions);
-                    for (let i = 0; i < subscriptionHashes.length; i++) {
-                        const subscriptionHash = subscriptionHashes[i];
-                        const subscriptionId = this.safeString (client.subscriptions[subscriptionHash], 'id');
-                        if ((subscriptionId !== undefined) && (subscriptionId === id)) {
-                            client.reject (e, subscriptionHash);
-                            delete client.subscriptions[subscriptionHash]; // so a retry sends the subscribe request again
-                        }
+                }
+                // subscriptions keep the request id, reject the futures waiting for a subscription refused by the exchange,
+                // authentication errors included: a private channel the api key has no access to is refused with 1003
+                // the login request has no id, so a login error matches no subscription
+                const subscriptionHashes = Object.keys (client.subscriptions);
+                for (let i = 0; i < subscriptionHashes.length; i++) {
+                    const subscriptionHash = subscriptionHashes[i];
+                    const subscriptionId = this.safeString (client.subscriptions[subscriptionHash], 'id');
+                    if ((subscriptionId !== undefined) && (subscriptionId === id)) {
+                        client.reject (e, subscriptionHash);
+                        delete client.subscriptions[subscriptionHash]; // so a retry sends the subscribe request again
                     }
                 }
                 return true;
