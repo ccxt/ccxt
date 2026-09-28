@@ -1106,7 +1106,6 @@ class poloniex extends poloniex$1["default"] {
         const relativeChange = this.safeString2(ticker, 'dailyChange', 'dc');
         const percentage = Precise["default"].stringMul(relativeChange, '100');
         return this.safeTicker({
-            'id': marketId,
             'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),

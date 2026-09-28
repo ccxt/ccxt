@@ -516,8 +516,7 @@ export default class p2b extends Exchange {
         //    }
         //
         const result = this.safeDict(response, 'result', {});
-        const timestamp = this.safeIntegerProduct(response, 'cache_time', 1000);
-        return this.extend({ 'timestamp': timestamp, 'datetime': this.iso8601(timestamp) }, this.parseTicker(result, market));
+        return this.parseTicker(result, market);
     }
     parseTicker(ticker, market = undefined) {
         //

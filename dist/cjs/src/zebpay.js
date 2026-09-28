@@ -1863,7 +1863,6 @@ class zebpay extends zebpay$1["default"] {
         const bidVolume = this.safeString(ticker, 'bidVolume');
         const askVolume = this.safeString(ticker, 'askVolume');
         return this.safeTicker({
-            'id': marketId,
             'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),

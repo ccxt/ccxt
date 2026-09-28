@@ -1462,7 +1462,6 @@ class lighter extends lighter$1["default"] {
         const baseVolume = this.safeString(ticker, 'daily_base_token_volume');
         const quoteVolume = this.safeString(ticker, 'daily_quote_token_volume');
         const change = this.safeString(ticker, 'daily_price_change');
-        const openInterest = this.safeString(ticker, 'open_interest');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
@@ -1485,7 +1484,6 @@ class lighter extends lighter$1["default"] {
             'quoteVolume': quoteVolume,
             'markPrice': this.safeString(ticker, 'mark_price'),
             'indexPrice': this.safeString(ticker, 'index_price'),
-            'openInterest': openInterest,
             'info': ticker,
         }, marketResolved);
     }
