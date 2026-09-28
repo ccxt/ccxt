@@ -8066,11 +8066,11 @@ export class BaseExchange {
                 throw new BadSymbol (this.id + ' fetchFundingRate() supports contract markets only');
             }
             const rates = await this.fetchFundingRates ([ symbolResolved ], params);
-            const rate = this.safeValue (rates, symbolResolved);
+            const rate = this.safeDict (rates, symbolResolved);
             if (rate === undefined) {
                 throw new NullResponse (this.id + ' fetchFundingRate () returned no data for ' + symbolResolved);
             } else {
-                return rate;
+                return rate as FundingRate;
             }
         } else {
             throw new NotSupported (this.id + ' fetchFundingRate () is not supported yet');
@@ -8086,11 +8086,11 @@ export class BaseExchange {
                 throw new BadSymbol (this.id + ' fetchFundingInterval() supports contract markets only');
             }
             const rates = await this.fetchFundingIntervals ([ symbolResolved ], params);
-            const rate = this.safeValue (rates, symbolResolved);
+            const rate = this.safeDict (rates, symbolResolved);
             if (rate === undefined) {
                 throw new NullResponse (this.id + ' fetchFundingInterval() returned no data for ' + symbolResolved);
             } else {
-                return rate;
+                return rate as FundingRate;
             }
         } else {
             throw new NotSupported (this.id + ' fetchFundingInterval() is not supported yet');
@@ -9910,7 +9910,8 @@ export default class Exchange extends BaseExchange {
     async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
         if (this.has['fetchOpenInterests'] !== undefined && this.has['fetchOpenInterests'] !== false) {
             const openInterests = await this.fetchOpenInterests ([ symbol ], params);
-            return this.safeDict (openInterests, symbol) as OpenInterest;
+            const openInterest = this.safeDict (openInterests, symbol);
+            return openInterest as OpenInterest;
         } else {
             throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
         }
