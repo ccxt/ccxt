@@ -1453,7 +1453,8 @@ export default class lbank extends Exchange {
         }
         const market = this.market (symbol);
         const responseForSwap = await this.fetchFundingRates ([ market['symbol'] ], params);
-        return this.safeDict (responseForSwap, market['symbol']) as FundingRate;
+        const fundingRate = this.safeDict (responseForSwap, market['symbol']);
+        return fundingRate as FundingRate;
     }
 
     /**
@@ -1596,7 +1597,8 @@ export default class lbank extends Exchange {
     override async fetchTradingFee (symbol: string, params: Dict = {}): Promise<TradingFeeInterface> {
         const market = this.market (symbol);
         const result = await this.fetchTradingFees (this.extend (params, { 'category': market['id'] }));
-        return this.safeDict (result, symbol) as TradingFeeInterface;
+        const fee = this.safeDict (result, symbol);
+        return fee as TradingFeeInterface;
     }
 
     /**
