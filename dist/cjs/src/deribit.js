@@ -705,10 +705,10 @@ class deribit extends deribit$1["default"] {
         });
     }
     codeFromOptions(methodName, params = {}) {
-        const defaultCode = this.safeValue(this.options, 'code', 'BTC');
-        const options = this.safeValue(this.options, methodName, {});
-        const code = this.safeValue(options, 'code', defaultCode);
-        return this.safeValue(params, 'code', code);
+        const defaultCode = this.safeString(this.options, 'code', 'BTC');
+        const options = this.safeDict(this.options, methodName, {});
+        const code = this.safeString(options, 'code', defaultCode);
+        return this.safeString(params, 'code', code);
     }
     /**
      * @method
@@ -732,7 +732,7 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue(response, 'result');
+        const result = this.safeDict(response, 'result');
         const locked = this.safeString(result, 'locked');
         const updateTime = this.safeIntegerProduct(response, 'usIn', 0.001, this.milliseconds());
         return {
@@ -790,7 +790,7 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue(response, 'result', []);
+        const result = this.safeList(response, 'result', []);
         return this.parseAccounts(result);
     }
     parseAccount(account) {
@@ -956,7 +956,7 @@ class deribit extends deribit$1["default"] {
                 const base = this.safeCurrencyCode(baseId);
                 const quote = this.safeCurrencyCode(quoteId);
                 const settle = this.safeCurrencyCode(settleId);
-                const settlementPeriod = this.safeValue(market, 'settlement_period');
+                const settlementPeriod = this.safeString(market, 'settlement_period');
                 const swap = (settlementPeriod === 'perpetual');
                 if (kind === undefined) {
                     throw new errors.ExchangeError(this.id + ' method() missing kind');
@@ -1027,7 +1027,7 @@ class deribit extends deribit$1["default"] {
                     'swap': swap,
                     'future': future,
                     'option': option,
-                    'active': this.safeValue(market, 'is_active'),
+                    'active': this.safeBool(market, 'is_active'),
                     'contract': !isSpot,
                     'linear': linear,
                     'inverse': inverse,
@@ -1194,7 +1194,7 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const address = this.safeString(result, 'address');
         this.checkAddress(address);
         return {
@@ -1240,7 +1240,7 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const address = this.safeString(result, 'address');
         this.checkAddress(address);
         return {
@@ -1302,7 +1302,7 @@ class deribit extends deribit$1["default"] {
         const marketId = this.safeString(ticker, 'instrument_name');
         const symbol = this.safeSymbol(marketId, market);
         const last = this.safeString2(ticker, 'last_price', 'last');
-        const stats = this.safeValue(ticker, 'stats', ticker);
+        const stats = this.safeDict(ticker, 'stats', ticker);
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1701,7 +1701,7 @@ class deribit extends deribit$1["default"] {
         //          "testnet":false
         //      }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const trades = this.safeList(result, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
@@ -1773,7 +1773,7 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const fees = this.safeList(result, 'fees', []);
         let perpetualFee = {};
         let futureFee = {};
@@ -1890,7 +1890,7 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const timestamp = this.safeInteger(result, 'timestamp');
         const nonce = this.safeInteger(result, 'change_id');
         const orderbook = this.parseOrderBook(result, market['symbol'], timestamp);
@@ -1993,9 +1993,9 @@ class deribit extends deribit$1["default"] {
         const rawType = this.safeString(order, 'order_type');
         const type = this.parseOrderType(rawType);
         // injected in createOrder
-        const trades = this.safeValue(order, 'trades');
+        const trades = this.safeList(order, 'trades');
         const timeInForce = this.parseTimeInForce(this.safeString(order, 'time_in_force'));
-        const postOnly = this.safeValue(order, 'post_only');
+        const postOnly = this.safeBool(order, 'post_only');
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -2247,9 +2247,9 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const order = this.safeValue(result, 'order');
-        const trades = this.safeValue(result, 'trades', []);
+        const trades = this.safeList(result, 'trades', []);
         order['trades'] = trades;
         return this.parseOrder(order, market);
     }
@@ -2294,9 +2294,9 @@ class deribit extends deribit$1["default"] {
             params = this.omit(params, 'trigger_offset');
         }
         const response = await this.privateGetEdit(this.extend(request, params));
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const order = this.safeValue(result, 'order');
-        const trades = this.safeValue(result, 'trades', []);
+        const trades = this.safeList(result, 'trades', []);
         order['trades'] = trades;
         return this.parseOrder(order);
     }
@@ -2571,7 +2571,7 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const trades = this.safeList(result, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
@@ -2621,7 +2621,7 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const data = this.safeList(result, 'data', []);
         return this.parseTransactions(data, currency, since, limit, params);
     }
@@ -2675,7 +2675,7 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const data = this.safeList(result, 'data', []);
         return this.parseTransactions(data, currency, since, limit, params);
     }
@@ -3047,7 +3047,7 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const transfers = this.safeList(result, 'data', []);
         return this.parseTransfers(transfers, currency, since, limit, params);
     }
@@ -3077,7 +3077,7 @@ class deribit extends deribit$1["default"] {
         let method = this.safeString(params, 'method');
         params = this.omit(params, 'method');
         if (method === undefined) {
-            const transferOptions = this.safeValue(this.options, 'transfer', {});
+            const transferOptions = this.safeDict(this.options, 'transfer', {});
             method = this.safeString(transferOptions, 'method', 'privateGetSubmitTransferToSubaccount');
         }
         let response = undefined;
@@ -3463,9 +3463,9 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const cursor = this.safeString(result, 'continuation');
-        const settlements = this.safeValue(result, 'settlements', []);
+        const settlements = this.safeList(result, 'settlements', []);
         const settlementsWithCursor = this.addPaginationCursorToResult(cursor, settlements);
         return this.parseLiquidations(settlementsWithCursor, market, since, limit);
     }
@@ -3540,7 +3540,7 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const settlements = this.safeList(result, 'settlements', []);
         return this.parseLiquidations(settlements, market, since, limit);
     }
@@ -3634,7 +3634,7 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseGreeks(result, market);
     }
     parseGreeks(greeks, market = undefined) {
@@ -3680,7 +3680,7 @@ class deribit extends deribit$1["default"] {
         const timestamp = this.safeInteger(greeks, 'timestamp');
         const marketId = this.safeString(greeks, 'instrument_name');
         const symbol = this.safeSymbol(marketId, market);
-        const stats = this.safeValue(greeks, 'greeks', {});
+        const stats = this.safeDict(greeks, 'greeks', {});
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -4008,7 +4008,7 @@ class deribit extends deribit$1["default"] {
         //         "usDiff": 36
         //     }
         //
-        const error = this.safeValue(response, 'error');
+        const error = this.safeDict(response, 'error');
         if (error !== undefined) {
             const errorCode = this.safeString(error, 'code');
             const feedback = this.id + ' ' + body;

@@ -875,7 +875,7 @@ class luno extends Exchange {
         ), $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -1219,7 +1219,7 @@ class luno extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
@@ -1290,7 +1290,7 @@ class luno extends Exchange {
         );
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1307,7 +1307,7 @@ class luno extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1387,7 +1387,7 @@ class luno extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1415,7 +1415,7 @@ class luno extends Exchange {
         );
         $response = null;
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a side argument');
         }
         if ($type === 'market') {
             $request['type'] = strtoupper($side);
@@ -1441,7 +1441,7 @@ class luno extends Exchange {
         ), $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1473,7 +1473,7 @@ class luno extends Exchange {
         ));
     }
 
-    public function fetch_ledger_by_entries(?string $code = null, mixed $entry = null, ?int $limit = null, $params = array()) {
+    public function fetch_ledger_by_entries(?string $code = null, mixed $entry = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ledger_by_entries(...))($code, $entry, $limit, $params);
     }
 
@@ -1519,13 +1519,13 @@ class luno extends Exchange {
         $max_row = $this->safe_value($params, 'max_row');
         if ($id === null) {
             if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $currency $code argument if no $account $id specified in params');
+                throw new ArgumentsRequired($this->id . ' fetchLedger() requires a currency code argument if no account id specified in params');
             }
             $currency = $this->currency($code);
             $accountsByCurrencyCode = $this->index_by($this->accounts, 'currency');
-            $account = $this->safe_value($accountsByCurrencyCode, $code);
+            $account = $this->safe_dict($accountsByCurrencyCode, $code);
             if ($account === null) {
-                throw new ExchangeError($this->id . ' fetchLedger() could not find $account $id for ' . $code);
+                throw new ExchangeError($this->id . ' fetchLedger() could not find account id for ' . $code);
             }
             $id = $account['id'];
         }
@@ -1533,7 +1533,7 @@ class luno extends Exchange {
             $max_row = 0; // Default to most recent transactions
             $min_row = -1000; // Maximum number of records supported
         } elseif ($min_row === null || $max_row === null) {
-            throw new ExchangeError($this->id . " fetchLedger() require both $params 'max_row' and 'min_row' or neither to be defined");
+            throw new ExchangeError($this->id . " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined");
         }
         if ($limit !== null && $max_row - $min_row > $limit) {
             if ($max_row <= 0) {
@@ -1543,7 +1543,7 @@ class luno extends Exchange {
             }
         }
         if ($max_row - $min_row > 1000) {
-            throw new ExchangeError($this->id . " fetchLedger() requires the $params 'max_row' - 'min_row' <= 1000");
+            throw new ExchangeError($this->id . " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000");
         }
         $request = array(
             'id' => $id,
@@ -1551,7 +1551,7 @@ class luno extends Exchange {
             'max_row' => $max_row,
         );
         $response = Async\await($this->privateGetAccountsIdTransactions($this->extend($params, $request)));
-        $entries = $this->safe_value($response, 'transactions', array());
+        $entries = $this->safe_list($response, 'transactions', array());
         return $this->parse_ledger($entries, $currency, $since, $limit);
     }
 
@@ -1587,7 +1587,7 @@ class luno extends Exchange {
         );
     }
 
-    public function parse_ledger_entry(mixed $entry, ?array $currency = null): array {
+    public function parse_ledger_entry(array $entry, ?array $currency = null): array {
         // const details = this.safeValue (entry, 'details', {});
         $id = $this->safe_string($entry, 'row_index');
         $account_id = $this->safe_string($entry, 'account_id');
@@ -1805,7 +1805,7 @@ class luno extends Exchange {
         return $this->assign_default_deposit_withdraw_fees($result, $currency);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if (count($query) > 0) {

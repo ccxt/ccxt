@@ -79,11 +79,11 @@ class lighter extends \ccxt\async\lighter {
         return $hash;
     }
 
-    public function subscribe_public(mixed $messageHash, $params = array()) {
+    public function subscribe_public(string $messageHash, $params = array()) {
         return Async\async(self::do_subscribe_public(...))($messageHash, $params);
     }
 
-    private function do_subscribe_public(mixed $messageHash, $params = array()) {
+    private function do_subscribe_public(string $messageHash, $params = array()) {
         $url = $this->urls['api']['ws'];
         $request = array(
             'type' => 'subscribe',
@@ -95,11 +95,11 @@ class lighter extends \ccxt\async\lighter {
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
     }
 
-    public function subscribe_public_multiple(mixed $messageHashes, $params = array()) {
+    public function subscribe_public_multiple(array $messageHashes, $params = array()) {
         return Async\async(self::do_subscribe_public_multiple(...))($messageHashes, $params);
     }
 
-    private function do_subscribe_public_multiple(mixed $messageHashes, $params = array()) {
+    private function do_subscribe_public_multiple(array $messageHashes, $params = array()) {
         $url = $this->urls['api']['ws'];
         $request = array(
             'type' => 'subscribe',
@@ -111,11 +111,11 @@ class lighter extends \ccxt\async\lighter {
         return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscription));
     }
 
-    public function unsubscribe(mixed $messageHash, $params = array()) {
+    public function unsubscribe(string $messageHash, $params = array()) {
         return Async\async(self::do_unsubscribe(...))($messageHash, $params);
     }
 
-    private function do_unsubscribe(mixed $messageHash, $params = array()) {
+    private function do_unsubscribe(string $messageHash, $params = array()) {
         $url = $this->urls['api']['ws'];
         $request = array(
             'type' => 'unsubscribe',
@@ -127,11 +127,11 @@ class lighter extends \ccxt\async\lighter {
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
     }
 
-    public function subscribe_private(mixed $messageHash, $params = array()) {
+    public function subscribe_private(string $messageHash, $params = array()) {
         return Async\async(self::do_subscribe_private(...))($messageHash, $params);
     }
 
-    private function do_subscribe_private(mixed $messageHash, $params = array()) {
+    private function do_subscribe_private(string $messageHash, $params = array()) {
         Async\await($this->preLoadLighterLibrary());
         $params['auth'] = $this->createAuth($params);
         return Async\await($this->subscribe_public($messageHash, $params));
@@ -149,7 +149,7 @@ class lighter extends \ccxt\async\lighter {
         }
     }
 
-    public function handle_order_book_message(Client $client, mixed $message, mixed $orderbook) {
+    public function handle_order_book_message(Client $client, array $message, mixed $orderbook) {
         $data = $this->safe_dict($message, 'order_book', array());
         $this->handle_deltas($orderbook['asks'], $this->safe_list($data, 'asks', array()));
         $this->handle_deltas($orderbook['bids'], $this->safe_list($data, 'bids', array()));
@@ -160,7 +160,7 @@ class lighter extends \ccxt\async\lighter {
         return $orderbook;
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // {
         //     "channel": "order_book:0",
@@ -264,7 +264,7 @@ class lighter extends \ccxt\async\lighter {
         return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         // watchTicker
         //     {
@@ -527,7 +527,7 @@ class lighter extends \ccxt\async\lighter {
         return $this->un_watch_tickers($symbols, $params);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "trade_id": 526801155,
@@ -579,7 +579,7 @@ class lighter extends \ccxt\async\lighter {
         ), $market);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
         //         "channel": "trade:0",
@@ -697,7 +697,7 @@ class lighter extends \ccxt\async\lighter {
         return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
     }
 
-    public function parse_ws_order_trade(array $trade, ?array $market = null) {
+    public function parse_ws_order_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "trade_id": 526801155,
@@ -907,7 +907,7 @@ class lighter extends \ccxt\async\lighter {
          * @return {any} status of the unwatch $request
          */
         if ($symbol !== null) {
-            throw new NotSupported($this->id . ' unWatchMyTrades() does not support a $symbol argument, the account trades channel covers every market, unWatch from all markets only');
+            throw new NotSupported($this->id . ' unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only');
         }
         $accountIndex = null;
         list($accountIndex, $params) = Async\await($this->handleAccountIndex($params, 'unWatchMyTrades', 'accountIndex', 'account_index'));
@@ -919,7 +919,7 @@ class lighter extends \ccxt\async\lighter {
         return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
     }
 
-    public function parse_ws_liquidation(mixed $liquidation, ?array $market = null) {
+    public function parse_ws_liquidation(array $liquidation, ?array $market = null) {
         //
         //     {
         //         "trade_id": 526801155,
@@ -973,7 +973,7 @@ class lighter extends \ccxt\async\lighter {
         ));
     }
 
-    public function handle_liquidation(Client $client, mixed $message) {
+    public function handle_liquidation(Client $client, array $message) {
         //
         //     {
         //         "channel": "trade:0",
@@ -1383,7 +1383,7 @@ class lighter extends \ccxt\async\lighter {
         return $this->parse_orders(array( $rawMessage ));
     }
 
-    public function handle_ws_sendtx_api(Client $client, mixed $message) {
+    public function handle_ws_sendtx_api(Client $client, array $message) {
         //
         //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
         //
@@ -1450,7 +1450,45 @@ class lighter extends \ccxt\async\lighter {
         //         }
         //     }
         //
+        //
+        //     {
+        //         "error": {
+        //             "code": 30003,
+        //             "message": "Already Subscribed to : market_stats:all"
+        //         }
+        //     }
+        //
+        //     {
+        //         "error": {
+        //             "code": 30002,
+        //             "message": "Not Subscribed to : order_book:0"
+        //         }
+        //     }
+        //
         $error = $this->safe_dict($message, 'error');
+        $errorCode = $this->safe_string($error, 'code');
+        if ($errorCode === '30003') {
+            // a duplicate subscribe is harmless - the server-side subscription is intact and
+            // data keeps flowing, while the generic reject below would hit every pending
+            // future on the connection because the venue echoes no request id,
+            // same handling for the same notice on hyperliquid, apex and krakenfutures
+            return true;
+        }
+        if ($errorCode === '30002') {
+            // the requested state is already reached, so the unWatch call resolves and only
+            // its own channel gets cleaned up. The channel is available solely inside the
+            // message text, a changed text format falls through to the generic reject below
+            $notSubscribedMessage = $this->safe_string($error, 'message', '');
+            $messageParts = explode(' : ', $notSubscribedMessage);
+            $notSubscribedChannel = $this->safe_string($messageParts, 1);
+            if ($notSubscribedChannel !== null) {
+                $unsubscribed = array(
+                    'channel' => $notSubscribedChannel,
+                );
+                $this->handle_un_subscription($client, $unsubscribed);
+                return true;
+            }
+        }
         try {
             if ($error !== null) {
                 $code = $this->safe_string($error, 'code');
@@ -1488,7 +1526,7 @@ class lighter extends \ccxt\async\lighter {
         return true;
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         if (!$this->handle_error_message($client, $message)) {
             return;
         }
@@ -1543,7 +1581,7 @@ class lighter extends \ccxt\async\lighter {
         }
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message): array {
         //
         //     {
         //         "session_id": "8d354239-80e0-4b77-8763-87b6fef2f768",
@@ -1553,7 +1591,7 @@ class lighter extends \ccxt\async\lighter {
         return $message;
     }
 
-    public function handle_un_subscription(Client $client, mixed $message) {
+    public function handle_un_subscription(Client $client, array $message) {
         //
         //     {
         //         "type": "unsubscribed",

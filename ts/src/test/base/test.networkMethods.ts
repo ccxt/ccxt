@@ -2,7 +2,6 @@
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 
-
 function helperTestNetworkCodeToId (networksMap: any) {
     // we should conduct tests with such example configuration
     const exchange = new ccxt.Exchange ({
@@ -149,7 +148,6 @@ function helperBatchNetworkTests () {
         }
     }
 }
-
 
 // function helperTestNetworkProtocolCorrector () {
 //     return;

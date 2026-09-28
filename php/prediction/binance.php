@@ -829,14 +829,13 @@ class binance extends Exchange {
                 $last = $this->parse_number($lastString);
             }
         }
-        $now = $this->milliseconds();
         return $this->safe_prediction_ticker(array(
             'outcome' => $this->safe_string($outcomeObj, 'outcome'),
             'outcomeId' => $this->safe_string_2($outcomeObj, 'outcomeId', 'id'),
             'label' => $this->safe_string($outcomeObj, 'label'),
             'market' => $this->safe_string($outcomeObj, 'market'),
-            'timestamp' => $now,
-            'datetime' => $this->iso8601($now),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => null,
             'low' => null,
             'bid' => null,
@@ -872,7 +871,7 @@ class binance extends Exchange {
          * @return {array} a dictionary of prediction [$ticker structures](https://docs.ccxt.com/#/?id=$ticker-structure)
          */
         if ($outcomes === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTickers() requires an $outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
+            throw new ArgumentsRequired($this->id . ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
         }
         Async\await($this->load_outcomes($outcomes));
         $responsesByMarketId = array();
@@ -1793,7 +1792,7 @@ class binance extends Exchange {
         $defaultTif = 'FOK';
         if ($typeUpper === 'LIMIT') {
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . 'createOrder requires $price for limit order');
+                throw new ArgumentsRequired($this->id . 'createOrder requires price for limit order');
             }
             $commonRequest['priceLimit'] = $this->price_to_precision($marketSymbol, $price);
             $defaultTif = 'GTC';
@@ -1808,7 +1807,7 @@ class binance extends Exchange {
                     $feeRateBps = '0';
                 } else {
                     if ($price === null) {
-                        throw new ArgumentsRequired($this->id . ' createOrder requires $price for ' . $side . ' order');
+                        throw new ArgumentsRequired($this->id . ' createOrder requires price for ' . $side . ' order');
                     }
                 }
                 $feeRate = Precise::string_div($feeRateBps, '10000');
@@ -1820,7 +1819,7 @@ class binance extends Exchange {
         $timeInForce = $this->safe_string_upper($params, 'timeInForce', $defaultTif);
         $accountType = $this->safe_string($params, 'accountType');
         if ($accountType === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder requires $accountType (SPOT, FUNDING)');
+            throw new ArgumentsRequired($this->id . ' createOrder requires accountType (SPOT, FUNDING)');
         }
         $params = $this->omit($params, array( 'timeInForce', 'accountType', 'cost' ));
         $quoteRequest = $this->extend($commonRequest, array(
@@ -1975,8 +1974,8 @@ class binance extends Exchange {
                 'outcomeId' => $this->safe_string($outcomeObj, 'id'),
                 'label' => $this->safe_string($outcomeObj, 'label'),
                 'market' => $this->safe_string($outcomeObj, 'market'),
-                'timestamp' => $this->milliseconds(),
-                'datetime' => $this->iso8601($this->milliseconds()),
+                'timestamp' => null,
+                'datetime' => null,
             );
             $orders[] = $this->safe_prediction_order($order);
         }
@@ -2027,7 +2026,7 @@ class binance extends Exchange {
         $querystring = str_replace('%5B', '[', $querystring);
         $querystring = str_replace('%5D', ']', $querystring);
         $signature = $this->hmac($this->encode($querystring), $this->encode($this->secret), 'sha256');
-        $querystring = $querystring . '&$signature=' . $signature;
+        $querystring = $querystring . '&signature=' . $signature;
         $headers = array(
             'X-MBX-APIKEY' => $this->apiKey,
         );

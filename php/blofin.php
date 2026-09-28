@@ -1082,7 +1082,7 @@ class blofin extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding $rate prices
          *
@@ -1097,7 +1097,7 @@ class blofin extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rate-history-structure funding $rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1213,7 +1213,7 @@ class blofin extends Exchange {
         return $this->parse_funding_rate($entry, $market);
     }
 
-    public function parse_balance_by_type(mixed $response) {
+    public function parse_balance_by_type(array $response): array {
         $data = $this->safe_list($response, 'data');
         if (($data !== null) && (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
             return $this->parse_funding_balance($response);
@@ -1222,7 +1222,7 @@ class blofin extends Exchange {
         }
     }
 
-    public function parse_balance(mixed $response) {
+    public function parse_balance(mixed $response): array {
         //
         // "data" similar for REST & WS
         //
@@ -1279,7 +1279,7 @@ class blofin extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_funding_balance(mixed $response) {
+    public function parse_funding_balance(array $response): array {
         //
         //  {
         //      "code": "0",
@@ -1352,12 +1352,12 @@ class blofin extends Exchange {
         return $this->parse_balance_by_type($response);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -1626,7 +1626,7 @@ class blofin extends Exchange {
         return $order;
     }
 
-    public function create_tpsl_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function create_tpsl_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         $market = $this->market($symbol);
         $hedged = $this->safe_bool($params, 'hedged', false);
         $positionSide = 'net';
@@ -1645,7 +1645,7 @@ class blofin extends Exchange {
         }
         $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross or isolated
         if ($marginMode !== 'cross' && $marginMode !== 'isolated') {
-            throw new BadRequest($this->id . ' createTpslOrder() requires a $marginMode parameter that must be either cross or isolated');
+            throw new BadRequest($this->id . ' createTpslOrder() requires a marginMode parameter that must be either cross or isolated');
         }
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
@@ -1656,7 +1656,7 @@ class blofin extends Exchange {
             } else {
                 $slLimitPrice = $this->safe_string($params, 'stopLossLimitPrice');
                 if ($slLimitPrice === null) {
-                    throw new ArgumentsRequired($this->id . ' createTpslOrder() requires a "stopLossLimitPrice" parameter (instead of "price" argument) for stop loss orders when the order $type is not market');
+                    throw new ArgumentsRequired($this->id . ' createTpslOrder() requires a "stopLossLimitPrice" parameter (instead of "price" argument) for stop loss orders when the order type is not market');
                 }
                 $request['slOrderPrice'] = $this->price_to_precision($symbol, $slLimitPrice);
                 $params = $this->omit($params, 'stopLossLimitPrice');
@@ -1669,7 +1669,7 @@ class blofin extends Exchange {
             } else {
                 $tpLimitPrice = $this->safe_string($params, 'takeProfitLimitPrice');
                 if ($tpLimitPrice === null) {
-                    throw new ArgumentsRequired($this->id . ' createTpslOrder() requires a "takeProfitLimitPrice" parameter (instead of "price" argument) for take profit orders when the order $type is not market');
+                    throw new ArgumentsRequired($this->id . ' createTpslOrder() requires a "takeProfitLimitPrice" parameter (instead of "price" argument) for take profit orders when the order type is not market');
                 }
                 $request['tpOrderPrice'] = $this->price_to_precision($symbol, $tpLimitPrice);
                 $params = $this->omit($params, 'takeProfitLimitPrice');
@@ -1680,7 +1680,7 @@ class blofin extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open $order
          *
@@ -1695,7 +1695,7 @@ class blofin extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2071,7 +2071,7 @@ class blofin extends Exchange {
                 $request['chain'] = $this->network_code_to_chain_id($networkCode);
             } elseif ($dest === 'onchain') {
                 // required for on-chain withdrawals, optional for internal transfers
-                throw new ArgumentsRequired($this->id . ' withdraw() requires a $params["network"] or $params["chain"] for on-$chain withdrawals');
+                throw new ArgumentsRequired($this->id . ' withdraw() requires a params["network"] or params["chain"] for on-chain withdrawals');
             }
         }
         $response = $this->privatePostAssetWithdrawalApply($this->extend($request, $params));
@@ -2252,7 +2252,7 @@ class blofin extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array(
             '1' => 'transfer', // transfer
             '2' => 'trade', // trade
@@ -2306,7 +2306,7 @@ class blofin extends Exchange {
         }
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple orders
          *
@@ -2320,7 +2320,7 @@ class blofin extends Exchange {
          */
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2535,7 +2535,7 @@ class blofin extends Exchange {
         return $this->filter_by_since_limit($positions, $since, $limit);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // response similar for REST & WS
         //
@@ -2690,7 +2690,7 @@ class blofin extends Exchange {
             $this->load_markets();
         }
         if ($symbols === null) {
-            throw new ArgumentsRequired($this->id . ' fetchLeverages() requires a $symbols argument');
+            throw new ArgumentsRequired($this->id . ' fetchLeverages() requires a symbols argument');
         }
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverages', $params);
@@ -2698,7 +2698,7 @@ class blofin extends Exchange {
             $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross as default marginMode
         }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' fetchLeverages() requires a $marginMode parameter that must be either cross or isolated');
+            throw new BadRequest($this->id . ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated');
         }
         $symbols = $this->market_symbols($symbols);
         $symbolsList = $symbols;
@@ -2754,7 +2754,7 @@ class blofin extends Exchange {
             $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross as default marginMode
         }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' fetchLeverage() requires a $marginMode parameter that must be either cross or isolated');
+            throw new BadRequest($this->id . ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -2803,12 +2803,12 @@ class blofin extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (($leverage < 1) || ($leverage > 125)) {
-            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 125');
+            throw new BadRequest($this->id . ' setLeverage() leverage should be between 1 and 125');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2817,7 +2817,7 @@ class blofin extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params, 'cross');
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' setLeverage() requires a $marginMode parameter that must be either cross or isolated');
+            throw new BadRequest($this->id . ' setLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
         $request = array(
             'leverage' => $leverage,
@@ -3162,7 +3162,7 @@ class blofin extends Exchange {
         return null;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api']['rest'] . $request;

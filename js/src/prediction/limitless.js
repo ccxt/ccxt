@@ -1111,15 +1111,14 @@ export default class limitless extends Exchange {
         if (askSizeStr !== undefined) {
             askSizeStr = Precise.stringDiv(askSizeStr, '1000000');
         }
-        const now = this.milliseconds();
         const outcomeSymbol = this.safeOutcomeSymbol(undefined, market);
         return this.safePredictionTicker({
             'outcome': outcomeSymbol,
             'outcomeId': this.safeString(market, 'outcomeId'),
             'label': this.safeString(market, 'label'),
             'market': this.safeString(market, 'market'),
-            'timestamp': now,
-            'datetime': this.iso8601(now),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': undefined,
             'low': undefined,
             'bid': this.parseNumber(bidStr),
@@ -1297,7 +1296,6 @@ export default class limitless extends Exchange {
         //         "lastTradePrice": "0.161"
         //     }
         //
-        const timestamp = this.milliseconds();
         const decimals = this.safeInteger(this.options, 'usdcDecimals', 6);
         // sizes are scaled by 10^decimals, USDC uses 6 decimals
         const scaleStr = this.parsePrecision(this.numberToString(-decimals));
@@ -1336,8 +1334,8 @@ export default class limitless extends Exchange {
             'outcome': this.safeOutcomeSymbol(outcome, outcomeObj),
             'bids': this.sortBy(bids, 0, true),
             'asks': this.sortBy(asks, 0),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'nonce': undefined,
         };
         return this.safePredictionOrderBook(orderbook, outcomeObj);
@@ -2065,7 +2063,7 @@ export default class limitless extends Exchange {
         catch (e) {
             throw new InvalidAddress(this.id + ' createOrder requires a valid taker address. Set the "taker" parameter to a valid address or set the "nullAddress" property in the constructor options.');
         }
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const sides = {
             'buy': 0,
             'sell': 1,
@@ -3091,6 +3089,11 @@ export default class limitless extends Exchange {
             }
         }
         return allRaw;
+    }
+    nonce() {
+        // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
+        // unique when two orders are signed within the same millisecond
+        return this.milliseconds();
     }
     /**
      * @ignore

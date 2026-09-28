@@ -206,7 +206,7 @@ export default class toobit extends toobitRest {
         };
         const trades = await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
@@ -1201,7 +1201,7 @@ export default class toobit extends toobitRest {
         }
     }
     async keepAliveListenKey(params = {}) {
-        const options = this.safeValue(this.options, 'ws', {});
+        const options = this.safeDict(this.options, 'ws', {});
         const listenKey = this.safeString(options, 'listenKey');
         if (listenKey === undefined) {
             // A network error happened: we can't renew a listen key that does not exist.

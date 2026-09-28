@@ -409,7 +409,7 @@ class nado extends Exchange {
             throw new InvalidOrder($this->id . ' createOrder() supports limit orders only');
         }
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument');
         }
         $productId = $this->parse_to_int($market['id']);
         $priceString = $this->price_to_precision($symbol, $price);
@@ -573,13 +573,13 @@ class nado extends Exchange {
         }
         $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ));
         if ($triggerPrice !== null) {
-            throw new NotSupported($this->id . ' editOrder() and editOrderWs() do not support trigger orders, cancel the trigger $order and create a new one instead');
+            throw new NotSupported($this->id . ' editOrder() and editOrderWs() do not support trigger orders, cancel the trigger order and create a new one instead');
         }
         if ($amount === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires an amount argument');
         }
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a price argument');
         }
         $productId = $this->parse_to_int($market['id']);
         $priceString = $this->price_to_precision($symbol, $price);
@@ -625,7 +625,7 @@ class nado extends Exchange {
         $chainId = $this->safe_string($contracts, 'chain_id');
         $endpointAddress = $this->safe_string($contracts, 'endpoint_addr');
         if ($endpointAddress === null) {
-            throw new ExchangeError($this->id . ' editOrder() requires endpoint_addr from $contracts query');
+            throw new ExchangeError($this->id . ' editOrder() requires endpoint_addr from contracts query');
         }
         $cancelSignature = $this->sign_cancellation($cancelTx, $chainId, $endpointAddress);
         $orderSignature = $this->sign_order($order, $productId, $chainId);
@@ -779,7 +779,7 @@ class nado extends Exchange {
         $chainId = $this->safe_string($contracts, 'chain_id');
         $endpointAddress = $this->safe_string($contracts, 'endpoint_addr');
         if ($endpointAddress === null) {
-            throw new ExchangeError($this->id . ' cancelAllOrders() requires endpoint_addr from $contracts query');
+            throw new ExchangeError($this->id . ' cancelAllOrders() requires endpoint_addr from contracts query');
         }
         $signature = $this->sign_cancellation_products($tx, $chainId, $endpointAddress);
         $requestId = $this->safe_integer($params, 'id');
@@ -818,7 +818,7 @@ class nado extends Exchange {
          */
         $this->check_required_credentials();
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument');
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
@@ -907,7 +907,7 @@ class nado extends Exchange {
         $chainId = $this->safe_string($contracts, 'chain_id');
         $endpointAddress = $this->safe_string($contracts, 'endpoint_addr');
         if ($endpointAddress === null) {
-            throw new ExchangeError($this->id . ' $cancelOrders() requires endpoint_addr from $contracts query');
+            throw new ExchangeError($this->id . ' cancelOrders() requires endpoint_addr from contracts query');
         }
         $signature = $this->sign_cancellation($tx, $chainId, $endpointAddress);
         $requestId = $this->safe_integer($params, 'id');
@@ -948,7 +948,7 @@ class nado extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
@@ -1103,7 +1103,7 @@ class nado extends Exchange {
             ))));
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -1229,7 +1229,7 @@ class nado extends Exchange {
         return $this->parse_orders($closedOrders, $market, $since, $limit);
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_canceled_orders(...))($symbol, $since, $limit, $params);
     }
 
@@ -1933,7 +1933,7 @@ class nado extends Exchange {
         $tickers = Async\await($this->fetch_tickers(array( $symbol ), $params));
         $ticker = $this->safe_dict($tickers, $symbol);
         if ($ticker === null) {
-            throw new BadSymbol($this->id . ' fetchTicker() $ticker not found for ' . $symbol);
+            throw new BadSymbol($this->id . ' fetchTicker() ticker not found for ' . $symbol);
         }
         return $ticker;
     }
@@ -2005,7 +2005,7 @@ class nado extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a symbol argument');
         }
         if ($this->walletAddress === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires walletAddress');
@@ -2103,7 +2103,7 @@ class nado extends Exchange {
         return $this->parse_funding_rates($rates, $symbols);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interest(...))($symbol, $params);
     }
 
@@ -2152,7 +2152,7 @@ class nado extends Exchange {
         return $this->parse_open_interest($data, $market);
     }
 
-    public function fetch_open_interests(?array $symbols = null, $params = array()) {
+    public function fetch_open_interests(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interests(...))($symbols, $params);
     }
 
@@ -2551,7 +2551,7 @@ class nado extends Exchange {
         );
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         //     {
         //         "product_id": 1,
@@ -3050,14 +3050,14 @@ class nado extends Exchange {
         return Precise::string_div(Precise::string_mul($value, '1000000000000000000'), '1', 0);
     }
 
-    public function parse_x18(mixed $value) {
+    public function parse_x18(?string $value) {
         if ($value === null) {
             return null;
         }
         return $this->parse_number(Precise::string_div($value, '1000000000000000000'));
     }
 
-    public function create_order_nonce(mixed $recvWindow) {
+    public function create_order_nonce(?int $recvWindow): ?string {
         $expires = $this->sum($this->milliseconds(), $recvWindow);
         $highBits = Precise::string_mul($this->number_to_string($expires), '1048576');
         // the exchange defines the nonce to be the recv time moved left by 20 bits
@@ -3067,7 +3067,7 @@ class nado extends Exchange {
         return Precise::string_add($highBits, $this->number_to_string($entropy));
     }
 
-    public function create_order_appendix(mixed $isTriggerOrder, $params = array()) {
+    public function create_order_appendix(bool $isTriggerOrder, $params = array()): ?string {
         // | value   | builder | builder fee rate | reserved | trigger | reduce only | order type | isolated | version |
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
@@ -3082,7 +3082,7 @@ class nado extends Exchange {
         } elseif ($postOnly || ($timeInForce === 'PO')) {
             $orderType = 3;
         } elseif (($timeInForce !== null) && ($timeInForce !== 'GTC')) {
-            throw new BadRequest($this->id . ' createOrder() only supports $timeInForce values GTC, IOC, FOK, or PO');
+            throw new BadRequest($this->id . ' createOrder() only supports timeInForce values GTC, IOC, FOK, or PO');
         }
         $appendix = '1'; // version
         if ($orderType !== 0) {
@@ -3117,12 +3117,12 @@ class nado extends Exchange {
         }
         $encoded = $this->remove0x_prefix($this->string_to_base16($subaccount));
         if (strlen($encoded) > 24) {
-            throw new BadRequest($this->id . ' createOrder() $subaccount must fit in 12 bytes');
+            throw new BadRequest($this->id . ' createOrder() subaccount must fit in 12 bytes');
         }
         return '0x' . $address . $this->pad_hex($encoded, 24, false);
     }
 
-    public function query_contracts($params = array()) {
+    public function query_contracts($params = array()): PromiseInterface {
         return Async\async(self::do_query_contracts(...))($params);
     }
 
@@ -3144,7 +3144,7 @@ class nado extends Exchange {
         return '0x' . $this->pad_hex($this->int_to_base16($productId), 40);
     }
 
-    public function pad_hex(string $value, ?int $length, $left = true) {
+    public function pad_hex(string $value, ?int $length, bool $left = true): string {
         if ($length === null) {
             throw new ArgumentsRequired($this->id . ' padHex() requires length');
         }
@@ -3157,7 +3157,7 @@ class nado extends Exchange {
         return mb_substr($padded, 0, $length - 0);
     }
 
-    public function sign_order(mixed $order, ?int $productId, mixed $chainId) {
+    public function sign_order(array $order, ?int $productId, ?string $chainId): string {
         $domain = array(
             'name' => 'Nado',
             'version' => '0.0.1',
@@ -3179,7 +3179,7 @@ class nado extends Exchange {
         return $this->sign_hash($hash, $this->privateKey);
     }
 
-    public function sign_cancellation(mixed $cancellation, mixed $chainId, string $endpointAddress) {
+    public function sign_cancellation(array $cancellation, ?string $chainId, ?string $endpointAddress): string {
         $domain = array(
             'name' => 'Nado',
             'version' => '0.0.1',
@@ -3199,7 +3199,7 @@ class nado extends Exchange {
         return $this->sign_hash($hash, $this->privateKey);
     }
 
-    public function sign_cancellation_products(mixed $cancellation, mixed $chainId, string $endpointAddress) {
+    public function sign_cancellation_products(array $cancellation, ?string $chainId, ?string $endpointAddress): string {
         $domain = array(
             'name' => 'Nado',
             'version' => '0.0.1',
@@ -3218,7 +3218,7 @@ class nado extends Exchange {
         return $this->sign_hash($hash, $this->privateKey);
     }
 
-    public function sign_fetch_trigger_orders(mixed $tx, mixed $chainId, mixed $endpointAddress) {
+    public function sign_fetch_trigger_orders(array $tx, ?string $chainId, ?string $endpointAddress): string {
         $domain = array(
             'name' => 'Nado',
             'version' => '0.0.1',
@@ -3257,7 +3257,7 @@ class nado extends Exchange {
         return $marketId;
     }
 
-    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $endpoint = $api[0];
         if (gettype($api) === 'string') {
             $endpoint = $api;

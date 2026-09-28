@@ -521,7 +521,7 @@ class cryptomus extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function parse_ticker(mixed $ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "currency_pair": "XMR_USDT",
@@ -791,7 +791,7 @@ class cryptomus extends Exchange {
                 list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 if ($createMarketBuyOrderRequiresPrice) {
                     if (($price === null) && ($cost === null)) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option of param to false and pass the $cost to spend in the $amount argument');
+                        throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument');
                     } elseif ($cost === null) {
                         $cost = Precise::string_mul($amountToString, $priceToString);
                     }
@@ -805,13 +805,13 @@ class cryptomus extends Exchange {
             $response = Async\await($this->privatePostV2UserApiExchangeOrdersMarket($this->extend($request, $params)));
         } elseif ($type === 'limit') {
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price parameter for a ' . $type . ' order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a price parameter for a ' . $type . ' order');
             }
             $request['quantity'] = $amountToString;
             $request['price'] = $price;
             $response = Async\await($this->privatePostV2UserApiExchangeOrders($this->extend($request, $params)));
         } else {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $type parameter (limit or $market)');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a type parameter (limit or market)');
         }
         //
         //     {
@@ -821,7 +821,7 @@ class cryptomus extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1201,7 +1201,7 @@ class cryptomus extends Exchange {
         return $result;
     }
 
-    public function parse_fee_tiers(mixed $feeTiers, ?array $market = null) {
+    public function parse_fee_tiers(array $feeTiers, ?array $market = null): array {
         $takerFees = array();
         $makerFees = array();
         for ($i = 0; $i < count($feeTiers); $i++) {
@@ -1220,7 +1220,7 @@ class cryptomus extends Exchange {
         );
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $endpoint = $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/' . $endpoint;

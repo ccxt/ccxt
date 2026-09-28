@@ -324,8 +324,8 @@ class zaif extends zaif$1["default"] {
         });
     }
     parseBalance(response) {
-        const balances = this.safeValue(response, 'return', {});
-        const deposit = this.safeValue(balances, 'deposit');
+        const balances = this.safeDict(response, 'return', {});
+        const deposit = this.safeDict(balances, 'deposit');
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -716,6 +716,12 @@ class zaif extends zaif$1["default"] {
             market = this.market(symbol);
             request['currency_pair'] = market['id'];
         }
+        if (since !== undefined) {
+            request['since'] = this.parseToInt(since / 1000);
+        }
+        if (limit !== undefined) {
+            request['count'] = Math.min(limit, 1000);
+        }
         const response = await this.privatePostTradeHistory(this.extend(request, params));
         const data = this.safeDict(response, 'return', {});
         return this.parseOrders(data, market, since, limit);
@@ -788,7 +794,7 @@ class zaif extends zaif$1["default"] {
         //
         currency = this.safeCurrency(undefined, currency);
         let fee = undefined;
-        const feeCost = this.safeValue(transaction, 'fee');
+        const feeCost = this.safeNumber(transaction, 'fee');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,

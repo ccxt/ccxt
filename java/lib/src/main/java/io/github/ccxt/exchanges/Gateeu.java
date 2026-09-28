@@ -67,6 +67,9 @@ public class Gateeu extends GateeuApi
                 put( "fetchMarkets", new HashMap<String, Object>() {{
                     put( "types", new ArrayList<Object>(Arrays.asList("spot")) );
                 }} );
+                put( "fetchOrderBook", new HashMap<String, Object>() {{
+                    put( "maxSpotLimit", 100 );
+                }} );
                 put( "mica", true );
             }} );
         }});

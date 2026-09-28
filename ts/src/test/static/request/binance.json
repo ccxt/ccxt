@@ -775,6 +775,19 @@
                     }
                 ],
                 "output": "timestamp=1785987650308&symbol=AAPL&side=SELL&clientOrderId=x-TKT5PX2F512ee9e3711341369454f9&orderType=MARKET&quantity=0.0576724&recvWindow=10000&signature=d071ca15633e8122f8ce7f4b8926aecc1065f5f156ebc09e042f42fe823d1a60"
+            },
+            {
+                "description": "Exchange rate underlying swap createOrder",
+                "method": "createOrder",
+                "url": "https://fapi.binance.com/fapi/v1/order",
+                "input": [
+                    "USDBRL/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    5
+                ],
+                "output": "timestamp=1790229579913&symbol=USDBRLUSDT&side=BUY&newClientOrderId=x-cvBPrNm97965dacb36dd4b4a9735ac&newOrderRespType=RESULT&type=LIMIT&quantity=1&price=5&timeInForce=GTC&recvWindow=10000&signature=c23b11351f8a23972827eae4b46b37e0fc40bfc8c7ab5f92d290b7dee9c51d1d"
             }
         ],
         "createOrders": [
@@ -1102,6 +1115,16 @@
                     "AAPL/USDC"
                 ],
                 "output": "timestamp=1785925627906&orderId=edf82072-9f42-4d47-b09e-602c8f1b35c9&recvWindow=10000&signature=b0f782caa4b714548bc847131d6b413e0bdccad9c9e74587de50e9a7d43f98b6"
+            },
+            {
+                "description": "Exchange rate underlying swap cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://fapi.binance.com/fapi/v1/order?timestamp=1790231024782&symbol=USDBRLUSDT&orderId=1245734&recvWindow=10000&signature=10d8059c71117cc0aac6ad3679b6744efaf85586efc18a9cbc0496fdd1a9fba5",
+                "input": [
+                    "1245734",
+                    "USDBRL/USDT:USDT"
+                ],
+                "output": null
             }
         ],
         "cancelOrders": [
@@ -1588,6 +1611,15 @@
                         "endTime": 1785925976372
                     }
                 ]
+            },
+            {
+                "description": "Exchange rate underlying swap fetchOrders",
+                "method": "fetchOrders",
+                "url": "https://fapi.binance.com/fapi/v1/allOrders?timestamp=1790230361366&symbol=USDBRLUSDT&recvWindow=10000&signature=4030113ade850abeea55f0195fa12898b012561a6cf04d455cabc87ab754d69e",
+                "input": [
+                    "USDBRL/USDT:USDT"
+                ],
+                "output": null
             }
         ],
         "fetchOrder": [
@@ -1708,6 +1740,16 @@
                     "edf82072-9f42-4d47-b09e-602c8f1b35c9",
                     "AAPL/USDC"
                 ]
+            },
+            {
+                "description": "Exchange rate underlying swap fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://fapi.binance.com/fapi/v1/order?timestamp=1790230246817&symbol=USDBRLUSDT&orderId=1245734&recvWindow=10000&signature=7b1511bbafa70ff23a79583ec03ce8b14aed479c9ad18e9b31ea78fa2e260db7",
+                "input": [
+                    "1245734",
+                    "USDBRL/USDT:USDT"
+                ],
+                "output": null
             }
         ],
         "fetchOpenOrders": [
@@ -1871,6 +1913,15 @@
                 "input": [
                     "AAPL/USDC"
                 ]
+            },
+            {
+                "description": "Exchange rate underlying swap fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://fapi.binance.com/fapi/v1/openOrders?timestamp=1790229787202&symbol=USDBRLUSDT&recvWindow=10000&signature=bd7e27f0d95544f50f8b999f7aa9f26ea89d7ce9799079dc71e2b453b3de89ea",
+                "input": [
+                    "USDBRL/USDT:USDT"
+                ],
+                "output": null
             }
         ],
         "fetchCanceledOrders": [
@@ -1963,6 +2014,15 @@
                         "endTime": 1785926663067
                     }
                 ]
+            },
+            {
+                "description": "Exchange rate underlying swap fetchCanceledOrders",
+                "method": "fetchCanceledOrders",
+                "url": "https://fapi.binance.com/fapi/v1/allOrders?timestamp=1790230571789&symbol=USDBRLUSDT&recvWindow=10000&signature=a152cb0e5d63dac03ad1e06429304e07a76084324051288263327289b96f1cfe",
+                "input": [
+                    "USDBRL/USDT:USDT"
+                ],
+                "output": null
             }
         ],
         "fetchClosedOrders": [
@@ -2721,6 +2781,18 @@
                     "until": 1725549149000
                   }
                 ]
+            },
+            {
+                "description": "Exchange rate underlying swap fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://fapi.binance.com/fapi/v1/klines?interval=1m&limit=3&symbol=USDBRLUSDT",
+                "input": [
+                    "USDBRL/USDT:USDT",
+                    "1m",
+                    null,
+                    3
+                ],
+                "output": null
             }
         ],
         "fetchTradingFees": [
@@ -2981,6 +3053,17 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "Exchange rate underlying swap fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://fapi.binance.com/fapi/v1/aggTrades?symbol=USDBRLUSDT&limit=3",
+                "input": [
+                    "USDBRL/USDT:USDT",
+                    null,
+                    3
+                ],
+                "output": null
             }
         ],
         "fetchPositionsRisk": [
@@ -3682,7 +3765,6 @@
                     }
                 ]
             },
-            
             {
                 "description": "Inverse portfolio margin trigger fetch open order",
                 "method": "fetchOpenOrder",
@@ -3695,6 +3777,16 @@
                         "trigger": true
                     }
                 ]
+            },
+            {
+                "description": "Exchange rate underlying swap fetchOpenOrder",
+                "method": "fetchOpenOrder",
+                "url": "https://fapi.binance.com/fapi/v1/openOrder?timestamp=1790230117483&symbol=USDBRLUSDT&orderId=1245734&recvWindow=10000&signature=495215d2f9913f04b9f2a7c556dece99e6d3f3214cb703c827731f8f787e90db",
+                "input": [
+                    "1245734",
+                    "USDBRL/USDT:USDT"
+                ],
+                "output": null
             }
         ],
         "fetchPositionMode": [

@@ -5,6 +5,41 @@
         "uta": false
     },
     "methods": {
+        "fetchCrossBorrowRate": [
+            {
+                "description": "cross borrow rate parses the current rate and leaves timestamp undefined - the response carries no createdAt/timestamp",
+                "method": "fetchCrossBorrowRate",
+                "input": [
+                    "USDT"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "currentRateHourly": "0.00000561",
+                        "currentRateDaily": "0.00013452",
+                        "borrowLimitTotal": "150000000.00000000000000000000",
+                        "borrowLimitTotalHold": "0.00000000000000000000",
+                        "borrowLimitHold": "0.00000000000000000000",
+                        "interestFreeBorrowLimit": "10000.00000000000000000000"
+                    }
+                },
+                "parsedResponse": {
+                    "currency": "USDT",
+                    "rate": 0.00013452,
+                    "period": 86400000,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                        "currentRateHourly": "0.00000561",
+                        "currentRateDaily": "0.00013452",
+                        "borrowLimitTotal": "150000000.00000000000000000000",
+                        "borrowLimitTotalHold": "0.00000000000000000000",
+                        "borrowLimitHold": "0.00000000000000000000",
+                        "interestFreeBorrowLimit": "10000.00000000000000000000"
+                    }
+                }
+            }
+        ],
         "fetchFundingRates": [
             {
                 "description": "fetch funding rates maps known linear and inverse IDs, drops funding index symbols and keeps unresolved contract IDs as raw symbols",

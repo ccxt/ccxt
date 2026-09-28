@@ -4,6 +4,9 @@ import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
 import { setupCsharpPrinter } from './csharp-worker.js'
+// the positional core-argument type tables live in the classifier module so the pooled
+// workers' parameter-type hook (build/csharp-local-types.js) reads the same proof
+import { CORE_NUMERIC_ARGS, CORE_STRING_ARGS } from './csharp-local-types.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
 import { platform } from 'process'
 import os from 'os'
@@ -52,6 +55,532 @@ if (platform === 'win32') {
     if (__dirname[0] === '/') {
         __dirname = __dirname.substring(1)
     }
+}
+
+// `callDynamically(x, "resolve"/"reject", ...)` whose receiver class the file itself declares —
+// `Future f = ...` / `WebSocketClient c = ...`, an `x as Future|WebSocketClient` receiver, or a read
+// of the ws client's `futures` map (`IDictionary<string, Future>`, cs/ccxt/ws/Client.cs) — binds the
+// same method the reflective dispatch resolves, so the direct call is emitted instead. Only the
+// methods those two hand-written classes declare, and only when the argument count binds the
+// signature; every other receiver keeps the helper.
+const WS_DECLARED_CLASSES_TYPED: dict = {
+    'Future': 'Future',
+    'Exchange.Future': 'Future',
+    'ccxt.Exchange.Future': 'Future',
+    'WebSocketClient': 'WebSocketClient',
+    'Exchange.WebSocketClient': 'WebSocketClient',
+    'ccxt.Exchange.WebSocketClient': 'WebSocketClient',
+}
+// class -> method -> rewritable argument counts, from the hand-written declarations
+// (cs/ccxt/ws/Future.cs: `resolve(object data = null)`, `reject(object data)`;
+// cs/ccxt/ws/Client.cs: `resolve(object content, object messageHash2)`, `reject(object content,
+// object messageHash2 = null)`). An empty `new object[] {}` stays: the helper coerces it to {null}.
+const WS_DECLARED_METHODS_TYPED: { [cls: string]: { [method: string]: number[] } } = {
+    'Future': { 'resolve': [1, 1], 'reject': [1, 1] },
+    'WebSocketClient': { 'resolve': [2, 2], 'reject': [1, 2] },
+}
+const CSHARP_DECLARATION_RE = /^[ \t]*([A-Za-z_][\w.]*(?:<[^=;{}]*>)?)[ \t]+(\w+)[ \t]*=[ \t]*(.+?);?[ \t]*$/gm
+// a value read out of the ws client's `futures` map is a Future by the field's declared type
+const CSHARP_FUTURES_READ_RE = /^(?:this\.)?(?:safeValue|getValue)\([^,]*\.futures,/
+
+function csharpClassOfDeclaration (content: string, receiver: string, callAt: number): { cls: string, cast: boolean } | undefined {
+    CSHARP_DECLARATION_RE.lastIndex = 0
+    let declared: { cls: string, cast: boolean } | undefined = undefined
+    let declarationCount = 0
+    let match
+    while ((match = CSHARP_DECLARATION_RE.exec (content)) !== null) {
+        if (match[2] !== receiver) {
+            continue
+        }
+        declarationCount += 1
+        if (match.index >= callAt) {
+            continue
+        }
+        const declaredClass = WS_DECLARED_CLASSES_TYPED[match[1]]
+        if (declaredClass !== undefined) {
+            declared = { cls: declaredClass, cast: false }
+        } else if (CSHARP_FUTURES_READ_RE.test (match[3])) {
+            declared = { cls: 'Future', cast: true }
+        } else {
+            declared = undefined
+        }
+    }
+    // any `receiver = ...` beyond its own declarations is a rebind that could box another class (D2)
+    const assignments = (content.match (new RegExp ('\\b' + receiver + '\\s*=(?![=>])', 'g')) || []).length
+    if (assignments !== declarationCount) {
+        return undefined
+    }
+    return declared
+}
+
+function csharpBalancedBraceEnd (content: string, openAt: number): number {
+    let depth = 0
+    let inString = false
+    let quote = ''
+    for (let i = openAt; i < content.length; i++) {
+        const c = content[i]
+        if (inString) {
+            if (c === '\\') {
+                i += 1
+            } else if (c === quote) {
+                inString = false
+            }
+            continue
+        }
+        if (c === '"' || c === "'") {
+            inString = true
+            quote = c
+        } else if (c === '{') {
+            depth += 1
+        } else if (c === '}') {
+            depth -= 1
+            if (depth === 0) {
+                return i
+            }
+        }
+    }
+    return -1
+}
+
+function csharpArgumentCount (args: string): number {
+    if (args.trim () === '') {
+        return 0
+    }
+    let depth = 0
+    let count = 1
+    let inString = false
+    let quote = ''
+    for (let i = 0; i < args.length; i++) {
+        const c = args[i]
+        if (inString) {
+            if (c === '\\') {
+                i += 1
+            } else if (c === quote) {
+                inString = false
+            }
+            continue
+        }
+        if (c === '"' || c === "'") {
+            inString = true
+            quote = c
+        } else if (c === '(' || c === '[' || c === '{') {
+            depth += 1
+        } else if (c === ')' || c === ']' || c === '}') {
+            depth -= 1
+        } else if (c === ',' && depth === 0) {
+            count += 1
+        }
+    }
+    return count
+}
+
+
+// ===== native getArrayLength / inOp / getValue on a receiver the EMITTED text declares =====
+//
+// The printer's helper-to-native arms (csharpDeclaredLengthExpression / csharpNativeInExpression)
+// read the print-time declared-local table, so a receiver whose C# type is produced later — a
+// parameter narrowed by typeCoreArgs / retypeSignatureArgs, a local retyped by the classifier's
+// post-print wrapper, a copy a later pass renamed — keeps the runtime helper. This pass reads the
+// emitted signature and declarations and rewrites the call into the member the helper's own
+// runtime branch performs: `Count` / `Length` for getArrayLength, `ContainsKey` / `Contains` for
+// inOp, and the key-tested indexer read for getValue. Nothing is retyped here and no cast is
+// added: a receiver the emitted text does not name, and a key that is not a literal or a
+// non-nullable `string`, keep the helper.
+
+// declared C# types whose `Count` counts the elements getArrayLength's IList / ICollection
+// branches count (the helper answers 0 for null, which `x?.Count ?? 0` reproduces)
+const CSHARP_DECLARED_COUNT_TYPES = [ 'List<', 'IList<', 'Collection<', 'Dictionary<', 'IDictionary<',
+    'ConcurrentDictionary<', 'IReadOnlyDictionary<', 'SortedDictionary<', 'SortedList<', 'HashSet<',
+    'ConcurrentQueue<' ];
+// declared C# types whose `Length` is getArrayLength's own byte[] / string branch
+const CSHARP_DECLARED_LENGTH_TYPES = [ 'byte[]', 'string', 'string?' ];
+// declared C# dictionary types whose `ContainsKey` is InOp's IDictionary<string, object> branch
+const CSHARP_DECLARED_DICT_TYPES = [ 'Dictionary<', 'IDictionary<', 'ConcurrentDictionary<',
+    'IReadOnlyDictionary<', 'SortedDictionary<', 'SortedList<' ];
+// space-normalized dictionary types whose indexer hands back an `object`: the box GetValue's
+// dictionary branch returns, and the only value the `: null` branch can join
+const CSHARP_DECLARED_OBJECT_DICT_TYPES = [ 'Dictionary<string,object>', 'IDictionary<string,object>',
+    'ConcurrentDictionary<string,object>', 'IReadOnlyDictionary<string,object>', 'SortedDictionary<string,object>' ];
+// declared C# list types whose `Contains` is InOp's IList<object> branch (a List<string> /
+// List<Int64> receiver casts the key in the helper, so it keeps the helper)
+const CSHARP_DECLARED_LIST_TYPES = [ 'List<object>', 'IList<object>' ];
+
+// a method signature line inside a class body: indented, a member name, an argument list;
+// the return type accepts a trailing `?` (`bool?` / `double?`), or the region boundary
+// drifts and a later method's body reads the previous method's parameter types
+const CSHARP_HELPER_SIGNATURE_RE = /^[ ]{4,}(?:(?:public|private|protected|internal)[ ]+)?(?:static[ ]+|async[ ]+|virtual[ ]+|override[ ]+|sealed[ ]+|new[ ]+|partial[ ]+|extern[ ]+|unsafe[ ]+)*(?:[A-Za-z_][\w<>,.\[\]?]*(?:[ ][A-Za-z_][\w<>,.\[\]?]*)*)[ ]+([A-Za-z_]\w*)[ ]*\(/;
+// a declaration of one variable: `Type name = value;` / `Type name;`
+const CSHARP_HELPER_DECL_RE = /^[ ]*([A-Za-z_][\w<>,.\[\]]*(?:[ ][A-Za-z_][\w<>,.\[\]]*)*)[ ]+([A-Za-z_]\w*)[ ]*(=[ ]*([^;]*))?;[ ]*$/;
+// the same declaration with a collection/object initializer that spans lines (`= new X () {`)
+const CSHARP_HELPER_NEW_DECL_RE = /^[ ]*([A-Za-z_][\w<>,.\[\]]*(?:[ ][A-Za-z_][\w<>,.\[\]]*)*)[ ]+([A-Za-z_]\w*)[ ]*=[ ]*new\b[^;]*\{[ ]*$/;
+const CSHARP_HELPER_TYPE_RE = /^[A-Za-z_][\w.]*(?:[ ]*<[^<>=;(){}]*>)?(?:[ ]*\[\])?[?]?$/;
+// statement keywords a declaration-shaped line may start with
+const CSHARP_HELPER_KEYWORDS = [ 'return', 'throw', 'if', 'else', 'while', 'for', 'foreach', 'using',
+    'lock', 'yield', 'case', 'switch', 'do', 'try', 'catch', 'break', 'continue', 'goto', 'new',
+    'fixed', 'checked', 'unchecked', 'await', 'base', 'this', 'var' ];
+
+// string / char literal bodies and line comments blanked out, offsets and quotes preserved
+function csharpHelperMaskLine (line: string): string {
+    let out = '';
+    let i = 0;
+    while (i < line.length) {
+        const ch = line[i];
+        if ((ch === '/') && (line[i + 1] === '/')) {
+            out += ' '.repeat (line.length - i);
+            break;
+        }
+        if ((ch === '"') || (ch === "'")) {
+            const quote = ch;
+            let j = i + 1;
+            out += (quote === '"') ? '"' : ' ';
+            while (j < line.length) {
+                if (line[j] === '\\') { out += '  '; j += 2; continue; }
+                if (line[j] === quote) break;
+                out += ' '; j++;
+            }
+            if (j < line.length) { out += (quote === '"') ? '"' : ' '; j++; }
+            i = j;
+            continue;
+        }
+        out += ch;
+        i++;
+    }
+    return out;
+}
+
+// the parameter types a signature line (and its continuation lines) declares
+function csharpHelperSignatureParams (masked: string[], start: number): { [name: string]: string } {
+    let depth = 0;
+    let text = '';
+    for (let i = start; (i < masked.length) && (i < start + 14); i++) {
+        text += masked[i].split ('{')[0] + ' ';
+            depth += (masked[i].match (/\(/g) ?? []).length;
+            depth -= (masked[i].match (/\)/g) ?? []).length;
+        if ((depth <= 0) && text.includes ('(')) {
+            break;
+        }
+    }
+    const open = text.indexOf ('(');
+    const close = text.lastIndexOf (')');
+    if ((open < 0) || (close <= open)) {
+        return {};
+    }
+    const params: { [name: string]: string } = {};
+    const parts = [];
+    let current = '';
+    let nesting = 0;
+    for (const ch of text.substring (open + 1, close)) {
+        if ((ch === '(') || (ch === '<') || (ch === '[')) nesting++;
+        if ((ch === ')') || (ch === '>') || (ch === ']')) nesting--;
+        if ((ch === ',') && (nesting === 0)) { parts.push (current); current = ''; continue; }
+        current += ch;
+    }
+    if (current.trim ()) parts.push (current);
+    for (const part of parts) {
+        const tokens = part.trim ().split ('=')[0].trim ().split (/\s+/).filter ((t) => t.length > 0);
+        if (tokens.length < 2) continue;
+        const name = tokens[tokens.length - 1];
+        let type = tokens.slice (0, tokens.length - 1).join (' ');
+        type = type.replace (/^(ref|out|in|params|this)\s+/, '');
+        if (!/^[A-Za-z_]\w*$/.test (name) || !CSHARP_HELPER_TYPE_RE.test (type)) continue;
+        params[name] = type;
+    }
+    return params;
+}
+
+// the declaration a line carries, or undefined: `Type name = value;` / `Type name;` /
+// `Type name = new ...() {` (the initializer continues on the next lines)
+function csharpHelperDeclarationOfLine (line: string): { type: string, name: string, value: string } | undefined {
+    const match = CSHARP_HELPER_DECL_RE.exec (line);
+    if (match === null) {
+        const opened = CSHARP_HELPER_NEW_DECL_RE.exec (line);
+        if (opened === null) {
+            return undefined;
+        }
+        const type = opened[1].trim ();
+        if (CSHARP_HELPER_KEYWORDS.includes (type.split (' ')[0]) || !CSHARP_HELPER_TYPE_RE.test (type)) {
+            return undefined;
+        }
+        return { type, name: opened[2], value: 'new' };
+    }
+    const type = match[1].trim ();
+    const name = match[2];
+    if (CSHARP_HELPER_KEYWORDS.includes (type.split (' ')[0]) || !CSHARP_HELPER_TYPE_RE.test (type)) {
+        return undefined;
+    }
+    return { type, name, value: (match[4] ?? '').trim () };
+}
+
+// the C# type the emitted text declares for `name` at `line`: a local declared before the read,
+// else a parameter of the enclosing signature. A name the region declares with two different
+// types is left to the helper (the read may sit behind either binding)
+function csharpHelperReceiverType (region, name: string, line: number, params: { [name: string]: string }): { type: string, kind: string, value: string } | undefined {
+    const all = region.declarations.filter ((d) => d.name === name);
+    const types = [];
+    for (const declaration of all) {
+        if (!types.includes (declaration.type)) types.push (declaration.type);
+    }
+    if (types.length > 1) {
+        return undefined; // the read may sit behind either binding
+    }
+    const declarations = all.filter ((d) => d.line < line);
+    if (declarations.length > 0) {
+        const last = declarations[declarations.length - 1];
+        return { type: last.type, kind: 'local', value: last.value };
+    }
+    if (all.length > 0) {
+        return undefined; // bound only after the read: not the binding the read uses
+    }
+    if (params[name] !== undefined) {
+        return { type: params[name], kind: 'param', value: '' };
+    }
+    return undefined;
+}
+
+// whether the value a local holds at `line` can be null: only a freshly constructed initializer
+// that nothing has reassigned is provably non-null
+function csharpHelperLocalIsNonNull (region, name: string, line: number, value: string): boolean {
+    if (!/^new\b/.test (value)) {
+        return false;
+    }
+    return !region.lines.some ((maskedLine, i) => (i > region.start) && (i < line)
+        && new RegExp ('^[ ]*' + name + '[ ]*=[^=]').test (maskedLine));
+}
+
+// rewrite every proven helper call on one line; offsets are taken from the mask, the emitted text
+// from the original line
+function csharpHelperRewriteLine (original: string, masked: string, takeType, takeKeyType): string | undefined {
+    const edits = [];
+    const lengthCall = /getArrayLength[ ]*\(/g;
+    let match;
+    while ((match = lengthCall.exec (masked)) !== null) {
+        const open = match.index + match[0].length - 1;
+        const close = csharpHelperCallEnd (masked, open);
+        if (close === undefined) continue;
+        const name = masked.substring (open + 1, close).trim ();
+        if (!/^[A-Za-z_]\w*$/.test (name)) continue;
+        const receiver = takeType (name);
+        if (receiver === undefined) continue;
+        const member = CSHARP_DECLARED_COUNT_TYPES.some ((p) => receiver.type.startsWith (p)) ? 'Count'
+            : (CSHARP_DECLARED_LENGTH_TYPES.includes (receiver.type) ? 'Length' : undefined);
+        if (member === undefined) continue;
+        edits.push ({ start: match.index, end: close + 1, text: `(${name}?.${member} ?? 0)` });
+    }
+    const inCall = /(?<![A-Za-z_])inOp[ ]*\(/g;
+    while ((match = inCall.exec (masked)) !== null) {
+        const open = match.index + match[0].length - 1;
+        const close = csharpHelperCallEnd (masked, open);
+        if (close === undefined) continue;
+        const firstComma = csharpHelperTopLevelComma (masked, open, close);
+        if (firstComma === undefined) continue;
+        const name = masked.substring (open + 1, firstComma).trim ();
+        if (!/^[A-Za-z_]\w*$/.test (name)) continue;
+        const secondComma = csharpHelperTopLevelComma (masked, firstComma, close);
+        if (secondComma !== undefined) continue; // more than two arguments
+        const keyMask = masked.substring (firstComma + 1, close).trim ();
+        const receiver = takeType (name);
+        if (receiver === undefined) continue;
+        if (!takeKeyType (keyMask)) continue;
+        const isDict = CSHARP_DECLARED_DICT_TYPES.some ((p) => receiver.type.startsWith (p));
+        const isList = CSHARP_DECLARED_LIST_TYPES.includes (receiver.type);
+        if (!isDict && !isList) continue;
+        const keyText = original.substring (firstComma + 1, close).trim ();
+        const call = `${name}.${isDict ? 'ContainsKey' : 'Contains'}(${keyText})`;
+        const guarded = (receiver.type.endsWith ('?')
+            || (receiver.kind === 'param' && !receiver.paramsBag)
+            || (receiver.kind === 'local' && !receiver.nonNull));
+        edits.push ({ start: match.index, end: close + 1, text: guarded ? `(${name} != null && ${call})` : call });
+    }
+    const valueCall = /(?<![A-Za-z_.])getValue[ ]*\(/g;
+    while ((match = valueCall.exec (masked)) !== null) {
+        const open = match.index + match[0].length - 1;
+        const close = csharpHelperCallEnd (masked, open);
+        if (close === undefined) continue;
+        const firstComma = csharpHelperTopLevelComma (masked, open, close);
+        if (firstComma === undefined) continue;
+        const name = masked.substring (open + 1, firstComma).trim ();
+        if (!/^[A-Za-z_]\w*$/.test (name)) continue;
+        const secondComma = csharpHelperTopLevelComma (masked, firstComma, close);
+        if (secondComma !== undefined) continue; // more than two arguments
+        const keyMask = masked.substring (firstComma + 1, close).trim ();
+        const receiver = takeType (name);
+        if (receiver === undefined) continue;
+        // the helper's dictionary branch hands back the boxed value; a value-typed dictionary
+        // (int/Int64/double) cannot join the `: null` branch, so only object-valued dictionaries
+        if (!CSHARP_DECLARED_OBJECT_DICT_TYPES.includes (receiver.type.replace (/\s+/g, ''))) continue;
+        if (!takeKeyType (keyMask)) continue;
+        const keyText = original.substring (firstComma + 1, close).trim ();
+        edits.push ({ start: match.index, end: close + 1,
+            text: `(${name} != null && ${name}.ContainsKey(${keyText}) ? ${name}[${keyText}] : null)` });
+    }
+    if (edits.length === 0) {
+        return undefined;
+    }
+    let out = original;
+    for (const edit of edits.sort ((a, b) => b.start - a.start)) {
+        out = out.substring (0, edit.start) + edit.text + out.substring (edit.end);
+    }
+    return out;
+}
+
+// the index of the `)` closing the call whose `(` sits at `open`
+function csharpHelperCallEnd (line: string, open: number): number | undefined {
+    let depth = 0;
+    for (let i = open; i < line.length; i++) {
+        if (line[i] === '(') depth++;
+        if (line[i] === ')') {
+            depth--;
+            if (depth === 0) return i;
+        }
+    }
+    return undefined;
+}
+
+// the index of the first comma at the argument level between `open` and `close`
+function csharpHelperTopLevelComma (line: string, open: number, close: number): number | undefined {
+    let depth = 0;
+    for (let i = open + 1; i < close; i++) {
+        const ch = line[i];
+        if ((ch === '(') || (ch === '[') || (ch === '{')) depth++;
+        if ((ch === ')') || (ch === ']') || (ch === '}')) depth--;
+        if ((ch === ',') && (depth === 0)) return i;
+    }
+    return undefined;
+}
+
+// `getArrayLength(x)` -> `(x?.Count ?? 0)` / `(x?.Length ?? 0)`, `inOp(x, k)` ->
+// `x.ContainsKey(k)` / `x.Contains(k)` (with a null test where the emitted declaration allows a
+// null receiver) for every receiver the emitted signature / declarations type as a collection
+export function nativeDeclaredHelperCalls (content: string): string {
+    if (!content.includes ('getArrayLength') && !content.includes ('inOp') && !content.includes ('getValue')) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = lines.map (csharpHelperMaskLine);
+    const signatures = [];
+    for (let i = 0; i < masked.length; i++) {
+        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) {
+            signatures.push (i);
+        }
+    }
+    if (signatures.length === 0) {
+        return content;
+    }
+    const regions = [];
+    for (let n = 0; n < signatures.length; n++) {
+        const start = signatures[n];
+        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
+        const params = csharpHelperSignatureParams (masked, start);
+        const declarations = [];
+        for (let i = start; i < end; i++) {
+            const declaration = csharpHelperDeclarationOfLine (masked[i]);
+            if (declaration !== undefined) {
+                declarations.push ({ line: i, name: declaration.name, type: declaration.type, value: declaration.value });
+            }
+        }
+        regions.push ({ start, end, params, declarations, lines: masked });
+    }
+    const regionOfLine = (line: number) => {
+        let current = regions[0];
+        for (const region of regions) {
+            if (region.start <= line) current = region;
+        }
+        return current;
+    };
+    let changed = false;
+    const out = lines.map ((line, i) => {
+        if ((line.indexOf ('getArrayLength') < 0) && (line.indexOf ('inOp') < 0) && (line.indexOf ('getValue') < 0)) {
+            return line;
+        }
+        const region = regionOfLine (i);
+        if ((i <= region.start) || (i >= region.end)) {
+            return line;
+        }
+        const rewrite = (name, isKey = false) => {
+            if (isKey) {
+                if (!/^[A-Za-z_]\w*$/.test (name)) return false;
+                const key = csharpHelperReceiverType (region, name, i, region.params);
+                return (key !== undefined) && (key.type === 'string');
+            }
+            const receiver = csharpHelperReceiverType (region, name, i, region.params);
+            if (receiver === undefined) {
+                return undefined;
+            }
+            if (receiver.kind === 'local') {
+                receiver.nonNull = csharpHelperLocalIsNonNull (region, name, i, receiver.value);
+            }
+            if (receiver.kind === 'param') {
+                const bag = new RegExp ('^[ ]*' + name + '[ ]*\\?\\?=');
+                receiver.paramsBag = masked.some ((maskedLine, k) => (k > region.start) && (k < i) && bag.test (maskedLine));
+            }
+            return receiver;
+        };
+        const takeType = (name) => rewrite (name, false);
+        const takeKeyType = (keyMask) => {
+            if (keyMask.startsWith ('"')) return true; // a string literal is never null
+            return rewrite (keyMask, true) === true;
+        };
+        const rewritten = csharpHelperRewriteLine (line, masked[i], takeType, takeKeyType);
+        if (rewritten === undefined) {
+            return line;
+        }
+        changed = true;
+        return rewritten;
+    });
+    return changed ? out.join ('\n') : content;
+}
+
+export function nativeDeclaredWsCalls (content: string): string {
+    const opener = 'callDynamically('
+    let out = ''
+    let cursor = 0
+    let search = 0
+    while (true) {
+        const at = content.indexOf (opener, search)
+        if (at < 0) {
+            break
+        }
+        const receiverAt = at + opener.length
+        // statement position only: a value-position call would have to bind the helper's object
+        // result, which the void `resolve`/`reject` declarations cannot
+        const lineStart = content.lastIndexOf ('\n', at - 1) + 1
+        if (!/^[ \t]*$/.test (content.slice (lineStart, at))) {
+            search = receiverAt
+            continue
+        }
+        const head = /^(\w+)(?: as (WebSocketClient|Future))?\s*,\s*"(\w+)"\s*,\s*new object\[\]\s*\{/.exec (content.slice (receiverAt))
+        if (!head) {
+            search = receiverAt
+            continue
+        }
+        const receiver = head[1]
+        const castClass = head[2]
+        const method = head[3]
+        const argsAt = receiverAt + head[0].length
+        const argsEnd = csharpBalancedBraceEnd (content, argsAt - 1)
+        if (argsEnd < 0) {
+            search = argsAt
+            continue
+        }
+        const statementEnd = /^\s*\)\s*;/.exec (content.slice (argsEnd + 1))
+        if (!statementEnd) {
+            search = argsEnd
+            continue
+        }
+        const args = content.slice (argsAt, argsEnd)
+        const target = castClass !== undefined ? { cls: castClass, cast: true } : csharpClassOfDeclaration (content, receiver, at)
+        const arities = (target !== undefined) ? WS_DECLARED_METHODS_TYPED[target.cls]?.[method] : undefined
+        const argc = csharpArgumentCount (args)
+        if (arities === undefined || argc < arities[0] || argc > arities[1]) {
+            search = argsEnd
+            continue
+        }
+        const receiverText = target!.cast ? `(${receiver} as ${target!.cls})` : receiver
+        out += content.slice (cursor, at) + receiverText + '.' + method + '(' + args + ');'
+        cursor = argsEnd + 1 + statementEnd[0].length
+        search = cursor
+    }
+    return out + content.slice (cursor)
 }
 
 // watchOHLCVForSymbols returns `{ symbol: { timeframe: OHLCV[] } }`. That nested map is not a
@@ -674,132 +1203,6 @@ const SYNC_TYPED_CORES: Record<string, string> = {
     'createExpiredOptionMarket': 'Dictionary<string, object>',
 };
 
-// Generated C# core parameters that can be narrowed from `object` to `string`.
-// Keyed by POSITION, never by name: the prediction tier renames `symbol` to
-// `outcome`, and C# overrides are invariant on parameter types, not names.
-// Produced by build/analyzeCoreArgs.py, which admits a position only when every
-// declaration of that method agrees on arity + defaults and no body assigns to it.
-// Generated C# core parameters that can be narrowed from `object` to a numeric type.
-// Same positional keying and same all-declarations-must-agree gate as CORE_STRING_ARGS,
-// plus the narrowed type must equal what the hand-written PascalCase wrapper already
-// declares for that position (the wrapper is derived from the TS signature).
-// Produced by build/analyzeNumericCoreArgs.py. Reflective dispatch is safe because
-// BaseExchange.coerceArgs converts every boxed arg to the parameter type before Invoke.
-const CORE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
-    'createAmmOrder': { 3: 'double', 4: 'double?' },
-    'createContractOrder': { 4: 'double?' },
-    'createConvertTrade': { 3: 'double?' },
-    'createExtendedOrderRequest': { 3: 'double', 4: 'double?' },
-    'createMarketBuyOrderWithCost': { 1: 'double' },
-    'createMarketOrderWithCost': { 2: 'double' },
-    'createMarketSellOrderWithCost': { 1: 'double' },
-    'createOrder': { 3: 'double', 4: 'double?' },
-    'createOrderbookOrder': { 3: 'double', 4: 'double?' },
-    'createTrailingAmountOrder': { 3: 'double', 4: 'double?' },
-    'createTrailingPercentOrder': { 3: 'double', 4: 'double?' },
-    'createTwapOrder': { 2: 'double' },
-    'createUtaOrder': { 3: 'double', 4: 'double?' },
-    'editContractOrder': { 4: 'double', 5: 'double?' },
-    'editOrder': { 4: 'double?', 5: 'double?' },
-    'editSpotOrder': { 4: 'double', 5: 'double?' },
-    'fetchAmmOrders': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchBorrowInterest': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchBorrowRateHistories': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchBorrowRateHistory': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchCanceledAndClosedOrders': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchCanceledOrders': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchClosedContractOrders': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchClosedOrders': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchClosedSpotOrders': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchContractDeposits': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchContractOHLCV': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchContractOrders': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchContractOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchContractWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchConvertQuote': { 2: 'double?' },
-    'fetchConvertTradeHistory': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchDeposits': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchDepositsWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchDerivativesOpenInterestHistory': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchEventsByQuery': { 1: 'Int64' },
-    'fetchFundingHistory': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchFundingRateHistory': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchL2OrderBook': { 1: 'Int64?' },
-    'fetchL3OrderBook': { 1: 'Int64?' },
-    'fetchLedger': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchLedgerByEntries': { 2: 'Int64?' },
-    'fetchLiquidations': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchLongShortRatioHistory': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchMarkOHLCV': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchMyBuys': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchMyContractTrades': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchMyDustTrades': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchMyLiquidations': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchMySells': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchMySettlementHistory': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchMySpotTrades': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchMyTrades': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchMyUtaTrades': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchOHLCV': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchOpenInterestHistory': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchOpenOrders': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchOpenOrdersV1': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchOpenOrdersV2': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchOpenSpotOrders': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchOpenSwapOrders': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchOptionOHLCV': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchOrderBook': { 1: 'Int64?' },
-    'fetchOrderBooks': { 1: 'Int64?' },
-    'fetchOrderTrades': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchOrders': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchOrdersByState': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchOrdersByStates': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchOrdersByType': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchOrdersClassic': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchOrdersWithMethod': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchPositionHistory': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchPositionsHistory': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchSeriesEvents': { 2: 'Int64' },
-    'fetchSettlementHistory': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchSettlements': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchSpotOHLCV': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchSpotOrderTrades': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchSpotOrders': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchSpotOrdersByStates': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchSpotOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchTradeQuote': { 2: 'double' },
-    'fetchTrades': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchTransactions': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchTransactionsByType': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchTransactionsWithMethod': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchTransfers': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchUTAOHLCV': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchUtaCanceledAndClosedOrders': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchUtaOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
-    // cs-5: TS `amount: number` (required) -> double; the four call sites (bingx/lighter
-    // addMargin/reduceMargin) get the ToDoubleArgRequired wrap.
-    'setMargin': { 1: 'double' },
-    'transfer': { 1: 'double' },
-    'watchMyTrades': { 1: 'Int64?', 2: 'Int64?' },
-    // additional watch* numeric args, same evidence gate as above (build/tmp_watch_args.py)
-    'watchLiquidations': { 1: 'Int64?', 2: 'Int64?' },
-    'watchLiquidationsForSymbols': { 1: 'Int64?', 2: 'Int64?' },
-    'watchMyLiquidations': { 1: 'Int64?', 2: 'Int64?' },
-    'watchMyLiquidationsForSymbols': { 1: 'Int64?', 2: 'Int64?' },
-    'watchMyTradesForSymbols': { 1: 'Int64?', 2: 'Int64?' },
-    'watchOrderBookForSymbols': { 1: 'Int64?' },
-    'watchOrdersForSymbols': { 1: 'Int64?', 2: 'Int64?' },
-    'watchPositionForSymbols': { 1: 'Int64?', 2: 'Int64?' },
-    'watchTradesForSymbols': { 1: 'Int64?', 2: 'Int64?' },
-    'watchOHLCV': { 2: 'Int64?', 3: 'Int64?' },
-    'watchOrderBook': { 1: 'Int64?' },
-    'watchOrders': { 1: 'Int64?', 2: 'Int64?' },
-    'watchPositions': { 1: 'Int64?', 2: 'Int64?' },
-    'watchTrades': { 1: 'Int64?', 2: 'Int64?' },
-    'withdraw': { 1: 'double' },
-};
 
 // Collection-returning helpers whose every return site yields a list (or null) at runtime but
 // whose generated declaration still said `object`. Every site was checked mechanically (a
@@ -872,263 +1275,6 @@ const CORE_ARG_SHADOW_SKIP_POSITIONS: Record<string, number[]> = {
     'fetchPaginatedCallDeterministic': [ 4 ],
 };
 
-const CORE_STRING_ARGS: Record<string, number[]> = {
-    'addMargin': [ 0 ],
-    'borrowCrossMargin': [ 0 ],
-    'borrowIsolatedMargin': [ 1 ],
-    'borrowMargin': [ 0 ],
-    'buildOHLCVC': [ 1 ],
-    'cancelAllOrders': [ 0 ],
-    'cancelAllOrdersWs': [ 0 ],
-    'cancelContractOrder': [ 0, 1 ],
-    'cancelOrder': [ 0, 1 ],
-    'cancelOrderWithClientOrderId': [ 0, 1 ],
-    'cancelOrderWs': [ 0, 1 ],
-    'cancelOrders': [ 1 ],
-    'cancelOrdersWithClientOrderIds': [ 1 ],
-    'cancelOrdersWs': [ 1 ],
-    'cancelSpotOrder': [ 0, 1 ],
-    'cancelTwapOrder': [ 0, 1 ],
-    'cancelUtaOrder': [ 0, 1 ],
-    'cancelUtaOrders': [ 1 ],
-    'closePosition': [ 0, 1 ],
-    'commonCurrencyCode': [ 0 ],
-    'convertCurrencyNetwork': [ 0 ],
-    'convertToRealAmount': [ 0 ],
-    'createAmmOrder': [ 0, 1, 2 ],
-    'createConvertTrade': [ 0 ],
-    'createDepositAddress': [ 0 ],
-    'createGiftCode': [ 0 ],
-    'createLimitBuyOrder': [ 0 ],
-    'createLimitBuyOrderWs': [ 0 ],
-    'createLimitOrder': [ 0, 1 ],
-    'createLimitOrderWs': [ 0, 1 ],
-    'createLimitSellOrder': [ 0 ],
-    'createLimitSellOrderWs': [ 0 ],
-    'createMarketBuyOrder': [ 0 ],
-    'createMarketBuyOrderWithCost': [ 0 ],
-    'createMarketBuyOrderWs': [ 0 ],
-    'createMarketOrder': [ 0, 1 ],
-    'createMarketOrderWithCost': [ 0, 1 ],
-    'createMarketOrderWithCostWs': [ 0, 1 ],
-    'createMarketOrderWs': [ 0, 1 ],
-    'createMarketSellOrder': [ 0 ],
-    'createMarketSellOrderWithCost': [ 0 ],
-    'createMarketSellOrderWs': [ 0 ],
-    'createOHLCVObject': [ 1 ],
-    'createOrder': [ 0, 1, 2 ],
-    'createOrderWithTakeProfitAndStopLoss': [ 0, 1, 2 ],
-    'createOrderWithTakeProfitAndStopLossWs': [ 0, 1, 2 ],
-    'createOrderWs': [ 0, 1, 2 ],
-    'createOrderbookOrder': [ 0, 1, 2 ],
-    'createPostOnlyOrder': [ 0, 1, 2 ],
-    'createPostOnlyOrderWs': [ 0, 1, 2 ],
-    'createReduceOnlyOrder': [ 0, 1, 2 ],
-    'createReduceOnlyOrderWs': [ 0, 1, 2 ],
-    'createStopLimitOrder': [ 0, 1 ],
-    'createStopLimitOrderWs': [ 0, 1 ],
-    'createStopLossOrder': [ 0, 1, 2 ],
-    'createStopLossOrderWs': [ 0, 1, 2 ],
-    'createStopMarketOrder': [ 0, 1 ],
-    'createStopMarketOrderWs': [ 0, 1 ],
-    'createStopOrder': [ 0, 1, 2 ],
-    'createStopOrderWs': [ 0, 1, 2 ],
-    'createTakeProfitOrder': [ 0, 1, 2 ],
-    'createTakeProfitOrderWs': [ 0, 1, 2 ],
-    'createTrailingAmountOrder': [ 0, 1, 2 ],
-    'createTrailingAmountOrderWs': [ 0, 1, 2 ],
-    'createTrailingPercentOrder': [ 0, 1, 2 ],
-    'createTrailingPercentOrderWs': [ 0, 1, 2 ],
-    'createTriggerOrder': [ 0, 1, 2 ],
-    'createTriggerOrderWs': [ 0, 1, 2 ],
-    'createTwapOrder': [ 0, 1 ],
-    'currency': [ 0 ],
-    'currencyId': [ 0 ],
-    'currencyToPrecision': [ 0 ],
-    'deposit': [ 0 ],
-    'editContractOrder': [ 0, 1, 2, 3 ],
-    'editLimitBuyOrder': [ 0, 1 ],
-    'editLimitOrder': [ 0, 1, 2 ],
-    'editLimitSellOrder': [ 0, 1 ],
-    'editOrder': [ 0, 1, 2, 3 ],
-    'editOrderWithClientOrderId': [ 0, 1, 2, 3 ],
-    'editOrderWs': [ 0, 1, 2, 3 ],
-    'editSpotOrder': [ 0, 1, 2, 3 ],
-    'fetchADLRank': [ 0 ],
-    'fetchAmmOrders': [ 0 ],
-    'fetchBorrowInterest': [ 0 ],
-    'fetchBorrowRate': [ 0 ],
-    'fetchBorrowRateHistory': [ 0 ],
-    'fetchCanceledOrders': [ 0 ],
-    'fetchClosedOrder': [ 0, 1 ],
-    'fetchClosedOrders': [ 0 ],
-    'fetchClosedOrdersWs': [ 0 ],
-    'fetchContractDepositAddress': [ 0 ],
-    'fetchContractDeposits': [ 0 ],
-    'fetchContractOHLCV': [ 0, 1 ],
-    'fetchContractWithdrawals': [ 0 ],
-    'fetchConvertTrade': [ 0, 1 ],
-    'fetchConvertTradeHistory': [ 0 ],
-    'fetchCrossBorrowRate': [ 0 ],
-    'fetchCurrency': [ 0 ],
-    'fetchDeposit': [ 0, 1 ],
-    'fetchDepositAddress': [ 0 ],
-    'fetchDepositAddressDefault': [ 0 ],
-    'fetchDepositAddressSupplement': [ 0 ],
-    'fetchDepositAddressesByNetwork': [ 0 ],
-    'fetchDepositMethods': [ 0 ],
-    'fetchDepositWithdrawFee': [ 0 ],
-    'fetchDeposits': [ 0 ],
-    'fetchDepositsRequest': [ 0 ],
-    'fetchDepositsWithdrawals': [ 0 ],
-    'fetchDepositsWs': [ 0 ],
-    'fetchDerivativesMarketLeverageTiers': [ 0 ],
-    'fetchDerivativesOpenInterestHistory': [ 1 ],
-    'fetchEvent': [ 0 ],
-    'fetchFundingInterval': [ 0 ],
-    'fetchFundingRate': [ 0 ],
-    'fetchFundingRateHistory': [ 0 ],
-    'fetchGreeks': [ 0 ],
-    'fetchIndexOHLCV': [ 0, 1 ],
-    'fetchIsolatedBorrowRate': [ 0 ],
-    // cs-5: first-parameter symbol/id positions admitted by build/analyzeCoreArgs.py on the
-    // current tree (the table predates these methods). Every call site already passes a
-    // string-typed arg (blockchaincom fetchOrderBook -> fetchL3OrderBook, weex fetchPosition
-    // -> fetchPositionsForSymbol) or receives the standard ((string)…) wrap (bingx/lighter
-    // addMargin/reduceMargin -> setMargin).
-    'fetchL2OrderBook': [ 0 ],
-    'fetchL3OrderBook': [ 0 ],
-    'fetchLedger': [ 0 ],
-    'fetchLedgerByEntries': [ 0 ],
-    'fetchLedgerEntriesByIds': [ 1 ],
-    'fetchLedgerEntry': [ 0, 1 ],
-    'fetchLeverage': [ 0 ],
-    'fetchLiquidations': [ 0 ],
-    'fetchLongShortRatio': [ 0, 1 ],
-    'fetchLongShortRatioHistory': [ 0, 1 ],
-    'fetchMarginAdjustmentHistory': [ 0, 1 ],
-    'fetchMarginMode': [ 0 ],
-    'fetchMarkOHLCV': [ 0, 1 ],
-    'fetchMarkPrice': [ 0 ],
-    'fetchMarket': [ 0 ],
-    'fetchMarketById': [ 0 ],
-    'fetchMarketLeverageTiers': [ 0 ],
-    'fetchMyBuys': [ 0 ],
-    'fetchMySells': [ 0 ],
-    'fetchMyTrades': [ 0 ],
-    'fetchMyTradesWs': [ 0 ],
-    'fetchNetworkDepositAddress': [ 0 ],
-    'fetchOHLCV': [ 0, 1 ],
-    'fetchOHLCVRequest': [ 1 ],
-    'fetchOHLCVWs': [ 0, 1 ],
-    'fetchOpenInterest': [ 0 ],
-    'fetchOpenInterestHistory': [ 0, 1 ],
-    'fetchOpenOrder': [ 0, 1 ],
-    'fetchOpenOrders': [ 0 ],
-    'fetchOpenOrdersWs': [ 0 ],
-    'fetchOption': [ 0 ],
-    'fetchOptionChain': [ 0 ],
-    'fetchOptionOHLCV': [ 0, 1 ],
-    'fetchOrder': [ 0, 1 ],
-    'fetchOrderBook': [ 0 ],
-    'fetchOrderBookWs': [ 0 ],
-    'fetchOrderStatus': [ 0, 1 ],
-    'fetchOrderTrades': [ 0, 1 ],
-    'fetchOrderWithClientOrderId': [ 0, 1 ],
-    'fetchOrderWs': [ 0, 1 ],
-    'fetchOrders': [ 0 ],
-    'fetchOrdersByIds': [ 1 ],
-    'fetchOrdersByStatusWs': [ 0, 1 ],
-    'fetchOrdersWs': [ 0 ],
-    'fetchPaginatedCallDeterministic': [ 4 ],
-    'fetchPosition': [ 0 ],
-    'fetchPositionADLRank': [ 0 ],
-    'fetchPositionHistory': [ 0 ],
-    'fetchPositionMode': [ 0 ],
-    'fetchPositionWs': [ 0 ],
-    'fetchPositionsForSymbol': [ 0 ],
-    'fetchPositionsForSymbolWs': [ 0 ],
-    'fetchPremiumIndexOHLCV': [ 0, 1 ],
-    'fetchSettlements': [ 0 ],
-    'fetchSpotOHLCV': [ 0, 1 ],
-    'fetchSpotOrderTrades': [ 0, 1 ],
-    'fetchTicker': [ 0 ],
-    'fetchTicker2': [ 0 ],
-    'fetchTickerV1': [ 0 ],
-    'fetchTickerV1AndV2': [ 0 ],
-    'fetchTickerV2': [ 0 ],
-    'fetchTickerV3': [ 0 ],
-    'fetchTickerWs': [ 0 ],
-    'fetchTrades': [ 0 ],
-    'fetchTradesWs': [ 0 ],
-    'fetchTradingFee': [ 0 ],
-    'fetchTransactionFee': [ 0 ],
-    'fetchTransactions': [ 0 ],
-    'fetchTransactionsByType': [ 1 ],
-    'fetchTransactionsWithMethod': [ 1 ],
-    'fetchTransfer': [ 0, 1 ],
-    'fetchTransfers': [ 0 ],
-    'fetchUTAOHLCV': [ 0, 1 ],
-    'fetchVolatilityHistory': [ 0 ],
-    'fetchWithdrawAddresses': [ 0 ],
-    'fetchWithdrawal': [ 0, 1 ],
-    'fetchWithdrawals': [ 0 ],
-    'fetchWithdrawalsRequest': [ 0 ],
-    'fetchWithdrawalsWs': [ 0 ],
-    'filterByCurrencySinceLimit': [ 1 ],
-    'futuresTransfer': [ 0 ],
-    'getAssetHistoryRows': [ 0 ],
-    'mergeBalanceAccount': [ 1 ],
-    'parseBalanceForSingleCurrency': [ 1 ],
-    'parseBorrowRateHistory': [ 1 ],
-    'parseConversions': [ 1 ],
-    'parseOHLCVs': [ 2 ],
-    'parseTradingViewOHLCV': [ 2 ],
-    'parseTransactionsByType': [ 2 ],
-    'parseWsOHLCVs': [ 2 ],
-    'prepareAccountRequestWithCurrencyCode': [ 0 ],
-    'prepareRequestForDepositAddress': [ 0 ],
-    'queryTransactionsByEventType': [ 3 ],
-    'reduceMargin': [ 0 ],
-    'repayCrossMargin': [ 0 ],
-    'repayIsolatedMargin': [ 1 ],
-    'repayMargin': [ 0 ],
-    'requestWalletHistoryRows': [ 2 ],
-    'safeDeterministicCall': [ 4 ],
-    'setLeverage': [ 1 ],
-    'setMargin': [ 0 ],
-    'setMarginMode': [ 0, 1 ],
-    'setPositionMode': [ 1 ],
-    'transfer': [ 0, 2, 3 ],
-    'transferBetweenMainAndSubAccount': [ 0, 2, 3 ],
-    'transferBetweenSubAccounts': [ 0, 2, 3 ],
-    'transferClassic': [ 0, 2, 3 ],
-    'transferIn': [ 0 ],
-    'transferOut': [ 0 ],
-    'transferUta': [ 0, 2, 3 ],
-    'unWatchOHLCV': [ 1 ],
-    'updateSpotCurrencyCode': [ 0 ],
-    // watch* string args, gated by build/tmp_watch_args.py: admitted only when every
-    // generated wrapper declaration agrees on `string` at that position and every core
-    // declaration agrees on arity. The venue-internal helpers (watchPublic, watchTopics,
-    // watchMultiHelper, ...) disagree across venues and are absent.
-    'watchFundingRate': [ 0 ],
-    'watchLiquidations': [ 0 ],
-    'watchMarkPrice': [ 0 ],
-    'watchMyLiquidations': [ 0 ],
-    'watchMyTrades': [ 0 ],
-    'watchOHLCV': [ 0, 1 ],
-    'watchOrderBook': [ 0 ],
-    'watchOrders': [ 0 ],
-    'watchPosition': [ 0 ],
-    'watchTicker': [ 0 ],
-    'watchTrades': [ 0 ],
-    'withdraw': [ 0, 2, 3 ],
-    'withdrawRequest': [ 0 ],
-    'withdrawWs': [ 0, 2, 3 ],
-    // fetchRestOrderBookSafe omitted: TS declares `symbol: any`, so the wrapper and the
-    // hand-written WsBridge caller both pass `object` and cannot be narrowed here
-};
 
 
 
@@ -1321,7 +1467,7 @@ class NewTranspiler {
             [/(\w+)(\.limit\(\))/gm, '($1 as IOrderBook)$2'],
             [/(future)\.resolve\((.*)\)/gm, '($1 as Future).resolve($2)'],
             [/this\.spawn\((this\.\w+),(.+)\)/gm, 'this.spawn($1, new object[] {$2})'],
-            [/this\.delay\(([^,]+),([^,]+),(.+)\)/gm, 'this.delay($1, $2, new object[] {$3})'],
+            [/this\.delay\(([^,\n]+),([^,\n]+),([^\n]+)\)/gm, 'this.delay($1, $2, new object[] {$3})'],
             // [/(this\.\w+)\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$2", new object[] {$3})'], // check this.orders
             [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$3", new object[] {$4})'],
             [/future(\.reject.+)/gm, '((Future)future)$1'],
@@ -1332,6 +1478,11 @@ class NewTranspiler {
             [/\(object client\)/gm, '(WebSocketClient client)'],
             [/object client =/gm, 'var client ='],
             [/object future =/gm, 'var future ='],
+            // `resolve` on a receiver the arg pass already typed (`client as WebSocketClient`,
+            // or Future for the ws promise) targets a method that class declares, so it needs no
+            // reflective dispatch: the direct call binds the same method, with the same
+            // object-typed arguments and the same void result.
+            [/callDynamically\((\w+) as (WebSocketClient|Future), "resolve", new object\[\] \{(.+)\}\);/gm, '($1 as $2).resolve($3);'],
         ]
     }
 
@@ -2479,6 +2630,18 @@ class NewTranspiler {
             // an identity cast, or a cast to object (boxes the same value / null)
             return (cast === targetType || cast === 'object') ? 'read' : '';
         }
+        // `(alias == null)` / `(alias != null)`: the native spelling of the isEqual(alias, null)
+        // guard this classifier already accepts at an argument position. The null test reads the
+        // box itself and answers the same for `object` and every narrowed type here.
+        if (/^[!=]=\s*null\s*\)/.test (postl)) {
+            return 'read';
+        }
+        // `(alias == "lit")` / `(alias != "lit")`: the native spelling of the isEqual(alias, "lit")
+        // comparison this classifier already accepts at an argument position (the narrowed copy is
+        // a `string` in the emitted declaration, which is what makes the operator a value compare)
+        if (/^[!=]=\s*(?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')\s*\)/.test (postl)) {
+            return 'read';
+        }
         if (pre.trim () === 'return' && postl.trim () === ';') {
             return methodReturnType.includes ('object') ? 'read' : '';
         }
@@ -3490,7 +3653,7 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
-            const file = fileHeader + this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false))))), false)) + "\n";
+            const file = fileHeader + nativeDeclaredHelperCalls (this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false))))), false))) + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
             if (exchangeClassMatch) {
@@ -3498,7 +3661,7 @@ class NewTranspiler {
                     this.createGeneratedHeader().join('\n'),
                     "public partial class Exchange\n{\n\n"
                 ]).join("\n");
-                const tradingFile = tradingHeader + this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))), false) + "\n}\n";
+                const tradingFile = tradingHeader + nativeDeclaredHelperCalls (this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))), false)) + "\n}\n";
                 fs.writeFileSync (BASE_TRADING_METHODS_FILE, tradingFile);
                 log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
             }
@@ -3546,7 +3709,7 @@ class NewTranspiler {
                 "public partial class PredictionExchange : BaseExchange\n{\n\n"
             ]).join("\n");
             // method wrappers retired: PascalCase cores on PredictionExchange are the public API
-            const file = fileHeader + fields + this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))), true) + "\n";
+            const file = fileHeader + fields + nativeDeclaredHelperCalls (this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))), true)) + "\n";
             fs.writeFileSync (predictionBase, file);
             this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
@@ -3867,6 +4030,7 @@ class NewTranspiler {
         if (ws) {
             const wsRegexes = this.getWsRegexes();
             content = this.regexAll (content, wsRegexes);
+            content = nativeDeclaredWsCalls (content);
             content = this.replaceImportedRestClasses (content, csharpVersion.imports);
             const classNameRegex = /public\spartial\sclass\s(\w+)\s:\s(\w+)/gm;
             const classNameExec = classNameRegex.exec(content);
@@ -3877,6 +4041,7 @@ class NewTranspiler {
             // prediction exchanges merge REST + WS in one class, so the WS transforms
             // (client → WebSocketClient, orderbook casts, append/resolve, ...) apply here too
             content = this.regexAll (content, this.getWsRegexes());
+            content = nativeDeclaredWsCalls (content);
         }
         const classDecl = /public partial class (\w+) : ([\w.]+)/.exec (content);
         if (classDecl) {
@@ -3886,7 +4051,7 @@ class NewTranspiler {
                 this.venueParents[this.currentVenue] = parent;
             }
         }
-        content = this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content)))))));
+        content = nativeDeclaredHelperCalls (this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content))))))));
         this.currentVenue = '';
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;
@@ -4396,7 +4561,7 @@ class NewTranspiler {
                     '}',
                 ].join('\n');
             }
-            overwriteFileAndFolder (tests[idx].csharpFile, csharp);
+            overwriteFileAndFolder (tests[idx].csharpFile, nativeDeclaredHelperCalls (csharp));
         });
     }
 

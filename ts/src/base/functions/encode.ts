@@ -100,7 +100,6 @@ const json =  (data: any, params = undefined) => JSON.stringify (data)
 
     , numberToBE = (n: number, padding: number) => numberToBytesBE (BigInt (n), padding)
 
-
     function packb(req: any) {
         return serialize(req);
     }

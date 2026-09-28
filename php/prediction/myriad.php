@@ -562,7 +562,7 @@ class myriad extends Exchange {
         // when no explicit walletAddress/param is set, so a privateKey-only config works for both
         $address = $this->safe_string_2($params, 'address', 'user', $this->wallet_address_or_undefined());
         if ($address === null) {
-            throw new ArgumentsRequired($this->id . ' fetchPositions() requires a walletAddress or an $address parameter');
+            throw new ArgumentsRequired($this->id . ' fetchPositions() requires a walletAddress or an address parameter');
         }
         $rest = $this->omit($params, array( 'address', 'user' ));
         $response = Async\await($this->myriadPublicGetUsersAddressPortfolio($this->extend(array( 'address' => $address ), $rest)));
@@ -875,7 +875,7 @@ class myriad extends Exchange {
         // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
         $enableAmm = $this->safe_bool_2($params, 'enableAmm', 'enableAmmOrders', $this->safe_bool($this->options, 'enableAmmOrders', false));
         if ($enableAmm !== true) {
-            throw new NotSupported($this->id . ' createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass $params->enableAmm=true to opt in');
+            throw new NotSupported($this->id . ' createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in');
         }
         return Async\await($this->create_amm_order($outcome, $type, $side, $amount, $price, $this->omit($rest, array( 'enableAmm', 'enableAmmOrders' ))));
     }
@@ -941,11 +941,6 @@ class myriad extends Exchange {
         if (($this->safe_number($parsed, 'amount') === null) && ($amount !== null)) {
             $parsed['amount'] = $amount;
         }
-        if ($this->safe_integer($parsed, 'timestamp') === null) {
-            $now = $this->milliseconds();
-            $parsed['timestamp'] = $now;
-            $parsed['datetime'] = $this->iso8601($now);
-        }
         if ($this->safe_string($parsed, 'status') === null) {
             $parsed['status'] = 'open';
         }
@@ -978,7 +973,7 @@ class myriad extends Exchange {
             if ($isMarket) {
                 $priceValue = ($sideInt === 0) ? 1 : 0;
             } else {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price for limit orders');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a price for limit orders');
             }
         }
         $priceWei = $this->to_orderbook_wei($priceValue);
@@ -987,12 +982,12 @@ class myriad extends Exchange {
         }
         // price is a fraction in (0, 1] encoded as 1..1e18 wei (tick is 1 wei); reject out-of-range early
         if (Precise::string_gt($priceWei, '1000000000000000000')) {
-            throw new InvalidOrder($this->id . ' createOrder() $price must be a fraction between 0 and 1');
+            throw new InvalidOrder($this->id . ' createOrder() price must be a fraction between 0 and 1');
         }
         $amountWei = $this->to_orderbook_wei($amount);
         // shares are integer wei (1e18 = 1 share); a sub-wei amount that rounds to zero is invalid
         if (Precise::string_lt($amountWei, '1')) {
-            throw new InvalidOrder($this->id . ' createOrder() $amount is too small (rounds to zero shares)');
+            throw new InvalidOrder($this->id . ' createOrder() amount is too small (rounds to zero shares)');
         }
         $nonce = $this->safe_string($params, 'nonce', $this->number_to_string($this->milliseconds()));
         $expiration = $this->safe_string($params, 'expiration', '0');
@@ -1111,7 +1106,7 @@ class myriad extends Exchange {
         $sideLower = ($side !== null) ? strtolower($side) : null;
         $isCostDenominated = $this->safe_bool($params, 'costDenominated', false);
         if (($sideLower === 'buy') && ($isCostDenominated !== true)) {
-            throw new NotSupported($this->id . ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost($outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order');
+            throw new NotSupported($this->id . ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order');
         }
         if ($this->privateKey === null) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a privateKey to sign the on-chain transaction');
@@ -1137,7 +1132,7 @@ class myriad extends Exchange {
         }
         $calldata = $this->safe_string($this->safe_dict($quote, 'info', array()), 'calldata');
         if ($calldata === null) {
-            throw new BadRequest($this->id . ' createAmmOrder is missing $calldata from fetchTradeQuote');
+            throw new BadRequest($this->id . ' createAmmOrder is missing calldata from fetchTradeQuote');
         }
         $fromAddress = $this->eth_get_address_from_private_key($this->privateKey);
         $txHashParam = $this->safe_string_2($params, 'transactionHash', 'txHash');
@@ -1494,7 +1489,7 @@ class myriad extends Exchange {
             $trader = $this->wallet_address_or_undefined();
         }
         if ($trader === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() for AMM history requires a $trader address or wallet/privateKey');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() for AMM history requires a trader address or wallet/privateKey');
         }
         $request = array(
             'address' => $trader,
@@ -2045,7 +2040,7 @@ class myriad extends Exchange {
         $rpcUrl = $this->safe_string_2($params, 'rpcUrl', 'rpc', $this->safe_string($chainConfig, 'rpcUrl'));
         $token = $this->safe_string_2($params, 'token', 'tokenAddress', $this->safe_string($chainConfig, 'collateralToken'));
         if ($token === null) {
-            throw new NotSupported($this->id . ' fetchBalance() has no collateral $token configured for network ' . $networkId);
+            throw new NotSupported($this->id . ' fetchBalance() has no collateral token configured for network ' . $networkId);
         }
         $currency = $this->safe_string($params, 'currency', $this->safe_string($chainConfig, 'collateralCurrency', 'USD1'));
         $decimals = $this->safe_integer($params, 'decimals', $this->safe_integer($chainConfig, 'collateralDecimals', 18));
@@ -2539,7 +2534,6 @@ class myriad extends Exchange {
                 break;
             }
         }
-        $now = $this->milliseconds();
         // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE
         // percentage from it — setting percentage = the absolute change (as before) was wrong
         $previousClose = null;
@@ -2558,8 +2552,8 @@ class myriad extends Exchange {
             'outcomeId' => $this->safe_string($market, 'id'),
             'label' => $this->safe_string($market, 'label'),
             'market' => $this->safe_string($market, 'market'),
-            'timestamp' => $now,
-            'datetime' => $this->iso8601($now),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => null,
             'low' => null,
             'bid' => $price,
@@ -2705,7 +2699,6 @@ class myriad extends Exchange {
                 break;
             }
         }
-        $timestamp = $this->milliseconds();
         // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
         $bid = null;
         $ask = null;
@@ -2731,8 +2724,8 @@ class myriad extends Exchange {
             'outcome' => $this->safe_outcome_symbol($outcome, $outcomeObj),
             'bids' => $bids,
             'asks' => $asks,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'nonce' => null,
         );
         return $this->safe_prediction_order_book($orderbook, $outcomeObj);
@@ -2762,13 +2755,12 @@ class myriad extends Exchange {
             $rowAmount = Precise::string_div($this->safe_string($row, 1), '1000000000000000000');
             $asks[] = array( $this->parse_number($rowPrice), $this->parse_number($rowAmount) );
         }
-        $timestamp = $this->milliseconds();
         return array(
             'outcome' => $outcome,
             'bids' => $this->sort_by($bids, 0, true),
             'asks' => $this->sort_by($asks, 0),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'nonce' => null,
         );
     }
@@ -2937,7 +2929,7 @@ class myriad extends Exchange {
          * @return {array} a dictionary of [prediction $ticker structures](https://docs.ccxt.com/#/?id=prediction-$ticker-structure) indexed by outcome
          */
         if ($outcomes === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTickers() requires an $outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
+            throw new ArgumentsRequired($this->id . ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
         }
         $result = array();
         // resolve the uncached outcomes first, then group by parent market to fetch each market only once
@@ -3539,7 +3531,7 @@ class myriad extends Exchange {
          * @return {array[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
          */
         if ($outcome === null) {
-            throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a $outcome (the $trades $channel is per-market)');
+            throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a outcome (the trades channel is per-market)');
         }
         $outcomeObj = Async\await($this->load_outcome($outcome));
         $info = $this->safe_dict($outcomeObj, 'info', array());
@@ -3706,7 +3698,7 @@ class myriad extends Exchange {
          * @return {array} a dict of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
          */
         if ($outcomes === null) {
-            throw new ArgumentsRequired($this->id . ' watchTickers() requires a list of $outcomes (the prices $channel is per-market)');
+            throw new ArgumentsRequired($this->id . ' watchTickers() requires a list of outcomes (the prices channel is per-market)');
         }
         $symbolsLength = count($outcomes);
         $url = $this->safe_string($this->urls['api'], 'ws');

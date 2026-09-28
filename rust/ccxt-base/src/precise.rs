@@ -448,7 +448,7 @@ impl Precise {
             }
         };
         let mut m = indexmap::IndexMap::new();
-        m.insert("integer".to_string(),  crate::Value::Str(integer));
+        m.insert("integer".to_string(),  crate::Value::Str(integer.into()));
         m.insert("decimals".to_string(), crate::Value::Int(decimals));
         m.insert("__precise".to_string(), crate::Value::Bool(true));
         crate::Value::Map(m)
@@ -482,7 +482,7 @@ impl Precise {
 #[allow(non_snake_case)]
 impl Precise {
     fn vstr(v: &crate::Value) -> String { crate::runtime::stringify_param(v) }
-    fn vopt(s: Option<String>) -> crate::Value { match s { Some(s) => crate::Value::Str(s), None => crate::Value::Null } }
+    fn vopt(s: Option<String>) -> crate::Value { match s { Some(s) => crate::Value::Str(s.into()), None => crate::Value::Null } }
     fn vbool(b: Option<bool>)  -> crate::Value { match b { Some(b) => crate::Value::Bool(b), None => crate::Value::Null } }
 
     /// Mirrors TS `Precise.stringAdd`: when one operand is `undefined` /
@@ -545,7 +545,7 @@ impl Precise {
         }
         let (sa, sb) = (Self::vstr(a), Self::vstr(b));
         let pick = if let Some(true) = string_le(&sa, &sb) { sa } else { sb };
-        crate::Value::Str(reduce_string(&pick))
+        crate::Value::Str(reduce_string(&pick).into())
     }
     pub fn stringMax(a: &crate::Value, b: &crate::Value) -> crate::Value {
         // Mirrors TS `Precise.stringMax`: either operand undefined → undefined.
@@ -554,7 +554,7 @@ impl Precise {
         }
         let (sa, sb) = (Self::vstr(a), Self::vstr(b));
         let pick = if let Some(true) = string_ge(&sa, &sb) { sa } else { sb };
-        crate::Value::Str(reduce_string(&pick))
+        crate::Value::Str(reduce_string(&pick).into())
     }
     pub fn stringEquals(a: &crate::Value, b: &crate::Value) -> crate::Value { Self::stringEq(a, b) }
     /// Mirrors TS `Precise.stringOr`: bitwise OR of the underlying
@@ -600,6 +600,6 @@ impl Precise {
             if or < 0 { out = format!("-{out}"); }
             out
         };
-        crate::Value::Str(reduce_string(&s))
+        crate::Value::Str(reduce_string(&s).into())
     }
 }

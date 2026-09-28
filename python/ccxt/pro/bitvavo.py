@@ -76,7 +76,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             },
         })
 
-    async def watch_public(self, name: object, symbol: object, params={}):
+    async def watch_public(self, name: str, symbol: str, params: dict = {}):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -96,7 +96,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    async def watch_public_multiple(self, methodName: object, channelName: str, symbols: object, params={}):
+    async def watch_public_multiple(self, methodName: str, channelName: str, symbols: list[str], params: dict = {}):
         if self.markets is None:
             await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -118,7 +118,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         message = self.extend(request, params)
         return await self.watch_multiple(url, messageHashes, message, messageHashes)
 
-    def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -130,7 +130,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         """
         return self.watch_public('ticker24h', symbol, params)
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -147,7 +147,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         tickers = await self.watch_public_multiple(channel, channel, symbols, params)
         return self.filter_by_array(tickers, 'symbol', symbols)
 
-    def handle_ticker(self, client: Client, message: object):
+    def handle_ticker(self, client: Client, message: dict):
         #
         #     {
         #         "event": "ticker24h",
@@ -185,7 +185,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             client.resolve(ticker, messageHash)
         client.resolve(result, event)
 
-    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches best bid & ask for symbols
 
@@ -202,7 +202,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         tickers = await self.watch_public_multiple('bidask', channel, symbols, params)
         return self.filter_by_array(tickers, 'symbol', symbols)
 
-    def handle_bid_ask(self, client: Client, message: object):
+    def handle_bid_ask(self, client: Client, message: dict):
         event = 'bidask'
         tickers = self.safe_list(message, 'data', [])
         result = []
@@ -216,7 +216,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             client.resolve(ticker, messageHash)
         client.resolve(result, event)
 
-    def parse_ws_bid_ask(self, ticker: object, market: Market = None):
+    def parse_ws_bid_ask(self, ticker: dict, market: Market = None) -> Ticker:
         marketId = self.safe_string(ticker, 'market')
         market = self.safe_market(marketId, None, '-')
         symbol = self.safe_string(market, 'symbol')
@@ -232,7 +232,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             'info': ticker,
         }, market)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -249,7 +249,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trade(self, client: Client, message: object):
+    def handle_trade(self, client: Client, message: dict):
         #
         #     {
         #         "event": "trade",
@@ -275,7 +275,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         self.trades[symbol] = tradesArray
         client.resolve(tradesArray, messageHash)
 
-    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a list of symbols
 
@@ -310,7 +310,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         message = self.extend(request, params)
         trades = await self.watch_multiple(url, messageHashes, message, messageHashes)
         if self.newUpdates:
-            first = self.safe_value(trades, 0)
+            first = self.safe_dict(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
@@ -358,7 +358,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         }
         return await self.un_watch_channels('trades', channels, subMessageHashes, subscriptionArgs, params)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -393,7 +393,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_fetch_ohlcv(self, client: Client, message: object):
+    def handle_fetch_ohlcv(self, client: Client, message: dict):
         #
         #    {
         #        action: 'getCandles',
@@ -403,12 +403,12 @@ class bitvavo(ccxt.async_support.bitvavo):
         #        ]
         #    }
         #
-        response = self.safe_value(message, 'response')
+        response = self.safe_list(message, 'response')
         ohlcv = self.parse_ohlcvs(response, None, None, None)
         messageHash = self.safe_string(message, 'requestId')
         client.resolve(ohlcv, messageHash)
 
-    def handle_ohlcv(self, client: Client, message: object):
+    def handle_ohlcv(self, client: Client, message: dict):
         #
         #     {
         #         "event": "candle",
@@ -434,7 +434,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         # use a reverse lookup in a static map instead
         timeframe = self.find_timeframe(interval)
         messageHash = name + '@' + marketId + '_' + interval
-        candles = self.safe_value(message, 'candle')
+        candles = self.safe_list(message, 'candle', [])
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.ohlcvs[symbol], timeframe)
         if stored is None:
@@ -449,7 +449,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         # watchOHLCVForSymbols needs the symbol and timeframe to assemble its result
         client.resolve([symbol, timeframe, stored], 'multi:' + messageHash)
 
-    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params={}):
+    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params: dict = {}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of multiple markets
 
@@ -551,7 +551,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         }
         return await self.un_watch_channels('ohlcv', channels, subMessageHashes, subscriptionArgs, params)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -590,7 +590,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
         return orderbook.limit()
 
-    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
 
@@ -685,7 +685,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book_message(self, client: Client, message: object, orderbook: object):
+    def handle_order_book_message(self, client: Client, message: dict, orderbook: object):
         #
         #     {
         #         "event": "book",
@@ -701,12 +701,12 @@ class bitvavo(ccxt.async_support.bitvavo):
         #
         nonce = self.safe_integer(message, 'nonce')
         if nonce > orderbook['nonce']:
-            self.handle_deltas(orderbook['asks'], self.safe_value(message, 'asks', []))
-            self.handle_deltas(orderbook['bids'], self.safe_value(message, 'bids', []))
+            self.handle_deltas(orderbook['asks'], self.safe_list(message, 'asks', []))
+            self.handle_deltas(orderbook['bids'], self.safe_list(message, 'bids', []))
             orderbook['nonce'] = nonce
         return orderbook
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         #     {
         #         "event": "book",
@@ -733,11 +733,11 @@ class bitvavo(ccxt.async_support.bitvavo):
             # multi-symbol watches share one subscription object, so the
             # snapshot-in-flight flag must be tracked per market
             flagKey = 'watchingOrderBookSnapshot@' + marketId
-            watchingOrderBookSnapshot = self.safe_value(subscription, flagKey)
+            watchingOrderBookSnapshot = self.safe_bool(subscription, flagKey)
             if watchingOrderBookSnapshot is None:
                 subscription[flagKey] = True
                 client.subscriptions[messageHash] = subscription
-                options = self.safe_value(self.options, 'watchOrderBookSnapshot', {})
+                options = self.safe_dict(self.options, 'watchOrderBookSnapshot', {})
                 delay = self.safe_integer(options, 'delay', self.rateLimit)
                 # fetch the snapshot in a separate async call after a warmup delay
                 self.delay(delay, self.watch_order_book_snapshot, client, message, subscription)
@@ -746,8 +746,8 @@ class bitvavo(ccxt.async_support.bitvavo):
             self.handle_order_book_message(client, message, orderbook)
             client.resolve(orderbook, messageHash)
 
-    async def watch_order_book_snapshot(self, client: object, message: object, subscription: object):
-        params = self.safe_value(subscription, 'params')
+    async def watch_order_book_snapshot(self, client: Client, message: dict, subscription: dict):
+        params = self.safe_dict(subscription, 'params')
         # multi-symbol watches share one subscription object without a marketId,
         # in that case the buffered delta message identifies the market
         marketId = self.safe_string_2(subscription, 'marketId', 'market', self.safe_string(message, 'market'))
@@ -766,7 +766,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         orderbook = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
         return orderbook.limit()
 
-    def handle_order_book_snapshot(self, client: Client, message: object):
+    def handle_order_book_snapshot(self, client: Client, message: dict):
         #
         #     {
         #         "action": "getBook",
@@ -786,7 +786,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #         }
         #     }
         #
-        response = self.safe_value(message, 'response')
+        response = self.safe_dict(message, 'response')
         if response is None:
             return
         marketId = self.safe_string(response, 'market')
@@ -814,14 +814,14 @@ class bitvavo(ccxt.async_support.bitvavo):
         if snapshotHash in client.subscriptions:
             del client.subscriptions[snapshotHash]
 
-    def handle_order_book_subscription(self, client: Client, message: object, subscription: object):
+    def handle_order_book_subscription(self, client: Client, message: dict, subscription: dict):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
         if symbol in self.orderbooks:
             del self.orderbooks[symbol]
         self.orderbooks[symbol] = self.order_book({}, limit)
 
-    def handle_order_book_subscriptions(self, client: Client, message: object, marketIds: object):
+    def handle_order_book_subscriptions(self, client: Client, message: dict, marketIds: list[object]):
         name = 'book'
         for i in range(0, len(marketIds)):
             marketId = self.safe_string(marketIds, i)
@@ -855,7 +855,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         message = self.extend(request, params)
         return await self.watch_multiple(url, unsubHashes, message, unsubHashes, subscription)
 
-    def handle_unsubscription_status(self, client: Client, message: object):
+    def handle_unsubscription_status(self, client: Client, message: dict) -> dict:
         #
         #     {
         #         "event": "unsubscribed",
@@ -883,7 +883,7 @@ class bitvavo(ccxt.async_support.bitvavo):
                 del client.rejections[subHash]
         return message
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -917,7 +917,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market trades were made in
@@ -951,7 +951,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -982,7 +982,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         request = self.create_order_request(symbol, type, side, amount, price, params)
         return await self.watch_request('privateCreateOrder', request)
 
-    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order
 
@@ -1003,7 +1003,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         request = self.edit_order_request(id, symbol, type, side, amount, price, params)
         return await self.watch_request('privateUpdateOrder', request)
 
-    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
 
         https://docs.bitvavo.com/#tag/Orders/paths/~1order/delete
@@ -1020,7 +1020,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         request = self.cancel_order_request(id, symbol, params)
         return await self.watch_request('privateCancelOrder', request)
 
-    async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
+    async def cancel_all_orders_ws(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
 
         https://docs.bitvavo.com/#tag/Orders/paths/~1orders/delete
@@ -1046,7 +1046,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             request['market'] = market['id']
         return await self.watch_request('privateCancelOrders', self.extend(request, params))
 
-    def handle_multiple_orders(self, client: Client, message: object):
+    def handle_multiple_orders(self, client: Client, message: dict):
         #
         #    {
         #        action: 'privateCancelOrders',
@@ -1066,7 +1066,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         messageHash = self.safe_string(message, 'requestId')
         client.resolve(orders, messageHash)
 
-    async def fetch_order_ws(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def fetch_order_ws(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
 
         https://docs.bitvavo.com/#tag/General/paths/~1assets/get
@@ -1089,7 +1089,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         }
         return await self.watch_request('privateGetOrder', self.extend(request, params))
 
-    async def fetch_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
 
         https://docs.bitvavo.com/#tag/Orders/paths/~1orders/get
@@ -1116,7 +1116,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         randomPart = str(randomNumber)
         return int(ts + randomPart)
 
-    async def watch_request(self, action: object, request: object):
+    async def watch_request(self, action: str, request: dict):
         messageHash = self.request_id()
         messageHashStr = str(messageHash)
         request['action'] = action
@@ -1124,7 +1124,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         url = self.urls['api']['ws']
         return await self.watch(url, messageHashStr, request, messageHashStr)
 
-    async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1146,7 +1146,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         orders = await self.watch_request('privateGetOrdersOpen', self.extend(request, params))
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
-    async def fetch_my_trades_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_my_trades_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
 
         https://docs.bitvavo.com/#tag/Trades
@@ -1167,7 +1167,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         myTrades = await self.watch_request('privateGetTrades', request)
         return self.filter_by_symbol_since_limit(myTrades, symbol, since, limit)
 
-    def handle_my_trades(self, client: Client, message: object):
+    def handle_my_trades(self, client: Client, message: dict):
         #
         #    {
         #        action: 'privateGetTrades',
@@ -1197,7 +1197,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         messageHash = self.safe_string(message, 'requestId')
         client.resolve(trades, messageHash)
 
-    async def withdraw_ws(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw_ws(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1215,7 +1215,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         request = self.withdrawRequest(code, amount, address, tag, params)
         return await self.watch_request('privateWithdrawAssets', request)
 
-    def handle_withdraw(self, client: Client, message: object):
+    def handle_withdraw(self, client: Client, message: dict):
         #
         #    {
         #        action: 'privateWithdrawAssets',
@@ -1229,11 +1229,11 @@ class bitvavo(ccxt.async_support.bitvavo):
         # const action = this.safeString (message, 'action');
         # const messageHash = this.buildMessageHash (action, message);
         messageHash = self.safe_string(message, 'requestId')
-        response = self.safe_value(message, 'response')
+        response = self.safe_dict(message, 'response', {})
         withdraw = self.parse_transaction(response)
         client.resolve(withdraw, messageHash)
 
-    async def fetch_withdrawals_ws(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_withdrawals_ws(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
 
         https://docs.bitvavo.com/#tag/Account/paths/~1withdrawalHistory/get
@@ -1252,7 +1252,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         withdraws = await self.watch_request('privateGetWithdrawalHistory', request)
         return self.filter_by_currency_since_limit(withdraws, code, since, limit)
 
-    def handle_withdraws(self, client: Client, message: object):
+    def handle_withdraws(self, client: Client, message: dict):
         #
         #    {
         #        action: 'privateGetWithdrawalHistory',
@@ -1275,7 +1275,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         withdrawals = self.parse_transactions(response, None, None, None, {'type': 'withdrawal'})
         client.resolve(withdrawals, messageHash)
 
-    async def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
 
         https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1candles/get
@@ -1295,7 +1295,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         ohlcv = await self.watch_request(action, request)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def fetch_deposits_ws(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits_ws(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
 
         https://docs.bitvavo.com/#tag/Account/paths/~1depositHistory/get
@@ -1314,7 +1314,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         deposits = await self.watch_request('privateGetDepositHistory', request)
         return self.filter_by_currency_since_limit(deposits, code, since, limit)
 
-    def handle_deposits(self, client: Client, message: object):
+    def handle_deposits(self, client: Client, message: dict):
         #
         #    {
         #        action: 'privateGetDepositHistory',
@@ -1330,12 +1330,12 @@ class bitvavo(ccxt.async_support.bitvavo):
         #        ]
         #    }
         #
-        response = self.safe_value(message, 'response')
+        response = self.safe_list(message, 'response', [])
         deposits = self.parse_transactions(response, None, None, None, {'type': 'deposit'})
         messageHash = self.safe_string(message, 'requestId')
         client.resolve(deposits, messageHash)
 
-    async def fetch_trading_fees_ws(self, params={}) -> TradingFees:
+    async def fetch_trading_fees_ws(self, params: dict = {}) -> TradingFees:
         """
 
         https://docs.bitvavo.com/#tag/Account/paths/~1account/get
@@ -1360,7 +1360,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         """
         return self.watch_request('getMarkets', params)
 
-    async def fetch_currencies_ws(self, params={}) -> Currencies:
+    async def fetch_currencies_ws(self, params: dict = {}) -> Currencies:
         """
 
         https://docs.bitvavo.com/#tag/General/paths/~1assets/get
@@ -1373,7 +1373,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             await self.load_markets()
         return await self.watch_request('getAssets', params)
 
-    def handle_fetch_currencies(self, client: Client, message: object):
+    def handle_fetch_currencies(self, client: Client, message: dict):
         #
         #    {
         #        action: 'getAssets',
@@ -1395,11 +1395,11 @@ class bitvavo(ccxt.async_support.bitvavo):
         #    }
         #
         messageHash = self.safe_string(message, 'requestId')
-        response = self.safe_value(message, 'response')
+        response = self.safe_list(message, 'response')
         currencies = self.parse_currencies(response)
         client.resolve(currencies, messageHash)
 
-    def handle_trading_fees(self, client: Client, message: object):
+    def handle_trading_fees(self, client: Client, message: dict):
         #
         #    {
         #        action: 'privateGetAccount',
@@ -1413,11 +1413,11 @@ class bitvavo(ccxt.async_support.bitvavo):
         #    }
         #
         messageHash = self.safe_string(message, 'requestId')
-        response = self.safe_value(message, 'response')
+        response = self.safe_dict(message, 'response')
         fees = self.parse_trading_fees(response)
         client.resolve(fees, messageHash)
 
-    async def fetch_balance_ws(self, params={}) -> Balances:
+    async def fetch_balance_ws(self, params: dict = {}) -> Balances:
         """
 
         https://docs.bitvavo.com/#tag/Account/paths/~1balance/get
@@ -1431,7 +1431,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         await self.authenticate()
         return await self.watch_request('privateGetBalance', params)
 
-    def handle_fetch_balance(self, client: Client, message: object):
+    def handle_fetch_balance(self, client: Client, message: dict):
         #
         #    {
         #        action: 'privateGetBalance',
@@ -1445,11 +1445,11 @@ class bitvavo(ccxt.async_support.bitvavo):
         #    }
         #
         messageHash = self.safe_string(message, 'requestId')
-        response = self.safe_value(message, 'response', [])
+        response = self.safe_list(message, 'response', [])
         balance = self.parse_balance(response)
         client.resolve(balance, messageHash)
 
-    def handle_single_order(self, client: Client, message: object):
+    def handle_single_order(self, client: Client, message: dict):
         #
         #    {
         #        action: 'privateCreateOrder',
@@ -1478,12 +1478,12 @@ class bitvavo(ccxt.async_support.bitvavo):
         #        }
         #    }
         #
-        response = self.safe_value(message, 'response', {})
+        response = self.safe_dict(message, 'response', {})
         order = self.parse_order(response)
         messageHash = self.safe_string(message, 'requestId')
         client.resolve(order, messageHash)
 
-    def handle_markets(self, client: Client, message: object):
+    def handle_markets(self, client: Client, message: dict):
         #
         #    {
         #        action: 'getMarkets',
@@ -1503,12 +1503,12 @@ class bitvavo(ccxt.async_support.bitvavo):
         #        ]
         #    }
         #
-        response = self.safe_value(message, 'response', {})
+        response = self.safe_list(message, 'response', [])
         markets = self.parse_markets(response)
         messageHash = self.safe_string(message, 'requestId')
         client.resolve(markets, messageHash)
 
-    def build_message_hash(self, action: object, params={}):
+    def build_message_hash(self, action: Str, params: dict = {}) -> Str:
         methods = {
             'privateCreateOrder': self.action_and_market_message_hash,
             'privateUpdateOrder': self.action_and_order_id_message_hash,
@@ -1522,17 +1522,17 @@ class bitvavo(ccxt.async_support.bitvavo):
             messageHash = method(action, params)
         return messageHash
 
-    def action_and_market_message_hash(self, action: object, params={}):
+    def action_and_market_message_hash(self, action: str, params: dict = {}) -> str:
         symbol = self.safe_string(params, 'market', '')
         return action + symbol
 
-    def action_and_order_id_message_hash(self, action: object, params={}):
+    def action_and_order_id_message_hash(self, action: str, params: dict = {}) -> str:
         orderId = self.safe_string(params, 'orderId')
         if orderId is None:
             raise ExchangeError(self.id + ' privateUpdateOrderMessageHash requires a orderId parameter')
         return action + orderId
 
-    def handle_order(self, client: Client, message: object):
+    def handle_order(self, client: Client, message: dict):
         #
         #     {
         #         "event": "order",
@@ -1566,7 +1566,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         orders.append(order)
         client.resolve(self.orders, messageHash)
 
-    def handle_my_trade(self, client: Client, message: object):
+    def handle_my_trade(self, client: Client, message: dict):
         #
         #     {
         #         "event": "fill",
@@ -1594,7 +1594,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         tradesArray.append(trade)
         client.resolve(tradesArray, messageHash)
 
-    def handle_subscription_status(self, client: Client, message: object):
+    def handle_subscription_status(self, client: Client, message: dict) -> dict:
         #
         #     {
         #         "event": "subscribed",
@@ -1616,7 +1616,7 @@ class bitvavo(ccxt.async_support.bitvavo):
                 method(client, message, subscription)
         return message
 
-    async def authenticate(self, params={}):
+    async def authenticate(self, params: dict = {}):
         url = self.urls['api']['ws']
         client = self.client(url)
         messageHash = 'authenticated'
@@ -1638,7 +1638,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             client.subscriptions[messageHash] = future
         return future
 
-    def handle_authentication_message(self, client: Client, message: object):
+    def handle_authentication_message(self, client: Client, message: dict):
         #
         #     {
         #         "event": "authenticate",
@@ -1657,7 +1657,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             if messageHash in client.subscriptions:
                 del client.subscriptions[messageHash]
 
-    def handle_error_message(self, client: Client, message: object) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
         #    {
         #        action: 'privateCreateOrder',
@@ -1689,7 +1689,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             return True
         return None
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         #
         #     {
         #         "event": "subscribed",

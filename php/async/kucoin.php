@@ -1519,7 +1519,7 @@ class kucoin extends Exchange {
         ));
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
@@ -2600,7 +2600,7 @@ class kucoin extends Exchange {
         return $this->parse_deposit_withdraw_fee($data, $currency);
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
         //
         //    {
         //        "currency": "USDT",
@@ -2679,7 +2679,7 @@ class kucoin extends Exchange {
         return $result;
     }
 
-    public function is_futures_method(mixed $methodName, mixed $params): bool {
+    public function is_futures_method(string $methodName, array $params): bool {
         //
         // Helper
         // @methodName (string): The name of the method
@@ -2692,7 +2692,7 @@ class kucoin extends Exchange {
         $type = $this->safe_string($accountsByType, $requestedType);
         if ($type === null) {
             $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' isFuturesMethod() $type must be one of ' . implode(', ', $keys));
+            throw new ExchangeError($this->id . ' isFuturesMethod() type must be one of ' . implode(', ', $keys));
         }
         $params = $this->omit($params, 'type');
         return ($type === 'contract') || ($type === 'future') || ($type === 'futures'); // * (type === 'futures') deprecated, use (type === 'future')
@@ -3748,9 +3748,9 @@ class kucoin extends Exchange {
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         $this->options['versions']['private']['GET']['deposit-addresses'] = $version;
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data');
         if ($data === null) {
-            throw new ExchangeError($this->id . ' fetchDepositAddress() returned an empty $response, you might try to run createDepositAddress() first and try again');
+            throw new ExchangeError($this->id . ' fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again');
         }
         return $this->parse_deposit_address($data, $currency);
     }
@@ -3974,7 +3974,7 @@ class kucoin extends Exchange {
             //
         } elseif (($type !== 'spot') && ($type !== 'margin')) {
             if ($level !== 2 && $level !== null) {
-                throw new BadRequest($this->id . ' fetchOrderBook() can only return $level 2');
+                throw new BadRequest($this->id . ' fetchOrderBook() can only return level 2');
             }
             if ($limit === null) {
                 // full L2 snapshot - required for correct ws diff-sync: the futures delta
@@ -4004,7 +4004,7 @@ class kucoin extends Exchange {
             } elseif ($limit === 100) {
                 $response = Async\await($this->futuresPublicGetLevel2Depth100($this->extend($request, $params)));
             } else {
-                throw new BadRequest($this->id . ' fetchOrderBook() $limit argument must be 20 or 100');
+                throw new BadRequest($this->id . ' fetchOrderBook() limit argument must be 20 or 100');
             }
         } elseif (!$isAuthenticated || $limit !== null) {
             if ($level === 2) {
@@ -4013,7 +4013,7 @@ class kucoin extends Exchange {
                     if (($limit === 20) || ($limit === 100)) {
                         $request['limit'] = $limit;
                     } else {
-                        throw new ExchangeError($this->id . ' fetchOrderBook() $limit argument must be 20 or 100');
+                        throw new ExchangeError($this->id . ' fetchOrderBook() limit argument must be 20 or 100');
                     }
                 }
                 $request['limit'] = ($limit !== null) ? $limit : 100;
@@ -4066,19 +4066,19 @@ class kucoin extends Exchange {
         return $orderbook;
     }
 
-    public function handle_trigger_prices(mixed $params) {
-        $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
-        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+    public function handle_trigger_prices(array $params): array {
+        $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
         $isStopLoss = $stopLossPrice !== null;
         $isTakeProfit = $takeProfitPrice !== null;
         if (($isStopLoss && $isTakeProfit) || (($triggerPrice !== null) && ($stopLossPrice !== null)) || (($triggerPrice !== null) && $isTakeProfit)) {
-            throw new ExchangeError($this->id . ' createOrder() - you should use either $triggerPrice or $stopLossPrice or takeProfitPrice');
+            throw new ExchangeError($this->id . ' createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice');
         }
         return array( $triggerPrice, $stopLossPrice, $takeProfitPrice );
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -4121,7 +4121,7 @@ class kucoin extends Exchange {
         } elseif ($market['contract'] === true) {
             return Async\await($this->create_contract_order($symbol, $type, $side, $amount, $price, $params));
         } else {
-            throw new NotSupported($this->id . ' createOrder() does not support $market ' . $market['type']);
+            throw new NotSupported($this->id . ' createOrder() does not support market ' . $market['type']);
         }
     }
 
@@ -4236,12 +4236,12 @@ class kucoin extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function create_spot_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_spot_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         // required param, cannot be used twice
@@ -4312,7 +4312,7 @@ class kucoin extends Exchange {
         $market = $this->market($symbol);
         $result = $this->decimal_to_precision($amount, TRUNCATE, $market['info']['quoteIncrement'], $this->precisionMode, $this->paddingMode);
         if ($result === '0') {
-            throw new InvalidOrder($this->id . ' $amount of ' . $market['symbol'] . ' must be greater than minimum $amount precision of ' . $this->number_to_string($market['precision']['amount']));
+            throw new InvalidOrder($this->id . ' amount of ' . $market['symbol'] . ' must be greater than minimum amount precision of ' . $this->number_to_string($market['precision']['amount']));
         }
         return $result;
     }
@@ -4389,12 +4389,12 @@ class kucoin extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function create_contract_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_contract_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         // required param, cannot be used twice
@@ -4418,10 +4418,10 @@ class kucoin extends Exchange {
             $request['valueQty'] = $this->cost_to_precision($symbol, $cost);
         } else {
             if ($amount === null) {
-                throw new ArgumentsRequired($this->id . ' requires an $amount argument');
+                throw new ArgumentsRequired($this->id . ' requires an amount argument');
             }
             if ($amount < 1) {
-                throw new InvalidOrder($this->id . ' createOrder() minimum contract order $amount is 1');
+                throw new InvalidOrder($this->id . ' createOrder() minimum contract order amount is 1');
             }
             $sizeString = $this->amount_to_precision($symbol, $amount);
             if ($sizeString !== null) {
@@ -4476,7 +4476,7 @@ class kucoin extends Exchange {
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         if ($uppercaseType === 'LIMIT') {
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for limit orders');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for limit orders');
             } else {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
@@ -4491,13 +4491,13 @@ class kucoin extends Exchange {
         }
         $hidden = $this->safe_value($params, 'hidden');
         if (($postOnly === true) && ($hidden !== null)) {
-            throw new BadRequest($this->id . ' createOrder() does not support the $postOnly parameter together with a $hidden parameter');
+            throw new BadRequest($this->id . ' createOrder() does not support the postOnly parameter together with a hidden parameter');
         }
         $iceberg = $this->safe_value($params, 'iceberg');
         if (($iceberg !== null) && ($iceberg !== false)) {
             $visibleSize = $this->safe_value($params, 'visibleSize');
             if ($visibleSize === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $visibleSize parameter for $iceberg orders');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a visibleSize parameter for iceberg orders');
             }
         }
         $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
@@ -4581,13 +4581,13 @@ class kucoin extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function create_uta_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_uta_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         $market = $this->market($symbol);
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a side argument');
         }
         $isSpot = $market['spot'];
         $isContract = $market['contract'];
@@ -4640,7 +4640,7 @@ class kucoin extends Exchange {
                 $request['sizeUnit'] = 'QUOTECCY';
                 $request['size'] = $this->market_order_amount_to_precision($symbol, $cost);
             } else {
-                throw new NotSupported($this->id . ' createOrder() with $cost is supported for spot $market orders only');
+                throw new NotSupported($this->id . ' createOrder() with cost is supported for spot market orders only');
             }
         } else {
             $sizeUnit = 'BASECCY';
@@ -4700,13 +4700,13 @@ class kucoin extends Exchange {
         if ($triggerPrice !== null) {
             $triggerDirection = $this->safe_string($params, 'triggerDirection');
             if ($triggerDirection === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerDirection parameter for trigger orders. Provide $params->tringgerDirection or use $params->stopLossPrice or $params->takeProfitPrice instead of $params->triggerPrice');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a triggerDirection parameter for trigger orders. Provide params.tringgerDirection or use params.stopLossPrice or params.takeProfitPrice instead of params.triggerPrice');
             }
             $request['triggerDirection'] = ($triggerDirection === 'ascending') ? 'UP' : 'DOWN';
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         } elseif ($hasStopLoss || $hasTakeProfit) {
             if ($isContract !== true) {
-                throw new NotSupported($this->id . ' createOrder() $stopLoss and $takeProfit parameters are only supported for contract orders');
+                throw new NotSupported($this->id . ' createOrder() stopLoss and takeProfit parameters are only supported for contract orders');
             }
             if ($hasStopLoss) {
                 $slTriggerPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice');
@@ -4741,7 +4741,7 @@ class kucoin extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()) {
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()): PromiseInterface {
         return Async\async(self::do_create_market_order_with_cost(...))($symbol, $side, $cost, $params);
     }
 
@@ -4767,7 +4767,7 @@ class kucoin extends Exchange {
         return Async\await($this->create_order($symbol, 'market', $side, $cost, null, $this->extend($req, $params)));
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): PromiseInterface {
         return Async\async(self::do_create_market_buy_order_with_cost(...))($symbol, $cost, $params);
     }
 
@@ -4789,7 +4789,7 @@ class kucoin extends Exchange {
         return Async\await($this->create_market_order_with_cost($symbol, 'buy', $cost, $params));
     }
 
-    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()): PromiseInterface {
         return Async\async(self::do_create_market_sell_order_with_cost(...))($symbol, $cost, $params);
     }
 
@@ -4811,7 +4811,7 @@ class kucoin extends Exchange {
         return Async\await($this->create_market_order_with_cost($symbol, 'sell', $cost, $params));
     }
 
-    public function create_orders(array $orders, $params = array()) {
+    public function create_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(self::do_create_orders(...))($orders, $params);
     }
 
@@ -4836,7 +4836,7 @@ class kucoin extends Exchange {
             $order = $this->safe_dict($orders, $i);
             $symbol = $this->safe_string($order, 'symbol');
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' createOrders() requires a $symbol for each order');
+                throw new ArgumentsRequired($this->id . ' createOrders() requires a symbol for each order');
             }
             $market = $this->market($symbol);
             if ($market['spot'] === true) {
@@ -4846,17 +4846,17 @@ class kucoin extends Exchange {
             }
         }
         if ($isSpot && $isContract) {
-            throw new BadRequest($this->id . ' createOrders() requires all $orders to be either spot or contract');
+            throw new BadRequest($this->id . ' createOrders() requires all orders to be either spot or contract');
         } elseif ($isSpot) {
             return Async\await($this->create_spot_orders($orders, $params));
         } elseif ($isContract) {
             return Async\await($this->create_contract_orders($orders, $params));
         } else {
-            throw new NotSupported($this->id . ' createOrders() does not support the markets of the $orders provided');
+            throw new NotSupported($this->id . ' createOrders() does not support the markets of the orders provided');
         }
     }
 
-    public function create_spot_orders(array $orders, $params = array()) {
+    public function create_spot_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(self::do_create_spot_orders(...))($orders, $params);
     }
 
@@ -4883,13 +4883,13 @@ class kucoin extends Exchange {
             $rawOrder = $orders[$i];
             $marketId = $this->safe_string($rawOrder, 'symbol');
             if ($marketId === null) {
-                throw new ArgumentsRequired($this->id . ' createOrders() requires a $symbol for each order');
+                throw new ArgumentsRequired($this->id . ' createOrders() requires a symbol for each order');
             }
             if ($symbol === null) {
                 $symbol = $marketId;
             } else {
                 if ($symbol !== $marketId) {
-                    throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same symbol');
+                    throw new BadRequest($this->id . ' createOrders() requires all orders to have the same symbol');
                 }
             }
             $type = $this->safe_string($rawOrder, 'type');
@@ -4899,7 +4899,7 @@ class kucoin extends Exchange {
             $side = $this->safe_string($rawOrder, 'side');
             $amount = $this->safe_value($rawOrder, 'amount');
             $price = $this->safe_value($rawOrder, 'price');
-            $orderParams = $this->safe_value($rawOrder, 'params', array());
+            $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $orderRequest = $this->create_spot_order_request($marketId, $type, $side, $amount, $price, $orderParams);
             $ordersRequests[] = $orderRequest;
         }
@@ -4958,7 +4958,7 @@ class kucoin extends Exchange {
         return $this->parse_orders($data);
     }
 
-    public function create_contract_orders(array $orders, $params = array()) {
+    public function create_contract_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(self::do_create_contract_orders(...))($orders, $params);
     }
 
@@ -4980,13 +4980,13 @@ class kucoin extends Exchange {
             $rawOrder = $orders[$i];
             $symbol = $this->safe_string($rawOrder, 'symbol');
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' createOrders() requires a $symbol for each order');
+                throw new ArgumentsRequired($this->id . ' createOrders() requires a symbol for each order');
             }
             $type = $this->safe_string($rawOrder, 'type', '');
             $side = $this->safe_string($rawOrder, 'side');
             $amount = $this->safe_value($rawOrder, 'amount');
             $price = $this->safe_value($rawOrder, 'price');
-            $orderParams = $this->safe_value($rawOrder, 'params', array());
+            $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $orderRequest = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $orderParams);
             $ordersRequests[] = $orderRequest;
         }
@@ -5016,7 +5016,7 @@ class kucoin extends Exchange {
         return $this->parse_orders($data);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -5068,7 +5068,7 @@ class kucoin extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -5120,7 +5120,7 @@ class kucoin extends Exchange {
         }
     }
 
-    public function cancel_spot_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_spot_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_spot_order(...))($id, $symbol, $params);
     }
 
@@ -5165,7 +5165,7 @@ class kucoin extends Exchange {
         if (($hf === true) || $useSync || $isMarginOrder) {
             if ($trigger !== true) {
                 if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol parameter for $hf orders');
+                    throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol parameter for hf orders');
                 }
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
@@ -5276,7 +5276,7 @@ class kucoin extends Exchange {
         }
     }
 
-    public function cancel_contract_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_contract_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_contract_order(...))($id, $symbol, $params);
     }
 
@@ -5302,7 +5302,7 @@ class kucoin extends Exchange {
         $response = null;
         if ($clientOrderId !== null) {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument when cancelling by clientOrderId');
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument when cancelling by clientOrderId');
             }
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
@@ -5344,7 +5344,7 @@ class kucoin extends Exchange {
          * @return Response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument for uta endpoint');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument for uta endpoint');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -5356,7 +5356,7 @@ class kucoin extends Exchange {
             $params = $this->omit($params, array( 'clientOid', 'clientOrderId' ));
         } else {
             if ($id === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires an $id argument or $clientOrderId parameter');
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires an id argument or clientOrderId parameter');
             }
             $request['orderId'] = $id;
         }
@@ -5389,7 +5389,7 @@ class kucoin extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -5435,7 +5435,7 @@ class kucoin extends Exchange {
         }
     }
 
-    public function cancel_all_spot_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_spot_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_spot_orders(...))($symbol, $params);
     }
 
@@ -5470,7 +5470,7 @@ class kucoin extends Exchange {
         if ($symbol !== null) {
             $request['symbol'] = $this->market_id($symbol);
         } elseif (($trigger !== true) && $isMarginOrders) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument for margin non-$trigger orders');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument for margin non-trigger orders');
         }
         if ($isMarginOrders) {
             $request['tradeType'] = $this->options['marginModes'][$marginMode];
@@ -5499,7 +5499,7 @@ class kucoin extends Exchange {
         return array( $this->safe_order(array( 'info' => $response )) );
     }
 
-    public function cancel_all_contract_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_contract_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_contract_orders(...))($symbol, $params);
     }
 
@@ -5561,7 +5561,7 @@ class kucoin extends Exchange {
          * @return Response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument for uta endpoint');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument for uta endpoint');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -5598,11 +5598,11 @@ class kucoin extends Exchange {
         return $this->parse_orders($orders, $market, null, null, array( 'status' => 'canceled' ));
     }
 
-    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_orders_by_status(...))($status, $symbol, $since, $limit, $params);
     }
 
-    private function do_fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches a list of orders placed on the exchange
          *
@@ -5702,7 +5702,7 @@ class kucoin extends Exchange {
         $hf = null;
         list($hf, $params) = $this->handle_hf_and_params($params);
         if (($hf === true) && ($symbol === null)) {
-            throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus() requires a $symbol parameter for $hf orders');
+            throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus() requires a symbol parameter for hf orders');
         }
         $params = $this->omit($params, array( 'stop', 'trigger', 'till', 'until' ));
         list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrdersByStatus', $params);
@@ -5806,11 +5806,11 @@ class kucoin extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_contract_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_contract_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_contract_orders_by_status(...))($status, $symbol, $since, $limit, $params);
     }
 
-    private function do_fetch_contract_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_contract_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches a list of contract $orders placed on the exchange
          *
@@ -5973,7 +5973,7 @@ class kucoin extends Exchange {
         $params = $this->omit($params, 'marketType');
         $isContract = ($marketType !== 'spot') && ($marketType !== 'margin');
         if (!$isContract && ($symbol === null)) {
-            throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus() requires a $symbol argument for spot and margin markets when using uta endpoint');
+            throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus() requires a symbol argument for spot and margin markets when using uta endpoint');
         }
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrdersByStatus', $params);
@@ -6135,7 +6135,7 @@ class kucoin extends Exchange {
         return Async\await($this->fetch_orders_by_status('active', $symbol, $since, $limit, $params));
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -6167,7 +6167,7 @@ class kucoin extends Exchange {
             Async\await($this->load_markets());
         }
         if ($id === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires an $id argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires an id argument');
         }
         $uta = Async\await($this->is_uta_enabled());
         list($uta, $params) = $this->handle_option_and_params($params, 'fetchOrder', 'uta', $uta);
@@ -6233,7 +6233,7 @@ class kucoin extends Exchange {
         if (($hf === true) || $isMarginOrder) {
             if ($trigger !== true) {
                 if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol parameter for $hf and margin orders');
+                    throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol parameter for hf and margin orders');
                 }
                 $request['symbol'] = $this->safe_string($market, 'id');
             }
@@ -6315,7 +6315,7 @@ class kucoin extends Exchange {
             $response = Async\await($this->futuresPrivateGetOrdersByClientOid($this->extend($request, $params)));
         } else {
             if ($id === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires an order $id argument or $clientOrderId in params');
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires an order id argument or clientOrderId in params');
             }
             $request['orderId'] = $id;
             $response = Async\await($this->futuresPrivateGetOrdersOrderId($this->extend($request, $params)));
@@ -6387,7 +6387,7 @@ class kucoin extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument for uta orders');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument for uta orders');
         }
         $request = array();
         $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
@@ -6396,7 +6396,7 @@ class kucoin extends Exchange {
             $params = $this->omit($params, array( 'clientOid', 'clientOrderId' ));
         } else {
             if ($id === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires an $id argument or $clientOrderId parameter');
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires an id argument or clientOrderId parameter');
             }
             $request['orderId'] = $id;
         }
@@ -6459,7 +6459,7 @@ class kucoin extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function handle_trade_type($isContractMarket = false, ?string $marginMode = null, $isUnified = false, $params = array()) {
+    public function handle_trade_type(bool $isContractMarket = false, ?string $marginMode = null, bool $isUnified = false, $params = array()): ?string {
         $tradeType = $this->safe_string($params, 'tradeType');
         if ($tradeType === null) {
             if ($isContractMarket) {
@@ -6587,7 +6587,7 @@ class kucoin extends Exchange {
         // precision reported by their api is 8 d.p.
         // const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
         // bool
-        $isActive = $this->safe_value($order, 'isActive');
+        $isActive = $this->safe_bool($order, 'isActive');
         $cancelExist = $this->safe_bool($order, 'cancelExist', false);
         $status = null;
         if ($isActive !== null) {
@@ -6603,8 +6603,8 @@ class kucoin extends Exchange {
         }
         $clientOrderId = $this->safe_string($order, 'clientOid');
         $timeInForce = $this->safe_string($order, 'timeInForce');
-        $postOnly = $this->safe_value($order, 'postOnly');
-        $reduceOnly = $this->safe_value($order, 'reduceOnly');
+        $postOnly = $this->safe_bool($order, 'postOnly');
+        $reduceOnly = $this->safe_bool($order, 'reduceOnly');
         $lastUpdateTimestamp = $this->safe_integer($order, 'updatedAt');
         return $this->safe_order(array(
             'id' => $orderId,
@@ -6943,7 +6943,7 @@ class kucoin extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
     }
 
@@ -6971,7 +6971,7 @@ class kucoin extends Exchange {
         return Async\await($this->fetch_my_trades($symbol, $since, $limit, $this->extend($request, $params)));
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -7054,7 +7054,7 @@ class kucoin extends Exchange {
             $request['tradeType'] = ($marginMode === null) ? null : $this->safe_string($this->options['marginModes'], $marginMode, $marginMode);
         }
         if (($hf === true) && $symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol parameter for $hf or margin orders');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol parameter for hf or margin orders');
         }
         $market = null;
         if ($symbol !== null) {
@@ -7281,7 +7281,7 @@ class kucoin extends Exchange {
             $request['symbol'] = $market['id'];
             $isContract = $market['contract'];
         } elseif (($marketType === 'spot') || ($marketType === 'margin')) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol parameter for uta spot or margin trades');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol parameter for uta spot or margin trades');
         } else {
             $isContract = true;
         }
@@ -8394,7 +8394,7 @@ class kucoin extends Exchange {
         return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function parse_balance_helper(mixed $entry) {
+    public function parse_balance_helper(array $entry) {
         $account = $this->account();
         $account['used'] = $this->safe_string_2($entry, 'holdBalance', 'hold');
         $account['free'] = $this->safe_string_2($entry, 'availableBalance', 'available');
@@ -8622,11 +8622,11 @@ class kucoin extends Exchange {
         }
         // only fetches one balance at a time
         $defaultCode = $this->safe_string($this->options, 'code');
-        $fetchBalanceOptions = $this->safe_value($this->options, 'fetchBalance', array());
+        $fetchBalanceOptions = $this->safe_dict($this->options, 'fetchBalance', array());
         $defaultCode = $this->safe_string($fetchBalanceOptions, 'code', $defaultCode);
         $code = $this->safe_string($params, 'code', $defaultCode);
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchContractBalance() requires a $code parameter');
+            throw new ArgumentsRequired($this->id . ' fetchContractBalance() requires a code parameter');
         }
         $currency = $this->currency($code);
         $request = array(
@@ -8653,7 +8653,7 @@ class kucoin extends Exchange {
             'timestamp' => null,
             'datetime' => null,
         );
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data');
         $currencyId = $this->safe_string($data, 'currency');
         $currencyCode = $this->safe_currency_code($currencyId, $currency);
         $account = $this->account();
@@ -8872,13 +8872,13 @@ class kucoin extends Exchange {
         list($toUserId, $params) = $this->handle_param_string_2($params, 'toUserId', 'toUid', $toUserId);
         if ($transferType === 'PARENT_TO_SUB' || $transferType === 'SUB_TO_SUB') {
             if ($toUserId === null) {
-                throw new ExchangeError($this->id . ' $transfer() requires a $toUserId param for PARENT_TO_SUB or SUB_TO_SUB transfers');
+                throw new ExchangeError($this->id . ' transfer() requires a toUserId param for PARENT_TO_SUB or SUB_TO_SUB transfers');
             } else {
                 $request['toUid'] = $toUserId;
             }
         } elseif ($transferType === 'SUB_TO_PARENT' || $transferType === 'SUB_TO_SUB') {
             if ($fromUserId === null) {
-                throw new ExchangeError($this->id . ' $transfer() requires a $fromUserId param for SUB_TO_PARENT or SUB_TO_SUB transfers');
+                throw new ExchangeError($this->id . ' transfer() requires a fromUserId param for SUB_TO_PARENT or SUB_TO_SUB transfers');
             } else {
                 $request['fromUid'] = $fromUserId;
             }
@@ -8960,11 +8960,11 @@ class kucoin extends Exchange {
         list($transferType, $params) = $this->handle_param_string_2($params, 'transferType', 'type', $transferType);
         if ($transferType === 'PARENT_TO_SUB') {
             if (!(is_array($params) && array_key_exists('toUserId' ?? '', $params))) {
-                throw new ExchangeError($this->id . ' $transfer() requires a toUserId param for PARENT_TO_SUB transfers');
+                throw new ExchangeError($this->id . ' transfer() requires a toUserId param for PARENT_TO_SUB transfers');
             }
         } elseif ($transferType === 'SUB_TO_PARENT') {
             if (!(is_array($params) && array_key_exists('fromUserId' ?? '', $params))) {
-                throw new ExchangeError($this->id . ' $transfer() requires a fromUserId param for SUB_TO_PARENT transfers');
+                throw new ExchangeError($this->id . ' transfer() requires a fromUserId param for SUB_TO_PARENT transfers');
             }
         }
         if (!(is_array($params) && array_key_exists('clientOid' ?? '', $params))) {
@@ -9131,7 +9131,7 @@ class kucoin extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array(
             'Assets Transferred in After Upgrading' => 'transfer', // Assets Transferred in After V1 to V2 Upgrading
             'Deposit' => 'transaction', // Deposit
@@ -9196,7 +9196,7 @@ class kucoin extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_direction(mixed $direction) {
+    public function parse_ledger_direction(?string $direction): ?string {
         $directions = array(
             'in' => 'in',
             'out' => 'out',
@@ -9208,7 +9208,7 @@ class kucoin extends Exchange {
         return $this->safe_string($directions, $direction, $direction);
     }
 
-    public function parse_ledger_status(mixed $status) {
+    public function parse_ledger_status(?string $status): ?string {
         $statuses = array(
             'Completed' => 'ok',
             'Pending' => 'pending',
@@ -9512,7 +9512,7 @@ class kucoin extends Exchange {
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, mixed $config = array()) {
         $versions = $this->safe_dict($this->options, 'versions', array());
         $apiVersions = $this->safe_dict($versions, $api, array());
         $methodVersions = $this->safe_dict($apiVersions, $method, array());
@@ -9557,7 +9557,7 @@ class kucoin extends Exchange {
         //     }
         //
         $timestampId = $this->safe_string_2($info, 'createdAt', 'timestamp');
-        $timestamp = $this->milliseconds();
+        $timestamp = null;
         if ($timestampId !== null) {
             $timestamp = $this->parse_to_int(mb_substr($timestampId, 0, 13 - 0));
         }
@@ -9766,7 +9766,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_borrow_rate_histories(?array $codes = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_borrow_rate_histories(?array $codes = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_borrow_rate_histories(...))($codes, $since, $limit, $params);
     }
 
@@ -9888,7 +9888,7 @@ class kucoin extends Exchange {
         return $this->parse_borrow_rate_history($rows, $code, $since, $limit);
     }
 
-    public function parse_borrow_rate_histories(mixed $response, mixed $codes, mixed $since, mixed $limit) {
+    public function parse_borrow_rate_histories(array $response, ?array $codes, ?int $since, ?int $limit): array {
         //
         //     [
         //         {
@@ -10138,15 +10138,14 @@ class kucoin extends Exchange {
         //         "actualSize": 10
         //     }
         //
-        $timestamp = $this->milliseconds();
         $currencyId = $this->safe_string($info, 'currency');
         return array(
             'id' => $this->safe_string($info, 'orderNo'),
             'currency' => $this->safe_currency_code($currencyId, $currency),
             'amount' => $this->safe_number($info, 'actualSize'),
             'symbol' => null,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'info' => $info,
         );
     }
@@ -10208,7 +10207,7 @@ class kucoin extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params($symbol, $params);
         if ($marginMode !== 'cross') {
-            throw new NotSupported($this->id . ' fetchLeverage() currently supports only $params["marginMode"] = "cross"');
+            throw new NotSupported($this->id . ' fetchLeverage() currently supports only params["marginMode"] = "cross"');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -10266,7 +10265,7 @@ class kucoin extends Exchange {
         list($marketType, $params) = $this->handle_market_type_and_params('setLeverage', null, $params);
         if (($symbol !== null) || (($marketType !== 'spot') && ($marketType !== 'margin'))) {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' setLeverage requires a $symbol argument for contract markets');
+                throw new ArgumentsRequired($this->id . ' setLeverage requires a symbol argument for contract markets');
             }
             $market = $this->market($symbol);
             if ($market['contract'] === true) {
@@ -10289,16 +10288,16 @@ class kucoin extends Exchange {
             $code = null;
             list($code, $params) = $this->handle_option_and_params_2($params, 'setLeverage', 'currency', 'code');
             if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' setLeverage requires a currency $code in the $params["code"] for unified trading account');
+                throw new ArgumentsRequired($this->id . ' setLeverage requires a currency code in the params["code"] for unified trading account');
             }
             $request['currency'] = $this->currency_id($code);
             $response = Async\await($this->utaPrivatePostAccountModeAccountModifyLeverageMarginCross($this->extend($request, $params)));
         } else {
             if ($marginMode === null) {
-                throw new ArgumentsRequired($this->id . ' setLeverage requires a $marginMode parameter');
+                throw new ArgumentsRequired($this->id . ' setLeverage requires a marginMode parameter');
             }
             if ($marginMode === 'isolated' && $symbol === null) {
-                throw new ArgumentsRequired($this->id . ' setLeverage requires a $symbol parameter for isolated margin');
+                throw new ArgumentsRequired($this->id . ' setLeverage requires a symbol parameter for isolated margin');
             }
             if ($symbol !== null) {
                 $request['symbol'] = $this->safe_string($market, 'id');
@@ -10327,12 +10326,12 @@ class kucoin extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params($symbol, $params);
         if (($marginMode !== null) && ($marginMode !== 'cross')) {
-            throw new NotSupported($this->id . ' setLeverage() currently supports only $params["marginMode"] = "cross" for contracts');
+            throw new NotSupported($this->id . ' setLeverage() currently supports only params["marginMode"] = "cross" for contracts');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -10557,7 +10556,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function parse_funding_interval(mixed $interval) {
+    public function parse_funding_interval(?string $interval): ?string {
         $intervals = array(
             '3600000' => '1h',
             '14400000' => '4h',
@@ -10568,7 +10567,7 @@ class kucoin extends Exchange {
         return $this->safe_string($intervals, $interval, $interval);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -10588,7 +10587,7 @@ class kucoin extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -10652,7 +10651,7 @@ class kucoin extends Exchange {
         return $this->parse_funding_rate_histories($result, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $info, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $info, ?array $market = null): array {
         //
         // uta
         //     {
@@ -10678,7 +10677,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -10706,7 +10705,7 @@ class kucoin extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         } elseif (!$uta) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a symbol argument');
         }
         if ($since !== null) {
             $request['startAt'] = $since;
@@ -10768,7 +10767,7 @@ class kucoin extends Exchange {
             //        }
             //    }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data');
             $dataList = $this->safe_list($data, 'dataList', array());
         }
         $fees = array();
@@ -10793,7 +10792,7 @@ class kucoin extends Exchange {
         return $fees;
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_position(...))($symbol, $params);
     }
 
@@ -10981,7 +10980,7 @@ class kucoin extends Exchange {
         return $this->parse_positions($data, $symbols);
     }
 
-    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_positions_history(...))($symbols, $since, $limit, $params);
     }
 
@@ -11110,7 +11109,7 @@ class kucoin extends Exchange {
         return $this->parse_positions($items, $symbols);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         //    {
         //        "code": "200000",
@@ -11247,7 +11246,7 @@ class kucoin extends Exchange {
         $initialMarginPercentage = Precise::string_div($initialMargin, $notional);
         // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
         $unrealisedPnl = $this->safe_string_2($position, 'unrealisedPnl', 'unrealizedPnL');
-        $crossMode = $this->safe_value($position, 'crossMode');
+        $crossMode = $this->safe_bool($position, 'crossMode');
         // currently crossMode is always set to false and only isolated positions are supported
         $marginMode = $this->safe_string_lower($position, 'marginMode');
         if ($crossMode !== null) {
@@ -11292,7 +11291,7 @@ class kucoin extends Exchange {
         ));
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
     }
 
@@ -11326,7 +11325,7 @@ class kucoin extends Exchange {
                 $uta = true; // spot market orders can only be cancelled via the uta endpoint
             }
         } elseif ($uta) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument for $uta endpoint');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument for uta endpoint');
         }
         $ordersRequests = array();
         $clientOrderIds = $this->safe_list_2($params, 'clientOrderIds', 'clientOids', array());
@@ -11335,7 +11334,7 @@ class kucoin extends Exchange {
         for ($i = 0; $i < count($clientOrderIds); $i++) {
             $useClientorderId = true;
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument when cancelling by clientOrderIds');
+                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument when cancelling by clientOrderIds');
             }
             $ordersRequests[] = array(
                 'symbol' => $this->safe_string($market, 'id'),
@@ -11474,7 +11473,7 @@ class kucoin extends Exchange {
         //        "msg":"Position does not exist"
         //    }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         return $this->extend($this->parse_margin_modification($data, $market), array(
             'amount' => $this->amount_to_precision($symbol, $amount),
             'direction' => 'in',
@@ -11529,7 +11528,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function parse_margin_modification(mixed $info, ?array $market = null): array {
+    public function parse_margin_modification(array $info, ?array $market = null): array {
         //
         //    {
         //        "id": "62311d26064e8f00013f2c6d",
@@ -11578,7 +11577,7 @@ class kucoin extends Exchange {
         $id = $this->safe_string($info, 'id');
         $market = $this->safe_market($id, $market);
         $currencyId = $this->safe_string($info, 'settleCurrency');
-        $crossMode = $this->safe_value($info, 'crossMode');
+        $crossMode = $this->safe_bool($info, 'crossMode');
         $mode = ($crossMode === true) ? 'cross' : 'isolated';
         $marketId = $this->safe_string($market, 'symbol');
         $timestamp = $this->safe_integer($info, 'currentTimestamp');
@@ -11657,7 +11656,7 @@ class kucoin extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
         }
         $this->check_required_argument('setMarginMode', $marginMode, 'marginMode', array( 'cross', 'isolated' ));
         if ($this->markets === null) {
@@ -11903,7 +11902,7 @@ class kucoin extends Exchange {
             Async\await($this->load_markets());
         }
         if ($symbols === null) {
-            throw new ArgumentsRequired($this->id . ' fetchLeverageTiers() requires a $symbols argument');
+            throw new ArgumentsRequired($this->id . ' fetchLeverageTiers() requires a symbols argument');
         }
         $symbols = $this->market_symbols($symbols, 'swap', false, true);
         $marginMode = 'cross';
@@ -11962,7 +11961,7 @@ class kucoin extends Exchange {
         return $result;
     }
 
-    public function fetch_open_interests(?array $symbols = null, $params = array()) {
+    public function fetch_open_interests(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interests(...))($symbols, $params);
     }
 
@@ -12007,7 +12006,7 @@ class kucoin extends Exchange {
         return $this->parse_open_interests($data, $symbols);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         //     {
         //         "symbol": "ETHUSDTM",
@@ -12063,7 +12062,7 @@ class kucoin extends Exchange {
         );
         $interval = $this->safe_string($timeframes, $timeframe);
         if ($interval === null) {
-            throw new BadRequest($this->id . ' fetchOpenInterestHistory() invalid $timeframe, supported are 5m, 15m, 30m, 1h, 4h, 1d');
+            throw new BadRequest($this->id . ' fetchOpenInterestHistory() invalid timeframe, supported are 5m, 15m, 30m, 1h, 4h, 1d');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -12115,7 +12114,7 @@ class kucoin extends Exchange {
         return $uta;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑
@@ -12154,7 +12153,7 @@ class kucoin extends Exchange {
                 $endpoint .= '?' . $this->rawencode($query);
             } else {
                 if (($endpoint === '/api/ua/v1/classic/order/place') || ($endpoint === '/api/ua/v1/classic/order/place/batch') || ($endpoint === '/api/ua/v1/classic/order/cancel') || ($endpoint === '/api/ua/v1/classic/order/cancel/batch')) {
-                    $endpoint .= '?$tradeType=' . $tradeType;
+                    $endpoint .= '?tradeType=' . $tradeType;
                 }
                 $body = $this->json($query);
                 $endpart = $body;

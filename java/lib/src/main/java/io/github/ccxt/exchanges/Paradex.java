@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class Paradex extends ParadexApi
 {
@@ -747,7 +748,7 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicGetSystemTime(parameters)).join();
             //
             //     {
@@ -772,7 +773,7 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicGetSystemState(parameters)).join();
             //
             //     {
@@ -782,7 +783,7 @@ public class Paradex extends ParadexApi
             String status = this.safeString(response, "status");
             final Object finalStatus = status;
             return new HashMap<String, Object>() {{
-                put( "status", ((Helpers.isTrue((Helpers.isEqual(finalStatus, "ok"))))) ? "ok" : "maintenance" );
+                put( "status", (((java.util.Objects.equals(finalStatus, "ok")))) ? "ok" : "maintenance" );
                 put( "updated", null );
                 put( "eta", null );
                 put( "url", null );
@@ -805,7 +806,7 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicGetMarkets(parameters)).join();
             //
             //     {
@@ -840,7 +841,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "results");
+            List<Object> data = (List<Object>) this.safeList(response, "results");
             return this.parseMarkets(data);
         });
 
@@ -925,11 +926,11 @@ public class Paradex extends ParadexApi
         //  }
         //
         String assetKind = this.safeString(market, "asset_kind");
-        Boolean isOptionPerpetual = (Helpers.isEqual(assetKind, "PERP_OPTION"));
-        Boolean isOptionDelivery = (Helpers.isEqual(assetKind, "OPTION"));
-        Boolean isOption = Helpers.isTrue(isOptionPerpetual) || Helpers.isTrue(isOptionDelivery);
-        String type = ((Helpers.isTrue((isOption)))) ? "option" : "swap";
-        Boolean isSwap = (Helpers.isEqual(type, "swap"));
+        Boolean isOptionPerpetual = (java.util.Objects.equals(assetKind, "PERP_OPTION"));
+        Boolean isOptionDelivery = (java.util.Objects.equals(assetKind, "OPTION"));
+        Boolean isOption = Boolean.TRUE.equals(isOptionPerpetual) || Boolean.TRUE.equals(isOptionDelivery);
+        String type = ((Boolean.TRUE.equals(isOption))) ? "option" : "swap";
+        Boolean isSwap = (java.util.Objects.equals(type, "swap"));
         String marketId = this.safeString(market, "symbol");
         String quoteId = this.safeString(market, "quote_currency");
         String baseId = this.safeString(market, "base_currency");
@@ -937,23 +938,23 @@ public class Paradex extends ParadexApi
         String base = this.safeCurrencyCode(baseId);
         String settleId = this.safeString(market, "settlement_currency");
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
+        Object symbol = ((((base + "/") + quote) + ":") + settle);
         Long expiry = this.safeInteger(market, "expiry_at");
         String optionType = this.safeString(market, "option_type");
         String strikePrice = this.safeString(market, "strike_price");
         Object takerFee = this.parseNumber("0.0003");
         Object makerFee = this.parseNumber("-0.00005");
-        if (Helpers.isTrue(isOption))
+        if (Boolean.TRUE.equals(isOption))
         {
-            String optionTypeSuffix = ((Helpers.isTrue((Helpers.isEqual(optionType, "CALL"))))) ? "C" : "P";
-            Object deliveryValue = ((Helpers.isTrue((Helpers.isEqual(expiry, 0))))) ? "" : Helpers.add(this.yymmdd(expiry), "-");
-            symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(symbol, "-"), deliveryValue), strikePrice), "-"), optionTypeSuffix);
+            String optionTypeSuffix = (((java.util.Objects.equals(optionType, "CALL")))) ? "C" : "P";
+            Object deliveryValue = ((((expiry != null && expiry == 0)))) ? "" : (this.yymmdd(expiry) + "-");
+            symbol = (((((symbol + "-") + deliveryValue) + strikePrice) + "-") + optionTypeSuffix);
             makerFee = this.parseNumber("0.0003");
         } else
         {
             expiry = null;
         }
-        String expireDatetime = ((Helpers.isTrue((Helpers.isEqual(expiry, 0))))) ? null : this.iso8601(expiry);
+        String expireDatetime = ((((expiry != null && expiry == 0)))) ? null : this.iso8601(expiry);
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalType = type;
@@ -1012,7 +1013,7 @@ public class Paradex extends ParadexApi
         }});
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         //     {
@@ -1033,17 +1034,17 @@ public class Paradex extends ParadexApi
         //         }
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(fee, "symbol");
         market = this.safeMarket(marketId, market);
-        Object feeConfig = this.safeDict(fee, "fee_config", new HashMap<String, Object>() {{}});
-        Object apiFee = this.safeDict(feeConfig, "api_fee", new HashMap<String, Object>() {{}});
-        Object makerFee = this.safeDict(apiFee, "maker_fee", new HashMap<String, Object>() {{}});
-        Object takerFee = this.safeDict(apiFee, "taker_fee", new HashMap<String, Object>() {{}});
+        Map<String, Object> feeConfig = (Map<String, Object>) this.safeDict(fee, "fee_config", new HashMap<String, Object>() {{}});
+        Map<String, Object> apiFee = (Map<String, Object>) this.safeDict(feeConfig, "api_fee", new HashMap<String, Object>() {{}});
+        Map<String, Object> makerFee = (Map<String, Object>) this.safeDict(apiFee, "maker_fee", new HashMap<String, Object>() {{}});
+        Map<String, Object> takerFee = (Map<String, Object>) this.safeDict(apiFee, "taker_fee", new HashMap<String, Object>() {{}});
         final Object finalMarket = market;
         return new HashMap<String, Object>() {{
             put( "info", fee );
-            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "maker", Paradex.this.safeNumber(makerFee, "fee", Paradex.this.safeNumber(finalMarket, "maker")) );
             put( "taker", Paradex.this.safeNumber(takerFee, "fee", Paradex.this.safeNumber(finalMarket, "taker")) );
             put( "percentage", true );
@@ -1065,18 +1066,18 @@ public class Paradex extends ParadexApi
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTradingFee() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " fetchTradingFee() requires a symbol argument")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
+                put( "market", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetMarkets(this.extend(request, parameters))).join();
             //
@@ -1098,9 +1099,9 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee(first, market);
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            return this.parseTradingFee((Map<String, Object>) (first), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -1118,8 +1119,8 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1143,13 +1144,13 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object fees = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> fees = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fees)); i++)
+            for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Object fee = this.parseTradingFee(Helpers.GetValue(fees, i));
-                Object symbol = Helpers.GetValue(fee, "symbol");
-                Helpers.addElementToObject(result, ((String)symbol), fee);
+                Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))));
+                Object symbol = ((Map<String, Object>)fee).get("symbol");
+                ((Map<String, Object>)result).put((String)((String)symbol), fee);
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -1175,47 +1176,47 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "resolution", Paradex.this.safeString(Paradex.this.timeframes, timeframe, timeframe) );
-                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Long now = this.milliseconds();
             int duration = this.parseTimeframe(timeframe);
             Long until = (Long) this.safeInteger2(parameters, "until", "till", now);
             String price = this.safeString(parameters, "price");
-            if (Helpers.isTrue(!Helpers.isEqual(price, null)))
+            if (!java.util.Objects.equals(price, null))
             {
-                Helpers.addElementToObject(request, "price_kind", price);
+                ((Map<String, Object>)request).put("price_kind", price);
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till", "price")));
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "start_at", since);
-                if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+                ((Map<String, Object>)request).put("start_at", since);
+                if (!java.util.Objects.equals(limit, null))
                 {
-                    Helpers.addElementToObject(request, "end_at", Helpers.subtract(this.sum(since, Helpers.multiply(Helpers.multiply(duration, (Helpers.add(limit, 1))), 1000)), 1));
+                    ((Map<String, Object>)request).put("end_at", Helpers.subtract(this.sum(since, Helpers.multiply(Helpers.multiply(duration, (Helpers.add(limit, 1))), 1000)), 1));
                 } else
                 {
-                    Helpers.addElementToObject(request, "end_at", until);
+                    ((Map<String, Object>)request).put("end_at", until);
                 }
             } else
             {
-                Helpers.addElementToObject(request, "end_at", until);
-                if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+                ((Map<String, Object>)request).put("end_at", until);
+                if (!java.util.Objects.equals(limit, null))
                 {
-                    Helpers.addElementToObject(request, "start_at", Helpers.add(Helpers.subtract(until, Helpers.multiply(Helpers.multiply(duration, (Helpers.add(limit, 1))), 1000)), 1));
+                    ((Map<String, Object>)request).put("start_at", Helpers.add(Helpers.subtract(until, Helpers.multiply(Helpers.multiply(duration, (Helpers.add(limit, 1))), 1000)), 1));
                 } else
                 {
-                    Helpers.addElementToObject(request, "start_at", Helpers.add(Helpers.subtract(until, Helpers.multiply(Helpers.multiply(duration, 101), 1000)), 1));
+                    ((Map<String, Object>)request).put("start_at", ((until - ((((long) duration) * 101L) * 1000L)) + 1L));
                 }
             }
             Map<String, Object> response = (this.publicGetMarketsKlines(this.extend(request, parameters))).join();
@@ -1233,9 +1234,9 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
@@ -1251,7 +1252,7 @@ public class Paradex extends ParadexApi
         //         1591
         //     ]
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
     }
 
@@ -1269,9 +1270,9 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1301,7 +1302,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbols);
         }).thenApply(Tickers::new);
 
@@ -1321,14 +1322,14 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
+                put( "market", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
             //
@@ -1352,8 +1353,8 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            Object ticker = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
@@ -1378,16 +1379,16 @@ public class Paradex extends ParadexApi
         //         "price_change_rate_24h": "0.009032"
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String percentage = this.safeString(ticker, "price_change_rate_24h");
-        if (Helpers.isTrue(!Helpers.isEqual(percentage, null)))
+        if (!java.util.Objects.equals(percentage, null))
         {
             percentage = Precise.stringMul(percentage, "100");
         }
         String last = this.safeString(ticker, "last_traded_price");
         String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Object symbol = ((Map<String, Object>)market).get("symbol");
         Long timestamp = this.safeInteger(ticker, "created_at");
         final Object finalPercentage = percentage;
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -1429,9 +1430,9 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1440,12 +1441,12 @@ public class Paradex extends ParadexApi
             // the venue: a single symbol is asked for by name, which is 544 bytes
             // against 1.6 MB
             Object target = "ALL";
-            if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
+            if (!java.util.Objects.equals(symbols, null))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
-                if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
+                Object symbolsLength = ((List<?>)symbols).size();
+                if (java.util.Objects.equals(symbolsLength, 1))
                 {
-                    target = ((String)Helpers.GetValue(this.market(Helpers.GetValue(symbols, 0)), "id"));
+                    target = ((String)((Map<String, Object>)this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)))).get("id"));
                 }
             }
             final Object finalTarget = target;
@@ -1453,7 +1454,7 @@ public class Paradex extends ParadexApi
                 put( "market", finalTarget );
             }};
             Map<String, Object> response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbols);
         }).thenApply(FundingRates::new);
 
@@ -1473,17 +1474,17 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object rates = (this.fetchFundingRates((Object)(new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "symbol")))), (Object)(parameters))).join();
-            Object rate = this.safeDict(rates, Helpers.GetValue(market, "symbol"));
-            if (Helpers.isTrue(Helpers.isEqual(rate, null)))
+            Object rates = (this.fetchFundingRates((Object)(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol")))), (Object)(parameters))).join();
+            Map<String, Object> rate = (Map<String, Object>) this.safeDict(rates, ((Map<String, Object>)market).get("symbol"));
+            if (java.util.Objects.equals(rate, null))
             {
-                throw new BadSymbol(Helpers.add(Helpers.add(this.id, " fetchFundingRate() could not find a funding rate for "), symbol)) ;
+                throw new BadSymbol(((this.id + " fetchFundingRate() could not find a funding rate for ") + symbol)) ;
             }
             return rate;
         }).thenApply(FundingRate::new);
@@ -1509,7 +1510,7 @@ public class Paradex extends ParadexApi
         //         "price_change_rate_24h": "0.009032"
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(contract, "symbol");
         market = this.safeMarket(marketId, market, null, "swap");
         Long timestamp = this.safeInteger(contract, "created_at");
@@ -1517,22 +1518,22 @@ public class Paradex extends ParadexApi
         // option row carries an empty funding_rate and a period of zero. left
         // without a symbol, parseFundingRates drops the row
         String rate = this.safeString(contract, "funding_rate");
-        Boolean funds = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) && Helpers.isTrue((!Helpers.isEqual(rate, null)))) && Helpers.isTrue((!Helpers.isEqual(rate, "")));
+        Boolean funds = (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && (!java.util.Objects.equals(rate, null)) && (!java.util.Objects.equals(rate, ""));
         // the funding period belongs to the market and is not always eight hours:
         // fetchMarkets documents one on twenty four. funding accrues each second
         // against an index, and this rate is the amount for a whole period
         String hours = this.safeString(this.safeDict(market, "info", new HashMap<String, Object>() {{}}), "funding_period_hours");
         // zero hours is not an interval, and a caller annualising a rate divides by it
         Object interval = null;
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(hours, null))) && Helpers.isTrue(Precise.stringGt(hours, "0"))))
+        if ((!java.util.Objects.equals(hours, null)) && Precise.stringGt(hours, "0"))
         {
-            interval = Helpers.add(hours, "h");
+            interval = (hours + "h");
         }
         final Object finalMarket = market;
         final Object finalInterval = interval;
         return new HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", ((Helpers.isTrue(funds))) ? Helpers.GetValue(finalMarket, "symbol") : null );
+            put( "symbol", ((Boolean.TRUE.equals(funds))) ? ((Map<String, Object>)finalMarket).get("symbol") : null );
             put( "markPrice", Paradex.this.safeNumber(contract, "mark_price") );
             put( "indexPrice", Paradex.this.safeNumber(contract, "underlying_price") );
             put( "interestRate", null );
@@ -1567,15 +1568,15 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
+                put( "market", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetOrderbookMarket(this.extend(request, parameters))).join();
             //
@@ -1597,13 +1598,13 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "depth", limit);
+                ((Map<String, Object>)request).put("depth", limit);
             }
             Long timestamp = this.safeInteger(response, "last_updated_at");
-            Object orderbook = this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp);
-            Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "seq_no"));
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), timestamp);
+            ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "seq_no"));
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -1627,10 +1628,10 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1638,21 +1639,21 @@ public class Paradex extends ParadexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, parameters, "next", "cursor", null, 100)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
+                put( "market", ((Map<String, Object>)market).get("id") );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "page_size", Helpers.mathMin(limit, 1000));
+                ((Map<String, Object>)request).put("page_size", Helpers.mathMin(limit, 1000));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "start_at", since);
+                ((Map<String, Object>)request).put("start_at", since);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", request, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
@@ -1675,13 +1676,13 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object trades = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
+            List<Object> trades = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < ((List<?>)trades).size(); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(trades, i), "next", this.safeString(response, "next"));
             }
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -1718,7 +1719,7 @@ public class Paradex extends ParadexApi
         //         "fill_type": "FILL"
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market);
         String id = this.safeString(trade, "id");
@@ -1727,18 +1728,18 @@ public class Paradex extends ParadexApi
         String amountString = this.safeString(trade, "size");
         String side = this.safeStringLower(trade, "side");
         String liability = this.safeStringLower(trade, "liquidity", "taker");
-        Boolean isTaker = Helpers.isEqual(liability, "taker");
-        String takerOrMaker = ((Helpers.isTrue((isTaker)))) ? "taker" : "maker";
+        Boolean isTaker = java.util.Objects.equals(liability, "taker");
+        String takerOrMaker = ((Boolean.TRUE.equals(isTaker))) ? "taker" : "maker";
         String currencyId = this.safeString(trade, "fee_currency");
         String code = this.safeCurrencyCode(currencyId);
         final Object finalMarket = market;
-        return this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
             put( "order", Paradex.this.safeString(trade, "order_id") );
             put( "timestamp", timestamp );
             put( "datetime", Paradex.this.iso8601(timestamp) );
-            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "type", null );
             put( "takerOrMaker", takerOrMaker );
             put( "side", side );
@@ -1750,7 +1751,7 @@ public class Paradex extends ParadexApi
                 put( "currency", code );
                 put( "rate", null );
             }} );
-        }}, market);
+        }}), market);
     }
 
     /**
@@ -1767,18 +1768,18 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
+            if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
             {
-                throw new BadRequest(Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
+                throw new BadRequest((this.id + " fetchOpenInterest() supports contract markets only")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
+                put( "market", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
             //
@@ -1802,8 +1803,8 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            Object interest = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> interest = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseOpenInterest(interest, market);
         }).thenApply(OpenInterest::new);
 
@@ -1828,11 +1829,11 @@ public class Paradex extends ParadexApi
         //         "price_change_rate_24h": "0.009032"
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(interest, "created_at");
         String marketId = this.safeString(interest, "symbol");
         market = this.safeMarket(marketId, market);
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Object symbol = ((Map<String, Object>)market).get("symbol");
         return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "openInterestAmount", Paradex.this.safeString(interest, "open_interest") );
@@ -1850,16 +1851,16 @@ public class Paradex extends ParadexApi
 
     public Object signHash(Object hash, Object privateKey)
     {
-        Object signature = ecdsa(Helpers.slice(hash, Helpers.opNeg(64), null), Helpers.slice(privateKey, Helpers.opNeg(64), null), secp256k1(), null);
+        Object signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
         String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
-        return Helpers.add(Helpers.add(Helpers.add("0x", Helpers.padStart(((String)r), ((Number)64).intValue(), "0".charAt(0))), Helpers.padStart(((String)s), ((Number)64).intValue(), "0".charAt(0))), v);
+        return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))) + v);
     }
 
     public Object signMessage(Object message, Object privateKey)
     {
-        return this.signHash(this.hashMessage(message), Helpers.slice(privateKey, Helpers.opNeg(64), null));
+        return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
     }
 
     public CompletableFuture<Object> getSystemConfig()
@@ -1867,8 +1868,8 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object cachedConfig = this.safeDict(this.options, "systemConfig");
-            if (Helpers.isTrue(!Helpers.isEqual(cachedConfig, null)))
+            Map<String, Object> cachedConfig = (Map<String, Object>) this.safeDict(this.options, "systemConfig");
+            if (!java.util.Objects.equals(cachedConfig, null))
             {
                 return cachedConfig;
             }
@@ -1912,20 +1913,20 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object l1 = Helpers.getArg(optionalArgs, 0, false);
+            Object l1 = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
             Object systemConfig = (this.getSystemConfig()).join();
-            if (Helpers.isTrue(Helpers.isEqual(l1, true)))
+            if (java.util.Objects.equals(l1, true))
             {
                 Map<String, Object> l1D = new HashMap<String, Object>() {{
                     put( "name", "Paradex" );
-                    put( "chainId", Helpers.GetValue(systemConfig, "l1_chain_id") );
+                    put( "chainId", ((Map<String, Object>)systemConfig).get("l1_chain_id") );
                     put( "version", "1" );
                 }};
                 return l1D;
             }
             Map<String, Object> domain = new HashMap<String, Object>() {{
                 put( "name", "Paradex" );
-                put( "chainId", Helpers.GetValue(systemConfig, "starknet_chain_id") );
+                put( "chainId", ((Map<String, Object>)systemConfig).get("starknet_chain_id") );
                 put( "version", 1 );
             }};
             return domain;
@@ -1938,8 +1939,8 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object cachedAccount = this.safeDict(this.options, "paradexAccount");
-            if (Helpers.isTrue(!Helpers.isEqual(cachedAccount, null)))
+            Map<String, Object> cachedAccount = (Map<String, Object>) this.safeDict(this.options, "paradexAccount");
+            if (!java.util.Objects.equals(cachedAccount, null))
             {
                 return cachedAccount;
             }
@@ -1957,7 +1958,7 @@ public class Paradex extends ParadexApi
             }};
             Object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
             Object signature = this.signMessage(msg, this.privateKey);
-            Object account = this.retrieveStarkAccount(signature, Helpers.GetValue(systemConfig, "paraclear_account_hash"), Helpers.GetValue(systemConfig, "paraclear_account_proxy_hash"));
+            Object account = this.retrieveStarkAccount(signature, ((Map<String, Object>)systemConfig).get("paraclear_account_hash"), ((Map<String, Object>)systemConfig).get("paraclear_account_proxy_hash"));
             Helpers.addElementToObject(this.options, "paradexAccount", account);
             return account;
         });
@@ -1969,7 +1970,7 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object account = (this.retrieveAccount()).join();
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "action", "Onboarding" );
@@ -1983,9 +1984,9 @@ public class Paradex extends ParadexApi
             }};
             Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, Helpers.GetValue(account, "address"));
             Object signature = this.starknetSign(msg, Helpers.GetValue(account, "privateKey"));
-            Helpers.addElementToObject(parameters, "signature", signature);
-            Helpers.addElementToObject(parameters, "account", Helpers.GetValue(account, "address"));
-            Helpers.addElementToObject(parameters, "public_key", Helpers.GetValue(account, "publicKey"));
+            ((Map<String, Object>)parameters).put("signature", signature);
+            ((Map<String, Object>)parameters).put("account", Helpers.GetValue(account, "address"));
+            ((Map<String, Object>)parameters).put("public_key", Helpers.GetValue(account, "publicKey"));
             Map<String, Object> response = (this.privatePostOnboarding(parameters)).join();
             return response;
         });
@@ -1997,17 +1998,17 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             String cachedToken = this.safeString(this.options, "authToken");
             Object now = this.nonce();
-            if (Helpers.isTrue(!Helpers.isEqual(cachedToken, null)))
+            if (!java.util.Objects.equals(cachedToken, null))
             {
                 Long cachedExpires = this.safeInteger(this.options, "expires");
-                if (Helpers.isTrue(Helpers.isEqual(cachedExpires, null)))
+                if (java.util.Objects.equals(cachedExpires, null))
                 {
-                    throw new ExchangeError(Helpers.add(this.id, " authenticateRest() missing cachedExpires")) ;
+                    throw new ExchangeError((this.id + " authenticateRest() missing cachedExpires")) ;
                 }
-                if (Helpers.isTrue(Helpers.isLessThan(now, cachedExpires)))
+                if (Helpers.isLessThan(now, cachedExpires))
                 {
                     return cachedToken;
                 }
@@ -2044,10 +2045,10 @@ public class Paradex extends ParadexApi
             }};
             Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, Helpers.GetValue(account, "address"));
             Object signature = this.starknetSign(msg, Helpers.GetValue(account, "privateKey"));
-            Helpers.addElementToObject(parameters, "signature", signature);
-            Helpers.addElementToObject(parameters, "account", Helpers.GetValue(account, "address"));
-            Helpers.addElementToObject(parameters, "timestamp", Helpers.GetValue(req, "timestamp"));
-            Helpers.addElementToObject(parameters, "expiration", Helpers.GetValue(req, "expiration"));
+            ((Map<String, Object>)parameters).put("signature", signature);
+            ((Map<String, Object>)parameters).put("account", Helpers.GetValue(account, "address"));
+            ((Map<String, Object>)parameters).put("timestamp", req.get("timestamp"));
+            ((Map<String, Object>)parameters).put("expiration", req.get("expiration"));
             Map<String, Object> response = (this.privatePostAuth(parameters)).join();
             //
             // {
@@ -2092,21 +2093,21 @@ public class Paradex extends ParadexApi
         //     "type": "MARKET"
         // }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(order, "created_at");
         String orderId = this.safeString(order, "id");
         Object clientOrderId = this.omitZero(this.safeString(order, "client_id"));
         String marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Object symbol = ((Map<String, Object>)market).get("symbol");
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "size");
         String orderType = this.safeString(order, "type");
         String cancelReason = this.safeString(order, "cancel_reason");
         String status = this.safeString(order, "status");
-        if (Helpers.isTrue(!Helpers.isEqual(cancelReason, null)))
+        if (!java.util.Objects.equals(cancelReason, null))
         {
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(cancelReason, "NOT_ENOUGH_MARGIN")) || Helpers.isTrue(Helpers.isEqual(cancelReason, "ORDER_EXCEEDS_POSITION_LIMIT"))))
+            if (java.util.Objects.equals(cancelReason, "NOT_ENOUGH_MARGIN") || java.util.Objects.equals(cancelReason, "ORDER_EXCEEDS_POSITION_LIMIT"))
             {
                 status = "rejected";
             } else
@@ -2119,22 +2120,22 @@ public class Paradex extends ParadexApi
         Object remaining = this.omitZero(this.safeString(order, "remaining_size"));
         Object triggerPrice = this.omitZero(this.safeString(order, "trigger_price"));
         Long lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
-        Object flags = this.safeList(order, "flags");
+        List<Object> flags = (List<Object>) this.safeList(order, "flags");
         Object reduceOnly = null;
-        if (Helpers.isTrue(!Helpers.isEqual(flags, null)))
+        if (!java.util.Objects.equals(flags, null))
         {
             reduceOnly = this.inArray("REDUCE_ONLY", flags);
         }
         final Object finalStatus = status;
         final Object finalReduceOnly = reduceOnly;
-        return this.safeOrder(new HashMap<String, Object>() {{
+        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
             put( "datetime", Paradex.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", lastUpdateTimestamp );
-            put( "status", Paradex.this.parseOrderStatus(finalStatus) );
+            put( "status", Paradex.this.parseOrderStatus((String) (finalStatus)) );
             put( "symbol", symbol );
             put( "type", Paradex.this.parseOrderType(orderType) );
             put( "timeInForce", Paradex.this.parseTimeInForce(Paradex.this.safeString(order, "instruction")) );
@@ -2156,10 +2157,10 @@ public class Paradex extends ParadexApi
                 put( "currency", null );
             }} );
             put( "info", order );
-        }}, market);
+        }}), market);
     }
 
-    public String parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(String timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "IOC", "IOC" );
@@ -2169,9 +2170,9 @@ public class Paradex extends ParadexApi
         return this.safeString(timeInForces, ((String)timeInForce));
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
-        if (Helpers.isTrue(!Helpers.isEqual(status, null)))
+        if (!java.util.Objects.equals(status, null))
         {
             Map<String, Object> statuses = new HashMap<String, Object>() {{
                 put( "NEW", "open" );
@@ -2184,7 +2185,7 @@ public class Paradex extends ParadexApi
         return null;
     }
 
-    public String parseOrderType(Object type)
+    public String parseOrderType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "LIMIT", "limit" );
@@ -2200,17 +2201,17 @@ public class Paradex extends ParadexApi
         return Precise.stringMul(num, "100000000");
     }
 
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
-        Object price = Helpers.getArg(optionalArgs, 0, null);
-        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+        if (java.util.Objects.equals(type, null))
         {
-            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired((this.id + " requires a type argument")) ;
         }
-        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        if (java.util.Objects.equals(side, null))
         {
-            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
@@ -2218,7 +2219,7 @@ public class Paradex extends ParadexApi
         Object orderSide = ((String)((String)side)).toUpperCase();
         final Object finalOrderType = orderType;
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "market", Helpers.GetValue(market, "id") );
+            put( "market", ((Map<String, Object>)market).get("id") );
             put( "side", orderSide );
             put( "type", finalOrderType );
             put( "instruction", "GTC" );
@@ -2226,112 +2227,112 @@ public class Paradex extends ParadexApi
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         String stopLossPrice = this.safeString(parameters, "stopLossPrice");
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-        Boolean isMarket = Helpers.isEqual(orderType, "MARKET");
-        Boolean isTakeProfitOrder = (!Helpers.isEqual(takeProfitPrice, null));
-        Boolean isStopLossOrder = (!Helpers.isEqual(stopLossPrice, null));
-        Boolean isStopOrder = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) || Helpers.isTrue(isTakeProfitOrder)) || Helpers.isTrue(isStopLossOrder);
+        Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
+        Boolean isTakeProfitOrder = (!java.util.Objects.equals(takeProfitPrice, null));
+        Boolean isStopLossOrder = (!java.util.Objects.equals(stopLossPrice, null));
+        Boolean isStopOrder = (!java.util.Objects.equals(triggerPrice, null)) || Boolean.TRUE.equals(isTakeProfitOrder) || Boolean.TRUE.equals(isStopLossOrder);
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         Object postOnly = this.isPostOnly(isMarket, null, parameters);
-        if (!Helpers.isTrue(isMarket))
+        if (!Boolean.TRUE.equals(isMarket))
         {
-            if (Helpers.isTrue(postOnly))
+            if (Boolean.TRUE.equals(postOnly))
             {
-                Helpers.addElementToObject(request, "instruction", "POST_ONLY");
-            } else if (Helpers.isTrue(Helpers.isEqual(timeInForce, "IOC")))
+                ((Map<String, Object>)request).put("instruction", "POST_ONLY");
+            } else if (java.util.Objects.equals(timeInForce, "IOC"))
             {
-                Helpers.addElementToObject(request, "instruction", "IOC");
+                ((Map<String, Object>)request).put("instruction", "IOC");
             }
         }
-        if (Helpers.isTrue(!Helpers.isEqual(price, null)))
+        if (!java.util.Objects.equals(price, null))
         {
-            Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
+            ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
         }
         String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
-        if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
+        if (!java.util.Objects.equals(clientOrderId, null))
         {
-            Helpers.addElementToObject(request, "client_id", clientOrderId);
+            ((Map<String, Object>)request).put("client_id", clientOrderId);
         }
         Object sizeString = "0";
         Object stopPrice = null;
-        if (Helpers.isTrue(isStopOrder))
+        if (Boolean.TRUE.equals(isStopOrder))
         {
             // flags: Reduce_Only must be provided for TPSL orders.
-            if (Helpers.isTrue(isMarket))
+            if (Boolean.TRUE.equals(isMarket))
             {
-                if (Helpers.isTrue(isStopLossOrder))
+                if (Boolean.TRUE.equals(isStopLossOrder))
                 {
                     stopPrice = this.priceToPrecision(symbol, stopLossPrice);
                     reduceOnly = true;
-                    Helpers.addElementToObject(request, "type", "STOP_LOSS_MARKET");
-                } else if (Helpers.isTrue(isTakeProfitOrder))
+                    ((Map<String, Object>)request).put("type", "STOP_LOSS_MARKET");
+                } else if (Boolean.TRUE.equals(isTakeProfitOrder))
                 {
                     stopPrice = this.priceToPrecision(symbol, takeProfitPrice);
                     reduceOnly = true;
-                    Helpers.addElementToObject(request, "type", "TAKE_PROFIT_MARKET");
+                    ((Map<String, Object>)request).put("type", "TAKE_PROFIT_MARKET");
                 } else
                 {
                     stopPrice = this.priceToPrecision(symbol, triggerPrice);
                     sizeString = this.amountToPrecision(symbol, amount);
-                    Helpers.addElementToObject(request, "type", "STOP_MARKET");
+                    ((Map<String, Object>)request).put("type", "STOP_MARKET");
                 }
             } else
             {
-                if (Helpers.isTrue(isStopLossOrder))
+                if (Boolean.TRUE.equals(isStopLossOrder))
                 {
                     stopPrice = this.priceToPrecision(symbol, stopLossPrice);
                     reduceOnly = true;
-                    Helpers.addElementToObject(request, "type", "STOP_LOSS_LIMIT");
-                } else if (Helpers.isTrue(isTakeProfitOrder))
+                    ((Map<String, Object>)request).put("type", "STOP_LOSS_LIMIT");
+                } else if (Boolean.TRUE.equals(isTakeProfitOrder))
                 {
                     stopPrice = this.priceToPrecision(symbol, takeProfitPrice);
                     reduceOnly = true;
-                    Helpers.addElementToObject(request, "type", "TAKE_PROFIT_LIMIT");
+                    ((Map<String, Object>)request).put("type", "TAKE_PROFIT_LIMIT");
                 } else
                 {
                     stopPrice = this.priceToPrecision(symbol, triggerPrice);
                     sizeString = this.amountToPrecision(symbol, amount);
-                    Helpers.addElementToObject(request, "type", "STOP_LIMIT");
+                    ((Map<String, Object>)request).put("type", "STOP_LIMIT");
                 }
             }
         } else
         {
             sizeString = this.amountToPrecision(symbol, amount);
         }
-        if (Helpers.isTrue(!Helpers.isEqual(stopPrice, null)))
+        if (!java.util.Objects.equals(stopPrice, null))
         {
-            Helpers.addElementToObject(request, "trigger_price", stopPrice);
+            ((Map<String, Object>)request).put("trigger_price", stopPrice);
         }
-        Helpers.addElementToObject(request, "size", sizeString);
-        if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
+        ((Map<String, Object>)request).put("size", sizeString);
+        if (java.util.Objects.equals(reduceOnly, true))
         {
-            Helpers.addElementToObject(request, "flags", new ArrayList<Object>(Arrays.asList("REDUCE_ONLY")));
+            ((Map<String, Object>)request).put("flags", new ArrayList<Object>(Arrays.asList("REDUCE_ONLY")));
         }
         parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
         return this.extend(request, parameters);
     }
 
-    public CompletableFuture<Object> signOrderRequest(Object request, Object... optionalArgs)
+    public CompletableFuture<Object> signOrderRequest(Map<String, Object> request, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object modify = Helpers.getArg(optionalArgs, 0, false);
+            Object modify = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
             Object account = (this.retrieveAccount()).join();
             Object now = this.nonce();
             String orderType = this.safeString(request, "type");
-            if (Helpers.isTrue(Helpers.isEqual(orderType, null)))
+            if (java.util.Objects.equals(orderType, null))
             {
-                throw new ExchangeError(Helpers.add(this.id, " signOrderRequest() missing orderType")) ;
+                throw new ExchangeError((this.id + " signOrderRequest() missing orderType")) ;
             }
-            Boolean isMarket = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderType, "MARKET"), 0));
+            Boolean isMarket = (((String)orderType).indexOf("MARKET") >= 0);
             final Object finalNow = now;
             Map<String, Object> orderReq = new HashMap<String, Object>() {{
                 put( "timestamp", Helpers.multiply(finalNow, 1000) );
-                put( "market", Paradex.this.stringToBase16(Helpers.GetValue(request, "market")) );
-                put( "side", ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(request, "side"), "BUY"))))) ? "1" : "2" );
-                put( "orderType", Paradex.this.stringToBase16(Helpers.GetValue(request, "type")) );
-                put( "size", Paradex.this.scaleNumber(Helpers.GetValue(request, "size")) );
-                put( "price", ((Helpers.isTrue((isMarket)))) ? "0" : Paradex.this.scaleNumber(Helpers.GetValue(request, "price")) );
+                put( "market", Paradex.this.stringToBase16(((Map<String, Object>)request).get("market")) );
+                put( "side", (((java.util.Objects.equals(((Map<String, Object>)request).get("side"), "BUY")))) ? "1" : "2" );
+                put( "orderType", Paradex.this.stringToBase16(((Map<String, Object>)request).get("type")) );
+                put( "size", Paradex.this.scaleNumber(((Map<String, Object>)request).get("size")) );
+                put( "price", ((Boolean.TRUE.equals(isMarket))) ? "0" : Paradex.this.scaleNumber(((Map<String, Object>)request).get("price")) );
             }};
             List<Object> orderFields = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "timestamp" );
@@ -2355,7 +2356,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> messageTypes = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(modify))
             {
-                Helpers.addElementToObject(orderReq, "id", Helpers.GetValue(request, "id"));
+                ((Map<String, Object>)orderReq).put("id", ((Map<String, Object>)request).get("id"));
                 ((List<Object>)orderFields).add(new HashMap<String, Object>() {{
                     put( "name", "id" );
                     put( "type", "felt" );
@@ -2372,8 +2373,8 @@ public class Paradex extends ParadexApi
             Object domain = (this.prepareParadexDomain()).join();
             Object msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, Helpers.GetValue(account, "address"));
             Object signature = this.starknetSign(msg, Helpers.GetValue(account, "privateKey"));
-            Helpers.addElementToObject(request, "signature", signature);
-            Helpers.addElementToObject(request, "signature_timestamp", Helpers.GetValue(orderReq, "timestamp"));
+            ((Map<String, Object>)request).put("signature", signature);
+            ((Map<String, Object>)request).put("signature_timestamp", ((Map<String, Object>)orderReq).get("timestamp"));
             return request;
         });
 
@@ -2405,16 +2406,16 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-            request = (this.signOrderRequest(request)).join();
+            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            request = (this.signOrderRequest((Map<String, Object>) (request))).join();
             Map<String, Object> response = (this.privatePostOrders(request)).join();
             //
             // {
@@ -2444,7 +2445,7 @@ public class Paradex extends ParadexApi
             //     "type": "MARKET"
             // }
             //
-            Object order = this.parseOrder(response, market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
             return order;
         }).thenApply(Order::new);
 
@@ -2471,28 +2472,28 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object amount = Helpers.getArg(optionalArgs, 0, null);
-            Object price = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(amount, null)))
+            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(amount, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires an amount argument")) ;
+                throw new ArgumentsRequired((this.id + " editOrder() requires an amount argument")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(price, null)))
+            if (java.util.Objects.equals(price, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires a price argument")) ;
+                throw new ArgumentsRequired((this.id + " editOrder() requires a price argument")) ;
             }
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             request = this.omit(request, new ArrayList<Object>(Arrays.asList("instruction", "client_id", "flags")));
-            Helpers.addElementToObject(request, "order_id", id);
-            Helpers.addElementToObject(request, "id", id);
-            request = (this.signOrderRequest(request, true)).join();
+            ((Map<String, Object>)request).put("order_id", id);
+            ((Map<String, Object>)request).put("id", id);
+            request = (this.signOrderRequest((Map<String, Object>) (request), true)).join();
             Map<String, Object> response = (this.privatePutOrdersOrderId(request)).join();
             //
             //     {
@@ -2547,25 +2548,25 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
+            for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String symbol = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
                 Double amount = this.safeNumber(rawOrder, "amount");
                 Double price = this.safeNumber(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(parameters, orderParams);
                 Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
-                orderRequest = (this.signOrderRequest(orderRequest)).join();
+                orderRequest = (this.signOrderRequest((Map<String, Object>) (orderRequest))).join();
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Map<String, Object> response = (this.privatePostOrdersBatch(ordersRequests)).join();
@@ -2590,19 +2591,19 @@ public class Paradex extends ParadexApi
             //     ]
             // }
             //
-            Object responseOrders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> responseOrders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> parsedOrders = this.parseOrders(responseOrders);
-            Object errors = this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(errors)); i++)
+            List<Object> errors = (List<Object>) this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < ((List<?>)errors).size(); i++)
             {
-                Object error = Helpers.GetValue(errors, i);
-                ((List<Object>)parsedOrders).add(this.safeOrder(new HashMap<String, Object>() {{
+                Object error = (errors == null || i < 0 || i >= errors.size() ? null : errors.get(i));
+                ((List<Object>)parsedOrders).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "info", error );
                     put( "status", "rejected" );
-                }}));
+                }})));
             }
             return parsedOrders;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -2623,23 +2624,23 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             Object response = null;
-            if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
+            if (!java.util.Objects.equals(clientOrderId, null))
             {
-                Helpers.addElementToObject(request, "client_id", clientOrderId);
+                ((Map<String, Object>)request).put("client_id", clientOrderId);
                 response = (this.privateDeleteOrdersByClientIdClientId(this.extend(request, parameters))).join();
             } else
             {
-                Helpers.addElementToObject(request, "order_id", id);
+                ((Map<String, Object>)request).put("order_id", id);
                 response = (this.privateDeleteOrdersOrderId(this.extend(request, parameters))).join();
             }
             //
@@ -2666,29 +2667,29 @@ public class Paradex extends ParadexApi
         final Object ids3 = ids2;
         return BaseExchange.supplyAsync(() -> {
             Object ids = ids3;
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            Object clientOrderIds = this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
+            List<Object> clientOrderIds = (List<Object>) this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
-            Boolean hasOrderIds = Helpers.isTrue((!Helpers.isEqual(ids, null))) && Helpers.isTrue((Helpers.isArray(ids)));
-            Boolean hasClientOrderIds = Helpers.isTrue((!Helpers.isEqual(clientOrderIds, null))) && Helpers.isTrue((Helpers.isArray(clientOrderIds)));
-            if (Helpers.isTrue(!Helpers.isTrue(hasOrderIds) && !Helpers.isTrue(hasClientOrderIds)))
+            Boolean hasOrderIds = (!java.util.Objects.equals(ids, null)) && (ids instanceof List);
+            Boolean hasClientOrderIds = (!java.util.Objects.equals(clientOrderIds, null)) && (clientOrderIds instanceof List);
+            if (!Boolean.TRUE.equals(hasOrderIds) && !Boolean.TRUE.equals(hasClientOrderIds))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter")) ;
+                throw new ArgumentsRequired((this.id + " cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(hasOrderIds))
+            if (Boolean.TRUE.equals(hasOrderIds))
             {
-                Helpers.addElementToObject(request, "order_ids", ids);
+                ((Map<String, Object>)request).put("order_ids", ids);
             }
-            if (Helpers.isTrue(hasClientOrderIds))
+            if (Boolean.TRUE.equals(hasClientOrderIds))
             {
-                Helpers.addElementToObject(request, "client_order_ids", clientOrderIds);
+                ((Map<String, Object>)request).put("client_order_ids", clientOrderIds);
             }
             Map<String, Object> response = (this.privateDeleteOrdersBatch(this.extend(request, parameters))).join();
             //
@@ -2715,36 +2716,36 @@ public class Paradex extends ParadexApi
             //     ]
             // }
             //
-            Object results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(results)); i++)
+            for (var i = 0; i < ((List<?>)results).size(); i++)
             {
-                Object result = Helpers.GetValue(results, i);
+                Object result = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
                 String marketId = this.safeString(result, "market");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 String status = this.safeString(result, "status");
                 String orderStatus = null;
-                if (Helpers.isTrue(Helpers.isEqual(status, "QUEUED_FOR_CANCELLATION")))
+                if (java.util.Objects.equals(status, "QUEUED_FOR_CANCELLATION"))
                 {
                     orderStatus = "canceled";
-                } else if (Helpers.isTrue(Helpers.isEqual(status, "ALREADY_CLOSED")))
+                } else if (java.util.Objects.equals(status, "ALREADY_CLOSED"))
                 {
                     orderStatus = "closed";
-                } else if (Helpers.isTrue(Helpers.isEqual(status, "NOT_FOUND")))
+                } else if (java.util.Objects.equals(status, "NOT_FOUND"))
                 {
                     orderStatus = "rejected";
                 }
     final Object finalOrderStatus = orderStatus;
-                            ((List<Object>)orders).add(this.safeOrder(new HashMap<String, Object>() {{
+                            ((List<Object>)orders).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "info", result );
                     put( "id", Paradex.this.safeString(result, "id") );
                     put( "clientOrderId", Paradex.this.safeString(result, "client_id") );
                     put( "status", finalOrderStatus );
-                    put( "symbol", Helpers.GetValue(market, "symbol") );
-                }}, market));
+                    put( "symbol", ((Map<String, Object>)market).get("symbol") );
+                }}), market));
             }
             return orders;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -2762,29 +2763,29 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument")) ;
             }
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
+                put( "market", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.privateDeleteOrders(this.extend(request, parameters))).join();
             //
             // if success, no response...
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", response );
-    }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+    }}))));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -2805,10 +2806,10 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2816,13 +2817,13 @@ public class Paradex extends ParadexApi
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             Object response = null;
-            if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
+            if (!java.util.Objects.equals(clientOrderId, null))
             {
-                Helpers.addElementToObject(request, "client_id", clientOrderId);
+                ((Map<String, Object>)request).put("client_id", clientOrderId);
                 response = (this.privateGetOrdersByClientIdClientId(this.extend(request, parameters))).join();
             } else
             {
-                Helpers.addElementToObject(request, "order_id", id);
+                ((Map<String, Object>)request).put("order_id", id);
                 response = (this.privateGetOrdersOrderId(this.extend(request, parameters))).join();
             }
             //
@@ -2875,12 +2876,12 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2888,24 +2889,24 @@ public class Paradex extends ParadexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "next", "cursor", null, 50)).join();
             }
             Object request = new HashMap<String, Object>() {{}};
             Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
+                ((Map<String, Object>)request).put("market", ((Map<String, Object>)market).get("id"));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "start_at", since);
+                ((Map<String, Object>)request).put("start_at", since);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "page_size", limit);
+                ((Map<String, Object>)request).put("page_size", limit);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", request, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
@@ -2945,17 +2946,17 @@ public class Paradex extends ParadexApi
             //     ]
             //   }
             //
-            Object orders = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             String paginationCursor = this.safeString(response, "next");
-            Object ordersLength = Helpers.getArrayLength(orders);
-            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(paginationCursor, null))) && Helpers.isTrue((Helpers.isGreaterThan(ordersLength, 0)))))
+            Object ordersLength = ((List<?>)orders).size();
+            if ((!java.util.Objects.equals(paginationCursor, null)) && (Helpers.isGreaterThan(ordersLength, 0)))
             {
-                Object first = Helpers.GetValue(orders, 0);
+                Object first = (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
                 Helpers.addElementToObject(first, "next", paginationCursor);
                 Helpers.addElementToObject(orders, 0, first);
             }
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -2975,21 +2976,21 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
+                ((Map<String, Object>)request).put("market", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.privateGetOrders(this.extend(request, parameters))).join();
             //
@@ -3024,9 +3025,9 @@ public class Paradex extends ParadexApi
             //     ]
             //   }
             //
-            Object orders = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -3043,9 +3044,9 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -3061,7 +3062,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseBalance(data);
         }).thenApply(Balances::new);
 
@@ -3072,16 +3073,16 @@ public class Paradex extends ParadexApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Object balance = this.safeDict(response, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "token");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "size"));
-            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "size"));
+            if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -3105,12 +3106,12 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -3118,24 +3119,24 @@ public class Paradex extends ParadexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "next", "cursor", null, 100)).join();
             }
             Object request = new HashMap<String, Object>() {{}};
             Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
+                ((Map<String, Object>)request).put("market", ((Map<String, Object>)market).get("id"));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "page_size", limit);
+                ((Map<String, Object>)request).put("page_size", limit);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "start_at", since);
+                ((Map<String, Object>)request).put("start_at", since);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", request, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
@@ -3164,13 +3165,13 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object trades = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
+            List<Object> trades = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < ((List<?>)trades).size(); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(trades, i), "next", this.safeString(response, "next"));
             }
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -3188,14 +3189,14 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "symbol")))), (Object)(parameters))).join();
+            Object positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol")))), (Object)(parameters))).join();
             return this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
         }).thenApply(Position::new);
 
@@ -3215,10 +3216,10 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -3249,13 +3250,13 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(data, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         //     {
@@ -3278,13 +3279,13 @@ public class Paradex extends ParadexApi
         //         "liquidation_price": ""
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(position, "market");
         market = this.safeMarket(marketId, market);
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Object symbol = ((Map<String, Object>)market).get("symbol");
         String side = this.safeStringLower(position, "side");
         String quantity = this.safeString(position, "size");
-        if (Helpers.isTrue(!Helpers.isEqual(side, "long")))
+        if (!java.util.Objects.equals(side, "long"))
         {
             quantity = Precise.stringMul("-1", quantity);
         }
@@ -3292,7 +3293,7 @@ public class Paradex extends ParadexApi
         Object liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidation_price")));
         final Object finalSide = side;
         final Object finalQuantity = quantity;
-        return this.safePosition(new HashMap<String, Object>() {{
+        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Paradex.this.safeString(position, "id") );
             put( "symbol", symbol );
@@ -3316,7 +3317,7 @@ public class Paradex extends ParadexApi
             put( "marginRatio", null );
             put( "marginMode", null );
             put( "percentage", null );
-        }});
+        }}));
     }
 
     /**
@@ -3336,25 +3337,25 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object request = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "from", since);
+                ((Map<String, Object>)request).put("from", since);
             } else
             {
-                Helpers.addElementToObject(request, "from", 1);
+                ((Map<String, Object>)request).put("from", 1);
             }
             Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
@@ -3372,9 +3373,9 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseLiquidations(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
     }
 
@@ -3386,9 +3387,9 @@ public class Paradex extends ParadexApi
         //         "id": "0x123456789"
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(liquidation, "created_at");
-        return this.safeLiquidation(new HashMap<String, Object>() {{
+        return this.safeLiquidation((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", Paradex.this.safeString(market, "symbol") );
             put( "contracts", null );
@@ -3399,7 +3400,7 @@ public class Paradex extends ParadexApi
             put( "quoteValue", null );
             put( "timestamp", timestamp );
             put( "datetime", Paradex.this.iso8601(timestamp) );
-        }});
+        }}));
     }
 
     /**
@@ -3420,12 +3421,12 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -3433,18 +3434,18 @@ public class Paradex extends ParadexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "next", "cursor", null, 100)).join();
             }
             Object request = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "page_size", limit);
+                ((Map<String, Object>)request).put("page_size", limit);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "start_at", since);
+                ((Map<String, Object>)request).put("start_at", since);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", request, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
@@ -3471,18 +3472,18 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object rows = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> deposits = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
+            for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
-                Object row = Helpers.GetValue(rows, i);
-                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(row, "kind"), "DEPOSIT")))
+                Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
+                if (java.util.Objects.equals(Helpers.GetValue(row, "kind"), "DEPOSIT"))
                 {
                     ((List<Object>)deposits).add(row);
                 }
             }
             return this.parseTransactions(deposits, null, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
@@ -3504,12 +3505,12 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -3517,18 +3518,18 @@ public class Paradex extends ParadexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, parameters, "next", "cursor", null, 100)).join();
             }
             Object request = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "page_size", limit);
+                ((Map<String, Object>)request).put("page_size", limit);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "start_at", since);
+                ((Map<String, Object>)request).put("start_at", since);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", request, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
@@ -3555,18 +3556,18 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object rows = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> deposits = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
+            for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
-                Object row = Helpers.GetValue(rows, i);
-                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(row, "kind"), "WITHDRAWAL")))
+                Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
+                if (java.util.Objects.equals(Helpers.GetValue(row, "kind"), "WITHDRAWAL"))
                 {
                     ((List<Object>)deposits).add(row);
                 }
             }
             return this.parseTransactions(deposits, null, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
@@ -3588,12 +3589,12 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -3601,23 +3602,23 @@ public class Paradex extends ParadexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, parameters, "next", "cursor", null, 100)).join();
             }
             Object request = new HashMap<String, Object>() {{}};
             Object currency = null;
-            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            if (!java.util.Objects.equals(code, null))
             {
-                currency = this.safeCurrency(code);
+                currency = this.safeCurrency((String) (code));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "page_size", limit);
+                ((Map<String, Object>)request).put("page_size", limit);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "start_at", since);
+                ((Map<String, Object>)request).put("start_at", since);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", request, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
@@ -3644,9 +3645,9 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object rows = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(rows, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
 
@@ -3667,18 +3668,18 @@ public class Paradex extends ParadexApi
         //         "socialized_loss_factor": ""
         //     }
         //
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String currencyId = this.safeString(transfer, "token");
         String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.safeInteger(transfer, "created_at");
         String kind = this.safeString(transfer, "kind");
         String fromAccount = null;
         String toAccount = null;
-        if (Helpers.isTrue(Helpers.isEqual(kind, "DEPOSIT")))
+        if (java.util.Objects.equals(kind, "DEPOSIT"))
         {
             fromAccount = "external";
             toAccount = "account";
-        } else if (Helpers.isTrue(Helpers.isEqual(kind, "WITHDRAWAL")))
+        } else if (java.util.Objects.equals(kind, "WITHDRAWAL"))
         {
             fromAccount = "account";
             toAccount = "external";
@@ -3698,7 +3699,7 @@ public class Paradex extends ParadexApi
         }};
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits & fetchWithdrawals
@@ -3717,7 +3718,7 @@ public class Paradex extends ParadexApi
         //         "socialized_loss_factor": ""
         //     }
         //
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString(transaction, "id");
         String address = this.safeString(transaction, "account");
         String txid = this.safeString(transaction, "txn_hash");
@@ -3726,7 +3727,7 @@ public class Paradex extends ParadexApi
         Long timestamp = this.safeInteger(transaction, "created_at");
         Long updated = this.safeInteger(transaction, "last_updated_at");
         String type = this.safeString(transaction, "kind");
-        type = ((Helpers.isTrue((Helpers.isEqual(type, "DEPOSIT"))))) ? "deposit" : "withdrawal";
+        type = (((java.util.Objects.equals(type, "DEPOSIT")))) ? "deposit" : "withdrawal";
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         Double amount = this.safeNumber(transaction, "amount");
         final Object finalType = type;
@@ -3754,7 +3755,7 @@ public class Paradex extends ParadexApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "PENDING", "pending" );
@@ -3779,15 +3780,15 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
+                put( "market", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.privateGetAccountMargin(this.extend(request, parameters))).join();
             //
@@ -3802,15 +3803,15 @@ public class Paradex extends ParadexApi
             //     ]
             // }
             //
-            Object configs = this.safeList(response, "configs");
-            return this.parseMarginMode(this.safeDict(configs, 0), market);
+            List<Object> configs = (List<Object>) this.safeList(response, "configs");
+            return this.parseMarginMode((Map<String, Object>) (this.safeDict(configs, 0)), market);
         }).thenApply(MarginMode::new);
 
     }
 
-    public Object parseMarginMode(Object rawMarginMode, Object... optionalArgs)
+    public Object parseMarginMode(Map<String, Object> rawMarginMode, Object... optionalArgs)
     {
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(rawMarginMode, "market");
         market = this.safeMarket(marketId, market);
         String marginMode = this.safeStringLower(rawMarginMode, "margin_type");
@@ -3838,11 +3839,11 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             this.checkRequiredArgument("setMarginMode", symbol, "symbol");
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -3853,9 +3854,9 @@ public class Paradex extends ParadexApi
             parameters = ((List<Object>) leverageparametersVariable).get(1);
             final Object finalLeverage = leverage;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
+                put( "market", ((Map<String, Object>)market).get("id") );
                 put( "leverage", finalLeverage );
-                put( "margin_type", Paradex.this.encodeMarginMode(marginMode) );
+                put( "margin_type", Paradex.this.encodeMarginMode((String) (marginMode)) );
             }};
             return (this.privatePostAccountMarginMarket(this.extend(request, parameters))).join();
         });
@@ -3876,15 +3877,15 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
+                put( "market", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.privateGetAccountMargin(this.extend(request, parameters))).join();
             //
@@ -3899,15 +3900,15 @@ public class Paradex extends ParadexApi
             //     ]
             // }
             //
-            Object configs = this.safeList(response, "configs");
-            return this.parseLeverage(this.safeDict(configs, 0), market);
+            List<Object> configs = (List<Object>) this.safeList(response, "configs");
+            return this.parseLeverage((Map<String, Object>) (this.safeDict(configs, 0)), market);
         }).thenApply(Leverage::new);
 
     }
 
-    public Object parseLeverage(Object leverage, Object... optionalArgs)
+    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
     {
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(leverage, "market");
         market = this.safeMarket(marketId, market);
         String marginMode = this.safeStringLower(leverage, "margin_type");
@@ -3921,7 +3922,7 @@ public class Paradex extends ParadexApi
         }};
     }
 
-    public String encodeMarginMode(Object mode)
+    public String encodeMarginMode(String mode)
     {
         Map<String, Object> modes = new HashMap<String, Object>() {{
             put( "cross", "CROSS" );
@@ -3946,11 +3947,11 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             this.checkRequiredArgument("setLeverage", symbol, "symbol");
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -3961,9 +3962,9 @@ public class Paradex extends ParadexApi
             parameters = ((List<Object>) marginModeparametersVariable).get(1);
             final Object finalMarginMode = marginMode;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
+                put( "market", ((Map<String, Object>)market).get("id") );
                 put( "leverage", leverage );
-                put( "margin_type", Paradex.this.encodeMarginMode(finalMarginMode) );
+                put( "margin_type", Paradex.this.encodeMarginMode((String) (finalMarginMode)) );
             }};
             return (this.privatePostAccountMarginMarket(this.extend(request, parameters))).join();
         });
@@ -3984,14 +3985,14 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
+                put( "market", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
             //
@@ -4028,9 +4029,9 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            Object greeks = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseGreeks(greeks, market);
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> greeks = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            return this.parseGreeks((Map<String, Object>) (greeks), market);
         }).thenApply(Greeks::new);
 
     }
@@ -4049,9 +4050,9 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -4094,13 +4095,13 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseAllGreeks(results, symbols);
         });
 
     }
 
-    public Object parseGreeks(Object greeks, Object... optionalArgs)
+    public Object parseGreeks(Map<String, Object> greeks, Object... optionalArgs)
     {
         //
         //     {
@@ -4132,12 +4133,12 @@ public class Paradex extends ParadexApi
         //         "future_funding_rate": "0.0001"
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(greeks, "symbol");
         market = this.safeMarket(marketId, market, null, "option");
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Object symbol = ((Map<String, Object>)market).get("symbol");
         Long timestamp = this.safeInteger(greeks, "created_at");
-        Object greeksData = this.safeDict(greeks, "greeks", new HashMap<String, Object>() {{}});
+        Map<String, Object> greeksData = (Map<String, Object>) this.safeDict(greeks, "greeks", new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -4182,16 +4183,16 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " fetchFundingHistory() requires a symbol argument")) ;
             }
             (this.authenticateRest()).join();
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -4199,24 +4200,24 @@ public class Paradex extends ParadexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "next", "cursor", null, 100)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
+                put( "market", ((Map<String, Object>)market).get("id") );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "page_size", Helpers.mathMin(limit, 5000));
+                ((Map<String, Object>)request).put("page_size", Helpers.mathMin(limit, 5000));
             } else
             {
-                Helpers.addElementToObject(request, "page_size", 100);
+                ((Map<String, Object>)request).put("page_size", 100);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "start_at", since);
+                ((Map<String, Object>)request).put("start_at", since);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", request, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
@@ -4239,9 +4240,9 @@ public class Paradex extends ParadexApi
             //     ]
             // }
             //
-            Object results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(results, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }
 
@@ -4258,15 +4259,15 @@ public class Paradex extends ParadexApi
         //         "payment": "34.4490622"
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(income, "market");
         market = this.safeMarket(marketId, market);
         Long timestamp = this.safeInteger(income, "created_at");
         final Object finalMarket = market;
         return new HashMap<String, Object>() {{
             put( "info", income );
-            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "code", Helpers.GetValue(finalMarket, "settle") );
+            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
+            put( "code", ((Map<String, Object>)finalMarket).get("settle") );
             put( "timestamp", timestamp );
             put( "datetime", Paradex.this.iso8601(timestamp) );
             put( "id", Paradex.this.safeString(income, "id") );
@@ -4291,38 +4292,38 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
+                put( "market", ((Map<String, Object>)market).get("id") );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "page_size", Helpers.mathMin(limit, 5000)); // api maximum 5000
+                ((Map<String, Object>)request).put("page_size", Helpers.mathMin(limit, 5000)); // api maximum 5000
             } else
             {
-                Helpers.addElementToObject(request, "page_size", 1000); // max is 5000
+                ((Map<String, Object>)request).put("page_size", 1000); // max is 5000
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "start_at", since);
+                ((Map<String, Object>)request).put("start_at", since);
             }
             Long until = this.safeInteger(parameters, "until");
-            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            if (!java.util.Objects.equals(until, null))
             {
                 parameters = this.omit(parameters, "until");
-                Helpers.addElementToObject(request, "end_at", until);
+                ((Map<String, Object>)request).put("end_at", until);
             }
             Map<String, Object> response = (this.publicGetFundingData(this.extend(request, parameters))).join();
             //
@@ -4345,82 +4346,82 @@ public class Paradex extends ParadexApi
             // every row is one observation of a rate quoted for a whole funding period,
             // not a settled payment: paradex recomputes it each second and accrues it
             // into funding_index, so the series cannot be summed
-            Object results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(results)); i++)
+            for (var i = 0; i < ((List<?>)results).size(); i++)
             {
-                Object rate = Helpers.GetValue(results, i);
+                Object rate = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
                 Long timestamp = this.safeInteger(rate, "created_at");
                 String datetime = this.iso8601(timestamp);
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", rate );
-                    put( "symbol", Helpers.GetValue(market, "symbol") );
+                    put( "symbol", ((Map<String, Object>)market).get("symbol") );
                     put( "fundingRate", Paradex.this.safeNumber(rate, "funding_rate") );
                     put( "timestamp", timestamp );
                     put( "datetime", datetime );
                 }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+            return this.filterBySymbolSinceLimit(sorted, ((Map<String, Object>)market).get("symbol"), since, limit);
+        }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
 
     public Object sign(Object path, Object... optionalArgs)
     {
-        Object api = Helpers.getArg(optionalArgs, 0, "public");
-        Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-        Object headers = Helpers.getArg(optionalArgs, 3, null);
-        Object body = Helpers.getArg(optionalArgs, 4, null);
+        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
+        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
+        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
+        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object version = this.version;
-        if (Helpers.isTrue(Helpers.isEqual(Helpers.getIndexOf(path, "v2/"), 0)))
+        if ((Helpers.getIndexOf(path, "v2/") == 0))
         {
             version = "v2";
             path = Helpers.replace(((String)path), "v2/", "");
         }
-        Object url = Helpers.add(Helpers.add(this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), ((String)version))), "/"), this.implodeParams(path, parameters));
+        String url = ((this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), ((String)version))) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        if (Helpers.isTrue(Helpers.isEqual(api, "public")))
+        if (java.util.Objects.equals(api, "public"))
         {
-            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0)
             {
-                url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
+                url = (url + ("?" + this.urlencode(query)));
             }
-        } else if (Helpers.isTrue(Helpers.isEqual(api, "private")))
+        } else if (java.util.Objects.equals(api, "private"))
         {
             headers = new HashMap<String, Object>() {{
                 put( "Accept", "application/json" );
                 put( "PARADEX-PARTNER", Paradex.this.safeString(Paradex.this.options, "broker", "CCXT") );
             }};
             // TODO: optimize
-            if (Helpers.isTrue(Helpers.isEqual(path, "auth")))
+            if (java.util.Objects.equals(path, "auth"))
             {
-                Helpers.addElementToObject(headers, "PARADEX-STARKNET-ACCOUNT", Helpers.GetValue(query, "account"));
-                Helpers.addElementToObject(headers, "PARADEX-STARKNET-SIGNATURE", Helpers.GetValue(query, "signature"));
-                Helpers.addElementToObject(headers, "PARADEX-TIMESTAMP", String.valueOf(Helpers.GetValue(query, "timestamp")));
-                Helpers.addElementToObject(headers, "PARADEX-SIGNATURE-EXPIRATION", String.valueOf(Helpers.GetValue(query, "expiration")));
-            } else if (Helpers.isTrue(Helpers.isEqual(path, "onboarding")))
+                ((Map<String, Object>)headers).put("PARADEX-STARKNET-ACCOUNT", ((Map<String, Object>)query).get("account"));
+                ((Map<String, Object>)headers).put("PARADEX-STARKNET-SIGNATURE", ((Map<String, Object>)query).get("signature"));
+                ((Map<String, Object>)headers).put("PARADEX-TIMESTAMP", String.valueOf(((Map<String, Object>)query).get("timestamp")));
+                ((Map<String, Object>)headers).put("PARADEX-SIGNATURE-EXPIRATION", String.valueOf(((Map<String, Object>)query).get("expiration")));
+            } else if (java.util.Objects.equals(path, "onboarding"))
             {
-                Helpers.addElementToObject(headers, "PARADEX-ETHEREUM-ACCOUNT", this.walletAddress);
-                Helpers.addElementToObject(headers, "PARADEX-STARKNET-ACCOUNT", Helpers.GetValue(query, "account"));
-                Helpers.addElementToObject(headers, "PARADEX-STARKNET-SIGNATURE", Helpers.GetValue(query, "signature"));
-                Helpers.addElementToObject(headers, "PARADEX-TIMESTAMP", String.valueOf(this.nonce()));
-                Helpers.addElementToObject(headers, "Content-Type", "application/json");
+                ((Map<String, Object>)headers).put("PARADEX-ETHEREUM-ACCOUNT", this.walletAddress);
+                ((Map<String, Object>)headers).put("PARADEX-STARKNET-ACCOUNT", ((Map<String, Object>)query).get("account"));
+                ((Map<String, Object>)headers).put("PARADEX-STARKNET-SIGNATURE", ((Map<String, Object>)query).get("signature"));
+                ((Map<String, Object>)headers).put("PARADEX-TIMESTAMP", String.valueOf(this.nonce()));
+                ((Map<String, Object>)headers).put("Content-Type", "application/json");
                 body = this.json(new HashMap<String, Object>() {{
-                    put( "public_key", Helpers.GetValue(query, "public_key") );
+                    put( "public_key", ((Map<String, Object>)query).get("public_key") );
                 }});
             } else
             {
-                Object token = Helpers.GetValue(this.options, "authToken");
-                Helpers.addElementToObject(headers, "Authorization", Helpers.add("Bearer ", token));
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "POST"))) || Helpers.isTrue((Helpers.isEqual(method, "PUT")))) || Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(method, "DELETE"))) && Helpers.isTrue((Helpers.isEqual(path, "orders/batch")))))))
+                Object token = ((Map<String, Object>)this.options).get("authToken");
+                ((Map<String, Object>)headers).put("Authorization", Helpers.add("Bearer ", token));
+                if ((java.util.Objects.equals(method, "POST")) || (java.util.Objects.equals(method, "PUT")) || ((java.util.Objects.equals(method, "DELETE")) && (java.util.Objects.equals(path, "orders/batch"))))
                 {
-                    Helpers.addElementToObject(headers, "Content-Type", "application/json");
+                    ((Map<String, Object>)headers).put("Content-Type", "application/json");
                     body = this.json(query);
                 } else
                 {
-                    url = Helpers.add(Helpers.add(url, "?"), this.urlencode(query));
+                    url = ((url + "?") + this.urlencode(query));
                 }
             }
         }
@@ -4438,7 +4439,7 @@ public class Paradex extends ParadexApi
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (Helpers.isTrue(Helpers.isEqual(response, null)))
+        if (java.util.Objects.equals(response, null))
         {
             return null;  // fallback to default error handler
         }
@@ -4450,12 +4451,12 @@ public class Paradex extends ParadexApi
         //     }
         //
         String errorCode = this.safeString(response, "error");
-        if (Helpers.isTrue(!Helpers.isEqual(errorCode, null)))
+        if (!java.util.Objects.equals(errorCode, null))
         {
-            Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
-            this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), body, feedback);
-            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
-            throw new ExchangeError((String)feedback) ;
+            String feedback = ((this.id + " ") + body);
+            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
+            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

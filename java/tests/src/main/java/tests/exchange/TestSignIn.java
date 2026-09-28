@@ -18,7 +18,7 @@ public class TestSignIn extends BaseTest {
         return BaseExchange.supplyAsync(() -> {
 
         String method = "signIn";
-        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(exchange.has, method), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(exchange.has, method), false))))
+        if (!java.util.Objects.equals(Helpers.GetValue(exchange.has, method), null) && !java.util.Objects.equals(Helpers.GetValue(exchange.has, method), false))
         {
             ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "signIn", new Object[]{})).join();
         }

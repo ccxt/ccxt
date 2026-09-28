@@ -411,7 +411,7 @@ class bithumb(Exchange, ImplicitAPI):
         # since they're the same we just need to return one
         return super(bithumb, self).safe_market(marketId, market, delimiter, 'spot')
 
-    def amount_to_precision(self, symbol: Str, amount: object):
+    def amount_to_precision(self, symbol: Str, amount: object) -> Str:
         market = self.market(symbol)
         return self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES)
 
@@ -423,7 +423,7 @@ class bithumb(Exchange, ImplicitAPI):
         baseId = self.safe_string_2(market, 'baseId', 'base')
         return quoteId + '-' + baseId
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for bithumb
 
@@ -678,7 +678,7 @@ class bithumb(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -725,7 +725,7 @@ class bithumb(Exchange, ImplicitAPI):
             #
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -949,7 +949,7 @@ class bithumb(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -1124,7 +1124,7 @@ class bithumb(Exchange, ImplicitAPI):
                     result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -1249,7 +1249,7 @@ class bithumb(Exchange, ImplicitAPI):
             self.safe_number_2(ohlcv, 5, 'candle_acc_trade_volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1468,7 +1468,7 @@ class bithumb(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1533,7 +1533,7 @@ class bithumb(Exchange, ImplicitAPI):
             data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    async def create_orders(self, orders: list[OrderRequest], params={}) -> list[Order]:
+    async def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
         create a list of trade orders, only available for the generation 2 API
 
@@ -1598,7 +1598,7 @@ class bithumb(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'batch_orders_response', [])
         return self.parse_orders(data, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> dict:
         """
  @ignore
         helper function to build the request *for generation 2 createOrder and createOrders only*
@@ -1669,7 +1669,7 @@ class bithumb(Exchange, ImplicitAPI):
             params = self.omit(params, 'clientOrderId')
         return self.extend(request, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1746,7 +1746,7 @@ class bithumb(Exchange, ImplicitAPI):
             'id': id,
         })
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
         create a market buy order by providing the symbol and cost
 
@@ -1767,7 +1767,7 @@ class bithumb(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def create_twap_order(self, symbol: str, side: OrderSide, amount: float, duration: float, params={}) -> Order:
+    async def create_twap_order(self, symbol: str, side: OrderSide, amount: float, duration: float, params: dict = {}) -> Order:
         """
         create a trade order that is executed as a TWAP order over a specified duration.
 
@@ -1812,7 +1812,7 @@ class bithumb(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -2236,7 +2236,7 @@ class bithumb(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2370,7 +2370,7 @@ class bithumb(Exchange, ImplicitAPI):
         orders = await self.fetch_orders(symbol, since, limit, params)
         return self.filter_by_since_limit(orders, since, limit)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -2453,7 +2453,7 @@ class bithumb(Exchange, ImplicitAPI):
             'id': id,
         })
 
-    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}) -> list[Order]:
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
 
@@ -2497,13 +2497,13 @@ class bithumb(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'success', [])
         return self.parse_orders(data, market)
 
-    async def cancel_unified_order(self, order: Order, params={}) -> Order:
+    async def cancel_unified_order(self, order: Order, params: dict = {}) -> Order:
         request = {
             'side': order['side'],
         }
         return await self.cancel_order((order['id']), order['symbol'], self.extend(request, params))
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2728,7 +2728,7 @@ class bithumb(Exchange, ImplicitAPI):
         #
         return response
 
-    async def fetch_withdrawal(self, id: str, code: Str = None, params={}) -> Transaction:
+    async def fetch_withdrawal(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 
@@ -2773,7 +2773,7 @@ class bithumb(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2830,7 +2830,7 @@ class bithumb(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_deposit(self, id: str, code: Str = None, params={}) -> Transaction:
+    async def fetch_deposit(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
         """
         fetch information on a deposit
 
@@ -2875,7 +2875,7 @@ class bithumb(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2932,7 +2932,7 @@ class bithumb(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
+    async def create_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         create a currency deposit address
 
@@ -2970,7 +2970,7 @@ class bithumb(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    async def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -3008,7 +3008,7 @@ class bithumb(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    async def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> list[DepositAddress]:
+    async def fetch_deposit_addresses(self, codes: Strings = None, params: dict = {}) -> list[DepositAddress]:
         """
         fetch deposit addresses for multiple currencies(when available)
 
@@ -3063,7 +3063,7 @@ class bithumb(Exchange, ImplicitAPI):
             'tag': self.safe_string(response, 'secondary_address'),
         }
 
-    def fix_comma_number(self, numberStr: object):
+    def fix_comma_number(self, numberStr: Str):
         # some endpoints need this https://github.com/ccxt/ccxt/issues/11031
         if numberStr is None:
             return None
@@ -3072,7 +3072,7 @@ class bithumb(Exchange, ImplicitAPI):
             finalNumberStr = finalNumberStr.replace(',', '')
         return finalNumberStr
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds()
 
     def urlencode_with_array_brackets(self, query: dict):
@@ -3100,7 +3100,7 @@ class bithumb(Exchange, ImplicitAPI):
                 result += encodedKey + '=' + encodedValue
         return result
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         endpoint = '/' + self.implode_params(path, params)
         url = self.implode_hostname(self.urls['api'][api]) + endpoint
         query = self.omit(params, self.extract_params(path))

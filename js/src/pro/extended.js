@@ -233,10 +233,16 @@ export default class extended extends extendedRest {
         //         "seq": 1
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
         const data = this.safeDict(message, 'data', {});
-        const result = {
-            'info': data,
-        };
+        this.balance['info'] = data;
         const balance = this.safeDict(data, 'balance');
         if (balance !== undefined) {
             const currencyId = this.safeString(balance, 'collateralName');
@@ -245,7 +251,7 @@ export default class extended extends extendedRest {
                 const account = this.account();
                 account['free'] = this.safeString(balance, 'availableForWithdrawal');
                 account['total'] = this.safeString(balance, 'balance');
-                result[code] = account;
+                this.balance[code] = account;
             }
         }
         const spotBalances = this.safeList(data, 'spotBalances', []);
@@ -257,13 +263,13 @@ export default class extended extends extendedRest {
                 const account = this.account();
                 account['free'] = this.safeString(spotBalance, 'availableToWithdraw');
                 account['total'] = this.safeString(spotBalance, 'balance');
-                result[code] = account;
+                this.balance[code] = account;
             }
         }
         const timestamp = this.safeInteger(message, 'ts');
-        result['timestamp'] = timestamp;
-        result['datetime'] = this.iso8601(timestamp);
-        this.balance = this.safeBalance(this.deepExtend(this.balance, result));
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = this.iso8601(timestamp);
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, 'balance');
     }
     /**
@@ -791,7 +797,7 @@ export default class extended extends extendedRest {
         const candleType = this.safeString(subscription, 'candleType');
         const cacheKey = (candleType === 'trades') ? timeframe : timeframe + ':' + candleType;
         const messageHash = this.safeString(subscription, 'messageHash');
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], cacheKey);
         if (stored === undefined) {
             const defaultLimit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -828,7 +834,7 @@ export default class extended extends extendedRest {
         //
         //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
         //
-        const error = this.safeValue(message, 'error');
+        const error = this.safeDict(message, 'error');
         if (error === undefined) {
             return false;
         }

@@ -823,7 +823,7 @@ class bitopro extends Exchange {
         }
         $response = Async\await($this->publicGetProvisioningLimitationsAndFees($params));
         $tradingFeeRate = $this->safe_dict($response, 'tradingFeeRate', array());
-        $first = $this->safe_value($tradingFeeRate, 0);
+        $first = $this->safe_dict($tradingFeeRate, 0);
         //
         //     {
         //         "tradingFeeRate":[
@@ -1186,7 +1186,7 @@ class bitopro extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1222,16 +1222,16 @@ class bitopro extends Exchange {
         }
         if ($orderType === 'STOP_LIMIT') {
             $request['price'] = $this->price_to_precision($symbol, $price);
-            $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+            $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
             $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
             if ($triggerPrice === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $triggerPrice parameter for ' . $orderType . ' orders');
+                throw new InvalidOrder($this->id . ' createOrder() requires a triggerPrice parameter for ' . $orderType . ' orders');
             } else {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             }
             $condition = $this->safe_string($params, 'condition');
             if ($condition === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $condition parameter for ' . $orderType . ' orders');
+                throw new InvalidOrder($this->id . ' createOrder() requires a condition parameter for ' . $orderType . ' orders');
             } else {
                 $request['condition'] = $condition;
             }
@@ -1254,7 +1254,7 @@ class bitopro extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1270,7 +1270,7 @@ class bitopro extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1326,7 +1326,7 @@ class bitopro extends Exchange {
          * @return {array} an list of ~@link https://docs.ccxt.com/?$id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1394,7 +1394,7 @@ class bitopro extends Exchange {
         return $this->parse_cancel_orders($data);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -1410,7 +1410,7 @@ class bitopro extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1464,7 +1464,7 @@ class bitopro extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1517,7 +1517,7 @@ class bitopro extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_orders(...))($symbol, $since, $limit, $params);
     }
 
@@ -1565,7 +1565,7 @@ class bitopro extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1582,7 +1582,7 @@ class bitopro extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1730,7 +1730,7 @@ class bitopro extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires the $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires the code argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1789,7 +1789,7 @@ class bitopro extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires the $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires the code argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1846,7 +1846,7 @@ class bitopro extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?$id=transaction-structure transaction structure~
          */
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires the $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires the code argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1936,7 +1936,7 @@ class bitopro extends Exchange {
         return $this->parse_transaction($result, $currency);
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
         //    {
         //        "currency":"eth",
         //        "withdrawFee":"0.007",
@@ -1999,7 +1999,7 @@ class bitopro extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($headers === null) {

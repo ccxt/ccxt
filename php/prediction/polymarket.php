@@ -1070,7 +1070,7 @@ class polymarket extends Exchange {
          * @return {array} a dictionary of [prediction $ticker structures](https://docs.ccxt.com/#/?id=prediction-$ticker-structure) indexed by outcome
          */
         if ($outcomes === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTickers() requires an $outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())');
+            throw new ArgumentsRequired($this->id . ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())');
         }
         // batch-resolve the uncached outcomes (one gamma request per 50 token ids)
         Async\await($this->load_outcomes($outcomes));
@@ -1203,7 +1203,7 @@ class polymarket extends Exchange {
             $last = $mid;
         }
         $outcome = $this->safe_outcome_symbol(null, $market);
-        $timestamp = $this->safe_integer($bookData, 'timestamp', $this->milliseconds());
+        $timestamp = $this->safe_integer($bookData, 'timestamp');
         $quoteVolume = null;
         if ($market !== null) {
             $quoteVolume = $this->safe_number_2($market['info'], 'volume24hr', 'volume');
@@ -1304,7 +1304,7 @@ class polymarket extends Exchange {
         if (!(is_array($this->timeframes) && array_key_exists($timeframe ?? '', $this->timeframes))) {
             // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
             $supportedKeys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
-            throw new BadRequest($this->id . ' fetchOHLCV() unsupported $timeframe ' . $timeframe . ', supported timeframes are ' . implode(', ', $supportedKeys));
+            throw new BadRequest($this->id . ' fetchOHLCV() unsupported timeframe ' . $timeframe . ', supported timeframes are ' . implode(', ', $supportedKeys));
         }
         $outcomeObj = Async\await($this->load_outcome($outcome));
         $tokenId = $outcomeObj['outcomeId'];
@@ -1472,7 +1472,7 @@ class polymarket extends Exchange {
         $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
         $conditionId = $this->safe_string($outcomeInfo, 'conditionId');
         if ($conditionId === null) {
-            throw new BadRequest($this->id . ' fetchOpenInterest() requires $outcome->info.conditionId for ' . $outcome);
+            throw new BadRequest($this->id . ' fetchOpenInterest() requires outcome.info.conditionId for ' . $outcome);
         }
         $request = array( 'market' => $conditionId );
         $response = Async\await($this->dataPublicGetOi($this->extend($request, $params)));
@@ -1487,15 +1487,14 @@ class polymarket extends Exchange {
         //
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
         //
-        $timestamp = $this->milliseconds();
         $openInterest = $this->safe_open_interest(array(
             'symbol' => $this->safe_outcome_symbol(null, $market),
             'openInterestAmount' => null,
             'openInterestValue' => $this->safe_number($interest, 'value'),
             'baseVolume' => null,
             'quoteVolume' => null,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'info' => $interest,
         ), $market);
         $openInterest['outcome'] = $this->safe_outcome_symbol(null, $market);
@@ -1561,7 +1560,7 @@ class polymarket extends Exchange {
         $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
         $conditionId = $this->safe_string($outcomeInfo, 'conditionId');
         if ($conditionId === null) {
-            throw new BadRequest($this->id . ' fetchTrades() requires $outcome->info.conditionId for an $outcome ' . $tokenId);
+            throw new BadRequest($this->id . ' fetchTrades() requires outcome.info.conditionId for an outcome ' . $tokenId);
         }
         // the endpoint filters by market conditionId (which spans BOTH outcome tokens), then we narrow
         // to the requested token client-side below. applying the user's `limit` to this request and
@@ -2028,7 +2027,7 @@ class polymarket extends Exchange {
          * @param {string} [$params->funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
          * @param {string} [$params->tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the $outcome when omitted
          * @param {bool} [$params->negRisk] whether the market is a neg-risk market; read from the $outcome when omitted
-         * @param {string} [$params->salt] $order salt; defaults to the current time in ms (pin it for idempotent retries)
+         * @param {string} [$params->salt] $order salt; defaults to a strictly-increasing millisecond value (pin it for idempotent retries)
          * @param {string} [$params->timestamp] $order timestamp; defaults to the current time in ms
          * @param {string} [$params->expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
          * @param {string} [$params->builderCode] builder wallet address or full bytes32 builder code attached to the $order for attribution (zero fee — tracking only); defaults to options.builder
@@ -2074,13 +2073,13 @@ class polymarket extends Exchange {
         $bodies = array();
         $outcomes = array();
         $requests = array();
-        $batchSalt = $this->milliseconds();
         for ($i = 0; $i < count($orders); $i++) {
             $o = $orders[$i];
             $orderParams = $this->safe_dict($o, 'params', array());
             if ($this->safe_string($orderParams, 'salt') === null) {
-                // a distinct salt per order so two identical orders in one batch don't collide
-                $orderParams = $this->extend($orderParams, array( 'salt' => $this->number_to_string($this->sum($batchSalt, $i)) ));
+                // a distinct salt per order so two identical orders don't collide, within a batch or across calls
+                $orderSalt = $this->incrementing_nonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+                $orderParams = $this->extend($orderParams, array( 'salt' => $this->number_to_string($orderSalt) ));
             }
             $built = $this->build_clob_order_body($this->safe_string($o, 'outcome'), $this->safe_string($o, 'type'), $this->safe_string($o, 'side'), $this->safe_number($o, 'amount'), $this->safe_number($o, 'price'), $orderParams);
             $bodies[] = $this->safe_dict($built, 'body', array());
@@ -2138,12 +2137,12 @@ class polymarket extends Exchange {
         }
         if ($price === null) {
             if (!$isMarket) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price for limit orders');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a price for limit orders');
             }
             // market order without an explicit price: use the outcome's current price as the marketable reference
             $price = $this->safe_number($outcomeObj, 'price');
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() could not determine a $price from the $outcome, pass an explicit price');
+                throw new ArgumentsRequired($this->id . ' createOrder() could not determine a price from the outcome, pass an explicit price');
             }
         }
         // tick size + neg-risk flag drive the rounding and the verifying contract; both are read from the
@@ -2158,8 +2157,9 @@ class polymarket extends Exchange {
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
         $eoa = $this->eth_checksum_address($this->eth_get_address_from_private_key($this->privateKey));
         $funder = $this->eth_checksum_address($this->safe_string_2($params, 'funder', 'maker', $this->safe_string($this->options, 'funder', $this->walletAddress)));
-        // salt and timestamp default to the current time but can be pinned via params for idempotency
-        $salt = $this->safe_string($params, 'salt', $this->number_to_string($this->milliseconds()));
+        // the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
+        $defaultSalt = $this->incrementing_nonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+        $salt = $this->safe_string($params, 'salt', $this->number_to_string($defaultSalt));
         $timestamp = $this->safe_string($params, 'timestamp', $this->number_to_string($this->milliseconds()));
         // GTD (good-til-date) orders need a unix-seconds expiration; 0 means no expiry
         $expiration = $this->safe_string($params, 'expiration', '0');
@@ -2773,6 +2773,12 @@ class polymarket extends Exchange {
         return null;
     }
 
+    public function nonce(): float {
+        // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
+        // unique when two identical orders are signed within the same millisecond
+        return $this->milliseconds();
+    }
+
     public function sign(mixed $path, mixed $api = 'gamma', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
@@ -3067,7 +3073,7 @@ class polymarket extends Exchange {
         if ($hasL2) {
             return;
         }
-        throw new AuthenticationError($this->id . ' requires L2 api credentials ($apiKey, $secret, password) or a privateKey to derive them');
+        throw new AuthenticationError($this->id . ' requires L2 api credentials (apiKey, secret, password) or a privateKey to derive them');
     }
 
     public function ping(mixed $client) {
@@ -3474,13 +3480,13 @@ class polymarket extends Exchange {
         return $this->safe_string_2($market, 'market', 'symbol');
     }
 
-    public function parse_poly_timestamp(?string $raw): float {
+    public function parse_poly_timestamp(?string $raw): ?int {
         if ($raw === null) {
-            return $this->milliseconds();
+            return null;
         }
         $n = $this->parse_to_int($raw);
         if ($n === null) {
-            return $this->milliseconds();
+            return null;
         }
         return $n;
     }

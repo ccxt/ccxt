@@ -801,9 +801,9 @@ class cex extends Exchange {
             $request['toISO'] = $this->iso8601($this->milliseconds());
         }
         if ($since !== null && $until !== null && $limit !== null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV does not support fetching candles with both a $limit and since/until');
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV does not support fetching candles with both a limit and since/until');
         } elseif (($since !== null || $until !== null) && $limit === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $limit parameter when fetching candles with $since or until');
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a limit parameter when fetching candles with since or until');
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -869,7 +869,7 @@ class cex extends Exchange {
         return $this->parse_trading_fees($fees, true);
     }
 
-    public function parse_trading_fees(mixed $response, $useKeyAsId = false): array {
+    public function parse_trading_fees(array $response, ?bool $useKeyAsId = false): array {
         $result = array();
         $keys = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -1104,7 +1104,7 @@ class cex extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
@@ -1119,7 +1119,7 @@ class cex extends Exchange {
         return $this->fetch_orders_by_status('closed', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
@@ -1271,7 +1271,7 @@ class cex extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -1290,14 +1290,14 @@ class cex extends Exchange {
         $accountId = null;
         list($accountId, $params) = $this->handle_option_and_params($params, 'createOrder', 'accountId');
         if ($accountId === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() : API trading is now allowed from main account, set $params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
+            throw new ArgumentsRequired($this->id . ' createOrder() : API trading is now allowed from main account, set params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
         }
         if ($this->markets === null) {
             $this->load_markets();
         }
         $market = $this->market($symbol);
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a side argument');
         }
         $request = array(
             'clientOrderId' => $this->uuid(),
@@ -1374,7 +1374,7 @@ class cex extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -1401,7 +1401,7 @@ class cex extends Exchange {
         return $this->parse_order($data);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open $orders in a market
          *
@@ -1522,7 +1522,7 @@ class cex extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $ledgerType = array(
             'deposit' => 'deposit',
             'withdraw' => 'withdrawal',
@@ -1768,7 +1768,7 @@ class cex extends Exchange {
         $accountId = null;
         list($accountId, $params) = $this->handle_option_and_params($params, 'createOrder', 'accountId');
         if ($accountId === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set $params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
+            throw new ArgumentsRequired($this->id . ' fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1811,7 +1811,7 @@ class cex extends Exchange {
         );
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
@@ -1852,7 +1852,7 @@ class cex extends Exchange {
                 $fixed = $this->fix_stringified_json_members($body);
                 $response = $this->parse_json($fixed);
             } else {
-                throw new NullResponse($this->id . ' returned unparsed $response => ' . $body);
+                throw new NullResponse($this->id . ' returned unparsed response => ' . $body);
             }
         }
         $error = $this->safe_string($response, 'error');

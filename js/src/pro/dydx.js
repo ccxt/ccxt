@@ -379,7 +379,7 @@ export default class dydx extends dydxRest {
         const messageHash = 'ohlcv:' + symbol;
         const ohlcv = this.safeDict(candles, 0, content);
         const parsed = this.parseOHLCV(ohlcv, market);
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);

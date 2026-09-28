@@ -1,6 +1,5 @@
 
 
-
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../../base/ws/Cache.js';
@@ -76,7 +75,6 @@ function testSafeString () {
     // assert (exchange.safeString (inputDict, 'nonexistent', 0.2) === 0.2 , 'safeString failed for nonexistent key with default float');
     
 
-
     // safeString2
     assert (exchange.safeString2 (inputDict, 'a', 'i') === '1');
     assert (exchange.safeString2 (inputDict, 'a', 'f') === '0.123');
@@ -94,7 +92,6 @@ function testSafeString () {
     assert (exchange.safeStringN (inputList, [ 3, 2, 0 ]) === 'Hi');
     // With defaults
     assert (exchange.safeStringN (inputDict, [ 'a', 'b', 'nonexistent' ], 'MiXed_Case') === 'MiXed_Case');
-
 
     // safeStringLower
     assert (exchange.safeStringLower (inputDict, 'i') === '1');
@@ -115,7 +112,6 @@ function testSafeString () {
     assert (exchange.safeStringLower2 (inputList, 2, 0) === 'hi');
     // With defaults
     assert (exchange.safeStringLower2 (inputDict, 'a', 'nonexistent', 'MiXed_Case') === 'MiXed_Case');
-
 
     // safeStringLowerN
     assert (exchange.safeStringLowerN (inputDict, [ 'a', 'b', 'i' ]) === '1');
@@ -242,7 +238,6 @@ function testSafeDict () {
     assert (listObject === undefined);
     assert (exchange.safeDictN (inputList, [ 3, 2, 1 ]) === undefined);
 }
-
 
 function testSafeList () {
 

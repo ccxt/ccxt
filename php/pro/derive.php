@@ -55,19 +55,19 @@ class derive extends \ccxt\async\derive {
         ));
     }
 
-    public function request_id(mixed $url) {
-        $options = $this->safe_value($this->options, 'requestId', array());
+    public function request_id(string $url): float {
+        $options = $this->safe_dict($this->options, 'requestId', array());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
         $this->options['requestId'][$url] = $newValue;
         return $newValue;
     }
 
-    public function watch_public(mixed $messageHash, mixed $message, mixed $subscription) {
+    public function watch_public(string $messageHash, array $message, array $subscription) {
         return Async\async(self::do_watch_public(...))($messageHash, $message, $subscription);
     }
 
-    private function do_watch_public(mixed $messageHash, mixed $message, mixed $subscription) {
+    private function do_watch_public(string $messageHash, array $message, array $subscription) {
         $url = $this->urls['api']['ws'];
         $requestId = $this->request_id($url);
         $request = $this->extend($message, array(
@@ -121,7 +121,7 @@ class derive extends \ccxt\async\derive {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // {
         //     method: 'subscription',
@@ -191,7 +191,7 @@ class derive extends \ccxt\async\derive {
         return Async\await($this->watch_public($topic, $request, $subscription));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message): array {
         //
         // {
         //     method: 'subscription',
@@ -363,11 +363,11 @@ class derive extends \ccxt\async\derive {
         return Async\await($this->un_watch_public($messageHah, $request, $subscription));
     }
 
-    public function un_watch_public(mixed $messageHash, mixed $message, mixed $subscription) {
+    public function un_watch_public(string $messageHash, array $message, array $subscription) {
         return Async\async(self::do_un_watch_public(...))($messageHash, $message, $subscription);
     }
 
-    private function do_un_watch_public(mixed $messageHash, mixed $message, mixed $subscription) {
+    private function do_un_watch_public(string $messageHash, array $message, array $subscription) {
         $url = $this->urls['api']['ws'];
         $requestId = $this->request_id($url);
         $request = $this->extend($message, array(
@@ -380,7 +380,7 @@ class derive extends \ccxt\async\derive {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
     }
 
-    public function handle_order_book_un_subscription(Client $client, mixed $topic) {
+    public function handle_order_book_un_subscription(Client $client, string $topic) {
         $parsedTopic = explode('.', $topic);
         $marketId = $this->safe_string($parsedTopic, 1);
         $market = $this->safe_market($marketId);
@@ -396,7 +396,7 @@ class derive extends \ccxt\async\derive {
         $client->resolve($error, 'unwatch' . $topic);
     }
 
-    public function handle_trades_un_subscription(Client $client, mixed $topic) {
+    public function handle_trades_un_subscription(Client $client, string $topic) {
         $parsedTopic = explode('.', $topic);
         $marketId = $this->safe_string($parsedTopic, 1);
         $market = $this->safe_market($marketId);
@@ -412,7 +412,7 @@ class derive extends \ccxt\async\derive {
         $client->resolve($error, 'unwatch' . $topic);
     }
 
-    public function handle_un_subscribe(Client $client, mixed $message) {
+    public function handle_un_subscribe(Client $client, array $message): array {
         //
         // {
         //     id: 1,
@@ -479,7 +479,7 @@ class derive extends \ccxt\async\derive {
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
-    public function handle_trade(Client $client, mixed $message) {
+    public function handle_trade(Client $client, array $message) {
         //
         //
         $params = $this->safe_dict($message, 'params');
@@ -538,11 +538,11 @@ class derive extends \ccxt\async\derive {
         return Async\await($future);
     }
 
-    public function watch_private(mixed $messageHash, mixed $message, mixed $subscription) {
+    public function watch_private(string $messageHash, array $message, array $subscription) {
         return Async\async(self::do_watch_private(...))($messageHash, $message, $subscription);
     }
 
-    private function do_watch_private(mixed $messageHash, mixed $message, mixed $subscription) {
+    private function do_watch_private(string $messageHash, array $message, array $subscription) {
         Async\await($this->authenticate());
         $url = $this->urls['api']['ws'];
         $requestId = $this->request_id($url);
@@ -605,7 +605,7 @@ class derive extends \ccxt\async\derive {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         // {
         //     method: 'subscription',
@@ -661,8 +661,8 @@ class derive extends \ccxt\async\derive {
                     $this->orders = new ArrayCacheBySymbolById($limit);
                 }
                 $cachedOrders = $this->orders;
-                $orders = $this->safe_value($cachedOrders->hashmap, $symbol, array());
-                $order = ($orderId === null) ? null : $this->safe_value($orders, $orderId);
+                $orders = $this->safe_dict($cachedOrders->hashmap, $symbol, array());
+                $order = ($orderId === null) ? null : $this->safe_dict($orders, $orderId);
                 if ($order !== null) {
                     $fee = $this->safe_value($order, 'fee');
                     if ($fee !== null) {
@@ -733,7 +733,7 @@ class derive extends \ccxt\async\derive {
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
-    public function handle_my_trade(Client $client, mixed $message) {
+    public function handle_my_trade(Client $client, array $message) {
         //
         //
         $myTrades = $this->myTrades;
@@ -753,7 +753,7 @@ class derive extends \ccxt\async\derive {
         }
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         // {
         //     id: '690c6276-0fc6-4121-aafa-f28bf5adedcb',
@@ -786,7 +786,7 @@ class derive extends \ccxt\async\derive {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         if ($this->handle_error_message($client, $message) === true) {
             return;
         }
@@ -823,7 +823,7 @@ class derive extends \ccxt\async\derive {
         if (is_array($message) && array_key_exists('id' ?? '', $message)) {
             $id = $this->safe_string($message, 'id');
             $subscriptionsById = $this->index_by($client->subscriptions, 'id');
-            $subscription = ($id === null) ? array() : $this->safe_value($subscriptionsById, $id, array());
+            $subscription = ($id === null) ? array() : $this->safe_dict($subscriptionsById, $id, array());
             if (is_array($subscription) && array_key_exists('method' ?? '', $subscription)) {
                 if ($subscription['method'] === 'public/login') {
                     $this->handle_auth($client, $message);
@@ -835,7 +835,7 @@ class derive extends \ccxt\async\derive {
         }
     }
 
-    public function handle_auth(Client $client, mixed $message) {
+    public function handle_auth(Client $client, array $message) {
         //
         // {
         //     id: 1,

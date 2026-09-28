@@ -1052,7 +1052,7 @@ export default class pacifica extends pacificaRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        const symbolOhlcvs = this.safeValue(this.ohlcvs, symbol, {});
+        const symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, {});
         let ohlcv = this.safeValue(symbolOhlcvs, timeframe);
         if (ohlcv === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);

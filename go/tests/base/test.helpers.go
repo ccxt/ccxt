@@ -173,6 +173,13 @@ func IsEqual(a, b interface{}) bool {
 	return ccxt.IsEqual(a, b)
 }
 
+// the printer's bounds-checked element read wraps its result in DerefScalar() (the go/v4
+// helper of that name); this package keeps the emitted code free of the `ccxt.` qualifier
+// through its local set of wrappers
+func DerefScalar(v any) any {
+	return ccxt.DerefScalar(v)
+}
+
 func NormalizeAndConvert(a, b interface{}) (reflect.Value, reflect.Value, bool) {
 	return ccxt.NormalizeAndConvert(a, b)
 }

@@ -99,7 +99,7 @@ class bingx extends Exchange {
                 'fetchPositionHistory' => true,
                 'fetchPositionMode' => true,
                 'fetchPositions' => true,
-                'fetchPositionsHistory' => true,
+                'fetchPositionsHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -1577,7 +1577,7 @@ class bingx extends Exchange {
             }
         }
         return $this->safe_trade(array(
-            'id' => $this->safe_string_2($trade, 'id', 't'),
+            'id' => $this->safe_string_n($trade, array( 'id', 't', 'fillId', 'tradeId' )),
             'info' => $trade,
             'timestamp' => $time,
             'datetime' => $this->iso8601($time),
@@ -1834,7 +1834,7 @@ class bingx extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -1849,7 +1849,7 @@ class bingx extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1892,7 +1892,7 @@ class bingx extends Exchange {
         return $this->parse_funding_rate_histories($data, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol": "BTC-USDT",
@@ -1910,7 +1910,7 @@ class bingx extends Exchange {
         );
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding received
          *
@@ -1980,7 +1980,7 @@ class bingx extends Exchange {
         return $this->parse_incomes($data, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null): array {
         // {
         //     "symbol": "LDO-USDT",
         //     "incomeType": "FUNDING_FEE",
@@ -2006,7 +2006,7 @@ class bingx extends Exchange {
         );
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): array {
         /**
          * retrieves the open interest of a trading pair
          *
@@ -2067,7 +2067,7 @@ class bingx extends Exchange {
         return $this->parse_open_interest($result, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         // linear swap
         //
@@ -2869,7 +2869,7 @@ class bingx extends Exchange {
         return $this->parse_positions($positions, $symbols);
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): array {
         /**
          * fetch $data on a single open contract trade position
          *
@@ -2957,7 +2957,7 @@ class bingx extends Exchange {
         return $this->parse_position($first, $market);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // inverse swap
         //
@@ -3080,7 +3080,7 @@ class bingx extends Exchange {
         ));
     }
 
-    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()) {
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()): array {
         /**
          * create a spot market order by providing the $symbol, $side and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -3093,7 +3093,7 @@ class bingx extends Exchange {
         return $this->create_order($symbol, 'market', $side, $cost, null, $params);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): array {
         /**
          * create a spot market buy order by providing the $symbol and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -3105,7 +3105,7 @@ class bingx extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()): array {
         /**
          * create a spot market sell order by providing the $symbol and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -3117,12 +3117,12 @@ class bingx extends Exchange {
         return $this->create_order($symbol, 'market', 'sell', $cost, null, $params);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         /**
          * @ignore
@@ -3138,7 +3138,7 @@ class bingx extends Exchange {
         $market = $this->market($symbol);
         $cost = $this->safe_string_2($params, 'cost', 'quoteOrderQty');
         if (($market['contract'] === true) && ($cost !== null)) {
-            throw new NotSupported($this->id . ' createOrder() with $cost or quoteOrderQty is not supported for contract markets');
+            throw new NotSupported($this->id . ' createOrder() with cost or quoteOrderQty is not supported for contract markets');
         }
         $postOnly = null;
         $marketType = null;
@@ -3193,7 +3193,7 @@ class bingx extends Exchange {
             }
             if ($triggerPrice !== null) {
                 if ($isMarketOrder && ($side === 'buy') && $this->safe_string($request, 'quoteOrderQty') === null) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires the $cost parameter (or the $amount . $price) for placing spot $market-buy trigger orders');
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires the cost parameter (or the amount . price) for placing spot market-buy trigger orders');
                 }
                 $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                 if ($type === 'LIMIT') {
@@ -3361,7 +3361,7 @@ class bingx extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -3403,7 +3403,7 @@ class bingx extends Exchange {
         $market = $this->market($symbol);
         $test = $this->safe_bool($params, 'test', false);
         if ($test && (($market['swap'] !== true) || ($market['inverse'] === true))) {
-            throw new NotSupported($this->id . ' createOrder() only supports $test orders for linear swap markets');
+            throw new NotSupported($this->id . ' createOrder() only supports test orders for linear swap markets');
         }
         $params = $this->omit($params, 'test');
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
@@ -3518,7 +3518,7 @@ class bingx extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function create_orders(array $orders, $params = array()) {
+    public function create_orders(array $orders, $params = array()): array {
         /**
          * create a list of trade $orders
          *
@@ -3556,7 +3556,7 @@ class bingx extends Exchange {
         $request = array();
         if ($market['swap'] === true) {
             if ($symbolsLength > 5) {
-                throw new InvalidOrder($this->id . ' createOrders() can not create more than 5 $orders at once for swap markets');
+                throw new InvalidOrder($this->id . ' createOrders() can not create more than 5 orders at once for swap markets');
             }
             $request['batchOrders'] = $this->json($ordersRequests);
             $response = $this->swapV2PrivatePostTradeBatchOrders($request);
@@ -3626,7 +3626,7 @@ class bingx extends Exchange {
         return $this->parse_orders($result, $market);
     }
 
-    public function parse_order_side(mixed $side) {
+    public function parse_order_side(?string $side): ?string {
         $sides = array(
             'BUY' => 'buy',
             'SELL' => 'sell',
@@ -4045,7 +4045,7 @@ class bingx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open $order
          *
@@ -4097,7 +4097,7 @@ class bingx extends Exchange {
             //
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
             }
             $market = $this->market($symbol);
             $request = array(
@@ -4227,7 +4227,7 @@ class bingx extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open $orders
          *
@@ -4376,7 +4376,7 @@ class bingx extends Exchange {
         return $this->parse_orders($orders);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple orders
          *
@@ -4390,7 +4390,7 @@ class bingx extends Exchange {
          * @return {array} an list of ~@link https://docs.ccxt.com/?$id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -4402,7 +4402,7 @@ class bingx extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $clientOrderIds = $this->safe_value($params, 'clientOrderIds');
+        $clientOrderIds = $this->safe_list($params, 'clientOrderIds');
         $params = $this->omit($params, 'clientOrderIds');
         $idsToParse = $ids;
         $areClientOrderIds = ($clientOrderIds !== null);
@@ -4536,7 +4536,7 @@ class bingx extends Exchange {
         return $response;
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an $order made by the user
          *
@@ -4590,7 +4590,7 @@ class bingx extends Exchange {
             //
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
             }
             $market = $this->market($symbol);
             $request = array(
@@ -5019,7 +5019,7 @@ class bingx extends Exchange {
         return $this->filter_by($orders, 'status', 'closed');
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple canceled $orders made by the user
          *
@@ -5043,7 +5043,7 @@ class bingx extends Exchange {
         return $this->filter_by($orders, 'status', 'canceled');
     }
 
-    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed $orders made by the user
          *
@@ -5080,6 +5080,14 @@ class bingx extends Exchange {
         if ($standard) {
             $response = $this->contractV1PrivateGetAllOrders($this->extend($request, $params));
         } elseif ($type === 'spot') {
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            $until = $this->safe_integer_2($params, 'until', 'till');
+            if ($until !== null) {
+                $request['endTime'] = $until;
+            }
+            $params = $this->omit($params, array( 'until', 'till' ));
             if ($limit !== null) {
                 $request['pageSize'] = $limit;
             }
@@ -5340,7 +5348,7 @@ class bingx extends Exchange {
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         if (($transferId === null) && (($fromId === null) || ($toId === null))) {
-            throw new ExchangeError($this->id . ' fetchTransfers() requires $params["transferId"] or both $params["fromAccount"] and $params["toAccount"]');
+            throw new ExchangeError($this->id . ' fetchTransfers() requires params["transferId"] or both params["fromAccount"] and params["toAccount"]');
         }
         if ($fromAccount !== null) {
             $request['fromAccount'] = $fromId;
@@ -5677,7 +5685,7 @@ class bingx extends Exchange {
         //
         // parse withdraw-type output first...
         //
-        $data = $this->safe_value($transaction, 'data');
+        $data = $this->safe_dict($transaction, 'data');
         $dataId = ($data === null) ? null : $this->safe_string($data, 'id');
         $id = $this->safe_string($transaction, 'id', $dataId);
         $address = $this->safe_string($transaction, 'address');
@@ -5759,7 +5767,7 @@ class bingx extends Exchange {
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -5773,7 +5781,7 @@ class bingx extends Exchange {
             $marginMode = 'CROSSED';
         }
         if ($marginMode !== 'ISOLATED' && $marginMode !== 'CROSSED') {
-            throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
+            throw new BadRequest($this->id . ' setMarginMode() marginMode argument should be isolated or cross');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -5815,10 +5823,10 @@ class bingx extends Exchange {
          */
         $type = $this->safe_integer($params, 'type'); // 1 increase margin 2 decrease margin
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' setMargin() requires a $type parameter either 1 (increase margin) or 2 (decrease margin)');
+            throw new ArgumentsRequired($this->id . ' setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)');
         }
         if (!$this->in_array($type, array( 1, 2 ))) {
-            throw new ArgumentsRequired($this->id . ' setMargin() requires a $type parameter either 1 (increase margin) or 2 (decrease margin)');
+            throw new ArgumentsRequired($this->id . ' setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -5979,7 +5987,7 @@ class bingx extends Exchange {
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         $side = $this->safe_string_upper($params, 'side');
         $this->check_required_argument('setLeverage', $side, 'side', array( 'LONG', 'SHORT', 'BOTH' ));
@@ -6032,7 +6040,7 @@ class bingx extends Exchange {
         }
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all trades made by the user
          *
@@ -6050,7 +6058,7 @@ class bingx extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -6062,7 +6070,7 @@ class bingx extends Exchange {
         if ($subType === 'inverse') {
             $orderId = $this->safe_string($params, 'orderId');
             if ($orderId === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires an $orderId argument for inverse swap trades');
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires an orderId argument for inverse swap trades');
             }
             $response = $this->cswapV1PrivateGetTradeAllFillOrders($this->extend($request, $params));
             $fills = $this->safe_list($response, 'data', array());
@@ -6172,7 +6180,7 @@ class bingx extends Exchange {
         return $this->parse_trades($fills, $market, $since, $limit, $params);
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
         //
         // currencie structure
         //
@@ -6291,7 +6299,7 @@ class bingx extends Exchange {
         return $this->parse_transaction($data);
     }
 
-    public function parse_params(mixed $params) {
+    public function parse_params(array $params): array {
         // const sortedParams = this.keysort (params);
         $copied = $this->clone($params);
         $rawKeys = is_array($params) ? array_keys($params) : array();
@@ -6315,7 +6323,7 @@ class bingx extends Exchange {
         return $copied;
     }
 
-    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * retrieves the users liquidated positions
          *
@@ -6417,7 +6425,7 @@ class bingx extends Exchange {
         return $this->parse_liquidations($liquidations, $market, $since, $limit);
     }
 
-    public function parse_liquidation(mixed $liquidation, ?array $market = null) {
+    public function parse_liquidation(mixed $liquidation, ?array $market = null): array {
         //
         //     {
         //         "time": "int64",
@@ -6481,7 +6489,7 @@ class bingx extends Exchange {
         $request = array();
         if ($positionId !== null) {
             if (($market['swap'] !== true) || ($market['inverse'] === true)) {
-                throw new NotSupported($this->id . ' closePosition() with a $positionId is only supported for linear swap markets');
+                throw new NotSupported($this->id . ' closePosition() with a positionId is only supported for linear swap markets');
             }
             $response = $this->swapV1PrivatePostTradeClosePosition($this->extend($request, $params));
             //
@@ -6971,7 +6979,7 @@ class bingx extends Exchange {
         );
     }
 
-    public function custom_encode(mixed $params) {
+    public function custom_encode(array $params): ?string {
         // const sortedParams = this.keysort (params);
         $rawKeys = is_array($params) ? array_keys($params) : array();
         $keys = $this->sort($rawKeys);
@@ -7090,7 +7098,7 @@ class bingx extends Exchange {
         return $tiers;
     }
 
-    public function sign(mixed $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $type = $section[0];
         $version = $section[1];
         $access = $section[2];
@@ -7156,7 +7164,7 @@ class bingx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 

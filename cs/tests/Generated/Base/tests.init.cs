@@ -24,6 +24,7 @@ public partial class BaseTest
             testNumberToBE();
             testDecimalToPrecision();
             testCapitalize();
+            testIncrementingNonce();
             testIsDictionary();
             testNumberToString();
             testPrecise();

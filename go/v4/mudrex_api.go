@@ -9,135 +9,135 @@ package ccxt
 
 // MarketGetPriceKline returns a channel that yields a JSON object.
 func (this *Mudrex) MarketGetPriceKline(args ...any) <-chan any {
-	return this.callEndpointAsync("marketGetPriceKline", args...)
+	return this.Fetch2Async("price/kline", "market", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MarketGetPriceMarkKline returns a channel that yields a JSON object.
 func (this *Mudrex) MarketGetPriceMarkKline(args ...any) <-chan any {
-	return this.callEndpointAsync("marketGetPriceMarkKline", args...)
+	return this.Fetch2Async("price/mark-kline", "market", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetFutures returns a channel that yields a JSON object.
 func (this *Mudrex) PrivateGetFutures(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFutures", args...)
+	return this.Fetch2Async("futures", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetFuturesAssetId returns a channel that yields a JSON object.
 func (this *Mudrex) PrivateGetFuturesAssetId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesAssetId", args...)
+	return this.Fetch2Async("futures/{asset_id}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWalletFunds returns a channel that yields a JSON object.
 func (this *Mudrex) PrivateGetWalletFunds(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWalletFunds", args...)
+	return this.Fetch2Async("wallet/funds", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetFuturesFunds returns a channel that yields a JSON object.
 func (this *Mudrex) PrivateGetFuturesFunds(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesFunds", args...)
+	return this.Fetch2Async("futures/funds", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetFuturesTransactions returns a channel that yields a JSON object.
 func (this *Mudrex) PrivateGetFuturesTransactions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesTransactions", args...)
+	return this.Fetch2Async("futures/transactions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetFuturesOrders returns a channel that yields a JSON object.
 func (this *Mudrex) PrivateGetFuturesOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesOrders", args...)
+	return this.Fetch2Async("futures/orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetFuturesOrdersHistory returns a channel that yields a JSON object.
 func (this *Mudrex) PrivateGetFuturesOrdersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesOrdersHistory", args...)
+	return this.Fetch2Async("futures/orders/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetFuturesOrdersOrderId returns a channel that yields a JSON object.
 func (this *Mudrex) PrivateGetFuturesOrdersOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesOrdersOrderId", args...)
+	return this.Fetch2Async("futures/orders/{order_id}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetFuturesPositions returns a channel that yields a JSON object.
 func (this *Mudrex) PrivateGetFuturesPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesPositions", args...)
+	return this.Fetch2Async("futures/positions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetFuturesPositionsHistory returns a channel that yields a JSON object.
 func (this *Mudrex) PrivateGetFuturesPositionsHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesPositionsHistory", args...)
+	return this.Fetch2Async("futures/positions/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetFuturesFeeHistory returns a channel that yields a JSON object.
 func (this *Mudrex) PrivateGetFuturesFeeHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesFeeHistory", args...)
+	return this.Fetch2Async("futures/fee/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetFuturesAssetIdLeverage returns a channel that yields a JSON object.
 func (this *Mudrex) PrivateGetFuturesAssetIdLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesAssetIdLeverage", args...)
+	return this.Fetch2Async("futures/{asset_id}/leverage", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PrivateGetFuturesPositionsPositionIdLiqPrice returns a channel that yields a JSON object.
 func (this *Mudrex) PrivateGetFuturesPositionsPositionIdLiqPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesPositionsPositionIdLiqPrice", args...)
+	return this.Fetch2Async("futures/positions/{position_id}/liq-price", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostWalletFuturesTransfer returns a channel that yields a JSON object.
 func (this *Mudrex) PrivatePostWalletFuturesTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWalletFuturesTransfer", args...)
+	return this.Fetch2Async("wallet/futures/transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostFuturesTransfersInr returns a channel that yields a JSON object.
 func (this *Mudrex) PrivatePostFuturesTransfersInr(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesTransfersInr", args...)
+	return this.Fetch2Async("futures/transfers/inr", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostFuturesAssetIdOrder returns a channel that yields a JSON object.
 func (this *Mudrex) PrivatePostFuturesAssetIdOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesAssetIdOrder", args...)
+	return this.Fetch2Async("futures/{asset_id}/order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PrivatePostFuturesPositionsPositionIdClose returns a channel that yields a JSON object.
 func (this *Mudrex) PrivatePostFuturesPositionsPositionIdClose(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesPositionsPositionIdClose", args...)
+	return this.Fetch2Async("futures/positions/{position_id}/close", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PrivatePostFuturesPositionsPositionIdClosePartial returns a channel that yields a JSON object.
 func (this *Mudrex) PrivatePostFuturesPositionsPositionIdClosePartial(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesPositionsPositionIdClosePartial", args...)
+	return this.Fetch2Async("futures/positions/{position_id}/close/partial", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PrivatePostFuturesPositionsPositionIdReverse returns a channel that yields a JSON object.
 func (this *Mudrex) PrivatePostFuturesPositionsPositionIdReverse(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesPositionsPositionIdReverse", args...)
+	return this.Fetch2Async("futures/positions/{position_id}/reverse", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PrivatePostFuturesPositionsPositionIdAddMargin returns a channel that yields a JSON object.
 func (this *Mudrex) PrivatePostFuturesPositionsPositionIdAddMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesPositionsPositionIdAddMargin", args...)
+	return this.Fetch2Async("futures/positions/{position_id}/add-margin", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PrivatePostFuturesPositionsPositionIdRiskorder returns a channel that yields a JSON object.
 func (this *Mudrex) PrivatePostFuturesPositionsPositionIdRiskorder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesPositionsPositionIdRiskorder", args...)
+	return this.Fetch2Async("futures/positions/{position_id}/riskorder", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PrivatePostFuturesAssetIdLeverage returns a channel that yields a JSON object.
 func (this *Mudrex) PrivatePostFuturesAssetIdLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesAssetIdLeverage", args...)
+	return this.Fetch2Async("futures/{asset_id}/leverage", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PrivatePatchFuturesOrdersOrderId returns a channel that yields a JSON object.
 func (this *Mudrex) PrivatePatchFuturesOrdersOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePatchFuturesOrdersOrderId", args...)
+	return this.Fetch2Async("futures/orders/{order_id}", "private", "PATCH", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePatchFuturesPositionsPositionIdRiskorder returns a channel that yields a JSON object.
 func (this *Mudrex) PrivatePatchFuturesPositionsPositionIdRiskorder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePatchFuturesPositionsPositionIdRiskorder", args...)
+	return this.Fetch2Async("futures/positions/{position_id}/riskorder", "private", "PATCH", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PrivateDeleteFuturesOrdersOrderId returns a channel that yields a JSON object.
 func (this *Mudrex) PrivateDeleteFuturesOrdersOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteFuturesOrdersOrderId", args...)
+	return this.Fetch2Async("futures/orders/{order_id}", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }

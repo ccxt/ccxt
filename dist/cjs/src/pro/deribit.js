@@ -146,8 +146,8 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const params = this.safeValue(message, 'params', {});
-        const data = this.safeValue(params, 'data', {});
+        const params = this.safeDict(message, 'params', {});
+        const data = this.safeDict(params, 'data', {});
         this.balance['info'] = data;
         const currencyId = this.safeString(data, 'currency');
         const currencyCode = this.safeCurrencyCode(currencyId);
@@ -270,8 +270,8 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const params = this.safeValue(message, 'params', {});
-        const data = this.safeValue(params, 'data', {});
+        const params = this.safeDict(message, 'params', {});
+        const data = this.safeDict(params, 'data', {});
         const marketId = this.safeString(data, 'instrument_name');
         const symbol = this.safeSymbol(marketId);
         const ticker = this.parseTicker(data);
@@ -429,7 +429,7 @@ class deribit extends deribit$1["default"] {
         const symbol = this.safeSymbol(marketId);
         const market = this.safeMarket(marketId);
         const trades = this.safeList(params, 'data', []);
-        if (this.safeValue(this.trades, symbol) === undefined) {
+        if (this.safeDict(this.trades, symbol) === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             this.trades[symbol] = new Cache.ArrayCache(limit);
         }
@@ -510,9 +510,9 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const params = this.safeValue(message, 'params', {});
+        const params = this.safeDict(message, 'params', {});
         const channel = this.safeString(params, 'channel', '');
-        const trades = this.safeValue(params, 'data', []);
+        const trades = this.safeList(params, 'data', []);
         let cachedTrades = this.myTrades;
         if (cachedTrades === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -619,8 +619,8 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const params = this.safeValue(message, 'params', {});
-        const data = this.safeValue(params, 'data', {});
+        const params = this.safeDict(message, 'params', {});
+        const data = this.safeDict(params, 'data', {});
         const channel = this.safeString(params, 'channel');
         const parts = channel.split('.');
         let descriptor = '';
@@ -764,7 +764,7 @@ class deribit extends deribit$1["default"] {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
-        const params = this.safeValue(message, 'params', {});
+        const params = this.safeDict(message, 'params', {});
         const channel = this.safeString(params, 'channel', '');
         const data = this.safeValue(params, 'data', {});
         let orders = [];
@@ -854,7 +854,7 @@ class deribit extends deribit$1["default"] {
         const timeframes = this.safeDict(wsOptions, 'timeframes', {});
         const unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
         this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
-        if (this.safeValue(this.ohlcvs[symbol], unifiedTimeframe) === undefined) {
+        if (this.safeDict(this.ohlcvs[symbol], unifiedTimeframe) === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][unifiedTimeframe] = new Cache.ArrayCacheByTimestamp(limit);
         }
@@ -1001,7 +1001,7 @@ class deribit extends deribit$1["default"] {
         if (error !== undefined) {
             throw new errors.ExchangeError(this.id + ' ' + this.json(error));
         }
-        const params = this.safeValue(message, 'params');
+        const params = this.safeDict(message, 'params');
         const channel = this.safeString(params, 'channel');
         if (channel !== undefined) {
             const parts = channel.split('.');
@@ -1026,7 +1026,7 @@ class deribit extends deribit$1["default"] {
             }
             throw new errors.NotSupported(this.id + ' no handler found for this message ' + this.json(message));
         }
-        const result = this.safeValue(message, 'result', {});
+        const result = this.safeDict(message, 'result', {});
         const accessToken = this.safeString(result, 'access_token');
         if (accessToken !== undefined) {
             this.handleAuthenticationMessage(client, message);

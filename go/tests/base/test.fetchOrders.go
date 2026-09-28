@@ -20,7 +20,7 @@ func testFetchOrdersBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	Assert(IsArray(orders), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return an array, returned "), exchange.Json(orders)))
 	AssertNonEmtpyArray(exchange, skippedProperties, method, orders, symbol)
 	var now int64 = exchange.Milliseconds()
-	for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
+	for i := 0; i < GetArrayLength(orders); i++ {
 		TestOrder(exchange, skippedProperties, method, GetValue(orders, i), symbol, now)
 	}
 	AssertTimestampOrder(exchange, method, symbol, orders)

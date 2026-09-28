@@ -632,8 +632,7 @@ class bydfi extends Exchange {
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        $timestamp = $this->milliseconds();
-        $orderBook = $this->parse_order_book($data, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'amount');
+        $orderBook = $this->parse_order_book($data, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
         $orderBook['nonce'] = $this->safe_integer($data, 'lastUpdateId');
         return $orderBook;
     }
@@ -643,7 +642,7 @@ class bydfi extends Exchange {
         $result = 1000;
         for ($i = 0; $i < count($limits); $i++) {
             if ($limit === null) {
-                throw new ArgumentsRequired($this->id . ' getClosestLimit() requires a $limit argument');
+                throw new ArgumentsRequired($this->id . ' getClosestLimit() requires a limit argument');
             }
             if ($limit <= $limits[$i]) {
                 $result = $limits[$i];
@@ -853,11 +852,11 @@ class bydfi extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    private function do_fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -898,7 +897,7 @@ class bydfi extends Exchange {
             $until = $now;
         } elseif ($until === null) {
             if ($startTime === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since or $until argument');
+                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a since or until argument');
             }
             $until = $startTime . $timeDelta;
             if ($until > $now) {
@@ -1160,7 +1159,7 @@ class bydfi extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1200,7 +1199,7 @@ class bydfi extends Exchange {
         return $this->parse_funding_rate_histories($data, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol": "ETH-USDT",
@@ -1293,16 +1292,16 @@ class bydfi extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrderRequest() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createOrderRequest() requires a side argument');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -1355,7 +1354,7 @@ class bydfi extends Exchange {
             }
         } else {
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for a ' . $type . ' order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for a ' . $type . ' order');
             }
             $request['price'] = $this->price_to_precision($symbol, $price);
             if ($isStopLossOrder) {
@@ -1381,7 +1380,7 @@ class bydfi extends Exchange {
             $params = $this->omit($params, 'closePosition');
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         } elseif (($type !== 'STOP_MARKET') && ($type !== 'TAKE_PROFIT_MARKET')) {
-            throw new NotSupported($this->id . ' createOrder() $closePosition is only supported for stopLoss and takeProfit $market orders');
+            throw new NotSupported($this->id . ' createOrder() closePosition is only supported for stopLoss and takeProfit market orders');
         }
         $timeInForce = $this->handle_time_in_force($params);
         $postOnly = false;
@@ -1412,7 +1411,7 @@ class bydfi extends Exchange {
         return $this->safe_string($types, $workingType, $workingType);
     }
 
-    public function create_orders(array $orders, $params = array()) {
+    public function create_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(self::do_create_orders(...))($orders, $params);
     }
 
@@ -1535,11 +1534,11 @@ class bydfi extends Exchange {
         return $this->parse_orders($data);
     }
 
-    public function create_edit_order_request(?string $id, ?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function create_edit_order_request(?string $id, ?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         $request = array();
         if (($id === null) && ($clientOrderId === null)) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires an $id argument or a $clientOrderId parameter');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires an id argument or a clientOrderId parameter');
         } elseif ($id !== null) {
             $request['orderId'] = $id;
         }
@@ -1573,7 +1572,7 @@ class bydfi extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1642,7 +1641,7 @@ class bydfi extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1717,7 +1716,7 @@ class bydfi extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1728,7 +1727,7 @@ class bydfi extends Exchange {
         );
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if (($id === null) && ($clientOrderId === null)) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires an $id argument or a $clientOrderId parameter');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires an id argument or a clientOrderId parameter');
         } elseif ($id !== null) {
             $request['orderId'] = $id;
         }
@@ -2025,7 +2024,7 @@ class bydfi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_set_leverage(...))($leverage, $symbol, $params);
     }
 
@@ -2042,7 +2041,7 @@ class bydfi extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2076,7 +2075,7 @@ class bydfi extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchLeverage() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2198,7 +2197,7 @@ class bydfi extends Exchange {
         return $this->parse_positions($data, array( $market['symbol'] ));
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // fetchPositions, fetchPositionsForSymbol
         //     {
@@ -2486,7 +2485,7 @@ class bydfi extends Exchange {
         );
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_set_margin_mode(...))($marginMode, $symbol, $params);
     }
 
@@ -2504,11 +2503,11 @@ class bydfi extends Exchange {
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
         }
         $marginMode = strtolower($marginMode);
         if ($marginMode !== 'isolated' && $marginMode !== 'cross') {
-            throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
+            throw new BadRequest($this->id . ' setMarginMode() marginMode argument should be isolated or cross');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2527,7 +2526,7 @@ class bydfi extends Exchange {
         return Async\await($this->privatePostV1FapiUserDataMarginType($this->extend($request, $params)));
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_set_position_mode(...))($hedged, $symbol, $params);
     }
 
@@ -2546,7 +2545,7 @@ class bydfi extends Exchange {
          * @return {array} response from the exchange
          */
         if ($symbol !== null) {
-            throw new NotSupported($this->id . ' setPositionMode() does not support a $symbol argument. The position mode is set identically for all markets with same settle currency');
+            throw new NotSupported($this->id . ' setPositionMode() does not support a symbol argument. The position mode is set identically for all markets with same settle currency');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2719,11 +2718,10 @@ class bydfi extends Exchange {
     }
 
     public function parse_balance(mixed $response): array {
-        $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
         );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -2781,9 +2779,6 @@ class bydfi extends Exchange {
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
         if ($fillResponseFromRequest === true) {
-            $timestamp = $this->milliseconds();
-            $transfer['timestamp'] = $timestamp;
-            $transfer['datetime'] = $this->iso8601($timestamp);
             $transfer['currency'] = $code;
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
@@ -2810,7 +2805,7 @@ class bydfi extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a code argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2960,7 +2955,7 @@ class bydfi extends Exchange {
     private function do_fetch_transactions_helper(mixed $type, mixed $code, mixed $since, mixed $limit, mixed $params) {
         $methodName = ($type === 'deposit') ? 'fetchDeposits' : 'fetchWithdrawals';
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a code argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3103,7 +3098,7 @@ class bydfi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api'][$api];
         $endpoint = '/' . $path;
         $query = '';

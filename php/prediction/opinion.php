@@ -716,7 +716,10 @@ class opinion extends Exchange {
         $bestBid = $this->safe_dict($bids, 0, array());
         $bestAsk = $this->safe_dict($asks, 0, array());
         $last = $this->safe_number($priceResult, 'price');
-        $timestamp = $this->safe_integer($priceResult, 'timestamp', $this->milliseconds());
+        $timestamp = $this->safe_integer($priceResult, 'timestamp');
+        if ($timestamp === 0) {
+            $timestamp = null; // the venue reports timestamp 0 for outcomes that have not traded yet
+        }
         return $this->safe_prediction_ticker(array(
             'outcome' => $this->safe_string($marketAny, 'outcome'),
             'outcomeId' => $this->safe_string_2($marketAny, 'outcomeId', 'id'),
@@ -757,7 +760,7 @@ class opinion extends Exchange {
          * @return {array} a dictionary of [prediction $ticker structures](https://docs.ccxt.com/#/?id=prediction-$ticker-structure) indexed by outcome
          */
         if ($outcomes === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTickers() requires an $outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())');
+            throw new ArgumentsRequired($this->id . ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())');
         }
         Async\await($this->load_outcomes($outcomes));
         $outcomesLength = count($outcomes);
@@ -846,7 +849,7 @@ class opinion extends Exchange {
          */
         if (!(is_array($this->timeframes) && array_key_exists($timeframe ?? '', $this->timeframes))) {
             $supportedKeys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
-            throw new BadRequest($this->id . ' fetchOHLCV() unsupported $timeframe ' . $timeframe . ', supported timeframes are ' . implode(', ', $supportedKeys));
+            throw new BadRequest($this->id . ' fetchOHLCV() unsupported timeframe ' . $timeframe . ', supported timeframes are ' . implode(', ', $supportedKeys));
         }
         $outcomeObj = Async\await($this->load_outcome($outcome));
         $tokenId = $outcomeObj['outcomeId'];
@@ -1004,7 +1007,7 @@ class opinion extends Exchange {
         $priceDenom = '1000000';
         $priceNum = Precise::string_add(Precise::string_mul($priceInt, $priceDenom), str_pad($priceFrac, 6, '0', STR_PAD_RIGHT));
         if ($priceNum === '0') {
-            throw new InvalidOrder($this->id . ' createOrder() invalid $price ' . $priceStr);
+            throw new InvalidOrder($this->id . ' createOrder() invalid price ' . $priceStr);
         }
         $makerRaw = $amountStr;
         if ($side === 'BUY') {
@@ -1050,11 +1053,11 @@ class opinion extends Exchange {
         $sideStr = strtoupper($side);
         if ($price === null) {
             if (!$isMarket) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price for limit orders');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a price for limit orders');
             }
             if ($sideStr === 'SELL') {
                 // the reference (worst acceptable) price the taker amount is computed from
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price for market sell orders');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a price for market sell orders');
             }
         }
         $marketOrderPrice = '0';
@@ -1401,7 +1404,7 @@ class opinion extends Exchange {
         $data = $this->safe_dict($result, 'data', array());
         $market = $this->parse_opinion_market($data);
         if ($market === null) {
-            throw new ExchangeError($this->id . ' loadTradeMarket() could not parse $market ' . $idStr);
+            throw new ExchangeError($this->id . ' loadTradeMarket() could not parse market ' . $idStr);
         }
         if ($this->markets === null) {
             $this->markets = $this->create_safe_dictionary();
@@ -1737,7 +1740,7 @@ class opinion extends Exchange {
         $hasDirectApiKey = !$this->is_empty_string($this->apiKey);
         $apiKey = ($hasDirectApiKey) ? $this->apiKey : $this->safe_string($this->options, 'apiKey');
         if ($apiKey === null) {
-            throw new AuthenticationError($this->id . ' websocket requires an $apiKey - set it directly or call createApiKey()/fetchApiKey() first');
+            throw new AuthenticationError($this->id . ' websocket requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first');
         }
         $wsUrl = $this->safe_string($this->urls['api'], 'ws', '');
         return $wsUrl . '?apikey=' . $apiKey;
@@ -1900,9 +1903,8 @@ class opinion extends Exchange {
         $price = $this->safe_number($message, 'price');
         $size = $this->safe_number($message, 'size');
         $bookSide->storeArray(array( $price, $size ));
-        $now = $this->milliseconds();
-        $orderbook['timestamp'] = $now;
-        $orderbook['datetime'] = $this->iso8601($now);
+        $orderbook['timestamp'] = null;
+        $orderbook['datetime'] = null;
         $client->resolve($orderbook, 'orderbook::' . $sym);
     }
 
@@ -1944,15 +1946,14 @@ class opinion extends Exchange {
         if ($sym === null) {
             return;
         }
-        $now = $this->milliseconds();
         $last = $this->safe_number($message, 'price');
         $ticker = $this->safe_prediction_ticker(array(
             'outcome' => $sym,
             'outcomeId' => $tokenId,
             'label' => $this->safe_string($outcomeObj, 'label'),
             'market' => $this->safe_string($outcomeObj, 'market'),
-            'timestamp' => $now,
-            'datetime' => $this->iso8601($now),
+            'timestamp' => null,
+            'datetime' => null,
             'close' => $last,
             'last' => $last,
             'info' => $message,
@@ -2005,12 +2006,11 @@ class opinion extends Exchange {
         if ($sym === null) {
             return;
         }
-        $now = $this->milliseconds();
         $trade = $this->safe_prediction_trade(array(
             'id' => null,
             'info' => $message,
-            'timestamp' => $now,
-            'datetime' => $this->iso8601($now),
+            'timestamp' => null,
+            'datetime' => null,
             'outcome' => $sym,
             'outcomeId' => $tokenId,
             'label' => $this->safe_string($outcomeObj, 'label'),
@@ -2053,7 +2053,7 @@ class opinion extends Exchange {
          * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
          */
         if ($outcome === null) {
-            throw new ArgumentsRequired($this->id . ' watchOrders() requires an $outcome (the order update channel is per-market)');
+            throw new ArgumentsRequired($this->id . ' watchOrders() requires an outcome (the order update channel is per-market)');
         }
         $outcomeObj = Async\await($this->load_outcome($outcome));
         $info = $this->safe_dict($outcomeObj, 'info', array());
@@ -2170,7 +2170,7 @@ class opinion extends Exchange {
          * @return {array[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
          */
         if ($outcome === null) {
-            throw new ArgumentsRequired($this->id . ' watchMyTrades() requires an $outcome (the trade record channel is per-market)');
+            throw new ArgumentsRequired($this->id . ' watchMyTrades() requires an outcome (the trade record channel is per-market)');
         }
         $outcomeObj = Async\await($this->load_outcome($outcome));
         $info = $this->safe_dict($outcomeObj, 'info', array());
@@ -2294,7 +2294,7 @@ class opinion extends Exchange {
                 $hasDirectApiKey = !$this->is_empty_string($this->apiKey);
                 $apiKey = ($hasDirectApiKey) ? $this->apiKey : $this->safe_string($this->options, 'apiKey');
                 if ($apiKey === null) {
-                    throw new AuthenticationError($this->id . ' ' . $path . ' requires an $apiKey - set it directly or call createApiKey()/fetchApiKey() first');
+                    throw new AuthenticationError($this->id . ' ' . $path . ' requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first');
                 }
                 $headers['apikey'] = $apiKey;
             }

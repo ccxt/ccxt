@@ -436,7 +436,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'rollingWindowSize': 60000.0,
         })
 
-    async def fetch_time(self, params={}) -> Int:
+    async def fetch_time(self, params: dict = {}) -> Int:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-server-time/
@@ -451,7 +451,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'time')
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-markets/
@@ -547,7 +547,7 @@ class bitvavo(Exchange, ImplicitAPI):
             }))
         return result
 
-    async def fetch_currencies(self, params={}) -> Currencies:
+    async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-asset-data/
@@ -687,7 +687,7 @@ class bitvavo(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-candlestick-data-24-h/
@@ -771,7 +771,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-candlestick-data-24-h/
@@ -804,7 +804,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-trades/
@@ -916,7 +916,7 @@ class bitvavo(Exchange, ImplicitAPI):
         id = self.safe_string_2(trade, 'id', 'fillId')
         marketId = self.safe_string(trade, 'market')
         symbol = self.safe_symbol(marketId, market, '-')
-        taker = self.safe_value(trade, 'taker')
+        taker = self.safe_bool(trade, 'taker')
         takerOrMaker = None
         if taker is not None:
             takerOrMaker = 'taker' if (taker is True) else 'maker'
@@ -946,7 +946,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trading_fees(self, params={}) -> TradingFees:
+    async def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-account-fees/
@@ -969,7 +969,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_trading_fees(response)
 
-    def parse_trading_fees(self, fees: object, market: Market = None):
+    def parse_trading_fees(self, fees: dict, market: Market = None) -> dict:
         #
         #     {
         #         "fees": {
@@ -979,7 +979,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        feesValue = self.safe_value(fees, 'fees')
+        feesValue = self.safe_dict(fees, 'fees')
         maker = self.safe_number(feesValue, 'maker')
         taker = self.safe_number(feesValue, 'taker')
         result = {}
@@ -995,7 +995,7 @@ class bitvavo(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+    async def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-market-fees/
@@ -1032,7 +1032,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-order-book/
@@ -1092,7 +1092,7 @@ class bitvavo(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv_request(self, symbol: Str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    def fetch_ohlcv_request(self, symbol: Str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> dict:
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -1112,10 +1112,10 @@ class bitvavo(Exchange, ImplicitAPI):
             request['end'] = self.sum(since, limit * duration * 1000)
         request, params = self.handle_until_option('end', request, params)
         if limit is not None:
-            request['limit'] = limit  # default 1440, max 1440
+            request['limit'] = min(limit, 1440)  # default 1440, max 1440
         return self.extend(request, params)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-candlestick-data/
@@ -1165,7 +1165,7 @@ class bitvavo(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-account-balance/
@@ -1188,7 +1188,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def fetch_accounts(self, params={}) -> list[Account]:
+    async def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """
 
         https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
@@ -1226,7 +1226,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
 
         https://docs.bitvavo.com/docs/institutional-api/create-transfer/
@@ -1282,7 +1282,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[TransferEntry]:
         """
 
         https://docs.bitvavo.com/docs/institutional-api/get-transfers/
@@ -1334,7 +1334,7 @@ class bitvavo(Exchange, ImplicitAPI):
         items = self.safe_list(response, 'items', [])
         return self.parse_transfers(items, currency, since, limit)
 
-    async def fetch_transfer(self, id: str, code: Str = None, params={}) -> TransferEntry:
+    async def fetch_transfer(self, id: str, code: Str = None, params: dict = {}) -> TransferEntry:
         """
 
         https://docs.bitvavo.com/docs/institutional-api/get-transfer/
@@ -1404,7 +1404,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(self.safe_string(transfer, 'status')),
         }
 
-    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    async def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-deposit-data/
@@ -1438,7 +1438,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:
@@ -1454,8 +1454,8 @@ class bitvavo(Exchange, ImplicitAPI):
         timeInForce = self.safe_string(params, 'timeInForce')
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'triggerAmount'])
         postOnly = self.is_post_only(isMarketOrder, False, params)
-        stopLossPrice = self.safe_value(params, 'stopLossPrice')  # trigger when price crosses from above to below this value
-        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')  # trigger when price crosses from below to above this value
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')  # trigger when price crosses from above to below this value
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')  # trigger when price crosses from below to above this value
         params = self.omit(params, ['timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice'])
         if isMarketOrder:
             cost = None
@@ -1508,7 +1508,7 @@ class bitvavo(Exchange, ImplicitAPI):
                 request['selfTradePrevention'] = selfTradePrevention
         return self.extend(request, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1580,7 +1580,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def edit_order_request(self, id: str, symbol: Str, type: object, side: object, amount: Num = None, price: Num = None, params={}):
+    def edit_order_request(self, id: str, symbol: Str, type: Str, side: Str, amount: Num = None, price: Num = None, params: dict = {}) -> dict:
         request = {}
         market = self.market(symbol)
         amountRemaining = self.safe_number(params, 'amountRemaining')
@@ -1609,7 +1609,7 @@ class bitvavo(Exchange, ImplicitAPI):
         request['market'] = market['id']
         return request
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order
 
@@ -1631,7 +1631,7 @@ class bitvavo(Exchange, ImplicitAPI):
         response = await self.privatePutOrder(request)
         return self.parse_order(response, market)
 
-    def cancel_order_request(self, id: Str, symbol: Str = None, params={}):
+    def cancel_order_request(self, id: Str, symbol: Str = None, params: dict = {}) -> dict:
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         market = self.market(symbol)
@@ -1649,7 +1649,7 @@ class bitvavo(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
         return self.extend(request, params)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -1672,7 +1672,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
 
         https://docs.bitvavo.com/docs/rest-api/cancel-orders/
@@ -1705,7 +1705,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market)
 
-    async def cancel_all_orders_after(self, timeout: Int, params={}):
+    async def cancel_all_orders_after(self, timeout: Int, params: dict = {}):
         """
         dead man's switch, cancel all orders after the given timeout
 
@@ -1737,7 +1737,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return response
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -1796,7 +1796,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def fetch_orders_request(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_orders_request(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> dict:
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -1813,7 +1813,7 @@ class bitvavo(Exchange, ImplicitAPI):
         request, params = self.handle_until_option('end', request, params)
         return self.extend(request, params)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-orders/
@@ -1876,7 +1876,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-open-orders/
@@ -2026,7 +2026,7 @@ class bitvavo(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
-        rawTrades = self.safe_value(order, 'fills', [])
+        rawTrades = self.safe_list(order, 'fills', [])
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = self.safe_value(order, 'postOnly')
         # https://github.com/ccxt/ccxt/issues/8489
@@ -2054,7 +2054,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'trades': rawTrades,
         }, market)
 
-    def fetch_my_trades_request(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades_request(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> dict:
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -2071,7 +2071,7 @@ class bitvavo(Exchange, ImplicitAPI):
         request, params = self.handle_until_option('end', request, params)
         return self.extend(request, params)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-trade-history/
@@ -2115,7 +2115,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-transaction-history/
@@ -2219,7 +2219,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'fee': fee,
         }, currency)
 
-    def withdraw_request(self, code: Str, amount: object, address: object, tag: Str = None, params={}):
+    def withdraw_request(self, code: Str, amount: float, address: str, tag: Str = None, params: dict = {}) -> dict:
         currency = self.currency(code)
         request = {
             'symbol': currency['id'],
@@ -2232,7 +2232,7 @@ class bitvavo(Exchange, ImplicitAPI):
             request['paymentId'] = tag
         return self.extend(request, params)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
 
         https://docs.bitvavo.com/docs/rest-api/withdraw-assets/
@@ -2261,7 +2261,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def fetch_withdrawals_request(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_withdrawals_request(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> dict:
         request = {
             # 'symbol': currency['id'],
             # 'limit': 500, // default 500, max 1000
@@ -2278,7 +2278,7 @@ class bitvavo(Exchange, ImplicitAPI):
             request['limit'] = limit  # default 500, max 1000
         return self.extend(request, params)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-withdrawal-history/
@@ -2313,7 +2313,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit, {'type': 'withdrawal'})
 
-    def fetch_deposits_request(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_deposits_request(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> dict:
         request = {
             # 'symbol': currency['id'],
             # 'limit': 500, // default 500, max 1000
@@ -2330,7 +2330,7 @@ class bitvavo(Exchange, ImplicitAPI):
             request['limit'] = limit  # default 500, max 1000
         return self.extend(request, params)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-deposit-history/
@@ -2455,7 +2455,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'internal': None,
         }
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
         #
         #   {
         #       "symbol": "1INCH",
@@ -2485,8 +2485,8 @@ class bitvavo(Exchange, ImplicitAPI):
             },
             'networks': {},
         }
-        networks = self.safe_value(fee, 'networks')
-        networkId = self.safe_value(networks, 0)  # Bitvavo currently only supports one network per currency
+        networks = self.safe_list(fee, 'networks')
+        networkId = self.safe_string(networks, 0)  # Bitvavo currently only supports one network per currency
         currencyCode = self.safe_string(currency, 'code')
         if networkId == 'Mainnet':
             networkId = currencyCode
@@ -2498,7 +2498,7 @@ class bitvavo(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -2532,7 +2532,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes, 'symbol')
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         query = self.omit(params, self.extract_params(path))
         url = '/' + self.version + '/' + self.implode_params(path, params)
         getOrDelete = (method == 'GET') or (method == 'DELETE')
@@ -2578,7 +2578,7 @@ class bitvavo(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config={}):
+    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: object = {}):
         if ('noMarket' in config) and not ('market' in params):
             return config['noMarket']
-        return self.safe_value(config, 'cost', 1)
+        return self.safe_number(config, 'cost', 1)

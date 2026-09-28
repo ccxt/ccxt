@@ -25,23 +25,28 @@ func testFetchCurrenciesBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 	var featuresSpot any = exchange.SafeDict(features, "spot", map[string]any{})
 	var fetchCurrencies any = exchange.SafeDict(featuresSpot, "fetchCurrencies", map[string]any{})
 	var isFetchCurrenciesPrivate any = exchange.SafeValue(fetchCurrencies, "private", false)
-	if !IsEqual(isFetchCurrenciesPrivate, true) {
+	if isFetchCurrenciesPrivate != true {
 		var values []any = ObjectValues(currencies)
 		AssertNonEmtpyArray(exchange, skippedProperties, method, values)
-		var currenciesLength int = GetArrayLength(values)
+		var currenciesLength int = len(values)
 		// ensure exchange returns enough length of currencies
 		var skipAmount bool = (InOp(skippedProperties, "amountOfCurrencies"))
-		Assert(skipAmount || IsGreaterThan(currenciesLength, 5), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return at least several currencies, but it returned "), ToString(currenciesLength)))
+		Assert(skipAmount || (currenciesLength > 5), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return at least several currencies, but it returned "), ToString(currenciesLength)))
 		// allow skipped exchanges
 		var skipActive bool = (InOp(skippedProperties, "activeCurrenciesQuota"))
 		var skipMajorCurrencyCheck bool = (InOp(skippedProperties, "activeMajorCurrencies"))
 		// loop
-		for i := 0; IsLessThan(i, currenciesLength); i++ {
-			var currency any = GetValue(values, i)
+		for i := 0; i < currenciesLength; i++ {
+			var currency any = func() any {
+				if i >= 0 && i < len(values) {
+					return DerefScalar(values[i])
+				}
+				return nil
+			}()
 			TestCurrency(exchange, skippedProperties, method, currency)
 			// detailed check for deposit/withdraw
 			var active any = ccxt.DerefScalar(exchange.SafeBool(currency, "active"))
-			if IsEqual(active, false) {
+			if active == false {
 				numInactiveCurrencies = Add(numInactiveCurrencies, 1)
 			}
 			// ensure that major currencies are active and enabled for deposit and withdrawal
@@ -49,14 +54,14 @@ func testFetchCurrenciesBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 			var withdraw any = ccxt.DerefScalar(exchange.SafeBool(currency, "withdraw"))
 			var deposit any = ccxt.DerefScalar(exchange.SafeBool(currency, "deposit"))
 			var isMicaCompliant any = ccxt.DerefScalar(exchange.SafeBool(exchange.GetOptions(), "mica", false))
-			var skipUsdtForMica bool = (isMicaCompliant == true) && (IsEqual(code, "USDT"))
+			var skipUsdtForMica bool = (isMicaCompliant == true) && (code == "USDT")
 			if EvalTruthy(exchange.InArray(code, requiredActiveCurrencies)) && !skipMajorCurrencyCheck && (skipUsdtForMica != true) {
-				Assert((IsEqual(withdraw, true)) && (IsEqual(deposit, true)), Add(Add(Add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.Json(currency)))
+				Assert((withdraw == true) && (deposit == true), Add(Add(Add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.Json(currency)))
 			}
 		}
 		// check at least X% of currencies are active
 		var inactiveCurrenciesPercentage any = Multiply((Divide(numInactiveCurrencies, currenciesLength)), 100)
-		Assert(skipActive || (IsLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage)), Add(Add(Add(Add("Percentage of inactive currencies is too high at ", ToString(inactiveCurrenciesPercentage)), "% that is more than the allowed maximum of "), ToString(maxInactiveCurrenciesPercentage)), "%"))
+		Assert(skipActive || (IsLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage)), "Percentage of inactive currencies is too high at "+ToString(inactiveCurrenciesPercentage)+"% that is more than the allowed maximum of "+ToString(maxInactiveCurrenciesPercentage)+"%")
 		DetectCurrencyConflicts(exchange, currencies)
 	}
 
@@ -67,7 +72,7 @@ func DetectCurrencyConflicts(exchange ccxt.ICoreExchange, currencyValues any) an
 	// detect if there are currencies with different ids for the same code
 	var ids map[string]any = map[string]any{}
 	var keys []string = ObjectKeys(currencyValues)
-	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
+	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
 		var currency any = GetValue(currencyValues, key)
 		var code any = GetValue(currency, "code")

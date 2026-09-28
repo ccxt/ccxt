@@ -11,7 +11,7 @@ func TestAggregate() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
-	assert(ccxt.IsGreaterThan(exchange.Milliseconds(), 0), "go transpiler workaround")
+	assert((exchange.Milliseconds() > 0), "go transpiler workaround")
 	//
 	exchange.Uuid() // placeholder for astt
 }

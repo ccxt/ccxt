@@ -408,7 +408,7 @@ class coinone extends Exchange {
         $tickers = $this->safe_list($response, 'tickers', array());
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
-            $entry = $this->safe_value($tickers, $i);
+            $entry = $this->safe_dict($tickers, $i);
             $id = $this->safe_string($entry, 'id');
             $baseId = $this->safe_string_upper($entry, 'target_currency');
             $quoteId = $this->safe_string_upper($entry, 'quote_currency');
@@ -848,7 +848,7 @@ class coinone extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -868,7 +868,7 @@ class coinone extends Exchange {
             throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for the limit orders');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for the limit orders');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -896,7 +896,7 @@ class coinone extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          * @param {string} $id order $id
@@ -905,7 +905,7 @@ class coinone extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1116,7 +1116,7 @@ class coinone extends Exchange {
         return $this->parse_orders($openOrders, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all trades made by the user
          * @param {string} $symbol unified $market $symbol
@@ -1126,7 +1126,7 @@ class coinone extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1160,7 +1160,7 @@ class coinone extends Exchange {
         return $this->parse_trades($completeOrders, $market, $since, $limit);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1169,13 +1169,13 @@ class coinone extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . " cancelOrder() requires a $symbol argument. To cancel the order, pass a $symbol argument and array('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument of cancelOrder.");
+            throw new ArgumentsRequired($this->id . " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and array('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the params argument of cancelOrder.");
         }
         $price = $this->safe_number($params, 'price');
         $qty = $this->safe_number($params, 'qty');
         $isAsk = $this->safe_integer($params, 'is_ask');
         if (($price === null) || ($qty === null) || ($isAsk === null)) {
-            throw new ArgumentsRequired($this->id . " cancelOrder() requires array('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument.");
+            throw new ArgumentsRequired($this->id . " cancelOrder() requires array('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the params argument.");
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1232,10 +1232,10 @@ class coinone extends Exchange {
                 continue;
             }
             $parts = explode('_', $key);
-            $currencyId = $this->safe_value($parts, 0);
-            $secondPart = $this->safe_value($parts, 1);
+            $currencyId = $this->safe_string($parts, 0);
+            $secondPart = $this->safe_string($parts, 1);
             $code = $this->safe_currency_code($currencyId);
-            $depositAddress = $this->safe_value($result, $code);
+            $depositAddress = $this->safe_dict($result, $code);
             if ($depositAddress === null) {
                 $depositAddress = array(
                     'info' => $value,
@@ -1260,7 +1260,7 @@ class coinone extends Exchange {
         return $result;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $request = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api']['rest'] . '/';

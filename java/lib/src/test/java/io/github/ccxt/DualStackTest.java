@@ -4,11 +4,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /** Offline dual-stack regression: construction must not set preferIPv4Stack. */
+// Mutates java.net.* system properties; must not overlap other classes.
+@Isolated
 class DualStackTest {
 
     private static final String PROP = "java.net.preferIPv4Stack";

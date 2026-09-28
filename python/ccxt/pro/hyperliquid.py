@@ -10,6 +10,7 @@ from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import RequestTimeout
 
 
 class hyperliquid(ccxt.async_support.hyperliquid):
@@ -57,6 +58,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 },
             },
             'options': {
+                'unsubscribeTimeout': 10000,  # ms a watch waits for a pending unsubscribe ack
             },
             'streaming': {
                 'ping': self.ping,
@@ -70,7 +72,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             },
         })
 
-    async def create_orders_ws(self, orders: list[OrderRequest], params={}):
+    async def create_orders_ws(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
         create a list of trade orders using WebSocket post request
 
@@ -93,7 +95,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         statuses = self.safe_list(data, 'statuses', [])
         return self.parse_orders(statuses, None)
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order using WebSocket post request
 
@@ -125,7 +127,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         parsedOrder = orders[0]
         return parsedOrder
 
-    async def edit_order_ws(self, id: str, symbol: str, type: str, side: str, amount: Num = None, price: Num = None, params={}):
+    async def edit_order_ws(self, id: str, symbol: str, type: str, side: str, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order
 
@@ -164,7 +166,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         parsedOrder = self.parse_order(first, market)
         return parsedOrder
 
-    async def cancel_orders_ws(self, ids: list[str], symbol: Str = None, params={}):
+    async def cancel_orders_ws(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders using WebSocket post request
 
@@ -198,7 +200,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             }))
         return orders
 
-    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancel a single order using WebSocket post request
 
@@ -214,7 +216,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         orders = await self.cancel_orders_ws([id], symbol, params)
         return self.safe_dict(orders, 0)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -239,6 +241,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             },
         }
         message = self.extend(request, params)
+        await self.wait_for_pending_unsubscribe(url, messageHash)
         orderbook = await self.watch(url, messageHash, message, messageHash)
         return orderbook.limit()
 
@@ -259,7 +262,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         subMessageHash = 'orderbook:' + symbol
         messageHash = 'unsubscribe:' + subMessageHash
         url = self.urls['api']['ws']['public']
-        id = str(self.nonce())
+        id = str(self.incrementing_nonce())
         request = {
             'id': id,
             'method': 'unsubscribe',
@@ -271,7 +274,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_order_book(self, client: object, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         #     {
         #         "channel": "l2Book",
@@ -317,7 +320,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
 
         https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
@@ -347,6 +350,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 'coin': market['baseName'] if (market['swap'] is True) else market['id'],
             },
         }
+        await self.wait_for_pending_unsubscribe(url, messageHash)
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
     async def un_watch_ticker(self, symbol: str, params={}) -> object:
@@ -375,7 +379,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -409,6 +413,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             messageHash = 'tickers:' + defaultDex
             request['subscription']['type'] = 'allMids'
             request['subscription']['dex'] = defaultDex
+        # unWatchTickers always registers the bare 'unsubscribe:tickers' hash, dex-scoped or not
+        await self.wait_for_pending_unsubscribe(url, 'tickers')
         tickers = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         if self.newUpdates:
             return self.filter_by_array_tickers(tickers, 'symbol', symbols)
@@ -438,7 +444,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
@@ -473,6 +479,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         if userAddress is None:
             raise ArgumentsRequired(self.id + ' watchMyTrades() requires a user address')
         subscribeHash = 'subscribe:userFills::' + userAddress.lower()
+        # unWatchMyTrades registers 'unsubscribe:myTrades', not the per-user dedup hash
+        await self.wait_for_pending_unsubscribe(url, 'myTrades')
         trades = await self.watch(url, messageHash, message, subscribeHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -509,7 +517,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_ws_tickers(self, client: Client, message: object) -> bool:
+    def handle_ws_tickers(self, client: Client, message: dict) -> bool:
         # hip3 mids
         # {
         #     channel: 'allMids',
@@ -545,7 +553,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             client.resolve(self.tickers, messageHash)
         return True
 
-    def handle_active_asset_ctx(self, client: Client, message: object) -> bool:
+    def handle_active_asset_ctx(self, client: Client, message: dict) -> bool:
         #
         #     {
         #         "channel": "activeAssetCtx",
@@ -583,7 +591,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
     def parse_ws_ticker(self, rawTicker: object, market: Market = None) -> Ticker:
         return self.parse_ticker(rawTicker, market)
 
-    def handle_my_trades(self, client: Client, message: object):
+    def handle_my_trades(self, client: Client, message: dict):
         #
         #     {
         #         "channel": "userFills",
@@ -636,7 +644,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         messageHash = 'myTrades'
         client.resolve(trades, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made in a market
 
@@ -662,6 +670,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             },
         }
         message = self.extend(request, params)
+        await self.wait_for_pending_unsubscribe(url, messageHash)
         trades = await self.watch(url, messageHash, message, messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -694,7 +703,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_trades(self, client: Client, message: object):
+    def handle_trades(self, client: Client, message: dict):
         #
         #     {
         #         "channel": "trades",
@@ -794,7 +803,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'fee': {'cost': fee, 'currency': 'USDC'},
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
 
@@ -822,6 +831,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         }
         messageHash = 'candles:' + timeframe + ':' + symbol
         message = self.extend(request, params)
+        await self.wait_for_pending_unsubscribe(url, messageHash)
         ohlcv = await self.watch(url, messageHash, message, messageHash)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
@@ -856,7 +866,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messagehash, message, messagehash)
 
-    def handle_ohlcv(self, client: Client, message: object):
+    def handle_ohlcv(self, client: Client, message: dict):
         #
         #     {
         #         channel: 'candle',
@@ -907,7 +917,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         payload = self.safe_dict(response, 'payload')
         client.resolve(payload, id)
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
 
@@ -949,6 +959,10 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'subscription': subscription,
         }
         message = self.extend(request, params)
+        # the swap topic 'clearinghouseState' is one server subscription shared
+        # with watchPositions, so a pending unWatchPositions delays this watch
+        # too - its ack tears the shared stream down and sweeps both futures
+        await self.wait_for_pending_unsubscribe(url, topic)
         return await self.watch(url, messageHash, message, topic)
 
     async def un_watch_balance(self, params={}) -> object:
@@ -987,7 +1001,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_balance(self, client: Client, message: object):
+    def handle_balance(self, client: Client, message: dict):
         #
         # spot
         # {
@@ -1042,7 +1056,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         #
         if self.balance is None:
             self.balance = {}
-        topic = self.safe_value(message, 'channel')
+        topic = self.safe_string(message, 'channel')
         messageHash = topic + '::balance'
         info = None
         rawBalances = []
@@ -1071,7 +1085,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         self.balance[account] = self.safe_balance(self.balance[account])
         client.resolve(self.balance[account], messageHash)
 
-    def parse_ws_balance(self, balance: object, accountType: Str = None):
+    def parse_ws_balance(self, balance: dict, accountType: Str = None):
         #
         # spot
         #     {
@@ -1123,7 +1137,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             if code is not None:
                 self.balance[code] = account
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
 
         https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
@@ -1160,6 +1174,10 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'subscription': subscription,
         }
         message = self.extend(request, params)
+        # the topic 'clearinghouseState' is one server subscription shared with
+        # the swap watchBalance, so a pending unWatchBalance delays this watch
+        # too - its ack tears the shared stream down and sweeps both futures
+        await self.wait_for_pending_unsubscribe(url, topic)
         client = self.client(url)
         self.set_positions_cache(client, symbols)
         cache = self.positions
@@ -1173,7 +1191,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             return
         self.positions = ArrayCacheBySymbolBySide()
 
-    def handle_positions(self, client: object, message: object):
+    def handle_positions(self, client: Client, message: dict):
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
@@ -1230,7 +1248,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -1273,6 +1291,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         if userAddress is None:
             raise ArgumentsRequired(self.id + ' watchOrders() requires a user address')
         subscribeHash = 'subscribe:orderUpdates::' + userAddress.lower()
+        # unWatchOrders registers 'unsubscribe:order', not the per-user dedup hash
+        await self.wait_for_pending_unsubscribe(url, 'order')
         orders = await self.watch(url, messageHash, message, subscribeHash)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
@@ -1309,7 +1329,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_order(self, client: Client, message: object):
+    def handle_order(self, client: Client, message: dict):
         #
         #     {
         #         channel: 'orderUpdates',
@@ -1353,7 +1373,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             client.resolve(stored, innerMessageHash)
         client.resolve(stored, messageHash)
 
-    def handle_error_message(self, client: Client, message: object) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
         #    {
         #      "channel": "post",
@@ -1416,6 +1436,34 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             client.reject(e, id)
             return True
         return False
+
+    async def wait_for_pending_unsubscribe(self, url: str, subHash: str) -> object:
+        """
+ @ignore
+        waits for the acknowledgement of a still-pending unsubscribe request for the same subscription before subscribing again — a watch armed inside that window would never send a subscribe(deduplicated against the stale entry) and its future would be rejected by the pending ack, see https://github.com/ccxt/ccxt/issues/30419
+        :param str url: the websocket endpoint the subscription lives on
+        :param str subHash: the subscription hash the watch call is about to register
+        :returns any: resolves once no unsubscribe request is pending for the subscription, or after options.unsubscribeTimeout ms
+        """
+        if url in self.clients:
+            client = self.client(url)
+            unsubHash = 'unsubscribe:' + subHash
+            if unsubHash in client.subscriptions:
+                # share the unWatch caller's future; a lost ack is timed out so the watch cannot hang
+                timeout = self.safe_integer(self.options, 'unsubscribeTimeout', 10000)
+                self.delay(timeout, self.expire_pending_unsubscribe, client, subHash, unsubHash)
+                try:
+                    await client.future(unsubHash)
+                except Exception as e:
+                    if not (isinstance(e, RequestTimeout)):
+                        raise e
+        return None
+
+    async def expire_pending_unsubscribe(self, client: Client, subHash: str, unsubHash: str):
+        if unsubHash in client.subscriptions:
+            error = RequestTimeout(self.id + ' unsubscribe ' + subHash + ' was not acknowledged')
+            client.reject(error, unsubHash)
+            self.clean_unsubscription(client, subHash, unsubHash)
 
     def handle_order_book_unsubscription(self, client: Client, subscription: dict):
         #
@@ -1530,7 +1578,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         if 'spot' in self.balance:
             del self.balance['spot']
 
-    def handle_subscription_response(self, client: Client, message: object):
+    def handle_subscription_response(self, client: Client, message: dict):
         # {
         #     "channel":"subscriptionResponse",
         #     "data":{
@@ -1570,7 +1618,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 self.handle_order_unsubscription(client, subscription)
             elif type == 'userFills':
                 self.handle_my_trades_unsubscription(client, subscription)
-            elif type == 'clearinghoustState':
+            elif type == 'clearinghouseState':
                 self.handle_positions_unsubscription(client, subscription)
             elif type == 'spotState':
                 self.handle_spot_balance_unsubscription(client, subscription)
@@ -1579,7 +1627,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             elif type == 'allMids':
                 self.handle_tickers_unsubscription(client, subscription)
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         #
         # {
         #     "channel":"subscriptionResponse",
@@ -1624,12 +1672,12 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 method(client, message)
                 return
 
-    def ping(self, client: Client):
+    def ping(self, client: Client) -> dict:
         return {
             'method': 'ping',
         }
 
-    def handle_pong(self, client: Client, message: object):
+    def handle_pong(self, client: Client, message: dict) -> dict:
         #
         #   {
         #       "channel": "pong"

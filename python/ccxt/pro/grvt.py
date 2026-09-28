@@ -54,7 +54,7 @@ class grvt(ccxt.async_support.grvt):
             },
         })
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         #
         # confirmation
         #
@@ -120,14 +120,14 @@ class grvt(ccxt.async_support.grvt):
         apiPart = 'publicMarket' if publicOrPrivate else 'privateTrading'
         return await self.watch_multiple(self.urls['api']['ws'][apiPart], messageHashes, payload, rawHashes)
 
-    def request_id(self):
+    def request_id(self) -> float:
         self.lock_id()
         newValue = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = newValue
         self.unlock_id()
         return newValue
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -143,7 +143,7 @@ class grvt(ccxt.async_support.grvt):
         tickers = await self.watch_tickers([symbol], self.extend(params, {'callerMethodName': 'watchTicker'}))
         return tickers[symbol]
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -181,7 +181,7 @@ class grvt(ccxt.async_support.grvt):
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    def handle_ticker(self, client: Client, message: object):
+    def handle_ticker(self, client: Client, message: dict):
         #
         # v1.ticker.s
         #
@@ -268,11 +268,11 @@ class grvt(ccxt.async_support.grvt):
         self.tickers[symbol] = ticker
         client.resolve(ticker, 'ticker::' + symbol)
 
-    def parse_ws_ticker(self, message: object, market: Market = None):
+    def parse_ws_ticker(self, message: dict, market: Market = None) -> Ticker:
         # same dict as REST api
         return self.parse_ticker(message, market)
 
-    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made in a market
 
@@ -286,7 +286,7 @@ class grvt(ccxt.async_support.grvt):
         """
         return self.watch_trades_for_symbols([symbol], since, limit, params)
 
-    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a list of symbols
 
@@ -317,12 +317,12 @@ class grvt(ccxt.async_support.grvt):
         }
         trades = await self.subscribe_multiple(messageHashes, self.extend(params, request), rawHashes)
         if self.newUpdates:
-            first = self.safe_value(trades, 0)
+            first = self.safe_dict(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message: object):
+    def handle_trades(self, client: Client, message: dict):
         #
         #    {
         #        "stream": "v1.trade",
@@ -359,7 +359,7 @@ class grvt(ccxt.async_support.grvt):
         stored.append(parsed)
         client.resolve(stored, 'trade::' + symbol)
 
-    def parse_ws_trade(self, trade: object, market: Market = None):
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         # same as REST api
         return self.parse_trade(trade, market)
 
@@ -383,7 +383,7 @@ class grvt(ccxt.async_support.grvt):
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
         return result[symbol][timeframe]
 
-    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params={}):
+    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params: dict = {}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -418,7 +418,7 @@ class grvt(ccxt.async_support.grvt):
         filtered = self.filter_by_since_limit(stored, since, limit, 0, True)
         return self.create_ohlcv_object(symbol, timeframe, filtered)
 
-    def handle_ohlcv(self, client: Client, message: object):
+    def handle_ohlcv(self, client: Client, message: dict):
         #
         #    {
         #        "stream": "v1.candle",
@@ -449,7 +449,7 @@ class grvt(ccxt.async_support.grvt):
         timeframeId = secondPart.replace('-TRADE', '')
         timeframe = self.find_timeframe(timeframeId)
         messageHash = 'ohlcv::' + symbol + '::' + timeframe
-        self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+        self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
         if not (timeframe in self.ohlcvs[symbol]):
             limit = self.handle_option('watchOHLCV', 'limit', 1000)
             self.ohlcvs[symbol][timeframe] = ArrayCacheByTimestamp(limit)
@@ -463,7 +463,7 @@ class grvt(ccxt.async_support.grvt):
         # same as REST api
         return self.parse_ohlcv(ohlcv, market)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -480,7 +480,7 @@ class grvt(ccxt.async_support.grvt):
         symbol = self.symbol(symbol)
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
-    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -521,7 +521,7 @@ class grvt(ccxt.async_support.grvt):
         orderbook = await self.subscribe_multiple(messageHashes, self.extend(request, params), rawHashes)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         #    {
         #        "stream": "v1.book.s",
@@ -585,7 +585,7 @@ class grvt(ccxt.async_support.grvt):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    async def authenticate(self, params={}):
+    async def authenticate(self, params: dict = {}):
         self.check_required_credentials()
         await self.sign_in()
         wsOptions = self.safe_dict(self.options, 'ws', {})
@@ -608,7 +608,7 @@ class grvt(ccxt.async_support.grvt):
             self.extend_exchange_options(defaultOptions)
             self.client(self.urls['api']['ws']['privateTrading'])
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
@@ -643,7 +643,7 @@ class grvt(ccxt.async_support.grvt):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_my_trade(self, client: Client, message: object):
+    def handle_my_trade(self, client: Client, message: dict):
         #
         #    {
         #        "stream": "v1.fill",
@@ -688,10 +688,10 @@ class grvt(ccxt.async_support.grvt):
         client.resolve(self.myTrades, 'myTrades::' + trade['symbol'])
         client.resolve(self.myTrades, 'myTrades')
 
-    def parse_ws_my_trade(self, trade: object, market: Market = None):
+    def parse_ws_my_trade(self, trade: dict, market: Market = None) -> Trade:
         return self.parse_trade(trade, market)
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
 
         https://api-docs.grvt.io/trading_streams/#positions
@@ -728,7 +728,7 @@ class grvt(ccxt.async_support.grvt):
             return newPositions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
-    def handle_position(self, client: object, message: object):
+    def handle_position(self, client: Client, message: dict):
         #
         #    {
         #        "stream": "v1.position",
@@ -806,7 +806,7 @@ class grvt(ccxt.async_support.grvt):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message: object):
+    def handle_order(self, client: Client, message: dict):
         #
         #    {
         #        "stream": "v1.order",

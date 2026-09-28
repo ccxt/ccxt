@@ -3,14 +3,14 @@ import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, 
 import Client from '../base/ws/Client.js';
 export default class phemex extends phemexRest {
     describe(): any;
-    fromEn(en: any, scale: any): string | undefined;
-    fromEp(ep: any, market?: Market): any;
-    fromEv(ev: any, market?: Market): any;
-    fromEr(er: any, market?: Market): any;
+    fromEn(en: any, scale: any): Str;
+    fromEp(ep: any, market?: Market): Str;
+    fromEv(ev: any, market?: Market): Str;
+    fromEr(er: any, market?: Market): Str;
     requestId(): any;
-    parseSwapTicker(ticker: any, market?: Market): Ticker;
-    parsePerpetualTicker(ticker: any, market?: Market): Ticker;
-    handleTicker(client: Client, message: any): void;
+    parseSwapTicker(ticker: Dict, market?: Market): Ticker;
+    parsePerpetualTicker(ticker: any[], market?: Market): Ticker;
+    handleTicker(client: Client, message: Dict): void;
     /**
      * @method
      * @name phemex#watchBalance
@@ -22,10 +22,10 @@ export default class phemex extends phemexRest {
      * @param {string} [params.settle] set to USDT to use hedged perpetual api
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
-    handleBalance(type: any, client: Client, message: any): void;
-    handleTrades(client: Client, message: any): void;
-    handleOHLCV(client: Client, message: any): void;
+    watchBalance(params?: Dict): Promise<Balances>;
+    handleBalance(type: string, client: Client, message: any[]): void;
+    handleTrades(client: Client, message: Dict): void;
+    handleOHLCV(client: Client, message: Dict): void;
     /**
      * @method
      * @name phemex#watchTicker
@@ -37,7 +37,7 @@ export default class phemex extends phemexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name phemex#watchTickers
@@ -50,7 +50,7 @@ export default class phemex extends phemexRest {
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name phemex#watchTrades
@@ -64,7 +64,7 @@ export default class phemex extends phemexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name phemex#watchOrderBook
@@ -78,7 +78,7 @@ export default class phemex extends phemexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name phemex#watchOHLCV
@@ -93,10 +93,10 @@ export default class phemex extends phemexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    customHandleDelta(bookside: any, delta: any, market?: Market): void;
-    customHandleDeltas(bookside: any, deltas: any, market?: Market): void;
-    handleOrderBook(client: Client, message: any): void;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
+    customHandleDelta(bookside: any, delta: any[], market?: Market): void;
+    customHandleDeltas(bookside: any, deltas: any[], market?: Market): void;
+    handleOrderBook(client: Client, message: Dict): void;
     /**
      * @method
      * @name phemex#watchMyTrades
@@ -108,7 +108,7 @@ export default class phemex extends phemexRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    handleMyTrades(client: Client, message: any): void;
+    handleMyTrades(client: Client, message: any[]): void;
     /**
      * @method
      * @name phemex#watchOrders
@@ -121,9 +121,9 @@ export default class phemex extends phemexRest {
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     handleOrders(client: Client, message: any): void;
-    parseWSSwapOrder(order: any, market?: Market): Order;
-    handleMessage(client: Client, message: any): void;
-    handleAuthenticate(client: Client, message: any): void;
-    subscribePrivate(type: any, messageHash: any, params?: {}): Promise<any>;
-    authenticate(params?: {}): Promise<any>;
+    parseWSSwapOrder(order: Dict, market?: Market): Order;
+    handleMessage(client: Client, message: Dict): void;
+    handleAuthenticate(client: Client, message: Dict): void;
+    subscribePrivate(type: Str, messageHash: string, params?: Dict): Promise<any>;
+    authenticate(params?: Dict): Promise<any>;
 }

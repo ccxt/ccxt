@@ -4,7 +4,6 @@ import testSharedMethods from './base/test.sharedMethods.js';
 import testTrade from './base/test.trade.js';
 import Precise from '../../base/Precise.js';
 
-
 async function testFetchTrades (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'fetchTrades';
     const trades = await exchange.fetchTrades (symbol, undefined, 12000); // test with unrealistically high amount
