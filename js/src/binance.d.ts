@@ -439,6 +439,15 @@ export default class binance extends Exchange {
     /**
      * @method
      * @ignore
+     * @name binance#isConditionalOrder
+     * @description checks whether the order params describe a conditional (trigger, stop loss, take profit or trailing) order
+     * @param {object} [params] the params passed to createOrder
+     * @returns {boolean} true if the order is conditional
+     */
+    isConditionalOrder(params?: Dict): boolean;
+    /**
+     * @method
+     * @ignore
      * @name binance#createOrderRequest
      * @description helper function to build the request
      * @param {string} symbol unified symbol of the market to create an order in
