@@ -571,6 +571,16 @@ const JAVA_STRUCT_RETURN_METHODS = {
     'parseMyUtaTrade': 'io.github.ccxt.types.Trade',
     'parseSpotOrUtaTrade': 'io.github.ccxt.types.Trade',
     'parseContractTrade': 'io.github.ccxt.types.Trade',
+    'parseOrder': 'io.github.ccxt.types.Order',
+    'safeOrder': 'io.github.ccxt.types.Order',
+    'parseWsOrder': 'io.github.ccxt.types.Order',
+    'parseSpotOrder': 'io.github.ccxt.types.Order',
+    'parseSwapOrder': 'io.github.ccxt.types.Order',
+    'parseContractOrder': 'io.github.ccxt.types.Order',
+    'parseUtaOrder': 'io.github.ccxt.types.Order',
+    'parseWsUtaOrder': 'io.github.ccxt.types.Order',
+    'parseWSSwapOrder': 'io.github.ccxt.types.Order',
+    'parseTradingOrder': 'io.github.ccxt.types.Order',
 };
 
 // ===== safeDict locals (JAVA-01) =====
