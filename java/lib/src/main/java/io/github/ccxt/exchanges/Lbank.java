@@ -981,7 +981,8 @@ public class Lbank extends LbankApi
             if (java.util.Objects.equals(market.get("swap"), true))
             {
                 Tickers responseForSwap = (this.fetchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(market.get("symbol")))), parameters)).join();
-                return this.safeDict(responseForSwap, market.get("symbol"), (Object) null);
+                Map<String, Object> swapTicker = (Map<String, Object>) this.safeDict(responseForSwap, market.get("symbol"), (Object) null);
+                return swapTicker;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
@@ -1688,7 +1689,8 @@ public class Lbank extends LbankApi
             }
             Map<String, Object> market = this.market(symbol);
             FundingRates responseForSwap = (this.fetchFundingRates(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(market.get("symbol")))), parameters)).join();
-            return this.safeDict(responseForSwap, market.get("symbol"), (Object) null);
+            Map<String, Object> fundingRate = (Map<String, Object>) this.safeDict(responseForSwap, market.get("symbol"), (Object) null);
+            return fundingRate;
         }).thenApply(FundingRate::new);
 
     }
@@ -1858,7 +1860,8 @@ public class Lbank extends LbankApi
             TradingFees result = (this.fetchTradingFees(this.extend(parameters, new HashMap<String, Object>() {{
                 put( "category", market.get("id") );
             }}))).join();
-            return this.safeDict(result, symbol, (Object) null);
+            Map<String, Object> fee = (Map<String, Object>) this.safeDict(result, symbol, (Object) null);
+            return fee;
         }).thenApply(TradingFeeInterface::new);
 
     }

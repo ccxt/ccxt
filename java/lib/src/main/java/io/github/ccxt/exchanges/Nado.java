@@ -775,7 +775,8 @@ public class Nado extends NadoApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Order> orders = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), symbol, parameters)).join();
-            return this.safeDict(orders, 0, (Object) null);
+            Map<String, Object> canceled = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
+            return canceled;
         }).thenApply(Order::new);
 
     }
@@ -1752,7 +1753,7 @@ public class Nado extends NadoApi
                 mapLiteral2.put("product", product);
                 ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (this.extend(mapLiteral2, position)), (Map<String, Object>) null));
             }
-            return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
+            return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }

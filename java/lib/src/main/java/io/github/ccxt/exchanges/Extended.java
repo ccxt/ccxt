@@ -1044,7 +1044,7 @@ public class Extended extends ExtendedApi
                     tickers.put(symbol, ticker);
                 }
             }
-            return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }

@@ -1266,7 +1266,8 @@ public class Cryptocom extends CryptocomApi
             }
             String symbolValue = this.symbol(symbol);
             Tickers tickers = (this.fetchTickers(new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
-            return this.safeValue(tickers, symbolValue);
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbolValue, (Object) null);
+            return ticker;
         }).thenApply(Ticker::new);
 
     }
@@ -4091,7 +4092,7 @@ public class Cryptocom extends CryptocomApi
                 Map<String, Object> marketInner = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
                 ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (entry), marketInner));
             }
-            return this.filterByArrayPositions(result, "symbol", (Object) null, false);
+            return this.filterByArrayPositions(result, "symbol", (Object) null);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }

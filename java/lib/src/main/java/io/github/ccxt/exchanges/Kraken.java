@@ -1340,7 +1340,7 @@ public class Kraken extends KrakenApi
                 Object ticker = (tickers == null || id == null ? null : tickers.get(id));
                 result.put(symbol, this.parseTicker(ticker, market));
             }
-            return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }
@@ -1646,7 +1646,8 @@ public class Kraken extends KrakenApi
         return BaseExchange.supplyAsync(() -> {
 
             Object items = (this.fetchLedgerEntriesByIds(new ArrayList<Object>(Arrays.asList(id)), code, parameters)).join();
-            return (items == null || 0 >= ((List<?>)items).size() ? null : ((List<?>)items).get(0));
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(items, 0, (Object) null);
+            return entry;
         }).thenApply(LedgerEntry::new);
 
     }
@@ -4108,7 +4109,7 @@ public class Kraken extends KrakenApi
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             List<Object> result = (List<Object>) this.safeList(response, "result", (Object) null);
             Object results = this.parsePositions(result, symbolsNormalized, new HashMap<String, Object>() {{}});
-            return this.filterByArrayPositions(results, "symbol", symbolsNormalized, false);
+            return this.filterByArrayPositions(results, "symbol", symbolsNormalized);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }

@@ -765,7 +765,7 @@ public class Coinmate extends CoinmateApi
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeValue(data, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))), market);
                 result.put((String)market.get("symbol"), ticker);
             }
-            return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }

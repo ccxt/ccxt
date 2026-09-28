@@ -1090,7 +1090,8 @@ public class Bitflyer extends BitflyerApi
             Map<String,Object> ordersById = this.indexBy(orders, "id");
             if (ordersById.containsKey(id))
             {
-                return (ordersById == null || id == null ? null : ordersById.get(id));
+                Map<String, Object> found = (Map<String, Object>) this.safeDict(ordersById, id, (Object) null);
+                return found;
             }
             throw new OrderNotFound(((this.id + " No order found with id ") + id)) ;
         }).thenApply(Order::new);

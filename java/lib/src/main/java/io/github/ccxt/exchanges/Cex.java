@@ -674,7 +674,8 @@ public class Cex extends CexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Tickers response = (this.fetchTickers(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
-            return this.safeDict(response, symbol, new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, symbol, new HashMap<String, Object>() {{}});
+            return ticker;
         }).thenApply(Ticker::new);
 
     }
@@ -1952,12 +1953,13 @@ public class Cex extends CexApi
                 transfer = (this.transferBetweenMainAndSubAccount(code, amount, fromAccount, toAccount, parameters)).join();
             }
             Object fillResponseFromRequest = this.handleOption("transfer", "fillResponseFromRequest", true);
+            Map<String, Object> filled = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
-                ((Map<String, Object>)transfer).put("fromAccount", fromAccount);
-                ((Map<String, Object>)transfer).put("toAccount", toAccount);
+                filled.put("fromAccount", fromAccount);
+                filled.put("toAccount", toAccount);
             }
-            return transfer;
+            return this.extend(transfer, filled);
         }).thenApply(TransferEntry::new);
 
     }

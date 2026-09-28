@@ -4850,7 +4850,8 @@ public class Bitget extends BitgetApi
                 put( "orderId", id );
             }};
             List<Transaction> deposits = (this.fetchDeposits(code, (Long) null, (Long) null, this.extend(request, parameters))).join();
-            return this.safeDict(deposits, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> deposit = (Map<String, Object>) this.safeDict(deposits, 0, new HashMap<String, Object>() {{}});
+            return deposit;
         });
 
     }
@@ -5088,7 +5089,8 @@ public class Bitget extends BitgetApi
                 put( "orderId", id );
             }};
             List<Transaction> withdrawals = (this.fetchWithdrawals(code, (Long) null, (Long) null, this.extend(request, parameters))).join();
-            return this.safeDict(withdrawals, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> withdrawal = (Map<String, Object>) this.safeDict(withdrawals, 0, new HashMap<String, Object>() {{}});
+            return withdrawal;
         });
 
     }
@@ -11570,7 +11572,7 @@ public class Bitget extends BitgetApi
                 ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((position == null || i < 0 || i >= position.size() ? null : position.get(i))), market));
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
+            return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }

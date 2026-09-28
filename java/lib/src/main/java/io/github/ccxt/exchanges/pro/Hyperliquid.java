@@ -538,7 +538,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object tickers = (this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash, null)).join();
             if (this.newUpdates)
             {
-                return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized, true);
+                return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized);
             }
             return this.tickers;
         }).thenApply(Tickers::new);

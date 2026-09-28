@@ -1230,7 +1230,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 String symbol = (String) market.get("symbol");
                 result.put(symbol, this.parseTicker(first, market));
             }
-            return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }

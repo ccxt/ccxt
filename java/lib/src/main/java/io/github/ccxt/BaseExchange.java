@@ -5223,7 +5223,8 @@ public Object describe()
             if (!java.util.Objects.equals(this.has.get("fetchMarginModes"), null) && !java.util.Objects.equals(this.has.get("fetchMarginModes"), false))
             {
                 MarginModes marginModes = (this.fetchMarginModes(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
-                return this.safeDict(marginModes, symbol, (Object) null);
+                Map<String, Object> marginMode = (Map<String, Object>) this.safeDict(marginModes, symbol, (Object) null);
+                return marginMode;
             } else
             {
                 throw new NotSupported((this.id + " fetchMarginMode() is not supported yet")) ;
@@ -5541,7 +5542,8 @@ public Object describe()
             if (!java.util.Objects.equals(this.has.get("fetchLeverages"), null) && !java.util.Objects.equals(this.has.get("fetchLeverages"), false))
             {
                 Leverages leverages = (this.fetchLeverages(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
-                return this.safeDict(leverages, symbol, (Object) null);
+                Map<String, Object> leverage = (Map<String, Object>) this.safeDict(leverages, symbol, (Object) null);
+                return leverage;
             } else
             {
                 throw new NotSupported((this.id + " fetchLeverage() is not supported yet")) ;
@@ -8297,7 +8299,7 @@ public Object describe()
             Map<String, Object> position = this.extend(this.parsePosition((Map<String, Object>) ((positionsArray == null || i < 0 || i >= positionsArray.size() ? null : positionsArray.get(i))), (Map<String, Object>) null), parameters);
             ((List<Object>)result).add(position);
         }
-        return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
+        return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
     }
 
     public Object parseADLRank(Map<String, Object> info, Map<String, Object> market)
@@ -8319,7 +8321,7 @@ public Object describe()
             Map<String, Object> rank = this.extend(this.parseADLRank((Map<String, Object>) ((ranksArray == null || i < 0 || i >= ranksArray.size() ? null : ranksArray.get(i))), (Map<String, Object>) null), parameters);
             ((List<Object>)result).add(rank);
         }
-        return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
+        return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
     }
 
     public List<Object> parseAccounts(Object accounts, Map<String, Object> parameters)
@@ -9217,7 +9219,7 @@ public Object describe()
                 throw new NotSupported((this.id + " fetchCrossBorrowRate() is not supported yet")) ;
             }
             CrossBorrowRates borrowRates = (this.fetchCrossBorrowRates(Helpers.toMapArg(parameters))).join();
-            Object rate = this.safeValue(borrowRates, code);
+            Map<String, Object> rate = (Map<String, Object>) this.safeDict(borrowRates, code, (Object) null);
             if (java.util.Objects.equals(rate, null))
             {
                 throw new ExchangeError(((this.id + " fetchCrossBorrowRate() could not find the borrow rate for currency code ") + code)) ;
@@ -10408,7 +10410,7 @@ public Object describe()
             }
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-        return this.filterByArray(results, "symbol", symbolsNormalized, true);
+        return this.filterByArrayTickers(results, "symbol", symbolsNormalized);
     }
 
     public Object parseDepositAddresses(Object addresses, Object codes, Boolean indexed, Map<String, Object> parameters)
@@ -10508,7 +10510,7 @@ public Object describe()
                 fundingRates.put((String)parsed.get("symbol"), parsed);
             }
         }
-        return this.filterByArray(fundingRates, "symbol", symbols, true);
+        return this.indexBy(this.filterByArray(fundingRates, "symbol", symbols, false), "symbol");
     }
 
     public Object parseLongShortRatio(Map<String, Object> info, Map<String, Object> market)
@@ -10790,7 +10792,7 @@ public Object describe()
                     throw new BadSymbol((this.id + " fetchFundingRate() supports contract markets only")) ;
                 }
                 FundingRates rates = (this.fetchFundingRates(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
-                Object rate = this.safeValue(rates, symbolResolved);
+                Map<String, Object> rate = (Map<String, Object>) this.safeDict(rates, symbolResolved, (Object) null);
                 if (java.util.Objects.equals(rate, null))
                 {
                     throw new NullResponse(((this.id + " fetchFundingRate () returned no data for ") + symbolResolved)) ;
@@ -10821,7 +10823,7 @@ public Object describe()
                     throw new BadSymbol((this.id + " fetchFundingInterval() supports contract markets only")) ;
                 }
                 FundingRates rates = (this.fetchFundingIntervals(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
-                Object rate = this.safeValue(rates, symbolResolved);
+                Map<String, Object> rate = (Map<String, Object>) this.safeDict(rates, symbolResolved, (Object) null);
                 if (java.util.Objects.equals(rate, null))
                 {
                     throw new NullResponse(((this.id + " fetchFundingInterval() returned no data for ") + symbolResolved)) ;
@@ -11193,24 +11195,24 @@ public Object describe()
 
     }
 
-    public Object filterByArrayPositions(Object objects, Object key, Object values, Boolean indexed)
+    public Object filterByArrayPositions(Object objects, Object key, Object values)
     {
         /**
          * @ignore
          * @method
          * @description Typed wrapper for filterByArray that returns a list of positions
          */
-        return this.filterByArray(objects, key, values, java.util.Objects.requireNonNullElse(indexed, true));
+        return this.toArray(this.filterByArray(objects, key, values, false));
     }
 
-    public Object filterByArrayTickers(Object objects, Object key, Object values, Boolean indexed)
+    public Object filterByArrayTickers(Object objects, Object key, Object values)
     {
         /**
          * @ignore
          * @method
          * @description Typed wrapper for filterByArray that returns a dictionary of tickers
          */
-        return this.filterByArray(objects, key, values, java.util.Objects.requireNonNullElse(indexed, true));
+        return this.indexBy(this.filterByArray(objects, key, values, false), key);
     }
 
     public Object filterByArrayADLRanks(Object objects, Object key, Object values, Boolean indexed)

@@ -3287,7 +3287,7 @@ public class Htx extends HtxApi
             //
             List<Object> rawTickers = (List<Object>) this.safeList2(response, "data", "ticks", new ArrayList<Object>(Arrays.asList()));
             Object tickers = this.parseTickers(rawTickers, symbolsNormalized, paramsSubType);
-            return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }
@@ -9934,7 +9934,7 @@ public class Htx extends HtxApi
                     put( "datetime", Htx.this.iso8601(timestamp) );
                 }}));
             }
-            return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
+            return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }

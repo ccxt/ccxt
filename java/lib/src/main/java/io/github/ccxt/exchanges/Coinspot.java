@@ -854,7 +854,7 @@ public class Coinspot extends CoinspotApi
                     result.put(symbol, this.parseTicker(ticker, market));
                 }
             }
-            return this.filterByArrayTickers(result, "symbol", symbols, true);
+            return this.filterByArrayTickers(result, "symbol", symbols);
         }).thenApply(Tickers::new);
 
     }

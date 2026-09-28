@@ -2072,7 +2072,7 @@ public class Whitebit extends WhitebitApi
                 Object symbol = ticker.get("symbol");
                 result.put((String)((String)symbol), ticker);
             }
-            return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }
@@ -4260,7 +4260,8 @@ public class Whitebit extends WhitebitApi
             }
             String symbolValue = this.symbol(symbol);
             FundingRates response = (this.fetchFundingRates(new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
-            return this.safeValue(response, symbolValue);
+            Map<String, Object> fundingRate = (Map<String, Object>) this.safeDict(response, symbolValue, (Object) null);
+            return fundingRate;
         }).thenApply(FundingRate::new);
 
     }

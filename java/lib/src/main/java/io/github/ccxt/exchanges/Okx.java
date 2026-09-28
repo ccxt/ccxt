@@ -5109,7 +5109,8 @@ public class Okx extends OkxApi
             if (Boolean.TRUE.equals(isTrigger) || (java.util.Objects.equals(trailing, true)))
             {
                 List<Order> orderInner = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), symbol, parameters)).join();
-                return this.safeDict(orderInner, 0, (Object) null);
+                Map<String, Object> canceledInner = (Map<String, Object>) this.safeDict(orderInner, 0, (Object) null);
+                return canceledInner;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -7818,7 +7819,7 @@ public class Okx extends OkxApi
             {
                 ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i))), (Map<String, Object>) null));
             }
-            return this.filterByArrayPositions(result, "symbol", this.marketSymbols(symbols, (Object) null, true, false, false), false);
+            return this.filterByArrayPositions(result, "symbol", this.marketSymbols(symbols, (Object) null, true, false, false));
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }

@@ -1649,7 +1649,7 @@ public class Bitteam extends BitteamApi
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, (Map<String, Object>) null);
                 ((List<Object>)tickers).add(ticker);
             }
-            return this.filterByArrayTickers(tickers, "symbol", symbols, true);
+            return this.filterByArrayTickers(tickers, "symbol", symbols);
         }).thenApply(Tickers::new);
 
     }

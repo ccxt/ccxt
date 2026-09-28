@@ -1031,7 +1031,7 @@ public class Backpack extends BackpackApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> response = (this.publicGetApiV1Tickers(this.extend(request, parameters))).join();
             Object tickers = this.parseTickers(response, (List<String>) null, new HashMap<String, Object>() {{}});
-            return this.filterByArrayTickers(tickers, "symbol", symbols, true);
+            return this.filterByArrayTickers(tickers, "symbol", symbols);
         }).thenApply(Tickers::new);
 
     }
@@ -2648,7 +2648,7 @@ public class Backpack extends BackpackApi
                 return positions;
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            return this.filterByArrayPositions(positions, "symbol", symbolsNormalized, false);
+            return this.filterByArrayPositions(positions, "symbol", symbolsNormalized);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }

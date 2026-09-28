@@ -1605,8 +1605,10 @@ public class Phemex extends PhemexApi
             Map<String, Object> book = (Map<String, Object>) this.safeDict2(result, "book", "orderbook_p", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeIntegerProduct(result, "timestamp", 0.000001);
             Object orderbook = this.customParseOrderBook((Map<String, Object>) (book), symbol, timestamp, "bids", "asks", 0, 1, market);
-            Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(result, "sequence"));
-            return orderbook;
+            Long nonce = this.safeInteger(result, "sequence");
+            return this.extend(orderbook, new HashMap<String, Object>() {{
+                put( "nonce", nonce );
+            }});
         }).thenApply(OrderBook::new);
 
     }
@@ -4639,7 +4641,7 @@ public class Phemex extends PhemexApi
                 Object position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (position), (Map<String, Object>) null));
             }
-            return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
+            return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }

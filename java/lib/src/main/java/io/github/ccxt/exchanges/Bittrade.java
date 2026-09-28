@@ -1145,7 +1145,7 @@ public class Bittrade extends BittradeApi
                 ticker.put("datetime", this.iso8601(timestamp));
                 result.put(symbol, ticker);
             }
-            return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }

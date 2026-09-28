@@ -1412,7 +1412,7 @@ public class Hitbtc extends HitbtcApi
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
                 result.put(symbol, this.parseTicker(entry, market));
             }
-            return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }

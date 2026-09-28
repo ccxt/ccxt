@@ -946,7 +946,8 @@ public class Upbit extends UpbitApi
         return BaseExchange.supplyAsync(() -> {
 
             OrderBooks orderbooks = (this.fetchOrderBooks(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), limit, parameters)).join();
-            return this.safeDict(orderbooks, symbol, (Object) null);
+            Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(orderbooks, symbol, (Object) null);
+            return orderbook;
         }).thenApply(OrderBook::new);
 
     }
@@ -1153,7 +1154,8 @@ public class Upbit extends UpbitApi
         return BaseExchange.supplyAsync(() -> {
 
             Tickers tickers = (this.fetchTickers(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
-            return this.safeDict(tickers, symbol, (Object) null);
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbol, (Object) null);
+            return ticker;
         }).thenApply(Ticker::new);
 
     }

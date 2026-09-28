@@ -3050,7 +3050,7 @@ public class Bullish extends BullishApi
             //     ]
             //
             Object results = this.parsePositions(response, symbols, new HashMap<String, Object>() {{}});
-            return this.filterByArrayPositions(results, "symbol", symbols, false);
+            return this.filterByArrayPositions(results, "symbol", symbols);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }

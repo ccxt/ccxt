@@ -161,7 +161,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
                 }
                 return result;
             }
-            return this.filterByArrayTickers(this.tickers, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(this.tickers, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }

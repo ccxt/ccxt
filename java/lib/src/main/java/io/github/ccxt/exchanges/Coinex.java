@@ -4087,7 +4087,7 @@ public class Coinex extends CoinexApi
             {
                 ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((position == null || i < 0 || i >= position.size() ? null : position.get(i))), market));
             }
-            return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
+            return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }

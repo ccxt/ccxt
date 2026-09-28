@@ -8484,7 +8484,7 @@ public class Bybit extends BybitApi
                 }
                 ((List<Object>)results).add(this.parsePosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null));
             }
-            return this.filterByArrayPositions(results, "symbol", symbolsNormalized, false);
+            return this.filterByArrayPositions(results, "symbol", symbolsNormalized);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }

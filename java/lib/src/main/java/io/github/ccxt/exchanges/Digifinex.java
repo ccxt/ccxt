@@ -1412,7 +1412,7 @@ public class Digifinex extends DigifinexApi
                     result.put(symbol, ticker);
                 }
             }
-            return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }
@@ -2518,7 +2518,8 @@ public class Digifinex extends DigifinexApi
                     throw new OrderNotFound((((this.id + " cancelOrder() ") + idValue) + " not found")) ;
                 }
                 Object orders = this.parseCancelOrders((Map<String, Object>) (response));
-                return this.safeDict(orders, 0, (Object) null);
+                Map<String, Object> canceled = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
+                return canceled;
             } else
             {
                 HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
@@ -4520,7 +4521,7 @@ public class Digifinex extends DigifinexApi
             {
                 ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i))), market));
             }
-            return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
+            return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }

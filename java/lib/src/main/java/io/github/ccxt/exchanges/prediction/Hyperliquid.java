@@ -1608,7 +1608,8 @@ public class Hyperliquid extends HyperliquidApi
         return BaseExchange.supplyAsync(() -> {
 
             List<PredictionOrder> orders = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), outcome, parameters)).join();
-            return this.safeDict(orders, 0, (Object) null);
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
+            return first;
         }).thenApply(PredictionOrder::new);
 
     }

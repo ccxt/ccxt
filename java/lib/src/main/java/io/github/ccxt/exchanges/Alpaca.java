@@ -670,29 +670,12 @@ public class Alpaca extends AlpacaApi
             //         next_close: '2023-11-22T16:00:00-05:00'
             //     }
             //
-            String timestamp = this.safeString(response, "timestamp");
+            Long timestamp = this.parse8601(this.safeString(response, "timestamp"));
             if (java.util.Objects.equals(timestamp, null))
             {
                 throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
             }
-            String localTime = (timestamp == null ? null : ((String)timestamp).substring(0, Math.min(23, ((String)timestamp).length())));
-            if (java.util.Objects.equals(timestamp, null))
-            {
-                throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
-            }
-            Long jetlagStrStart = (((long) timestamp.length()) - 6L);
-            if (java.util.Objects.equals(timestamp, null))
-            {
-                throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
-            }
-            Long jetlagStrEnd = (((long) timestamp.length()) - 3L);
-            if (java.util.Objects.equals(timestamp, null))
-            {
-                throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
-            }
-            String jetlag = Helpers.slice(timestamp, jetlagStrStart, jetlagStrEnd);
-            Object iso = Helpers.subtract(this.parseToInt(this.parse8601(localTime)), Helpers.multiply(Helpers.multiply(this.parseToNumeric(jetlag), 3600), 1000));
-            return iso;
+            return timestamp;
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
@@ -1207,7 +1190,8 @@ public class Alpaca extends AlpacaApi
             }
             String symbolValue = this.symbol(symbol);
             Tickers tickers = (this.fetchTickers(new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
-            return this.safeDict(tickers, symbolValue, (Object) null);
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbolValue, (Object) null);
+            return ticker;
         }).thenApply(Ticker::new);
 
     }

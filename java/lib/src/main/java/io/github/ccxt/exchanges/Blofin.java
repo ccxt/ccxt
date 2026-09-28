@@ -3025,7 +3025,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> response = (this.privateGetAccountPositions(parameters)).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object result = this.parsePositions(data, (List<String>) null, new HashMap<String, Object>() {{}});
-            return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
+            return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }

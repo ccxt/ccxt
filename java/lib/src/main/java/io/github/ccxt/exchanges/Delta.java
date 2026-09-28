@@ -1630,7 +1630,7 @@ public class Delta extends DeltaApi
                     result.put(symbol, ticker);
                 }
             }
-            return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }

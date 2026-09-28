@@ -1005,7 +1005,8 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             if (!java.util.Objects.equals(this.has.get("fetchOpenInterests"), null) && !java.util.Objects.equals(this.has.get("fetchOpenInterests"), false))
             {
                 OpenInterests openInterests = (this.fetchOpenInterests(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
-                return this.safeDict(openInterests, symbol, (Object) null);
+                Map<String, Object> openInterest = (Map<String, Object>) this.safeDict(openInterests, symbol, (Object) null);
+                return openInterest;
             } else
             {
                 throw new NotSupported((this.id + " fetchOpenInterest() is not supported yet")) ;
@@ -1874,7 +1875,8 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
                 throw new NotSupported((this.id + " fetchTradingFee() is not supported yet")) ;
             }
             TradingFees fees = (this.fetchTradingFees(parameters)).join();
-            return this.safeDict(fees, symbol, (Object) null);
+            Map<String, Object> fee = (Map<String, Object>) this.safeDict(fees, symbol, (Object) null);
+            return fee;
         }).thenApply(TradingFeeInterface::new);
 
     }

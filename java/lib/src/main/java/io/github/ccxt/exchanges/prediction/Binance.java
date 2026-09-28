@@ -2145,7 +2145,8 @@ public class Binance extends BinanceApi
         return BaseExchange.supplyAsync(() -> {
 
             List<PredictionOrder> orders = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), outcome, parameters)).join();
-            return this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
+            return first;
         }).thenApply(PredictionOrder::new);
 
     }

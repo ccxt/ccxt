@@ -1952,11 +1952,13 @@ public Object describe()
         // `symbol` with the `outcome` handle and attach the outcome identity fields
         // outcomeId and market - so books match the PredictionOrderBook structure.
         String fallback = this.safeString2(orderbook, "outcome", "symbol");
-        Helpers.addElementToObject(orderbook, "outcome", (((java.util.Objects.equals(outcomeObj, null)))) ? fallback : this.safeString(outcomeObj, "outcome", fallback));
-        Helpers.addElementToObject(orderbook, "outcomeId", (((java.util.Objects.equals(outcomeObj, null)))) ? this.safeString(orderbook, "outcomeId") : this.safeString(outcomeObj, "outcomeId"));
-        Helpers.addElementToObject(orderbook, "market", (((java.util.Objects.equals(outcomeObj, null)))) ? this.safeString(orderbook, "market") : this.safeString(outcomeObj, "market"));
+        Map<String, Object> identity = Helpers.newMap(
+            "outcome", (((java.util.Objects.equals(outcomeObj, null)))) ? fallback : this.safeString(outcomeObj, "outcome", fallback),
+            "outcomeId", (((java.util.Objects.equals(outcomeObj, null)))) ? this.safeString(orderbook, "outcomeId") : this.safeString(outcomeObj, "outcomeId"),
+            "market", (((java.util.Objects.equals(outcomeObj, null)))) ? this.safeString(orderbook, "market") : this.safeString(outcomeObj, "market")
+        );
         // omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
-        return this.omit(orderbook, "symbol");
+        return this.extend(this.omit(orderbook, "symbol"), identity);
     }
 
     public Map<String, Object> parsePredictionTicker(Map<String, Object> ticker, Map<String, Object> market)

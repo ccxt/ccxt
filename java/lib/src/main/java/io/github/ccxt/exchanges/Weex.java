@@ -1483,7 +1483,7 @@ public class Weex extends WeexApi
                 Map<String, Object> tickerMarket = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
                 ((List<Object>)results).add(this.parseTicker(rawTicker, tickerMarket));
             }
-            return this.filterByArrayTickers(results, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(results, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }

@@ -1360,7 +1360,8 @@ public class Sxbet extends SxbetApi
             }};
             Map<String, Object> response = (this.sxbetPrivateDeleteOrdersV3(this.extend(request, parameters))).join();
             Object orders = this.parseSxbetCancelResponse((Map<String, Object>) (response));
-            return this.safeDict(orders, 0, (Object) null);
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
+            return first;
         }).thenApply(PredictionOrder::new);
 
     }

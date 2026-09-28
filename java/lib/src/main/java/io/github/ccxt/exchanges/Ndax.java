@@ -1174,7 +1174,7 @@ public class Ndax extends NdaxApi
             //     ]
             //
             Object tickers = this.parseTickers(response, (List<String>) null, new HashMap<String, Object>() {{}});
-            return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }

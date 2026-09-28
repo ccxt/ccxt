@@ -1030,7 +1030,8 @@ public class Bigone extends BigoneApi
             } else
             {
                 Tickers tickers = (this.fetchTickers(new ArrayList<String>(Arrays.asList(symbol)), paramsMarketType)).join();
-                return this.safeValue(tickers, symbol);
+                Map<String, Object> spotTicker = (Map<String, Object>) this.safeDict(tickers, symbol, (Object) null);
+                return spotTicker;
             }
         }).thenApply(Ticker::new);
 
@@ -1109,7 +1110,7 @@ public class Bigone extends BigoneApi
                 data = this.toArray(instruments);
             }
             Object tickers = this.parseTickers(data, symbolsNormalized, new HashMap<String, Object>() {{}});
-            return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }
@@ -1136,12 +1137,12 @@ public class Bigone extends BigoneApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Long timestamp = this.safeInteger(data, "Timestamp");
+            Long timestamp = this.safeIntegerProduct(data, "Timestamp", 0.000001);
             if (java.util.Objects.equals(timestamp, null))
             {
                 throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
             }
-            return this.parseToInt((((double) timestamp) / ((double) 1000000)));
+            return timestamp;
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }

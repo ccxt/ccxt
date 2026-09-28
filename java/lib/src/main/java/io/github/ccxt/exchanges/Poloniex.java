@@ -1628,7 +1628,8 @@ public class Poloniex extends PoloniexApi
             if (java.util.Objects.equals(market.get("contract"), true))
             {
                 Tickers tickers = (this.fetchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(market.get("symbol")))), parameters)).join();
-                return this.safeDict(tickers, symbol, (Object) null);
+                Map<String, Object> contractTicker = (Map<String, Object>) this.safeDict(tickers, symbol, (Object) null);
+                return contractTicker;
             }
             Map<String, Object> response = (this.publicGetMarketsSymbolTicker24h(this.extend(request, parameters))).join();
             //

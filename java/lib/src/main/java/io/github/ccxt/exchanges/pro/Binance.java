@@ -4171,7 +4171,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "method", "handlePositionsWs");
             }};
             List<Object> result = (List<Object>) (this.watch(url, messageHash, message, messageHash, subscription)).join();
-            return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
+            return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }

@@ -1882,7 +1882,7 @@ public class Zebpay extends ZebpayApi
             //
             List<Object> positions = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object result = this.parsePositions(positions, (List<String>) null, new HashMap<String, Object>() {{}});
-            return this.filterByArrayPositions(result, "symbol", symbols, false);
+            return this.filterByArrayPositions(result, "symbol", symbols);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }

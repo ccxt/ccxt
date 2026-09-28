@@ -1926,7 +1926,6 @@ public class Mexc extends MexcApi
             {
                 request.put("limit", limit);
             }
-            Object orderbook = null;
             if (java.util.Objects.equals(market.get("spot"), true))
             {
                 Map<String, Object> response = (this.spotPublicGetDepth(this.extend(request, parameters))).join();
@@ -1944,8 +1943,9 @@ public class Mexc extends MexcApi
                 //     }
                 //
                 Long spotTimestamp = this.safeInteger(response, "timestamp");
-                orderbook = this.parseOrderBook(response, symbol, spotTimestamp, "bids", "asks", 0, 1, 2);
-                Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "lastUpdateId"));
+                Map<String, Object> spotOrderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, spotTimestamp, "bids", "asks", 0, 1, 2);
+                spotOrderbook.put("nonce", this.safeInteger(response, "lastUpdateId"));
+                return spotOrderbook;
             } else if (java.util.Objects.equals(market.get("swap"), true))
             {
                 Map<String, Object> response = (this.contractPublicGetDepthSymbol(this.extend(request, parameters))).join();
@@ -1969,10 +1969,11 @@ public class Mexc extends MexcApi
                 //
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
                 Long timestamp = this.safeInteger(data, "timestamp");
-                orderbook = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
-                Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "version"));
+                Map<String, Object> swapOrderbook = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
+                swapOrderbook.put("nonce", this.safeInteger(data, "version"));
+                return swapOrderbook;
             }
-            return orderbook;
+            throw new NotSupported((((this.id + " fetchOrderBook() does not support ") + market.get("type")) + " markets")) ;
         }).thenApply(OrderBook::new);
 
     }

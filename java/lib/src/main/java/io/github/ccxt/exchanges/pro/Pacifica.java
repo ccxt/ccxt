@@ -766,7 +766,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Object tickers = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             if (this.newUpdates)
             {
-                return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized, true);
+                return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized);
             }
             return this.tickers;
         }).thenApply(Tickers::new);

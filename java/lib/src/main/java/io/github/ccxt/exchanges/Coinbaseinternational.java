@@ -1481,7 +1481,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 return positions;
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            return this.filterByArrayPositions(positions, "symbol", symbolsNormalized, false);
+            return this.filterByArrayPositions(positions, "symbol", symbolsNormalized);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }

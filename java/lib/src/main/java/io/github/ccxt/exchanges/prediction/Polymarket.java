@@ -1847,7 +1847,10 @@ public class Polymarket extends PolymarketApi
             //
             //     1781273248
             //
-            return Helpers.multiply(this.parseToInt(response), 1000);
+            Map<String, Object> result = new HashMap<String, Object>() {{
+                put( "serverTime", response );
+            }};
+            return this.safeTimestamp(result, "serverTime");
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }

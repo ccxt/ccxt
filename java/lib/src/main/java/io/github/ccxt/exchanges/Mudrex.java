@@ -559,7 +559,7 @@ public class Mudrex extends MudrexApi
                 }
                 resultTickers.put(symbol, this.parseTicker(t, m));
             }
-            return this.filterByArrayTickers(resultTickers, "symbol", symbols, true);
+            return this.filterByArrayTickers(resultTickers, "symbol", symbols);
         }).thenApply(Tickers::new);
 
     }
@@ -1350,7 +1350,7 @@ public class Mudrex extends MudrexApi
                 Map<String, Object> pos = (Map<String, Object>) this.parsePosition((Map<String, Object>) (p), m);
                 ((List<Object>)outPos).add(pos);
             }
-            return this.filterByArrayPositions(outPos, "symbol", symbols, false);
+            return this.filterByArrayPositions(outPos, "symbol", symbols);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -1581,8 +1581,8 @@ public class Mudrex extends MudrexApi
             request.put("position_id", positionId);
             request.put("margin", this.costToPrecision(symbol, amount));
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("position_id")));
-            Object response = (this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, paramsOmitted))).join();
-            return response;
+            Map<String, Object> response = (this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, paramsOmitted))).join();
+            return this.extend(response, new HashMap<String, Object>() {{}});
         }).thenApply(MarginModification::new);
 
     }

@@ -6502,7 +6502,7 @@ public class Xt extends XtApi
                 Object merged = this.mergePositionBreakInfo((Map<String, Object>) (entry), (Map<String, Object>) (breakBySymbolSide));
                 ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (merged), marketInner));
             }
-            return this.filterByArrayPositions(result, "symbol", symbols, false);
+            return this.filterByArrayPositions(result, "symbol", symbols);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }

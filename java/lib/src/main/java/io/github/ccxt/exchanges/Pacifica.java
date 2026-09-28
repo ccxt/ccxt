@@ -2687,7 +2687,7 @@ public class Pacifica extends PacificaApi
                     result.put(symbol, ticker);
                 }
             }
-            return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }
@@ -3323,7 +3323,7 @@ public class Pacifica extends PacificaApi
             {
                 ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) null));
             }
-            return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
+            return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -4155,7 +4155,7 @@ public class Pacifica extends PacificaApi
 
     }
 
-    public CompletableFuture<Map<String, Object>> fetchBuilderApprovals(Object address)
+    public CompletableFuture<Object> fetchBuilderApprovals(Object address)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4164,7 +4164,7 @@ public class Pacifica extends PacificaApi
                 put( "account", address );
             }};
             return (this.publicGetAccountBuilderCodesApprovals(this.extend(request))).join();
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

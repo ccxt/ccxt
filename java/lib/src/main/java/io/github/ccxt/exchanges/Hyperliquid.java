@@ -1472,7 +1472,7 @@ public class Hyperliquid extends HyperliquidApi
                 String symbol = this.safeString(ticker, "symbol");
                 result.put((String)symbol, ticker);
             }
-            return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }
@@ -2458,7 +2458,8 @@ public class Hyperliquid extends HyperliquidApi
             var order = ((List<Object>) orderglobalParamsVariable).get(0);
             var globalParams = ((List<Object>) orderglobalParamsVariable).get(1);
             List<Order> orders = (this.createOrders(new ArrayList<Object>(Arrays.asList(order)), Helpers.toMapArg(globalParams))).join();
-            return (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
+            Map<String, Object> created = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
+            return created;
         }).thenApply(Order::new);
 
     }
@@ -2877,7 +2878,8 @@ public class Hyperliquid extends HyperliquidApi
                 return (this.cancelTwapOrder(id, symbol, Helpers.toMapArg(this.omit(parameters, "twap")))).join();
             }
             List<Order> orders = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), symbol, parameters)).join();
-            return this.safeDict(orders, 0, (Object) null);
+            Map<String, Object> canceled = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
+            return canceled;
         }).thenApply(Order::new);
 
     }
@@ -3418,7 +3420,8 @@ public class Hyperliquid extends HyperliquidApi
             var order = ((List<Object>) orderglobalParamsVariable).get(0);
             var globalParams = ((List<Object>) orderglobalParamsVariable).get(1);
             List<Order> orders = (this.editOrders(new ArrayList<Object>(Arrays.asList(order)), Helpers.toMapArg(globalParams))).join();
-            return (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
+            Map<String, Object> edited = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
+            return edited;
         }).thenApply(Order::new);
 
     }
@@ -4473,7 +4476,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) null));
             }
-            return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
+            return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -5561,7 +5564,8 @@ public class Hyperliquid extends HyperliquidApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             OpenInterests ois = (this.fetchOpenInterests(new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
-            return (ois == null || symbolValue == null ? null : ois.get(symbolValue));
+            Map<String, Object> openInterest = (Map<String, Object>) this.safeDict(ois, symbolValue, (Object) null);
+            return openInterest;
         }).thenApply(OpenInterest::new);
 
     }

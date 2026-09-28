@@ -14530,7 +14530,7 @@ public class Binance extends BinanceApi
             {
                 ((List<Object>)result).add(this.parseOptionPosition((Map<String, Object>) ((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i))), market));
             }
-            return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
+            return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
         });
 
     }
@@ -14731,7 +14731,7 @@ public class Binance extends BinanceApi
             Boolean filterClosed = (Boolean) ((List<Object>)this.handleOptionBoolAndParams((Map<String, Object>) (paramsPapi), "fetchAccountPositions", "filterClosed", false)).get(0);
             Object result = this.parseAccountPositions((Map<String, Object>) (response), filterClosed);
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
+            return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
         });
 
     }
@@ -14915,7 +14915,7 @@ public class Binance extends BinanceApi
                 }
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
+            return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -16478,7 +16478,8 @@ public class Binance extends BinanceApi
                 put( "symbol", symbol );
             }};
             IsolatedBorrowRates borrowRates = (this.fetchIsolatedBorrowRates(this.extend(request, parameters))).join();
-            return this.safeDict(borrowRates, symbol, (Object) null);
+            Map<String, Object> rate = (Map<String, Object>) this.safeDict(borrowRates, symbol, (Object) null);
+            return rate;
         }).thenApply(IsolatedBorrowRate::new);
 
     }
@@ -17285,8 +17286,8 @@ public class Binance extends BinanceApi
                 List<Object> result = this.parseOpenInterestsHistory(response, market, (Long) null, (Long) null);
                 for (var i = 0; i < ((List<?>)result).size(); i++)
                 {
-                    Object item = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
-                    if (java.util.Objects.equals(((Map<String, Object>)item).get("symbol"), symbolValue))
+                    Map<String, Object> item = (Map<String, Object>) this.safeDict(result, i, (Object) null);
+                    if (java.util.Objects.equals(this.safeString(item, "symbol"), symbolValue))
                     {
                         return item;
                     }
@@ -17920,7 +17921,8 @@ public class Binance extends BinanceApi
             } else if (java.util.Objects.equals(subType, "inverse"))
             {
                 MarginModes fetchMarginModesResponse = (this.fetchMarginModes(new ArrayList<String>(Arrays.asList(symbol)), paramsSubType)).join();
-                return (fetchMarginModesResponse == null || symbol == null ? null : fetchMarginModesResponse.get(symbol));
+                Map<String, Object> marginMode = (Map<String, Object>) this.safeDict(fetchMarginModesResponse, symbol, (Object) null);
+                return marginMode;
             } else
             {
                 throw new BadRequest((this.id + " fetchMarginMode () supports linear and inverse subTypes only")) ;

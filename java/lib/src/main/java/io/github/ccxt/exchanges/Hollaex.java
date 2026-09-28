@@ -837,7 +837,7 @@ public class Hollaex extends HollaexApi
             String symbol = (String) market.get("symbol");
             result.put(symbol, this.extend(this.parseTicker(ticker, market), parameters));
         }
-        return this.filterByArrayTickers(result, "symbol", symbols, true);
+        return this.filterByArrayTickers(result, "symbol", symbols);
     }
 
     public Ticker parseTicker(Object ticker, Map<String, Object> market)

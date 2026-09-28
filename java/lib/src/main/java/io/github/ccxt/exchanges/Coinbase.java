@@ -2526,7 +2526,7 @@ public class Coinbase extends CoinbaseApi
                 String symbol = (String) market.get("symbol");
                 result.put(symbol, this.parseTicker((rates == null || baseId == null ? null : rates.get(baseId)), market));
             }
-            return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
         });
 
     }
@@ -2611,7 +2611,7 @@ public class Coinbase extends CoinbaseApi
                 String symbol = (String) market.get("symbol");
                 result.put(symbol, this.parseTicker(entry, market));
             }
-            return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
         });
 
     }
@@ -4059,7 +4059,8 @@ public class Coinbase extends CoinbaseApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<Order> orders = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), symbol, parameters)).join();
-            return this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
+            return order;
         }).thenApply(Order::new);
 
     }

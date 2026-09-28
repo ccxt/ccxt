@@ -1156,7 +1156,7 @@ public class Luno extends LunoApi
                 Object ticker = (tickers == null || id == null ? null : tickers.get(id));
                 result.put(symbol, this.parseTicker(ticker, market));
             }
-            return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }

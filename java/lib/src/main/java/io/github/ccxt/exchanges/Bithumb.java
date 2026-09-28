@@ -1345,7 +1345,7 @@ public class Bithumb extends BithumbApi
                     }
                 }
             }
-            return this.filterByArrayTickers(result, "symbol", symbols, true);
+            return this.filterByArrayTickers(result, "symbol", symbols);
         }).thenApply(Tickers::new);
 
     }

@@ -4768,7 +4768,8 @@ public class Hashkey extends HashkeyApi
             if (java.util.Objects.equals(market.get("spot"), true))
             {
                 response = (this.fetchTradingFees(parameters)).join();
-                return this.safeDict(response, symbol, (Object) null);
+                Map<String, Object> fee = (Map<String, Object>) this.safeDict(response, symbol, (Object) null);
+                return fee;
             } else if (java.util.Objects.equals(market.get("swap"), true))
             {
                 response = (this.privateGetApiV1FuturesCommissionRate(this.extend(new HashMap<String, Object>() {{

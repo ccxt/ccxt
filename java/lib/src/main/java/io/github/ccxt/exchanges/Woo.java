@@ -2924,7 +2924,7 @@ public class Woo extends WooApi
                 }}, row);
                 ((List<Object>)result).add(this.parseTicker(ticker, (Map<String, Object>) null));
             }
-            return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }

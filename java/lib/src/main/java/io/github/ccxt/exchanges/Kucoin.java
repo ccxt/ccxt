@@ -3632,7 +3632,7 @@ public class Kucoin extends KucoinApi
                     result.put(symbol, ticker);
                 }
             }
-            return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }
@@ -3717,7 +3717,7 @@ public class Kucoin extends KucoinApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", (Object) null);
             Object tickers = this.parseTickers(data, symbols, new HashMap<String, Object>() {{}});
-            return this.filterByArrayTickers(tickers, "symbol", symbols, true);
+            return this.filterByArrayTickers(tickers, "symbol", symbols);
         }).thenApply(Tickers::new);
 
     }
