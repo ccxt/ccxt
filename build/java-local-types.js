@@ -2160,7 +2160,7 @@ function structReturnSite (printer, node, method) {
             && declaration.initializer !== undefined && ts.isObjectLiteralExpression (unwrapParens (declaration.initializer))) {
             return { open: 'new ' + struct + '(', close: ')' };
         }
-        if (declaration !== undefined && ts.isParameter (declaration) && declaration.parent === method
+        if (declaration !== undefined && declaration.kind === ts.SyntaxKind.Parameter && declaration.parent === method
             && typeName === 'Dict' && declaration.dotDotDotToken === undefined) {
             return { open: 'new ' + struct + '(', close: ')' };
         }
