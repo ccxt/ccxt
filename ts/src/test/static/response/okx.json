@@ -11459,6 +11459,159 @@
                     }
                 ]
             }
+        ],
+        "fetchOpenInterestHistory": [
+            {
+                "description": "linear swap open interest history",
+                "method": "fetchOpenInterestHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        [
+                            "1790550000000",
+                            "2800476.45000000721",
+                            "28006.5419000000704",
+                            "2360916466.88445607832561"
+                        ],
+                        [
+                            "1790546400000",
+                            "2783626.66000000743",
+                            "27836.2666000000743",
+                            "2343515799.66738625526499"
+                        ]
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": [
+                    {
+                        "symbol": "BTC/USDT:USDT",
+                        "baseVolume": 27836.266600000075,
+                        "quoteVolume": null,
+                        "openInterestAmount": 2783626.6600000076,
+                        "openInterestValue": 2343515799.667386,
+                        "timestamp": 1790546400000,
+                        "datetime": "2026-09-27T22:00:00.000Z",
+                        "info": [
+                            "1790546400000",
+                            "2783626.66000000743",
+                            "27836.2666000000743",
+                            "2343515799.66738625526499"
+                        ]
+                    },
+                    {
+                        "symbol": "BTC/USDT:USDT",
+                        "baseVolume": 28006.54190000007,
+                        "quoteVolume": null,
+                        "openInterestAmount": 2800476.450000007,
+                        "openInterestValue": 2360916466.884456,
+                        "timestamp": 1790550000000,
+                        "datetime": "2026-09-27T23:00:00.000Z",
+                        "info": [
+                            "1790550000000",
+                            "2800476.45000000721",
+                            "28006.5419000000704",
+                            "2360916466.88445607832561"
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "currency open interest history",
+                "method": "fetchOpenInterestHistory",
+                "input": [
+                    "BTC",
+                    "1h"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        [
+                            "1790550000000",
+                            "3082688316.027",
+                            "256558194.8862"
+                        ],
+                        [
+                            "1790546400000",
+                            "3112543377.9399",
+                            "91396983.4356"
+                        ]
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": [
+                    {
+                        "symbol": null,
+                        "baseVolume": null,
+                        "quoteVolume": 91396983.4356,
+                        "openInterestAmount": null,
+                        "openInterestValue": 3112543377.9399,
+                        "timestamp": 1790546400000,
+                        "datetime": "2026-09-27T22:00:00.000Z",
+                        "info": [
+                            "1790546400000",
+                            "3112543377.9399",
+                            "91396983.4356"
+                        ]
+                    },
+                    {
+                        "symbol": null,
+                        "baseVolume": null,
+                        "quoteVolume": 256558194.8862,
+                        "openInterestAmount": null,
+                        "openInterestValue": 3082688316.027,
+                        "timestamp": 1790550000000,
+                        "datetime": "2026-09-27T23:00:00.000Z",
+                        "info": [
+                            "1790550000000",
+                            "3082688316.027",
+                            "256558194.8862"
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchLongShortRatioHistory": [
+            {
+                "description": "calendar months keep the earliest entries from since on, okx returns the latest first",
+                "method": "fetchLongShortRatioHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1M",
+                    1769875200000,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        [
+                            "1772294400000",
+                            "2.0610611345694878"
+                        ],
+                        [
+                            "1769875200000",
+                            "2.5161500284761207"
+                        ]
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "timestamp": "1769875200000",
+                            "longShortRatio": "2.5161500284761207"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1769875200000,
+                        "datetime": "2026-01-31T16:00:00.000Z",
+                        "timeframe": null,
+                        "longShortRatio": 2.5161500284761207
+                    }
+                ]
+            }
         ]
     }
 }
