@@ -1128,7 +1128,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         if self.is_empty(symbols):
             return positions
         symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array_positions(positions, 'symbol', symbolsNormalized, False)
+        return self.filter_by_array_positions(positions, 'symbol', symbolsNormalized)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """

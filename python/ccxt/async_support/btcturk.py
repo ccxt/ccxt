@@ -558,7 +558,8 @@ class btcturk(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         tickers = await self.fetch_tickers([symbol], params)
-        return self.safe_dict(tickers, symbol)
+        ticker = self.safe_dict(tickers, symbol)
+        return ticker
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #

@@ -3130,7 +3130,7 @@ class binance(ccxt.async_support.binance):
             'method': self.handle_positions_ws,
         }
         result = await self.watch(url, messageHash, message, messageHash, subscription)
-        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized, False)
+        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     def handle_positions_ws(self, client: Client, message: dict):
         #

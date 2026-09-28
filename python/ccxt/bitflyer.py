@@ -839,7 +839,8 @@ class bitflyer(Exchange, ImplicitAPI):
         orders = self.fetch_orders(symbol)
         ordersById = self.index_by(orders, 'id')
         if id in ordersById:
-            return ordersById[id]
+            found = self.safe_dict(ordersById, id)
+            return found
         raise OrderNotFound(self.id + ' No order found with id ' + id)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:

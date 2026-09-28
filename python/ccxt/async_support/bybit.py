@@ -6472,7 +6472,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 # futures only
                 rawPosition = self.safe_dict(rawPosition, 'data')
             results.append(self.parse_position(rawPosition))
-        return self.filter_by_array_positions(results, 'symbol', symbolsNormalized, False)
+        return self.filter_by_array_positions(results, 'symbol', symbolsNormalized)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
         #

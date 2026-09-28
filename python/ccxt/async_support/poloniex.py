@@ -1316,7 +1316,8 @@ class poloniex(Exchange, ImplicitAPI):
         }
         if market['contract'] is True:
             tickers = await self.fetch_tickers([market['symbol']], params)
-            return self.safe_dict(tickers, symbol)
+            contractTicker = self.safe_dict(tickers, symbol)
+            return contractTicker
         response = await self.publicGetMarketsSymbolTicker24h(self.extend(request, params))
         #
         #     {

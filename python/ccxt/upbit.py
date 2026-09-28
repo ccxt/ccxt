@@ -716,7 +716,8 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         orderbooks = self.fetch_order_books([symbol], limit, params)
-        return self.safe_dict(orderbooks, symbol)
+        orderbook = self.safe_dict(orderbooks, symbol)
+        return orderbook
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
@@ -882,7 +883,8 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         tickers = self.fetch_tickers([symbol], params)
-        return self.safe_dict(tickers, symbol)
+        ticker = self.safe_dict(tickers, symbol)
+        return ticker
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #

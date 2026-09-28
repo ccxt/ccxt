@@ -1245,11 +1245,13 @@ class PredictionExchange(BaseExchange):
         # `symbol` with the `outcome` handle and attach the outcome identity fields
         # outcomeId and market - so books match the PredictionOrderBook structure.
         fallback = self.safe_string_2(orderbook, 'outcome', 'symbol')
-        orderbook['outcome'] = fallback if (outcomeObj is None) else self.safe_string(outcomeObj, 'outcome', fallback)
-        orderbook['outcomeId'] = self.safe_string(orderbook, 'outcomeId') if (outcomeObj is None) else self.safe_string(outcomeObj, 'outcomeId')
-        orderbook['market'] = self.safe_string(orderbook, 'market') if (outcomeObj is None) else self.safe_string(outcomeObj, 'market')
+        identity = {
+            'outcome': fallback if (outcomeObj is None) else self.safe_string(outcomeObj, 'outcome', fallback),
+            'outcomeId': self.safe_string(orderbook, 'outcomeId') if (outcomeObj is None) else self.safe_string(outcomeObj, 'outcomeId'),
+            'market': self.safe_string(orderbook, 'market') if (outcomeObj is None) else self.safe_string(outcomeObj, 'market'),
+        }
         # omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
-        return self.omit(orderbook, 'symbol')
+        return self.extend(self.omit(orderbook, 'symbol'), identity)
 
     def parse_prediction_ticker(self, ticker: dict, market: Market = None):
         raise NotSupported(self.id + ' parsePredictionTicker() is not supported yet')

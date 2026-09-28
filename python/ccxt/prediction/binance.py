@@ -1692,7 +1692,8 @@ class binance(PredictionExchange, ImplicitAPI):
         :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         orders = await self.cancel_orders([id], outcome, params)
-        return self.safe_dict(orders, 0, {})
+        first = self.safe_dict(orders, 0, {})
+        return first
 
     async def cancel_orders(self, ids: list[str], outcome: Str = None, params: dict = {}) -> list[PredictionOrder]:
         """

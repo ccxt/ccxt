@@ -948,7 +948,8 @@ class cryptocom(Exchange, ImplicitAPI):
             self.load_markets()
         symbolValue = self.symbol(symbol)
         tickers = self.fetch_tickers([symbolValue], params)
-        return self.safe_value(tickers, symbolValue)
+        ticker = self.safe_dict(tickers, symbolValue)
+        return ticker
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -3157,7 +3158,7 @@ class cryptocom(Exchange, ImplicitAPI):
             marketId = self.safe_string(entry, 'instrument_name')
             marketInner = self.safe_market(marketId, None, None, 'contract')
             result.append(self.parse_position(entry, marketInner))
-        return self.filter_by_array_positions(result, 'symbol', None, False)
+        return self.filter_by_array_positions(result, 'symbol', None)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
         #

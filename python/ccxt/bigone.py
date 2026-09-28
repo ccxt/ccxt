@@ -912,7 +912,8 @@ class bigone(Exchange, ImplicitAPI):
             return self.parse_ticker(ticker, market)
         else:
             tickers = self.fetch_tickers([symbol], paramsMarketType)
-            return self.safe_value(tickers, symbol)
+            spotTicker = self.safe_dict(tickers, symbol)
+            return spotTicker
 
     def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -1017,10 +1018,10 @@ class bigone(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        timestamp = self.safe_integer(data, 'Timestamp')
+        timestamp = self.safe_integer_product(data, 'Timestamp', 0.000001)
         if timestamp is None:
             raise ExchangeError(self.id + ' fetchTime() missing timestamp')
-        return self.parse_to_int(timestamp / 1000000)
+        return timestamp
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """

@@ -566,7 +566,8 @@ class cex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         response = await self.fetch_tickers([symbol], params)
-        return self.safe_dict(response, symbol, {})
+        ticker = self.safe_dict(response, symbol, {})
+        return ticker
 
     async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -1563,10 +1564,11 @@ class cex(Exchange, ImplicitAPI):
         else:
             transfer = await self.transfer_between_main_and_sub_account(code, amount, fromAccount, toAccount, params)
         fillResponseFromRequest = self.handle_option('transfer', 'fillResponseFromRequest', True)
+        filled = {}
         if fillResponseFromRequest is True:
-            transfer['fromAccount'] = fromAccount
-            transfer['toAccount'] = toAccount
-        return transfer
+            filled['fromAccount'] = fromAccount
+            filled['toAccount'] = toAccount
+        return self.extend(transfer, filled)
 
     async def transfer_between_main_and_sub_account(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         if self.markets is None:

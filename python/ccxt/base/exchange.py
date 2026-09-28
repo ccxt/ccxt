@@ -3586,7 +3586,8 @@ class BaseExchange(object):
     def fetch_margin_mode(self, symbol: str, params: dict = {}):
         if self.has['fetchMarginModes'] is not None and self.has['fetchMarginModes'] is not False:
             marginModes = self.fetch_margin_modes([symbol], params)
-            return self.safe_dict(marginModes, symbol)
+            marginMode = self.safe_dict(marginModes, symbol)
+            return marginMode
         else:
             raise NotSupported(self.id + ' fetchMarginMode() is not supported yet')
 
@@ -3723,7 +3724,8 @@ class BaseExchange(object):
     def fetch_leverage(self, symbol: str, params: dict = {}):
         if self.has['fetchLeverages'] is not None and self.has['fetchLeverages'] is not False:
             leverages = self.fetch_leverages([symbol], params)
-            return self.safe_dict(leverages, symbol)
+            leverage = self.safe_dict(leverages, symbol)
+            return leverage
         else:
             raise NotSupported(self.id + ' fetchLeverage() is not supported yet')
 
@@ -5541,7 +5543,7 @@ class BaseExchange(object):
         for i in range(0, len(positionsArray)):
             position = self.extend(self.parse_position(positionsArray[i]), params)
             result.append(position)
-        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized, False)
+        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     def parse_adl_rank(self, info: dict, market: Market = None):
         if info is None:
@@ -5555,7 +5557,7 @@ class BaseExchange(object):
         for i in range(0, len(ranksArray)):
             rank = self.extend(self.parse_adl_rank(ranksArray[i]), params)
             result.append(rank)
-        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized, False)
+        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     def parse_accounts(self, accounts: list, params: dict = {}):
         accountsArray = self.to_array(accounts)
@@ -6068,7 +6070,7 @@ class BaseExchange(object):
         if self.has['fetchBorrowRates'] is None or self.has['fetchBorrowRates'] is False:
             raise NotSupported(self.id + ' fetchCrossBorrowRate() is not supported yet')
         borrowRates = self.fetch_cross_borrow_rates(params)
-        rate = self.safe_value(borrowRates, code)
+        rate = self.safe_dict(borrowRates, code)
         if rate is None:
             raise ExchangeError(self.id + ' fetchCrossBorrowRate() could not find the borrow rate for currency code ' + code)
         return rate
@@ -6768,7 +6770,7 @@ class BaseExchange(object):
                 ticker = self.extend(parsed, params)
                 results.append(ticker)
         symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array(results, 'symbol', symbolsNormalized)
+        return self.filter_by_array_tickers(results, 'symbol', symbolsNormalized)
 
     def parse_deposit_addresses(self, addresses: object, codes: Strings = None, indexed=True, params: dict = {}):
         result = []
@@ -6832,7 +6834,7 @@ class BaseExchange(object):
             parsed = self.parse_funding_rate(entry)
             if parsed['symbol'] is not None:
                 fundingRates[parsed['symbol']] = parsed
-        return self.filter_by_array(fundingRates, 'symbol', symbols)
+        return self.index_by(self.filter_by_array(fundingRates, 'symbol', symbols, False), 'symbol')
 
     def parse_long_short_ratio(self, info: dict, market: Market = None):
         raise NotSupported(self.id + ' parseLongShortRatio() is not supported yet')
@@ -7004,7 +7006,7 @@ class BaseExchange(object):
             if market['contract'] is not True:
                 raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
             rates = self.fetch_funding_rates([symbolResolved], params)
-            rate = self.safe_value(rates, symbolResolved)
+            rate = self.safe_dict(rates, symbolResolved)
             if rate is None:
                 raise NullResponse(self.id + ' fetchFundingRate () returned no data for ' + symbolResolved)
             else:
@@ -7020,7 +7022,7 @@ class BaseExchange(object):
             if market['contract'] is not True:
                 raise BadSymbol(self.id + ' fetchFundingInterval() supports contract markets only')
             rates = self.fetch_funding_intervals([symbolResolved], params)
-            rate = self.safe_value(rates, symbolResolved)
+            rate = self.safe_dict(rates, symbolResolved)
             if rate is None:
                 raise NullResponse(self.id + ' fetchFundingInterval() returned no data for ' + symbolResolved)
             else:
@@ -7267,19 +7269,19 @@ class BaseExchange(object):
         else:
             raise NotSupported(self.id + ' fetchTransactions () is not supported yet')
 
-    def filter_by_array_positions(self, objects: object, key: IndexType, values: object = None, indexed=True):
+    def filter_by_array_positions(self, objects: object, key: IndexType, values: object = None):
         """
  @ignore
         Typed wrapper for filterByArray that returns a list of positions
         """
-        return self.filter_by_array(objects, key, values, indexed)
+        return self.to_array(self.filter_by_array(objects, key, values, False))
 
-    def filter_by_array_tickers(self, objects: object, key: IndexType, values: object = None, indexed=True):
+    def filter_by_array_tickers(self, objects: object, key: IndexType, values: object = None):
         """
  @ignore
         Typed wrapper for filterByArray that returns a dictionary of tickers
         """
-        return self.filter_by_array(objects, key, values, indexed)
+        return self.index_by(self.filter_by_array(objects, key, values, False), key)
 
     def filter_by_array_adl_ranks(self, objects: object, key: IndexType, values: object = None, indexed=True):
         """
@@ -8431,7 +8433,8 @@ class Exchange(BaseExchange):
     def fetch_open_interest(self, symbol: str, params: dict = {}):
         if self.has['fetchOpenInterests'] is not None and self.has['fetchOpenInterests'] is not False:
             openInterests = self.fetch_open_interests([symbol], params)
-            return self.safe_dict(openInterests, symbol)
+            openInterest = self.safe_dict(openInterests, symbol)
+            return openInterest
         else:
             raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
 
@@ -8807,4 +8810,5 @@ class Exchange(BaseExchange):
         if self.has['fetchTradingFees'] is None or self.has['fetchTradingFees'] is False:
             raise NotSupported(self.id + ' fetchTradingFee() is not supported yet')
         fees = self.fetch_trading_fees(params)
-        return self.safe_dict(fees, symbol)
+        fee = self.safe_dict(fees, symbol)
+        return fee

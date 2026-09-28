@@ -805,7 +805,8 @@ class lbank(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['swap'] is True:
             responseForSwap = self.fetch_tickers([market['symbol']], params)
-            return self.safe_dict(responseForSwap, market['symbol'])
+            swapTicker = self.safe_dict(responseForSwap, market['symbol'])
+            return swapTicker
         request = {
             'symbol': market['id'],
         }
@@ -1400,7 +1401,8 @@ class lbank(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         responseForSwap = self.fetch_funding_rates([market['symbol']], params)
-        return self.safe_dict(responseForSwap, market['symbol'])
+        fundingRate = self.safe_dict(responseForSwap, market['symbol'])
+        return fundingRate
 
     def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
@@ -1535,7 +1537,8 @@ class lbank(Exchange, ImplicitAPI):
         """
         market = self.market(symbol)
         result = self.fetch_trading_fees(self.extend(params, {'category': market['id']}))
-        return self.safe_dict(result, symbol)
+        fee = self.safe_dict(result, symbol)
+        return fee
 
     def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """

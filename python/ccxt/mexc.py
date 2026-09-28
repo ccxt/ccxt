@@ -1519,7 +1519,6 @@ class mexc(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
-        orderbook = None
         if market['spot'] is True:
             response = self.spotPublicGetDepth(self.extend(request, params))
             #
@@ -1536,8 +1535,9 @@ class mexc(Exchange, ImplicitAPI):
             #     }
             #
             spotTimestamp = self.safe_integer(response, 'timestamp')
-            orderbook = self.parse_order_book(response, symbol, spotTimestamp)
-            orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
+            spotOrderbook = self.parse_order_book(response, symbol, spotTimestamp)
+            spotOrderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
+            return spotOrderbook
         elif market['swap'] is True:
             response = self.contractPublicGetDepthSymbol(self.extend(request, params))
             #
@@ -1560,9 +1560,10 @@ class mexc(Exchange, ImplicitAPI):
             #
             data = self.safe_dict(response, 'data')
             timestamp = self.safe_integer(data, 'timestamp')
-            orderbook = self.parse_order_book(data, symbol, timestamp)
-            orderbook['nonce'] = self.safe_integer(data, 'version')
-        return orderbook
+            swapOrderbook = self.parse_order_book(data, symbol, timestamp)
+            swapOrderbook['nonce'] = self.safe_integer(data, 'version')
+            return swapOrderbook
+        raise NotSupported(self.id + ' fetchOrderBook() does not support ' + market['type'] + ' markets')
 
     def parse_order_book_bid_ask(self, bidask: object, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         countKey = 2

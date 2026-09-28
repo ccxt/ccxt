@@ -1283,7 +1283,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
         #
         #     1781273248
         #
-        return self.parse_to_int(response) * 1000
+        result = {'serverTime': response}
+        return self.safe_timestamp(result, 'serverTime')
 
     async def fetch_status(self, params: dict = {}) -> object:
         """

@@ -481,21 +481,10 @@ class alpaca(Exchange, ImplicitAPI):
         #         next_close: '2023-11-22T16:00:00-05:00'
         #     }
         #
-        timestamp = self.safe_string(response, 'timestamp')
+        timestamp = self.parse8601(self.safe_string(response, 'timestamp'))
         if timestamp is None:
             raise ExchangeError(self.id + ' fetchTime() missing timestamp')
-        localTime = timestamp[0:23]
-        if timestamp is None:
-            raise ExchangeError(self.id + ' fetchTime() missing timestamp')
-        jetlagStrStart = len(timestamp) - 6
-        if timestamp is None:
-            raise ExchangeError(self.id + ' fetchTime() missing timestamp')
-        jetlagStrEnd = len(timestamp) - 3
-        if timestamp is None:
-            raise ExchangeError(self.id + ' fetchTime() missing timestamp')
-        jetlag = timestamp[jetlagStrStart:jetlagStrEnd]
-        iso = self.parse_to_int(self.parse8601(localTime)) - self.parse_to_numeric(jetlag) * 3600 * 1000
-        return iso
+        return timestamp
 
     async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
@@ -930,7 +919,8 @@ class alpaca(Exchange, ImplicitAPI):
             await self.load_markets()
         symbolValue = self.symbol(symbol)
         tickers = await self.fetch_tickers([symbolValue], params)
-        return self.safe_dict(tickers, symbolValue)
+        ticker = self.safe_dict(tickers, symbolValue)
+        return ticker
 
     async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """

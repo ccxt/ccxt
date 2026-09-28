@@ -2460,7 +2460,7 @@ class bullish(Exchange, ImplicitAPI):
         #     ]
         #
         results = self.parse_positions(response, symbols)
-        return self.filter_by_array_positions(results, 'symbol', symbols, False)
+        return self.filter_by_array_positions(results, 'symbol', symbols)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
         #

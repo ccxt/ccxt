@@ -2086,7 +2086,7 @@ class backpack(Exchange, ImplicitAPI):
         if self.is_empty(symbols):
             return positions
         symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array_positions(positions, 'symbol', symbolsNormalized, False)
+        return self.filter_by_array_positions(positions, 'symbol', symbolsNormalized)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
         #

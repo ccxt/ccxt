@@ -11212,7 +11212,7 @@ class binance(Exchange, ImplicitAPI):
         positions = self.to_array(response)
         for i in range(0, len(positions)):
             result.append(self.parse_option_position(positions[i], market))
-        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized, False)
+        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     def parse_option_position(self, position: dict, market: Market = None):
         #
@@ -11424,7 +11424,7 @@ class binance(Exchange, ImplicitAPI):
         filterClosed = self.handle_option_bool_and_params(paramsPapi, 'fetchAccountPositions', 'filterClosed', False)[0]
         result = self.parse_account_positions(response, filterClosed)
         symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized, False)
+        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     def fetch_positions_risk(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
@@ -11596,7 +11596,7 @@ class binance(Exchange, ImplicitAPI):
             if Precise.string_gt(entryPriceString, '0'):
                 result.append(self.parse_position_risk(rawPosition))
         symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized, False)
+        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:
         """
@@ -12688,7 +12688,8 @@ class binance(Exchange, ImplicitAPI):
             'symbol': symbol,
         }
         borrowRates = self.fetch_isolated_borrow_rates(self.extend(request, params))
-        return self.safe_dict(borrowRates, symbol)
+        rate = self.safe_dict(borrowRates, symbol)
+        return rate
 
     def fetch_isolated_borrow_rates(self, params: dict = {}) -> IsolatedBorrowRates:
         """
@@ -13336,8 +13337,8 @@ class binance(Exchange, ImplicitAPI):
             symbolValue = market['symbol']
             result = self.parse_open_interests_history(response, market)
             for i in range(0, len(result)):
-                item = result[i]
-                if item['symbol'] == symbolValue:
+                item = self.safe_dict(result, i)
+                if self.safe_string(item, 'symbol') == symbolValue:
                     return item
             raise NullResponse(self.id + ' fetchOpenInterest() could not find open interest for ' + symbolValue)
         else:
@@ -13890,7 +13891,8 @@ class binance(Exchange, ImplicitAPI):
             #
         elif subType == 'inverse':
             fetchMarginModesResponse = self.fetch_margin_modes([symbol], paramsSubType)
-            return fetchMarginModesResponse[symbol]
+            marginMode = self.safe_dict(fetchMarginModesResponse, symbol)
+            return marginMode
         else:
             raise BadRequest(self.id + ' fetchMarginMode () supports linear and inverse subTypes only')
         if response is None:

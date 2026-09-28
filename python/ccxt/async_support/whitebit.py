@@ -3278,7 +3278,8 @@ class whitebit(Exchange, ImplicitAPI):
             await self.load_markets()
         symbolValue = self.symbol(symbol)
         response = await self.fetch_funding_rates([symbolValue], params)
-        return self.safe_value(response, symbolValue)
+        fundingRate = self.safe_dict(response, symbolValue)
+        return fundingRate
 
     async def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """

@@ -1628,7 +1628,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         response = await self.privateDeleteOrders(self.extend(request, params))
         return [self.safe_order({'info': response})]
 
-    async def fetch_payment_methods(self, params: dict = {}) -> dict:
+    async def fetch_payment_methods(self, params: dict = {}) -> list[dict]:
         return await self.privateGetPaymentMethods(params)
 
     async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:

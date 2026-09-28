@@ -4189,7 +4189,8 @@ class hashkey(Exchange, ImplicitAPI):
         response = None
         if market['spot'] is True:
             response = await self.fetch_trading_fees(params)
-            return self.safe_dict(response, symbol)
+            fee = self.safe_dict(response, symbol)
+            return fee
         elif market['swap'] is True:
             response = await self.privateGetApiV1FuturesCommissionRate(self.extend({'symbol': market['id']}, params))
             return self.parse_trading_fee(response, market)

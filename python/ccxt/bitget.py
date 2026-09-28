@@ -3079,7 +3079,8 @@ class bitget(Exchange, ImplicitAPI):
             'orderId': id,
         }
         deposits = self.fetch_deposits(code, None, None, self.extend(request, params))
-        return self.safe_dict(deposits, 0, {})
+        deposit = self.safe_dict(deposits, 0, {})
+        return deposit
 
     def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
@@ -3261,7 +3262,8 @@ class bitget(Exchange, ImplicitAPI):
             'orderId': id,
         }
         withdrawals = self.fetch_withdrawals(code, None, None, self.extend(request, params))
-        return self.safe_dict(withdrawals, 0, {})
+        withdrawal = self.safe_dict(withdrawals, 0, {})
+        return withdrawal
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
@@ -8543,7 +8545,7 @@ class bitget(Exchange, ImplicitAPI):
         for i in range(0, len(position)):
             result.append(self.parse_position(position[i], market))
         symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized, False)
+        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
         #

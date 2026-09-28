@@ -1957,7 +1957,8 @@ class digifinex(Exchange, ImplicitAPI):
             if numCanceledOrders != 1:
                 raise OrderNotFound(self.id + ' cancelOrder() ' + idValue + ' not found')
             orders = self.parse_cancel_orders(response)
-            return self.safe_dict(orders, 0)
+            canceled = self.safe_dict(orders, 0)
+            return canceled
         else:
             return self.safe_order({
                 'info': response,
@@ -3529,7 +3530,7 @@ class digifinex(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(positions)):
             result.append(self.parse_position(positions[i], market))
-        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized, False)
+        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """

@@ -1033,7 +1033,8 @@ class sxbet(PredictionExchange, ImplicitAPI):
         request = {'orders': [{'orderId': id}]}
         response = await self.sxbetPrivateDeleteOrdersV3(self.extend(request, params))
         orders = self.parse_sxbet_cancel_response(response)
-        return self.safe_dict(orders, 0)
+        first = self.safe_dict(orders, 0)
+        return first
 
     async def cancel_orders(self, ids: list[str], outcome: Str = None, params: dict = {}) -> list[PredictionOrder]:
         """

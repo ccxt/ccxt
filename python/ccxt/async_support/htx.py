@@ -7708,7 +7708,7 @@ class htx(Exchange, ImplicitAPI):
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             }))
-        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized, False)
+        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     async def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """

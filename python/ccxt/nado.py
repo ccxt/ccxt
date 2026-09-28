@@ -641,7 +641,8 @@ class nado(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         orders = self.cancel_orders([id], symbol, params)
-        return self.safe_dict(orders, 0)
+        canceled = self.safe_dict(orders, 0)
+        return canceled
 
     def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -1454,7 +1455,7 @@ class nado(Exchange, ImplicitAPI):
                     product = rawProduct
                     break
             result.append(self.parse_position(self.extend({'product': product}, position)))
-        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized, False)
+        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     def fetch_time(self, params: dict = {}) -> Int:
         """

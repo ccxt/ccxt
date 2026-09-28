@@ -1431,7 +1431,7 @@ class zebpay(Exchange, ImplicitAPI):
         #
         positions = self.safe_list(response, 'data', [])
         result = self.parse_positions(positions)
-        return self.filter_by_array_positions(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols)
 
     def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """

@@ -2013,7 +2013,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             self.load_markets()
         order, globalParams = self.parse_create_edit_order_args(None, symbol, type, side, amount, price, params)
         orders = self.create_orders([order], globalParams)
-        return orders[0]
+        created = self.safe_dict(orders, 0)
+        return created
 
     def create_twap_order(self, symbol: str, side: OrderSide, amount: float, duration: float, params: dict = {}) -> Order:
         """
@@ -2326,7 +2327,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         if self.safe_bool(params, 'twap', False):
             return self.cancel_twap_order(id, symbol, self.omit(params, 'twap'))
         orders = self.cancel_orders([id], symbol, params)
-        return self.safe_dict(orders, 0)
+        canceled = self.safe_dict(orders, 0)
+        return canceled
 
     def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -2740,7 +2742,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' editOrder() requires an id argument')
         order, globalParams = self.parse_create_edit_order_args(id, symbol, type, side, amount, price, params)
         orders = self.edit_orders([order], globalParams)
-        return orders[0]
+        edited = self.safe_dict(orders, 0)
+        return edited
 
     def edit_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
@@ -3558,7 +3561,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(data)):
             result.append(self.parse_position(data[i]))
-        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized, False)
+        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
         #
@@ -4413,7 +4416,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         ois = self.fetch_open_interests([symbolValue], params)
-        return ois[symbolValue]
+        openInterest = self.safe_dict(ois, symbolValue)
+        return openInterest
 
     def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
         #

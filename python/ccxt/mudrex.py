@@ -964,7 +964,7 @@ class mudrex(Exchange, ImplicitAPI):
             m = self.safe_market(symRaw)
             pos = self.parse_position(p, m)
             outPos.append(pos)
-        return self.filter_by_array_positions(outPos, 'symbol', symbols, False)
+        return self.filter_by_array_positions(outPos, 'symbol', symbols)
 
     def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
@@ -1136,7 +1136,7 @@ class mudrex(Exchange, ImplicitAPI):
         }
         paramsOmitted = self.omit(params, ['position_id'])
         response = self.privatePostFuturesPositionsPositionIdAddMargin(self.extend(request, paramsOmitted))
-        return response
+        return self.extend(response, {})
 
     def reduce_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """

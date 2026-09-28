@@ -2330,7 +2330,7 @@ class blofin(Exchange, ImplicitAPI):
         response = await self.privateGetAccountPositions(params)
         data = self.safe_list(response, 'data', [])
         result = self.parse_positions(data)
-        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized, False)
+        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """

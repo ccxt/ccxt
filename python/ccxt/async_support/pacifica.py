@@ -2608,7 +2608,7 @@ class pacifica(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(data)):
             result.append(self.parse_position(data[i], None))
-        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized, False)
+        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
         #
@@ -3243,7 +3243,7 @@ class pacifica(Exchange, ImplicitAPI):
         request = self.post_action_request(operationType, sigPayload, params)
         return await self.privatePostAccountBuilderCodesApprove(self.extend(request, params))
 
-    async def fetch_builder_approvals(self, address: str) -> dict:
+    async def fetch_builder_approvals(self, address: str) -> list[dict]:
         request = {
             'account': address,
         }

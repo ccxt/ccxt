@@ -1368,7 +1368,8 @@ class kraken(Exchange, ImplicitAPI):
 
     def fetch_ledger_entry(self, id: str, code: Str = None, params: dict = {}) -> LedgerEntry:
         items = self.fetch_ledger_entries_by_ids([id], code, params)
-        return items[0]
+        entry = self.safe_dict(items, 0)
+        return entry
 
     def parse_trade(self, trade: dict | list | str, market: Market = None) -> Trade:
         #
@@ -3309,7 +3310,7 @@ class kraken(Exchange, ImplicitAPI):
         symbolsNormalized = self.market_symbols(symbols)
         result = self.safe_list(response, 'result')
         results = self.parse_positions(result, symbolsNormalized)
-        return self.filter_by_array_positions(results, 'symbol', symbolsNormalized, False)
+        return self.filter_by_array_positions(results, 'symbol', symbolsNormalized)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
         #

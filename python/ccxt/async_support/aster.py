@@ -3590,7 +3590,7 @@ class aster(Exchange, ImplicitAPI):
             if Precise.string_gt(entryPriceString, '0'):
                 result.append(self.parse_position_risk(rawPosition))
         symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized, False)
+        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
@@ -3825,7 +3825,7 @@ class aster(Exchange, ImplicitAPI):
         filterClosed = self.handle_option_bool_and_params(params, 'fetchAccountPositions', 'filterClosed', False)[0]
         result = self.parse_account_positions(response, filterClosed)
         symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized, False)
+        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     async def load_leverage_brackets(self, reload: bool = False, params: dict = {}) -> dict:
         await self.load_markets_and_sign_in()

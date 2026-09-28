@@ -3323,7 +3323,8 @@ class coinbase(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         orders = await self.cancel_orders([id], symbol, params)
-        return self.safe_dict(orders, 0, {})
+        order = self.safe_dict(orders, 0, {})
+        return order
 
     async def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """

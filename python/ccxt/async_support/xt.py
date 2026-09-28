@@ -5081,7 +5081,7 @@ class xt(Exchange, ImplicitAPI):
             marketInner = self.safe_market(marketId, None, None, 'contract')
             merged = self.merge_position_break_info(entry, breakBySymbolSide)
             result.append(self.parse_position(merged, marketInner))
-        return self.filter_by_array_positions(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols)
 
     async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """

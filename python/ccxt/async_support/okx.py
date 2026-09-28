@@ -3644,7 +3644,8 @@ class okx(Exchange, ImplicitAPI):
         isTrigger = (trigger is True)
         if isTrigger or (trailing is True):
             orderInner = await self.cancel_orders([id], symbol, params)
-            return self.safe_dict(orderInner, 0)
+            canceledInner = self.safe_dict(orderInner, 0)
+            return canceledInner
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -5956,7 +5957,7 @@ class okx(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(positions)):
             result.append(self.parse_position(positions[i]))
-        return self.filter_by_array_positions(result, 'symbol', self.market_symbols(symbols), False)
+        return self.filter_by_array_positions(result, 'symbol', self.market_symbols(symbols))
 
     async def fetch_positions_for_symbol(self, symbol: str, params: dict = {}) -> list[Position]:
         """

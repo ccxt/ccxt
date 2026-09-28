@@ -1294,8 +1294,8 @@ class phemex(Exchange, ImplicitAPI):
         book = self.safe_dict_2(result, 'book', 'orderbook_p', {})
         timestamp = self.safe_integer_product(result, 'timestamp', 0.000001)
         orderbook = self.custom_parse_order_book(book, symbol, timestamp, 'bids', 'asks', 0, 1, market)
-        orderbook['nonce'] = self.safe_integer(result, 'sequence')
-        return orderbook
+        nonce = self.safe_integer(result, 'sequence')
+        return self.extend(orderbook, {'nonce': nonce})
 
     def to_en(self, n: object, scale: Int):
         if (n is None) or (scale is None):
@@ -3778,7 +3778,7 @@ class phemex(Exchange, ImplicitAPI):
         for i in range(0, len(positions)):
             position = positions[i]
             result.append(self.parse_position(position))
-        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized, False)
+        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     async def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
