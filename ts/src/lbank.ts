@@ -815,7 +815,8 @@ export default class lbank extends Exchange {
         const market = this.market (symbol);
         if (market['swap'] === true) {
             const responseForSwap = await this.fetchTickers ([ market['symbol'] ], params);
-            return this.safeDict (responseForSwap, market['symbol']) as Ticker;
+            const swapTicker = this.safeDict (responseForSwap, market['symbol']);
+            return swapTicker as Ticker;
         }
         const request: Dict = {
             'symbol': market['id'],
