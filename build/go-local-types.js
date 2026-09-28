@@ -4724,7 +4724,9 @@ function ccxtGoClosureReadIsSafe (goTranspiler, node, name) {
             if ((target?.kind !== ts.SyntaxKind.ElementAccessExpression) && (target?.kind !== ts.SyntaxKind.PropertyAccessExpression)) {
                 return false;
             }
-            return (goTranspiler.printNode (parent, 0) ?? '').trim ().startsWith ('AddElementToObject(');
+            // a typed-map container prints the native `m[key] = x`, which boxes the same way
+            const printedWrite = (goTranspiler.printNode (parent, 0) ?? '').trim ();
+            return printedWrite.startsWith ('AddElementToObject(') || /^\w+\["[^"]*"\] = /.test (printedWrite);
         }
         if (COMPARISON_TOKENS.indexOf (op) >= 0) {
             return ccxtGoClosureCompareIsHelper (goTranspiler, parent, name);
