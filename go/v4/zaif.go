@@ -1770,7 +1770,7 @@ func (this *Zaif) FetchOrderStatus(id string, options ...FetchOrderStatusOptions
 func (this *Zaif) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Zaif) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Zaif) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Zaif) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

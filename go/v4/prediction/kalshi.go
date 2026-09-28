@@ -1208,7 +1208,7 @@ func (this *Kalshi) fetchOpenInterestBody(ch chan ccxt.AsyncResult[any], outcome
 	ch <- ccxt.AsyncResult[any]{Value: this.ParsePredictionOpenInterest(raw, outcomeObj)}
 	return nil
 }
-func (this *Kalshi) ParsePredictionOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Kalshi) ParsePredictionOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	//     { "ticker": "...", "open_interest_fp": "60802.01", "updated_time": "2026-04-09T10:32:47.890506Z", ... }   // the market object of GET /markets/{ticker}, open interest in contracts
 	//
@@ -1240,7 +1240,7 @@ func (this *Kalshi) ParsePredictionOpenInterest(interest any, optionalArgs ...an
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Kalshi) ParsePredictionTicker(raw any, optionalArgs ...any) any {
+func (this *Kalshi) ParsePredictionTicker(raw any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "market": {
@@ -1513,10 +1513,10 @@ func (this *Kalshi) fetchTickersBody(ch chan ccxt.AsyncResult[any], optionalArgs
 				return outcomesByTicker[*marketTicker]
 			}()
 			for j := 0; j < ccxt.GetArrayLength(grouped); j++ {
-				var ticker any = this.ParsePredictionTicker(raw, ccxt.GetValue(grouped, j))
+				var ticker map[string]any = this.ParsePredictionTicker(raw, ccxt.GetValue(grouped, j))
 				var symbolKey *string = this.SafeString(ticker, "outcome")
 				if symbolKey != nil {
-					ccxt.AddElementToObject(result, symbolKey, ticker)
+					result[*symbolKey] = ticker
 				}
 			}
 		}
@@ -2790,7 +2790,7 @@ func (this *Kalshi) fetchOrderBody(ch chan ccxt.AsyncResult[any], id any, option
  * @param {object} [market] the outcome object the order belongs to
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Kalshi) ParsePredictionOrder(order any, optionalArgs ...any) any {
+func (this *Kalshi) ParsePredictionOrder(order any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(order, "order_id")
@@ -2987,29 +2987,29 @@ func (this *Kalshi) createOrderBody(ch chan ccxt.AsyncResult[any], outcome strin
 	var response map[string]any = r1.Value
 	// the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
 	// the known order details and resolve the status from the remaining count
-	var order any = this.ParsePredictionOrder(response, outcomeObj)
-	ccxt.AddElementToObject(order, "side", side)
-	ccxt.AddElementToObject(order, "amount", amount)
-	ccxt.AddElementToObject(order, "price", price)
+	var order map[string]any = this.ParsePredictionOrder(response, outcomeObj)
+	order["side"] = side
+	order["amount"] = amount
+	order["price"] = price
 	// the minimal create response reports fills as fill_count/remaining_count (not the *_fp keys
 	// parsePredictionOrder reads on the fetch path), so backfill filled/remaining from them here —
 	// otherwise a fully-filled order would return status 'closed' with filled 0
 	var remainingCount *float64 = this.SafeNumber(response, "remaining_count")
 	var filledCount *float64 = this.SafeNumber(response, "fill_count")
 	if filledCount != nil {
-		ccxt.AddElementToObject(order, "filled", filledCount)
+		order["filled"] = filledCount
 	} else if (remainingCount != nil) && (!ccxt.IsEqual(amount, nil)) {
-		ccxt.AddElementToObject(order, "filled", ccxt.Subtract(amount, remainingCount))
+		order["filled"] = ccxt.Subtract(amount, remainingCount)
 	}
 	if remainingCount != nil {
-		ccxt.AddElementToObject(order, "remaining", remainingCount)
+		order["remaining"] = remainingCount
 	}
-	if ccxt.IsEqual(ccxt.GetValue(order, "status"), nil) {
+	if ccxt.IsEqual(order["status"], nil) {
 		var resolvedStatus string = "open"
 		if remainingCount != nil && *remainingCount == 0 {
 			resolvedStatus = "closed"
 		}
-		ccxt.AddElementToObject(order, "status", resolvedStatus)
+		order["status"] = resolvedStatus
 	}
 
 	ch <- ccxt.AsyncResult[any]{Value: order}
@@ -3121,12 +3121,12 @@ func (this *Kalshi) cancelOrderBody(ch chan ccxt.AsyncResult[any], id any, optio
 	response := r1.Raw
 	// the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
 	// the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
-	var order any = this.ParsePredictionOrder(this.SafeDict(response, "order", response), outcomeObj)
-	if ccxt.IsEqual(ccxt.GetValue(order, "id"), nil) {
-		ccxt.AddElementToObject(order, "id", id)
+	var order map[string]any = this.ParsePredictionOrder(this.SafeDict(response, "order", response), outcomeObj)
+	if ccxt.IsEqual(order["id"], nil) {
+		order["id"] = id
 	}
-	if ccxt.IsEqual(ccxt.GetValue(order, "status"), nil) {
-		ccxt.AddElementToObject(order, "status", "canceled")
+	if ccxt.IsEqual(order["status"], nil) {
+		order["status"] = "canceled"
 	}
 
 	ch <- ccxt.AsyncResult[any]{Value: order}
@@ -3198,8 +3198,8 @@ func (this *Kalshi) cancelAllOrdersBody(ch chan ccxt.AsyncResult[any], optionalA
 			}
 			// the DELETE body is minimal — parse the already-fetched resting order instead, which
 			// carries the true side/outcome/price/count, then mark it canceled
-			var parsed any = this.ParsePredictionOrder(restingOrder)
-			ccxt.AddElementToObject(parsed, "status", "canceled")
+			var parsed map[string]any = this.ParsePredictionOrder(restingOrder)
+			parsed["status"] = "canceled"
 			canceledOrders = append(canceledOrders, parsed)
 		}
 	}
@@ -4824,7 +4824,7 @@ func (this *Kalshi) FetchOrderTrades(id string, params map[string]any, options .
 	var res []ccxt.PredictionTrade = ccxt.NewPredictionTradeArray(r.Value)
 	return res, nil
 }
-func (this *Kalshi) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Kalshi) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Kalshi) FetchPosition(outcome string, params map[string]any) (ccxt.PredictionPosition, error) {

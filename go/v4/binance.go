@@ -23419,7 +23419,7 @@ func (this *Binance) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBo
 func (this *Binance) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Binance) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Binance) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Binance) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

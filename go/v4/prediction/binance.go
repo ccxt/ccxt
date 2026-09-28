@@ -1045,7 +1045,7 @@ func (this *Binance) fetchTickerBody(ch chan ccxt.AsyncResult[any], outcome stri
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *Binance) ParsePredictionTicker(raw any, optionalArgs ...any) any {
+func (this *Binance) ParsePredictionTicker(raw any, optionalArgs ...any) map[string]any {
 	//
 	//     { "marketId": 5567895, "lastTradePrice": "0.52" }
 	//
@@ -1160,7 +1160,7 @@ func (this *Binance) fetchTickersBody(ch chan ccxt.AsyncResult[any], optionalArg
 			response = r1.Raw
 			ccxt.AddElementToObject(responsesByMarketId, marketId, response)
 		}
-		var ticker any = this.ParsePredictionTicker(response, outcomeObj)
+		var ticker map[string]any = this.ParsePredictionTicker(response, outcomeObj)
 		var symbolKey *string = this.SafeString(ticker, "outcome", outcomes[i])
 		ccxt.AddElementToObject(result, symbolKey, ticker)
 	}
@@ -1290,7 +1290,7 @@ func (this *Binance) fetchBalanceBody(ch chan ccxt.AsyncResult[any], optionalArg
  * @param {object} [outcomeObj] the ourtome the order belongs to
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Binance) ParsePredictionOrder(order any, optionalArgs ...any) any {
+func (this *Binance) ParsePredictionOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "orderId": "54124",
@@ -2475,8 +2475,9 @@ func (this *Binance) cancelOrderBody(ch chan ccxt.AsyncResult[any], id any, opti
 		panic(r.Err)
 	}
 	var orders []any = ccxt.ListTyped(r.Value)
+	var first map[string]any = this.SafeDictMap(orders, 0, map[string]any{})
 
-	ch <- ccxt.AsyncResult[any]{Value: this.SafeDict(orders, 0, map[string]any{})}
+	ch <- ccxt.AsyncResult[any]{Value: first}
 	return nil
 }
 
@@ -3565,7 +3566,7 @@ func (this *Binance) FetchOrderTrades(id string, params map[string]any, options 
 	var res []ccxt.PredictionTrade = ccxt.NewPredictionTradeArray(r.Value)
 	return res, nil
 }
-func (this *Binance) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Binance) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Binance) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (ccxt.PositionModeInfo, error) {

@@ -8214,7 +8214,7 @@ func (this *Hyperliquid) FetchOrderStatus(id string, options ...FetchOrderStatus
 func (this *Hyperliquid) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Hyperliquid) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Hyperliquid) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Hyperliquid) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

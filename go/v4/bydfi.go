@@ -5159,7 +5159,7 @@ func (this *Bydfi) FetchOrderStatus(id string, options ...FetchOrderStatusOption
 func (this *Bydfi) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bydfi) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bydfi) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bydfi) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

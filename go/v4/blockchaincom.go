@@ -2726,7 +2726,7 @@ func (this *Blockchaincom) FetchOrderStatus(id string, options ...FetchOrderStat
 func (this *Blockchaincom) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Blockchaincom) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Blockchaincom) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Blockchaincom) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

@@ -1632,7 +1632,7 @@ func (this *Predictfun) fetchTickerBody(ch chan ccxt.AsyncResult[any], outcome s
  * @param {object} [market] the outcome the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Predictfun) ParsePredictionTicker(ticker any, optionalArgs ...any) any {
+func (this *Predictfun) ParsePredictionTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": 2107,
@@ -2797,7 +2797,7 @@ func (this *Predictfun) cancelOrderBody(ch chan ccxt.AsyncResult[any], id any, o
 		panic(r.Err)
 	}
 	var orders []any = ccxt.ListTyped(r.Value)
-	var order any = this.SafeDict(orders, 0)
+	var order map[string]any = ccxt.SafeMapTyped(orders, 0)
 	if order == nil {
 		panic(ccxt.OrderNotFound(ccxt.Add(this.Id+" cancelOrder() could not remove ", id)))
 	}
@@ -3191,7 +3191,7 @@ func (this *Predictfun) fetchOrdersHelperBody(ch chan ccxt.AsyncResult[any], opt
  * @param {object} [market] the outcome the order belongs to, resolved from the token id when omitted
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Predictfun) ParsePredictionOrder(order any, optionalArgs ...any) any {
+func (this *Predictfun) ParsePredictionOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// fetchOrder
 	//     {
@@ -5880,7 +5880,7 @@ func (this *Predictfun) FetchOrderTrades(id string, params map[string]any, optio
 	var res []ccxt.PredictionTrade = ccxt.NewPredictionTradeArray(r.Value)
 	return res, nil
 }
-func (this *Predictfun) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Predictfun) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Predictfun) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (ccxt.PositionModeInfo, error) {

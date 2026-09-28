@@ -9389,7 +9389,7 @@ func (this *Xt) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) 
 func (this *Xt) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Xt) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Xt) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Xt) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

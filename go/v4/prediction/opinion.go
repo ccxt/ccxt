@@ -888,7 +888,7 @@ func (this *Opinion) fetchTickerBody(ch chan ccxt.AsyncResult[any], outcome stri
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Opinion) ParsePredictionTicker(ticker any, optionalArgs ...any) any {
+func (this *Opinion) ParsePredictionTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "price": {
@@ -1001,10 +1001,10 @@ func (this *Opinion) fetchTickersBody(ch chan ccxt.AsyncResult[any], optionalArg
 			"price": priceResponse,
 			"book":  bookResponse,
 		}
-		var ticker any = this.ParsePredictionTicker(response, outcomeObj)
+		var ticker map[string]any = this.ParsePredictionTicker(response, outcomeObj)
 		var symbolKey *string = this.SafeString(ticker, "outcome")
 		if symbolKey != nil {
-			ccxt.AddElementToObject(result, symbolKey, ticker)
+			result[*symbolKey] = ticker
 		}
 	}
 
@@ -1602,7 +1602,7 @@ func (this *Opinion) ParseOrderStatus(status *string) *string {
  * @param {object} [market] the outcome object the order belongs to
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Opinion) ParsePredictionOrder(order any, optionalArgs ...any) any {
+func (this *Opinion) ParsePredictionOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "orderId": "...",
@@ -2763,7 +2763,7 @@ func (this *Opinion) HandleTicker(client any, message any) {
 		return
 	}
 	var last *float64 = this.SafeNumber(message, "price")
-	var ticker any = this.SafePredictionTicker(map[string]any{
+	var ticker map[string]any = this.SafePredictionTicker(map[string]any{
 		"outcome":   sym,
 		"outcomeId": tokenId,
 		"label":     this.SafeString(outcomeObj, "label"),
@@ -2989,7 +2989,7 @@ func (this *Opinion) HandleOrder(client any, message any) {
 	if tradingMethod != nil && *tradingMethod == 1 {
 		typeVar = "market"
 	}
-	var order any = this.SafePredictionOrder(map[string]any{
+	var order map[string]any = this.SafePredictionOrder(map[string]any{
 		"id":                 this.SafeString(message, "orderId"),
 		"clientOrderId":      nil,
 		"info":               message,
@@ -4045,7 +4045,7 @@ func (this *Opinion) FetchOrderTrades(id string, params map[string]any, options 
 	var res []ccxt.PredictionTrade = ccxt.NewPredictionTradeArray(r.Value)
 	return res, nil
 }
-func (this *Opinion) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Opinion) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Opinion) FetchPosition(outcome string, params map[string]any) (ccxt.PredictionPosition, error) {

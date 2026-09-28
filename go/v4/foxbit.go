@@ -3765,7 +3765,7 @@ func (this *Foxbit) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Foxbit) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Foxbit) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Foxbit) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Foxbit) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

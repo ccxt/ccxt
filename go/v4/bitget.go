@@ -18385,7 +18385,7 @@ func (this *Bitget) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Bitget) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bitget) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bitget) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bitget) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

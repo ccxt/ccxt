@@ -3699,7 +3699,7 @@ func (this *Apex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks
 func (this *Apex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Apex) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Apex) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Apex) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

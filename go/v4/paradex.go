@@ -6315,7 +6315,7 @@ func (this *Paradex) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Paradex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Paradex) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Paradex) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Paradex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

@@ -15956,7 +15956,7 @@ func (this *Bybit) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 func (this *Bybit) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Bybit) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bybit) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bybit) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

@@ -1677,7 +1677,7 @@ func (this *Polymarket) fetchTickersBody(ch chan ccxt.AsyncResult[any], optional
 				"book":      book,
 				"lastTrade": this.SafeDict(lastTradesByTokenId, tokenId, map[string]any{}),
 			}
-			var ticker any = this.ParsePredictionTicker(tickerInput, outcomeObj)
+			var ticker map[string]any = this.ParsePredictionTicker(tickerInput, outcomeObj)
 			var symbolKey *string = this.SafeString(ticker, "outcome", tokenId)
 			ccxt.AddElementToObject(result, symbolKey, ticker)
 		}
@@ -1697,7 +1697,7 @@ func (this *Polymarket) fetchTickersBody(ch chan ccxt.AsyncResult[any], optional
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Polymarket) ParsePredictionTicker(ticker any, optionalArgs ...any) any {
+func (this *Polymarket) ParsePredictionTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "midpoint": {
@@ -2165,7 +2165,7 @@ func (this *Polymarket) fetchOpenInterestBody(ch chan ccxt.AsyncResult[any], out
 	ch <- ccxt.AsyncResult[any]{Value: this.ParsePredictionOpenInterest(first, outcomeObj)}
 	return nil
 }
-func (this *Polymarket) ParsePredictionOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Polymarket) ParsePredictionOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	//     { "market": "0x7976b8...92", "value": 4925662.470476 }
 	//
@@ -2851,7 +2851,7 @@ func (this *Polymarket) fetchOrderBody(ch chan ccxt.AsyncResult[any], id any, op
  * @param {object} [market] the outcome object the order belongs to
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Polymarket) ParsePredictionOrder(order any, optionalArgs ...any) any {
+func (this *Polymarket) ParsePredictionOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "errorMsg":"",
@@ -2982,8 +2982,8 @@ func (this *Polymarket) createOrderBody(ch chan ccxt.AsyncResult[any], outcome s
 	response := r2.Raw
 	// request echo first so the response's real orderID/status/success win on overlap
 	var enriched map[string]any = this.Extend(this.SafeDict(built, "request"), response)
-	var order any = this.ParsePredictionOrder(enriched, this.SafeDict(built, "outcome"))
-	ccxt.AddElementToObject(order, "info", response) // keep info the raw exchange response, not the request echo
+	var order map[string]any = this.ParsePredictionOrder(enriched, this.SafeDict(built, "outcome"))
+	order["info"] = response // keep info the raw exchange response, not the request echo
 
 	ch <- ccxt.AsyncResult[any]{Value: order}
 	return nil
@@ -3062,13 +3062,13 @@ func (this *Polymarket) createOrdersBody(ch chan ccxt.AsyncResult[any], orders a
 				}
 				return nil
 			}(), ccxt.GetValue(response, i))
-			var parsedItem any = this.ParsePredictionOrder(enriched, func() any {
+			var parsedItem map[string]any = this.ParsePredictionOrder(enriched, func() any {
 				if i >= 0 && i < len(outcomes) {
 					return ccxt.DerefScalar(outcomes[i])
 				}
 				return nil
 			}())
-			ccxt.AddElementToObject(parsedItem, "info", ccxt.GetValue(response, i)) // keep info the raw exchange response
+			parsedItem["info"] = ccxt.GetValue(response, i) // keep info the raw exchange response
 			result = append(result, parsedItem)
 		}
 	} else {
@@ -4978,7 +4978,7 @@ func (this *Polymarket) HandleOrder(client any, event any) {
 		this.Orders = ccxt.NewArrayCacheByOutcomeById(limit)
 	}
 	var stored any = this.Orders
-	var parsed any = this.ParsePredictionOrder(event)
+	var parsed map[string]any = this.ParsePredictionOrder(event)
 	stored.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, "orders")
 	var outcome *string = this.SafeString(parsed, "outcome")
@@ -6100,7 +6100,7 @@ func (this *Polymarket) FetchOrders(params map[string]any, options ...FetchOrder
 	var res []ccxt.PredictionOrder = ccxt.NewPredictionOrderArray(r.Value)
 	return res, nil
 }
-func (this *Polymarket) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Polymarket) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Polymarket) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (ccxt.PositionModeInfo, error) {

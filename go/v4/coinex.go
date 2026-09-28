@@ -8920,7 +8920,7 @@ func (this *Coinex) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Coinex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Coinex) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Coinex) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Coinex) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {

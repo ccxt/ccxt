@@ -4075,7 +4075,7 @@ func (this *Bittrade) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderB
 func (this *Bittrade) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Bittrade) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bittrade) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bittrade) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

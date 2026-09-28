@@ -7865,7 +7865,7 @@ func (this *Woo) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks,
 func (this *Woo) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Woo) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Woo) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Woo) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

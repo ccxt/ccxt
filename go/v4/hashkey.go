@@ -6915,7 +6915,7 @@ func (this *Hashkey) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Hashkey) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Hashkey) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Hashkey) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Hashkey) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

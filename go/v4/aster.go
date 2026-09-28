@@ -7444,7 +7444,7 @@ func (this *Aster) FetchOrderStatus(id string, options ...FetchOrderStatusOption
 func (this *Aster) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Aster) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Aster) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Aster) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

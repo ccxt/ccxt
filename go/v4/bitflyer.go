@@ -2624,7 +2624,7 @@ func (this *Bitflyer) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 func (this *Bitflyer) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bitflyer) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bitflyer) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bitflyer) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

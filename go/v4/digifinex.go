@@ -7481,7 +7481,7 @@ func (this *Digifinex) FetchOrderStatus(id string, options ...FetchOrderStatusOp
 func (this *Digifinex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Digifinex) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Digifinex) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Digifinex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

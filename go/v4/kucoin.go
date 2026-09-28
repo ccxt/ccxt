@@ -18882,7 +18882,7 @@ func (this *Kucoin) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) 
 func (this *Kucoin) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Kucoin) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Kucoin) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Kucoin) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

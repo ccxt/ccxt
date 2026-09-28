@@ -5486,7 +5486,7 @@ func (this *Grvt) FetchOrderStatus(id string, options ...FetchOrderStatusOptions
 func (this *Grvt) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Grvt) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Grvt) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Grvt) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

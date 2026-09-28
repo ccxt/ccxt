@@ -3951,7 +3951,7 @@ func (this *Coinsph) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 func (this *Coinsph) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Coinsph) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Coinsph) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Coinsph) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

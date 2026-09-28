@@ -855,7 +855,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan ccxt.AsyncResult[any], optiona
 			continue
 		}
 		// Build minimal ticker from mid price
-		var ticker any = this.ParsePredictionTicker(map[string]any{
+		var ticker map[string]any = this.ParsePredictionTicker(map[string]any{
 			"levels": []any{[]any{}, []any{}},
 			"mid":    mid,
 		}, outcomeObj)
@@ -875,7 +875,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan ccxt.AsyncResult[any], optiona
  * @param {object} [market] the market the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Hyperliquid) ParsePredictionTicker(raw any, optionalArgs ...any) any {
+func (this *Hyperliquid) ParsePredictionTicker(raw any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "coin": "#10",
@@ -1750,8 +1750,9 @@ func (this *Hyperliquid) cancelOrderBody(ch chan ccxt.AsyncResult[any], id any, 
 		panic(r.Err)
 	}
 	var orders []any = ccxt.ListTyped(r.Value)
+	var first map[string]any = ccxt.SafeMapTyped(orders, 0)
 
-	ch <- ccxt.AsyncResult[any]{Value: this.SafeDict(orders, 0)}
+	ch <- ccxt.AsyncResult[any]{Value: first}
 	return nil
 }
 
@@ -2134,7 +2135,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan ccxt.AsyncResult[any], id any, o
 		orderStatus = response
 	}
 	var orderWrapper any = this.SafeDict(orderStatus, "order", orderStatus)
-	var parsed any = this.ParsePredictionOrder(orderWrapper, nil)
+	var parsed map[string]any = this.ParsePredictionOrder(orderWrapper, nil)
 	if outcome != nil {
 
 		r1 := <-this.LoadOutcomeAsync(outcome)
@@ -2161,7 +2162,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan ccxt.AsyncResult[any], id any, o
  * @param {object} [market] the market the order belongs to
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Hyperliquid) ParsePredictionOrder(order any, optionalArgs ...any) any {
+func (this *Hyperliquid) ParsePredictionOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// from frontendOpenOrders:
 	// {
@@ -3814,7 +3815,7 @@ func (this *Hyperliquid) FetchOrderTrades(id string, params map[string]any, opti
 	var res []ccxt.PredictionTrade = ccxt.NewPredictionTradeArray(r.Value)
 	return res, nil
 }
-func (this *Hyperliquid) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Hyperliquid) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 

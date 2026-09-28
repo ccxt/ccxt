@@ -6054,12 +6054,12 @@ func (this *Pacifica) FetchApiKeys(params ...any) (map[string]any, error) {
 	var res map[string]any = r.Value.(map[string]any)
 	return res, nil
 }
-func (this *Pacifica) FetchBuilderApprovals(address string) (map[string]any, error) {
+func (this *Pacifica) FetchBuilderApprovals(address string) ([]map[string]any, error) {
 	r := <-this.FetchBuilderApprovalsAsync(address)
 	if r.Err != nil {
-		return map[string]any{}, r.Err
+		return nil, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res []map[string]any = NewMapArray(r.Value)
 	return res, nil
 }
 
@@ -6305,7 +6305,7 @@ func (this *Pacifica) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 func (this *Pacifica) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Pacifica) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Pacifica) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Pacifica) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

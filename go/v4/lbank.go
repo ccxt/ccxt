@@ -5367,7 +5367,7 @@ func (this *Lbank) FetchOrderStatus(id string, options ...FetchOrderStatusOption
 func (this *Lbank) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Lbank) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Lbank) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Lbank) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

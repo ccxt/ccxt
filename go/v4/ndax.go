@@ -4584,7 +4584,7 @@ func (this *Ndax) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks
 func (this *Ndax) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Ndax) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Ndax) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Ndax) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

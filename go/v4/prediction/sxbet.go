@@ -1519,8 +1519,9 @@ func (this *Sxbet) cancelOrderBody(ch chan ccxt.AsyncResult[any], id any, option
 	}
 	var response map[string]any = r.Value
 	var orders any = this.ParseSxbetCancelResponse(response)
+	var first map[string]any = ccxt.SafeMapTyped(orders, 0)
 
-	ch <- ccxt.AsyncResult[any]{Value: this.SafeDict(orders, 0)}
+	ch <- ccxt.AsyncResult[any]{Value: first}
 	return nil
 }
 
@@ -1674,7 +1675,7 @@ func (this *Sxbet) cancelAllOrdersBody(ch chan ccxt.AsyncResult[any], optionalAr
  * @param {object} [market] the outcome object the order belongs to (resolved from the cache by outcomeId when omitted)
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Sxbet) ParsePredictionOrder(order any, optionalArgs ...any) any {
+func (this *Sxbet) ParsePredictionOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": "0x112a4f19f20395aefcdb5d26f3f8aab0d96b1aff7ce346c0bfb13d9490340cdf",
@@ -1882,11 +1883,11 @@ func (this *Sxbet) fetchOrdersBody(ch chan ccxt.AsyncResult[any], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes135215 []any = ccxt.ListTyped(r.Value)
-	if retRes135215 == nil {
+	var retRes135315 []any = ccxt.ListTyped(r.Value)
+	if retRes135315 == nil {
 		ch <- ccxt.AsyncResult[any]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[any]{Value: retRes135215}
+		ch <- ccxt.AsyncResult[any]{Value: retRes135315}
 	}
 	return nil
 }
@@ -2802,10 +2803,10 @@ func (this *Sxbet) ParseSxbetTickersByHash(outcomesList any, rowsByHash map[stri
 		if raw == nil {
 			continue
 		}
-		var ticker any = this.ParsePredictionTicker(raw, outcomeObj)
+		var ticker map[string]any = this.ParsePredictionTicker(raw, outcomeObj)
 		var sym *string = this.SafeString(ticker, "outcome")
 		if sym != nil {
-			ccxt.AddElementToObject(result, sym, ticker)
+			result[*sym] = ticker
 		}
 	}
 	return result
@@ -2820,7 +2821,7 @@ func (this *Sxbet) ParseSxbetTickersByHash(outcomesList any, rowsByHash map[stri
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Sxbet) ParsePredictionTicker(raw any, optionalArgs ...any) any {
+func (this *Sxbet) ParsePredictionTicker(raw any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "marketHash": "0x48ce0ef287c59fb3bb3ca6deb80de0d5791eb761ea8e16d6f03c8e93ef28d1de",
@@ -3540,7 +3541,7 @@ func (this *Sxbet) watchTickerBody(ch chan ccxt.AsyncResult[any], outcome string
 		}
 		snapshot := r2.Value
 		var raw map[string]any = this.ParseSxbetSnapshotBestOdds(snapshot)
-		var ticker any = this.ParsePredictionTicker(raw, outcomeObj)
+		var ticker map[string]any = this.ParsePredictionTicker(raw, outcomeObj)
 		ccxt.AddElementToObject(this.Tickers, sym, ticker)
 		hydrated = true
 	}
@@ -3609,7 +3610,7 @@ func (this *Sxbet) HandleTicker(client any, rows any) {
 				continue
 			}
 			var outcomeObj map[string]any = this.Outcome(sym)
-			var ticker any = this.ParsePredictionTicker(raw, outcomeObj)
+			var ticker map[string]any = this.ParsePredictionTicker(raw, outcomeObj)
 			ccxt.AddElementToObject(this.Tickers, sym, ticker)
 			client.(ccxt.ClientInterface).Resolve(ticker, "ticker::"+*sym)
 		}
@@ -3876,7 +3877,7 @@ func (this *Sxbet) HandleOrder(client any, rows any) {
 	var rowsLength int = ccxt.GetArrayLength(rows)
 	for i := 0; i < rowsLength; i++ {
 		var row any = this.SafeDict(ccxt.GetValue(rows, i), "order", ccxt.GetValue(rows, i))
-		var order any = this.ParsePredictionOrder(row)
+		var order map[string]any = this.ParsePredictionOrder(row)
 		if this.Orders == nil {
 			var cacheLimit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 			this.Orders = ccxt.NewArrayCacheByOutcomeById(cacheLimit)
@@ -4950,7 +4951,7 @@ func (this *Sxbet) FetchOrderTrades(id string, params map[string]any, options ..
 	var res []ccxt.PredictionTrade = ccxt.NewPredictionTradeArray(r.Value)
 	return res, nil
 }
-func (this *Sxbet) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Sxbet) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Sxbet) FetchPosition(outcome string, params map[string]any) (ccxt.PredictionPosition, error) {

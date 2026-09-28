@@ -1308,14 +1308,14 @@ func (this *Myriad) createOrderbookOrderBody(ch chan ccxt.AsyncResult[any], outc
 		"timeInForce": timeInForce,
 	})
 	var outcomeObj map[string]any = this.Outcome(outcome)
-	var parsed any = this.ParsePredictionOrder(wrapper, outcomeObj)
+	var parsed map[string]any = this.ParsePredictionOrder(wrapper, outcomeObj)
 	// the POST /orders response is minimal (hash + status), so backfill the known request values
 	// side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
-	var sideStr *string = func() *string {
+	var sideStr any = func() any {
 		if ccxt.IsEqual(side, nil) {
 			return nil
 		}
-		return ccxt.SafeStringPtr(ccxt.ToLower(side))
+		return ccxt.ToLower(side)
 	}()
 	var typeStr string = func() string {
 		if ccxt.IsEqual(typeVar, nil) {
@@ -1324,22 +1324,22 @@ func (this *Myriad) createOrderbookOrderBody(ch chan ccxt.AsyncResult[any], outc
 		return ccxt.ToLower(typeVar)
 	}()
 	if this.SafeString(parsed, "side") == nil {
-		ccxt.AddElementToObject(parsed, "side", sideStr)
+		parsed["side"] = sideStr
 	}
 	if this.SafeString(parsed, "type") == nil {
-		ccxt.AddElementToObject(parsed, "type", typeStr)
+		parsed["type"] = typeStr
 	}
 	if this.SafeString(parsed, "timeInForce") == nil {
-		ccxt.AddElementToObject(parsed, "timeInForce", timeInForce)
+		parsed["timeInForce"] = timeInForce
 	}
 	if (this.SafeNumber(parsed, "price") == nil) && (price != nil) {
-		ccxt.AddElementToObject(parsed, "price", price)
+		parsed["price"] = price
 	}
 	if (this.SafeNumber(parsed, "amount") == nil) && (!ccxt.IsEqual(amount, nil)) {
-		ccxt.AddElementToObject(parsed, "amount", amount)
+		parsed["amount"] = amount
 	}
 	if this.SafeString(parsed, "status") == nil {
-		ccxt.AddElementToObject(parsed, "status", "open")
+		parsed["status"] = "open"
 	}
 
 	ch <- ccxt.AsyncResult[any]{Value: parsed}
@@ -1904,7 +1904,7 @@ func (this *Myriad) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Myriad) ParsePredictionOrder(order any, optionalArgs ...any) any {
+func (this *Myriad) ParsePredictionOrder(order any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var inner map[string]any = ccxt.SafeMapTyped(order, "order")
@@ -3411,7 +3411,7 @@ func (this *Myriad) fetchTradingFeeBody(ch chan ccxt.AsyncResult[any], outcome s
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Myriad) ParsePredictionTicker(raw any, optionalArgs ...any) any {
+func (this *Myriad) ParsePredictionTicker(raw any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": "756",
@@ -4047,10 +4047,10 @@ func (this *Myriad) fetchTickersBody(ch chan ccxt.AsyncResult[any], optionalArgs
 		var grouped any = ccxt.GetValue(outcomesByMarket, key)
 		for j := 0; j < ccxt.GetArrayLength(grouped); j++ {
 			var outcomeObj any = ccxt.GetValue(grouped, j)
-			var ticker any = this.ParsePredictionTicker(response, outcomeObj)
+			var ticker map[string]any = this.ParsePredictionTicker(response, outcomeObj)
 			var symbolKey *string = this.SafeString(ticker, "outcome")
 			if symbolKey != nil {
-				ccxt.AddElementToObject(result, symbolKey, ticker)
+				result[*symbolKey] = ticker
 			}
 		}
 	}
@@ -5207,7 +5207,7 @@ func (this *Myriad) HandleTicker(client any, data any) {
 		var market map[string]any = this.SafeMarket(sym)
 		var outcomeObj map[string]any = this.SafeOutcome(sym)
 		var last any = this.FromWei(this.SafeString(oc, "last"))
-		var ticker any = this.SafePredictionTicker(map[string]any{
+		var ticker map[string]any = this.SafePredictionTicker(map[string]any{
 			"outcome":       sym,
 			"outcomeId":     this.SafeString2(outcomeObj, "outcomeId", "id"),
 			"label":         this.SafeString(outcomeObj, "label"),
@@ -5308,7 +5308,7 @@ func (this *Myriad) HandleOrder(client any, data any) {
 	var tif *string = this.SafeStringUpper(data, "timeInForce")
 	var isMarketTif bool = (tif != nil && *tif == "FOK") || (tif != nil && *tif == "FAK")
 	var timestamp *int64 = this.Parse8601(this.SafeString2(data, "updatedAt", "createdAt"))
-	var parsed any = this.SafePredictionOrder(map[string]any{
+	var parsed map[string]any = this.SafePredictionOrder(map[string]any{
 		"id":            this.SafeString(data, "orderHash"),
 		"clientOrderId": nil,
 		"info":          data,
@@ -6901,7 +6901,7 @@ func (this *Myriad) FetchOrderTrades(id string, params map[string]any, options .
 	var res []ccxt.PredictionTrade = ccxt.NewPredictionTradeArray(r.Value)
 	return res, nil
 }
-func (this *Myriad) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Myriad) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Myriad) FetchPosition(outcome string, params map[string]any) (ccxt.PredictionPosition, error) {

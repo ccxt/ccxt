@@ -4617,7 +4617,7 @@ func (this *Bitvavo) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Bitvavo) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bitvavo) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bitvavo) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bitvavo) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

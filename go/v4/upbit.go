@@ -4343,7 +4343,7 @@ func (this *Upbit) FetchOrderStatus(id string, options ...FetchOrderStatusOption
 func (this *Upbit) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Upbit) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Upbit) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Upbit) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

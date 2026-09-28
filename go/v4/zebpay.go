@@ -3678,7 +3678,7 @@ func (this *Zebpay) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) 
 func (this *Zebpay) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Zebpay) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Zebpay) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Zebpay) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

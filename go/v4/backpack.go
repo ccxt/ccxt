@@ -4214,7 +4214,7 @@ func (this *Backpack) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 func (this *Backpack) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Backpack) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Backpack) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Backpack) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

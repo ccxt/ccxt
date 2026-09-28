@@ -3390,7 +3390,7 @@ func (this *Cex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions)
 func (this *Cex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Cex) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Cex) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Cex) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

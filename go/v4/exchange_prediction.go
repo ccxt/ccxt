@@ -1800,7 +1800,7 @@ func (this *PredictionExchange) fetchSettlementsBody(ch chan AsyncResult[any], o
 	_ = params
 	panic(NotSupported(this.Id + " fetchSettlements() is not supported yet"))
 }
-func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalArgs ...any) any {
+func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalArgs ...any) map[string]any {
 	// build the prediction order directly (do NOT delegate to the crypto safeOrder, which injects
 	// ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
 	// never declares, and whose parseTrades post-filters embedded fills by `symbol`, dropping every
@@ -1975,7 +1975,7 @@ func (this *PredictionExchange) SafePredictionTrade(trade any, optionalArgs ...a
 	}
 	return result
 }
-func (this *PredictionExchange) SafePredictionTicker(ticker any, optionalArgs ...any) any {
+func (this *PredictionExchange) SafePredictionTicker(ticker any, optionalArgs ...any) map[string]any {
 	// build the prediction ticker directly (no crypto safeTicker, which injects vwap/previousClose/
 	// indexPrice/markPrice the type omits). derive change/percentage/average only from open+close —
 	// prediction venues report those directly, so the crypto back-derivation from percentage is moot.
@@ -2064,40 +2064,42 @@ func (this *PredictionExchange) SafePredictionPosition(position any) any {
 	}
 	return result
 }
-func (this *PredictionExchange) SafePredictionOrderBook(orderbook any, optionalArgs ...any) any {
+func (this *PredictionExchange) SafePredictionOrderBook(orderbook any, optionalArgs ...any) map[string]any {
 	// normalize a parsed order book to the prediction shape: replace the unified
 	// `symbol` with the `outcome` handle and attach the outcome identity fields
 	// outcomeId and market - so books match the PredictionOrderBook structure.
 	var outcomeObj map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = outcomeObj
 	var fallback *string = this.SafeString2(orderbook, "outcome", "symbol")
-	AddElementToObject(orderbook, "outcome", func() any {
-		if outcomeObj == nil {
-			return fallback
-		}
-		return this.SafeString(outcomeObj, "outcome", fallback)
-	}())
-	AddElementToObject(orderbook, "outcomeId", func() any {
-		if outcomeObj == nil {
-			return this.SafeString(orderbook, "outcomeId")
-		}
-		return this.SafeString(outcomeObj, "outcomeId")
-	}())
-	AddElementToObject(orderbook, "market", func() any {
-		if outcomeObj == nil {
-			return this.SafeString(orderbook, "market")
-		}
-		return this.SafeString(outcomeObj, "market")
-	}())
+	var identity map[string]any = map[string]any{
+		"outcome": func() any {
+			if outcomeObj == nil {
+				return fallback
+			}
+			return this.SafeString(outcomeObj, "outcome", fallback)
+		}(),
+		"outcomeId": func() any {
+			if outcomeObj == nil {
+				return this.SafeString(orderbook, "outcomeId")
+			}
+			return this.SafeString(outcomeObj, "outcomeId")
+		}(),
+		"market": func() any {
+			if outcomeObj == nil {
+				return this.SafeString(orderbook, "market")
+			}
+			return this.SafeString(outcomeObj, "market")
+		}(),
+	}
 	// omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
-	return this.Omit(orderbook, "symbol")
+	return this.Extend(this.Omit(orderbook, "symbol"), identity)
 }
-func (this *PredictionExchange) ParsePredictionTicker(ticker any, optionalArgs ...any) any {
+func (this *PredictionExchange) ParsePredictionTicker(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parsePredictionTicker() is not supported yet"))
 }
-func (this *PredictionExchange) ParsePredictionOrder(order any, optionalArgs ...any) any {
+func (this *PredictionExchange) ParsePredictionOrder(order any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parsePredictionOrder() is not supported yet"))
@@ -2112,7 +2114,7 @@ func (this *PredictionExchange) ParsePredictionPosition(position any, optionalAr
 	_ = market
 	panic(NotSupported(this.Id + " parsePredictionPosition() is not supported yet"))
 }
-func (this *PredictionExchange) ParsePredictionOpenInterest(interest any, optionalArgs ...any) any {
+func (this *PredictionExchange) ParsePredictionOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parsePredictionOpenInterest() is not supported yet"))
@@ -2185,7 +2187,7 @@ func (this *PredictionExchange) ParsePredictionOrders(orders any, optionalArgs .
 	var rows []any = this.ToArray(orders)
 	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionOrder(func() any {
+		var parsed map[string]any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionOrder(func() any {
 			if i >= 0 && i < len(rows) {
 				return DerefScalar(rows[i])
 			}

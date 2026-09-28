@@ -2384,7 +2384,7 @@ func (this *P2b) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 func (this *P2b) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *P2b) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *P2b) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *P2b) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

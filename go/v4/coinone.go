@@ -2441,7 +2441,7 @@ func (this *Coinone) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Coinone) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Coinone) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Coinone) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Coinone) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

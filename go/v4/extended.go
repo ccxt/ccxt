@@ -6264,7 +6264,7 @@ func (this *Extended) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 func (this *Extended) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Extended) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Extended) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Extended) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

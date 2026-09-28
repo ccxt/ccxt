@@ -3909,7 +3909,7 @@ func (this *Bigone) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Bigone) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bigone) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bigone) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bigone) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

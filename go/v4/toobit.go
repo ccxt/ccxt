@@ -5262,7 +5262,7 @@ func (this *Toobit) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Toobit) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Toobit) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Toobit) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Toobit) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
