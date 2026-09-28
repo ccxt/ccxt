@@ -216,6 +216,101 @@
                         "markPrice": null
                     }
                 ]
+            },
+            {
+                "description": "generation 1 ticker derives change from open",
+                "input": [
+                    "BTC/KRW",
+                    {
+                        "generation": 1
+                    }
+                ],
+                "url": "wss://pubwss.bithumb.com/pub/ws",
+                "messages": [
+                    {
+                        "status": "0000",
+                        "resmsg": "Connected Successfully"
+                    },
+                    {
+                        "status": "0000",
+                        "resmsg": "Filter Registered Successfully"
+                    },
+                    {
+                        "type": "ticker",
+                        "content": {
+                            "volumePower": "79.22",
+                            "chgAmt": "-2120000",
+                            "chgRate": "-1.84",
+                            "prevClosePrice": "115026000",
+                            "buyVolume": "139.51143038",
+                            "sellVolume": "176.09898997",
+                            "volume": "315.61042035",
+                            "value": "35998809886.07732",
+                            "highPrice": "115558000",
+                            "lowPrice": "112550000",
+                            "closePrice": "113050000",
+                            "openPrice": "115170000",
+                            "time": "171755",
+                            "date": "20260928",
+                            "tickType": "24H",
+                            "symbol": "BTC_KRW"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "type": "ticker",
+                        "symbols": [
+                            "BTC_KRW"
+                        ],
+                        "tickTypes": [
+                            "24H"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/KRW",
+                        "timestamp": 1790583475000,
+                        "datetime": "2026-09-28T08:17:55.000Z",
+                        "high": 115558000,
+                        "low": 112550000,
+                        "bid": null,
+                        "bidVolume": 139.51143038,
+                        "ask": null,
+                        "askVolume": 176.09898997,
+                        "vwap": 114060904.09231737,
+                        "open": 115170000,
+                        "close": 113050000,
+                        "last": 113050000,
+                        "previousClose": 115026000,
+                        "change": -2120000,
+                        "percentage": -1.8407571416167403,
+                        "average": 114110000,
+                        "baseVolume": 315.61042035,
+                        "quoteVolume": 35998809886.07732,
+                        "info": {
+                            "volumePower": "79.22",
+                            "chgAmt": "-2120000",
+                            "chgRate": "-1.84",
+                            "prevClosePrice": "115026000",
+                            "buyVolume": "139.51143038",
+                            "sellVolume": "176.09898997",
+                            "volume": "315.61042035",
+                            "value": "35998809886.07732",
+                            "highPrice": "115558000",
+                            "lowPrice": "112550000",
+                            "closePrice": "113050000",
+                            "openPrice": "115170000",
+                            "time": "171755",
+                            "date": "20260928",
+                            "tickType": "24H",
+                            "symbol": "BTC_KRW"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
             }
         ]
     }
