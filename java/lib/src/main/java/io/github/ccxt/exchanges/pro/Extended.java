@@ -316,10 +316,17 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         //         "seq": 1
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        if (java.util.Objects.equals(this.balance, null))
+        {
+            this.balance = new HashMap<String, Object>() {{}};
+        }
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> result = new HashMap<String, Object>() {{
-            put( "info", data );
-        }};
+        Helpers.addElementToObject(this.balance, "info", data);
         Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, "balance");
         if (!java.util.Objects.equals(balance, null))
         {
@@ -330,7 +337,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 Object account = this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(balance, "availableForWithdrawal"));
                 ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
-                ((Map<String, Object>)result).put((String)code, account);
+                Helpers.addElementToObject(this.balance, code, account);
             }
         }
         List<Object> spotBalances = (List<Object>) this.safeList(data, "spotBalances", new ArrayList<Object>(Arrays.asList()));
@@ -344,13 +351,13 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 Object account = this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(spotBalance, "availableToWithdraw"));
                 ((Map<String, Object>)account).put("total", this.safeString(spotBalance, "balance"));
-                ((Map<String, Object>)result).put((String)code, account);
+                Helpers.addElementToObject(this.balance, code, account);
             }
         }
         Long timestamp = this.safeInteger(message, "ts");
-        ((Map<String, Object>)result).put("timestamp", timestamp);
-        ((Map<String, Object>)result).put("datetime", this.iso8601(timestamp));
-        this.balance = this.safeBalance(this.deepExtend(this.balance, result));
+        Helpers.addElementToObject(this.balance, "timestamp", timestamp);
+        Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, "balance");
     }
 

@@ -1577,10 +1577,10 @@ class modetrade extends Exchange {
 
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         /**
          * @ignore
@@ -1597,7 +1597,7 @@ class modetrade extends Exchange {
         $orderType = strtoupper($type);
         $market = $this->market($symbol);
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a side argument');
         }
         $orderSide = strtoupper($side);
         $request = array(
@@ -1938,7 +1938,7 @@ class modetrade extends Exchange {
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         if (($trigger !== true) && ($symbol === null)) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2872,7 +2872,7 @@ class modetrade extends Exchange {
         $coinNetwork = ($chainId === null) ? array() : $this->safe_dict($currencyNetworks, $chainId, array());
         $coinNetworkId = $this->safe_number($coinNetwork, 'id');
         if ($coinNetworkId === null) {
-            throw new BadRequest($this->id . ' withdraw() require $chainId parameter');
+            throw new BadRequest($this->id . ' withdraw() require chainId parameter');
         }
         $withdrawNonce = Async\await($this->get_withdraw_nonce($params));
         $nonce = $this->nonce();
@@ -3007,7 +3007,7 @@ class modetrade extends Exchange {
         $isMinLeverage = $leverage < 1;
         $isMaxLeverage = $leverage > 50;
         if ($isMinLeverage || $isMaxLeverage) {
-            throw new BadRequest($this->id . ' $leverage should be between 1 and 50');
+            throw new BadRequest($this->id . ' leverage should be between 1 and 50');
         }
         $request = array(
             'leverage' => $leverage,
@@ -3104,7 +3104,7 @@ class modetrade extends Exchange {
             Async\await($this->load_markets());
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchPosition() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchPosition() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $request = array(

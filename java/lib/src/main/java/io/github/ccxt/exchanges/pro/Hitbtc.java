@@ -180,7 +180,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             }
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
-                put( "id", Hitbtc.this.nonce() );
+                put( "id", Hitbtc.this.incrementingNonce() );
                 put( "ch", name );
             }};
             Map<String, Object> request = this.extend(subscribe, parameters);
@@ -218,7 +218,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", name );
                 put( "params", parameters );
-                put( "id", Hitbtc.this.nonce() );
+                put( "id", Hitbtc.this.incrementingNonce() );
             }};
             return (this.watch(url, messageHash, subscribe, messageHash, null)).join();
         });
@@ -243,7 +243,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             }
             (this.authenticate()).join();
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
-            Object messageHash = String.valueOf(this.nonce());
+            Object messageHash = String.valueOf(this.incrementingNonce());
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", name );
                 put( "params", parameters );

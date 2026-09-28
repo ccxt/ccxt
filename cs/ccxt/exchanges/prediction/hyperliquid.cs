@@ -145,6 +145,13 @@ public partial class hyperliquid : PredictionExchange
         ((IDictionary<string,object>)this.options)["sandboxMode"] = enabled;
     }
 
+    public override Int64 nonce()
+    {
+        // the venue nonce is a millisecond timestamp and must be strictly increasing per signer
+        // incrementingNonce () reads this and bumps past the previous value when two signed actions share a millisecond
+        return this.milliseconds();
+    }
+
     /**
      * @ignore
      * @method
@@ -1368,7 +1375,7 @@ public partial class hyperliquid : PredictionExchange
         string? marketSymbol = this.safeString(outcomeObj, "market");
         Dictionary<string, object> market = this.market(marketSymbol);
         IDictionary<string, object> outcomeInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
-        Int64 nonce = this.milliseconds();
+        object nonce = this.incrementingNonce();
         bool isBuy = ((((string)side).ToUpper() == "BUY"));
         bool isMarket = ((((string)type).ToUpper() == "MARKET"));
         Int64? assetId = this.safeInteger(outcomeInfo, "assetId");
@@ -1526,7 +1533,7 @@ public partial class hyperliquid : PredictionExchange
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
         IDictionary<string, object> outcomeInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         Int64? assetId = this.safeInteger(outcomeInfo, "assetId");
-        Int64 nonce = this.milliseconds();
+        object nonce = this.incrementingNonce();
         object clientOrderId = this.safeValue2(parameters, "clientOrderId", "client_id");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
         List<object> cancelReq = new List<object>() {};
@@ -2445,7 +2452,7 @@ public partial class hyperliquid : PredictionExchange
      */
     public async virtual Task<object> approveBuilderFee(object builder, object maxFeeRate)
     {
-        Int64 nonce = this.milliseconds();
+        object nonce = this.incrementingNonce();
         bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "hyperliquidChain", ((isSandboxMode == true)) ? "Testnet" : "Mainnet" },

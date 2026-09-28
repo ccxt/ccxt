@@ -86,7 +86,7 @@ public partial class foxbit : Exchange
                 { "www", "https://app.foxbit.com.br" },
                 { "doc", new List<object>() {"https://docs.foxbit.com.br"} },
             } },
-            { "precisionMode", DECIMAL_PLACES },
+            { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "400", typeof(BadRequest) },
@@ -419,7 +419,6 @@ public partial class foxbit : Exchange
 
     public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
-        Int64? precision = this.safeInteger(rawCurrency, "precision");
         string? currencyId = this.safeString(rawCurrency, "symbol");
         string? name = this.safeString(rawCurrency, "name");
         string? code = this.safeCurrencyCode(currencyId);
@@ -447,7 +446,7 @@ public partial class foxbit : Exchange
                     { "deposit", isDepositEnabled },
                     { "withdraw", isWithdrawEnabled },
                     { "active", true },
-                    { "precision", precision },
+                    { "precision", null },
                     { "fee", this.safeNumber(networkWithdrawInfo, "fee") },
                     { "limits", new Dictionary<string, object>() {
                         { "amount", new Dictionary<string, object>() {
@@ -476,7 +475,7 @@ public partial class foxbit : Exchange
             { "deposit", this.safeBool(depositInfo, "enabled", false) },
             { "withdraw", this.safeBool(withdrawInfo, "enabled", false) },
             { "fee", this.safeNumber(withdrawInfo, "fee") },
-            { "precision", precision },
+            { "precision", this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision"))) },
             { "limits", new Dictionary<string, object>() {
                 { "amount", new Dictionary<string, object>() {
                     { "min", null },
@@ -1895,9 +1894,8 @@ public partial class foxbit : Exchange
             { "tierBased", false },
             { "feeSide", "get" },
             { "precision", new Dictionary<string, object>() {
-                { "price", this.safeInteger(quoteAssets, "precision") },
-                { "amount", this.safeInteger(baseAssets, "precision") },
-                { "cost", this.safeInteger(quoteAssets, "precision") },
+                { "price", this.safeNumber(market, "price_increment") },
+                { "amount", this.safeNumber(market, "quantity_increment") },
             } },
             { "limits", new Dictionary<string, object>() {
                 { "amount", new Dictionary<string, object>() {

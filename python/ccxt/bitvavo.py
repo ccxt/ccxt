@@ -1112,7 +1112,7 @@ class bitvavo(Exchange, ImplicitAPI):
             request['end'] = self.sum(since, limit * duration * 1000)
         request, params = self.handle_until_option('end', request, params)
         if limit is not None:
-            request['limit'] = limit  # default 1440, max 1440
+            request['limit'] = min(limit, 1440)  # default 1440, max 1440
         return self.extend(request, params)
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:

@@ -1033,6 +1033,11 @@ export default class mercado extends Exchange {
         return result;
     }
 
+    override nonce (): number {
+        // the venue accepts any strictly-increasing integer tonce, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return this.milliseconds ();
+    }
+
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = this.urls['api'][api] + '/';
         const query: Dict = this.omit (params, this.extractParams (path));
@@ -1044,7 +1049,8 @@ export default class mercado extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             url += this.version + '/';
-            const nonce = this.nonce ();
+            // mercado requires each tonce to be greater than the previous one
+            const nonce = this.incrementingNonce ();
             body = this.urlencode (this.extend ({
                 'tapi_method': path,
                 'tapi_nonce': nonce,

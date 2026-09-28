@@ -1063,6 +1063,10 @@ class independentreserve(Exchange, ImplicitAPI):
             'internal': False,
         }
 
+    def nonce(self) -> float:
+        # the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return self.milliseconds()
+
     def sign(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = self.urls['api'][api] + '/' + path
         if api == 'public':
@@ -1070,7 +1074,8 @@ class independentreserve(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
-            nonce = self.nonce()
+            # independentreserve requires an increasing nonce
+            nonce = self.incrementing_nonce()
             auth = [
                 url,
                 'apiKey=' + self.apiKey,

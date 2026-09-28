@@ -1130,6 +1130,10 @@ class independentreserve extends independentreserve$1["default"] {
             'internal': false,
         };
     }
+    nonce() {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return this.milliseconds();
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         if (api === 'public') {
@@ -1139,7 +1143,8 @@ class independentreserve extends independentreserve$1["default"] {
         }
         else {
             this.checkRequiredCredentials();
-            const nonce = this.nonce();
+            // independentreserve requires an increasing nonce
+            const nonce = this.incrementingNonce();
             const auth = [
                 url,
                 'apiKey=' + this.apiKey,

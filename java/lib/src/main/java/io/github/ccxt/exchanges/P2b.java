@@ -1565,7 +1565,9 @@ public class P2b extends P2bApi
         if (java.util.Objects.equals(api, "private"))
         {
             ((Map<String, Object>)parameters).put("request", Helpers.add("/api/v2/", path));
-            ((Map<String, Object>)parameters).put("nonce", String.valueOf(this.nonce()));
+            // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
+            // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
+            ((Map<String, Object>)parameters).put("nonce", String.valueOf(this.incrementingNonce()));
             Object payload = this.stringToBase64(this.json(parameters)); // Body json encoded in base64
             headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );

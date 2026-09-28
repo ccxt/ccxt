@@ -907,7 +907,7 @@ class lighter extends \ccxt\async\lighter {
          * @return {any} status of the unwatch $request
          */
         if ($symbol !== null) {
-            throw new NotSupported($this->id . ' unWatchMyTrades() does not support a $symbol argument, the account trades channel covers every market, unWatch from all markets only');
+            throw new NotSupported($this->id . ' unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only');
         }
         $accountIndex = null;
         list($accountIndex, $params) = Async\await($this->handleAccountIndex($params, 'unWatchMyTrades', 'accountIndex', 'account_index'));
@@ -1450,7 +1450,45 @@ class lighter extends \ccxt\async\lighter {
         //         }
         //     }
         //
+        //
+        //     {
+        //         "error": {
+        //             "code": 30003,
+        //             "message": "Already Subscribed to : market_stats:all"
+        //         }
+        //     }
+        //
+        //     {
+        //         "error": {
+        //             "code": 30002,
+        //             "message": "Not Subscribed to : order_book:0"
+        //         }
+        //     }
+        //
         $error = $this->safe_dict($message, 'error');
+        $errorCode = $this->safe_string($error, 'code');
+        if ($errorCode === '30003') {
+            // a duplicate subscribe is harmless - the server-side subscription is intact and
+            // data keeps flowing, while the generic reject below would hit every pending
+            // future on the connection because the venue echoes no request id,
+            // same handling for the same notice on hyperliquid, apex and krakenfutures
+            return true;
+        }
+        if ($errorCode === '30002') {
+            // the requested state is already reached, so the unWatch call resolves and only
+            // its own channel gets cleaned up. The channel is available solely inside the
+            // message text, a changed text format falls through to the generic reject below
+            $notSubscribedMessage = $this->safe_string($error, 'message', '');
+            $messageParts = explode(' : ', $notSubscribedMessage);
+            $notSubscribedChannel = $this->safe_string($messageParts, 1);
+            if ($notSubscribedChannel !== null) {
+                $unsubscribed = array(
+                    'channel' => $notSubscribedChannel,
+                );
+                $this->handle_un_subscription($client, $unsubscribed);
+                return true;
+            }
+        }
         try {
             if ($error !== null) {
                 $code = $this->safe_string($error, 'code');

@@ -92,7 +92,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRate': True,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
-                'fetchDeposit': False,
+                'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
@@ -150,7 +150,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchTransfer': False,
                 'fetchTransfers': True,
                 'fetchWithdrawAddresses': False,
-                'fetchWithdrawal': False,
+                'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'repayCrossMargin': True,
@@ -3064,6 +3064,24 @@ class bitget(Exchange, ImplicitAPI):
         rawTransactions = self.safe_list(response, 'data', [])
         return self.parse_transactions(rawTransactions, None, since, limit)
 
+    def fetch_deposit(self, id: str, code: Str = None, params={}) -> Transaction:
+        """
+        fetch data on a currency deposit via the deposit id, looks back 30 days for uta accounts and 90 days otherwise
+
+        https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-deposit-records
+
+        :param str id: deposit id
+        :param str [code]: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
+        """
+        request = {
+            'orderId': id,
+        }
+        deposits = self.fetch_deposits(code, None, None, self.extend(request, params))
+        return self.safe_dict(deposits, 0, {})
+
     def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
@@ -3235,6 +3253,24 @@ class bitget(Exchange, ImplicitAPI):
         rawTransactions = self.safe_list(response, 'data', [])
         return self.parse_transactions(rawTransactions, currency, since, limit)
 
+    def fetch_withdrawal(self, id: str, code: Str = None, params={}) -> Transaction:
+        """
+        fetch data on a currency withdrawal via the withdrawal id, looks back 30 days for uta accounts and 90 days otherwise
+
+        https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-withdrawal-records
+
+        :param str id: withdrawal id
+        :param str [code]: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
+        """
+        request = {
+            'orderId': id,
+        }
+        withdrawals = self.fetch_withdrawals(code, None, None, self.extend(request, params))
+        return self.safe_dict(withdrawals, 0, {})
+
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
@@ -3277,7 +3313,7 @@ class bitget(Exchange, ImplicitAPI):
         # fetchDeposits & fetchWithdrawals uta rows use the same fields, except
         #
         #     {
-        #         "recordId": "63dbe57f0f0a5f6d3e74ff1b07e4c4f5332b96fec74c14190a52e0cea1726364",
+        #         "recordId": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
         #         "createdTime": "1787913850359",
         #         "updatedTime": "1787913880178"
         #     }

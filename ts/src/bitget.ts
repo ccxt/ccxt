@@ -73,7 +73,7 @@ export default class bitget extends Exchange {
                 'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
-                'fetchDeposit': false,
+                'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
@@ -131,7 +131,7 @@ export default class bitget extends Exchange {
                 'fetchTransfer': false,
                 'fetchTransfers': true,
                 'fetchWithdrawAddresses': false,
-                'fetchWithdrawal': false,
+                'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'repayCrossMargin': true,
@@ -3117,6 +3117,25 @@ export default class bitget extends Exchange {
 
     /**
      * @method
+     * @name bitget#fetchDeposit
+     * @description fetch data on a currency deposit via the deposit id, looks back 30 days for uta accounts and 90 days otherwise
+     * @see https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-deposit-records
+     * @param {string} id deposit id
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async fetchDeposit (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
+        const request: Dict = {
+            'orderId': id,
+        };
+        const deposits = await this.fetchDeposits (code, undefined, undefined, this.extend (request, params));
+        return this.safeDict (deposits, 0, {}) as Transaction;
+    }
+
+    /**
+     * @method
      * @name bitget#withdraw
      * @description make a withdrawal
      * @see https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
@@ -3302,6 +3321,25 @@ export default class bitget extends Exchange {
         return this.parseTransactions (rawTransactions, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitget#fetchWithdrawal
+     * @description fetch data on a currency withdrawal via the withdrawal id, looks back 30 days for uta accounts and 90 days otherwise
+     * @see https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-withdrawal-records
+     * @param {string} id withdrawal id
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async fetchWithdrawal (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
+        const request: Dict = {
+            'orderId': id,
+        };
+        const withdrawals = await this.fetchWithdrawals (code, undefined, undefined, this.extend (request, params));
+        return this.safeDict (withdrawals, 0, {}) as Transaction;
+    }
+
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
@@ -3344,7 +3382,7 @@ export default class bitget extends Exchange {
         // fetchDeposits & fetchWithdrawals uta rows use the same fields, except
         //
         //     {
-        //         "recordId": "63dbe57f0f0a5f6d3e74ff1b07e4c4f5332b96fec74c14190a52e0cea1726364",
+        //         "recordId": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
         //         "createdTime": "1787913850359",
         //         "updatedTime": "1787913880178"
         //     }

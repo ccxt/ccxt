@@ -3,6 +3,7 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var bybit = require('./bybit.js');
+var errors = require('./base/errors.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -26,6 +27,9 @@ class bybitid extends bybit["default"] {
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
                 'referral': undefined,
+            },
+            'httpExceptions': {
+                '403': errors.PermissionDenied, // error:The Amazon CloudFront distribution is configured to block access from your country
             },
         });
     }

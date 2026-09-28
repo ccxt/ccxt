@@ -1056,7 +1056,7 @@ class bitvavo extends \ccxt\async\bitvavo {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' watchOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' watchOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1098,7 +1098,7 @@ class bitvavo extends \ccxt\async\bitvavo {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1237,7 +1237,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         if ($operatorId !== null) {
             $request['operatorId'] = $this->parse_to_int($operatorId);
         } else {
-            throw new ArgumentsRequired($this->id . ' canceAllOrdersWs() requires an $operatorId in $params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
+            throw new ArgumentsRequired($this->id . ' canceAllOrdersWs() requires an operatorId in params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
         }
         $market = null;
         if ($symbol !== null) {
@@ -1284,7 +1284,7 @@ class bitvavo extends \ccxt\async\bitvavo {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1315,7 +1315,7 @@ class bitvavo extends \ccxt\async\bitvavo {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrdersWs() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrdersWs() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1392,7 +1392,7 @@ class bitvavo extends \ccxt\async\bitvavo {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTradesWs() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTradesWs() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1820,7 +1820,7 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function action_and_order_id_message_hash(string $action, $params = array()): string {
         $orderId = $this->safe_string($params, 'orderId');
         if ($orderId === null) {
-            throw new ExchangeError($this->id . ' privateUpdateOrderMessageHash requires a $orderId parameter');
+            throw new ExchangeError($this->id . ' privateUpdateOrderMessageHash requires a orderId parameter');
         }
         return $action . $orderId;
     }

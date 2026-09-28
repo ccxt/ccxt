@@ -115,7 +115,7 @@ class okx extends \ccxt\async\okx {
     public function get_url(?string $channel, string $access = 'public'): string {
         // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
         if ($channel === null) {
-            throw new ArgumentsRequired($this->id . ' getUrl() requires a $channel argument');
+            throw new ArgumentsRequired($this->id . ' getUrl() requires a channel argument');
         }
         $isSandbox = $this->options['sandboxMode'];
         $sandboxSuffix = ($isSandbox === true) ? '?brokerId=9999' : '';
@@ -146,11 +146,11 @@ class okx extends \ccxt\async\okx {
         $messageHashes = array();
         $args = array();
         if ($symbols === null) {
-            throw new ArgumentsRequired($this->id . ' subscribeMultiple() $symbols is required');
+            throw new ArgumentsRequired($this->id . ' subscribeMultiple() symbols is required');
         }
         for ($i = 0; $i < count($symbols); $i++) {
             if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' subscribeMultiple() $symbols is required');
+                throw new ArgumentsRequired($this->id . ' subscribeMultiple() symbols is required');
             }
             $marketId = $this->market_id($symbols[$i]);
             $arg = array(
@@ -159,7 +159,7 @@ class okx extends \ccxt\async\okx {
             );
             $args[] = $this->extend($arg, $params);
             if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' subscribeMultiple() $symbols is required');
+                throw new ArgumentsRequired($this->id . ' subscribeMultiple() symbols is required');
             }
             $messageHashes[] = $channel . '::' . $symbols[$i];
         }
@@ -859,7 +859,7 @@ class okx extends \ccxt\async\okx {
             $type = 'futures';
         }
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' watchLiquidationsForSymbols() $type is required');
+            throw new ArgumentsRequired($this->id . ' watchLiquidationsForSymbols() type is required');
         }
         $uppercaseType = strtoupper($type);
         $request = array(
@@ -1362,7 +1362,7 @@ class okx extends \ccxt\async\okx {
         }
         if (($depth === 'books-l2-tbt') || ($depth === 'books50-l2-tbt')) {
             if (!$this->check_required_credentials(false)) {
-                throw new AuthenticationError($this->id . ' watchOrderBook/watchOrderBookForSymbols requires authentication for this $depth-> Add credentials or change the $depth option to books or books5');
+                throw new AuthenticationError($this->id . ' watchOrderBook/watchOrderBookForSymbols requires authentication for this depth. Add credentials or change the depth option to books or books5');
             }
             Async\await($this->authenticate(array( 'access' => 'public' )));
         }
@@ -1910,7 +1910,7 @@ class okx extends \ccxt\async\okx {
             $type = 'futures';
         }
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' watchMyTrades() $type is required');
+            throw new ArgumentsRequired($this->id . ' watchMyTrades() type is required');
         }
         $uppercaseType = strtoupper($type);
         $marginMode = null;
@@ -2114,7 +2114,7 @@ class okx extends \ccxt\async\okx {
             $type = 'futures';
         }
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' watchOrders() $type is required');
+            throw new ArgumentsRequired($this->id . ' watchOrders() type is required');
         }
         $uppercaseType = strtoupper($type);
         $marginMode = null;
@@ -2465,7 +2465,7 @@ class okx extends \ccxt\async\okx {
          * @return {array} an list of ~@link https://docs.ccxt.com/?$id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new BadRequest($this->id . ' cancelOrderWs() requires a $symbol argument');
+            throw new BadRequest($this->id . ' cancelOrderWs() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2510,10 +2510,10 @@ class okx extends \ccxt\async\okx {
          */
         $idsLength = count($ids);
         if ($idsLength > 20) {
-            throw new BadRequest($this->id . ' cancelOrdersWs() accepts up to 20 $ids at a time');
+            throw new BadRequest($this->id . ' cancelOrdersWs() accepts up to 20 ids at a time');
         }
         if ($symbol === null) {
-            throw new BadRequest($this->id . ' cancelOrdersWs() requires a $symbol argument');
+            throw new BadRequest($this->id . ' cancelOrdersWs() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2556,7 +2556,7 @@ class okx extends \ccxt\async\okx {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new BadRequest($this->id . ' cancelAllOrdersWs() requires a $symbol argument');
+            throw new BadRequest($this->id . ' cancelAllOrdersWs() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());

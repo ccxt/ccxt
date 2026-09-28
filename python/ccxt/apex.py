@@ -825,6 +825,7 @@ class apex(Exchange, ImplicitAPI):
         }
         if limit is None:
             limit = 200  # default is 200 when requested with `since`
+        limit = min(limit, 200)  # fix maxcap
         request['limit'] = limit  # max 200, default 200
         request, params = self.handle_until_option('end', request, params, 0.001)
         if since is not None:

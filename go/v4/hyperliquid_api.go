@@ -9,7 +9,7 @@ package ccxt
 
 // PublicPostInfo returns a channel that yields a JSON object, a JSON array or a JSON scalar.
 func (this *Hyperliquid) PublicPostInfo(args ...any) <-chan any {
-	return this.Fetch2Async("info", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+	return this.Fetch2Async("info", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // PrivatePostExchange returns a channel that yields a JSON object.

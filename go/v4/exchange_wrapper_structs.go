@@ -5175,25 +5175,6 @@ func WithFetchClosedOrderParams(params map[string]any) FetchClosedOrderOptions {
 	}
 }
 
-type FetchWithdrawalOptionsStruct struct {
-	Code   *string
-	Params *map[string]any
-}
-
-type FetchWithdrawalOptions func(opts *FetchWithdrawalOptionsStruct)
-
-func WithFetchWithdrawalCode(code string) FetchWithdrawalOptions {
-	return func(opts *FetchWithdrawalOptionsStruct) {
-		opts.Code = &code
-	}
-}
-
-func WithFetchWithdrawalParams(params map[string]any) FetchWithdrawalOptions {
-	return func(opts *FetchWithdrawalOptionsStruct) {
-		opts.Params = &params
-	}
-}
-
 type FetchDepositOptionsStruct struct {
 	Code   *string
 	Params *map[string]any
@@ -5209,6 +5190,25 @@ func WithFetchDepositCode(code string) FetchDepositOptions {
 
 func WithFetchDepositParams(params map[string]any) FetchDepositOptions {
 	return func(opts *FetchDepositOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
+type FetchWithdrawalOptionsStruct struct {
+	Code   *string
+	Params *map[string]any
+}
+
+type FetchWithdrawalOptions func(opts *FetchWithdrawalOptionsStruct)
+
+func WithFetchWithdrawalCode(code string) FetchWithdrawalOptions {
+	return func(opts *FetchWithdrawalOptionsStruct) {
+		opts.Code = &code
+	}
+}
+
+func WithFetchWithdrawalParams(params map[string]any) FetchWithdrawalOptions {
+	return func(opts *FetchWithdrawalOptionsStruct) {
 		opts.Params = &params
 	}
 }

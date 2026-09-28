@@ -450,7 +450,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             put( "last", close );
             put( "previousClose", Weex.this.safeString(ticker, "x") );
             put( "change", Weex.this.safeString(ticker, "p") );
-            put( "percentage", Weex.this.safeString(ticker, "P") );
+            put( "percentage", Precise.stringMul(Weex.this.safeString(ticker, "P"), "100") );
             put( "average", Weex.this.safeString(ticker, "w") );
             put( "baseVolume", Weex.this.safeString(ticker, "v") );
             put( "quoteVolume", Weex.this.safeString(ticker, "q") );

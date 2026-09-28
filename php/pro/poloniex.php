@@ -174,7 +174,7 @@ class poloniex extends \ccxt\async\poloniex {
             $marketIds[] = 'all';
         } else {
             if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' $subscribe() $symbols is required');
+                throw new ArgumentsRequired($this->id . ' subscribe() symbols is required');
             }
             $messageHash = $messageHash . '::' . implode(',', $symbols);
             $ids = $this->market_ids($symbols);
@@ -243,7 +243,7 @@ class poloniex extends \ccxt\async\poloniex {
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrderWs() $side is required');
+            throw new ArgumentsRequired($this->id . ' createOrderWs() side is required');
         }
         $uppercaseSide = strtoupper($side);
         $isPostOnly = $this->is_post_only($uppercaseType === 'MARKET', $uppercaseType === 'LIMIT_MAKER', $params);
@@ -265,7 +265,7 @@ class poloniex extends \ccxt\async\poloniex {
                 $quoteAmount = $this->cost_to_precision($symbol, $cost);
             } elseif ($createMarketBuyOrderRequiresPrice) {
                 if ($price === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy $orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
+                    throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                 } else {
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
@@ -406,7 +406,7 @@ class poloniex extends \ccxt\async\poloniex {
         $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $channel = $this->safe_string($timeframes, $timeframe, $timeframe);
         if ($channel === null) {
-            throw new BadRequest($this->id . ' watchOHLCV cannot take a $timeframe of ' . $timeframe);
+            throw new BadRequest($this->id . ' watchOHLCV cannot take a timeframe of ' . $timeframe);
         }
         $ohlcv = Async\await($this->subscribe($channel, $channel, false, array( $symbol ), $params));
         if ($this->newUpdates) {

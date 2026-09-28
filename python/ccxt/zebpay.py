@@ -566,7 +566,7 @@ class zebpay(Exchange, ImplicitAPI):
         [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-order-book
 
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int [limit]: the maximum amount of order book entries to return
+        :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
@@ -576,10 +576,10 @@ class zebpay(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
+        if limit is not None:
+            request['limit'] = limit
         response = None
         if market['spot'] is True:
-            if limit is not None:
-                request['limit'] = limit
             #
             #       {
             #         "asks": [
@@ -692,40 +692,44 @@ class zebpay(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
-        :param int [limit]: the maximum amount of candles to fetch
+        :param int [limit]: the maximum amount of candles to fetch. Swap: 1–1000, omit for 1000
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch(inclusive). Swap: requires since
         :param int [params.endtime]: the latest time in ms to fetch orders for
+        :param str [params.priceType]: *swap only* LTP(default) or MARK_PRICE
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if limit is None:
-            limit = 100  # default is 200
         request = {
             'symbol': market['id'],
         }
-        if market['spot'] is True:
-            request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
-        else:
-            request['interval'] = timeframe
-        if (market['contract'] is True) and (limit is not None):
-            request['limit'] = limit
-        if since is not None:
-            if market['spot'] is True:
-                request['startTime'] = since
-            else:
-                request['since'] = since
         until = self.safe_integer_2(params, 'until', 'endtime')
-        if until is not None:
-            request['endTime'] = until
-            params = self.omit(params, ['endtime', 'until'])
+        params = self.omit(params, ['until', 'endtime', 'endTime', 'interval', 'startTime'])
         response = None
         if market['spot'] is True:
+            if limit is None:
+                limit = 100
+            request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
+            if since is not None:
+                request['startTime'] = since
+            if until is not None:
+                request['endTime'] = until
             if until is None or since is None:
                 raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a both a since and until/endtime parameter for spot markets')
+            params = self.omit(params, 'priceType')
             response = self.publicSpotGetV2MarketKlines(self.extend(request, params))
         else:
+            request['timeframe'] = timeframe
+            if limit is not None:
+                request['limit'] = limit
+            if since is not None:
+                request['since'] = since
+            if until is not None:
+                if since is None:
+                    raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument when params["until"] is used')
+                request['until'] = until
             response = self.publicSwapPostV1MarketKlines(self.extend(request, params))
         #
         #             [
@@ -1841,6 +1845,10 @@ class zebpay(Exchange, ImplicitAPI):
                 if (queryLength is not None) and (queryLength != 0):
                     url += '?' + self.urlencode(query)
             else:
+                priceType = self.safe_string(params, 'priceType')
+                params = self.omit(params, 'priceType')
+                if priceType is not None:
+                    url += '?' + self.urlencode({'priceType': priceType})
                 body = json.dumps(params)
                 headers = {
                     'Referrer': 'ccxt',

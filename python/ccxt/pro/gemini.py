@@ -881,7 +881,7 @@ class gemini(ccxt.async_support.gemini):
         request = url[startIndex:endIndex]
         payload = {
             'request': request,
-            'nonce': self.nonce(),
+            'nonce': self.incrementing_nonce(),  # must be greater than the previously used nonce, shared with the REST counter
         }
         b64 = self.string_to_base64(self.json(payload))
         signature = self.hmac(self.encode(b64), self.encode(self.secret), hashlib.sha384, 'hex')

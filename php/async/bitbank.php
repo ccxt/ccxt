@@ -1161,7 +1161,7 @@ class bitbank extends Exchange {
             $isTimeWindow = ($authMethod === 'timeWindow');
             $requestTime = (string) $this->milliseconds();
             $timeWindow = $this->safe_string($this->options, 'timeWindow', '5000');
-            $nonce = (string) $this->nonce();
+            $nonce = (string) $this->incrementing_nonce();
             $auth = null;
             if ($isTimeWindow) {
                 $auth = $requestTime . $timeWindow;

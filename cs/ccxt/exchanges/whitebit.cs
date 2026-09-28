@@ -4910,7 +4910,8 @@ public partial class whitebit : Exchange
         if (isEqual(accessibility, "private"))
         {
             this.checkRequiredCredentials();
-            string nonce = ((object)this.nonce()).ToString();
+            // whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
+            string nonce = ((object)this.incrementingNonce()).ToString();
             string? secret = this.encode(this.secret);
             string request = (((("/" + "api") + "/") + (version)) + pathWithParams);
             IList<object> nonceWindowrequestParamsVariable = (IList<object>)this.handleOptionAndParams(parameters, "sign", "nonceWindow", false);

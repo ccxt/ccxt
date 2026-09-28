@@ -16,15 +16,15 @@ pub fn testFundingRateHistory(mut exchange: Value, mut skippedProperties: Value,
     let mut m = indexmap::IndexMap::new();
     m
 }));
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".into()));
             m.insert("timestamp".to_string(), Value::Int(1638230400000));
-            m.insert("datetime".to_string(), Value::Str("2021-11-30T00:00:00.000Z".to_string()));
-            m.insert("fundingRate".to_string(), exchange.parse_number(Value::Str("0.0006".to_string()), &[]));
+            m.insert("datetime".to_string(), Value::Str("2021-11-30T00:00:00.000Z".into()));
+            m.insert("fundingRate".to_string(), exchange.parse_number(Value::Str("0.0006".into()), &[]));
         m
     });
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone()]);
-    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".to_string()).clone(), symbol.clone()]);
+    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()).clone(), symbol.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("fundingRate".to_string()).clone(), Value::Str("-100".to_string()).clone()]);
-    crate::tests_support::shared::assert_less(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("fundingRate".to_string()).clone(), Value::Str("100".to_string()).clone()]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("fundingRate".into()).clone(), Value::Str("-100".into()).clone()]);
+    crate::tests_support::shared::assert_less(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("fundingRate".into()).clone(), Value::Str("100".into()).clone()]);
 }

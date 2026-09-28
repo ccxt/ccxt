@@ -997,7 +997,7 @@ class kalshi extends Exchange {
          * @return {array} a dictionary of [prediction $ticker structures](https://docs.ccxt.com/#/?id=prediction-$ticker-structure) indexed by outcome
          */
         if ($outcomes === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTickers() requires an $outcomes argument — the venue has no all-$tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
+            throw new ArgumentsRequired($this->id . ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
         }
         // batch-resolve the uncached outcomes (one markets request per 100 tickers)
         Async\await($this->load_outcomes($outcomes));
@@ -1180,7 +1180,7 @@ class kalshi extends Exchange {
             // hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
             $tfKeys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
             $supported = implode(', ', $tfKeys);
-            throw new BadRequest($this->id . ' fetchOHLCV() does not support the ' . $timeframe . ' $timeframe ($supported => ' . $supported . ')');
+            throw new BadRequest($this->id . ' fetchOHLCV() does not support the ' . $timeframe . ' timeframe (supported => ' . $supported . ')');
         }
         $request = array(
             'series_ticker' => $seriesTicker,
@@ -2021,7 +2021,7 @@ class kalshi extends Exchange {
          */
         // kalshi has no market orders — every order is a limit order and the price is required
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . " createOrder() requires a $price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive $price with $params array( 'time_in_force' => 'immediate_or_cancel' )");
+            throw new ArgumentsRequired($this->id . " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params array( 'time_in_force' => 'immediate_or_cancel' )");
         }
         Async\await($this->load_outcome($outcome));
         $outcomeObj = $this->outcome($outcome);
@@ -2122,7 +2122,7 @@ class kalshi extends Exchange {
         // new order's required inputs BEFORE cancelling so a bad edit doesn't leave the user with the
         // order cancelled and nothing to replace it (kalshi is limit-only, so price + amount are required)
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $price - kalshi has only limit orders');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a price - kalshi has only limit orders');
         }
         if ($amount === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an amount');

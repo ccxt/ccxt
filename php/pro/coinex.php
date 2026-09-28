@@ -824,18 +824,18 @@ class coinex extends \ccxt\async\coinex {
             $limit = $this->safe_integer($options, 'defaultLimit', 50);
         }
         if (!$this->in_array($limit, $limits)) {
-            throw new NotSupported($this->id . ' watchOrderBookForSymbols() $limit must be one of ' . implode(', ', $limits));
+            throw new NotSupported($this->id . ' watchOrderBookForSymbols() limit must be one of ' . implode(', ', $limits));
         }
         $defaultAggregation = $this->safe_string($options, 'defaultAggregation', '0');
         $aggregations = $this->safe_list($options, 'aggregations', array());
         $aggregation = $this->safe_string($params, 'aggregation', $defaultAggregation);
         if (!$this->in_array($aggregation, $aggregations)) {
-            throw new NotSupported($this->id . ' watchOrderBookForSymbols() $aggregation must be one of ' . implode(', ', $aggregations));
+            throw new NotSupported($this->id . ' watchOrderBookForSymbols() aggregation must be one of ' . implode(', ', $aggregations));
         }
         $params = $this->omit($params, 'aggregation');
         $symbolsDefined = ($symbols !== null);
         if (!$symbolsDefined) {
-            throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a symbol argument');
         }
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];

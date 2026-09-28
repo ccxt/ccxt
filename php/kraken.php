@@ -1783,7 +1783,7 @@ class kraken extends Exchange {
                 $symbol = $marketId;
             } else {
                 if ($symbol !== $marketId) {
-                    throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same symbol');
+                    throw new BadRequest($this->id . ' createOrders() requires all orders to have the same symbol');
                 }
             }
             $market = $this->market($marketId);
@@ -2431,7 +2431,7 @@ class kraken extends Exchange {
         //
         $result = $this->safe_dict($response, 'result', array());
         if (!(is_array($result) && array_key_exists($id ?? '', $result))) {
-            throw new OrderNotFound($this->id . ' fetchOrder() could not find order $id ' . $id);
+            throw new OrderNotFound($this->id . ' fetchOrder() could not find order id ' . $id);
         }
         return $this->parse_order($this->extend(array( 'id' => $id ), $result[$id]));
     }
@@ -2452,7 +2452,7 @@ class kraken extends Exchange {
         $orderTrades = $this->safe_value($params, 'trades');
         $tradeIds = array();
         if ($orderTrades === null) {
-            throw new ArgumentsRequired($this->id . " fetchOrderTrades() requires a unified order structure in the $params argument or a 'trades' param (an array of trade $id strings)");
+            throw new ArgumentsRequired($this->id . " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)");
         } else {
             for ($i = 0; $i < count($orderTrades); $i++) {
                 $orderTrade = $orderTrades[$i];
@@ -2750,7 +2750,7 @@ class kraken extends Exchange {
             throw new ExchangeError($this->id . ' cancelAllOrdersAfter() missing timeout');
         }
         if ($timeout > 86400000) {
-            throw new BadRequest($this->id . ' cancelAllOrdersAfter $timeout should be less than 86400000 milliseconds');
+            throw new BadRequest($this->id . ' cancelAllOrdersAfter timeout should be less than 86400000 milliseconds');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -3620,7 +3620,7 @@ class kraken extends Exchange {
             'asset' => $currency['id'],
         );
         if ($fromAccountParsed !== 'Spot Wallet') {
-            throw new BadRequest($this->id . ' $transfer cannot $transfer from ' . $fromAccountParsed . ' to ' . $toAccountParsed . '. Use krakenfutures instead to $transfer from the futures account.');
+            throw new BadRequest($this->id . ' transfer cannot transfer from ' . $fromAccountParsed . ' to ' . $toAccountParsed . '. Use krakenfutures instead to transfer from the futures account.');
         }
         $response = $this->privatePostWalletTransfer($this->extend($request, $params));
         //
@@ -3683,7 +3683,8 @@ class kraken extends Exchange {
             $isCancelOrderBatch = ($path === 'CancelOrderBatch');
             $isBatchOrder = ($path === 'AddOrderBatch');
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce();
+            // kraken rejects a nonce that is not greater than the previous one for the key (EAPI:Invalid nonce)
+            $nonce = (string) $this->incrementing_nonce();
             if ($isCancelOrderBatch || $isTriggerPercent || $isBatchOrder) {
                 $body = $this->json($this->extend(array( 'nonce' => $nonce ), $params));
             } else {

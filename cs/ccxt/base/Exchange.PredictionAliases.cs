@@ -12,3 +12,4 @@ public class  Myriad: myriad { public Myriad(object args = null) : base(args) { 
 public class  Opinion: opinion { public Opinion(object args = null) : base(args) { } }
 public class  Polymarket: polymarket { public Polymarket(object args = null) : base(args) { } }
 public class  Predictfun: predictfun { public Predictfun(object args = null) : base(args) { } }
+public class  Sxbet: sxbet { public Sxbet(object args = null) : base(args) { } }

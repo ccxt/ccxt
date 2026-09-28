@@ -225,10 +225,15 @@ class extended(ccxt.async_support.extended):
         #         "seq": 1
         #     }
         #
+        # merge updates into the existing balance object instead of building a
+        # fresh one: a consumer awakened by an earlier message holds a reference
+        # to this.balance, and Client.resolve is a no-op while nobody is
+        # awaiting, so a replaced object would make updates landing in that
+        # window invisible to the consumer forever (issue #26773)
+        if self.balance is None:
+            self.balance = {}
         data = self.safe_dict(message, 'data', {})
-        result = {
-            'info': data,
-        }
+        self.balance['info'] = data
         balance = self.safe_dict(data, 'balance')
         if balance is not None:
             currencyId = self.safe_string(balance, 'collateralName')
@@ -237,7 +242,7 @@ class extended(ccxt.async_support.extended):
                 account = self.account()
                 account['free'] = self.safe_string(balance, 'availableForWithdrawal')
                 account['total'] = self.safe_string(balance, 'balance')
-                result[code] = account
+                self.balance[code] = account
         spotBalances = self.safe_list(data, 'spotBalances', [])
         for i in range(0, len(spotBalances)):
             spotBalance = self.safe_dict(spotBalances, i, {})
@@ -247,11 +252,11 @@ class extended(ccxt.async_support.extended):
                 account = self.account()
                 account['free'] = self.safe_string(spotBalance, 'availableToWithdraw')
                 account['total'] = self.safe_string(spotBalance, 'balance')
-                result[code] = account
+                self.balance[code] = account
         timestamp = self.safe_integer(message, 'ts')
-        result['timestamp'] = timestamp
-        result['datetime'] = self.iso8601(timestamp)
-        self.balance = self.safe_balance(self.deep_extend(self.balance, result))
+        self.balance['timestamp'] = timestamp
+        self.balance['datetime'] = self.iso8601(timestamp)
+        self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:

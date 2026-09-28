@@ -911,7 +911,7 @@ class hibachi(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        nonce = self.nonce()
+        nonce = self.incrementing_nonce()
         request = self.create_order_request(nonce, symbol, type, side, amount, price, params)
         request['accountId'] = self.get_account_id()
         response = await self.privatePostTradeOrder(request)
@@ -937,7 +937,7 @@ class hibachi(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        nonce = self.nonce()
+        nonce = self.incrementing_nonce()
         requestOrders = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
@@ -1009,7 +1009,7 @@ class hibachi(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        nonce = self.nonce()
+        nonce = self.incrementing_nonce()
         request = self.edit_order_request(nonce, id, symbol, type, side, amount, price, params)
         request['accountId'] = self.get_account_id()
         await self.privatePutTradeOrder(request)
@@ -1034,7 +1034,7 @@ class hibachi(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        nonce = self.nonce()
+        nonce = self.incrementing_nonce()
         requestOrders = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
@@ -1149,7 +1149,7 @@ class hibachi(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        nonce = self.nonce()
+        nonce = self.incrementing_nonce()
         nonce16 = self.int_to_base16(nonce)
         noncePadded = nonce16.rjust(16, '0')
         message = self.base16_to_binary(noncePadded)

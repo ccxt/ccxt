@@ -145,7 +145,7 @@ public partial class hitbtc : ccxt.hitbtc
         }
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", "subscribe" },
-            { "id", this.nonce() },
+            { "id", this.incrementingNonce() },
             { "ch", name },
         };
         Dictionary<string, object> request = this.extend(subscribe, parameters);
@@ -177,7 +177,7 @@ public partial class hitbtc : ccxt.hitbtc
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", name },
             { "params", parameters },
-            { "id", this.nonce() },
+            { "id", this.incrementingNonce() },
         };
         return await this.watch(url, messageHash, subscribe, messageHash);
     }
@@ -197,7 +197,7 @@ public partial class hitbtc : ccxt.hitbtc
         }
         await this.authenticate();
         object url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
-        string messageHash = ((object)this.nonce()).ToString();
+        string messageHash = ((object)this.incrementingNonce()).ToString();
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", name },
             { "params", parameters },

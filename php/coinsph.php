@@ -1204,7 +1204,7 @@ class coinsph extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1238,7 +1238,7 @@ class coinsph extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a symbol argument');
         }
         $request = array(
             'orderId' => $id,
@@ -1428,7 +1428,7 @@ class coinsph extends Exchange {
         // if limit order
         if ($orderType === 'LIMIT' || $orderType === 'STOP_LOSS_LIMIT' || $orderType === 'TAKE_PROFIT_LIMIT' || $orderType === 'LIMIT_MAKER') {
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for a ' . $type . ' order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for a ' . $type . ' order');
             }
             $newOrderRespType = $this->safe_string($newOrderRespType, 'limit', 'FULL');
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1451,7 +1451,7 @@ class coinsph extends Exchange {
                     $quoteAmount = $this->cost_to_precision($symbol, $cost);
                 } elseif ($createMarketBuyOrderRequiresPrice) {
                     if ($price === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                        throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
@@ -1467,7 +1467,7 @@ class coinsph extends Exchange {
         if ($orderType === 'STOP_LOSS' || $orderType === 'STOP_LOSS_LIMIT' || $orderType === 'TAKE_PROFIT' || $orderType === 'TAKE_PROFIT_LIMIT') {
             $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
             if ($triggerPrice === null) {
-                throw new InvalidOrder($this->id . ' createOrder () requires a $triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders');
+                throw new InvalidOrder($this->id . ' createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders');
             }
             $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
@@ -1573,7 +1573,7 @@ class coinsph extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1630,7 +1630,7 @@ class coinsph extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2295,7 +2295,7 @@ class coinsph extends Exchange {
             }
             $query = $this->url_encode_query($query);
             $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha256');
-            $url = $url . '?' . $query . '&$signature=' . $signature;
+            $url = $url . '?' . $query . '&signature=' . $signature;
             $headers = array(
                 'X-COINS-APIKEY' => $this->apiKey,
             );

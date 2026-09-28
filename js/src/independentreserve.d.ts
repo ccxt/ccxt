@@ -161,5 +161,6 @@ export default class independentreserve extends Exchange {
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
+    nonce(): number;
     sign(path: any, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
 }

@@ -8,6 +8,7 @@ import testWsKeepAliveTimeout from "./test.keepAliveTimeout.js";
 import testWsClientThrottleWiring from "./test.clientThrottleWiring.js";
 import testBingxBalanceReconciliation from "./test.bingxBalanceReconciliation.js";
 import testBingxOrderFreshness from "./test.bingxOrderFreshness.js";
+import testHyperliquidPendingUnsubscribe from "./test.pendingUnsubscribe.hyperliquid.js";
 
 async function testBaseWs () {
     testWsOrderBook ();
@@ -19,6 +20,7 @@ async function testBaseWs () {
     await testWsSingleFlightWiring ();
     await testWsKeepAliveTimeout ();
     await testWsClientThrottleWiring ();
+    await testHyperliquidPendingUnsubscribe ();
     await testBingxBalanceReconciliation ();
 }
 

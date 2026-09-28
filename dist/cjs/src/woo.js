@@ -2214,7 +2214,6 @@ class woo extends woo$1["default"] {
         const symbol = market['symbol'];
         const price = this.safeString(order, 'price');
         const amount = this.safeString(order, 'quantity'); // This is base amount
-        const cost = this.safeString(order, 'amount'); // This is quote amount
         const orderType = this.safeStringLower(order, 'type');
         const status = this.safeString2(order, 'status', 'algoStatus');
         const side = this.safeStringLower(order, 'side');
@@ -2260,7 +2259,8 @@ class woo extends woo$1["default"] {
             'amount': amount,
             'filled': filled,
             'remaining': undefined, // computed by safeOrder from amount minus filled
-            'cost': cost,
+            // safeOrder derives the cost from filled and average; `amount` is the quote the order reserved
+            'cost': undefined,
             'trades': undefined,
             'fee': {
                 'cost': fee,

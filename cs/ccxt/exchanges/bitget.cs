@@ -64,7 +64,7 @@ public partial class bitget : Exchange
                 { "fetchCrossBorrowRate", true },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
-                { "fetchDeposit", false },
+                { "fetchDeposit", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", false },
@@ -122,7 +122,7 @@ public partial class bitget : Exchange
                 { "fetchTransfer", false },
                 { "fetchTransfers", true },
                 { "fetchWithdrawAddresses", false },
-                { "fetchWithdrawal", false },
+                { "fetchWithdrawal", true },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", true },
                 { "repayCrossMargin", true },
@@ -4750,6 +4750,27 @@ public partial class bitget : Exchange
 
     /**
      * @method
+     * @name bitget#fetchDeposit
+     * @description fetch data on a currency deposit via the deposit id, looks back 30 days for uta accounts and 90 days otherwise
+     * @see https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-deposit-records
+     * @param {string} id deposit id
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public async virtual Task<ccxt.Transaction> FetchDeposit(string id, string code = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "orderId", id },
+        };
+        object deposits = ccxt.BaseExchange.FromTransactionList(await this.FetchDeposits(((string)code),ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters)));
+        return ccxt.BaseExchange.ToTransaction(this.safeDict(deposits, 0, new Dictionary<string, object>() {}));
+    }
+
+    /**
+     * @method
      * @name bitget#withdraw
      * @description make a withdrawal
      * @see https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
@@ -4967,6 +4988,27 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(rawTransactions, currency, sinceVar, limit));
     }
 
+    /**
+     * @method
+     * @name bitget#fetchWithdrawal
+     * @description fetch data on a currency withdrawal via the withdrawal id, looks back 30 days for uta accounts and 90 days otherwise
+     * @see https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-withdrawal-records
+     * @param {string} id withdrawal id
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public async virtual Task<ccxt.Transaction> FetchWithdrawal(string id, string code = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "orderId", id },
+        };
+        object withdrawals = ccxt.BaseExchange.FromTransactionList(await this.FetchWithdrawals(((string)code),ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters)));
+        return ccxt.BaseExchange.ToTransaction(this.safeDict(withdrawals, 0, new Dictionary<string, object>() {}));
+    }
+
     public override object parseTransaction(object transaction, object currency = null)
     {
         //
@@ -5010,7 +5052,7 @@ public partial class bitget : Exchange
         // fetchDeposits & fetchWithdrawals uta rows use the same fields, except
         //
         //     {
-        //         "recordId": "63dbe57f0f0a5f6d3e74ff1b07e4c4f5332b96fec74c14190a52e0cea1726364",
+        //         "recordId": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
         //         "createdTime": "1787913850359",
         //         "updatedTime": "1787913880178"
         //     }
