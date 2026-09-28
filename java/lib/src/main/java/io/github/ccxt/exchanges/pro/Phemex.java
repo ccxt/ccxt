@@ -1407,7 +1407,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         client.resolve(this.orders, messageHash);
     }
 
-    public Object parseWSSwapOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWSSwapOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // swap

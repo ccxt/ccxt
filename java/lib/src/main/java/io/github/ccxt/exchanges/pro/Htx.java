@@ -1518,7 +1518,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         client.resolve(this.orders, genericMessageHash);
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // spot
@@ -3132,7 +3132,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         // spot private
         //
@@ -3212,21 +3212,21 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 "currency", feeCurrency
             );
         }
-        return (Map<String, Object>) (this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "id", tradeId,
-            "order", order,
-            "type", type,
-            "takerOrMaker", takerOrMaker,
-            "side", side,
-            "price", price,
-            "amount", amount,
-            "cost", null,
-            "fee", fee
-        ), marketResolved));
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", trade);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("symbol", symbol);
+        mapLiteral5.put("id", tradeId);
+        mapLiteral5.put("order", order);
+        mapLiteral5.put("type", type);
+        mapLiteral5.put("takerOrMaker", takerOrMaker);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("price", price);
+        mapLiteral5.put("amount", amount);
+        mapLiteral5.put("cost", null);
+        mapLiteral5.put("fee", fee);
+        return this.safeTrade(mapLiteral5, marketResolved);
     }
 
     public Object getUrlByMarketType(Object type, Object isLinear, Object isPrivate, Object isFeed, Object isV5)

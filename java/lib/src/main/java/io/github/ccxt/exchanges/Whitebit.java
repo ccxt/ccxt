@@ -17,6 +17,7 @@ import io.github.ccxt.types.FundingHistory;
 import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.FundingRateHistory;
 import io.github.ccxt.types.FundingRates;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
@@ -821,7 +822,7 @@ public class Whitebit extends WhitebitApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         String id = this.safeString(market, "name");
         String baseId = this.safeString(market, "stock");
@@ -1005,7 +1006,7 @@ public class Whitebit extends WhitebitApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
         String id = this.safeString(rawCurrency, "_coin_id");
@@ -1724,7 +1725,7 @@ public class Whitebit extends WhitebitApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //  FetchTicker (v1)
@@ -2258,7 +2259,7 @@ public class Whitebit extends WhitebitApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTradesV4
@@ -2964,7 +2965,7 @@ public class Whitebit extends WhitebitApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         List<Object> balanceKeys = Helpers.objectKeys(response);
         Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -3207,7 +3208,7 @@ public class Whitebit extends WhitebitApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder, fetchOpenOrders, cancelOrder

@@ -346,7 +346,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         client.resolve(ticker, ("ticker::" + symbol));
     }
 
-    public Object parseWsTicker(Object message, Map<String, Object> market)
+    public Ticker parseWsTicker(Object message, Map<String, Object> market)
     {
         // same dict as REST api
         return this.parseTicker(message, market);
@@ -464,10 +464,10 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         client.resolve(stored, ("trade::" + symbol));
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         // same as REST api
-        return (Map<String, Object>) (this.parseTrade(trade, market));
+        return this.parseTrade(trade, market);
     }
 
     /**
@@ -1137,7 +1137,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         client.resolve(this.orders, ("order::" + order.get("symbol")));
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         // same as REST api
         return this.parseOrder(order, market);

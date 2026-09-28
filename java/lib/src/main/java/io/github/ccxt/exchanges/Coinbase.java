@@ -12,6 +12,7 @@ import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.Conversion;
 import io.github.ccxt.types.DepositAddress;
 import io.github.ccxt.types.LedgerEntry;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
@@ -1514,7 +1515,7 @@ public class Coinbase extends CoinbaseApi
         }
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchMyBuys, fetchMySells
@@ -1968,7 +1969,7 @@ public class Coinbase extends CoinbaseApi
 
     }
 
-    public Object parseSpotMarket(Map<String, Object> market, Map<String, Object> feeTier)
+    public MarketInterface parseSpotMarket(Map<String, Object> market, Map<String, Object> feeTier)
     {
         //
         //         {
@@ -2733,7 +2734,7 @@ public class Coinbase extends CoinbaseApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // fetchTickerV2
@@ -3856,7 +3857,7 @@ public class Coinbase extends CoinbaseApi
 
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder

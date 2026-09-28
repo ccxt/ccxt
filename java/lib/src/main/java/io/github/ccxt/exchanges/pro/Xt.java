@@ -1580,7 +1580,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         }}, marketResolved);
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // spot

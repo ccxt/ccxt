@@ -603,7 +603,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // {
@@ -677,7 +677,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         return this.safeOrder(mapLiteral2, (Map<String, Object>) null);
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         // see: parseWsOrder
         String side = this.safeStringLower(trade, "ask_bid");
@@ -700,21 +700,21 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 "cost", feeCost
             );
         }
-        return (Map<String, Object>) (this.safeTrade(Helpers.newMap(
-            "id", this.safeString(trade, "trade_uuid"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", marketResolved.get("symbol"),
-            "side", side,
-            "price", this.safeString(trade, "price"),
-            "amount", this.safeString(trade, "volume"),
-            "cost", this.safeString(trade, "executed_funds"),
-            "order", this.safeString(trade, "uuid"),
-            "takerOrMaker", null,
-            "type", this.safeString(trade, "order_type"),
-            "fee", fee,
-            "info", trade
-        ), marketResolved));
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", this.safeString(trade, "trade_uuid"));
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("symbol", marketResolved.get("symbol"));
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("price", this.safeString(trade, "price"));
+        mapLiteral3.put("amount", this.safeString(trade, "volume"));
+        mapLiteral3.put("cost", this.safeString(trade, "executed_funds"));
+        mapLiteral3.put("order", this.safeString(trade, "uuid"));
+        mapLiteral3.put("takerOrMaker", null);
+        mapLiteral3.put("type", this.safeString(trade, "order_type"));
+        mapLiteral3.put("fee", fee);
+        mapLiteral3.put("info", trade);
+        return this.safeTrade(mapLiteral3, marketResolved);
     }
 
     public void handleMyOrder(Client client, Map<String, Object> message)

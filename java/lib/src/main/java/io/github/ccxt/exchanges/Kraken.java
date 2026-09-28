@@ -1006,7 +1006,7 @@ public class Kraken extends KrakenApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         // todo: will need to rethink the fees
         // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
@@ -1243,7 +1243,7 @@ public class Kraken extends KrakenApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -1651,7 +1651,7 @@ public class Kraken extends KrakenApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public)
@@ -1876,7 +1876,7 @@ public class Kraken extends KrakenApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> balances = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         Map<String, Object> result = new HashMap<String, Object>() {{
@@ -2241,7 +2241,7 @@ public class Kraken extends KrakenApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder

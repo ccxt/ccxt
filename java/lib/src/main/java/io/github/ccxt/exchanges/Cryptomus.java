@@ -8,8 +8,10 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
 import io.github.ccxt.types.TradingFees;
@@ -397,7 +399,7 @@ public class Cryptomus extends CryptomusApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         //
         //     {
@@ -525,7 +527,7 @@ public class Cryptomus extends CryptomusApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         // currency here is array of networks
         String id = null; // all entries have same id, as they were grouped by
@@ -612,7 +614,7 @@ public class Cryptomus extends CryptomusApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -756,7 +758,7 @@ public class Cryptomus extends CryptomusApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         //     {
@@ -825,7 +827,7 @@ public class Cryptomus extends CryptomusApi
 
     }
 
-    public Object parseBalance(Object balance)
+    public Balances parseBalance(Object balance)
     {
         //
         //     {
@@ -1133,7 +1135,7 @@ public class Cryptomus extends CryptomusApi
 
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder

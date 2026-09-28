@@ -9,6 +9,7 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.DepositAddress;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
@@ -741,7 +742,7 @@ public class Alpaca extends AlpacaApi
 
     }
 
-    public Object parseMarket(Object asset)
+    public MarketInterface parseMarket(Object asset)
     {
         //
         //     {
@@ -1843,7 +1844,7 @@ public class Alpaca extends AlpacaApi
 
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         //    {
@@ -2041,7 +2042,7 @@ public class Alpaca extends AlpacaApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades
@@ -2614,7 +2615,7 @@ public class Alpaca extends AlpacaApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         //
         // crypto holdings live on the positions endpoint, the account endpoint carries only the cash currency

@@ -1277,7 +1277,7 @@ public class Coinex extends CoinexApi
 
     }
 
-    public Object parseCurrency(Object coin)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object coin)
     {
         Map<String, Object> asset = (Map<String, Object>) this.safeDict(coin, "asset", new HashMap<String, Object>() {{}});
         String currencyId = this.safeString(asset, "ccy");
@@ -1585,7 +1585,7 @@ public class Coinex extends CoinexApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // Spot fetchTicker, fetchTickers
@@ -1905,7 +1905,7 @@ public class Coinex extends CoinexApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // Spot and Swap fetchTrades (public)
@@ -2481,7 +2481,7 @@ public class Coinex extends CoinexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // Spot and Margin createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders

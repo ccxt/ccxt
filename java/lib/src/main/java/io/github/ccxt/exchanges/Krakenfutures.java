@@ -872,7 +872,7 @@ public class Krakenfutures extends KrakenfuturesApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //    {
@@ -1317,7 +1317,7 @@ public class Krakenfutures extends KrakenfuturesApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (recent trades)
@@ -2350,7 +2350,7 @@ public class Krakenfutures extends KrakenfuturesApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // LIMIT
@@ -3388,7 +3388,7 @@ public class Krakenfutures extends KrakenfuturesApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         //
         // cashAccount

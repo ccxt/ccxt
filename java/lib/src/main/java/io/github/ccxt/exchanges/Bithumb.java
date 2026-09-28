@@ -776,7 +776,7 @@ public class Bithumb extends BithumbApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         //
         // generation 1
@@ -988,7 +988,7 @@ public class Bithumb extends BithumbApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // generation 1: fetchTicker, fetchTickers
@@ -1612,7 +1612,7 @@ public class Bithumb extends BithumbApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // generation 1: fetchTrades (public)
@@ -2373,7 +2373,7 @@ public class Bithumb extends BithumbApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         //

@@ -914,7 +914,7 @@ public class Cryptocom extends CryptocomApi
 
     }
 
-    public Object parseCurrency(Object currency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object currency)
     {
         String id = this.safeString(currency, "_coin_id");
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
@@ -1589,7 +1589,7 @@ public class Cryptocom extends CryptocomApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> responseResult = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> data = (List<Object>) this.safeList(responseResult, "data", new ArrayList<Object>(Arrays.asList()));
@@ -2908,7 +2908,7 @@ public class Cryptocom extends CryptocomApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // fetchTicker
@@ -2970,7 +2970,7 @@ public class Cryptocom extends CryptocomApi
         }}, marketResolved);
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades
@@ -3068,7 +3068,7 @@ public class Cryptocom extends CryptocomApi
         return this.safeString(timeInForces, ((String)timeInForce), timeInForce);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder, cancelOrder

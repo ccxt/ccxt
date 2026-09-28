@@ -18,6 +18,7 @@ import io.github.ccxt.types.LedgerEntry;
 import io.github.ccxt.types.Leverage;
 import io.github.ccxt.types.LeverageTiers;
 import io.github.ccxt.types.MarginModification;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
@@ -1032,7 +1033,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         // spot
         //     {
@@ -1370,7 +1371,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "coinId");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -1622,7 +1623,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades
@@ -1899,7 +1900,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -2070,7 +2071,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Object parseBalance(Object balance)
+    public Balances parseBalance(Object balance)
     {
         //
         //     {
@@ -3812,7 +3813,7 @@ public class Hashkey extends HashkeyApi
         return new ArrayList<Object>(Arrays.asList(isTriggerStop, paramsStop));
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder spot

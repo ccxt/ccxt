@@ -595,7 +595,7 @@ public class Hollaex extends HollaexApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "symbol");
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
@@ -840,7 +840,7 @@ public class Hollaex extends HollaexApi
         return this.filterByArrayTickers(result, "symbol", symbols, true);
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // fetchTicker
@@ -941,7 +941,7 @@ public class Hollaex extends HollaexApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public)
@@ -1158,7 +1158,7 @@ public class Hollaex extends HollaexApi
         return new ArrayList<Object>(Arrays.asList(this.parse8601(this.safeString(ohlcv, "time")), this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, "volume", (Object) null)));
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Long timestamp = this.parse8601(this.safeString(response, "updated_at"));
         Map<String, Object> result = new HashMap<String, Object>() {{
@@ -1459,7 +1459,7 @@ public class Hollaex extends HollaexApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder, fetchOpenOrder, fetchOpenOrders

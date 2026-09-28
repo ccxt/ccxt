@@ -13,10 +13,12 @@ import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.FundingRateHistory;
 import io.github.ccxt.types.FundingRates;
 import io.github.ccxt.types.LedgerEntry;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
 import io.github.ccxt.types.Position;
+import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
 import io.github.ccxt.types.Transaction;
@@ -647,7 +649,7 @@ public class Deepcoin extends DeepcoinApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         //
         // spot markets
@@ -726,7 +728,7 @@ public class Deepcoin extends DeepcoinApi
         String state = this.safeString(market, "state");
         Boolean isMargin = Boolean.TRUE.equals(spot) && (Precise.stringGt(maxLeverage, "1"));
         Boolean isInverse = ((Boolean.TRUE.equals(swap))) ? (!java.util.Objects.equals(isLinear, true)) : null;
-        return this.extend(fees, Helpers.newMap(
+        return new MarketInterface(this.extend(fees, Helpers.newMap(
             "id", id,
             "symbol", symbol,
             "base", base,
@@ -774,7 +776,7 @@ public class Deepcoin extends DeepcoinApi
                 }}
             ),
             "info", market
-        ));
+        )));
     }
 
     public Object setMarkets(Object markets, Object currencies)
@@ -994,7 +996,7 @@ public class Deepcoin extends DeepcoinApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -1111,7 +1113,7 @@ public class Deepcoin extends DeepcoinApi
         return productGroup;
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // public fetchTrades
@@ -1217,7 +1219,7 @@ public class Deepcoin extends DeepcoinApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         //
         //     {
@@ -2925,7 +2927,7 @@ public class Deepcoin extends DeepcoinApi
 
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // regular order

@@ -10,6 +10,7 @@ import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.Leverage;
 import io.github.ccxt.types.MarginModification;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.Position;
@@ -563,7 +564,7 @@ public class Mudrex extends MudrexApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         String ms = this.safeString(ticker, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(ms, market, (String) null, (String) null);
@@ -666,7 +667,7 @@ public class Mudrex extends MudrexApi
 
     }
 
-    public Object parseMarket(Object asset)
+    public MarketInterface parseMarket(Object asset)
     {
         String ms = this.safeString(asset, "symbol");
         Object base = ms;
@@ -789,7 +790,7 @@ public class Mudrex extends MudrexApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         String currency = this.safeString(response, "currency", "USDT");
@@ -1055,7 +1056,7 @@ public class Mudrex extends MudrexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         String oms = this.safeString(order, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(oms, market, (String) null, (String) null);
@@ -1730,7 +1731,7 @@ public class Mudrex extends MudrexApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         //     {

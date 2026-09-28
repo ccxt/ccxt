@@ -460,7 +460,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         }
     }
 
-    public Object parseWsTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
     {
         //
         //  public
@@ -722,7 +722,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         client.resolve(stored, messageHash);
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -791,7 +791,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             mapLiteral3.put("rate", null);
             parsedTrade.put("fee", mapLiteral3);
         }
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (parsedTrade), market));
+        return this.safeTrade((Map<String, Object>) (parsedTrade), market);
     }
 
     public void handleOrderUpdate(Client client, Map<String, Object> message)

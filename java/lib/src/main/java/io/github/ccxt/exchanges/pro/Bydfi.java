@@ -857,7 +857,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         client.resolve(orders, symbolMessageHash);
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {
@@ -1230,7 +1230,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                     result.put(code, account);
                 }
             }
-            Object parsedBalance = this.safeBalance(result);
+            Balances parsedBalance = this.safeBalance(result);
             this.balance = this.extend(this.balance, parsedBalance);
             client.resolve(this.balance, messageHash);
         }

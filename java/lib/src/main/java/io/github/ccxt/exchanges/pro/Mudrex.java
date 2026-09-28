@@ -300,7 +300,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             String symbol = (String) market.get("symbol");
             Long timestamp = this.milliseconds();
             Double last = this.safeNumber(t, "p", (Object) null);
-            Object result = this.safeTicker(new HashMap<String, Object>() {{
+            Ticker result = this.safeTicker(new HashMap<String, Object>() {{
                 put( "symbol", symbol );
                 put( "timestamp", timestamp );
                 put( "datetime", Mudrex.this.iso8601(timestamp) );

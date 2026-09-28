@@ -386,7 +386,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         client.resolve(parsedTicker, messageHash);
     }
 
-    public Object parseWsTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -553,7 +553,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         client.resolve(strored, messageHash);
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // watchTrades
@@ -600,21 +600,21 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 "currency", this.safeCurrencyCode(this.safeString(trade, "f"), (Map<String, Object>) null)
             );
         }
-        return (Map<String, Object>) (this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", this.safeString(market, "symbol"),
-            "id", this.safeString2(trade, "TradeID", "TI"),
-            "order", this.safeString(trade, "OS"),
-            "type", null,
-            "takerOrMaker", this.handleTakerOrMaker((String) (matchRole)),
-            "side", this.parseTradeSide((String) (direction)),
-            "price", this.safeString(trade, "P"),
-            "amount", this.safeString(trade, "V"),
-            "cost", this.safeString(trade, "T"),
-            "fee", fee
-        ), market));
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", trade);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("symbol", this.safeString(market, "symbol"));
+        mapLiteral3.put("id", this.safeString2(trade, "TradeID", "TI"));
+        mapLiteral3.put("order", this.safeString(trade, "OS"));
+        mapLiteral3.put("type", null);
+        mapLiteral3.put("takerOrMaker", this.handleTakerOrMaker((String) (matchRole)));
+        mapLiteral3.put("side", this.parseTradeSide((String) (direction)));
+        mapLiteral3.put("price", this.safeString(trade, "P"));
+        mapLiteral3.put("amount", this.safeString(trade, "V"));
+        mapLiteral3.put("cost", this.safeString(trade, "T"));
+        mapLiteral3.put("fee", fee);
+        return this.safeTrade(mapLiteral3, market);
     }
 
     public String parseTradeSide(String direction)
@@ -1195,7 +1195,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         }
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {

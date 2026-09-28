@@ -1567,7 +1567,7 @@ public class Bitfinex extends BitfinexApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // on trading pairs (ex. tBTCUSD)
@@ -1793,7 +1793,7 @@ public class Bitfinex extends BitfinexApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public)
@@ -2071,7 +2071,7 @@ public class Bitfinex extends BitfinexApi
         return this.safeString(orderTypes, orderType, "GTC");
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         List<Object> orderList = (List<Object>) this.safeList(order, "result", (Object) null);
         String id = this.safeString(orderList, 0);

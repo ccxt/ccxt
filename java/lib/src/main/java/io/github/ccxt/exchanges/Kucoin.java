@@ -2911,7 +2911,7 @@ public class Kucoin extends KucoinApi
 
     }
 
-    public Object parseCurrency(Object currency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object currency)
     {
         Object entry = currency;
         String id = this.safeString(entry, "currency");
@@ -3415,14 +3415,14 @@ public class Kucoin extends KucoinApi
         return this.safeTicker(mapLiteral2, marketResolved);
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         // wrapper for parseTickers
         // parseTickers used only in methods for contract markets
         return this.parseContractTicker((Map<String, Object>) (ticker), market);
     }
 
-    public Object parseContractTicker(Map<String, Object> ticker, Map<String, Object> market)
+    public Ticker parseContractTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -7505,7 +7505,7 @@ public class Kucoin extends KucoinApi
         return tradeType;
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         String tradeType = this.safeString(order, "tradeType");
         List<String> utaTradeTypes = new ArrayList<String>(Arrays.asList("SPOT", "CROSS", "ISOLATED", "FUTURES")); // tradeType specific for uta endpoint
@@ -7529,7 +7529,7 @@ public class Kucoin extends KucoinApi
         }
     }
 
-    public Object parseContractOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseContractOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // fetchOrder, fetchOrdersByStatus
@@ -7669,7 +7669,7 @@ public class Kucoin extends KucoinApi
         return this.safeOrder(mapLiteral8, marketResolved);
     }
 
-    public Object parseSpotOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseSpotOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // createOrder
@@ -7858,7 +7858,7 @@ public class Kucoin extends KucoinApi
         return this.safeOrder(mapLiteral9, market);
     }
 
-    public Object parseUtaOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseUtaOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // createOrder
@@ -8575,7 +8575,7 @@ public class Kucoin extends KucoinApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         if (((Map<?, ?>)trade).containsKey("liquidityRole"))
         {
@@ -8592,7 +8592,7 @@ public class Kucoin extends KucoinApi
         }
     }
 
-    public Object parseSpotOrUtaTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseSpotOrUtaTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public)
@@ -8741,7 +8741,7 @@ public class Kucoin extends KucoinApi
         return this.safeTrade(mapLiteral12, marketResolved);
     }
 
-    public Object parseContractTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseContractTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public)
@@ -8884,7 +8884,7 @@ public class Kucoin extends KucoinApi
         return this.safeTrade(mapLiteral13, marketResolved);
     }
 
-    public Object parseMyUtaTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseMyUtaTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {

@@ -17,6 +17,7 @@ import io.github.ccxt.types.Leverage;
 import io.github.ccxt.types.MarginMode;
 import io.github.ccxt.types.MarginModes;
 import io.github.ccxt.types.MarginModification;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.OpenInterests;
@@ -897,7 +898,7 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         //
         //   {
@@ -1116,7 +1117,7 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         Map<String, Object> token = (Map<String, Object>) this.safeDict(rawCurrency, "_token", new HashMap<String, Object>() {{}});
         String currencyId = this.safeString(token, "token");
@@ -1198,7 +1199,7 @@ public class Woofipro extends WoofiproApi
         return fee;
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // public/market_trades
@@ -1480,7 +1481,7 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -2163,7 +2164,7 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // Possible input functions:
@@ -3290,7 +3291,7 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );

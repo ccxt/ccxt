@@ -16,6 +16,7 @@ import io.github.ccxt.types.Leverage;
 import io.github.ccxt.types.LeverageTier;
 import io.github.ccxt.types.LeverageTiers;
 import io.github.ccxt.types.MarginMode;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.OpenInterests;
@@ -773,7 +774,7 @@ public class Btse extends BtseApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         //
         // spot
@@ -1261,7 +1262,7 @@ public class Btse extends BtseApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -1549,7 +1550,7 @@ public class Btse extends BtseApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // spot rows carry the fields up to askQty, contract rows additionally carry
@@ -2069,7 +2070,7 @@ public class Btse extends BtseApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades
@@ -3085,7 +3086,7 @@ public class Btse extends BtseApi
 
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder - spot

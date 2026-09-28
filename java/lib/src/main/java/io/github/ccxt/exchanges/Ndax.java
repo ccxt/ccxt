@@ -11,6 +11,7 @@ import io.github.ccxt.types.Account;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.DepositAddress;
 import io.github.ccxt.types.LedgerEntry;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
@@ -770,7 +771,7 @@ public class Ndax extends NdaxApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "ProductId");
         String code = this.safeCurrencyCode(this.safeString(rawCurrency, "Product"), (Map<String, Object>) null);
@@ -880,7 +881,7 @@ public class Ndax extends NdaxApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         String id = this.safeString(market, "InstrumentId");
         // const lowercaseId = this.safeStringLower (market, 'symbol');
@@ -946,7 +947,7 @@ public class Ndax extends NdaxApi
         return this.safeMarketStructure(mapLiteral2);
     }
 
-    public Object parseOrderBook(Object orderbook, Object symbol, Long timestamp, Object bidsKey, Object asksKey, Object priceKey, Object amountKey, Object countOrIdKey)
+    public OrderBook parseOrderBook(Object orderbook, Object symbol, Long timestamp, Object bidsKey, Object asksKey, Object priceKey, Object amountKey, Object countOrIdKey)
     {
         Object nonce = null;
         Object latestTimestamp = timestamp;
@@ -993,7 +994,7 @@ public class Ndax extends NdaxApi
         result.put("timestamp", latestTimestamp);
         result.put("datetime", this.iso8601(latestTimestamp));
         result.put("nonce", nonce);
-        return result;
+        return new OrderBook(result);
     }
 
     /**
@@ -1051,7 +1052,7 @@ public class Ndax extends NdaxApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // fetchTicker
@@ -1322,7 +1323,7 @@ public class Ndax extends NdaxApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public)
@@ -1586,7 +1587,7 @@ public class Ndax extends NdaxApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -1839,7 +1840,7 @@ public class Ndax extends NdaxApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder

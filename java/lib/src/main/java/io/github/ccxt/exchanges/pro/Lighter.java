@@ -633,7 +633,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         return this.unWatchMarkPrices(symbols, (Object) (parameters));
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -673,21 +673,21 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         {
             side = "buy";
         }
-        return (Map<String, Object>) (this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "id", tradeId,
-            "order", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", this.safeSymbol(null, market, (String) null, (String) null),
-            "type", null,
-            "side", side,
-            "takerOrMaker", "taker",
-            "price", priceString,
-            "amount", amountString,
-            "cost", this.safeString(trade, "usd_amount"),
-            "fee", null
-        ), market));
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", trade);
+        mapLiteral1.put("id", tradeId);
+        mapLiteral1.put("order", null);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("symbol", this.safeSymbol(null, market, (String) null, (String) null));
+        mapLiteral1.put("type", null);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("takerOrMaker", "taker");
+        mapLiteral1.put("price", priceString);
+        mapLiteral1.put("amount", amountString);
+        mapLiteral1.put("cost", this.safeString(trade, "usd_amount"));
+        mapLiteral1.put("fee", null);
+        return this.safeTrade(mapLiteral1, market);
     }
 
     public void handleTrades(Client client, Map<String, Object> message)
@@ -899,21 +899,21 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 put( "rate", feeRate );
             }};
         }
-        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-        mapLiteral1.put("info", trade);
-        mapLiteral1.put("id", tradeId);
-        mapLiteral1.put("order", order);
-        mapLiteral1.put("timestamp", timestamp);
-        mapLiteral1.put("datetime", this.iso8601(timestamp));
-        mapLiteral1.put("symbol", this.safeSymbol(null, market, (String) null, (String) null));
-        mapLiteral1.put("type", null);
-        mapLiteral1.put("side", side);
-        mapLiteral1.put("takerOrMaker", takerOrMaker);
-        mapLiteral1.put("price", priceString);
-        mapLiteral1.put("amount", amountString);
-        mapLiteral1.put("cost", costString);
-        mapLiteral1.put("fee", fee);
-        return this.safeTrade(mapLiteral1, market);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("id", tradeId);
+        mapLiteral2.put("order", order);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", this.safeSymbol(null, market, (String) null, (String) null));
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("takerOrMaker", takerOrMaker);
+        mapLiteral2.put("price", priceString);
+        mapLiteral2.put("amount", amountString);
+        mapLiteral2.put("cost", costString);
+        mapLiteral2.put("fee", fee);
+        return this.safeTrade(mapLiteral2, market);
     }
 
     public Boolean handleMyTrades(Client client, Map<String, Object> message)
@@ -1117,18 +1117,18 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         {
             return null;
         }
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("info", liquidation);
-        mapLiteral2.put("symbol", market.get("symbol"));
-        mapLiteral2.put("contracts", contracts);
-        mapLiteral2.put("contractSize", contractSize);
-        mapLiteral2.put("price", price);
-        mapLiteral2.put("side", side);
-        mapLiteral2.put("baseValue", baseValue);
-        mapLiteral2.put("quoteValue", quoteValue);
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        return this.safeLiquidation(mapLiteral2, (Map<String, Object>) null);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", liquidation);
+        mapLiteral3.put("symbol", market.get("symbol"));
+        mapLiteral3.put("contracts", contracts);
+        mapLiteral3.put("contractSize", contractSize);
+        mapLiteral3.put("price", price);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("baseValue", baseValue);
+        mapLiteral3.put("quoteValue", quoteValue);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        return this.safeLiquidation(mapLiteral3, (Map<String, Object>) null);
     }
 
     public void handleLiquidation(Client client, Map<String, Object> message)

@@ -227,7 +227,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
 
     }
 
-    public Object parseWsTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -613,7 +613,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         client.resolve(trades, topic);
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -674,21 +674,21 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 "currency", this.safeCurrencyCode(this.safeString(trade, "feeAsset"), (Map<String, Object>) null)
             );
         }
-        return (Map<String, Object>) (this.safeTrade(Helpers.newMap(
-            "id", this.safeString(trade, "tradeId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "side", side,
-            "price", price,
-            "amount", amount,
-            "cost", cost,
-            "order", this.safeString(trade, "orderId"),
-            "takerOrMaker", takerOrMaker,
-            "type", this.safeStringLower(trade, "type"),
-            "fee", fee,
-            "info", trade
-        ), marketResolved));
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", this.safeString(trade, "tradeId"));
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("price", price);
+        mapLiteral1.put("amount", amount);
+        mapLiteral1.put("cost", cost);
+        mapLiteral1.put("order", this.safeString(trade, "orderId"));
+        mapLiteral1.put("takerOrMaker", takerOrMaker);
+        mapLiteral1.put("type", this.safeStringLower(trade, "type"));
+        mapLiteral1.put("fee", fee);
+        mapLiteral1.put("info", trade);
+        return this.safeTrade(mapLiteral1, marketResolved);
     }
 
     public void handleAuth(Client client, Map<String, Object> message)
@@ -902,7 +902,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
 
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {
@@ -1000,30 +1000,30 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         List<String> trades = null;
         String clientOrderId = this.safeString(order, "clientOrderId");
         Double triggerPrice = this.safeNumber(order, "triggerPrice", (Object) null);
-        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-        mapLiteral1.put("info", order);
-        mapLiteral1.put("symbol", symbol);
-        mapLiteral1.put("id", orderId);
-        mapLiteral1.put("clientOrderId", clientOrderId);
-        mapLiteral1.put("timestamp", timestamp);
-        mapLiteral1.put("datetime", this.iso8601(timestamp));
-        mapLiteral1.put("lastTradeTimestamp", timestamp);
-        mapLiteral1.put("type", type);
-        mapLiteral1.put("timeInForce", null);
-        mapLiteral1.put("postOnly", null);
-        mapLiteral1.put("side", side);
-        mapLiteral1.put("price", price);
-        mapLiteral1.put("stopPrice", triggerPrice);
-        mapLiteral1.put("triggerPrice", triggerPrice);
-        mapLiteral1.put("amount", amount);
-        mapLiteral1.put("cost", null);
-        mapLiteral1.put("average", null);
-        mapLiteral1.put("filled", filled);
-        mapLiteral1.put("remaining", remaining);
-        mapLiteral1.put("status", status);
-        mapLiteral1.put("fee", fee);
-        mapLiteral1.put("trades", trades);
-        return this.safeOrder(mapLiteral1, (Map<String, Object>) null);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", order);
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("id", orderId);
+        mapLiteral2.put("clientOrderId", clientOrderId);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("lastTradeTimestamp", timestamp);
+        mapLiteral2.put("type", type);
+        mapLiteral2.put("timeInForce", null);
+        mapLiteral2.put("postOnly", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("price", price);
+        mapLiteral2.put("stopPrice", triggerPrice);
+        mapLiteral2.put("triggerPrice", triggerPrice);
+        mapLiteral2.put("amount", amount);
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("average", null);
+        mapLiteral2.put("filled", filled);
+        mapLiteral2.put("remaining", remaining);
+        mapLiteral2.put("status", status);
+        mapLiteral2.put("fee", fee);
+        mapLiteral2.put("trades", trades);
+        return this.safeOrder(mapLiteral2, (Map<String, Object>) null);
     }
 
     public void handleOrderUpdate(Client client, Map<String, Object> message)
@@ -1380,36 +1380,36 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         String unrealisedPnl = this.safeString(position, "unsettledPnl");
         size = Precise.stringAbs(size);
         String notional = Precise.stringMul(size, markPrice);
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("info", position);
-        mapLiteral2.put("id", null);
-        mapLiteral2.put("symbol", this.safeString(marketResolved, "symbol"));
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("lastUpdateTimestamp", null);
-        mapLiteral2.put("initialMargin", null);
-        mapLiteral2.put("initialMarginPercentage", null);
-        mapLiteral2.put("maintenanceMargin", null);
-        mapLiteral2.put("maintenanceMarginPercentage", null);
-        mapLiteral2.put("entryPrice", this.parseNumber(entryPrice));
-        mapLiteral2.put("notional", this.parseNumber(notional));
-        mapLiteral2.put("leverage", null);
-        mapLiteral2.put("unrealizedPnl", this.parseNumber(unrealisedPnl));
-        mapLiteral2.put("contracts", this.parseNumber(size));
-        mapLiteral2.put("contractSize", this.parseNumber(contractSize));
-        mapLiteral2.put("marginRatio", null);
-        mapLiteral2.put("liquidationPrice", this.safeNumber(position, "estLiqPrice", (Object) null));
-        mapLiteral2.put("markPrice", this.parseNumber(markPrice));
-        mapLiteral2.put("lastPrice", null);
-        mapLiteral2.put("collateral", null);
-        mapLiteral2.put("marginMode", "cross");
-        mapLiteral2.put("marginType", null);
-        mapLiteral2.put("side", side);
-        mapLiteral2.put("percentage", null);
-        mapLiteral2.put("hedged", null);
-        mapLiteral2.put("stopLossPrice", null);
-        mapLiteral2.put("takeProfitPrice", null);
-        return this.safePosition(mapLiteral2);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", position);
+        mapLiteral3.put("id", null);
+        mapLiteral3.put("symbol", this.safeString(marketResolved, "symbol"));
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("lastUpdateTimestamp", null);
+        mapLiteral3.put("initialMargin", null);
+        mapLiteral3.put("initialMarginPercentage", null);
+        mapLiteral3.put("maintenanceMargin", null);
+        mapLiteral3.put("maintenanceMarginPercentage", null);
+        mapLiteral3.put("entryPrice", this.parseNumber(entryPrice));
+        mapLiteral3.put("notional", this.parseNumber(notional));
+        mapLiteral3.put("leverage", null);
+        mapLiteral3.put("unrealizedPnl", this.parseNumber(unrealisedPnl));
+        mapLiteral3.put("contracts", this.parseNumber(size));
+        mapLiteral3.put("contractSize", this.parseNumber(contractSize));
+        mapLiteral3.put("marginRatio", null);
+        mapLiteral3.put("liquidationPrice", this.safeNumber(position, "estLiqPrice", (Object) null));
+        mapLiteral3.put("markPrice", this.parseNumber(markPrice));
+        mapLiteral3.put("lastPrice", null);
+        mapLiteral3.put("collateral", null);
+        mapLiteral3.put("marginMode", "cross");
+        mapLiteral3.put("marginType", null);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("percentage", null);
+        mapLiteral3.put("hedged", null);
+        mapLiteral3.put("stopLossPrice", null);
+        mapLiteral3.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral3);
     }
 
     /**

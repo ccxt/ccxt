@@ -614,7 +614,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         client.resolve(this.orders, "orders");
     }
 
-    public Object parseTradingOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseTradingOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {

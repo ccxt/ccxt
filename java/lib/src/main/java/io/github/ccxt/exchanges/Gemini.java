@@ -9,6 +9,7 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.DepositAddress;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.Order;
@@ -732,7 +733,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, 0);
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
@@ -1075,7 +1076,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object parseMarket(Object response)
+    public MarketInterface parseMarket(Object response)
     {
         //
         // response might be:
@@ -1403,7 +1404,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // fetchTickers
@@ -1545,7 +1546,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // public fetchTrades
@@ -1661,7 +1662,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -1776,7 +1777,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder (private)

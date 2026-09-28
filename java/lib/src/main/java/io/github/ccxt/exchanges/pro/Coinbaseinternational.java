@@ -507,7 +507,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         }
     }
 
-    public Object parseWsTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
     {
         //
         //    {
@@ -718,7 +718,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         return message;
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //    {
@@ -734,7 +734,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         //    }
         String marketId = this.safeString2(trade, "symbol", "product_id");
         String datetime = this.safeString(trade, "time");
-        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Coinbaseinternational.this.safeString(trade, "match_id") );
             put( "order", null );
@@ -748,7 +748,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             put( "amount", Coinbaseinternational.this.safeString(trade, "trade_qty") );
             put( "cost", null );
             put( "fee", null );
-        }}, (Map<String, Object>) null));
+        }}, (Map<String, Object>) null);
     }
 
     /**

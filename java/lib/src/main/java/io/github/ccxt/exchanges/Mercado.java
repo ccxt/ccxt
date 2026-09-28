@@ -476,7 +476,7 @@ public class Mercado extends MercadoApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -559,7 +559,7 @@ public class Mercado extends MercadoApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         Long timestamp = this.safeTimestamp2(trade, "date", "executed_timestamp");
         Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
@@ -638,7 +638,7 @@ public class Mercado extends MercadoApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
         Map<String, Object> balances = (Map<String, Object>) this.safeDict(data, "balance", new HashMap<String, Object>() {{}});
@@ -820,7 +820,7 @@ public class Mercado extends MercadoApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         //     {
