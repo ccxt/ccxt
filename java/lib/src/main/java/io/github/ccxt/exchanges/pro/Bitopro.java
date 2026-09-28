@@ -344,7 +344,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         }
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -414,21 +414,21 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
                 takerOrMaker = "taker";
             }
         }
-        return (Map<String, Object>) (this.safeTrade(Helpers.newMap(
-            "id", id,
-            "info", trade,
-            "order", orderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "takerOrMaker", takerOrMaker,
-            "type", type,
-            "side", side,
-            "price", price,
-            "amount", amount,
-            "cost", null,
-            "fee", fee
-        ), marketResolved));
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("info", trade);
+        mapLiteral1.put("order", orderId);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("takerOrMaker", takerOrMaker);
+        mapLiteral1.put("type", type);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("price", price);
+        mapLiteral1.put("amount", amount);
+        mapLiteral1.put("cost", null);
+        mapLiteral1.put("fee", fee);
+        return this.safeTrade(mapLiteral1, marketResolved);
     }
 
     /**

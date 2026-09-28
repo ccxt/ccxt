@@ -10,6 +10,7 @@ import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.DepositAddress;
 import io.github.ccxt.types.LedgerEntry;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
@@ -453,7 +454,7 @@ public class Foxbit extends FoxbitApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "symbol");
         String name = this.safeString(rawCurrency, "name");
@@ -1986,7 +1987,7 @@ public class Foxbit extends FoxbitApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         String id = this.safeString(market, "symbol");
         Map<String, Object> baseAssets = (Map<String, Object>) this.safeDict(market, "base", (Object) null);
@@ -2068,7 +2069,7 @@ public class Foxbit extends FoxbitApi
         }};
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         String marketId = this.safeString(ticker, "market_symbol");
         String symbol = this.safeSymbol(marketId, market, (String) null, "spot");
@@ -2107,7 +2108,7 @@ public class Foxbit extends FoxbitApi
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1, (Object) null), this.safeNumber(ohlcv, 2, (Object) null), this.safeNumber(ohlcv, 3, (Object) null), this.safeNumber(ohlcv, 4, (Object) null), this.safeNumber(ohlcv, 6, (Object) null)));
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         Object timestamp = this.parseDate(this.safeString(trade, "created_at"));
         String price = this.safeString(trade, "price");
@@ -2150,7 +2151,7 @@ public class Foxbit extends FoxbitApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         String symbol = this.safeString(order, "market_symbol");
         Map<String, Object> marketResolved = market;

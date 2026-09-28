@@ -16,6 +16,7 @@ import io.github.ccxt.types.LedgerEntry;
 import io.github.ccxt.types.LeverageTier;
 import io.github.ccxt.types.LeverageTiers;
 import io.github.ccxt.types.MarginModification;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.Order;
@@ -1618,7 +1619,7 @@ public class Xt extends XtApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(markets); i++)
         {
-            Object parsed = this.parseMarket(Helpers.GetValue(markets, i));
+            MarketInterface parsed = this.parseMarket(Helpers.GetValue(markets, i));
             if (!java.util.Objects.equals(parsed, null))
             {
                 ((List<Object>)result).add(parsed);
@@ -1627,7 +1628,7 @@ public class Xt extends XtApi
         return result;
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         //
         // spot
@@ -2473,7 +2474,7 @@ public class Xt extends XtApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // spot: fetchTicker, fetchTickers
@@ -2782,7 +2783,7 @@ public class Xt extends XtApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // spot: fetchTrades
@@ -3063,7 +3064,7 @@ public class Xt extends XtApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         //
         // spot
@@ -4661,7 +4662,7 @@ public class Xt extends XtApi
 
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // spot: createOrder

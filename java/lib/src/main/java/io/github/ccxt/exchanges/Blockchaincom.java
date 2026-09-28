@@ -551,7 +551,7 @@ public class Blockchaincom extends BlockchaincomApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -655,7 +655,7 @@ public class Blockchaincom extends BlockchaincomApi
         return this.safeString(states, state, state);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         //     {
@@ -709,8 +709,8 @@ public class Blockchaincom extends BlockchaincomApi
         mapLiteral1.put("trades", new ArrayList<Object>(Arrays.asList()));
         mapLiteral1.put("fees", new ArrayList<Object>(Arrays.asList()));
         mapLiteral1.put("info", order);
-        Object result = this.safeOrder(mapLiteral1, (Map<String, Object>) null);
-        return result;
+        Order result = this.safeOrder(mapLiteral1, (Map<String, Object>) null);
+        return (Order) result;
     }
 
     /**
@@ -990,7 +990,7 @@ public class Blockchaincom extends BlockchaincomApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         //     {

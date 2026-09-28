@@ -358,7 +358,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         client.resolve(ticker, messageHash);
     }
 
-    public Object parseWsTicker(Object message, Map<String, Object> market)
+    public Ticker parseWsTicker(Object message, Map<String, Object> market)
     {
         //
         // spot
@@ -1440,7 +1440,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         client.resolve(stored, messageHash);
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -1561,21 +1561,21 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 "currency", feeCurrencyCode
             );
         }
-        return (Map<String, Object>) (this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "id", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("tradeId", "i", "execId"))),
-            "order", this.safeString2(trade, "orderId", "L"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", marketResolved.get("symbol"),
-            "type", this.safeString(trade, "orderType"),
-            "side", this.safeString2(trade, "side", "S"),
-            "takerOrMaker", this.safeString(trade, "tradeScope"),
-            "price", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("priceAvg", "price", "execPrice", "P"))),
-            "amount", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("size", "baseVolume", "execQty", "v"))),
-            "cost", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("amount", "quoteVolume", "execValue"))),
-            "fee", fee
-        ), marketResolved));
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", trade);
+        mapLiteral1.put("id", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("tradeId", "i", "execId"))));
+        mapLiteral1.put("order", this.safeString2(trade, "orderId", "L"));
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("symbol", marketResolved.get("symbol"));
+        mapLiteral1.put("type", this.safeString(trade, "orderType"));
+        mapLiteral1.put("side", this.safeString2(trade, "side", "S"));
+        mapLiteral1.put("takerOrMaker", this.safeString(trade, "tradeScope"));
+        mapLiteral1.put("price", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("priceAvg", "price", "execPrice", "P"))));
+        mapLiteral1.put("amount", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("size", "baseVolume", "execQty", "v"))));
+        mapLiteral1.put("cost", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("amount", "quoteVolume", "execValue"))));
+        mapLiteral1.put("fee", fee);
+        return this.safeTrade(mapLiteral1, marketResolved);
     }
 
     /**
@@ -1853,31 +1853,31 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             contractSize = market.get("contractSize");
         }
-        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-        mapLiteral1.put("info", position);
-        mapLiteral1.put("id", this.safeString(position, "posId"));
-        mapLiteral1.put("symbol", this.safeSymbol(marketId, market, (String) null, "contract"));
-        mapLiteral1.put("notional", null);
-        mapLiteral1.put("marginMode", marginMode);
-        mapLiteral1.put("liquidationPrice", this.safeNumber2(position, "liquidationPrice", "liqPrice", (Object) null));
-        mapLiteral1.put("entryPrice", this.safeNumber2(position, "openPriceAvg", "avgPrice", (Object) null));
-        mapLiteral1.put("unrealizedPnl", this.safeNumber2(position, "unrealizedPL", "unrealisedPnl", (Object) null));
-        mapLiteral1.put("percentage", this.parseNumber(percentage));
-        mapLiteral1.put("contracts", this.safeNumber2(position, "total", "size", (Object) null));
-        mapLiteral1.put("contractSize", contractSize);
-        mapLiteral1.put("markPrice", this.safeNumber(position, "markPrice", (Object) null));
-        mapLiteral1.put("side", this.safeString2(position, "holdSide", "posSide"));
-        mapLiteral1.put("hedged", hedged);
-        mapLiteral1.put("timestamp", timestamp);
-        mapLiteral1.put("datetime", this.iso8601(timestamp));
-        mapLiteral1.put("maintenanceMargin", null);
-        mapLiteral1.put("maintenanceMarginPercentage", this.safeNumber2(position, "keepMarginRate", "mmr", (Object) null));
-        mapLiteral1.put("collateral", this.safeNumber(position, "available", (Object) null));
-        mapLiteral1.put("initialMargin", this.safeNumber(position, "marginSize", (Object) null));
-        mapLiteral1.put("initialMarginPercentage", null);
-        mapLiteral1.put("leverage", this.safeNumber(position, "leverage", (Object) null));
-        mapLiteral1.put("marginRatio", this.safeNumber(position, "marginRate", (Object) null));
-        return this.safePosition(mapLiteral1);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", position);
+        mapLiteral2.put("id", this.safeString(position, "posId"));
+        mapLiteral2.put("symbol", this.safeSymbol(marketId, market, (String) null, "contract"));
+        mapLiteral2.put("notional", null);
+        mapLiteral2.put("marginMode", marginMode);
+        mapLiteral2.put("liquidationPrice", this.safeNumber2(position, "liquidationPrice", "liqPrice", (Object) null));
+        mapLiteral2.put("entryPrice", this.safeNumber2(position, "openPriceAvg", "avgPrice", (Object) null));
+        mapLiteral2.put("unrealizedPnl", this.safeNumber2(position, "unrealizedPL", "unrealisedPnl", (Object) null));
+        mapLiteral2.put("percentage", this.parseNumber(percentage));
+        mapLiteral2.put("contracts", this.safeNumber2(position, "total", "size", (Object) null));
+        mapLiteral2.put("contractSize", contractSize);
+        mapLiteral2.put("markPrice", this.safeNumber(position, "markPrice", (Object) null));
+        mapLiteral2.put("side", this.safeString2(position, "holdSide", "posSide"));
+        mapLiteral2.put("hedged", hedged);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("maintenanceMargin", null);
+        mapLiteral2.put("maintenanceMarginPercentage", this.safeNumber2(position, "keepMarginRate", "mmr", (Object) null));
+        mapLiteral2.put("collateral", this.safeNumber(position, "available", (Object) null));
+        mapLiteral2.put("initialMargin", this.safeNumber(position, "marginSize", (Object) null));
+        mapLiteral2.put("initialMarginPercentage", null);
+        mapLiteral2.put("leverage", this.safeNumber(position, "leverage", (Object) null));
+        mapLiteral2.put("marginRatio", this.safeNumber(position, "marginRate", (Object) null));
+        return this.safePosition(mapLiteral2);
     }
 
     /**
@@ -2210,7 +2210,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // spot
@@ -2458,29 +2458,29 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             cost = this.safeString2(order, "fillNotionalUsd", "cumExecValue");
         }
         remaining = Precise.stringSub(totalAmount, totalFilled);
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("info", order);
-        mapLiteral2.put("symbol", symbol);
-        mapLiteral2.put("id", this.safeString(order, "orderId"));
-        mapLiteral2.put("clientOrderId", this.safeString(order, "clientOid"));
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("lastTradeTimestamp", this.safeInteger2(order, "uTime", "updatedTime"));
-        mapLiteral2.put("type", type);
-        mapLiteral2.put("timeInForce", this.safeStringUpper2(order, "force", "timeInForce"));
-        mapLiteral2.put("postOnly", null);
-        mapLiteral2.put("side", side);
-        mapLiteral2.put("price", price);
-        mapLiteral2.put("triggerPrice", triggerPrice);
-        mapLiteral2.put("amount", totalAmount);
-        mapLiteral2.put("cost", cost);
-        mapLiteral2.put("average", avgPrice);
-        mapLiteral2.put("filled", filledAmount);
-        mapLiteral2.put("remaining", remaining);
-        mapLiteral2.put("status", this.parseWsOrderStatus((String) (rawStatus)));
-        mapLiteral2.put("fee", feeObject);
-        mapLiteral2.put("trades", null);
-        return this.safeOrder(mapLiteral2, marketResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", order);
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("id", this.safeString(order, "orderId"));
+        mapLiteral3.put("clientOrderId", this.safeString(order, "clientOid"));
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("lastTradeTimestamp", this.safeInteger2(order, "uTime", "updatedTime"));
+        mapLiteral3.put("type", type);
+        mapLiteral3.put("timeInForce", this.safeStringUpper2(order, "force", "timeInForce"));
+        mapLiteral3.put("postOnly", null);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("price", price);
+        mapLiteral3.put("triggerPrice", triggerPrice);
+        mapLiteral3.put("amount", totalAmount);
+        mapLiteral3.put("cost", cost);
+        mapLiteral3.put("average", avgPrice);
+        mapLiteral3.put("filled", filledAmount);
+        mapLiteral3.put("remaining", remaining);
+        mapLiteral3.put("status", this.parseWsOrderStatus((String) (rawStatus)));
+        mapLiteral3.put("fee", feeObject);
+        mapLiteral3.put("trades", null);
+        return this.safeOrder(mapLiteral3, marketResolved);
     }
 
     public String parseWsOrderStatus(String status)
@@ -3079,12 +3079,12 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 String operation = "login";
                 Map<String, Object> request = new HashMap<String, Object>();
                 request.put("op", operation);
-                HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-                mapLiteral3.put("apiKey", this.apiKey);
-                mapLiteral3.put("passphrase", this.password);
-                mapLiteral3.put("timestamp", timestamp);
-                mapLiteral3.put("sign", signature);
-                request.put("args", new ArrayList<Object>(Arrays.asList(mapLiteral3)));
+                HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+                mapLiteral4.put("apiKey", this.apiKey);
+                mapLiteral4.put("passphrase", this.password);
+                mapLiteral4.put("timestamp", timestamp);
+                mapLiteral4.put("sign", signature);
+                request.put("args", new ArrayList<Object>(Arrays.asList(mapLiteral4)));
                 Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
             }
@@ -3114,9 +3114,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                     }
                 }
             }
-            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-            mapLiteral4.put("url", url);
-            (this.authenticate(mapLiteral4)).join();
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("url", url);
+            (this.authenticate(mapLiteral5)).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", new ArrayList<Object>(Arrays.asList(args)) );

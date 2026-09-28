@@ -14,6 +14,7 @@ import io.github.ccxt.types.FundingRateHistory;
 import io.github.ccxt.types.FundingRates;
 import io.github.ccxt.types.LedgerEntry;
 import io.github.ccxt.types.Leverage;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
@@ -847,7 +848,7 @@ public class Modetrade extends ModetradeApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         //
         //   {
@@ -1040,7 +1041,7 @@ public class Modetrade extends ModetradeApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "token");
         List<Object> networks = (List<Object>) this.safeList(rawCurrency, "chain_details", new ArrayList<Object>(Arrays.asList()));
@@ -1118,7 +1119,7 @@ public class Modetrade extends ModetradeApi
         return fee;
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // public/market_trades
@@ -1788,7 +1789,7 @@ public class Modetrade extends ModetradeApi
 
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // Possible input functions:
@@ -2955,7 +2956,7 @@ public class Modetrade extends ModetradeApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );

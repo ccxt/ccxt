@@ -2020,7 +2020,7 @@ public class Nado extends NadoApi
             for (var i = 0; i < ((List<?>)assets).size(); i++)
             {
                 Object currency = (assets == null || i < 0 || i >= assets.size() ? null : assets.get(i));
-                Object parsed = this.parseCurrency(currency);
+                io.github.ccxt.types.CurrencyInterface parsed = this.parseCurrency(currency);
                 String code = this.safeString(parsed, "code");
                 if (java.util.Objects.equals(code, null))
                 {
@@ -2560,7 +2560,7 @@ public class Nado extends NadoApi
         return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, "timestamp"), this.parseX18(this.safeString(ohlcv, "open_x18")), this.parseX18(this.safeString(ohlcv, "high_x18")), this.parseX18(this.safeString(ohlcv, "low_x18")), this.parseX18(this.safeString(ohlcv, "close_x18")), this.parseX18(this.safeString(ohlcv, "volume"))));
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         //     {
@@ -2797,7 +2797,7 @@ public class Nado extends NadoApi
         }}, marketResolved);
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         String marketId = this.safeString(ticker, "product_id");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -2827,7 +2827,7 @@ public class Nado extends NadoApi
         }}, marketResolved);
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         Boolean canDeposit = (Boolean) this.safeBool(rawCurrency, "can_deposit", false);
         Boolean canWithdraw = (Boolean) this.safeBool(rawCurrency, "can_withdraw", false);
@@ -2859,7 +2859,7 @@ public class Nado extends NadoApi
         }});
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         //
         //     {
@@ -3065,7 +3065,7 @@ public class Nado extends NadoApi
         return Precise.stringGe(Precise.stringAbs(filled), Precise.stringAbs(amount));
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // create order

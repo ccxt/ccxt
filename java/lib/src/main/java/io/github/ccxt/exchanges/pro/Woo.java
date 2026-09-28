@@ -494,7 +494,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     }
 
-    public Object parseWsTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -1017,7 +1017,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         client.resolve(tradesArray, topic);
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -1082,21 +1082,21 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 "currency", this.safeCurrencyCode(this.safeString(trade, "feeCurrency"), (Map<String, Object>) null)
             );
         }
-        return (Map<String, Object>) (this.safeTrade(Helpers.newMap(
-            "id", this.safeString(trade, "tradeId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "side", side,
-            "price", price,
-            "amount", amount,
-            "cost", cost,
-            "order", this.safeString(trade, "orderId"),
-            "takerOrMaker", takerOrMaker,
-            "type", type,
-            "fee", fee,
-            "info", trade
-        ), marketResolved));
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", this.safeString(trade, "tradeId"));
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("price", price);
+        mapLiteral1.put("amount", amount);
+        mapLiteral1.put("cost", cost);
+        mapLiteral1.put("order", this.safeString(trade, "orderId"));
+        mapLiteral1.put("takerOrMaker", takerOrMaker);
+        mapLiteral1.put("type", type);
+        mapLiteral1.put("fee", fee);
+        mapLiteral1.put("info", trade);
+        return this.safeTrade(mapLiteral1, marketResolved);
     }
 
     public Boolean checkRequiredUid(Boolean error)
@@ -1281,7 +1281,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {
@@ -1375,31 +1375,31 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         List<String> trades = null;
         String clientOrderId = this.safeString(order, "clientOrderId");
         String triggerPrice = this.safeString(order, "triggerPrice");
-        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-        mapLiteral1.put("info", order);
-        mapLiteral1.put("symbol", symbol);
-        mapLiteral1.put("id", orderId);
-        mapLiteral1.put("clientOrderId", clientOrderId);
-        mapLiteral1.put("timestamp", timestamp);
-        mapLiteral1.put("datetime", this.iso8601(timestamp));
-        mapLiteral1.put("lastTradeTimestamp", timestamp);
-        mapLiteral1.put("type", type);
-        mapLiteral1.put("timeInForce", null);
-        mapLiteral1.put("postOnly", null);
-        mapLiteral1.put("side", side);
-        mapLiteral1.put("price", price);
-        mapLiteral1.put("stopPrice", triggerPrice);
-        mapLiteral1.put("triggerPrice", triggerPrice);
-        mapLiteral1.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
-        mapLiteral1.put("amount", amount);
-        mapLiteral1.put("cost", null);
-        mapLiteral1.put("average", avgPrice);
-        mapLiteral1.put("filled", filled);
-        mapLiteral1.put("remaining", null);
-        mapLiteral1.put("status", status);
-        mapLiteral1.put("fee", fee);
-        mapLiteral1.put("trades", trades);
-        return this.safeOrder(mapLiteral1, (Map<String, Object>) null);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", order);
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("id", orderId);
+        mapLiteral2.put("clientOrderId", clientOrderId);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("lastTradeTimestamp", timestamp);
+        mapLiteral2.put("type", type);
+        mapLiteral2.put("timeInForce", null);
+        mapLiteral2.put("postOnly", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("price", price);
+        mapLiteral2.put("stopPrice", triggerPrice);
+        mapLiteral2.put("triggerPrice", triggerPrice);
+        mapLiteral2.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
+        mapLiteral2.put("amount", amount);
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("average", avgPrice);
+        mapLiteral2.put("filled", filled);
+        mapLiteral2.put("remaining", null);
+        mapLiteral2.put("status", status);
+        mapLiteral2.put("fee", fee);
+        mapLiteral2.put("trades", trades);
+        return this.safeOrder(mapLiteral2, (Map<String, Object>) null);
     }
 
     public void handleOrderUpdate(Client client, Map<String, Object> message)

@@ -13,6 +13,7 @@ import io.github.ccxt.types.DepositAddress;
 import io.github.ccxt.types.FundingHistory;
 import io.github.ccxt.types.FundingRateHistory;
 import io.github.ccxt.types.MarginModification;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.Position;
@@ -1595,7 +1596,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         }};
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         //    {
@@ -1719,7 +1720,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         //
         //   {
@@ -1877,7 +1878,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     }
 
-    public Object parseCurrency(Object currency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object currency)
     {
         //
         //    {
@@ -1975,7 +1976,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //    {
@@ -2068,7 +2069,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         //
         //    {
@@ -2271,7 +2272,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         //    {

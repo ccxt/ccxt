@@ -213,7 +213,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         client.resolve(stored, messageHash);
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     [
@@ -232,7 +232,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         String side = this.safeString(trade, 5);
         String priceString = this.safeString(trade, 3);
         String amountString = this.safeString(trade, 4);
-        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Coincheck.this.safeString(trade, 1) );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -246,7 +246,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
             put( "amount", amountString );
             put( "cost", null );
             put( "fee", null );
-        }}, market));
+        }}, market);
     }
 
     public void handleMessage(Client client, Object message)

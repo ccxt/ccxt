@@ -548,7 +548,7 @@ public class Luno extends LunoApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String id = this.safeString((rawCurrency == null || 0 >= ((List<?>)rawCurrency).size() ? null : ((List<?>)rawCurrency).get(0)), "native_currency"); // first item is guaranteed
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
@@ -776,7 +776,7 @@ public class Luno extends LunoApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         List<Object> wallets = (List<Object>) this.safeList(response, "balance", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
@@ -888,7 +888,7 @@ public class Luno extends LunoApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         //     {
@@ -1085,7 +1085,7 @@ public class Luno extends LunoApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         // {
         //     "pair":"XBTAUD",
@@ -1198,7 +1198,7 @@ public class Luno extends LunoApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public)

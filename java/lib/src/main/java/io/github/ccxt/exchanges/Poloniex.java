@@ -12,6 +12,7 @@ import io.github.ccxt.types.DepositAddress;
 import io.github.ccxt.types.DepositWithdrawFees;
 import io.github.ccxt.types.Leverage;
 import io.github.ccxt.types.MarginModification;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
@@ -1105,7 +1106,7 @@ public class Poloniex extends PoloniexApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         if (((Map<?, ?>)market).containsKey("ctType"))
         {
@@ -1116,7 +1117,7 @@ public class Poloniex extends PoloniexApi
         }
     }
 
-    public Object parseSpotMarket(Map<String, Object> market)
+    public MarketInterface parseSpotMarket(Map<String, Object> market)
     {
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "baseCurrencyName");
@@ -1178,7 +1179,7 @@ public class Poloniex extends PoloniexApi
         return this.safeMarketStructure(mapLiteral1);
     }
 
-    public Object parseSwapMarket(Map<String, Object> market)
+    public MarketInterface parseSwapMarket(Map<String, Object> market)
     {
         //
         //            {
@@ -1320,7 +1321,7 @@ public class Poloniex extends PoloniexApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //  spot:
@@ -1549,7 +1550,7 @@ public class Poloniex extends PoloniexApi
 
     }
 
-    public Object parseCurrency(Object currency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object currency)
     {
         Object entry = currency;
         String id = this.safeString(entry, "coin");
@@ -1657,7 +1658,7 @@ public class Poloniex extends PoloniexApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades
@@ -1999,7 +2000,7 @@ public class Poloniex extends PoloniexApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // fetchOpenOrder
@@ -2946,7 +2947,7 @@ public class Poloniex extends PoloniexApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );

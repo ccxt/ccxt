@@ -786,7 +786,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         mapLiteral4.put("datetime", this.iso8601(timestamp));
         mapLiteral4.put("markPrice", this.safeString(data, "p"));
         mapLiteral4.put("info", message);
-        Object ticker = this.safeTicker(mapLiteral4, market);
+        Ticker ticker = this.safeTicker(mapLiteral4, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         String messageHash = ("markPrice:" + symbol);
         client.resolve(ticker, messageHash);

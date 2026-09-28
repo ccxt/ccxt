@@ -2425,7 +2425,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // /spotMarket/tradeOrders
@@ -2532,7 +2532,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         return this.safeOrder(mapLiteral5, marketResolved);
     }
 
-    public Object parseWsUtaOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsUtaOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {
@@ -2758,7 +2758,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         //     }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "d", new HashMap<String, Object>() {{}});
-        Object parsed = this.parseWsUtaOrder((Map<String, Object>) (data), (Map<String, Object>) null);
+        Order parsed = this.parseWsUtaOrder((Map<String, Object>) (data), (Map<String, Object>) null);
         String symbol = this.safeString(parsed, "symbol");
         if (java.util.Objects.equals(this.orders, null))
         {
@@ -2956,7 +2956,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         client.resolve(cache, symbolMessageHash);
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // /spotMarket/tradeOrders
@@ -3017,25 +3017,25 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String feeCurrency = (String) marketResolved.get("quote");
         String feeRate = this.safeString(trade, "feeRate");
         String feeCost = this.safeString(trade, "fee");
-        return (Map<String, Object>) (this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "id", tradeId,
-            "order", order,
-            "type", type,
-            "takerOrMaker", this.safeString(trade, "liquidity"),
-            "side", side,
-            "price", price,
-            "amount", amount,
-            "cost", null,
-            "fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("info", trade);
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("symbol", symbol);
+        mapLiteral6.put("id", tradeId);
+        mapLiteral6.put("order", order);
+        mapLiteral6.put("type", type);
+        mapLiteral6.put("takerOrMaker", this.safeString(trade, "liquidity"));
+        mapLiteral6.put("side", side);
+        mapLiteral6.put("price", price);
+        mapLiteral6.put("amount", amount);
+        mapLiteral6.put("cost", null);
+        mapLiteral6.put("fee", new HashMap<String, Object>() {{
                 put( "cost", feeCost );
                 put( "rate", feeRate );
                 put( "currency", feeCurrency );
-            }}
-        ), marketResolved));
+            }});
+        return this.safeTrade(mapLiteral6, marketResolved);
     }
 
     /**
@@ -3429,9 +3429,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
             }
             String channel = "positionAll";
-            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-            mapLiteral6.put("tradeType", tradeType);
-            Map<String, Object> paramsExtended = this.extend(paramsUta, mapLiteral6);
+            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+            mapLiteral7.put("tradeType", tradeType);
+            Map<String, Object> paramsExtended = this.extend(paramsUta, mapLiteral7);
             List<Object> newPositions = (List<Object>) (this.subscribePrivateUta(messageHashes, channel, channel, (String) null, paramsExtended, (Object) null)).join();
             if (this.newUpdates)
             {
@@ -3746,35 +3746,35 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         {
             side = "long";
         }
-        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-        mapLiteral7.put("info", position);
-        mapLiteral7.put("id", this.safeString(position, "pi"));
-        mapLiteral7.put("symbol", symbol);
-        mapLiteral7.put("timestamp", timestamp);
-        mapLiteral7.put("datetime", this.iso8601(timestamp));
-        mapLiteral7.put("lastUpdateTimestamp", this.safeIntegerProduct(position, "U", 0.000001));
-        mapLiteral7.put("initialMargin", this.safeNumber(position, "iM", (Object) null));
-        mapLiteral7.put("initialMarginPercentage", null);
-        mapLiteral7.put("maintenanceMargin", this.safeNumber(position, "mtM", (Object) null));
-        mapLiteral7.put("maintenanceMarginPercentage", this.safeNumber(position, "mmr", (Object) null));
-        mapLiteral7.put("entryPrice", this.safeNumber(position, "eP", (Object) null));
-        mapLiteral7.put("notional", this.safeNumber(position, "pV", (Object) null));
-        mapLiteral7.put("leverage", this.safeNumber(position, "l", (Object) null));
-        mapLiteral7.put("unrealizedPnl", this.safeNumber(position, "uPL", (Object) null));
-        mapLiteral7.put("contracts", this.parseNumber(size));
-        mapLiteral7.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
-        mapLiteral7.put("realizedPnl", this.safeNumber(position, "rPL", (Object) null));
-        mapLiteral7.put("marginRatio", null);
-        mapLiteral7.put("liquidationPrice", this.safeNumber(position, "lP", (Object) null));
-        mapLiteral7.put("markPrice", this.safeNumber(position, "mP", (Object) null));
-        mapLiteral7.put("lastPrice", null);
-        mapLiteral7.put("collateral", null);
-        mapLiteral7.put("marginMode", this.safeStringLower(position, "mM"));
-        mapLiteral7.put("side", side);
-        mapLiteral7.put("percentage", null);
-        mapLiteral7.put("stopLossPrice", null);
-        mapLiteral7.put("takeProfitPrice", null);
-        return this.safePosition(mapLiteral7);
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("info", position);
+        mapLiteral8.put("id", this.safeString(position, "pi"));
+        mapLiteral8.put("symbol", symbol);
+        mapLiteral8.put("timestamp", timestamp);
+        mapLiteral8.put("datetime", this.iso8601(timestamp));
+        mapLiteral8.put("lastUpdateTimestamp", this.safeIntegerProduct(position, "U", 0.000001));
+        mapLiteral8.put("initialMargin", this.safeNumber(position, "iM", (Object) null));
+        mapLiteral8.put("initialMarginPercentage", null);
+        mapLiteral8.put("maintenanceMargin", this.safeNumber(position, "mtM", (Object) null));
+        mapLiteral8.put("maintenanceMarginPercentage", this.safeNumber(position, "mmr", (Object) null));
+        mapLiteral8.put("entryPrice", this.safeNumber(position, "eP", (Object) null));
+        mapLiteral8.put("notional", this.safeNumber(position, "pV", (Object) null));
+        mapLiteral8.put("leverage", this.safeNumber(position, "l", (Object) null));
+        mapLiteral8.put("unrealizedPnl", this.safeNumber(position, "uPL", (Object) null));
+        mapLiteral8.put("contracts", this.parseNumber(size));
+        mapLiteral8.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
+        mapLiteral8.put("realizedPnl", this.safeNumber(position, "rPL", (Object) null));
+        mapLiteral8.put("marginRatio", null);
+        mapLiteral8.put("liquidationPrice", this.safeNumber(position, "lP", (Object) null));
+        mapLiteral8.put("markPrice", this.safeNumber(position, "mP", (Object) null));
+        mapLiteral8.put("lastPrice", null);
+        mapLiteral8.put("collateral", null);
+        mapLiteral8.put("marginMode", this.safeStringLower(position, "mM"));
+        mapLiteral8.put("side", side);
+        mapLiteral8.put("percentage", null);
+        mapLiteral8.put("stopLossPrice", null);
+        mapLiteral8.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral8);
     }
 
     /**

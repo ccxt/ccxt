@@ -232,7 +232,7 @@ public class Paymium extends PaymiumApi
         }});
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -308,7 +308,7 @@ public class Paymium extends PaymiumApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // {
@@ -404,7 +404,7 @@ public class Paymium extends PaymiumApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         Long timestamp = this.safeTimestamp(trade, "created_at_int");
         String id = this.safeString(trade, "uuid");

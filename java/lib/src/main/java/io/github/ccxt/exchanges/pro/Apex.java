@@ -197,7 +197,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         client.resolve(stored, messageHash);
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // public
@@ -220,7 +220,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         String side = this.safeStringLower2(trade, "S", "side");
         String price = this.safeString2(trade, "p", "price");
         String amount = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("q", "v", "size")));
-        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -234,7 +234,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             put( "amount", amount );
             put( "cost", null );
             put( "fee", null );
-        }}, marketResolved));
+        }}, marketResolved);
     }
 
     /**

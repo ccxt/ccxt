@@ -787,7 +787,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         }
     }
 
-    public Object parseWsTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {

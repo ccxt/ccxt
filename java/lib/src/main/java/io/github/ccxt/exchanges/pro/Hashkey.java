@@ -543,7 +543,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         client.resolve(orders, symbolSpecificMessageHash);
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         String marketId = this.safeString(order, "s");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -668,7 +668,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         client.resolve(tradesArray, symbolSpecificMessageHash);
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // watchTrades
@@ -715,21 +715,21 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
                 side = this.safeStringLower(trade, "S");
             }
         }
-        return (Map<String, Object>) (this.safeTrade(Helpers.newMap(
-            "id", this.safeString2(trade, "v", "T"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
-            "side", side,
-            "price", this.safeString(trade, "p"),
-            "amount", this.safeString(trade, "q"),
-            "cost", null,
-            "takerOrMaker", takerOrMaker,
-            "type", null,
-            "order", this.safeString(trade, "o"),
-            "fee", null,
-            "info", trade
-        ), marketResolved));
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", this.safeString2(trade, "v", "T"));
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", ((Map<String, Object>)marketResolved).get("symbol"));
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("price", this.safeString(trade, "p"));
+        mapLiteral2.put("amount", this.safeString(trade, "q"));
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("takerOrMaker", takerOrMaker);
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("order", this.safeString(trade, "o"));
+        mapLiteral2.put("fee", null);
+        mapLiteral2.put("info", trade);
+        return this.safeTrade(mapLiteral2, marketResolved);
     }
 
     /**

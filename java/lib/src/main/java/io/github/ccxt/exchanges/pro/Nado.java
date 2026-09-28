@@ -1579,7 +1579,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         return this.safeInteger(message, key);
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -1601,21 +1601,21 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         {
             side = ((Boolean.TRUE.equals(isTakerBuyer))) ? "buy" : "sell";
         }
-        return (Map<String, Object>) (this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "id", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", marketResolved.get("symbol"),
-            "order", null,
-            "type", null,
-            "side", side,
-            "takerOrMaker", "taker",
-            "price", this.parseX18(this.safeString(trade, "price")),
-            "amount", this.parseX18(this.safeString(trade, "taker_qty")),
-            "cost", null,
-            "fee", null
-        ), marketResolved));
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", trade);
+        mapLiteral1.put("id", null);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("symbol", marketResolved.get("symbol"));
+        mapLiteral1.put("order", null);
+        mapLiteral1.put("type", null);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("takerOrMaker", "taker");
+        mapLiteral1.put("price", this.parseX18(this.safeString(trade, "price")));
+        mapLiteral1.put("amount", this.parseX18(this.safeString(trade, "taker_qty")));
+        mapLiteral1.put("cost", null);
+        mapLiteral1.put("fee", null);
+        return this.safeTrade(mapLiteral1, marketResolved);
     }
 
     public Object parseWsMyTrade(Map<String, Object> trade, Map<String, Object> market)
@@ -1663,21 +1663,21 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 "currency", marketResolved.get("quote")
             );
         }
-        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-        mapLiteral1.put("info", trade);
-        mapLiteral1.put("id", this.safeString2(trade, "id", "submission_idx"));
-        mapLiteral1.put("timestamp", timestamp);
-        mapLiteral1.put("datetime", this.iso8601(timestamp));
-        mapLiteral1.put("symbol", marketResolved.get("symbol"));
-        mapLiteral1.put("order", this.safeString(trade, "order_digest"));
-        mapLiteral1.put("type", null);
-        mapLiteral1.put("side", side);
-        mapLiteral1.put("takerOrMaker", takerOrMaker);
-        mapLiteral1.put("price", this.parseX18(this.safeString(trade, "price")));
-        mapLiteral1.put("amount", this.parseX18(this.safeString(trade, "filled_qty")));
-        mapLiteral1.put("cost", null);
-        mapLiteral1.put("fee", fee);
-        return this.safeTrade(mapLiteral1, marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("id", this.safeString2(trade, "id", "submission_idx"));
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", marketResolved.get("symbol"));
+        mapLiteral2.put("order", this.safeString(trade, "order_digest"));
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("takerOrMaker", takerOrMaker);
+        mapLiteral2.put("price", this.parseX18(this.safeString(trade, "price")));
+        mapLiteral2.put("amount", this.parseX18(this.safeString(trade, "filled_qty")));
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("fee", fee);
+        return this.safeTrade(mapLiteral2, marketResolved);
     }
 
     public void handleTrade(Client client, Map<String, Object> message)
@@ -1754,7 +1754,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         client.resolve(new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored)), messageHash);
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {
@@ -1797,31 +1797,31 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         {
             status = "canceled";
         }
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("info", order);
-        mapLiteral2.put("id", id);
-        mapLiteral2.put("clientOrderId", null);
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("lastTradeTimestamp", (((java.util.Objects.equals(filled, null)))) ? null : timestamp);
-        mapLiteral2.put("lastUpdateTimestamp", timestamp);
-        mapLiteral2.put("symbol", marketResolved.get("symbol"));
-        mapLiteral2.put("type", null);
-        mapLiteral2.put("timeInForce", null);
-        mapLiteral2.put("postOnly", null);
-        mapLiteral2.put("side", null);
-        mapLiteral2.put("price", null);
-        mapLiteral2.put("stopPrice", null);
-        mapLiteral2.put("triggerPrice", null);
-        mapLiteral2.put("amount", null);
-        mapLiteral2.put("cost", null);
-        mapLiteral2.put("average", average);
-        mapLiteral2.put("filled", filled);
-        mapLiteral2.put("remaining", remaining);
-        mapLiteral2.put("status", status);
-        mapLiteral2.put("fee", null);
-        mapLiteral2.put("trades", null);
-        return this.safeOrder(mapLiteral2, marketResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", order);
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("clientOrderId", null);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("lastTradeTimestamp", (((java.util.Objects.equals(filled, null)))) ? null : timestamp);
+        mapLiteral3.put("lastUpdateTimestamp", timestamp);
+        mapLiteral3.put("symbol", marketResolved.get("symbol"));
+        mapLiteral3.put("type", null);
+        mapLiteral3.put("timeInForce", null);
+        mapLiteral3.put("postOnly", null);
+        mapLiteral3.put("side", null);
+        mapLiteral3.put("price", null);
+        mapLiteral3.put("stopPrice", null);
+        mapLiteral3.put("triggerPrice", null);
+        mapLiteral3.put("amount", null);
+        mapLiteral3.put("cost", null);
+        mapLiteral3.put("average", average);
+        mapLiteral3.put("filled", filled);
+        mapLiteral3.put("remaining", remaining);
+        mapLiteral3.put("status", status);
+        mapLiteral3.put("fee", null);
+        mapLiteral3.put("trades", null);
+        return this.safeOrder(mapLiteral3, marketResolved);
     }
 
     public void handleOrder(Client client, Map<String, Object> message)
@@ -1877,32 +1877,32 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 entryPrice = this.parseNumber(Precise.stringDiv(Precise.stringAbs(vQuoteAmount), absoluteAmount));
             }
         }
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("info", position);
-        mapLiteral3.put("id", null);
-        mapLiteral3.put("symbol", marketResolved.get("symbol"));
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("isolated", this.safeBool(position, "isolated", (Object) null));
-        mapLiteral3.put("hedged", false);
-        mapLiteral3.put("side", side);
-        mapLiteral3.put("contracts", contracts);
-        mapLiteral3.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
-        mapLiteral3.put("entryPrice", entryPrice);
-        mapLiteral3.put("markPrice", null);
-        mapLiteral3.put("notional", null);
-        mapLiteral3.put("leverage", null);
-        mapLiteral3.put("collateral", null);
-        mapLiteral3.put("initialMargin", null);
-        mapLiteral3.put("initialMarginPercentage", null);
-        mapLiteral3.put("maintenanceMargin", null);
-        mapLiteral3.put("maintenanceMarginPercentage", null);
-        mapLiteral3.put("unrealizedPnl", null);
-        mapLiteral3.put("liquidationPrice", null);
-        mapLiteral3.put("marginMode", null);
-        mapLiteral3.put("marginRatio", null);
-        mapLiteral3.put("percentage", null);
-        return this.safePosition(mapLiteral3);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", position);
+        mapLiteral4.put("id", null);
+        mapLiteral4.put("symbol", marketResolved.get("symbol"));
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("isolated", this.safeBool(position, "isolated", (Object) null));
+        mapLiteral4.put("hedged", false);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("contracts", contracts);
+        mapLiteral4.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
+        mapLiteral4.put("entryPrice", entryPrice);
+        mapLiteral4.put("markPrice", null);
+        mapLiteral4.put("notional", null);
+        mapLiteral4.put("leverage", null);
+        mapLiteral4.put("collateral", null);
+        mapLiteral4.put("initialMargin", null);
+        mapLiteral4.put("initialMarginPercentage", null);
+        mapLiteral4.put("maintenanceMargin", null);
+        mapLiteral4.put("maintenanceMarginPercentage", null);
+        mapLiteral4.put("unrealizedPnl", null);
+        mapLiteral4.put("liquidationPrice", null);
+        mapLiteral4.put("marginMode", null);
+        mapLiteral4.put("marginRatio", null);
+        mapLiteral4.put("percentage", null);
+        return this.safePosition(mapLiteral4);
     }
 
     public void handlePosition(Client client, Map<String, Object> message)
@@ -2008,7 +2008,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             String maxPrice = "170141183460469231731687303715884105727";
             if (Precise.stringGt(bid, "0") && Precise.stringGt(ask, "0") && !Precise.stringEquals(bid, maxPrice) && !Precise.stringEquals(ask, maxPrice))
             {
-                Object ticker = this.safeTicker(new HashMap<String, Object>() {{
+                Ticker ticker = this.safeTicker(new HashMap<String, Object>() {{
                     put( "symbol", market.get("symbol") );
                     put( "timestamp", timestamp );
                     put( "datetime", Nado.this.iso8601(timestamp) );

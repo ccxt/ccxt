@@ -11,6 +11,7 @@ import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.FundingHistory;
 import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.FundingRateHistory;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
@@ -858,7 +859,7 @@ public class Derive extends DeriveApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -1009,7 +1010,7 @@ public class Derive extends DeriveApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         String type = this.safeString(market, "instrument_type");
         String marketType = null;
@@ -1215,7 +1216,7 @@ public class Derive extends DeriveApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // {
@@ -1412,7 +1413,7 @@ public class Derive extends DeriveApi
         return this.filterBySymbolSinceLimit(result, symbol, since, limit, false);
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades & fetchMyTrades
@@ -2428,7 +2429,7 @@ public class Derive extends DeriveApi
         return null;
     }
 
-    public Object parseOrder(Object rawOrder, Map<String, Object> market)
+    public Order parseOrder(Object rawOrder, Map<String, Object> market)
     {
         //
         // {
@@ -3103,7 +3104,7 @@ public class Derive extends DeriveApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );

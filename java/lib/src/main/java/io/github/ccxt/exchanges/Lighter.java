@@ -1670,7 +1670,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "asset_id");
         String code = this.safeCurrencyCode(this.safeString(rawCurrency, "symbol"), (Map<String, Object>) null);
@@ -1776,7 +1776,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // fetchTicker, fetchTickers
@@ -2759,7 +2759,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         //     {
@@ -3561,7 +3561,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         //     {

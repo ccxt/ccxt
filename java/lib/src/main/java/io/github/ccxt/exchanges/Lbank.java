@@ -606,7 +606,7 @@ public class Lbank extends LbankApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String id = this.safeString((rawCurrency == null || 0 >= ((List<?>)rawCurrency).size() ? null : ((List<?>)rawCurrency).get(0)), "assetCode"); // first member is guaranteed
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
@@ -892,7 +892,7 @@ public class Lbank extends LbankApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // spot: fetchTicker, fetchTickers
@@ -1206,7 +1206,7 @@ public class Lbank extends LbankApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (old) spotPublicGetTrades
@@ -1468,7 +1468,7 @@ public class Lbank extends LbankApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         //
         // spotPrivatePostUserInfo
@@ -2067,7 +2067,7 @@ public class Lbank extends LbankApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // fetchOrderSupplement (private)

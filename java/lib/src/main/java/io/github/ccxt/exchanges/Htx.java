@@ -2953,7 +2953,7 @@ public class Htx extends HtxApi
         return symbolOrMarketId;
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // fetchTicker
@@ -3468,7 +3468,7 @@ public class Htx extends HtxApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // spot fetchTrades (public)
@@ -4406,7 +4406,7 @@ public class Htx extends HtxApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         if (!(((Map<?, ?>)this.options).containsKey("networkNamesByChainIds")))
         {
@@ -6007,7 +6007,7 @@ public class Htx extends HtxApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // spot

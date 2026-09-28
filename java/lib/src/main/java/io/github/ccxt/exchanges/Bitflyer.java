@@ -534,7 +534,7 @@ public class Bitflyer extends BitflyerApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -626,7 +626,7 @@ public class Bitflyer extends BitflyerApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         String symbol = this.safeSymbol(null, market, (String) null, (String) null);
         Long timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
@@ -683,7 +683,7 @@ public class Bitflyer extends BitflyerApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public) v1
@@ -931,7 +931,7 @@ public class Bitflyer extends BitflyerApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         Long timestamp = this.parse8601(this.safeString(order, "child_order_date"));
         String price = this.safeString(order, "price");

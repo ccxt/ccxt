@@ -312,7 +312,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         client.resolve(this.orders, messageHash);
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //    {
@@ -654,7 +654,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         }
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Long timestamp = this.safeInteger(trade, "ts");
@@ -662,7 +662,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         String priceString = this.safeString(trade, "price");
         Double rawVol = this.safeNumber(trade, "vol", (Object) null);
         Object baseAmount = this.convertFromRawQuantity(symbol, rawVol);
-        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", null );
             put( "timestamp", timestamp );
@@ -676,7 +676,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             put( "amount", Bitrue.this.numberToString(baseAmount) );
             put( "cost", null );
             put( "fee", null );
-        }}, market));
+        }}, market);
     }
 
     /**
@@ -886,7 +886,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         client.resolve(parsed, messageHash);
     }
 
-    public Object parseWsTicker(Object tick, Object market, Long timestamp)
+    public Ticker parseWsTicker(Object tick, Object market, Long timestamp)
     {
         Object symbol = Helpers.GetValue(market, "symbol");
         Double rawVol = this.safeNumber(tick, "vol", (Object) null);

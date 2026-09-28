@@ -9,6 +9,7 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.DepositAddress;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
@@ -710,7 +711,7 @@ public class Upbit extends UpbitApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         String id = this.safeString(market, "market");
         if (java.util.Objects.equals(id, null))
@@ -779,7 +780,7 @@ public class Upbit extends UpbitApi
         return this.safeMarketStructure(mapLiteral4);
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -950,7 +951,7 @@ public class Upbit extends UpbitApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //       {                market: "BTC-ETH",
@@ -1157,7 +1158,7 @@ public class Upbit extends UpbitApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades
@@ -2209,7 +2210,7 @@ public class Upbit extends UpbitApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         // {
         //   "market": "KRW-USDT",

@@ -8,6 +8,7 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
 import io.github.ccxt.types.Ticker;
@@ -367,7 +368,7 @@ public class Btcbox extends BtcboxApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         String baseId = this.safeString(market, "base");
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
@@ -430,7 +431,7 @@ public class Btcbox extends BtcboxApi
         return this.safeMarketStructure(mapLiteral1);
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -509,7 +510,7 @@ public class Btcbox extends BtcboxApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         String symbol = this.safeSymbol(null, market, (String) null, (String) null);
         String last = this.safeString(ticker, "last");
@@ -591,7 +592,7 @@ public class Btcbox extends BtcboxApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public)
@@ -764,7 +765,7 @@ public class Btcbox extends BtcboxApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         //     {

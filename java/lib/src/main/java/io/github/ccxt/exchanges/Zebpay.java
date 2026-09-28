@@ -548,7 +548,7 @@ public class Zebpay extends ZebpayApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -1169,7 +1169,7 @@ public class Zebpay extends ZebpayApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchMyTrades
@@ -1644,7 +1644,7 @@ public class Zebpay extends ZebpayApi
 
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         //      {
@@ -1676,7 +1676,7 @@ public class Zebpay extends ZebpayApi
         String timeInForce = this.safeString(order, "timeInForce");
         String status = this.safeStringLower(order, "status");
         String orderId = this.safeString(order, "orderId");
-        Object parsedOrder = this.safeOrder(new HashMap<String, Object>() {{
+        Order parsedOrder = this.safeOrder(new HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
             put( "symbol", symbol );
@@ -1701,7 +1701,7 @@ public class Zebpay extends ZebpayApi
             put( "average", null );
             put( "trades", null );
         }}, marketResolved);
-        return parsedOrder;
+        return (Order) parsedOrder;
     }
 
     /**
@@ -2158,7 +2158,7 @@ public class Zebpay extends ZebpayApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -2255,7 +2255,7 @@ public class Zebpay extends ZebpayApi
         }};
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     [

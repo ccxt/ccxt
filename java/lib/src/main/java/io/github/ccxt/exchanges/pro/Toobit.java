@@ -312,9 +312,9 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         client.resolve(stored, messageHash);
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
-        return (Map<String, Object>) (this.parseTrade(trade, market));
+        return this.parseTrade(trade, market);
     }
 
     /**
@@ -623,7 +623,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         client.resolve(newTickers, "tickers");
     }
 
-    public Object parseWsTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
     {
         return this.parseTicker(ticker, market);
     }
@@ -1067,7 +1067,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         client.resolve(orders, messageHash);
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         Long timestamp = this.safeInteger(order, "O");
         String marketId = this.safeString(order, "s");

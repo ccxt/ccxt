@@ -9,6 +9,7 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.DepositAddress;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.Order;
@@ -732,7 +733,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, 0);
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
@@ -975,7 +976,7 @@ public class Gemini extends GeminiApi
                 }};
                 // don't use Promise.all here, for some reason the exchange can't handle it and crashes
                 Map<String, Object> rawResponse = (this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters))).join();
-                Object parsed = this.parseMarket(rawResponse);
+                MarketInterface parsed = this.parseMarket(rawResponse);
                 if (!java.util.Objects.equals(parsed, null))
                 {
                     ((List<Object>)result).add(parsed);
@@ -1029,7 +1030,7 @@ public class Gemini extends GeminiApi
                 Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
                 for (var i = 0; i < ((List<?>)responses).size(); i++)
                 {
-                    Object parsed = this.parseMarket((responses == null || i < 0 || i >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(i)));
+                    MarketInterface parsed = this.parseMarket((responses == null || i < 0 || i >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(i)));
                     if (!java.util.Objects.equals(parsed, null))
                     {
                         ((List<Object>)result).add(parsed);
@@ -1048,7 +1049,7 @@ public class Gemini extends GeminiApi
                         List<Object> pairInfo = (List<Object>) this.safeList(indexedTradingPairs, ((String)marketId).toUpperCase(), (Object) null);
                         if (!java.util.Objects.equals(pairInfo, null) && !this.inArray(marketId, brokenPairs))
                         {
-                            Object parsed = this.parseMarket(pairInfo);
+                            MarketInterface parsed = this.parseMarket(pairInfo);
                             if (!java.util.Objects.equals(parsed, null))
                             {
                                 ((List<Object>)result).add(parsed);
@@ -1061,7 +1062,7 @@ public class Gemini extends GeminiApi
                     {
                         if (!this.inArray((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)), brokenPairs))
                         {
-                            Object parsed = this.parseMarket((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)));
+                            MarketInterface parsed = this.parseMarket((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)));
                             if (!java.util.Objects.equals(parsed, null))
                             {
                                 ((List<Object>)result).add(parsed);
@@ -1075,7 +1076,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object parseMarket(Object response)
+    public MarketInterface parseMarket(Object response)
     {
         //
         // response might be:
@@ -1403,7 +1404,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // fetchTickers
@@ -1545,7 +1546,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // public fetchTrades
@@ -1661,7 +1662,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -1776,7 +1777,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder (private)

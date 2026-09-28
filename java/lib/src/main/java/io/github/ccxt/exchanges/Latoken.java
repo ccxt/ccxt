@@ -690,7 +690,7 @@ public class Latoken extends LatokenApi
 
     }
 
-    public Object parseCurrency(Object currency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object currency)
     {
         String id = this.safeString(currency, "id");
         String tag = this.safeString(currency, "tag");
@@ -889,7 +889,7 @@ public class Latoken extends LatokenApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //    {
@@ -1033,7 +1033,7 @@ public class Latoken extends LatokenApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public)
@@ -1367,7 +1367,7 @@ public class Latoken extends LatokenApi
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder

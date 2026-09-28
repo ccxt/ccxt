@@ -10,6 +10,7 @@ import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.FundingHistory;
 import io.github.ccxt.types.FundingRateHistory;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.Order;
@@ -419,7 +420,7 @@ public class Apex extends ApexApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         //
         // {
@@ -623,7 +624,7 @@ public class Apex extends ApexApi
 
     }
 
-    public Object parseCurrency(Object currency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object currency)
     {
         String currencyId = this.safeString(currency, "token");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -777,7 +778,7 @@ public class Apex extends ApexApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         String id = this.safeString(market, "symbol");
         String id2 = this.safeString(market, "crossSymbolName");
@@ -849,7 +850,7 @@ public class Apex extends ApexApi
         return this.safeMarketStructure(mapLiteral2);
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // {
@@ -1137,7 +1138,7 @@ public class Apex extends ApexApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // [
@@ -1324,7 +1325,7 @@ public class Apex extends ApexApi
 
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // {

@@ -8,6 +8,7 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
@@ -411,7 +412,7 @@ public class P2b extends P2bApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         String marketId = this.safeString(market, "name");
         String baseId = this.safeString(market, "stock");
@@ -425,36 +426,35 @@ public class P2b extends P2bApi
         Map<String, Object> limits = (Map<String, Object>) this.safeDict(market, "limits", (Object) null);
         String maxAmount = this.safeString(limits, "max_amount");
         String maxPrice = this.safeString(limits, "max_price");
-        {
-            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
-            h2kMap0.put("id", marketId);
-            h2kMap0.put("symbol", ((base + "/") + quote));
-            h2kMap0.put("base", base);
-            h2kMap0.put("quote", quote);
-            h2kMap0.put("settle", null);
-            h2kMap0.put("baseId", baseId);
-            h2kMap0.put("quoteId", quoteId);
-            h2kMap0.put("settleId", null);
-            h2kMap0.put("type", "spot");
-            h2kMap0.put("spot", true);
-            h2kMap0.put("margin", false);
-            h2kMap0.put("swap", false);
-            h2kMap0.put("future", false);
-            h2kMap0.put("option", false);
-            h2kMap0.put("active", true);
-            h2kMap0.put("contract", false);
-            h2kMap0.put("linear", null);
-            h2kMap0.put("inverse", null);
-            h2kMap0.put("contractSize", null);
-            h2kMap0.put("expiry", null);
-            h2kMap0.put("expiryDatetime", null);
-            h2kMap0.put("strike", null);
-            h2kMap0.put("optionType", null);
-            h2kMap0.put("precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", marketId);
+        mapLiteral1.put("symbol", ((base + "/") + quote));
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("settle", null);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("settleId", null);
+        mapLiteral1.put("type", "spot");
+        mapLiteral1.put("spot", true);
+        mapLiteral1.put("margin", false);
+        mapLiteral1.put("swap", false);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", false);
+        mapLiteral1.put("active", true);
+        mapLiteral1.put("contract", false);
+        mapLiteral1.put("linear", null);
+        mapLiteral1.put("inverse", null);
+        mapLiteral1.put("contractSize", null);
+        mapLiteral1.put("expiry", null);
+        mapLiteral1.put("expiryDatetime", null);
+        mapLiteral1.put("strike", null);
+        mapLiteral1.put("optionType", null);
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", P2b.this.safeNumber(limits, "step_size", (Object) null) );
                 put( "price", P2b.this.safeNumber(limits, "tick_size", (Object) null) );
             }});
-            h2kMap0.put("limits", new HashMap<String, Object>() {{
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -472,10 +472,9 @@ public class P2b extends P2bApi
                     put( "max", null );
                 }} );
             }});
-            h2kMap0.put("created", null);
-            h2kMap0.put("info", market);
-            return h2kMap0;
-        }
+        mapLiteral1.put("created", null);
+        mapLiteral1.put("info", market);
+        return new MarketInterface(mapLiteral1);
     }
 
     /**
@@ -577,7 +576,7 @@ public class P2b extends P2bApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // parseTickers
@@ -617,28 +616,28 @@ public class P2b extends P2bApi
             tickerInner = this.safeDict(ticker, "ticker", (Object) null);
         }
         String last = this.safeString(tickerInner, "last");
-        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-        mapLiteral1.put("symbol", this.safeString(market, "symbol"));
-        mapLiteral1.put("timestamp", timestamp);
-        mapLiteral1.put("datetime", this.iso8601(timestamp));
-        mapLiteral1.put("high", this.safeString(tickerInner, "high"));
-        mapLiteral1.put("low", this.safeString(tickerInner, "low"));
-        mapLiteral1.put("bid", this.safeString(tickerInner, "bid"));
-        mapLiteral1.put("bidVolume", null);
-        mapLiteral1.put("ask", this.safeString(tickerInner, "ask"));
-        mapLiteral1.put("askVolume", null);
-        mapLiteral1.put("vwap", null);
-        mapLiteral1.put("open", this.safeString(tickerInner, "open"));
-        mapLiteral1.put("close", last);
-        mapLiteral1.put("last", last);
-        mapLiteral1.put("previousClose", null);
-        mapLiteral1.put("change", null);
-        mapLiteral1.put("percentage", this.safeString(tickerInner, "change"));
-        mapLiteral1.put("average", null);
-        mapLiteral1.put("baseVolume", this.safeString2(tickerInner, "vol", "volume"));
-        mapLiteral1.put("quoteVolume", this.safeString(tickerInner, "deal"));
-        mapLiteral1.put("info", tickerInner);
-        return this.safeTicker(mapLiteral1, market);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("symbol", this.safeString(market, "symbol"));
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("high", this.safeString(tickerInner, "high"));
+        mapLiteral2.put("low", this.safeString(tickerInner, "low"));
+        mapLiteral2.put("bid", this.safeString(tickerInner, "bid"));
+        mapLiteral2.put("bidVolume", null);
+        mapLiteral2.put("ask", this.safeString(tickerInner, "ask"));
+        mapLiteral2.put("askVolume", null);
+        mapLiteral2.put("vwap", null);
+        mapLiteral2.put("open", this.safeString(tickerInner, "open"));
+        mapLiteral2.put("close", last);
+        mapLiteral2.put("last", last);
+        mapLiteral2.put("previousClose", null);
+        mapLiteral2.put("change", null);
+        mapLiteral2.put("percentage", this.safeString(tickerInner, "change"));
+        mapLiteral2.put("average", null);
+        mapLiteral2.put("baseVolume", this.safeString2(tickerInner, "vol", "volume"));
+        mapLiteral2.put("quoteVolume", this.safeString(tickerInner, "deal"));
+        mapLiteral2.put("info", tickerInner);
+        return this.safeTicker(mapLiteral2, market);
     }
 
     /**
@@ -764,7 +763,7 @@ public class P2b extends P2bApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades
@@ -815,24 +814,24 @@ public class P2b extends P2bApi
         {
             takerOrMaker = "taker";
         }
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("info", trade);
-        mapLiteral2.put("id", this.safeString2(trade, "id", "deal_id"));
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("symbol", this.safeString(market, "symbol"));
-        mapLiteral2.put("order", this.safeString2(trade, "dealOrderId", "deal_order_id"));
-        mapLiteral2.put("type", null);
-        mapLiteral2.put("side", this.safeString2(trade, "type", "side"));
-        mapLiteral2.put("takerOrMaker", takerOrMaker);
-        mapLiteral2.put("price", this.safeString(trade, "price"));
-        mapLiteral2.put("amount", this.safeString(trade, "amount"));
-        mapLiteral2.put("cost", this.safeString(trade, "deal"));
-        mapLiteral2.put("fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", trade);
+        mapLiteral3.put("id", this.safeString2(trade, "id", "deal_id"));
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("symbol", this.safeString(market, "symbol"));
+        mapLiteral3.put("order", this.safeString2(trade, "dealOrderId", "deal_order_id"));
+        mapLiteral3.put("type", null);
+        mapLiteral3.put("side", this.safeString2(trade, "type", "side"));
+        mapLiteral3.put("takerOrMaker", takerOrMaker);
+        mapLiteral3.put("price", this.safeString(trade, "price"));
+        mapLiteral3.put("amount", this.safeString(trade, "amount"));
+        mapLiteral3.put("cost", this.safeString(trade, "deal"));
+        mapLiteral3.put("fee", new HashMap<String, Object>() {{
                 put( "currency", P2b.this.safeString(market, "quote") );
                 put( "cost", P2b.this.safeString2(trade, "fee", "deal_fee") );
             }});
-        return this.safeTrade(mapLiteral2, market);
+        return this.safeTrade(mapLiteral3, market);
     }
 
     /**
@@ -953,7 +952,7 @@ public class P2b extends P2bApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         //
         //    {
@@ -1429,7 +1428,7 @@ public class P2b extends P2bApi
 
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // cancelOrder, fetchOpenOrders, createOrder
@@ -1531,21 +1530,21 @@ public class P2b extends P2bApi
             }};
             String bodyJson = this.json(paramsOmitted);
             {
-                HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
-                h2kMap1.put("url", url);
-                h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-                h2kMap1.put("body", bodyJson);
-                h2kMap1.put("headers", headersSigned);
-                return h2kMap1;
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("url", url);
+                h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap0.put("body", bodyJson);
+                h2kMap0.put("headers", headersSigned);
+                return h2kMap0;
             }
         }
         {
-            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
-            h2kMap2.put("url", url);
-            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap2.put("body", body);
-            h2kMap2.put("headers", headers);
-            return h2kMap2;
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", body);
+            h2kMap1.put("headers", headers);
+            return h2kMap1;
         }
     }
 

@@ -9,6 +9,7 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.DepositWithdrawFees;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
@@ -432,7 +433,7 @@ public class Bitopro extends BitoproApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         Object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new ArrayList<Object>(Arrays.asList()));
         String currencyId = this.safeString(rawCurrency, "currency");
@@ -505,7 +506,7 @@ public class Bitopro extends BitoproApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         Boolean active = (!Boolean.TRUE.equals(this.safeBool(market, "maintain", false)));
         String id = this.safeString(market, "pair");
@@ -576,7 +577,7 @@ public class Bitopro extends BitoproApi
         return this.safeMarketStructure(mapLiteral2);
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -751,7 +752,7 @@ public class Bitopro extends BitoproApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades
@@ -1111,7 +1112,7 @@ public class Bitopro extends BitoproApi
         return result;
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         //
         //     [{
@@ -1195,7 +1196,7 @@ public class Bitopro extends BitoproApi
         return (((java.util.Objects.equals(status, null)))) ? null : this.safeString(statuses, status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder

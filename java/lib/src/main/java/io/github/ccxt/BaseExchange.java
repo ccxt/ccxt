@@ -84,6 +84,10 @@ import io.github.ccxt.types.TradingFees;
 import io.github.ccxt.types.Transaction;
 import io.github.ccxt.types.TransferEntry;
 import java.util.stream.Collectors;
+import io.github.ccxt.types.MarketInterface;
+import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Ticker;
+import io.github.ccxt.types.Trade;
 
 
 public class BaseExchange {
@@ -980,28 +984,28 @@ public class BaseExchange {
     // Generic
     // =======================
     // sortBy / sortBy2
-    public java.util.List<Object> sortBy(Object array, Object value1) {
+    public <T> java.util.List<T> sortBy(Object array, Object value1) {
         return io.github.ccxt.base.Generic.sortBy(array, value1, null, null);
     }
 
-    public java.util.List<Object> sortBy(Object array, Object value1, Object desc) {
+    public <T> java.util.List<T> sortBy(Object array, Object value1, Object desc) {
         return io.github.ccxt.base.Generic.sortBy(array, value1, desc, null);
     }
 
-    public java.util.List<Object> sortBy(Object array, Object value1, Object desc, Object defaultValue) {
+    public <T> java.util.List<T> sortBy(Object array, Object value1, Object desc, Object defaultValue) {
         return io.github.ccxt.base.Generic.sortBy(array, value1, desc, defaultValue);
     }
 
-    public java.util.List<Object> sortBy2(Object array, Object key1, Object key2, Object desc) {
+    public <T> java.util.List<T> sortBy2(Object array, Object key1, Object key2, Object desc) {
         return io.github.ccxt.base.Generic.sortBy2(array, key1, key2, desc);
     }
 
-    public java.util.List<Object> sortBy2(Object array, Object key1, Object key2) {
+    public <T> java.util.List<T> sortBy2(Object array, Object key1, Object key2) {
         return io.github.ccxt.base.Generic.sortBy2(array, key1, key2, null);
     }
 
     // filterBy
-    public java.util.List<Object> filterBy(Object aa, Object key, Object value) {
+    public <T> java.util.List<T> filterBy(Object aa, Object key, Object value) {
         return io.github.ccxt.base.Generic.filterBy(aa, key, value);
     }
 
@@ -5268,7 +5272,7 @@ public Object describe()
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         throw new NotSupported((this.id + " parseCurrency() is not supported yet")) ;
     }
@@ -5279,7 +5283,7 @@ public Object describe()
         List<Object> arr = this.toArray(rawCurrencies);
         for (var i = 0; i < ((List<?>)arr).size(); i++)
         {
-            Object parsed = this.parseCurrency((arr == null || i < 0 || i >= arr.size() ? null : arr.get(i)));
+            io.github.ccxt.types.CurrencyInterface parsed = this.parseCurrency((arr == null || i < 0 || i >= arr.size() ? null : arr.get(i)));
             if (java.util.Objects.equals(parsed, null))
             {
                 continue;
@@ -5290,7 +5294,7 @@ public Object describe()
         return result;
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         throw new NotSupported((this.id + " parseMarket() is not supported yet")) ;
     }
@@ -5300,7 +5304,7 @@ public Object describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(markets); i++)
         {
-            Object market = this.parseMarket(Helpers.GetValue(markets, i));
+            MarketInterface market = this.parseMarket(Helpers.GetValue(markets, i));
             // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
             if (!java.util.Objects.equals(market, null))
             {
@@ -5310,7 +5314,7 @@ public Object describe()
         return result;
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parseTicker() is not supported yet")) ;
     }
@@ -5320,7 +5324,7 @@ public Object describe()
         throw new NotSupported((this.id + " parseDepositAddress() is not supported yet")) ;
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parseTrade() is not supported yet")) ;
     }
@@ -5349,7 +5353,7 @@ public Object describe()
         throw new NotSupported((this.id + " parseLedgerEntry() is not supported yet")) ;
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parseOrder() is not supported yet")) ;
     }
@@ -5409,12 +5413,12 @@ public Object describe()
         throw new NotSupported((this.id + " parseIsolatedBorrowRate() is not supported yet")) ;
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parseWsTrade() is not supported yet")) ;
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parseWsOrder() is not supported yet")) ;
     }
@@ -6119,7 +6123,7 @@ public Object describe()
         );
     }
 
-    public Object safeCurrencyStructure(Map<String, Object> currency)
+    public io.github.ccxt.types.CurrencyInterface safeCurrencyStructure(Map<String, Object> currency)
     {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
         Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
@@ -6208,7 +6212,7 @@ public Object describe()
                 }
             }
         }
-        return this.extend(new HashMap<String, Object>() {{
+        return new io.github.ccxt.types.CurrencyInterface(this.extend(new HashMap<String, Object>() {{
             put( "info", null );
             put( "id", null );
             put( "numericId", null );
@@ -6232,10 +6236,10 @@ public Object describe()
                     put( "max", null );
                 }} );
             }} );
-        }}, currency);
+        }}, currency));
     }
 
-    public Object safeMarketStructure(Object market)
+    public MarketInterface safeMarketStructure(Object market)
     {
         Map<String, Object> cleanStructure = new HashMap<String, Object>() {{
             put( "id", null );
@@ -6325,9 +6329,9 @@ public Object describe()
                     result.put("index", false);
                 }
             }
-            return result;
+            return new MarketInterface(result);
         }
-        return this.extend(cleanStructure);
+        return new MarketInterface(this.extend(cleanStructure));
     }
 
     public Object setMarkets(Object markets, Object currencies)
@@ -6513,7 +6517,7 @@ public Object describe()
         return superWithRestDescribe;
     }
 
-    public Object safeBalance(Object balance)
+    public Balances safeBalance(Object balance)
     {
         Object balances = this.omit(balance, new ArrayList<Object>(Arrays.asList("info", "timestamp", "datetime", "free", "used", "total")));
         List<Object> codes = Helpers.objectKeys(balances);
@@ -6558,10 +6562,10 @@ public Object describe()
         {
             ((Map<String, Object>)balance).put("debt", debtBalance);
         }
-        return balance;
+        return new Balances(balance);
     }
 
-    public Object safeOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order safeOrder(Map<String, Object> order, Map<String, Object> market)
     {
         // parses numbers as strings
         // * it is important pass the trades as unparsed rawTrades
@@ -6871,7 +6875,7 @@ public Object describe()
         Double triggerPrice = this.parseNumber(this.safeString2(orderDict, "triggerPrice", "stopPrice"));
         Double takeProfitPrice = this.parseNumber(this.safeString(orderDict, "takeProfitPrice"));
         Double stopLossPrice = this.parseNumber(this.safeString(orderDict, "stopLossPrice"));
-        return this.extend(orderDict, Helpers.newMap(
+        return new Order(this.extend(orderDict, Helpers.newMap(
             "id", this.safeString(orderDict, "id"),
             "clientOrderId", this.safeString(orderDict, "clientOrderId"),
             "timestamp", timestamp,
@@ -6897,7 +6901,7 @@ public Object describe()
             "stopLossPrice", stopLossPrice,
             "status", status,
             "fee", this.safeValue(orderDict, "fee")
-        ));
+        )));
     }
 
     public List<Object> parseOrders(Object orders, Map<String, Object> market, Long since, Long limit, Map<String, Object> parameters)
@@ -7050,7 +7054,7 @@ public Object describe()
         return liquidation;
     }
 
-    public Object safeTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade safeTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         String amount = this.safeString(trade, "amount");
         String price = this.safeString(trade, "price");
@@ -7079,7 +7083,7 @@ public Object describe()
         trade.put("amount", BaseExchange.this.parseNumber(amount));
         trade.put("price", BaseExchange.this.parseNumber(price));
         trade.put("cost", BaseExchange.this.parseNumber(cost));
-        return trade;
+        return new Trade(trade);
     }
 
     public Object createCcxtTradeId(Long timestamp, String side, String amount, String price, String takerOrMaker)
@@ -7324,7 +7328,7 @@ public Object describe()
         return result;
     }
 
-    public Object safeTicker(Object ticker, Map<String, Object> market)
+    public Ticker safeTicker(Object ticker, Map<String, Object> market)
     {
         Object open = this.omitZero(this.safeString(ticker, "open"));
         Object close = this.omitZero(this.safeString2(ticker, "close", "last"));
@@ -7416,7 +7420,7 @@ public Object describe()
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
         Double closeParsed = this.parseNumber(this.omitZero(close));
-        return this.extend(ticker, Helpers.newMap(
+        return new Ticker(this.extend(ticker, Helpers.newMap(
             "bid", this.parseNumber(this.omitZero(this.safeString(ticker, "bid"))),
             "bidVolume", this.safeNumber(ticker, "bidVolume", (Object) null),
             "ask", this.parseNumber(this.omitZero(this.safeString(ticker, "ask"))),
@@ -7435,7 +7439,7 @@ public Object describe()
             "previousClose", this.safeNumber(ticker, "previousClose", (Object) null),
             "indexPrice", this.safeNumber(ticker, "indexPrice", (Object) null),
             "markPrice", this.safeNumber(ticker, "markPrice", (Object) null)
-        ));
+        )));
     }
 
     public CompletableFuture<Object> fetchBorrowRate(String code, Object amount, Map<String, Object> parameters)
@@ -8150,18 +8154,18 @@ public Object describe()
         return this.parseNumber(value, d);
     }
 
-    public Object parseOrderBook(Object orderbook, Object symbol, Long timestamp, Object bidsKey, Object asksKey, Object priceKey, Object amountKey, Object countOrIdKey)
+    public OrderBook parseOrderBook(Object orderbook, Object symbol, Long timestamp, Object bidsKey, Object asksKey, Object priceKey, Object amountKey, Object countOrIdKey)
     {
         List<Object> bids = (List<Object>) this.parseOrderBookBidsAsks(this.safeValue(orderbook, java.util.Objects.requireNonNullElse(bidsKey, "bids"), new ArrayList<Object>(Arrays.asList())), java.util.Objects.requireNonNullElse(priceKey, 0), java.util.Objects.requireNonNullElse(amountKey, 1), java.util.Objects.requireNonNullElse(countOrIdKey, 2));
         List<Object> asks = (List<Object>) this.parseOrderBookBidsAsks(this.safeValue(orderbook, java.util.Objects.requireNonNullElse(asksKey, "asks"), new ArrayList<Object>(Arrays.asList())), java.util.Objects.requireNonNullElse(priceKey, 0), java.util.Objects.requireNonNullElse(amountKey, 1), java.util.Objects.requireNonNullElse(countOrIdKey, 2));
-        return new HashMap<String, Object>() {{
+        return new OrderBook(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "bids", BaseExchange.this.sortBy(bids, 0, true) );
             put( "asks", BaseExchange.this.sortBy(asks, 0) );
             put( "timestamp", timestamp );
             put( "datetime", BaseExchange.this.iso8601(timestamp) );
             put( "nonce", null );
-        }};
+        }});
     }
 
     public List<Object> parseOHLCVs(Object ohlcvs, Object market, String timeframe, Long since, Long limit, Object tail)
@@ -9071,7 +9075,7 @@ public Object describe()
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         throw new NotSupported((this.id + " parseBalance() is not supported yet")) ;
     }
@@ -9997,7 +10001,7 @@ public Object describe()
         throw new BadSymbol(((this.id + " does not have market symbol ") + symbol)) ;
     }
 
-    public Object createExpiredOptionMarket(Object symbol)
+    public MarketInterface createExpiredOptionMarket(Object symbol)
     {
         throw new NotSupported((this.id + " createExpiredOptionMarket () is not supported yet")) ;
     }

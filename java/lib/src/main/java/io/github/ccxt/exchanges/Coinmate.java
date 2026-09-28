@@ -595,7 +595,7 @@ public class Coinmate extends CoinmateApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> balances = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> result = new HashMap<String, Object>() {{
@@ -770,7 +770,7 @@ public class Coinmate extends CoinmateApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -1087,7 +1087,7 @@ public class Coinmate extends CoinmateApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchMyTrades (private)
@@ -1334,7 +1334,7 @@ public class Coinmate extends CoinmateApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // limit sell

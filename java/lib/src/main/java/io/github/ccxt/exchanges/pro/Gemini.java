@@ -139,7 +139,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
 
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // regular v2 trade
@@ -183,21 +183,21 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         }
         String marketId = this.safeStringLower(trade, "symbol");
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
-        return (Map<String, Object>) (this.safeTrade(Helpers.newMap(
-            "id", id,
-            "order", null,
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "type", null,
-            "side", side,
-            "takerOrMaker", null,
-            "price", priceString,
-            "cost", null,
-            "amount", amountString,
-            "fee", null
-        ), market));
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("order", null);
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("takerOrMaker", null);
+        mapLiteral2.put("price", priceString);
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("amount", amountString);
+        mapLiteral2.put("fee", null);
+        return this.safeTrade(mapLiteral2, market);
     }
 
     public void handleTrade(Client client, Map<String, Object> message)
@@ -466,10 +466,10 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("type", "subscribe");
-            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-            mapLiteral2.put("name", "l2");
-            mapLiteral2.put("symbols", new ArrayList<Object>(Arrays.asList(marketId.toUpperCase())));
-            request.put("subscriptions", new ArrayList<Object>(Arrays.asList(mapLiteral2)));
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("name", "l2");
+            mapLiteral3.put("symbols", new ArrayList<Object>(Arrays.asList(marketId.toUpperCase())));
+            request.put("subscriptions", new ArrayList<Object>(Arrays.asList(mapLiteral3)));
             String subscribeHash = ("l2:" + market.get("symbol"));
             String wsUrl = this.safeString(this.urls.get("api"), "ws");
             if (java.util.Objects.equals(wsUrl, null))
@@ -895,7 +895,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         client.resolve(this.orders, messageHash);
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {
@@ -936,29 +936,29 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             timeInForce = "PO";
             postOnly = true;
         }
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("id", this.safeString(order, "order_id"));
-        mapLiteral3.put("clientOrderId", this.safeString(order, "client_order_id"));
-        mapLiteral3.put("info", order);
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("lastTradeTimestamp", null);
-        mapLiteral3.put("status", this.parseWsOrderStatus((String) (status)));
-        mapLiteral3.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
-        mapLiteral3.put("type", this.parseWsOrderType((String) (typeId)));
-        mapLiteral3.put("timeInForce", timeInForce);
-        mapLiteral3.put("postOnly", postOnly);
-        mapLiteral3.put("side", this.safeString(order, "side"));
-        mapLiteral3.put("price", this.safeNumber(order, "price", (Object) null));
-        mapLiteral3.put("stopPrice", null);
-        mapLiteral3.put("average", this.safeNumber(order, "avg_execution_price", (Object) null));
-        mapLiteral3.put("cost", null);
-        mapLiteral3.put("amount", this.safeNumber(order, "original_amount", (Object) null));
-        mapLiteral3.put("filled", this.safeNumber(order, "executed_amount", (Object) null));
-        mapLiteral3.put("remaining", this.safeNumber(order, "remaining_amount", (Object) null));
-        mapLiteral3.put("fee", null);
-        mapLiteral3.put("trades", null);
-        return this.safeOrder(mapLiteral3, market);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", this.safeString(order, "order_id"));
+        mapLiteral4.put("clientOrderId", this.safeString(order, "client_order_id"));
+        mapLiteral4.put("info", order);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("status", this.parseWsOrderStatus((String) (status)));
+        mapLiteral4.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+        mapLiteral4.put("type", this.parseWsOrderType((String) (typeId)));
+        mapLiteral4.put("timeInForce", timeInForce);
+        mapLiteral4.put("postOnly", postOnly);
+        mapLiteral4.put("side", this.safeString(order, "side"));
+        mapLiteral4.put("price", this.safeNumber(order, "price", (Object) null));
+        mapLiteral4.put("stopPrice", null);
+        mapLiteral4.put("average", this.safeNumber(order, "avg_execution_price", (Object) null));
+        mapLiteral4.put("cost", null);
+        mapLiteral4.put("amount", this.safeNumber(order, "original_amount", (Object) null));
+        mapLiteral4.put("filled", this.safeNumber(order, "executed_amount", (Object) null));
+        mapLiteral4.put("remaining", this.safeNumber(order, "remaining_amount", (Object) null));
+        mapLiteral4.put("fee", null);
+        mapLiteral4.put("trades", null);
+        return this.safeOrder(mapLiteral4, market);
     }
 
     public String parseWsOrderStatus(String status)

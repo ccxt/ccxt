@@ -534,7 +534,7 @@ public class Independentreserve extends IndependentreserveApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -607,7 +607,7 @@ public class Independentreserve extends IndependentreserveApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         // {
         //     "DayHighestPrice":43489.49,
@@ -698,7 +698,7 @@ public class Independentreserve extends IndependentreserveApi
 
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // fetchOrder
@@ -1003,7 +1003,7 @@ public class Independentreserve extends IndependentreserveApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         Long timestamp = this.parse8601(((Map<String, Object>)trade).get("TradeTimestampUtc"));
         String id = this.safeString(trade, "TradeGuid");

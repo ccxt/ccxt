@@ -606,7 +606,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         return message;
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // private trades
@@ -697,7 +697,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         mapLiteral1.put("cost", this.parseNumber(feeCost));
         mapLiteral1.put("currency", feeCurrency);
         Helpers.addElementToObject(parsed, "fee", mapLiteral1);
-        return (Map<String, Object>) (parsed);
+        return (Trade) parsed;
     }
 
     public String parseWsOrderStatus(String status)
@@ -908,7 +908,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         }
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         String id = this.safeString(order, "order_id");
         String clientOrderId = this.safeString(order, "client_oid");
@@ -1000,7 +1000,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         return message;
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {

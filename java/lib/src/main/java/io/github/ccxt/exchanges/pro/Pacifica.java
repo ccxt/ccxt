@@ -967,7 +967,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         return true;
     }
 
-    public Object parseWsTicker(Object rawTicker, Map<String, Object> market)
+    public Ticker parseWsTicker(Object rawTicker, Map<String, Object> market)
     {
         return this.parseTicker(rawTicker, market);
     }
@@ -1173,7 +1173,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         client.resolve(trades, messageHash);
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // fetchMyTrades
@@ -1243,24 +1243,24 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             takerOrMaker = null;
         }
-        return (Map<String, Object>) (this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "id", id,
-            "order", this.safeString(trade, "i"),
-            "type", null,
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", price,
-            "amount", amount,
-            "cost", null,
-            "fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", trade);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("order", this.safeString(trade, "i"));
+        mapLiteral4.put("type", null);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("takerOrMaker", takerOrMaker);
+        mapLiteral4.put("price", price);
+        mapLiteral4.put("amount", amount);
+        mapLiteral4.put("cost", null);
+        mapLiteral4.put("fee", new HashMap<String, Object>() {{
                 put( "cost", fee );
                 put( "currency", "USDC" );
-            }}
-        ), marketResolved));
+            }});
+        return this.safeTrade(mapLiteral4, marketResolved);
     }
 
     /**

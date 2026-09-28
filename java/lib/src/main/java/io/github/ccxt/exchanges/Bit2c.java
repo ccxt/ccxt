@@ -364,7 +364,7 @@ public class Bit2c extends Bit2cApi
         }});
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -515,7 +515,7 @@ public class Bit2c extends Bit2cApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         String symbol = this.safeSymbol(null, market, (String) null, (String) null);
         String averagePrice = this.safeString(ticker, "av");
@@ -853,7 +853,7 @@ public class Bit2c extends Bit2cApi
 
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         //      createOrder
@@ -1079,7 +1079,7 @@ public class Bit2c extends Bit2cApi
         return newString;
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // public fetchTrades

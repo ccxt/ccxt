@@ -588,7 +588,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         }
     }
 
-    public Object parseWsTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -1024,7 +1024,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         client.resolve(this.orders, "user");
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //    {

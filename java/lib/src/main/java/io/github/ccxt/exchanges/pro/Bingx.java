@@ -341,7 +341,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }
     }
 
-    public Object parseWsTicker(Object message, Map<String, Object> market, Object isInverse)
+    public Ticker parseWsTicker(Object message, Map<String, Object> market, Object isInverse)
     {
         //
         //     {

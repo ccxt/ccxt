@@ -12,6 +12,7 @@ import io.github.ccxt.types.DepositAddress;
 import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.FundingRateHistory;
 import io.github.ccxt.types.LedgerEntry;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.Order;
@@ -362,7 +363,7 @@ public class Hibachi extends HibachiApi
         return id;
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         String marketId = this.safeString(market, "symbol");
         Double numericId = this.safeNumber(market, "id", (Object) null);
@@ -531,7 +532,7 @@ public class Hibachi extends HibachiApi
         return result;
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -586,7 +587,7 @@ public class Hibachi extends HibachiApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         Map<String, Object> prices = (Map<String, Object>) this.safeDict(ticker, "prices", (Object) null);
         Map<String, Object> stats = (Map<String, Object>) this.safeDict(ticker, "stats", (Object) null);
@@ -620,7 +621,7 @@ public class Hibachi extends HibachiApi
         }}, market);
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         // public fetchTrades:
         //      {
@@ -817,7 +818,7 @@ public class Hibachi extends HibachiApi
         return this.safeString(statuses, uppercaseStatus, status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         String marketId = this.safeString(order, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);

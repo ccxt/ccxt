@@ -906,7 +906,7 @@ public class Bittrade extends BittradeApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // fetchTicker
@@ -1150,7 +1150,7 @@ public class Bittrade extends BittradeApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public)
@@ -1527,7 +1527,7 @@ public class Bittrade extends BittradeApi
 
     }
 
-    public Object parseCurrency(Object currency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object currency)
     {
         String id = this.safeString(currency, "name");
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
@@ -1568,7 +1568,7 @@ public class Bittrade extends BittradeApi
         return this.safeCurrencyStructure(mapLiteral3);
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         List<Object> balances = (List<Object>) this.safeList(Helpers.GetValue(response, "data"), "list", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
@@ -1881,7 +1881,7 @@ public class Bittrade extends BittradeApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         //     {                  id:  13997833014,

@@ -15,6 +15,7 @@ import io.github.ccxt.types.LedgerEntry;
 import io.github.ccxt.types.Leverage;
 import io.github.ccxt.types.Leverages;
 import io.github.ccxt.types.MarginMode;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
@@ -831,7 +832,7 @@ public class Blofin extends BlofinApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         String id = this.safeString(market, "instId");
         String type = this.safeStringLower(market, "instType");
@@ -980,7 +981,7 @@ public class Blofin extends BlofinApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // response similar for REST & WS
@@ -1125,7 +1126,7 @@ public class Blofin extends BlofinApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetch trades (response similar for REST & WS)
@@ -1220,7 +1221,7 @@ public class Blofin extends BlofinApi
             mapLiteral4.put("cost", this.parseNumber(feeCost));
             mapLiteral4.put("currency", feeCurrency);
             result.put("fee", mapLiteral4);
-            return result;
+            return new Trade(result);
         } else
         {
             HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
@@ -1529,7 +1530,7 @@ public class Blofin extends BlofinApi
         }
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         //
         // "data" similar for REST & WS
@@ -1785,7 +1786,7 @@ public class Blofin extends BlofinApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // response similar for REST & WS

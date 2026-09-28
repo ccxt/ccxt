@@ -675,7 +675,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         mapLiteral1.put("baseVolume", baseVolume);
         mapLiteral1.put("quoteVolume", quoteVolume);
         mapLiteral1.put("info", ticker);
-        Object result = this.safeTicker(mapLiteral1, (Map<String, Object>) null);
+        Ticker result = this.safeTicker(mapLiteral1, (Map<String, Object>) null);
         Helpers.addElementToObject(this.tickers, symbol, result);
         client.resolve(result, messageHash);
     }
@@ -1495,7 +1495,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         }
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -1543,23 +1543,21 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         {
             takerOrMaker = "taker";
         }
-        {
-            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
-            h2kMap0.put("info", trade);
-            h2kMap0.put("id", this.safeString(trade, "exec_id"));
-            h2kMap0.put("order", this.safeString(trade, "order_id"));
-            h2kMap0.put("timestamp", this.parse8601(datetime));
-            h2kMap0.put("datetime", datetime);
-            h2kMap0.put("symbol", symbol);
-            h2kMap0.put("type", this.safeString(trade, "order_type"));
-            h2kMap0.put("side", this.safeString(trade, "side"));
-            h2kMap0.put("takerOrMaker", takerOrMaker);
-            h2kMap0.put("price", this.safeNumber(trade, "last_price", (Object) null));
-            h2kMap0.put("amount", this.safeNumber(trade, "last_qty", (Object) null));
-            h2kMap0.put("cost", this.safeNumber(trade, "cost", (Object) null));
-            h2kMap0.put("fee", fee);
-            return h2kMap0;
-        }
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("id", this.safeString(trade, "exec_id"));
+        mapLiteral2.put("order", this.safeString(trade, "order_id"));
+        mapLiteral2.put("timestamp", this.parse8601(datetime));
+        mapLiteral2.put("datetime", datetime);
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("type", this.safeString(trade, "order_type"));
+        mapLiteral2.put("side", this.safeString(trade, "side"));
+        mapLiteral2.put("takerOrMaker", takerOrMaker);
+        mapLiteral2.put("price", this.safeNumber(trade, "last_price", (Object) null));
+        mapLiteral2.put("amount", this.safeNumber(trade, "last_qty", (Object) null));
+        mapLiteral2.put("cost", this.safeNumber(trade, "cost", (Object) null));
+        mapLiteral2.put("fee", fee);
+        return new Trade(mapLiteral2);
     }
 
     /**
@@ -1666,7 +1664,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         }
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // watchOrders
@@ -1765,10 +1763,10 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("method", "subscribe");
-            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-            mapLiteral2.put("channel", channelName);
-            mapLiteral2.put("symbol", symbolsNormalized);
-            request.put("params", mapLiteral2);
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("channel", channelName);
+            mapLiteral3.put("symbol", symbolsNormalized);
+            request.put("params", mapLiteral3);
             request.put("req_id", this.requestId());
             request.put("params", this.deepExtend(request.get("params"), parameters));
             String url = (String)Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "publicV2");
@@ -1846,7 +1844,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             result.put((String)code, account);
         }
         String type = "spot";
-        Object balance = this.safeBalance(result);
+        Balances balance = this.safeBalance(result);
         Map<String, Object> oldBalance = (Map<String, Object>) this.safeDict(this.balance, type, new HashMap<String, Object>() {{}});
         Map<String,Object> newBalance = this.deepExtend(oldBalance, balance);
         Helpers.addElementToObject(this.balance, type, this.safeBalance(newBalance));

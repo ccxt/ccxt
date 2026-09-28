@@ -148,7 +148,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // watchTrades (public)

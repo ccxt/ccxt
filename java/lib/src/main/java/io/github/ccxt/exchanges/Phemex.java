@@ -16,6 +16,7 @@ import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.FundingRateHistory;
 import io.github.ccxt.types.LeverageTiers;
 import io.github.ccxt.types.MarginModification;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.Order;
@@ -911,7 +912,7 @@ public class Phemex extends PhemexApi
         return this.safeNumber(parts, 0, (Object) null);
     }
 
-    public Object parseSwapMarket(Map<String, Object> market)
+    public MarketInterface parseSwapMarket(Map<String, Object> market)
     {
         //
         //     {
@@ -1066,7 +1067,7 @@ public class Phemex extends PhemexApi
         return this.safeMarketStructure(mapLiteral1);
     }
 
-    public Object parseSpotMarket(Map<String, Object> market)
+    public MarketInterface parseSpotMarket(Map<String, Object> market)
     {
         //
         //     {
@@ -1454,7 +1455,7 @@ public class Phemex extends PhemexApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
@@ -1813,7 +1814,7 @@ public class Phemex extends PhemexApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // spot
@@ -2096,7 +2097,7 @@ public class Phemex extends PhemexApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public) spot & contract
@@ -2775,7 +2776,7 @@ public class Phemex extends PhemexApi
         return this.safeString(timeInForces, ((String)timeInForce), timeInForce);
     }
 
-    public Object parseSpotOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseSpotOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // spot
@@ -2898,7 +2899,7 @@ public class Phemex extends PhemexApi
         return this.safeString(sides, side, side);
     }
 
-    public Object parseSwapOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseSwapOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {
@@ -3087,7 +3088,7 @@ public class Phemex extends PhemexApi
         return this.safeOrder(mapLiteral9, (Map<String, Object>) null);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         Boolean isSwap = (Boolean) this.safeBool(market, "swap", false);
         Boolean hasPnl = (((Map<?, ?>)order).containsKey("closedPnl")) || (((Map<?, ?>)order).containsKey("closedPnlRv")) || (((Map<?, ?>)order).containsKey("totalPnlRv"));

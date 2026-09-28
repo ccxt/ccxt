@@ -12,6 +12,7 @@ import io.github.ccxt.types.DepositAddress;
 import io.github.ccxt.types.FundingHistory;
 import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.FundingRateHistory;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.Order;
@@ -724,7 +725,7 @@ public class Backpack extends BackpackApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "symbol");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -817,7 +818,7 @@ public class Backpack extends BackpackApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         //
         //     [
@@ -1063,7 +1064,7 @@ public class Backpack extends BackpackApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // fetchTicker/fetchTickers
@@ -1121,8 +1122,8 @@ public class Backpack extends BackpackApi
         mapLiteral4.put("markPrice", null);
         mapLiteral4.put("indexPrice", null);
         mapLiteral4.put("info", ticker);
-        Object parsedTicker = this.safeTicker(mapLiteral4, marketResolved);
-        return parsedTicker;
+        Ticker parsedTicker = this.safeTicker(mapLiteral4, marketResolved);
+        return (Ticker) parsedTicker;
     }
 
     /**
@@ -1550,7 +1551,7 @@ public class Backpack extends BackpackApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades
@@ -1715,7 +1716,7 @@ public class Backpack extends BackpackApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         //
         //     {
@@ -2455,7 +2456,7 @@ public class Backpack extends BackpackApi
 
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         //     {

@@ -4393,7 +4393,7 @@ public class Bitget extends BitgetApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         Object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new ArrayList<Object>(Arrays.asList()));
         Object entry = rawCurrency;
@@ -5404,7 +5404,7 @@ public class Bitget extends BitgetApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //   {
@@ -5950,7 +5950,7 @@ public class Bitget extends BitgetApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // spot, swap and future: fetchTrades
@@ -7077,7 +7077,7 @@ public class Bitget extends BitgetApi
         return this.safeBalance(result);
     }
 
-    public Object parseBalance(Object balance)
+    public Balances parseBalance(Object balance)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", balance );
@@ -7190,7 +7190,7 @@ public class Bitget extends BitgetApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder, editOrder, closePosition

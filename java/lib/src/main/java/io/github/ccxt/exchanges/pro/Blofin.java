@@ -201,9 +201,9 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         }
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
-        return (Map<String, Object>) (this.parseTrade(trade, market));
+        return this.parseTrade(trade, market);
     }
 
     /**
@@ -406,7 +406,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         }
     }
 
-    public Object parseWsTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
     {
         return this.parseTicker(ticker, market);
     }
@@ -764,7 +764,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         }
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         return this.parseOrder(order, market);
     }

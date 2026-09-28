@@ -457,7 +457,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -474,7 +474,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         //
         String marketId = this.safeString(trade, "symbol");
         String datetime = this.safeString(trade, "timestamp");
-        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Blockchaincom.this.safeString(trade, "trade_id") );
             put( "timestamp", Blockchaincom.this.parse8601(datetime) );
             put( "datetime", datetime );
@@ -488,7 +488,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             put( "cost", null );
             put( "fee", null );
             put( "info", trade );
-        }}, market));
+        }}, market);
     }
 
     /**
@@ -644,7 +644,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         client.resolve(this.orders, messageHash);
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {

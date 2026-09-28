@@ -16,6 +16,7 @@ import io.github.ccxt.types.Greeks;
 import io.github.ccxt.types.Leverage;
 import io.github.ccxt.types.Liquidation;
 import io.github.ccxt.types.MarginMode;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.Order;
@@ -845,7 +846,7 @@ public class Paradex extends ParadexApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         //
         //     {
@@ -1349,7 +1350,7 @@ public class Paradex extends ParadexApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -1661,7 +1662,7 @@ public class Paradex extends ParadexApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public)
@@ -2034,7 +2035,7 @@ public class Paradex extends ParadexApi
 
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // {
@@ -3004,7 +3005,7 @@ public class Paradex extends ParadexApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );

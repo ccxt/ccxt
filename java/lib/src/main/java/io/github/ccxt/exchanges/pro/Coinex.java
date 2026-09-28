@@ -661,7 +661,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // spot watchTrades
@@ -719,21 +719,21 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 "cost", feeCost
             );
         }
-        return (Map<String, Object>) (this.safeTrade(Helpers.newMap(
-            "id", this.safeString(trade, "deal_id"),
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", this.safeSymbol(marketId, marketResolved, (String) null, defaultType),
-            "order", this.safeString(trade, "order_id"),
-            "type", null,
-            "side", this.safeString(trade, "side"),
-            "takerOrMaker", this.safeString(trade, "role"),
-            "price", this.safeString(trade, "price"),
-            "amount", this.safeString(trade, "amount"),
-            "cost", null,
-            "fee", fee
-        ), marketResolved));
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", this.safeString(trade, "deal_id"));
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, defaultType));
+        mapLiteral2.put("order", this.safeString(trade, "order_id"));
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("side", this.safeString(trade, "side"));
+        mapLiteral2.put("takerOrMaker", this.safeString(trade, "role"));
+        mapLiteral2.put("price", this.safeString(trade, "price"));
+        mapLiteral2.put("amount", this.safeString(trade, "amount"));
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("fee", fee);
+        return this.safeTrade(mapLiteral2, marketResolved);
     }
 
     /**
@@ -809,9 +809,9 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             List<String> subscriptionHashes = new ArrayList<String>(Arrays.asList("all@ticker"));
             Map<String, Object> subscribe = new HashMap<String, Object>();
             subscribe.put("method", "state.subscribe");
-            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-            mapLiteral2.put("market_list", marketIds);
-            subscribe.put("params", mapLiteral2);
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("market_list", marketIds);
+            subscribe.put("params", mapLiteral3);
             subscribe.put("id", this.requestId());
             Object result = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(subscribe, paramsMarketType), subscriptionHashes, null)).join();
             if (this.newUpdates)
@@ -1162,9 +1162,9 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             }
             Map<String, Object> message = new HashMap<String, Object>();
             message.put("method", method);
-            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-            mapLiteral3.put("market_list", marketList);
-            message.put("params", mapLiteral3);
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("market_list", marketList);
+            message.put("params", mapLiteral4);
             message.put("id", this.requestId());
             String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
             if (java.util.Objects.equals(url, null))
@@ -1322,7 +1322,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         client.resolve(this.orders, messageHash);
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // spot
@@ -1432,30 +1432,30 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 "cost", feeCost
             );
         }
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("info", order);
-        mapLiteral4.put("id", this.safeString2(order, "order_id", "stop_id"));
-        mapLiteral4.put("clientOrderId", this.safeString(order, "client_id"));
-        mapLiteral4.put("datetime", this.iso8601(timestamp));
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("lastTradeTimestamp", this.safeInteger(order, "updated_at"));
-        mapLiteral4.put("symbol", marketResolved.get("symbol"));
-        mapLiteral4.put("type", this.safeString(order, "type"));
-        mapLiteral4.put("timeInForce", null);
-        mapLiteral4.put("postOnly", null);
-        mapLiteral4.put("side", this.safeString(order, "side"));
-        mapLiteral4.put("price", this.safeString(order, "price"));
-        mapLiteral4.put("stopPrice", this.safeString(order, "trigger_price"));
-        mapLiteral4.put("triggerPrice", this.safeString(order, "trigger_price"));
-        mapLiteral4.put("amount", this.safeString(order, "amount"));
-        mapLiteral4.put("filled", this.safeString2(order, "filled_amount", "fill_value"));
-        mapLiteral4.put("remaining", this.safeString2(order, "unfilled_amount", "unfill_amount"));
-        mapLiteral4.put("cost", null);
-        mapLiteral4.put("average", null);
-        mapLiteral4.put("status", this.parseWsOrderStatus((String) (status)));
-        mapLiteral4.put("fee", fee);
-        mapLiteral4.put("trades", null);
-        return this.safeOrder(mapLiteral4, marketResolved);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", order);
+        mapLiteral5.put("id", this.safeString2(order, "order_id", "stop_id"));
+        mapLiteral5.put("clientOrderId", this.safeString(order, "client_id"));
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("lastTradeTimestamp", this.safeInteger(order, "updated_at"));
+        mapLiteral5.put("symbol", marketResolved.get("symbol"));
+        mapLiteral5.put("type", this.safeString(order, "type"));
+        mapLiteral5.put("timeInForce", null);
+        mapLiteral5.put("postOnly", null);
+        mapLiteral5.put("side", this.safeString(order, "side"));
+        mapLiteral5.put("price", this.safeString(order, "price"));
+        mapLiteral5.put("stopPrice", this.safeString(order, "trigger_price"));
+        mapLiteral5.put("triggerPrice", this.safeString(order, "trigger_price"));
+        mapLiteral5.put("amount", this.safeString(order, "amount"));
+        mapLiteral5.put("filled", this.safeString2(order, "filled_amount", "fill_value"));
+        mapLiteral5.put("remaining", this.safeString2(order, "unfilled_amount", "unfill_amount"));
+        mapLiteral5.put("cost", null);
+        mapLiteral5.put("average", null);
+        mapLiteral5.put("status", this.parseWsOrderStatus((String) (status)));
+        mapLiteral5.put("fee", fee);
+        mapLiteral5.put("trades", null);
+        return this.safeOrder(mapLiteral5, marketResolved);
     }
 
     public String parseWsOrderStatus(String status)

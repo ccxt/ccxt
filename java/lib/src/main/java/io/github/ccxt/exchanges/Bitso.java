@@ -769,7 +769,7 @@ public class Bitso extends BitsoApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "code");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -803,7 +803,7 @@ public class Bitso extends BitsoApi
         }});
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> payload = (Map<String, Object>) this.safeDict(response, "payload", new HashMap<String, Object>() {{}});
         List<Object> balances = (List<Object>) this.safeList(payload, "balances", new ArrayList<Object>(Arrays.asList()));
@@ -908,7 +908,7 @@ public class Bitso extends BitsoApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -1084,7 +1084,7 @@ public class Bitso extends BitsoApi
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "bucket_start_time"), this.safeNumber(ohlcv, "first_rate", (Object) null), this.safeNumber(ohlcv, "max_rate", (Object) null), this.safeNumber(ohlcv, "min_rate", (Object) null), this.safeNumber(ohlcv, "last_rate", (Object) null), this.safeNumber(ohlcv, "volume", (Object) null)));
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public)
@@ -1541,7 +1541,7 @@ public class Bitso extends BitsoApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         //

@@ -1084,7 +1084,7 @@ public class Hitbtc extends HitbtcApi
 
     }
 
-    public Object parseCurrency(Object currency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object currency)
     {
         Object currencyId = ((Map<String, Object>)currency).get("_coin_id");
         String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
@@ -1248,7 +1248,7 @@ public class Hitbtc extends HitbtcApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -1417,7 +1417,7 @@ public class Hitbtc extends HitbtcApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -1586,7 +1586,7 @@ public class Hitbtc extends HitbtcApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // createOrder (market)
@@ -2981,7 +2981,7 @@ public class Hitbtc extends HitbtcApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // limit

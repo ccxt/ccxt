@@ -533,7 +533,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         }
     }
 
-    public Object parseWsTicker(Object message, String marketType)
+    public Ticker parseWsTicker(Object message, String marketType)
     {
         String eventVar = this.safeString(message, "e");
         String marketId = this.safeString(message, "s");
@@ -948,7 +948,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         client.resolve(stored, ("trade::" + symbol));
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // public watchTrades (spot)
@@ -1095,21 +1095,21 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             );
         }
         String type = this.safeStringLower(trade, "o");
-        return (Map<String, Object>) (this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "id", id,
-            "order", orderId,
-            "type", type,
-            "takerOrMaker", takerOrMaker,
-            "side", side,
-            "price", price,
-            "amount", amount,
-            "cost", cost,
-            "fee", fee
-        ), (Map<String, Object>) null));
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("order", orderId);
+        mapLiteral2.put("type", type);
+        mapLiteral2.put("takerOrMaker", takerOrMaker);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("price", price);
+        mapLiteral2.put("amount", amount);
+        mapLiteral2.put("cost", cost);
+        mapLiteral2.put("fee", fee);
+        return this.safeTrade(mapLiteral2, (Map<String, Object>) null);
     }
 
     /**
@@ -1647,9 +1647,9 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                     }
                     Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("listenKey")), java.util.Objects.requireNonNullElse(type, "spot"), listenKey);
                     Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("lastAuthenticatedTime")), java.util.Objects.requireNonNullElse(type, "spot"), time);
-                    HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-                    mapLiteral2.put("type", java.util.Objects.requireNonNullElse(type, "spot"));
-                    Map<String, Object> keepAliveParams = this.extend(mapLiteral2, parameters);
+                    HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+                    mapLiteral3.put("type", java.util.Objects.requireNonNullElse(type, "spot"));
+                    Map<String, Object> keepAliveParams = this.extend(mapLiteral3, parameters);
                     this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", keepAliveParams);
                     // settle the flight: client.resolve () removes the future from
                     // client.futures and wakes every waiter
@@ -2101,31 +2101,31 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 }
             }
         }
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("info", position);
-        mapLiteral3.put("id", null);
-        mapLiteral3.put("symbol", this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, "swap"));
-        mapLiteral3.put("notional", null);
-        mapLiteral3.put("marginMode", this.safeString(position, "mt"));
-        mapLiteral3.put("liquidationPrice", null);
-        mapLiteral3.put("entryPrice", this.safeNumber(position, "ep", (Object) null));
-        mapLiteral3.put("unrealizedPnl", this.safeNumber(position, "up", (Object) null));
-        mapLiteral3.put("percentage", null);
-        mapLiteral3.put("contracts", this.parseNumber(contractsAbs));
-        mapLiteral3.put("contractSize", null);
-        mapLiteral3.put("markPrice", null);
-        mapLiteral3.put("side", positionSide);
-        mapLiteral3.put("hedged", hedged);
-        mapLiteral3.put("timestamp", null);
-        mapLiteral3.put("datetime", null);
-        mapLiteral3.put("maintenanceMargin", null);
-        mapLiteral3.put("maintenanceMarginPercentage", null);
-        mapLiteral3.put("collateral", null);
-        mapLiteral3.put("initialMargin", null);
-        mapLiteral3.put("initialMarginPercentage", null);
-        mapLiteral3.put("leverage", null);
-        mapLiteral3.put("marginRatio", null);
-        return this.safePosition(mapLiteral3);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", position);
+        mapLiteral4.put("id", null);
+        mapLiteral4.put("symbol", this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, "swap"));
+        mapLiteral4.put("notional", null);
+        mapLiteral4.put("marginMode", this.safeString(position, "mt"));
+        mapLiteral4.put("liquidationPrice", null);
+        mapLiteral4.put("entryPrice", this.safeNumber(position, "ep", (Object) null));
+        mapLiteral4.put("unrealizedPnl", this.safeNumber(position, "up", (Object) null));
+        mapLiteral4.put("percentage", null);
+        mapLiteral4.put("contracts", this.parseNumber(contractsAbs));
+        mapLiteral4.put("contractSize", null);
+        mapLiteral4.put("markPrice", null);
+        mapLiteral4.put("side", positionSide);
+        mapLiteral4.put("hedged", hedged);
+        mapLiteral4.put("timestamp", null);
+        mapLiteral4.put("datetime", null);
+        mapLiteral4.put("maintenanceMargin", null);
+        mapLiteral4.put("maintenanceMarginPercentage", null);
+        mapLiteral4.put("collateral", null);
+        mapLiteral4.put("initialMargin", null);
+        mapLiteral4.put("initialMarginPercentage", null);
+        mapLiteral4.put("leverage", null);
+        mapLiteral4.put("marginRatio", null);
+        return this.safePosition(mapLiteral4);
     }
 
     /**
@@ -2268,9 +2268,9 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 type = "swap";
             }
-            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-            mapLiteral4.put("type", type);
-            Map<String, Object> fakeMarket = (Map<String, Object>) this.safeMarketStructure(mapLiteral4);
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("type", type);
+            Map<String, Object> fakeMarket = (Map<String, Object>) this.safeMarketStructure(mapLiteral5);
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), fakeMarket);
             String orderId = this.safeString(trade, "order");
             Map<String, Object> tradeFee = (Map<String, Object>) this.safeDict(trade, "fee", new HashMap<String, Object>() {{}});
@@ -2442,7 +2442,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         }
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         String executionType = this.safeString(order, "x");
         String marketId = this.safeString(order, "s");
@@ -2486,32 +2486,32 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = "PO";
         }
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("info", order);
-        mapLiteral5.put("symbol", marketResolved.get("symbol"));
-        mapLiteral5.put("id", this.safeString2(order, "i", "aid"));
-        mapLiteral5.put("clientOrderId", clientOrderId);
-        mapLiteral5.put("timestamp", timestamp);
-        mapLiteral5.put("datetime", this.iso8601(timestamp));
-        mapLiteral5.put("lastTradeTimestamp", lastTradeTimestamp);
-        mapLiteral5.put("lastUpdateTimestamp", lastUpdateTimestamp);
-        mapLiteral5.put("type", this.parseOrderType(this.safeStringLower(order, "o")));
-        mapLiteral5.put("timeInForce", timeInForce);
-        mapLiteral5.put("postOnly", null);
-        mapLiteral5.put("reduceOnly", this.safeBool(order, "R", (Object) null));
-        mapLiteral5.put("side", this.safeStringLower(order, "S"));
-        mapLiteral5.put("price", this.safeString(order, "p"));
-        mapLiteral5.put("stopPrice", stopPrice);
-        mapLiteral5.put("triggerPrice", stopPrice);
-        mapLiteral5.put("amount", this.safeString(order, "q"));
-        mapLiteral5.put("cost", this.safeString(order, "Z"));
-        mapLiteral5.put("average", this.safeString(order, "ap"));
-        mapLiteral5.put("filled", this.safeString(order, "z"));
-        mapLiteral5.put("remaining", null);
-        mapLiteral5.put("status", status);
-        mapLiteral5.put("fee", fee);
-        mapLiteral5.put("trades", null);
-        return this.safeOrder(mapLiteral5, (Map<String, Object>) null);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("info", order);
+        mapLiteral6.put("symbol", marketResolved.get("symbol"));
+        mapLiteral6.put("id", this.safeString2(order, "i", "aid"));
+        mapLiteral6.put("clientOrderId", clientOrderId);
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("lastTradeTimestamp", lastTradeTimestamp);
+        mapLiteral6.put("lastUpdateTimestamp", lastUpdateTimestamp);
+        mapLiteral6.put("type", this.parseOrderType(this.safeStringLower(order, "o")));
+        mapLiteral6.put("timeInForce", timeInForce);
+        mapLiteral6.put("postOnly", null);
+        mapLiteral6.put("reduceOnly", this.safeBool(order, "R", (Object) null));
+        mapLiteral6.put("side", this.safeStringLower(order, "S"));
+        mapLiteral6.put("price", this.safeString(order, "p"));
+        mapLiteral6.put("stopPrice", stopPrice);
+        mapLiteral6.put("triggerPrice", stopPrice);
+        mapLiteral6.put("amount", this.safeString(order, "q"));
+        mapLiteral6.put("cost", this.safeString(order, "Z"));
+        mapLiteral6.put("average", this.safeString(order, "ap"));
+        mapLiteral6.put("filled", this.safeString(order, "z"));
+        mapLiteral6.put("remaining", null);
+        mapLiteral6.put("status", status);
+        mapLiteral6.put("fee", fee);
+        mapLiteral6.put("trades", null);
+        return this.safeOrder(mapLiteral6, (Map<String, Object>) null);
     }
 
     public Object getMarketFromOrder(Client client, Map<String, Object> order)

@@ -1530,7 +1530,7 @@ public class Bitstamp extends BitstampApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // {
@@ -1724,7 +1724,7 @@ public class Bitstamp extends BitstampApi
         return null;
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public)
@@ -2058,7 +2058,7 @@ public class Bitstamp extends BitstampApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Object finalResponse = response; // java req
         Map<String, Object> result = new HashMap<String, Object>() {{
@@ -3080,7 +3080,7 @@ public class Bitstamp extends BitstampApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         //   from fetch order:

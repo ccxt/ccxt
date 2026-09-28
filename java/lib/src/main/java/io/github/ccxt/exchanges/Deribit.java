@@ -15,6 +15,7 @@ import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.FundingRateHistory;
 import io.github.ccxt.types.Greeks;
 import io.github.ccxt.types.Liquidation;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.Option;
@@ -828,7 +829,7 @@ public class Deribit extends DeribitApi
         }});
     }
 
-    public Object createExpiredOptionMarket(Object symbol)
+    public MarketInterface createExpiredOptionMarket(Object symbol)
     {
         // support expired option contracts
         String quote = "USD";
@@ -874,36 +875,35 @@ public class Deribit extends DeribitApi
         Long timestamp = this.parse8601(datetime);
         String id = ((((((base + "-") + this.convertExpireDateToMarketIdDate((String) (expiry))) + "-") + strike) + "-") + optionType);
         String symbolExpired = ((((((((((splitBase + "/") + quote) + ":") + settle) + "-") + expiry) + "-") + strike) + "-") + optionType);
-        {
-            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
-            h2kMap0.put("id", id);
-            h2kMap0.put("symbol", symbolExpired);
-            h2kMap0.put("base", base);
-            h2kMap0.put("quote", quote);
-            h2kMap0.put("settle", settle);
-            h2kMap0.put("baseId", base);
-            h2kMap0.put("quoteId", quote);
-            h2kMap0.put("settleId", settle);
-            h2kMap0.put("active", false);
-            h2kMap0.put("type", "option");
-            h2kMap0.put("linear", null);
-            h2kMap0.put("inverse", null);
-            h2kMap0.put("spot", false);
-            h2kMap0.put("swap", false);
-            h2kMap0.put("future", false);
-            h2kMap0.put("option", true);
-            h2kMap0.put("margin", false);
-            h2kMap0.put("contract", true);
-            h2kMap0.put("contractSize", null);
-            h2kMap0.put("expiry", timestamp);
-            h2kMap0.put("expiryDatetime", datetime);
-            h2kMap0.put("optionType", (((java.util.Objects.equals(optionType, "C")))) ? "call" : "put");
-            h2kMap0.put("strike", this.parseNumber(strike));
-            h2kMap0.put("precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("symbol", symbolExpired);
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("settle", settle);
+        mapLiteral1.put("baseId", base);
+        mapLiteral1.put("quoteId", quote);
+        mapLiteral1.put("settleId", settle);
+        mapLiteral1.put("active", false);
+        mapLiteral1.put("type", "option");
+        mapLiteral1.put("linear", null);
+        mapLiteral1.put("inverse", null);
+        mapLiteral1.put("spot", false);
+        mapLiteral1.put("swap", false);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", true);
+        mapLiteral1.put("margin", false);
+        mapLiteral1.put("contract", true);
+        mapLiteral1.put("contractSize", null);
+        mapLiteral1.put("expiry", timestamp);
+        mapLiteral1.put("expiryDatetime", datetime);
+        mapLiteral1.put("optionType", (((java.util.Objects.equals(optionType, "C")))) ? "call" : "put");
+        mapLiteral1.put("strike", this.parseNumber(strike));
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", null );
                 put( "price", null );
             }});
-            h2kMap0.put("limits", new HashMap<String, Object>() {{
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -917,9 +917,8 @@ public class Deribit extends DeribitApi
                     put( "max", null );
                 }} );
             }});
-            h2kMap0.put("info", null);
-            return h2kMap0;
-        }
+        mapLiteral1.put("info", null);
+        return new MarketInterface(mapLiteral1);
     }
 
     public Map<String, Object> safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
@@ -1006,7 +1005,7 @@ public class Deribit extends DeribitApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -1077,13 +1076,13 @@ public class Deribit extends DeribitApi
             String locked = this.safeString(result, "locked");
             Long updateTime = this.safeIntegerProduct(response, "usIn", 0.001, this.milliseconds());
             {
-                HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
-                h2kMap1.put("status", (((java.util.Objects.equals(locked, "false")))) ? "ok" : "maintenance");
-                h2kMap1.put("updated", updateTime);
-                h2kMap1.put("eta", null);
-                h2kMap1.put("url", null);
-                h2kMap1.put("info", response);
-                return h2kMap1;
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("status", (((java.util.Objects.equals(locked, "false")))) ? "ok" : "maintenance");
+                h2kMap0.put("updated", updateTime);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
             }
         }).thenApply(Status::new);
 
@@ -1448,7 +1447,7 @@ public class Deribit extends DeribitApi
 
     }
 
-    public Object parseBalance(Object balance)
+    public Balances parseBalance(Object balance)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", balance );
@@ -1663,7 +1662,7 @@ public class Deribit extends DeribitApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // fetchTicker /public/ticker
@@ -2000,7 +1999,7 @@ public class Deribit extends DeribitApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public)
@@ -2077,21 +2076,21 @@ public class Deribit extends DeribitApi
                 "currency", feeCurrencyCode
             );
         }
-        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-        mapLiteral1.put("id", id);
-        mapLiteral1.put("info", trade);
-        mapLiteral1.put("timestamp", timestamp);
-        mapLiteral1.put("datetime", this.iso8601(timestamp));
-        mapLiteral1.put("symbol", symbol);
-        mapLiteral1.put("order", this.safeString(trade, "order_id"));
-        mapLiteral1.put("type", this.safeString(trade, "order_type"));
-        mapLiteral1.put("side", side);
-        mapLiteral1.put("takerOrMaker", takerOrMaker);
-        mapLiteral1.put("price", priceString);
-        mapLiteral1.put("amount", amount);
-        mapLiteral1.put("cost", cost);
-        mapLiteral1.put("fee", fee);
-        return this.safeTrade(mapLiteral1, marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("order", this.safeString(trade, "order_id"));
+        mapLiteral2.put("type", this.safeString(trade, "order_type"));
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("takerOrMaker", takerOrMaker);
+        mapLiteral2.put("price", priceString);
+        mapLiteral2.put("amount", amount);
+        mapLiteral2.put("cost", cost);
+        mapLiteral2.put("fee", fee);
+        return this.safeTrade(mapLiteral2, marketResolved);
     }
 
     /**
@@ -2421,7 +2420,7 @@ public class Deribit extends DeribitApi
         return this.safeString(orderTypes, orderType, orderType);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder
@@ -2500,29 +2499,29 @@ public class Deribit extends DeribitApi
         List<Object> trades = (List<Object>) this.safeList(order, "trades", (Object) null);
         String timeInForce = this.parseTimeInForce(this.safeString(order, "time_in_force"));
         Boolean postOnly = (Boolean) this.safeBool(order, "post_only", (Object) null);
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("info", order);
-        mapLiteral2.put("id", id);
-        mapLiteral2.put("clientOrderId", null);
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("lastTradeTimestamp", lastTradeTimestamp);
-        mapLiteral2.put("symbol", marketResolved.get("symbol"));
-        mapLiteral2.put("type", type);
-        mapLiteral2.put("timeInForce", timeInForce);
-        mapLiteral2.put("postOnly", postOnly);
-        mapLiteral2.put("side", side);
-        mapLiteral2.put("price", priceString);
-        mapLiteral2.put("triggerPrice", this.safeNumber(order, "stop_price", (Object) null));
-        mapLiteral2.put("amount", amount);
-        mapLiteral2.put("cost", cost);
-        mapLiteral2.put("average", averageString);
-        mapLiteral2.put("filled", filledString);
-        mapLiteral2.put("remaining", null);
-        mapLiteral2.put("status", status);
-        mapLiteral2.put("fee", fee);
-        mapLiteral2.put("trades", trades);
-        return this.safeOrder(mapLiteral2, marketResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", order);
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("clientOrderId", null);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("lastTradeTimestamp", lastTradeTimestamp);
+        mapLiteral3.put("symbol", marketResolved.get("symbol"));
+        mapLiteral3.put("type", type);
+        mapLiteral3.put("timeInForce", timeInForce);
+        mapLiteral3.put("postOnly", postOnly);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("price", priceString);
+        mapLiteral3.put("triggerPrice", this.safeNumber(order, "stop_price", (Object) null));
+        mapLiteral3.put("amount", amount);
+        mapLiteral3.put("cost", cost);
+        mapLiteral3.put("average", averageString);
+        mapLiteral3.put("filled", filledString);
+        mapLiteral3.put("remaining", null);
+        mapLiteral3.put("status", status);
+        mapLiteral3.put("fee", fee);
+        mapLiteral3.put("trades", trades);
+        return this.safeOrder(mapLiteral3, marketResolved);
     }
 
     /**
@@ -2902,9 +2901,9 @@ public class Deribit extends DeribitApi
             //        testnet: true
             //    }
             //
-            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-            mapLiteral3.put("info", response);
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral3, (Map<String, Object>) null)));
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("info", response);
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral4, (Map<String, Object>) null)));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3344,28 +3343,28 @@ public class Deribit extends DeribitApi
             );
         }
         {
-            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
-            h2kMap2.put("info", transaction);
-            h2kMap2.put("id", this.safeString(transaction, "id"));
-            h2kMap2.put("txid", this.safeString(transaction, "transaction_id"));
-            h2kMap2.put("timestamp", timestamp);
-            h2kMap2.put("datetime", this.iso8601(timestamp));
-            h2kMap2.put("address", address);
-            h2kMap2.put("addressTo", address);
-            h2kMap2.put("addressFrom", null);
-            h2kMap2.put("tag", null);
-            h2kMap2.put("tagTo", null);
-            h2kMap2.put("tagFrom", null);
-            h2kMap2.put("type", type);
-            h2kMap2.put("amount", this.safeNumber(transaction, "amount", (Object) null));
-            h2kMap2.put("currency", code);
-            h2kMap2.put("status", status);
-            h2kMap2.put("updated", updated);
-            h2kMap2.put("network", null);
-            h2kMap2.put("internal", null);
-            h2kMap2.put("comment", null);
-            h2kMap2.put("fee", fee);
-            return h2kMap2;
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", this.safeString(transaction, "id"));
+            h2kMap1.put("txid", this.safeString(transaction, "transaction_id"));
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", address);
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("tag", null);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("type", type);
+            h2kMap1.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", status);
+            h2kMap1.put("updated", updated);
+            h2kMap1.put("network", null);
+            h2kMap1.put("internal", null);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("fee", fee);
+            return h2kMap1;
         }
     }
 
@@ -3406,36 +3405,36 @@ public class Deribit extends DeribitApi
         String notionalString = this.safeString(position, "size_currency");
         String notionalStringAbs = Precise.stringAbs(notionalString);
         String maintenanceMarginString = this.safeString(position, "maintenance_margin");
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("info", position);
-        mapLiteral4.put("id", null);
-        mapLiteral4.put("symbol", this.safeString(marketResolved, "symbol"));
-        mapLiteral4.put("timestamp", null);
-        mapLiteral4.put("datetime", null);
-        mapLiteral4.put("lastUpdateTimestamp", null);
-        mapLiteral4.put("initialMargin", this.parseNumber(initialMarginString));
-        mapLiteral4.put("initialMarginPercentage", this.parseNumber(Precise.stringMul(Precise.stringDiv(initialMarginString, notionalStringAbs), "100")));
-        mapLiteral4.put("maintenanceMargin", this.parseNumber(maintenanceMarginString));
-        mapLiteral4.put("maintenanceMarginPercentage", this.parseNumber(Precise.stringMul(Precise.stringDiv(maintenanceMarginString, notionalStringAbs), "100")));
-        mapLiteral4.put("entryPrice", this.safeNumber(position, "average_price", (Object) null));
-        mapLiteral4.put("notional", this.parseNumber(notionalStringAbs));
-        mapLiteral4.put("leverage", this.safeInteger(position, "leverage"));
-        mapLiteral4.put("unrealizedPnl", this.parseNumber(unrealizedPnl));
-        mapLiteral4.put("realizedPnl", this.safeNumber(position, "realized_profit_loss", (Object) null));
-        mapLiteral4.put("contracts", this.safeNumber(position, "size", (Object) null));
-        mapLiteral4.put("contractSize", this.safeNumber(position, "contractSize", (Object) null));
-        mapLiteral4.put("marginRatio", null);
-        mapLiteral4.put("liquidationPrice", this.safeNumber(position, "estimated_liquidation_price", (Object) null));
-        mapLiteral4.put("markPrice", this.safeNumber(position, "mark_price", (Object) null));
-        mapLiteral4.put("lastPrice", null);
-        mapLiteral4.put("collateral", null);
-        mapLiteral4.put("marginMode", null);
-        mapLiteral4.put("side", side);
-        mapLiteral4.put("percentage", null);
-        mapLiteral4.put("hedged", null);
-        mapLiteral4.put("stopLossPrice", null);
-        mapLiteral4.put("takeProfitPrice", null);
-        return this.safePosition(mapLiteral4);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", position);
+        mapLiteral5.put("id", null);
+        mapLiteral5.put("symbol", this.safeString(marketResolved, "symbol"));
+        mapLiteral5.put("timestamp", null);
+        mapLiteral5.put("datetime", null);
+        mapLiteral5.put("lastUpdateTimestamp", null);
+        mapLiteral5.put("initialMargin", this.parseNumber(initialMarginString));
+        mapLiteral5.put("initialMarginPercentage", this.parseNumber(Precise.stringMul(Precise.stringDiv(initialMarginString, notionalStringAbs), "100")));
+        mapLiteral5.put("maintenanceMargin", this.parseNumber(maintenanceMarginString));
+        mapLiteral5.put("maintenanceMarginPercentage", this.parseNumber(Precise.stringMul(Precise.stringDiv(maintenanceMarginString, notionalStringAbs), "100")));
+        mapLiteral5.put("entryPrice", this.safeNumber(position, "average_price", (Object) null));
+        mapLiteral5.put("notional", this.parseNumber(notionalStringAbs));
+        mapLiteral5.put("leverage", this.safeInteger(position, "leverage"));
+        mapLiteral5.put("unrealizedPnl", this.parseNumber(unrealizedPnl));
+        mapLiteral5.put("realizedPnl", this.safeNumber(position, "realized_profit_loss", (Object) null));
+        mapLiteral5.put("contracts", this.safeNumber(position, "size", (Object) null));
+        mapLiteral5.put("contractSize", this.safeNumber(position, "contractSize", (Object) null));
+        mapLiteral5.put("marginRatio", null);
+        mapLiteral5.put("liquidationPrice", this.safeNumber(position, "estimated_liquidation_price", (Object) null));
+        mapLiteral5.put("markPrice", this.safeNumber(position, "mark_price", (Object) null));
+        mapLiteral5.put("lastPrice", null);
+        mapLiteral5.put("collateral", null);
+        mapLiteral5.put("marginMode", null);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("percentage", null);
+        mapLiteral5.put("hedged", null);
+        mapLiteral5.put("stopLossPrice", null);
+        mapLiteral5.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral5);
     }
 
     /**
@@ -3792,17 +3791,17 @@ public class Deribit extends DeribitApi
         String direction = this.safeString(transfer, "direction");
         String currencyId = this.safeString(transfer, "currency");
         {
-            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
-            h2kMap3.put("info", transfer);
-            h2kMap3.put("id", this.safeString(transfer, "id"));
-            h2kMap3.put("status", this.parseTransferStatus(status));
-            h2kMap3.put("amount", this.safeNumber(transfer, "amount", (Object) null));
-            h2kMap3.put("currency", this.safeCurrencyCode(currencyId, currency));
-            h2kMap3.put("fromAccount", ((!java.util.Objects.equals(direction, "payment"))) ? account : null);
-            h2kMap3.put("toAccount", ((java.util.Objects.equals(direction, "payment"))) ? account : null);
-            h2kMap3.put("timestamp", timestamp);
-            h2kMap3.put("datetime", this.iso8601(timestamp));
-            return h2kMap3;
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("info", transfer);
+            h2kMap2.put("id", this.safeString(transfer, "id"));
+            h2kMap2.put("status", this.parseTransferStatus(status));
+            h2kMap2.put("amount", this.safeNumber(transfer, "amount", (Object) null));
+            h2kMap2.put("currency", this.safeCurrencyCode(currencyId, currency));
+            h2kMap2.put("fromAccount", ((!java.util.Objects.equals(direction, "payment"))) ? account : null);
+            h2kMap2.put("toAccount", ((java.util.Objects.equals(direction, "payment"))) ? account : null);
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            return h2kMap2;
         }
     }
 
@@ -4736,14 +4735,14 @@ public class Deribit extends DeribitApi
         {
             openInterestValue = openInterest;
         }
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
-        mapLiteral5.put("openInterestAmount", openInterestAmount);
-        mapLiteral5.put("openInterestValue", openInterestValue);
-        mapLiteral5.put("timestamp", timestamp);
-        mapLiteral5.put("datetime", this.iso8601(timestamp));
-        mapLiteral5.put("info", interest);
-        return this.safeOpenInterest(mapLiteral5, marketResolved);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
+        mapLiteral6.put("openInterestAmount", openInterestAmount);
+        mapLiteral6.put("openInterestValue", openInterestValue);
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("info", interest);
+        return this.safeOpenInterest(mapLiteral6, marketResolved);
     }
 
     public Long nonce()
@@ -4783,12 +4782,12 @@ public class Deribit extends DeribitApi
             }
             String signedUrl = (baseApiUrl + request);
             {
-                HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
-                h2kMap4.put("url", signedUrl);
-                h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-                h2kMap4.put("body", body);
-                h2kMap4.put("headers", signedHeaders);
-                return h2kMap4;
+                HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+                h2kMap3.put("url", signedUrl);
+                h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap3.put("body", body);
+                h2kMap3.put("headers", signedHeaders);
+                return h2kMap3;
             }
         }
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
@@ -4798,12 +4797,12 @@ public class Deribit extends DeribitApi
         }
         String url = (apiUrl + request);
         {
-            HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
-            h2kMap5.put("url", url);
-            h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap5.put("body", body);
-            h2kMap5.put("headers", headers);
-            return h2kMap5;
+            HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
+            h2kMap4.put("url", url);
+            h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap4.put("body", body);
+            h2kMap4.put("headers", headers);
+            return h2kMap4;
         }
     }
 

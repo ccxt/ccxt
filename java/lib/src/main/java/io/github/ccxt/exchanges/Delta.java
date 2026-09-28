@@ -17,6 +17,7 @@ import io.github.ccxt.types.LedgerEntry;
 import io.github.ccxt.types.Leverage;
 import io.github.ccxt.types.MarginMode;
 import io.github.ccxt.types.MarginModification;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.Option;
@@ -459,7 +460,7 @@ public class Delta extends DeltaApi
         }});
     }
 
-    public Object createExpiredOptionMarket(Object symbol)
+    public MarketInterface createExpiredOptionMarket(Object symbol)
     {
         // support expired option contracts
         String quote = "USDT";
@@ -724,7 +725,7 @@ public class Delta extends DeltaApi
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "symbol");
         Long numericId = this.safeInteger(rawCurrency, "id");
@@ -1160,7 +1161,7 @@ public class Delta extends DeltaApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // spot: fetchTicker, fetchTickers
@@ -1683,7 +1684,7 @@ public class Delta extends DeltaApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // public fetchTrades
@@ -1926,7 +1927,7 @@ public class Delta extends DeltaApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         List<Object> balances = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
@@ -2152,7 +2153,7 @@ public class Delta extends DeltaApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders

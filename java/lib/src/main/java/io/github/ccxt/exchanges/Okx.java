@@ -27,6 +27,7 @@ import io.github.ccxt.types.LeverageTier;
 import io.github.ccxt.types.LongShortRatio;
 import io.github.ccxt.types.MarginLoan;
 import io.github.ccxt.types.MarginModification;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.OpenInterests;
@@ -2446,7 +2447,7 @@ public class Okx extends OkxApi
         return this.safeString(exchangeTypes, ((String)type), type);
     }
 
-    public Object createExpiredOptionMarket(Object symbol)
+    public MarketInterface createExpiredOptionMarket(Object symbol)
     {
         // support expired option contracts
         String quote = "USD";
@@ -2466,36 +2467,35 @@ public class Okx extends OkxApi
         String optionType = this.safeString(optionParts, 4);
         Object datetime = (((java.util.Objects.equals(expiry, null)))) ? null : this.convertExpireDate(expiry);
         Long timestamp = this.parse8601(datetime);
-        {
-            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
-            h2kMap0.put("id", ((((((((base + "-") + quote) + "-") + expiry) + "-") + strike) + "-") + optionType));
-            h2kMap0.put("symbol", ((((((((((base + "/") + quote) + ":") + settle) + "-") + expiry) + "-") + strike) + "-") + optionType));
-            h2kMap0.put("base", base);
-            h2kMap0.put("quote", quote);
-            h2kMap0.put("settle", settle);
-            h2kMap0.put("baseId", base);
-            h2kMap0.put("quoteId", quote);
-            h2kMap0.put("settleId", settle);
-            h2kMap0.put("active", false);
-            h2kMap0.put("type", "option");
-            h2kMap0.put("linear", null);
-            h2kMap0.put("inverse", null);
-            h2kMap0.put("spot", false);
-            h2kMap0.put("swap", false);
-            h2kMap0.put("future", false);
-            h2kMap0.put("option", true);
-            h2kMap0.put("margin", false);
-            h2kMap0.put("contract", true);
-            h2kMap0.put("contractSize", this.parseNumber("1"));
-            h2kMap0.put("expiry", timestamp);
-            h2kMap0.put("expiryDatetime", datetime);
-            h2kMap0.put("optionType", (((java.util.Objects.equals(optionType, "C")))) ? "call" : "put");
-            h2kMap0.put("strike", this.parseNumber(strike));
-            h2kMap0.put("precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", ((((((((base + "-") + quote) + "-") + expiry) + "-") + strike) + "-") + optionType));
+        mapLiteral1.put("symbol", ((((((((((base + "/") + quote) + ":") + settle) + "-") + expiry) + "-") + strike) + "-") + optionType));
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("settle", settle);
+        mapLiteral1.put("baseId", base);
+        mapLiteral1.put("quoteId", quote);
+        mapLiteral1.put("settleId", settle);
+        mapLiteral1.put("active", false);
+        mapLiteral1.put("type", "option");
+        mapLiteral1.put("linear", null);
+        mapLiteral1.put("inverse", null);
+        mapLiteral1.put("spot", false);
+        mapLiteral1.put("swap", false);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", true);
+        mapLiteral1.put("margin", false);
+        mapLiteral1.put("contract", true);
+        mapLiteral1.put("contractSize", this.parseNumber("1"));
+        mapLiteral1.put("expiry", timestamp);
+        mapLiteral1.put("expiryDatetime", datetime);
+        mapLiteral1.put("optionType", (((java.util.Objects.equals(optionType, "C")))) ? "call" : "put");
+        mapLiteral1.put("strike", this.parseNumber(strike));
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", null );
                 put( "price", null );
             }});
-            h2kMap0.put("limits", new HashMap<String, Object>() {{
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -2509,9 +2509,8 @@ public class Okx extends OkxApi
                     put( "max", null );
                 }} );
             }});
-            h2kMap0.put("info", null);
-            return h2kMap0;
-        }
+        mapLiteral1.put("info", null);
+        return new MarketInterface(mapLiteral1);
     }
 
     public Map<String, Object> safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
@@ -2758,7 +2757,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         //
         //     {
@@ -2897,7 +2896,7 @@ public class Okx extends OkxApi
         Boolean baseEqualSettle = (java.util.Objects.equals(baseId, settleId));
         String status = this.safeString(market, "state");
         Long instIdCode = this.safeInteger(market, "instIdCode");
-        return this.extend(fees, Helpers.newMap(
+        return new MarketInterface(this.extend(fees, Helpers.newMap(
             "id", id,
             "instIdCode", instIdCode,
             "symbol", symbol,
@@ -2946,7 +2945,7 @@ public class Okx extends OkxApi
                 }}
             ),
             "info", market
-        ));
+        )));
     }
 
     public CompletableFuture<Object> fetchMarketsByType(Object type, Map<String, Object> parameters)
@@ -3114,7 +3113,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object parseCurrency(Object currency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object currency)
     {
         Object chains = currency;
         // currencies are grouped by chain entries, so there is at least one entry
@@ -3140,43 +3139,43 @@ public class Okx extends OkxApi
             String networkCode = this.networkIdToCode(chainPart, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-                mapLiteral1.put("id", networkId);
-                mapLiteral1.put("network", networkCode);
-                mapLiteral1.put("active", null);
-                mapLiteral1.put("deposit", this.safeBool(chain, "canDep", (Object) null));
-                mapLiteral1.put("withdraw", this.safeBool(chain, "canWd", (Object) null));
-                mapLiteral1.put("fee", this.safeNumber(chain, "fee", (Object) null));
-                mapLiteral1.put("precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "wdTickSz"))));
-                mapLiteral1.put("limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+                mapLiteral2.put("id", networkId);
+                mapLiteral2.put("network", networkCode);
+                mapLiteral2.put("active", null);
+                mapLiteral2.put("deposit", this.safeBool(chain, "canDep", (Object) null));
+                mapLiteral2.put("withdraw", this.safeBool(chain, "canWd", (Object) null));
+                mapLiteral2.put("fee", this.safeNumber(chain, "fee", (Object) null));
+                mapLiteral2.put("precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "wdTickSz"))));
+                mapLiteral2.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
             put( "min", Okx.this.safeNumber(chain, "minWd", (Object) null) );
             put( "max", Okx.this.safeNumber(chain, "maxWd", (Object) null) );
         }} );
     }});
-                mapLiteral1.put("info", chain);
-                networks.put(networkCode, mapLiteral1);
+                mapLiteral2.put("info", chain);
+                networks.put(networkCode, mapLiteral2);
             }
         }
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("info", chains);
-        mapLiteral2.put("code", code);
-        mapLiteral2.put("id", currencyId);
-        mapLiteral2.put("name", this.safeString(firstChain, "name"));
-        mapLiteral2.put("active", null);
-        mapLiteral2.put("deposit", null);
-        mapLiteral2.put("withdraw", null);
-        mapLiteral2.put("fee", null);
-        mapLiteral2.put("precision", null);
-        mapLiteral2.put("limits", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", chains);
+        mapLiteral3.put("code", code);
+        mapLiteral3.put("id", currencyId);
+        mapLiteral3.put("name", this.safeString(firstChain, "name"));
+        mapLiteral3.put("active", null);
+        mapLiteral3.put("deposit", null);
+        mapLiteral3.put("withdraw", null);
+        mapLiteral3.put("fee", null);
+        mapLiteral3.put("precision", null);
+        mapLiteral3.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
             }});
-        mapLiteral2.put("type", type);
-        mapLiteral2.put("networks", networks);
-        return this.safeCurrencyStructure(mapLiteral2);
+        mapLiteral3.put("type", type);
+        mapLiteral3.put("networks", networks);
+        return this.safeCurrencyStructure(mapLiteral3);
     }
 
     /**
@@ -3269,7 +3268,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -3558,7 +3557,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // public fetchTrades
@@ -3638,21 +3637,21 @@ public class Okx extends OkxApi
         {
             takerOrMaker = "maker";
         }
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("info", trade);
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("symbol", symbol);
-        mapLiteral3.put("id", id);
-        mapLiteral3.put("order", orderId);
-        mapLiteral3.put("type", null);
-        mapLiteral3.put("takerOrMaker", takerOrMaker);
-        mapLiteral3.put("side", side);
-        mapLiteral3.put("price", price);
-        mapLiteral3.put("amount", amount);
-        mapLiteral3.put("cost", null);
-        mapLiteral3.put("fee", fee);
-        return this.safeTrade(mapLiteral3, marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", trade);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("order", orderId);
+        mapLiteral4.put("type", null);
+        mapLiteral4.put("takerOrMaker", takerOrMaker);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", price);
+        mapLiteral4.put("amount", amount);
+        mapLiteral4.put("cost", null);
+        mapLiteral4.put("fee", fee);
+        return this.safeTrade(mapLiteral4, marketResolved);
     }
 
     /**
@@ -5452,7 +5451,7 @@ public class Okx extends OkxApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder
@@ -5721,33 +5720,33 @@ public class Okx extends OkxApi
         {
             reduceOnly = (java.util.Objects.equals(reduceOnlyRaw, "true"));
         }
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("info", order);
-        mapLiteral4.put("id", id);
-        mapLiteral4.put("clientOrderId", clientOrderId);
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("datetime", this.iso8601(timestamp));
-        mapLiteral4.put("lastTradeTimestamp", lastTradeTimestamp);
-        mapLiteral4.put("lastUpdateTimestamp", lastUpdateTimestamp);
-        mapLiteral4.put("symbol", symbol);
-        mapLiteral4.put("type", type);
-        mapLiteral4.put("timeInForce", timeInForce);
-        mapLiteral4.put("postOnly", postOnly);
-        mapLiteral4.put("side", side);
-        mapLiteral4.put("price", price);
-        mapLiteral4.put("stopLossPrice", stopLossPrice);
-        mapLiteral4.put("takeProfitPrice", takeProfitPrice);
-        mapLiteral4.put("triggerPrice", this.safeNumberN(order, new ArrayList<Object>(Arrays.asList("triggerPx", "moveTriggerPx")), (Object) null));
-        mapLiteral4.put("average", average);
-        mapLiteral4.put("cost", cost);
-        mapLiteral4.put("amount", amount);
-        mapLiteral4.put("filled", filled);
-        mapLiteral4.put("remaining", null);
-        mapLiteral4.put("status", status);
-        mapLiteral4.put("fee", fee);
-        mapLiteral4.put("trades", null);
-        mapLiteral4.put("reduceOnly", reduceOnly);
-        return this.safeOrder(mapLiteral4, marketResolved);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", order);
+        mapLiteral5.put("id", id);
+        mapLiteral5.put("clientOrderId", clientOrderId);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("lastTradeTimestamp", lastTradeTimestamp);
+        mapLiteral5.put("lastUpdateTimestamp", lastUpdateTimestamp);
+        mapLiteral5.put("symbol", symbol);
+        mapLiteral5.put("type", type);
+        mapLiteral5.put("timeInForce", timeInForce);
+        mapLiteral5.put("postOnly", postOnly);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("price", price);
+        mapLiteral5.put("stopLossPrice", stopLossPrice);
+        mapLiteral5.put("takeProfitPrice", takeProfitPrice);
+        mapLiteral5.put("triggerPrice", this.safeNumberN(order, new ArrayList<Object>(Arrays.asList("triggerPx", "moveTriggerPx")), (Object) null));
+        mapLiteral5.put("average", average);
+        mapLiteral5.put("cost", cost);
+        mapLiteral5.put("amount", amount);
+        mapLiteral5.put("filled", filled);
+        mapLiteral5.put("remaining", null);
+        mapLiteral5.put("status", status);
+        mapLiteral5.put("fee", fee);
+        mapLiteral5.put("trades", null);
+        mapLiteral5.put("reduceOnly", reduceOnly);
+        return this.safeOrder(mapLiteral5, marketResolved);
     }
 
     /**
@@ -6801,23 +6800,23 @@ public class Okx extends OkxApi
         }
         String marketId = this.safeString(item, "instId");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("info", item);
-        mapLiteral5.put("id", this.safeString(item, "billId"));
-        mapLiteral5.put("timestamp", timestamp);
-        mapLiteral5.put("datetime", this.iso8601(timestamp));
-        mapLiteral5.put("account", null);
-        mapLiteral5.put("referenceId", this.safeString(item, "ordId"));
-        mapLiteral5.put("referenceAccount", null);
-        mapLiteral5.put("type", this.parseLedgerEntryType(this.safeString(item, "type")));
-        mapLiteral5.put("currency", code);
-        mapLiteral5.put("symbol", symbol);
-        mapLiteral5.put("amount", this.safeNumber(item, "balChg", (Object) null));
-        mapLiteral5.put("before", null);
-        mapLiteral5.put("after", this.safeNumber(item, "bal", (Object) null));
-        mapLiteral5.put("status", "ok");
-        mapLiteral5.put("fee", fee);
-        return this.safeLedgerEntry(mapLiteral5, currencyResolved);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("info", item);
+        mapLiteral6.put("id", this.safeString(item, "billId"));
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("account", null);
+        mapLiteral6.put("referenceId", this.safeString(item, "ordId"));
+        mapLiteral6.put("referenceAccount", null);
+        mapLiteral6.put("type", this.parseLedgerEntryType(this.safeString(item, "type")));
+        mapLiteral6.put("currency", code);
+        mapLiteral6.put("symbol", symbol);
+        mapLiteral6.put("amount", this.safeNumber(item, "balChg", (Object) null));
+        mapLiteral6.put("before", null);
+        mapLiteral6.put("after", this.safeNumber(item, "bal", (Object) null));
+        mapLiteral6.put("status", "ok");
+        mapLiteral6.put("fee", fee);
+        return this.safeLedgerEntry(mapLiteral6, currencyResolved);
     }
 
     public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
@@ -6913,13 +6912,13 @@ public class Okx extends OkxApi
         String networkCode = this.networkIdToCode(network, code);
         this.checkAddress(address);
         {
-            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
-            h2kMap1.put("info", depositAddress);
-            h2kMap1.put("currency", code);
-            h2kMap1.put("network", networkCode);
-            h2kMap1.put("address", address);
-            h2kMap1.put("tag", tag);
-            return h2kMap1;
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", depositAddress);
+            h2kMap0.put("currency", code);
+            h2kMap0.put("network", networkCode);
+            h2kMap0.put("address", address);
+            h2kMap0.put("tag", tag);
+            return h2kMap0;
         }
     }
 
@@ -7517,31 +7516,31 @@ public class Okx extends OkxApi
         }
         // todo parse tags
         {
-            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
-            h2kMap2.put("info", transaction);
-            h2kMap2.put("id", id);
-            h2kMap2.put("currency", code);
-            h2kMap2.put("amount", amount);
-            h2kMap2.put("network", network);
-            h2kMap2.put("addressFrom", addressFrom);
-            h2kMap2.put("addressTo", addressTo);
-            h2kMap2.put("address", address);
-            h2kMap2.put("tagFrom", null);
-            h2kMap2.put("tagTo", tagTo);
-            h2kMap2.put("tag", tagTo);
-            h2kMap2.put("status", status);
-            h2kMap2.put("type", type);
-            h2kMap2.put("updated", null);
-            h2kMap2.put("txid", txid);
-            h2kMap2.put("timestamp", timestamp);
-            h2kMap2.put("datetime", this.iso8601(timestamp));
-            h2kMap2.put("internal", null);
-            h2kMap2.put("comment", null);
-            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-            mapLiteral6.put("currency", code);
-            mapLiteral6.put("cost", feeCost);
-            h2kMap2.put("fee", mapLiteral6);
-            return h2kMap2;
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", id);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("network", network);
+            h2kMap1.put("addressFrom", addressFrom);
+            h2kMap1.put("addressTo", addressTo);
+            h2kMap1.put("address", address);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("tagTo", tagTo);
+            h2kMap1.put("tag", tagTo);
+            h2kMap1.put("status", status);
+            h2kMap1.put("type", type);
+            h2kMap1.put("updated", null);
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("internal", null);
+            h2kMap1.put("comment", null);
+            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+            mapLiteral7.put("currency", code);
+            mapLiteral7.put("cost", feeCost);
+            h2kMap1.put("fee", mapLiteral7);
+            return h2kMap1;
         }
     }
 
@@ -7623,13 +7622,13 @@ public class Okx extends OkxApi
             }
         }
         {
-            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
-            h2kMap3.put("info", leverage);
-            h2kMap3.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
-            h2kMap3.put("marginMode", marginMode);
-            h2kMap3.put("longLeverage", longLeverage);
-            h2kMap3.put("shortLeverage", shortLeverage);
-            return h2kMap3;
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("info", leverage);
+            h2kMap2.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+            h2kMap2.put("marginMode", marginMode);
+            h2kMap2.put("longLeverage", longLeverage);
+            h2kMap2.put("shortLeverage", shortLeverage);
+            return h2kMap2;
         }
     }
 
@@ -8004,36 +8003,36 @@ public class Okx extends OkxApi
         Double percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         Long timestamp = this.safeInteger(position, "cTime");
         Double marginRatio = this.parseNumber(Precise.stringDiv(maintenanceMarginString, collateralString, 4));
-        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-        mapLiteral7.put("info", position);
-        mapLiteral7.put("id", this.safeString(position, "posId"));
-        mapLiteral7.put("symbol", symbol);
-        mapLiteral7.put("notional", notional);
-        mapLiteral7.put("marginMode", marginMode);
-        mapLiteral7.put("liquidationPrice", liquidationPrice);
-        mapLiteral7.put("entryPrice", this.parseNumber(entryPriceString));
-        mapLiteral7.put("unrealizedPnl", this.parseNumber(unrealizedPnlString));
-        mapLiteral7.put("realizedPnl", this.safeNumber(position, "realizedPnl", (Object) null));
-        mapLiteral7.put("percentage", percentage);
-        mapLiteral7.put("contracts", contracts);
-        mapLiteral7.put("contractSize", contractSize);
-        mapLiteral7.put("markPrice", this.parseNumber(markPriceString));
-        mapLiteral7.put("lastPrice", this.safeNumber(position, "closeAvgPx", (Object) null));
-        mapLiteral7.put("side", side);
-        mapLiteral7.put("hedged", hedged);
-        mapLiteral7.put("timestamp", timestamp);
-        mapLiteral7.put("datetime", this.iso8601(timestamp));
-        mapLiteral7.put("lastUpdateTimestamp", this.safeInteger(position, "uTime"));
-        mapLiteral7.put("maintenanceMargin", maintenanceMargin);
-        mapLiteral7.put("maintenanceMarginPercentage", maintenanceMarginPercentage);
-        mapLiteral7.put("collateral", this.parseNumber(collateralString));
-        mapLiteral7.put("initialMargin", this.parseNumber(initialMarginString));
-        mapLiteral7.put("initialMarginPercentage", this.parseNumber(initialMarginPercentage));
-        mapLiteral7.put("leverage", this.parseNumber(leverageString));
-        mapLiteral7.put("marginRatio", marginRatio);
-        mapLiteral7.put("stopLossPrice", null);
-        mapLiteral7.put("takeProfitPrice", null);
-        return this.safePosition(mapLiteral7);
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("info", position);
+        mapLiteral8.put("id", this.safeString(position, "posId"));
+        mapLiteral8.put("symbol", symbol);
+        mapLiteral8.put("notional", notional);
+        mapLiteral8.put("marginMode", marginMode);
+        mapLiteral8.put("liquidationPrice", liquidationPrice);
+        mapLiteral8.put("entryPrice", this.parseNumber(entryPriceString));
+        mapLiteral8.put("unrealizedPnl", this.parseNumber(unrealizedPnlString));
+        mapLiteral8.put("realizedPnl", this.safeNumber(position, "realizedPnl", (Object) null));
+        mapLiteral8.put("percentage", percentage);
+        mapLiteral8.put("contracts", contracts);
+        mapLiteral8.put("contractSize", contractSize);
+        mapLiteral8.put("markPrice", this.parseNumber(markPriceString));
+        mapLiteral8.put("lastPrice", this.safeNumber(position, "closeAvgPx", (Object) null));
+        mapLiteral8.put("side", side);
+        mapLiteral8.put("hedged", hedged);
+        mapLiteral8.put("timestamp", timestamp);
+        mapLiteral8.put("datetime", this.iso8601(timestamp));
+        mapLiteral8.put("lastUpdateTimestamp", this.safeInteger(position, "uTime"));
+        mapLiteral8.put("maintenanceMargin", maintenanceMargin);
+        mapLiteral8.put("maintenanceMarginPercentage", maintenanceMarginPercentage);
+        mapLiteral8.put("collateral", this.parseNumber(collateralString));
+        mapLiteral8.put("initialMargin", this.parseNumber(initialMarginString));
+        mapLiteral8.put("initialMarginPercentage", this.parseNumber(initialMarginPercentage));
+        mapLiteral8.put("leverage", this.parseNumber(leverageString));
+        mapLiteral8.put("marginRatio", marginRatio);
+        mapLiteral8.put("stopLossPrice", null);
+        mapLiteral8.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral8);
     }
 
     /**
@@ -8171,17 +8170,17 @@ public class Okx extends OkxApi
             amount = this.parseNumber(Precise.stringAbs(balanceChange));
         }
         {
-            HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
-            h2kMap4.put("info", transfer);
-            h2kMap4.put("id", id);
-            h2kMap4.put("timestamp", timestamp);
-            h2kMap4.put("datetime", this.iso8601(timestamp));
-            h2kMap4.put("currency", code);
-            h2kMap4.put("amount", amount);
-            h2kMap4.put("fromAccount", (((java.util.Objects.equals(fromAccountId, null)))) ? null : this.safeString(accountsById, fromAccountId));
-            h2kMap4.put("toAccount", (((java.util.Objects.equals(toAccountId, null)))) ? null : this.safeString(accountsById, toAccountId));
-            h2kMap4.put("status", this.parseTransferStatus(this.safeString(transfer, "state")));
-            return h2kMap4;
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("info", transfer);
+            h2kMap3.put("id", id);
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", this.iso8601(timestamp));
+            h2kMap3.put("currency", code);
+            h2kMap3.put("amount", amount);
+            h2kMap3.put("fromAccount", (((java.util.Objects.equals(fromAccountId, null)))) ? null : this.safeString(accountsById, fromAccountId));
+            h2kMap3.put("toAccount", (((java.util.Objects.equals(toAccountId, null)))) ? null : this.safeString(accountsById, toAccountId));
+            h2kMap3.put("status", this.parseTransferStatus(this.safeString(transfer, "state")));
+            return h2kMap3;
         }
     }
 
@@ -8409,12 +8408,12 @@ public class Okx extends OkxApi
         }
         Object requestHeaders = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")))) ? privateHeaders : headers;
         {
-            HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
-            h2kMap5.put("url", url);
-            h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap5.put("body", requestBody);
-            h2kMap5.put("headers", requestHeaders);
-            return h2kMap5;
+            HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
+            h2kMap4.put("url", url);
+            h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap4.put("body", requestBody);
+            h2kMap4.put("headers", requestHeaders);
+            return h2kMap4;
         }
     }
 
@@ -9325,18 +9324,18 @@ public class Okx extends OkxApi
         Object code = (((java.util.Objects.equals(responseMarket.get("inverse"), true)))) ? responseMarket.get("base") : responseMarket.get("quote");
         Long timestamp = this.safeInteger(data, "ts");
         {
-            HashMap<String, Object> h2kMap6 = new HashMap<String, Object>();
-            h2kMap6.put("info", data);
-            h2kMap6.put("symbol", responseMarket.get("symbol"));
-            h2kMap6.put("type", type);
-            h2kMap6.put("marginMode", "isolated");
-            h2kMap6.put("amount", this.parseNumber(amount));
-            h2kMap6.put("code", code);
-            h2kMap6.put("total", null);
-            h2kMap6.put("status", null);
-            h2kMap6.put("timestamp", timestamp);
-            h2kMap6.put("datetime", this.iso8601(timestamp));
-            return h2kMap6;
+            HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
+            h2kMap5.put("info", data);
+            h2kMap5.put("symbol", responseMarket.get("symbol"));
+            h2kMap5.put("type", type);
+            h2kMap5.put("marginMode", "isolated");
+            h2kMap5.put("amount", this.parseNumber(amount));
+            h2kMap5.put("code", code);
+            h2kMap5.put("total", null);
+            h2kMap5.put("status", null);
+            h2kMap5.put("timestamp", timestamp);
+            h2kMap5.put("datetime", this.iso8601(timestamp));
+            return h2kMap5;
         }
     }
 
@@ -9982,16 +9981,16 @@ public class Okx extends OkxApi
             openInterestAmount = this.safeNumber(interest, "oi", (Object) null);
             openInterestValue = this.safeNumber(interest, "oiUsd", (Object) null);
         }
-        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-        mapLiteral8.put("symbol", this.safeSymbol(id, (Map<String, Object>) null, (String) null, (String) null));
-        mapLiteral8.put("baseVolume", baseVolume);
-        mapLiteral8.put("quoteVolume", quoteVolume);
-        mapLiteral8.put("openInterestAmount", openInterestAmount);
-        mapLiteral8.put("openInterestValue", openInterestValue);
-        mapLiteral8.put("timestamp", timestamp);
-        mapLiteral8.put("datetime", this.iso8601(timestamp));
-        mapLiteral8.put("info", interest);
-        return this.safeOpenInterest(mapLiteral8, marketResolved);
+        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+        mapLiteral9.put("symbol", this.safeSymbol(id, (Map<String, Object>) null, (String) null, (String) null));
+        mapLiteral9.put("baseVolume", baseVolume);
+        mapLiteral9.put("quoteVolume", quoteVolume);
+        mapLiteral9.put("openInterestAmount", openInterestAmount);
+        mapLiteral9.put("openInterestValue", openInterestValue);
+        mapLiteral9.put("timestamp", timestamp);
+        mapLiteral9.put("datetime", this.iso8601(timestamp));
+        mapLiteral9.put("info", interest);
+        return this.safeOpenInterest(mapLiteral9, marketResolved);
     }
 
     public void setSandboxMode(Boolean enable)
@@ -11150,19 +11149,19 @@ public class Okx extends OkxApi
                 String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
                 if (!java.util.Objects.equals(code, null))
                 {
-                    HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
-                    mapLiteral9.put("info", entry);
-                    mapLiteral9.put("id", id);
-                    mapLiteral9.put("code", code);
-                    mapLiteral9.put("networks", null);
-                    mapLiteral9.put("type", null);
-                    mapLiteral9.put("name", null);
-                    mapLiteral9.put("active", null);
-                    mapLiteral9.put("deposit", null);
-                    mapLiteral9.put("withdraw", null);
-                    mapLiteral9.put("fee", null);
-                    mapLiteral9.put("precision", null);
-                    mapLiteral9.put("limits", new HashMap<String, Object>() {{
+                    HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+                    mapLiteral10.put("info", entry);
+                    mapLiteral10.put("id", id);
+                    mapLiteral10.put("code", code);
+                    mapLiteral10.put("networks", null);
+                    mapLiteral10.put("type", null);
+                    mapLiteral10.put("name", null);
+                    mapLiteral10.put("active", null);
+                    mapLiteral10.put("deposit", null);
+                    mapLiteral10.put("withdraw", null);
+                    mapLiteral10.put("fee", null);
+                    mapLiteral10.put("precision", null);
+                    mapLiteral10.put("limits", new HashMap<String, Object>() {{
             put( "amount", new HashMap<String, Object>() {{
                 put( "min", Okx.this.safeNumber(entry, "min", (Object) null) );
                 put( "max", Okx.this.safeNumber(entry, "max", (Object) null) );
@@ -11176,8 +11175,8 @@ public class Okx extends OkxApi
                 put( "max", null );
             }} );
         }});
-                    mapLiteral9.put("created", null);
-                    result.put(code, mapLiteral9);
+                    mapLiteral10.put("created", null);
+                    result.put(code, mapLiteral10);
                 }
             }
             return result;
@@ -11527,14 +11526,14 @@ public class Okx extends OkxApi
             symbol = market.get("symbol");
         }
         {
-            HashMap<String, Object> h2kMap7 = new HashMap<String, Object>();
-            h2kMap7.put("info", info);
-            h2kMap7.put("symbol", symbol);
-            h2kMap7.put("timestamp", timestamp);
-            h2kMap7.put("datetime", this.iso8601(timestamp));
-            h2kMap7.put("timeframe", null);
-            h2kMap7.put("longShortRatio", this.safeNumber(info, "longShortRatio", (Object) null));
-            return h2kMap7;
+            HashMap<String, Object> h2kMap6 = new HashMap<String, Object>();
+            h2kMap6.put("info", info);
+            h2kMap6.put("symbol", symbol);
+            h2kMap6.put("timestamp", timestamp);
+            h2kMap6.put("datetime", this.iso8601(timestamp));
+            h2kMap6.put("timeframe", null);
+            h2kMap6.put("longShortRatio", this.safeNumber(info, "longShortRatio", (Object) null));
+            return h2kMap6;
         }
     }
 }

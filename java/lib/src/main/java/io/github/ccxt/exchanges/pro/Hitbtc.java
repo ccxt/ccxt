@@ -533,7 +533,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         client.resolve(result, topic);
     }
 
-    public Object parseWsTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
     {
         //
         //    {
@@ -820,7 +820,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         return this.filterBySymbolSinceLimit(result, symbol, since, limit, false);
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //    {
@@ -832,7 +832,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Long timestamp = this.safeInteger(trade, "t");
-        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Hitbtc.this.safeString(trade, "i") );
             put( "order", null );
@@ -846,7 +846,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             put( "amount", Hitbtc.this.safeString(trade, "q") );
             put( "cost", null );
             put( "fee", null );
-        }}, market));
+        }}, market);
     }
 
     /**
@@ -1176,7 +1176,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         }}, market);
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //    {

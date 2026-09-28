@@ -12,6 +12,7 @@ import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.FundingRateHistory;
 import io.github.ccxt.types.Leverage;
 import io.github.ccxt.types.MarginMode;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
@@ -607,7 +608,7 @@ public class Bydfi extends BydfiApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         //
         //     {
@@ -941,7 +942,7 @@ public class Bydfi extends BydfiApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades
@@ -1210,7 +1211,7 @@ public class Bydfi extends BydfiApi
 
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // fetchTicker/fetchTickers
@@ -2172,7 +2173,7 @@ public class Bydfi extends BydfiApi
         return this.extend(request, paramsUntil);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder, fetchOpenOrders, fetchOpenOrder
@@ -3110,7 +3111,7 @@ public class Bydfi extends BydfiApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );

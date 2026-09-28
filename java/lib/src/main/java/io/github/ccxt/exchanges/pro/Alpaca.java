@@ -140,7 +140,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         client.resolve(ticker, messageHash);
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //    {

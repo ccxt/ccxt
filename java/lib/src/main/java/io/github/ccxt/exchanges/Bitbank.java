@@ -9,6 +9,7 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.DepositAddress;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
@@ -395,7 +396,7 @@ public class Bitbank extends BitbankApi
 
     }
 
-    public Object parseMarket(Object entry)
+    public MarketInterface parseMarket(Object entry)
     {
         String id = this.safeString(entry, "name");
         String baseId = this.safeString(entry, "base_asset");
@@ -459,7 +460,7 @@ public class Bitbank extends BitbankApi
         return this.safeMarketStructure(mapLiteral1);
     }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         String symbol = this.safeSymbol(null, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(ticker, "timestamp");
@@ -548,7 +549,7 @@ public class Bitbank extends BitbankApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades
@@ -772,7 +773,7 @@ public class Bitbank extends BitbankApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -866,7 +867,7 @@ public class Bitbank extends BitbankApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         String id = this.safeString(order, "order_id");
         String marketId = this.safeString(order, "pair");

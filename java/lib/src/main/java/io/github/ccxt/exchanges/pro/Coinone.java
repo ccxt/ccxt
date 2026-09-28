@@ -248,7 +248,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
     }
 
-    public Object parseWsTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -385,7 +385,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         client.resolve(stored, messageHash);
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -417,21 +417,21 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         }
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "qty");
-        return (Map<String, Object>) (this.safeTrade(Helpers.newMap(
-            "id", this.safeString(trade, "id"),
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "order", null,
-            "symbol", marketResolved.get("symbol"),
-            "type", null,
-            "side", side,
-            "takerOrMaker", null,
-            "price", priceString,
-            "amount", amountString,
-            "cost", null,
-            "fee", null
-        ), marketResolved));
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", this.safeString(trade, "id"));
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("order", null);
+        mapLiteral2.put("symbol", marketResolved.get("symbol"));
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("takerOrMaker", null);
+        mapLiteral2.put("price", priceString);
+        mapLiteral2.put("amount", amountString);
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("fee", null);
+        return this.safeTrade(mapLiteral2, marketResolved);
     }
 
     public Boolean handleErrorMessage(Client client, Object message)

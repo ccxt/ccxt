@@ -1467,7 +1467,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         client.resolve(stored, messageHash);
     }
 
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // public
@@ -1529,21 +1529,21 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         String price = this.safeString(trade, "p");
         String amount = this.safeString2(trade, "q", "v");
         String orderId = this.safeString(trade, "o");
-        return (Map<String, Object>) (this.safeTrade(Helpers.newMap(
-            "id", id,
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "order", orderId,
-            "type", null,
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", price,
-            "amount", amount,
-            "cost", null,
-            "fee", null
-        ), marketResolved));
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("info", trade);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("order", orderId);
+        mapLiteral1.put("type", null);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("takerOrMaker", takerOrMaker);
+        mapLiteral1.put("price", price);
+        mapLiteral1.put("amount", amount);
+        mapLiteral1.put("cost", null);
+        mapLiteral1.put("fee", null);
+        return this.safeTrade(mapLiteral1, marketResolved);
     }
 
     public String getPrivateType(Object url)

@@ -11,6 +11,7 @@ import io.github.ccxt.types.Account;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.FundingRateHistory;
 import io.github.ccxt.types.LedgerEntry;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
@@ -622,7 +623,7 @@ public class Dydx extends DydxApi
 
     }
 
-    public Object parseMarket(Object market)
+    public MarketInterface parseMarket(Object market)
     {
         //
         // {
@@ -784,7 +785,7 @@ public class Dydx extends DydxApi
 
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Trade parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // {
@@ -1053,7 +1054,7 @@ public class Dydx extends DydxApi
         throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a user parameter inside 'params' or the walletAddress set")) ;
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
         // {
@@ -2920,7 +2921,7 @@ public class Dydx extends DydxApi
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
         Map<String, Object> account = this.account();
         account.put("free", this.safeString(response, "freeCollateral"));
