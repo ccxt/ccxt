@@ -1429,38 +1429,44 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "seq": 2
         //    }
         //
+        // merge updates into the existing per-account balance objects instead of
+        // building fresh ones: a consumer awakened by an earlier message holds a
+        // reference to this.balance['cash'/'margin'/'flex'], and Client.resolve
+        // is a no-op while nobody is awaiting, so a replaced object would make
+        // updates landing in that window invisible to the consumer forever
+        // (same class of bug as kraken issue #26773)
         const holding = this.safeDict (message, 'holding');
         const futures = this.safeDict (message, 'futures');
         const flexFutures = this.safeDict (message, 'flex_futures');
         const messageHash = 'balances';
         const timestamp = this.safeInteger (message, 'timestamp');
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
         if (holding !== undefined) {
             const holdingKeys = Object.keys (holding);                  // cashAccount
-            const holdingResult: Dict = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-            };
+            this.balance['cash'] = this.safeDict (this.balance, 'cash', {});
+            this.balance['cash']['info'] = message;
+            this.balance['cash']['timestamp'] = timestamp;
+            this.balance['cash']['datetime'] = this.iso8601 (timestamp);
             for (let i = 0; i < holdingKeys.length; i++) {
                 const key = holdingKeys[i];
                 const code = this.safeCurrencyCode (key);
                 const newAccount = this.account ();
                 newAccount['total'] = this.safeString (holding, key);
                 if (code !== undefined) {
-                    holdingResult[code] = newAccount;
+                    this.balance['cash'][code] = newAccount;
                 }
             }
-            this.balance['cash'] = holdingResult;
             this.balance['cash'] = this.safeBalance (this.balance['cash']);
-            client.resolve (holdingResult, messageHash);
+            client.resolve (this.balance['cash'], messageHash);
         }
         if (futures !== undefined) {
             const futuresKeys = Object.keys (futures);                  // marginAccount
-            const futuresResult: Dict = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-            };
+            this.balance['margin'] = this.safeDict (this.balance, 'margin', {});
+            this.balance['margin']['info'] = message;
+            this.balance['margin']['timestamp'] = timestamp;
+            this.balance['margin']['datetime'] = this.iso8601 (timestamp);
             for (let i = 0; i < futuresKeys.length; i++) {
                 const key = futuresKeys[i];
                 const symbol = this.safeSymbol (key);
@@ -1471,23 +1477,21 @@ export default class krakenfutures extends krakenfuturesRest {
                 newAccount['free'] = this.safeString (future, 'available');
                 newAccount['used'] = this.safeString (future, 'initial_margin');
                 newAccount['total'] = this.safeString (future, 'balance');
-                futuresResult[symbol] = {};
+                this.balance['margin'][symbol] = {};
                 if ((symbol !== undefined) && (code !== undefined)) {
-                    futuresResult[symbol][code] = newAccount;
+                    this.balance['margin'][symbol][code] = newAccount;
                 }
             }
-            this.balance['margin'] = futuresResult;
             this.balance['margin'] = this.safeBalance (this.balance['margin']);
             client.resolve (this.balance['margin'], messageHash + 'futures');
         }
         if (flexFutures !== undefined) {
             const flexFutureCurrencies = this.safeDict (flexFutures, 'currencies', {});
             const flexFuturesKeys = Object.keys (flexFutureCurrencies); // multi-collateral margin account
-            const flexFuturesResult: Dict = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-            };
+            this.balance['flex'] = this.safeDict (this.balance, 'flex', {});
+            this.balance['flex']['info'] = message;
+            this.balance['flex']['timestamp'] = timestamp;
+            this.balance['flex']['datetime'] = this.iso8601 (timestamp);
             for (let i = 0; i < flexFuturesKeys.length; i++) {
                 const key = flexFuturesKeys[i];
                 const flexFuture = this.safeDict (flexFutureCurrencies, key);
@@ -1497,10 +1501,9 @@ export default class krakenfutures extends krakenfuturesRest {
                 newAccount['used'] = this.safeString (flexFuture, 'collateral_value');
                 newAccount['total'] = this.safeString (flexFuture, 'quantity');
                 if (code !== undefined) {
-                    flexFuturesResult[code] = newAccount;
+                    this.balance['flex'][code] = newAccount;
                 }
             }
-            this.balance['flex'] = flexFuturesResult;
             this.balance['flex'] = this.safeBalance (this.balance['flex']);
             client.resolve (this.balance['flex'], messageHash + 'flex_futures');
         }
