@@ -6100,7 +6100,7 @@ func (this *Polymarket) FetchOrders(params map[string]any, options ...FetchOrder
 	var res []ccxt.PredictionOrder = ccxt.NewPredictionOrderArray(r.Value)
 	return res, nil
 }
-func (this *Polymarket) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Polymarket) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Polymarket) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (ccxt.PositionModeInfo, error) {

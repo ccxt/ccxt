@@ -5218,7 +5218,7 @@ func (this *Bitstamp) FetchOrders(options ...FetchOrdersOptions) ([]Order, error
 func (this *Bitstamp) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bitstamp) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bitstamp) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bitstamp) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

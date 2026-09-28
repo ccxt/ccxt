@@ -3539,7 +3539,7 @@ func (this *Bitso) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 func (this *Bitso) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Bitso) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bitso) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bitso) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

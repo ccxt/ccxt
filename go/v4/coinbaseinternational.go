@@ -4372,7 +4372,7 @@ func (this *Coinbaseinternational) FetchOrderStatus(id string, options ...FetchO
 func (this *Coinbaseinternational) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Coinbaseinternational) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Coinbaseinternational) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Coinbaseinternational) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

@@ -4630,8 +4630,9 @@ func (this *Coinbase) cancelOrderBody(ch chan AsyncResult[any], id any, optional
 		panic(r1.Err)
 	}
 	var orders []any = ListTyped(r1.Value)
+	var order map[string]any = this.SafeDictMap(orders, 0, map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.SafeDict(orders, 0, map[string]any{})}
+	ch <- AsyncResult[any]{Value: order}
 	return nil
 }
 
@@ -4912,11 +4913,11 @@ func (this *Coinbase) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes369219 []any = ListTyped(r1.Value)
-		if retRes369219 == nil {
+		var retRes369319 []any = ListTyped(r1.Value)
+		if retRes369319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes369219}
+			ch <- AsyncResult[any]{Value: retRes369319}
 		}
 		return nil
 	}
@@ -5159,11 +5160,11 @@ func (this *Coinbase) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes386219 []any = ListTyped(r1.Value)
-		if retRes386219 == nil {
+		var retRes386319 []any = ListTyped(r1.Value)
+		if retRes386319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes386219}
+			ch <- AsyncResult[any]{Value: retRes386319}
 		}
 		return nil
 	}
@@ -5172,11 +5173,11 @@ func (this *Coinbase) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes386415 []any = ListTyped(r2.Value)
-	if retRes386415 == nil {
+	var retRes386515 []any = ListTyped(r2.Value)
+	if retRes386515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes386415}
+		ch <- AsyncResult[any]{Value: retRes386515}
 	}
 	return nil
 }
@@ -5224,11 +5225,11 @@ func (this *Coinbase) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes388619 []any = ListTyped(r1.Value)
-		if retRes388619 == nil {
+		var retRes388719 []any = ListTyped(r1.Value)
+		if retRes388719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes388619}
+			ch <- AsyncResult[any]{Value: retRes388719}
 		}
 		return nil
 	}
@@ -5237,11 +5238,11 @@ func (this *Coinbase) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalAr
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes388815 []any = ListTyped(r2.Value)
-	if retRes388815 == nil {
+	var retRes388915 []any = ListTyped(r2.Value)
+	if retRes388915 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes388815}
+		ch <- AsyncResult[any]{Value: retRes388915}
 	}
 	return nil
 }
@@ -5278,11 +5279,11 @@ func (this *Coinbase) fetchCanceledOrdersBody(ch chan AsyncResult[any], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes390315 []any = ListTyped(r.Value)
-	if retRes390315 == nil {
+	var retRes390415 []any = ListTyped(r.Value)
+	if retRes390415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes390315}
+		ch <- AsyncResult[any]{Value: retRes390415}
 	}
 	return nil
 }
@@ -5340,11 +5341,11 @@ func (this *Coinbase) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes393019 []any = ListTyped(r1.Value)
-		if retRes393019 == nil {
+		var retRes393119 []any = ListTyped(r1.Value)
+		if retRes393119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes393019}
+			ch <- AsyncResult[any]{Value: retRes393119}
 		}
 		return nil
 	}
@@ -5559,11 +5560,11 @@ func (this *Coinbase) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes408219 []any = ListTyped(r1.Value)
-		if retRes408219 == nil {
+		var retRes408319 []any = ListTyped(r1.Value)
+		if retRes408319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes408219}
+			ch <- AsyncResult[any]{Value: retRes408319}
 		}
 		return nil
 	}
@@ -5944,8 +5945,8 @@ func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan EndpointResult[
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv5544 := r1.Value
-	var requestparamsValueVariable []any = listRecv5544
+	listRecv5545 := r1.Value
+	var requestparamsValueVariable []any = listRecv5545
 	var request map[string]any = MapTyped(requestparamsValueVariable[0])
 	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
 
@@ -9007,7 +9008,7 @@ func (this *Coinbase) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 func (this *Coinbase) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Coinbase) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Coinbase) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Coinbase) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

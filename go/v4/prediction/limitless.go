@@ -5123,7 +5123,7 @@ func (this *Limitless) FetchOrderTrades(id string, params map[string]any, option
 	var res []ccxt.PredictionTrade = ccxt.NewPredictionTradeArray(r.Value)
 	return res, nil
 }
-func (this *Limitless) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Limitless) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Limitless) FetchPosition(outcome string, params map[string]any) (ccxt.PredictionPosition, error) {

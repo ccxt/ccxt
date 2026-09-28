@@ -1526,7 +1526,7 @@ func (this *Paymium) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Paymium) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Paymium) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Paymium) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Paymium) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

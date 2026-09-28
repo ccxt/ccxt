@@ -10290,7 +10290,7 @@ func (this *Bingx) FetchOrderStatus(id string, options ...FetchOrderStatusOption
 func (this *Bingx) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bingx) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bingx) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bingx) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {

@@ -2724,7 +2724,7 @@ func (this *Revolutx) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 func (this *Revolutx) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Revolutx) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Revolutx) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Revolutx) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

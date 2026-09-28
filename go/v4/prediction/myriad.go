@@ -6901,7 +6901,7 @@ func (this *Myriad) FetchOrderTrades(id string, params map[string]any, options .
 	var res []ccxt.PredictionTrade = ccxt.NewPredictionTradeArray(r.Value)
 	return res, nil
 }
-func (this *Myriad) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Myriad) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Myriad) FetchPosition(outcome string, params map[string]any) (ccxt.PredictionPosition, error) {

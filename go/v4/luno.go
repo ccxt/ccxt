@@ -3183,7 +3183,7 @@ func (this *Luno) FetchOrderStatus(id string, options ...FetchOrderStatusOptions
 func (this *Luno) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Luno) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Luno) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Luno) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

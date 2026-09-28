@@ -1821,7 +1821,7 @@ func (this *Coinspot) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 func (this *Coinspot) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Coinspot) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Coinspot) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Coinspot) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

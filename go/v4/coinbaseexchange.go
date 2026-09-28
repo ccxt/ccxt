@@ -3681,12 +3681,12 @@ func (this *Coinbaseexchange) CancelAllOrders(options ...CancelAllOrdersOptions)
 	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
-func (this *Coinbaseexchange) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Coinbaseexchange) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	r := <-this.FetchPaymentMethodsAsync(params...)
 	if r.Err != nil {
-		return map[string]any{}, r.Err
+		return nil, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res []map[string]any = NewMapArray(r.Value)
 	return res, nil
 }
 

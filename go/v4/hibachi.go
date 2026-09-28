@@ -4332,7 +4332,7 @@ func (this *Hibachi) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Hibachi) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Hibachi) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Hibachi) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Hibachi) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

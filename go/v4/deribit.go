@@ -6699,7 +6699,7 @@ func (this *Deribit) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 func (this *Deribit) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Deribit) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Deribit) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Deribit) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

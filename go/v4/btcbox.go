@@ -1820,7 +1820,7 @@ func (this *Btcbox) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Btcbox) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Btcbox) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Btcbox) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Btcbox) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

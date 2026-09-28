@@ -2066,7 +2066,7 @@ func (this *Bit2c) FetchOrderStatus(id string, options ...FetchOrderStatusOption
 func (this *Bit2c) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bit2c) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bit2c) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bit2c) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

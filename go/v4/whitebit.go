@@ -7555,7 +7555,7 @@ func (this *Whitebit) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderB
 func (this *Whitebit) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Whitebit) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Whitebit) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Whitebit) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {

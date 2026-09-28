@@ -715,8 +715,9 @@ func (this *Btcturk) fetchTickerBody(ch chan AsyncResult[any], symbol string, op
 		panic(r1.Err)
 	}
 	var tickers map[string]any = MapTyped(r1.Value)
+	var ticker map[string]any = SafeMapTyped(tickers, symbol)
 
-	ch <- AsyncResult[any]{Value: this.SafeDict(tickers, symbol)}
+	ch <- AsyncResult[any]{Value: ticker}
 	return nil
 }
 func (this *Btcturk) ParseTrade(trade any, optionalArgs ...any) any {
@@ -2073,7 +2074,7 @@ func (this *Btcturk) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Btcturk) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Btcturk) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Btcturk) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Btcturk) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

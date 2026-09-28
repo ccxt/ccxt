@@ -2727,8 +2727,9 @@ func (this *Digifinex) cancelOrderBody(ch chan AsyncResult[any], id any, optiona
 			panic(OrderNotFound(this.Id + " cancelOrder() " + idValue + " not found"))
 		}
 		var orders []any = ArrayTyped(this.ParseCancelOrders(response))
+		var canceled map[string]any = SafeMapTyped(orders, 0)
 
-		ch <- AsyncResult[any]{Value: this.SafeDict(orders, 0)}
+		ch <- AsyncResult[any]{Value: canceled}
 		return nil
 	} else {
 
@@ -3948,11 +3949,11 @@ func (this *Digifinex) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes298415 []any = ListTyped(r.Value)
-	if retRes298415 == nil {
+	var retRes298515 []any = ListTyped(r.Value)
+	if retRes298515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes298415}
+		ch <- AsyncResult[any]{Value: retRes298515}
 	}
 	return nil
 }
@@ -3989,11 +3990,11 @@ func (this *Digifinex) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes299915 []any = ListTyped(r.Value)
-	if retRes299915 == nil {
+	var retRes300015 []any = ListTyped(r.Value)
+	if retRes300015 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes299915}
+		ch <- AsyncResult[any]{Value: retRes300015}
 	}
 	return nil
 }
@@ -4649,11 +4650,11 @@ func (this *Digifinex) fetchFundingIntervalBody(ch chan AsyncResult[any], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes347815 map[string]any = MapTyped(r.Value)
-	if retRes347815 == nil {
+	var retRes347915 map[string]any = MapTyped(r.Value)
+	if retRes347915 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes347815}
+		ch <- AsyncResult[any]{Value: retRes347915}
 	}
 	return nil
 }
@@ -5820,11 +5821,11 @@ func (this *Digifinex) addMarginBody(ch chan AsyncResult[any], symbol string, am
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes437415 map[string]any = MapTyped(r.Value)
-	if retRes437415 == nil {
+	var retRes437515 map[string]any = MapTyped(r.Value)
+	if retRes437515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes437415}
+		ch <- AsyncResult[any]{Value: retRes437515}
 	}
 	return nil
 }
@@ -5857,11 +5858,11 @@ func (this *Digifinex) reduceMarginBody(ch chan EndpointResult[map[string]any], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes439115 map[string]any = MapTyped(r.Value)
-	if retRes439115 == nil {
+	var retRes439215 map[string]any = MapTyped(r.Value)
+	if retRes439215 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes439115, Raw: retRes439115}
+		ch <- EndpointResult[map[string]any]{Value: retRes439215, Raw: retRes439215}
 	}
 	return nil
 }
@@ -7481,7 +7482,7 @@ func (this *Digifinex) FetchOrderStatus(id string, options ...FetchOrderStatusOp
 func (this *Digifinex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Digifinex) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Digifinex) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Digifinex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

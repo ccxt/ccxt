@@ -3408,7 +3408,7 @@ func (this *Bitopro) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Bitopro) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bitopro) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bitopro) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bitopro) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

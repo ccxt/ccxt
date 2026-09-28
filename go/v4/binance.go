@@ -18794,8 +18794,8 @@ func (this *Binance) fetchOpenInterestBody(ch chan AsyncResult[any], symbol stri
 		var symbolValue *string = SafeStringPtr(market["symbol"])
 		var result any = this.ParseOpenInterestsHistory(response, market)
 		for i := 0; i < GetArrayLength(result); i++ {
-			var item any = GetValue(result, i)
-			if IsEqual(GetValue(item, "symbol"), symbolValue) {
+			var item map[string]any = SafeMapTyped(result, i)
+			if this.SafeString(item, "symbol") == symbolValue || (this.SafeString(item, "symbol") != nil && symbolValue != nil && *this.SafeString(item, "symbol") == *symbolValue) {
 
 				ch <- AsyncResult[any]{Value: item}
 				return nil
@@ -23419,7 +23419,7 @@ func (this *Binance) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBo
 func (this *Binance) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Binance) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Binance) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Binance) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

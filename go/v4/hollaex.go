@@ -3676,7 +3676,7 @@ func (this *Hollaex) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Hollaex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Hollaex) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Hollaex) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Hollaex) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
