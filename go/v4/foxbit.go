@@ -646,12 +646,12 @@ func (this *Foxbit) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Foxbit) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Foxbit) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Foxbit) fetchTickerBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Foxbit) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -707,7 +707,7 @@ func (this *Foxbit) fetchTickerBody(ch chan AsyncResult[any], symbol string, opt
 	var data []any = SafeListTyped(response, "data")
 	var result map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTicker(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(result, market)}
 	return nil
 }
 
@@ -840,12 +840,12 @@ func (this *Foxbit) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Foxbit) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Foxbit) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Foxbit) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Foxbit) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -902,7 +902,7 @@ func (this *Foxbit) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, 
 	//  }
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 
-	ch <- AsyncResult[any]{Value: this.ParseOrderBook(response, symbol, timestamp)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(response, symbol, timestamp)}
 	return nil
 }
 
@@ -1290,12 +1290,12 @@ func (this *Foxbit) fetchOrdersByStatusBody(ch chan AsyncResult[any], status any
  * @param {string} [params.clientOrderId] a unique identifier for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Foxbit) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Foxbit) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Foxbit) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Foxbit) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1366,7 +1366,7 @@ func (this *Foxbit) createOrderBody(ch chan AsyncResult[any], symbol string, typ
 	//     "sn": "OKMAKSDHRVVREK",
 	//     "client_order_id": "451637946501"
 	// }
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 
@@ -1485,12 +1485,12 @@ func (this *Foxbit) createOrdersBody(ch chan AsyncResult[any], orders any, optio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Foxbit) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Foxbit) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Foxbit) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Foxbit) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1525,7 +1525,7 @@ func (this *Foxbit) cancelOrderBody(ch chan AsyncResult[any], id any, optionalAr
 	var data []any = SafeListTyped(response, "data")
 	var result map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(result)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result)}
 	return nil
 }
 
@@ -1596,12 +1596,12 @@ func (this *Foxbit) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Foxbit) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Foxbit) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Foxbit) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Foxbit) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1644,7 +1644,7 @@ func (this *Foxbit) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArg
 	//     "remark": "A remarkable note for the order.",
 	//     "funds_received": "290.0"
 	// }
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
 	return nil
 }
 
@@ -2153,12 +2153,12 @@ func (this *Foxbit) fetchStatusBody(ch chan EndpointResult[map[string]any], opti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Foxbit) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Foxbit) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Foxbit) editOrderBody(ch chan AsyncResult[any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Foxbit) editOrderBody(ch chan AsyncResult[map[string]any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2223,7 +2223,7 @@ func (this *Foxbit) editOrderBody(ch chan AsyncResult[any], id string, symbol an
 	// }
 	var created map[string]any = this.SafeDictMap(response, "create", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(created, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(created, market)}
 	return nil
 }
 
@@ -2422,7 +2422,7 @@ func (this *Foxbit) ParseMarket(market any) any {
 		"info": market,
 	})
 }
-func (this *Foxbit) ParseTradingFee(entry any, optionalArgs ...any) any {
+func (this *Foxbit) ParseTradingFee(entry any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return map[string]any{
@@ -2575,7 +2575,7 @@ func (this *Foxbit) ParseOrder(order any, optionalArgs ...any) map[string]any {
 		},
 	})
 }
-func (this *Foxbit) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Foxbit) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var network map[string]any = SafeMapTyped(depositAddress, "network")

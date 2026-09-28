@@ -1239,11 +1239,11 @@ func (this *Xt) HandleFundingRate(client any, message map[string]any) any {
 			"symbol":      marketId,
 			"fundingRate": this.SafeString(data, "r"),
 		}
-		var fundingRate any = this.ParseFundingRate(raw)
+		var fundingRate map[string]any = this.ParseFundingRate(raw)
 		var timestamp *int64 = this.SafeInteger(data, "t")
-		ccxt.AddElementToObject(fundingRate, "timestamp", timestamp)
-		ccxt.AddElementToObject(fundingRate, "datetime", this.Iso8601(timestamp))
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(fundingRate, "symbol"))
+		fundingRate["timestamp"] = timestamp
+		fundingRate["datetime"] = this.Iso8601(timestamp)
+		var symbol *string = ccxt.SafeStringPtr(fundingRate["symbol"])
 		ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
 		var event *string = this.SafeString(message, "event")
 		if event != nil {

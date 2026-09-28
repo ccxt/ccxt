@@ -306,7 +306,7 @@ func (this *Nado) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol strin
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		snapshot := r1.Value
+		snapshot := ccxt.BoxAbsent(r1.Value)
 		ccxt.AddElementToObject(this.Orderbooks, market["symbol"], this.OrderBook(snapshot, limit))
 	}
 
@@ -399,7 +399,7 @@ func (this *Nado) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[any], sy
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			snapshot := r1.Value
+			snapshot := ccxt.BoxAbsent(r1.Value)
 			ccxt.AddElementToObject(this.Orderbooks, market["symbol"], this.OrderBook(snapshot, limit))
 		}
 	}

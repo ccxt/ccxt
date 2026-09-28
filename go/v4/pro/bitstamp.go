@@ -548,7 +548,7 @@ func (this *Bitstamp) HandleFundingRate(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
-	var fundingRate any = this.ParseFundingRate(data, market)
+	var fundingRate map[string]any = this.ParseFundingRate(data, market)
 	ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
 	client.(ccxt.ClientInterface).Resolve(fundingRate, "fundingRate:"+*symbol)
 }

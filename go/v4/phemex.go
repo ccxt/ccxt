@@ -1549,12 +1549,12 @@ func (this *Phemex) CustomParseOrderBook(orderbook any, symbol any, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Phemex) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Phemex) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Phemex) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Phemex) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1629,7 +1629,7 @@ func (this *Phemex) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, 
 	var orderbook any = this.CustomParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market)
 	var nonce *int64 = this.SafeInteger(result, "sequence")
 
-	ch <- AsyncResult[any]{Value: this.Extend(orderbook, map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.Extend(orderbook, map[string]any{
 		"nonce": nonce,
 	})}
 	return nil
@@ -1954,12 +1954,12 @@ func (this *Phemex) ParseTicker(ticker any, optionalArgs ...any) map[string]any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Phemex) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Phemex) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Phemex) fetchTickerBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Phemex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2046,7 +2046,7 @@ func (this *Phemex) fetchTickerBody(ch chan AsyncResult[any], symbol string, opt
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTicker(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(result, market)}
 	return nil
 }
 
@@ -3245,12 +3245,12 @@ func (this *Phemex) ParseOrder(order any, optionalArgs ...any) map[string]any {
  * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Phemex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Phemex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Phemex) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Phemex) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3594,7 +3594,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[any], symbol string, typ
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
 	return nil
 }
 
@@ -3613,12 +3613,12 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[any], symbol string, typ
  * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Phemex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Phemex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Phemex) editOrderBody(ch chan AsyncResult[any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Phemex) editOrderBody(ch chan AsyncResult[map[string]any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	amount := GetArg(optionalArgs, 0, nil)
@@ -3703,7 +3703,7 @@ func (this *Phemex) editOrderBody(ch chan AsyncResult[any], id string, symbol an
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
 	return nil
 }
 
@@ -3718,12 +3718,12 @@ func (this *Phemex) editOrderBody(ch chan AsyncResult[any], id string, symbol an
  * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Phemex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Phemex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Phemex) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Phemex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3780,7 +3780,7 @@ func (this *Phemex) cancelOrderBody(ch chan AsyncResult[any], id any, optionalAr
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
 	return nil
 }
 
@@ -3864,12 +3864,12 @@ func (this *Phemex) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Phemex) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Phemex) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Phemex) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Phemex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3945,7 +3945,7 @@ func (this *Phemex) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArg
 		order = this.SafeDict(rows, 0, map[string]any{})
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
 	return nil
 }
 
@@ -5493,7 +5493,7 @@ func (this *Phemex) fetchFundingRateBody(ch chan AsyncResult[any], symbol string
 	ch <- AsyncResult[any]{Value: this.ParseFundingRate(result, market)}
 	return nil
 }
-func (this *Phemex) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Phemex) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "askEp": 2332500,
@@ -5619,7 +5619,7 @@ func (this *Phemex) ParseMarginStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Phemex) ParseMarginModification(data any, optionalArgs ...any) any {
+func (this *Phemex) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "code": 0,
@@ -6121,12 +6121,12 @@ func (this *Phemex) setLeverageBody(ch chan AsyncResult[any], leverage int64, op
  * @param {string} [params.bizType] for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Phemex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Phemex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Phemex) transferBody(ch chan AsyncResult[any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Phemex) transferBody(ch chan AsyncResult[map[string]any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6218,7 +6218,7 @@ func (this *Phemex) transferBody(ch chan AsyncResult[any], code string, amount a
 		}
 	}
 
-	ch <- AsyncResult[any]{Value: transfer}
+	ch <- AsyncResult[map[string]any]{Value: transfer}
 	return nil
 }
 
@@ -6605,12 +6605,12 @@ func (this *Phemex) withdrawBody(ch chan EndpointResult[map[string]any], code st
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Phemex) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Phemex) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Phemex) fetchOpenInterestBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Phemex) fetchOpenInterestBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6658,7 +6658,7 @@ func (this *Phemex) fetchOpenInterestBody(ch chan AsyncResult[any], symbol strin
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 
-	ch <- AsyncResult[any]{Value: this.ParseOpenInterest(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOpenInterest(result, market)}
 	return nil
 }
 func (this *Phemex) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
@@ -6706,12 +6706,12 @@ func (this *Phemex) ParseOpenInterest(interest any, optionalArgs ...any) map[str
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
-func (this *Phemex) FetchConvertQuoteAsync(fromCode string, toCode string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Phemex) FetchConvertQuoteAsync(fromCode string, toCode string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchConvertQuoteBody(ch, fromCode, toCode, optionalArgs...)
 	return ch
 }
-func (this *Phemex) fetchConvertQuoteBody(ch chan AsyncResult[any], fromCode string, toCode string, optionalArgs ...any) any {
+func (this *Phemex) fetchConvertQuoteBody(ch chan AsyncResult[map[string]any], fromCode string, toCode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	amount := GetArg(optionalArgs, 0, nil)
@@ -6759,7 +6759,7 @@ func (this *Phemex) fetchConvertQuoteBody(ch chan AsyncResult[any], fromCode str
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseConversion(data, fromCurrency, toCurrency)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseConversion(data, fromCurrency, toCurrency)}
 	return nil
 }
 
@@ -6775,12 +6775,12 @@ func (this *Phemex) fetchConvertQuoteBody(ch chan AsyncResult[any], fromCode str
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
-func (this *Phemex) CreateConvertTradeAsync(id string, fromCode string, toCode string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Phemex) CreateConvertTradeAsync(id string, fromCode string, toCode string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createConvertTradeBody(ch, id, fromCode, toCode, optionalArgs...)
 	return ch
 }
-func (this *Phemex) createConvertTradeBody(ch chan AsyncResult[any], id string, fromCode string, toCode string, optionalArgs ...any) any {
+func (this *Phemex) createConvertTradeBody(ch chan AsyncResult[map[string]any], id string, fromCode string, toCode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	amount := GetArg(optionalArgs, 0, nil)
@@ -6832,7 +6832,7 @@ func (this *Phemex) createConvertTradeBody(ch chan AsyncResult[any], id string, 
 	var toCurrencyId *string = this.SafeString(data, "toCurrency")
 	var to map[string]any = this.SafeCurrency(toCurrencyId, toCurrency)
 
-	ch <- AsyncResult[any]{Value: this.ParseConversion(data, fromResult, to)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseConversion(data, fromResult, to)}
 	return nil
 }
 
@@ -6918,7 +6918,7 @@ func (this *Phemex) fetchConvertTradeHistoryBody(ch chan AsyncResult[any], optio
 	ch <- AsyncResult[any]{Value: this.ParseConversions(rows, code, "fromCurrency", "toCurrency", since, limit)}
 	return nil
 }
-func (this *Phemex) ParseConversion(conversion any, optionalArgs ...any) any {
+func (this *Phemex) ParseConversion(conversion any, optionalArgs ...any) map[string]any {
 	//
 	// fetchConvertQuote
 	//

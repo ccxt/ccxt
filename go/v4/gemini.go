@@ -1352,12 +1352,12 @@ func (this *Gemini) ParseMarket(response any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Gemini) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Gemini) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Gemini) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Gemini) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1386,7 +1386,7 @@ func (this *Gemini) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, 
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[any]{Value: this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "amount")}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "amount")}
 	return nil
 }
 func (this *Gemini) FetchTickerV1Async(symbol string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -1522,12 +1522,12 @@ func (this *Gemini) fetchTickerV1AndV2Body(ch chan EndpointResult[map[string]any
  * @param {object} [params.fetchTickerMethod] 'fetchTickerV2', 'fetchTickerV1' or 'fetchTickerV1AndV2' - 'fetchTickerV1' for original ccxt.gemini.fetchTicker - 'fetchTickerV1AndV2' for 2 api calls to get the result of both fetchTicker methods - default = 'fetchTickerV1'
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Gemini) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Gemini) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Gemini) fetchTickerBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Gemini) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1541,9 +1541,9 @@ func (this *Gemini) fetchTickerBody(ch chan AsyncResult[any], symbol string, opt
 		}
 		var retRes105619 map[string]any = r.Value
 		if retRes105619 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes105619}
+			ch <- AsyncResult[map[string]any]{Value: retRes105619}
 		}
 		return nil
 	}
@@ -1555,9 +1555,9 @@ func (this *Gemini) fetchTickerBody(ch chan AsyncResult[any], symbol string, opt
 		}
 		var retRes105919 map[string]any = r1.Value
 		if retRes105919 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes105919}
+			ch <- AsyncResult[map[string]any]{Value: retRes105919}
 		}
 		return nil
 	}
@@ -1568,9 +1568,9 @@ func (this *Gemini) fetchTickerBody(ch chan AsyncResult[any], symbol string, opt
 	}
 	var retRes106115 map[string]any = r2.Value
 	if retRes106115 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes106115}
+		ch <- AsyncResult[map[string]any]{Value: retRes106115}
 	}
 	return nil
 }
@@ -2200,12 +2200,12 @@ func (this *Gemini) ParseOrder(order any, optionalArgs ...any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Gemini) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Gemini) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Gemini) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Gemini) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2252,7 +2252,7 @@ func (this *Gemini) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArg
 	//          "remaining_amount":"0.01"
 	//      }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
 	return nil
 }
 
@@ -2343,12 +2343,12 @@ func (this *Gemini) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Gemini) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Gemini) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Gemini) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Gemini) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2449,7 +2449,7 @@ func (this *Gemini) createOrderBody(ch chan AsyncResult[any], symbol string, typ
 	//          "remaining_amount":"0"
 	//      }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
 	return nil
 }
 
@@ -2463,12 +2463,12 @@ func (this *Gemini) createOrderBody(ch chan AsyncResult[any], symbol string, typ
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Gemini) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Gemini) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Gemini) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Gemini) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2516,7 +2516,7 @@ func (this *Gemini) cancelOrderBody(ch chan AsyncResult[any], id any, optionalAr
 	//          "remaining_amount":"0.01"
 	//      }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
 	return nil
 }
 
@@ -2781,7 +2781,7 @@ func (this *Gemini) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Gemini) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Gemini) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	//
 	//      {
 	//          "address": "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
@@ -3109,12 +3109,12 @@ func (this *Gemini) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opti
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Gemini) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Gemini) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Gemini) fetchOpenInterestBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Gemini) fetchOpenInterestBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3146,7 +3146,7 @@ func (this *Gemini) fetchOpenInterestBody(ch chan AsyncResult[any], symbol strin
 	//        open_interest_notional: '42244.7837'
 	//    }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOpenInterest(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOpenInterest(response, market)}
 	return nil
 }
 func (this *Gemini) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {

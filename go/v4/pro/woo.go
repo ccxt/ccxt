@@ -2079,8 +2079,8 @@ func (this *Woo) HandleFundingRate(client any, message map[string]any) {
 	//     }
 	//
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
-	var fundingRate any = this.ParseFundingRate(data)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(fundingRate, "symbol"))
+	var fundingRate map[string]any = this.ParseFundingRate(data)
+	var symbol *string = ccxt.SafeStringPtr(fundingRate["symbol"])
 	if symbol != nil {
 		ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
 	}

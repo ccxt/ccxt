@@ -1189,7 +1189,7 @@ func (this *Kraken) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string,
 	ch <- AsyncResult[any]{Value: this.ParseTradingFee(result, market)}
 	return nil
 }
-func (this *Kraken) ParseTradingFee(fee map[string]any, market map[string]any) any {
+func (this *Kraken) ParseTradingFee(fee map[string]any, market map[string]any) map[string]any {
 	var makerFees map[string]any = SafeMapTyped(fee, "fees_maker")
 	var takerFees map[string]any = SafeMapTyped(fee, "fees")
 	var symbolMakerFee map[string]any = SafeMapTyped(makerFees, market["id"])
@@ -1226,12 +1226,12 @@ func (this *Kraken) ParseOrderBookBidAsk(bidask any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Kraken) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Kraken) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kraken) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Kraken) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1287,7 +1287,7 @@ func (this *Kraken) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, 
 		orderbook = this.SafeDict(result, wsName, orderbook)
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrderBook(orderbook, symbol)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(orderbook, symbol)}
 	return nil
 }
 func (this *Kraken) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
@@ -1419,12 +1419,12 @@ func (this *Kraken) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Kraken) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Kraken) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kraken) fetchTickerBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Kraken) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1449,7 +1449,7 @@ func (this *Kraken) fetchTickerBody(ch chan AsyncResult[any], symbol string, opt
 	var tickerResult map[string]any = SafeMapTyped(response, "result")
 	var ticker any = this.SafeValue(tickerResult, market["id"])
 
-	ch <- AsyncResult[any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
 	return nil
 }
 func (this *Kraken) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -1781,12 +1781,12 @@ func (this *Kraken) fetchLedgerEntriesByIdsBody(ch chan AsyncResult[any], ids an
 	ch <- AsyncResult[any]{Value: this.ParseLedger(items)}
 	return nil
 }
-func (this *Kraken) FetchLedgerEntryAsync(id string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Kraken) FetchLedgerEntryAsync(id string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchLedgerEntryBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Kraken) fetchLedgerEntryBody(ch chan AsyncResult[any], id string, optionalArgs ...any) any {
+func (this *Kraken) fetchLedgerEntryBody(ch chan AsyncResult[map[string]any], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1801,7 +1801,7 @@ func (this *Kraken) fetchLedgerEntryBody(ch chan AsyncResult[any], id string, op
 	var items []any = ListTyped(r.Value)
 	var entry map[string]any = SafeMapTyped(items, 0)
 
-	ch <- AsyncResult[any]{Value: entry}
+	ch <- AsyncResult[map[string]any]{Value: entry}
 	return nil
 }
 func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
@@ -2142,12 +2142,12 @@ func (this *Kraken) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kraken) CreateMarketOrderWithCostAsync(symbol string, side string, cost any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Kraken) CreateMarketOrderWithCostAsync(symbol string, side string, cost any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createMarketOrderWithCostBody(ch, symbol, side, cost, optionalArgs...)
 	return ch
 }
-func (this *Kraken) createMarketOrderWithCostBody(ch chan AsyncResult[any], symbol string, side string, cost any, optionalArgs ...any) any {
+func (this *Kraken) createMarketOrderWithCostBody(ch chan AsyncResult[map[string]any], symbol string, side string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2168,11 +2168,11 @@ func (this *Kraken) createMarketOrderWithCostBody(ch chan AsyncResult[any], symb
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes169515 map[string]any = MapTyped(r1.Value)
+	var retRes169515 map[string]any = r1.Value
 	if retRes169515 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes169515}
+		ch <- AsyncResult[map[string]any]{Value: retRes169515}
 	}
 	return nil
 }
@@ -2209,7 +2209,7 @@ func (this *Kraken) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes171215 map[string]any = MapTyped(r1.Value)
+	var retRes171215 map[string]any = r1.Value
 	if retRes171215 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -2241,12 +2241,12 @@ func (this *Kraken) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], s
  * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kraken) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Kraken) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Kraken) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Kraken) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2296,7 +2296,7 @@ func (this *Kraken) createOrderBody(ch chan AsyncResult[any], symbol string, typ
 	// it's impossible to know if the order was created using cost or base currency
 	// because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
 	// this usingCost flag is used to help the parsing but omitted from the order
-	ch <- AsyncResult[any]{Value: this.ParseOrder(result)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result)}
 	return nil
 }
 
@@ -2974,12 +2974,12 @@ func (this *Kraken) OrderRequest(method string, symbol any, typeVar any, request
  * @param {string} [params.clientOrderId] the orders client order id
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kraken) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Kraken) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Kraken) editOrderBody(ch chan AsyncResult[any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Kraken) editOrderBody(ch chan AsyncResult[map[string]any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3057,7 +3057,7 @@ func (this *Kraken) editOrderBody(ch chan AsyncResult[any], id string, symbol an
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result, market)}
 	return nil
 }
 
@@ -3071,12 +3071,12 @@ func (this *Kraken) editOrderBody(ch chan AsyncResult[any], id string, symbol an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kraken) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Kraken) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Kraken) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Kraken) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3148,7 +3148,7 @@ func (this *Kraken) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArg
 		panic(OrderNotFound(Add(this.Id+" fetchOrder() could not find order id ", id)))
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(this.Extend(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(this.Extend(map[string]any{
 		"id": id,
 	}, GetValue(result, id)))}
 	return nil
@@ -3446,12 +3446,12 @@ func (this *Kraken) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...
  * @param {int} [params.userref] the orders user reference id
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kraken) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Kraken) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Kraken) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Kraken) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3514,7 +3514,7 @@ func (this *Kraken) cancelOrderBody(ch chan AsyncResult[any], id any, optionalAr
 
 	}
 
-	ch <- AsyncResult[any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
 		"info": response,
 	})}
 	return nil
@@ -4166,12 +4166,12 @@ func (this *Kraken) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Kraken) FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Kraken) FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[*int64] {
+	ch := make(chan AsyncResult[*int64], 1)
 	go this.fetchTimeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Kraken) fetchTimeBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Kraken) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// https://www.kraken.com/en-us/features/api#get-server-time
@@ -4194,7 +4194,7 @@ func (this *Kraken) fetchTimeBody(ch chan AsyncResult[any], optionalArgs ...any)
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 
-	ch <- AsyncResult[any]{Value: this.SafeTimestamp(result, "unixtime")}
+	ch <- AsyncResult[*int64]{Value: this.SafeTimestamp(result, "unixtime")}
 	return nil
 }
 
@@ -4536,7 +4536,7 @@ func (this *Kraken) fetchDepositAddressBody(ch chan AsyncResult[any], code strin
 	ch <- AsyncResult[any]{Value: this.ParseDepositAddress(firstResult, currency)}
 	return nil
 }
-func (this *Kraken) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Kraken) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3",
@@ -4800,7 +4800,7 @@ func (this *Kraken) transferOutBody(ch chan AsyncResult[any], code any, amount a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes361815 map[string]any = MapTyped(r.Value)
+	var retRes361815 map[string]any = r.Value
 	if retRes361815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -4821,12 +4821,12 @@ func (this *Kraken) transferOutBody(ch chan AsyncResult[any], code any, amount a
  * @param {object} [params] Exchange specific parameters
  * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Kraken) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Kraken) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Kraken) transferBody(ch chan AsyncResult[any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Kraken) transferBody(ch chan AsyncResult[map[string]any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4867,7 +4867,7 @@ func (this *Kraken) transferBody(ch chan AsyncResult[any], code string, amount a
 	//
 	var transfer map[string]any = this.ParseTransfer(response, currency)
 
-	ch <- AsyncResult[any]{Value: this.Extend(transfer, map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.Extend(transfer, map[string]any{
 		"amount":      amount,
 		"fromAccount": fromAccountParsed,
 		"toAccount":   toAccountParsed,
@@ -5776,7 +5776,7 @@ func (this *Kraken) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = r.Value.(int64)
+	var res int64 = ParseInt(BoxAbsent(r.Value))
 	return res, nil
 }
 

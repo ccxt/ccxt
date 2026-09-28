@@ -19,7 +19,7 @@ func testFetchTickerBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ticker := r.Value
+	ticker := ccxt.BoxAbsent(r.Value)
 	TestTicker(exchange, skippedProperties, method, ticker, symbol)
 
 	ch <- ccxt.AsyncResult[any]{Value: true}

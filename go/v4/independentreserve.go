@@ -593,12 +593,12 @@ func (this *Independentreserve) fetchBalanceBody(ch chan AsyncResult[any], optio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Independentreserve) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Independentreserve) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Independentreserve) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Independentreserve) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -625,7 +625,7 @@ func (this *Independentreserve) fetchOrderBookBody(ch chan AsyncResult[any], sym
 	var response map[string]any = r1.Value
 	var timestamp *int64 = this.Parse8601(this.SafeString(response, "CreatedTimestampUtc"))
 
-	ch <- AsyncResult[any]{Value: this.ParseOrderBook(response, market["symbol"], timestamp, "BuyOrders", "SellOrders", "Price", "Volume")}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(response, market["symbol"], timestamp, "BuyOrders", "SellOrders", "Price", "Volume")}
 	return nil
 }
 func (this *Independentreserve) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
@@ -686,12 +686,12 @@ func (this *Independentreserve) ParseTicker(ticker any, optionalArgs ...any) map
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Independentreserve) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Independentreserve) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Independentreserve) fetchTickerBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Independentreserve) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -728,7 +728,7 @@ func (this *Independentreserve) fetchTickerBody(ch chan AsyncResult[any], symbol
 	//     "SecondaryCurrencyCode":"Usd",
 	//     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
 	// }
-	ch <- AsyncResult[any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
 	return nil
 }
 func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) map[string]any {
@@ -904,12 +904,12 @@ func (this *Independentreserve) ParseTimeInForce(timeInForce *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Independentreserve) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Independentreserve) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Independentreserve) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Independentreserve) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -936,7 +936,7 @@ func (this *Independentreserve) fetchOrderBody(ch chan AsyncResult[any], id any,
 		market = this.Market(symbol)
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 
@@ -1314,12 +1314,12 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan AsyncResult[any], o
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Independentreserve) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Independentreserve) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Independentreserve) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Independentreserve) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1365,7 +1365,7 @@ func (this *Independentreserve) createOrderBody(ch chan AsyncResult[any], symbol
 		response = r2.Value
 	}
 
-	ch <- AsyncResult[any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
 		"info": response,
 		"id":   GetValue(response, "OrderGuid"),
 	}, market)}
@@ -1382,12 +1382,12 @@ func (this *Independentreserve) createOrderBody(ch chan AsyncResult[any], symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Independentreserve) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Independentreserve) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Independentreserve) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Independentreserve) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1426,7 +1426,7 @@ func (this *Independentreserve) cancelOrderBody(ch chan AsyncResult[any], id any
 	//        "VolumeOrdered": 0.358
 	//    }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
 	return nil
 }
 
@@ -1478,7 +1478,7 @@ func (this *Independentreserve) fetchDepositAddressBody(ch chan AsyncResult[any]
 	ch <- AsyncResult[any]{Value: this.ParseDepositAddress(response)}
 	return nil
 }
-func (this *Independentreserve) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Independentreserve) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        Tag: '3307446684',

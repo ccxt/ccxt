@@ -584,12 +584,12 @@ func (this *Dydx) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Dydx) FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Dydx) FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[*int64] {
+	ch := make(chan AsyncResult[*int64], 1)
 	go this.fetchTimeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Dydx) fetchTimeBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Dydx) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -607,7 +607,7 @@ func (this *Dydx) fetchTimeBody(ch chan AsyncResult[any], optionalArgs ...any) a
 	//     "epoch": 1753024333.466
 	// }
 	//
-	ch <- AsyncResult[any]{Value: this.SafeInteger(response, "epoch")}
+	ch <- AsyncResult[*int64]{Value: this.SafeInteger(response, "epoch")}
 	return nil
 }
 func (this *Dydx) ParseMarket(market any) any {
@@ -1187,12 +1187,12 @@ func (this *Dydx) ParseOrderType(typeVar *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Dydx) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Dydx) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Dydx) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Dydx) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1216,7 +1216,7 @@ func (this *Dydx) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs 
 	}
 	var order map[string]any = r1.Value
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(order)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order)}
 	return nil
 }
 
@@ -1944,12 +1944,12 @@ func (this *Dydx) fetchLatestBlockHeightBody(ch chan EndpointResult[*int64], opt
  * @param {int} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Dydx) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Dydx) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Dydx) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Dydx) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2020,7 +2020,7 @@ func (this *Dydx) createOrderBody(ch chan AsyncResult[any], symbol string, typeV
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 
-	ch <- AsyncResult[any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
 		"info":          result,
 		"id":            orderId,
 		"clientOrderId": GetValue(GetValue(GetValue(GetValue(orderRequest, "value"), "order"), "orderId"), "clientId"),
@@ -2044,12 +2044,12 @@ func (this *Dydx) createOrderBody(ch chan AsyncResult[any], symbol string, typeV
  * @param {int} [params.subAccountId] sub account id, default is 0
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Dydx) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Dydx) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Dydx) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Dydx) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2165,7 +2165,7 @@ func (this *Dydx) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 
-	ch <- AsyncResult[any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
 		"info": result,
 	})}
 	return nil
@@ -2286,12 +2286,12 @@ func (this *Dydx) cancelOrdersBody(ch chan AsyncResult[any], ids any, optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Dydx) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Dydx) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Dydx) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Dydx) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2332,7 +2332,7 @@ func (this *Dydx) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, op
 	//     ]
 	// }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "size")}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "size")}
 	return nil
 }
 func (this *Dydx) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
@@ -2537,12 +2537,12 @@ func (this *Dydx) estimateTxFeeBody(ch chan EndpointResult[map[string]any], mess
  * @param {string} [params.vaultAddress] the vault address for order
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Dydx) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Dydx) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Dydx) transferBody(ch chan AsyncResult[any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Dydx) transferBody(ch chan AsyncResult[map[string]any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2648,7 +2648,7 @@ func (this *Dydx) transferBody(ch chan AsyncResult[any], code string, amount any
 	//     }
 	// }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTransfer(response)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTransfer(response)}
 	return nil
 }
 func (this *Dydx) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
@@ -3473,7 +3473,7 @@ func (this *Dydx) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = r.Value.(int64)
+	var res int64 = ParseInt(BoxAbsent(r.Value))
 	return res, nil
 }
 

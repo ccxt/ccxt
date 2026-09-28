@@ -931,12 +931,12 @@ func (this *Blofin) ParseMarket(market any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Blofin) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Blofin) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Blofin) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Blofin) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -994,7 +994,7 @@ func (this *Blofin) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, 
 	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 	var timestamp *int64 = this.SafeInteger(first, "ts")
 
-	ch <- AsyncResult[any]{Value: this.ParseOrderBook(first, symbol, timestamp)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(first, symbol, timestamp)}
 	return nil
 }
 func (this *Blofin) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
@@ -1070,12 +1070,12 @@ func (this *Blofin) ParseTicker(ticker any, optionalArgs ...any) map[string]any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Blofin) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Blofin) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Blofin) fetchTickerBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Blofin) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1100,7 +1100,7 @@ func (this *Blofin) fetchTickerBody(ch chan AsyncResult[any], symbol string, opt
 	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTicker(first, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(first, market)}
 	return nil
 }
 
@@ -1114,12 +1114,12 @@ func (this *Blofin) fetchTickerBody(ch chan AsyncResult[any], symbol string, opt
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Blofin) FetchMarkPriceAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Blofin) FetchMarkPriceAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchMarkPriceBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Blofin) fetchMarkPriceBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Blofin) fetchMarkPriceBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1144,7 +1144,7 @@ func (this *Blofin) fetchMarkPriceBody(ch chan AsyncResult[any], symbol string, 
 	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTicker(first, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(first, market)}
 	return nil
 }
 
@@ -1575,7 +1575,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan AsyncResult[any], option
 	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)}
 	return nil
 }
-func (this *Blofin) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Blofin) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "fundingRate": "0.00027815",
@@ -1772,7 +1772,7 @@ func (this *Blofin) ParseFundingBalance(response any) any {
 	}
 	return this.SafeBalance(result)
 }
-func (this *Blofin) ParseTradingFee(fee map[string]any, optionalArgs ...any) any {
+func (this *Blofin) ParseTradingFee(fee map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return map[string]any{
@@ -2088,12 +2088,12 @@ func (this *Blofin) ParseOrder(order any, optionalArgs ...any) map[string]any {
  * @param {float} [params.tpsl] whether to force to send the order to the combined TPSL oco order endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Blofin) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Blofin) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Blofin) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Blofin) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2152,7 +2152,7 @@ func (this *Blofin) createOrderBody(ch chan AsyncResult[any], symbol string, typ
 	if isCombinedSlTp || isSlOrTp || isTriggerOrder {
 		var dataDict map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-		ch <- AsyncResult[any]{Value: this.ParseOrder(dataDict, market)}
+		ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(dataDict, market)}
 		return nil
 	}
 	var data []any = SafeListTyped(response, "data")
@@ -2161,7 +2161,7 @@ func (this *Blofin) createOrderBody(ch chan AsyncResult[any], symbol string, typ
 	order["type"] = typeVar
 	order["side"] = side
 
-	ch <- AsyncResult[any]{Value: order}
+	ch <- AsyncResult[map[string]any]{Value: order}
 	return nil
 }
 func (this *Blofin) CreateTpslOrderRequest(symbol any, typeVar string, side string, optionalArgs ...any) map[string]any {
@@ -2247,12 +2247,12 @@ func (this *Blofin) CreateTpslOrderRequest(symbol any, typeVar string, side stri
  * @param {boolean} [params.tpsl] True if cancelling a tpsl order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Blofin) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Blofin) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Blofin) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Blofin) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2297,7 +2297,7 @@ func (this *Blofin) cancelOrderBody(ch chan AsyncResult[any], id any, optionalAr
 		var tpslResponse []any = ListTyped(r1.Value)
 		var first map[string]any = SafeMapTyped(tpslResponse, 0)
 
-		ch <- AsyncResult[any]{Value: first}
+		ch <- AsyncResult[map[string]any]{Value: first}
 		return nil
 	} else if isTrigger != nil && *isTrigger == true {
 
@@ -2308,7 +2308,7 @@ func (this *Blofin) cancelOrderBody(ch chan AsyncResult[any], id any, optionalAr
 		triggerResponse := r2.Value
 		var triggerData map[string]any = SafeMapTyped(triggerResponse, "data")
 
-		ch <- AsyncResult[any]{Value: this.ParseOrder(triggerData, market)}
+		ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(triggerData, market)}
 		return nil
 	}
 
@@ -2320,7 +2320,7 @@ func (this *Blofin) cancelOrderBody(ch chan AsyncResult[any], id any, optionalAr
 	var data []any = SafeListTyped(response, "data")
 	var order map[string]any = SafeMapTyped(data, 0)
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
 	return nil
 }
 
@@ -3241,12 +3241,12 @@ func (this *Blofin) cancelOrdersBody(ch chan AsyncResult[any], ids any, optional
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Blofin) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Blofin) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Blofin) transferBody(ch chan AsyncResult[any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Blofin) transferBody(ch chan AsyncResult[map[string]any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3276,7 +3276,7 @@ func (this *Blofin) transferBody(ch chan AsyncResult[any], code string, amount a
 	var response map[string]any = r1.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTransfer(data, currency)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTransfer(data, currency)}
 	return nil
 }
 func (this *Blofin) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
@@ -3788,7 +3788,7 @@ func (this *Blofin) fetchLeverageBody(ch chan AsyncResult[any], symbol any, opti
 	ch <- AsyncResult[any]{Value: this.ParseLeverage(data, market)}
 	return nil
 }
-func (this *Blofin) ParseLeverage(leverage any, optionalArgs ...any) any {
+func (this *Blofin) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "instId")
@@ -4055,7 +4055,7 @@ func (this *Blofin) fetchMarginModeBody(ch chan AsyncResult[any], symbol any, op
 	ch <- AsyncResult[any]{Value: this.ParseMarginMode(data, market)}
 	return nil
 }
-func (this *Blofin) ParseMarginMode(marginMode any, optionalArgs ...any) any {
+func (this *Blofin) ParseMarginMode(marginMode any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return map[string]any{

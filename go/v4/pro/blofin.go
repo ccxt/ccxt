@@ -1062,8 +1062,8 @@ func (this *Blofin) HandleFundingRate(client any, message map[string]any) {
 	//
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
-	var fundingRate any = this.ParseFundingRate(first)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(fundingRate, "symbol"))
+	var fundingRate map[string]any = this.ParseFundingRate(first)
+	var symbol *string = ccxt.SafeStringPtr(fundingRate["symbol"])
 	ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("fundingRate:", symbol))
 	client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
