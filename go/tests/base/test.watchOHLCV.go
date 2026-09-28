@@ -61,7 +61,11 @@ func testWatchOHLCVBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchan
 				if r.Err != nil {
 					panic(r.Err)
 				}
-				response = (UnWrapType(r.Value))
+				var rValueBox any = nil
+				if r.Value != nil {
+					rValueBox = r.Value
+				}
+				response = (UnWrapType(rValueBox))
 				PanicOnError(response)
 				if IsEqual(response, nil) {
 					panic(Error(Add(exchange.GetId(), " watch returned undefined response")))

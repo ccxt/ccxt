@@ -1021,7 +1021,9 @@ func (this *Bingx) Describe() any {
 				"500":                  ExchangeError,
 				"504":                  ExchangeError,
 				"100001":               AuthenticationError,
+				"100004":               PermissionDenied,
 				"100412":               AuthenticationError,
+				"100413":               AuthenticationError,
 				"100202":               InsufficientFunds,
 				"100204":               BadRequest,
 				"100400":               BadRequest,
@@ -1040,6 +1042,15 @@ func (this *Bingx) Describe() any {
 				"100437":               BadRequest,
 				"101204":               InsufficientFunds,
 				"110425":               InvalidOrder,
+				"100490":               BadSymbol,
+				"101481":               DuplicateOrderId,
+				"109201":               DuplicateOrderId,
+				"109400":               BadRequest,
+				"109418":               BadSymbol,
+				"109421":               OrderNotFound,
+				"109425":               BadSymbol,
+				"109500":               OperationFailed,
+				"110500":               OperationFailed,
 				"Insufficient assets":  InsufficientFunds,
 				"illegal transferType": BadRequest,
 			},
@@ -1781,11 +1792,11 @@ func (this *Bingx) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes122119 []any = ListTyped(r1.Value)
-		if retRes122119 == nil {
+		var retRes123219 []any = ListTyped(r1.Value)
+		if retRes123219 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes122119}
+			ch <- AsyncResult[any]{Value: retRes123219}
 		}
 		return nil
 	}
@@ -2626,11 +2637,11 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optiona
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes187719 []any = ListTyped(r1.Value)
-		if retRes187719 == nil {
+		var retRes188819 []any = ListTyped(r1.Value)
+		if retRes188819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes187719}
+			ch <- AsyncResult[any]{Value: retRes188819}
 		}
 		return nil
 	}
@@ -2746,11 +2757,11 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes195419 []any = ListTyped(r1.Value)
-		if retRes195419 == nil {
+		var retRes196519 []any = ListTyped(r1.Value)
+		if retRes196519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes195419}
+			ch <- AsyncResult[any]{Value: retRes196519}
 		}
 		return nil
 	}
@@ -3989,11 +4000,11 @@ func (this *Bingx) createMarketOrderWithCostBody(ch chan AsyncResult[map[string]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes310915 map[string]any = r.Value
-	if retRes310915 == nil {
+	var retRes312015 map[string]any = r.Value
+	if retRes312015 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes310915}
+		ch <- AsyncResult[map[string]any]{Value: retRes312015}
 	}
 	return nil
 }
@@ -4023,11 +4034,11 @@ func (this *Bingx) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes312315 map[string]any = r.Value
-	if retRes312315 == nil {
+	var retRes313415 map[string]any = r.Value
+	if retRes313415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes312315}
+		ch <- AsyncResult[any]{Value: retRes313415}
 	}
 	return nil
 }
@@ -4057,11 +4068,11 @@ func (this *Bingx) createMarketSellOrderWithCostBody(ch chan AsyncResult[any], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes313715 map[string]any = r.Value
-	if retRes313715 == nil {
+	var retRes314815 map[string]any = r.Value
+	if retRes314815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes313715}
+		ch <- AsyncResult[any]{Value: retRes314815}
 	}
 	return nil
 }
@@ -6388,11 +6399,11 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes538619 []any = ListTyped(r1.Value)
-		if retRes538619 == nil {
+		var retRes539719 []any = ListTyped(r1.Value)
+		if retRes539719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes538619}
+			ch <- AsyncResult[any]{Value: retRes539719}
 		}
 		return nil
 	}
@@ -6665,11 +6676,11 @@ func (this *Bingx) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...a
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp6211 := <-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(requestUntil, paramsUntil))
-	if listEp6211.Err != nil {
-		panic(listEp6211.Err)
+	listEp6222 := <-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(requestUntil, paramsUntil))
+	if listEp6222.Err != nil {
+		panic(listEp6222.Err)
 	}
-	var response []any = listEp6211.Value
+	var response []any = listEp6222.Value
 
 	//
 	//    [
@@ -6741,11 +6752,11 @@ func (this *Bingx) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs .
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp6280 := <-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(requestUntil, paramsUntil))
-	if listEp6280.Err != nil {
-		panic(listEp6280.Err)
+	listEp6291 := <-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(requestUntil, paramsUntil))
+	if listEp6291.Err != nil {
+		panic(listEp6291.Err)
 	}
-	var response []any = listEp6280.Value
+	var response []any = listEp6291.Value
 
 	//
 	//    [
@@ -6983,11 +6994,11 @@ func (this *Bingx) addMarginBody(ch chan AsyncResult[map[string]any], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes582615 map[string]any = MapTyped(r.Value)
-	if retRes582615 == nil {
+	var retRes583715 map[string]any = MapTyped(r.Value)
+	if retRes583715 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes582615}
+		ch <- AsyncResult[map[string]any]{Value: retRes583715}
 	}
 	return nil
 }
@@ -7009,11 +7020,11 @@ func (this *Bingx) reduceMarginBody(ch chan EndpointResult[map[string]any], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes583315 map[string]any = MapTyped(r.Value)
-	if retRes583315 == nil {
+	var retRes584415 map[string]any = MapTyped(r.Value)
+	if retRes584415 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes583315, Raw: retRes583315}
+		ch <- EndpointResult[map[string]any]{Value: retRes584415, Raw: retRes584415}
 	}
 	return nil
 }

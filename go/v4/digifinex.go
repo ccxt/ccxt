@@ -34,6 +34,7 @@ func (this *Digifinex) Describe() any {
 			"addMargin":                      true,
 			"cancelOrder":                    true,
 			"cancelOrders":                   true,
+			"cancelOrdersForSymbols":         true,
 			"createMarketBuyOrderWithCost":   true,
 			"createMarketOrderWithCost":      false,
 			"createMarketSellOrderWithCost":  false,
@@ -785,12 +786,12 @@ func (this *Digifinex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs .
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		listRecv779 := r.Value
-		var retRes58319 []any = listRecv779
-		if retRes58319 == nil {
+		listRecv780 := r.Value
+		var retRes58419 []any = listRecv780
+		if retRes58419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes58319}
+			ch <- AsyncResult[any]{Value: retRes58419}
 		}
 		return nil
 	}
@@ -799,12 +800,12 @@ func (this *Digifinex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs .
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv788 := r1.Value
-	var retRes58515 []any = listRecv788
-	if retRes58515 == nil {
+	listRecv789 := r1.Value
+	var retRes58615 []any = listRecv789
+	if retRes58615 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes58515}
+		ch <- AsyncResult[any]{Value: retRes58615}
 	}
 	return nil
 }
@@ -2614,11 +2615,11 @@ func (this *Digifinex) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes198315 map[string]any = r1.Value
-	if retRes198315 == nil {
+	var retRes198415 map[string]any = r1.Value
+	if retRes198415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes198315}
+		ch <- AsyncResult[any]{Value: retRes198415}
 	}
 	return nil
 }
@@ -2734,41 +2735,44 @@ func (this *Digifinex) cancelOrderBody(ch chan AsyncResult[map[string]any], id a
 	} else {
 
 		ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
-			"info":    response,
-			"orderId": this.SafeString(response, "data"),
+			"info": response,
+			"id":   this.SafeString(response, "data"),
 		})}
 		return nil
 	}
 }
-func (this *Digifinex) ParseCancelOrders(response any) any {
+func (this *Digifinex) ParseCancelOrders(response any, optionalArgs ...any) []any {
+	var symbolsById map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = symbolsById
 	var success []any = SafeListTyped(response, "success")
 	var error []any = SafeListTyped(response, "error")
 	var result []any = []any{}
 	for i := 0; i < len(success); i++ {
-		var order any = func() any {
+		var order *string = SafeStringPtr(func() any {
 			if i >= 0 && i < len(success) {
 				return DerefScalar(success[i])
 			}
 			return nil
-		}()
+		}())
 		result = append(result, this.SafeOrder(map[string]any{
 			"info":   order,
 			"id":     order,
+			"symbol": this.SafeString(symbolsById, order),
 			"status": "canceled",
 		}))
 	}
 	for i := 0; i < len(error); i++ {
-		var order any = func() any {
+		var order *string = SafeStringPtr(func() any {
 			if i >= 0 && i < len(error) {
 				return DerefScalar(error[i])
 			}
 			return nil
-		}()
+		}())
 		result = append(result, this.SafeOrder(map[string]any{
-			"info":          order,
-			"id":            this.SafeString2(order, "order-id", "order_id"),
-			"status":        "failed",
-			"clientOrderId": this.SafeString(order, "client-order-id"),
+			"info":   order,
+			"id":     order,
+			"symbol": this.SafeString(symbolsById, order),
+			"status": "failed",
 		}))
 	}
 	return result
@@ -2779,9 +2783,11 @@ func (this *Digifinex) ParseCancelOrders(response any) any {
  * @name digifinex#cancelOrders
  * @description cancel multiple orders
  * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+ * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
  * @param {string[]} ids order ids
- * @param {string} symbol not used by cancelOrders ()
- * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [symbol] unified market symbol, required for swap markets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the request body is an array)
+ * @param {string} [params.type] 'spot', 'margin' or 'swap', defaults to the type of the symbol's market or options.defaultType
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Digifinex) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -2803,19 +2809,49 @@ func (this *Digifinex) cancelOrdersBody(ch chan AsyncResult[any], ids any, optio
 			panic(r.Err)
 		}
 	}
-	var defaultType *string = this.SafeString(this.Options, "defaultType", "spot")
-	var orderType *string = this.SafeString(params, "type", defaultType)
-	var paramsOmitted map[string]any = this.OmitDict(params, "type")
+	var market map[string]any = nil
+	if symbol != nil {
+		market = this.Market(symbol)
+	}
+	marketType, paramsOmitted := this.HandleMarketTypeAndParams("cancelOrders", market, params)
+	if marketType != nil && *marketType == "swap" {
+		if market == nil {
+			panic(ArgumentsRequired(this.Id + " cancelOrders() requires a symbol argument for swap markets"))
+		}
+		var marketSymbol *string = SafeStringPtr(market["symbol"])
+		var orders []any = []any{}
+		for i := 0; i < GetArrayLength(ids); i++ {
+			var orderId *string = SafeStringPtr(GetValue(ids, i))
+			var orderItem map[string]any = map[string]any{
+				"id":     orderId,
+				"symbol": marketSymbol,
+			}
+			orders = append(orders, orderItem)
+		}
+
+		r1 := <-this.CancelOrdersForSymbolsAsync(orders, paramsOmitted)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		listRecv2669, _ := r1.Value, r1.Value != nil
+		var retRes213119 []any = listRecv2669
+		if retRes213119 == nil {
+			ch <- AsyncResult[any]{Value: nil}
+		} else {
+			ch <- AsyncResult[any]{Value: retRes213119}
+		}
+		return nil
+	}
 	var request map[string]any = map[string]any{
-		"market":   orderType,
+		"market":   marketType,
 		"order_id": Join(ids, ","),
 	}
 
-	r1 := <-this.PrivateSpotPostSpotOrderCancel(this.Extend(request, paramsOmitted))
-	if r1.Err != nil {
-		panic(r1.Err)
+	r2 := <-this.PrivateSpotPostSpotOrderCancel(this.Extend(request, paramsOmitted))
+	if r2.Err != nil {
+		panic(r2.Err)
 	}
-	var response map[string]any = r1.Value
+	var response map[string]any = r2.Value
 
 	//
 	//     {
@@ -2832,13 +2868,168 @@ func (this *Digifinex) cancelOrdersBody(ch chan AsyncResult[any], ids any, optio
 	ch <- AsyncResult[any]{Value: this.ParseCancelOrders(response)}
 	return nil
 }
+
+/**
+ * @method
+ * @name digifinex#cancelOrdersForSymbols
+ * @description cancel multiple orders for multiple symbols
+ * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+ * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
+ * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, all orders must be of the same market type (spot or swap), example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+ * @param {object} [params] extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the request body is an array)
+ * @param {string} [params.type] 'spot' or 'margin' for spot markets, defaults to 'spot'
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Digifinex) CancelOrdersForSymbolsAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
+	go this.cancelOrdersForSymbolsBody(ch, orders, optionalArgs...)
+	return ch
+}
+func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]any], orders any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var ids []any = []any{}
+	var symbols []any = []any{}
+	var symbolsById map[string]any = map[string]any{}
+	var marketType any = nil
+	for i := 0; i < GetArrayLength(orders); i++ {
+		var order map[string]any = MapTyped(GetValue(orders, i))
+		var id *string = this.SafeString(order, "id")
+		if id == nil {
+			panic(ArgumentsRequired(this.Id + " cancelOrdersForSymbols() requires an id for each order"))
+		}
+		var symbol *string = this.SafeString(order, "symbol")
+		if symbol == nil {
+			panic(ArgumentsRequired(this.Id + " cancelOrdersForSymbols() requires a symbol for each order"))
+		}
+		var market map[string]any = this.Market(symbol)
+		var orderMarketType *string = SafeStringPtr(market["type"])
+		if marketType == nil {
+			marketType = DerefScalar(orderMarketType)
+		} else if !IsEqual(marketType, orderMarketType) {
+			panic(BadRequest(this.Id + " cancelOrdersForSymbols() requires all orders to be of the same market type (spot or swap)"))
+		}
+		ids = append(ids, id)
+		symbols = append(symbols, market["symbol"])
+		AddElementToObject(symbolsById, id, market["symbol"])
+	}
+	if IsEqual(marketType, "swap") {
+		var numIds int = len(ids)
+		if numIds > 20 {
+			panic(BadRequest(this.Id + " cancelOrdersForSymbols() accepts up to 20 orders for swap markets"))
+		}
+		var ordersRequests []any = []any{}
+		for i := 0; i < len(ids); i++ {
+			var market map[string]any = this.Market(func() any {
+				if i >= 0 && i < len(symbols) {
+					return DerefScalar(symbols[i])
+				}
+				return nil
+			}())
+			var marketId *string = SafeStringPtr(market["id"])
+			var orderId *string = SafeStringPtr(func() any {
+				if i >= 0 && i < len(ids) {
+					return DerefScalar(ids[i])
+				}
+				return nil
+			}())
+			ordersRequests = append(ordersRequests, map[string]any{
+				"instrument_id": marketId,
+				"order_id":      orderId,
+			})
+		}
+
+		r1 := <-this.PrivateSwapPostTradeBatchCancelOrder(ordersRequests)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var swapResponse map[string]any = r1.Value // don't extend with params, otherwise the array body is turned into an object
+		//
+		//     {
+		//         "code": 0,
+		//         "data": [
+		//             "1546771720487047168",
+		//             "1546771720487047169"
+		//         ]
+		//     }
+		//
+		// ids that were not canceled are absent from data
+		var data []any = SafeListTypedDefault(swapResponse, "data", []any{})
+		var result []any = []any{}
+		for i := 0; i < len(ids); i++ {
+			var orderId *string = SafeStringPtr(func() any {
+				if i >= 0 && i < len(ids) {
+					return DerefScalar(ids[i])
+				}
+				return nil
+			}())
+			var isCanceled bool = this.InArray(orderId, data)
+			var status string = func() string {
+				if isCanceled {
+					return "canceled"
+				}
+				return "failed"
+			}()
+			result = append(result, this.SafeOrder(map[string]any{
+				"info": orderId,
+				"id":   orderId,
+				"symbol": func() any {
+					if i >= 0 && i < len(symbols) {
+						return DerefScalar(symbols[i])
+					}
+					return nil
+				}(),
+				"status": status,
+			}))
+		}
+
+		ch <- AsyncResult[[]any]{Value: result}
+		return nil
+	}
+	requestType, paramsRequest := this.HandleMarketTypeAndParams("cancelOrdersForSymbols", nil, params, "spot")
+	var request map[string]any = map[string]any{
+		"market":   requestType,
+		"order_id": Join(ids, ","),
+	}
+
+	r2 := <-this.PrivateSpotPostSpotOrderCancel(this.Extend(request, paramsRequest))
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	var response map[string]any = r2.Value
+
+	//
+	//     {
+	//         "code": 0,
+	//         "success": [
+	//             "198361cecdc65f9c8c9bb2fa68faec40",
+	//             "3fb0d98e51c18954f10d439a9cf57de0"
+	//         ],
+	//         "error": [
+	//             "78a7104e3c65cc0c5a212a53e76d0205"
+	//         ]
+	//     }
+	//
+	ch <- AsyncResult[[]any]{Value: this.ParseCancelOrders(response, symbolsById)}
+	return nil
+}
 func (this *Digifinex) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
-		"0": "open",
-		"1": "open",
-		"2": "closed",
-		"3": "canceled",
-		"4": "canceled",
+		"-1": "canceled",
+		"0":  "open",
+		"1":  "open",
+		"2":  "closed",
+		"3":  "canceled",
+		"4":  "canceled",
 	}
 	return this.SafeString(statuses, status, status)
 }
@@ -2912,6 +3103,7 @@ func (this *Digifinex) ParseOrder(order any, optionalArgs ...any) map[string]any
 	var lastTradeTimestamp *int64 = nil
 	var timeInForce *string = nil
 	var typeVar any = nil
+	var reduceOnly any = nil
 	var side any
 	if derefPtr := this.SafeString(order, "type"); derefPtr != nil {
 		side = *derefPtr
@@ -2935,14 +3127,19 @@ func (this *Digifinex) ParseOrder(order any, optionalArgs ...any) map[string]any
 				typeVar = "market"
 			}
 		}
+		// 1 open long, 2 open short, 3 close long, 4 close short
 		if side == "1" {
-			side = "open long"
+			side = "buy"
+			reduceOnly = false
 		} else if side == "2" {
-			side = "open short"
+			side = "sell"
+			reduceOnly = false
 		} else if side == "3" {
-			side = "close long"
+			side = "sell"
+			reduceOnly = true
 		} else if side == "4" {
-			side = "close short"
+			side = "buy"
+			reduceOnly = true
 		}
 		timestamp = this.SafeInteger(order, "insert_time")
 		lastTradeTimestamp = this.SafeInteger(order, "time_stamp")
@@ -2984,6 +3181,7 @@ func (this *Digifinex) ParseOrder(order any, optionalArgs ...any) map[string]any
 		"side":               side,
 		"price":              this.SafeNumber(order, "price"),
 		"triggerPrice":       nil,
+		"reduceOnly":         reduceOnly,
 		"amount":             this.SafeNumber2(order, "amount", "size"),
 		"filled":             this.SafeNumber2(order, "executed_amount", "filled_qty"),
 		"remaining":          nil,
@@ -3949,11 +4147,11 @@ func (this *Digifinex) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes298515 []any = r.Value
-	if retRes298515 == nil {
+	var retRes311715 []any = r.Value
+	if retRes311715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes298515}
+		ch <- AsyncResult[any]{Value: retRes311715}
 	}
 	return nil
 }
@@ -3990,11 +4188,11 @@ func (this *Digifinex) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes300015 []any = r.Value
-	if retRes300015 == nil {
+	var retRes313215 []any = r.Value
+	if retRes313215 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes300015}
+		ch <- AsyncResult[any]{Value: retRes313215}
 	}
 	return nil
 }
@@ -4650,11 +4848,11 @@ func (this *Digifinex) fetchFundingIntervalBody(ch chan AsyncResult[map[string]a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes347915 map[string]any = r.Value
-	if retRes347915 == nil {
+	var retRes361115 map[string]any = r.Value
+	if retRes361115 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes347915}
+		ch <- AsyncResult[map[string]any]{Value: retRes361115}
 	}
 	return nil
 }
@@ -5821,11 +6019,11 @@ func (this *Digifinex) addMarginBody(ch chan AsyncResult[map[string]any], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes437515 map[string]any = MapTyped(r.Value)
-	if retRes437515 == nil {
+	var retRes450715 map[string]any = MapTyped(r.Value)
+	if retRes450715 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes437515}
+		ch <- AsyncResult[map[string]any]{Value: retRes450715}
 	}
 	return nil
 }
@@ -5858,11 +6056,11 @@ func (this *Digifinex) reduceMarginBody(ch chan EndpointResult[map[string]any], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes439215 map[string]any = MapTyped(r.Value)
-	if retRes439215 == nil {
+	var retRes452415 map[string]any = MapTyped(r.Value)
+	if retRes452415 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes439215, Raw: retRes439215}
+		ch <- EndpointResult[map[string]any]{Value: retRes452415, Raw: retRes452415}
 	}
 	return nil
 }
@@ -6571,9 +6769,11 @@ func (this *Digifinex) CancelOrder(id string, options ...CancelOrderOptions) (Or
  * @name digifinex#cancelOrders
  * @description cancel multiple orders
  * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+ * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
  * @param {string[]} ids order ids
- * @param {string} symbol not used by cancelOrders ()
- * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [symbol] unified market symbol, required for swap markets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the request body is an array)
+ * @param {string} [params.type] 'spot', 'margin' or 'swap', defaults to the type of the symbol's market or options.defaultType
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Digifinex) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
@@ -6584,6 +6784,32 @@ func (this *Digifinex) CancelOrders(ids []string, options ...CancelOrdersOptions
 		opt(&opts)
 	}
 	r := <-this.CancelOrdersAsync(ids, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	var res []Order = NewOrderArray(r.Value)
+	return res, nil
+}
+
+/**
+ * @method
+ * @name digifinex#cancelOrdersForSymbols
+ * @description cancel multiple orders for multiple symbols
+ * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+ * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
+ * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, all orders must be of the same market type (spot or swap), example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+ * @param {object} [params] extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the request body is an array)
+ * @param {string} [params.type] 'spot' or 'margin' for spot markets, defaults to 'spot'
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Digifinex) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
+
+	opts := CancelOrdersForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.CancelOrdersForSymbolsAsync(orders, opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -7265,9 +7491,6 @@ func (this *Digifinex) CancelAllOrdersAfter(timeout int64, options ...CancelAllO
 }
 func (this *Digifinex) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
 	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Digifinex) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
 }
 func (this *Digifinex) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
 	return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)

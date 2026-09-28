@@ -2615,7 +2615,7 @@ func (this *Bittrade) cancelOrdersBody(ch chan AsyncResult[any], ids any, option
 	ch <- AsyncResult[any]{Value: this.ParseCancelOrders(response)}
 	return nil
 }
-func (this *Bittrade) ParseCancelOrders(orders any) any {
+func (this *Bittrade) ParseCancelOrders(orders any) []any {
 	//
 	//    {
 	//        "success": [

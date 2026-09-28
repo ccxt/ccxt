@@ -1543,7 +1543,7 @@ func (this *Bitopro) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Bitopro) ParseCancelOrders(data any) any {
+func (this *Bitopro) ParseCancelOrders(data any) []any {
 	var dataKeys []string = ObjectKeys(data)
 	var orders []any = []any{}
 	for i := 0; i < len(dataKeys); i++ {

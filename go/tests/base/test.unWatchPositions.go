@@ -65,7 +65,11 @@ func testUnWatchPositionsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICore
 			if r.Err != nil {
 				panic(r.Err)
 			}
-			positionsSubscription = (UnWrapType(r.Value))
+			var rValueBox any = nil
+			if r.Value != nil {
+				rValueBox = r.Value
+			}
+			positionsSubscription = (UnWrapType(rValueBox))
 			PanicOnError(positionsSubscription)
 			// trigger a position update
 			exchange.Spawn(CreateOrderAfterDelayAsync, exchange)
@@ -75,7 +79,11 @@ func testUnWatchPositionsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICore
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			positionsSubscription = (UnWrapType(r1.Value))
+			var r1ValueBox any = nil
+			if r1.Value != nil {
+				r1ValueBox = r1.Value
+			}
+			positionsSubscription = (UnWrapType(r1ValueBox))
 			PanicOnError(positionsSubscription)
 			return nil
 		}()
@@ -180,7 +188,11 @@ func testUnWatchPositionsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICore
 			if r4.Err != nil {
 				panic(r4.Err)
 			}
-			resubscribeResponse = (UnWrapType(r4.Value))
+			var r4ValueBox any = nil
+			if r4.Value != nil {
+				r4ValueBox = r4.Value
+			}
+			resubscribeResponse = (UnWrapType(r4ValueBox))
 			PanicOnError(resubscribeResponse)
 			exchange.Spawn(CreateOrderAfterDelayAsync, exchange)
 
@@ -188,7 +200,11 @@ func testUnWatchPositionsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICore
 			if r5.Err != nil {
 				panic(r5.Err)
 			}
-			resubscribeResponse = (UnWrapType(r5.Value))
+			var r5ValueBox any = nil
+			if r5.Value != nil {
+				r5ValueBox = r5.Value
+			}
+			resubscribeResponse = (UnWrapType(r5ValueBox))
 			PanicOnError(resubscribeResponse)
 			return nil
 		}()

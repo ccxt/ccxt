@@ -3902,12 +3902,12 @@ func (this *Predictfun) HandleUnSubscription(client any, subscription any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Predictfun) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
+	ch := make(chan ccxt.AsyncResult[[]any], 1)
 	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) watchOrdersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Predictfun) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -3952,7 +3952,17 @@ func (this *Predictfun) watchOrdersBody(ch chan ccxt.AsyncResult[any], optionalA
 		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(outcomeResolved, limitResolved)
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: this.FilterByOutcomeSinceLimit(orders, outcomeResolved, since, limitResolved, true)}
+	var resolved []any
+	switch resolvedBox := this.FilterByOutcomeSinceLimit(orders, outcomeResolved, since, limitResolved, true).(type) {
+	case []any:
+		resolved = resolvedBox
+	case ccxt.IArrayCache:
+		resolved = resolvedBox.ToArray()
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not []any"))
+	}
+	ch <- ccxt.AsyncResult[[]any]{Value: resolved}
 	return nil
 }
 
@@ -3967,12 +3977,12 @@ func (this *Predictfun) watchOrdersBody(ch chan ccxt.AsyncResult[any], optionalA
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func (this *Predictfun) WatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) WatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
+	ch := make(chan ccxt.AsyncResult[[]any], 1)
 	go this.watchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) watchMyTradesBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Predictfun) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -4014,7 +4024,17 @@ func (this *Predictfun) watchMyTradesBody(ch chan ccxt.AsyncResult[any], optiona
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(outcomeResolved, limitResolved)
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: this.FilterByOutcomeSinceLimit(trades, outcomeResolved, since, limitResolved, true)}
+	var resolved1 []any
+	switch resolved1Box := this.FilterByOutcomeSinceLimit(trades, outcomeResolved, since, limitResolved, true).(type) {
+	case []any:
+		resolved1 = resolved1Box
+	case ccxt.IArrayCache:
+		resolved1 = resolved1Box.ToArray()
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not []any"))
+	}
+	ch <- ccxt.AsyncResult[[]any]{Value: resolved1}
 	return nil
 }
 

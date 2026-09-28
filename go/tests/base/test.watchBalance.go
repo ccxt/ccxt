@@ -45,7 +45,11 @@ func testWatchBalanceBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExch
 				if r.Err != nil {
 					panic(r.Err)
 				}
-				response = (UnWrapType(r.Value))
+				var rValueBox any = nil
+				if r.Value != nil {
+					rValueBox = r.Value
+				}
+				response = (UnWrapType(rValueBox))
 				PanicOnError(response)
 				return nil
 			}()

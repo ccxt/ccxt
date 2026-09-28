@@ -1256,12 +1256,12 @@ func (this *PredictionExchange) cancelOrderBody(ch chan AsyncResult[map[string]a
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *PredictionExchange) WatchTickerAsync(outcome string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *PredictionExchange) WatchTickerAsync(outcome string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.watchTickerBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) watchTickerBody(ch chan AsyncResult[any], outcome string, optionalArgs ...any) any {
+func (this *PredictionExchange) watchTickerBody(ch chan AsyncResult[map[string]any], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1303,12 +1303,12 @@ func (this *PredictionExchange) watchOrderBookBody(ch chan AsyncResult[OrderBook
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
  */
-func (this *PredictionExchange) WatchTradesAsync(outcome any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *PredictionExchange) WatchTradesAsync(outcome any, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.watchTradesBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) watchTradesBody(ch chan AsyncResult[any], outcome any, optionalArgs ...any) any {
+func (this *PredictionExchange) watchTradesBody(ch chan AsyncResult[[]any], outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1677,12 +1677,12 @@ func (this *PredictionExchange) createMarketSellOrderWithCostBody(ch chan AsyncR
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *PredictionExchange) WatchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *PredictionExchange) WatchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.watchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) watchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *PredictionExchange) watchTickersBody(ch chan AsyncResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcomes []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1702,12 +1702,12 @@ func (this *PredictionExchange) watchTickersBody(ch chan AsyncResult[any], optio
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PredictionExchange) WatchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *PredictionExchange) WatchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) watchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *PredictionExchange) watchOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1731,12 +1731,12 @@ func (this *PredictionExchange) watchOrdersBody(ch chan AsyncResult[any], option
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
  */
-func (this *PredictionExchange) WatchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *PredictionExchange) WatchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.watchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) watchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *PredictionExchange) watchMyTradesBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1760,12 +1760,12 @@ func (this *PredictionExchange) watchMyTradesBody(ch chan AsyncResult[any], opti
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *PredictionExchange) WatchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *PredictionExchange) WatchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.watchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) watchPositionsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *PredictionExchange) watchPositionsBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcomes []string = GetArgStringSlice(optionalArgs, 0, nil)

@@ -3676,16 +3676,45 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			if r3.Err != nil {
 				panic(r3.Err)
 			}
-			var checkOrderRequest any = this.UrlencodedToDict(exchange.GetLast_request_body())
-			var algoOrderIdDefined bool = (!IsEqual(GetValue(checkOrderRequest, "algoOrderId"), nil))
-			Assert(algoOrderIdDefined, "binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined")
-			var clientAlgoIdSwap any = GetValue(swapAlgoOrderRequest, "clientAlgoId")
-			var swapAlgoIdString string = swapId
-			Assert(IsEqual(StartsWith(clientAlgoIdSwap, swapAlgoIdString), true), Add(Add(Add("binance - swap clientOrderId: ", clientAlgoIdSwap), " does not start with swapId"), swapAlgoIdString))
 			return nil
 		}(this)
 
 	}
+	var clientAlgoIdSwap any = GetValue(swapAlgoOrderRequest, "clientAlgoId")
+	Assert(!IsEqual(clientAlgoIdSwap, nil), "binance - swap conditional order must send clientAlgoId")
+	Assert(IsEqual(StartsWith(clientAlgoIdSwap, swapIdString), true), Add(Add(Add("binance - swap clientAlgoId: ", clientAlgoIdSwap), " does not start with swapId"), swapIdString))
+	// inverse swap conditional order
+	var inverseAlgoOrderRequest any = map[string]any{}
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						inverseAlgoOrderRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+
+			r4 := <-exchange.CreateOrderAsync("BTC/USD:BTC", "limit", "buy", 1, 20000, map[string]any{
+				"triggerPrice": 21000,
+			})
+			if r4.Err != nil {
+				panic(r4.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	var clientAlgoIdInverse any = GetValue(inverseAlgoOrderRequest, "clientAlgoId")
+	Assert(!IsEqual(clientAlgoIdInverse, nil), "binance - inverse swap conditional order must send clientAlgoId")
+	Assert(IsEqual(StartsWith(clientAlgoIdInverse, inverseSwapId), true), Add(Add(Add("binance - inverse swap clientAlgoId: ", clientAlgoIdInverse), " does not start with inverseSwapId"), inverseSwapId))
 	var createOrdersRequest any = map[string]any{}
 
 	{
@@ -3716,9 +3745,9 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				"amount": 1,
 			}}
 
-			r4 := <-exchange.CreateOrdersAsync(orders)
-			if r4.Err != nil {
-				panic(r4.Err)
+			r5 := <-exchange.CreateOrdersAsync(orders)
+			if r5.Err != nil {
+				panic(r5.Err)
 			}
 			return nil
 		}(this)
@@ -3730,6 +3759,89 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		var currentClientOrderId any = current["newClientOrderId"]
 		Assert(IsEqual(StartsWith(currentClientOrderId, swapIdString), true), Add(Add(Add("binance createOrders - clientOrderId: ", currentClientOrderId), " does not start with swapId"), swapIdString))
 	}
+	// linear conditional orders cannot be batched
+	var linearConditionalBatchNotSupported bool = false
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						linearConditionalBatchNotSupported = (IsInstance(e, NotSupported))
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+			var linearConditionalOrders []any = []any{map[string]any{
+				"symbol": "BTC/USDT:USDT",
+				"type":   "limit",
+				"side":   "buy",
+				"amount": 1,
+				"price":  20000,
+				"params": map[string]any{
+					"triggerPrice": 21000,
+				},
+			}}
+
+			r6 := <-exchange.CreateOrdersAsync(linearConditionalOrders)
+			if r6.Err != nil {
+				panic(r6.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	Assert(linearConditionalBatchNotSupported, "binance createOrders - linear conditional order must throw NotSupported")
+	// inverse conditional orders are batched in the regular (non-algo) format
+	var inverseConditionalBatchRequest any = map[string]any{}
+	var inverseConditionalBatchNotSupported bool = false
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						inverseConditionalBatchNotSupported = (IsInstance(e, NotSupported))
+						inverseConditionalBatchRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+			var inverseConditionalOrders []any = []any{map[string]any{
+				"symbol": "BTC/USD:BTC",
+				"type":   "limit",
+				"side":   "buy",
+				"amount": 1,
+				"price":  20000,
+				"params": map[string]any{
+					"triggerPrice": 21000,
+				},
+			}}
+
+			r7 := <-exchange.CreateOrdersAsync(inverseConditionalOrders)
+			if r7.Err != nil {
+				panic(r7.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	Assert(!inverseConditionalBatchNotSupported, "binance createOrders - inverse conditional order must not throw NotSupported")
+	var inverseConditionalBatchOrders any = exchange.SafeList(inverseConditionalBatchRequest, "batchOrders", []any{})
+	var inverseConditionalBatchOrder any = exchange.SafeDict(inverseConditionalBatchOrders, 0, map[string]any{})
+	var inverseConditionalClientOrderId any = ccxt.DerefScalar(exchange.SafeString(inverseConditionalBatchOrder, "newClientOrderId"))
+	Assert(!IsEqual(inverseConditionalClientOrderId, nil), "binance createOrders - inverse conditional order must send newClientOrderId")
+	Assert(IsEqual(StartsWith(inverseConditionalClientOrderId, inverseSwapId), true), Add(Add(Add("binance createOrders - inverse conditional clientOrderId: ", inverseConditionalClientOrderId), " does not start with inverseSwapId"), inverseSwapId))
 	if !EvalTruthy(IsSync()) {
 
 		<-Close(exchange)

@@ -73,7 +73,11 @@ func testWatchBidsAsksHelperBody(ch chan ccxt.AsyncResult[any], exchange ccxt.IC
 				if r.Err != nil {
 					panic(r.Err)
 				}
-				response = r.Value
+				if r.Value == nil {
+					response = nil
+				} else {
+					response = r.Value
+				}
 				return nil
 			}()
 
