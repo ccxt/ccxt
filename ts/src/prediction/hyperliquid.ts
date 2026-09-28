@@ -1388,7 +1388,8 @@ export default class hyperliquid extends Exchange {
      */
     override async cancelOrder (id: string, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         const orders = await this.cancelOrders ([ id ], outcome, params);
-        return this.safeDict (orders, 0) as PredictionOrder;
+        const first = this.safeDict (orders, 0);
+        return first as PredictionOrder;
     }
 
     /**

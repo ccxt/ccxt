@@ -488,12 +488,12 @@ func (this *Lbank) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Lbank) FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Lbank) FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[*int64] {
+	ch := make(chan AsyncResult[*int64], 1)
 	go this.fetchTimeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchTimeBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Lbank) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -536,7 +536,7 @@ func (this *Lbank) fetchTimeBody(ch chan AsyncResult[any], optionalArgs ...any) 
 	//         "success": true
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.SafeInteger(response, "data")}
+	ch <- AsyncResult[*int64]{Value: this.SafeInteger(response, "data")}
 	return nil
 }
 
@@ -1009,12 +1009,12 @@ func (this *Lbank) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Lbank) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Lbank) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchTickerBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Lbank) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1034,8 +1034,9 @@ func (this *Lbank) fetchTickerBody(ch chan AsyncResult[any], symbol string, opti
 			panic(r1.Err)
 		}
 		var responseForSwap map[string]any = MapTyped(r1.Value)
+		var swapTicker map[string]any = SafeMapTyped(responseForSwap, market["symbol"])
 
-		ch <- AsyncResult[any]{Value: this.SafeDict(responseForSwap, market["symbol"])}
+		ch <- AsyncResult[map[string]any]{Value: swapTicker}
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -1071,7 +1072,7 @@ func (this *Lbank) fetchTickerBody(ch chan AsyncResult[any], symbol string, opti
 	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTicker(first, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(first, market)}
 	return nil
 }
 
@@ -1199,12 +1200,12 @@ func (this *Lbank) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Lbank) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Lbank) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Lbank) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1299,11 +1300,11 @@ func (this *Lbank) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, o
 	var timestamp int64 = this.Milliseconds()
 	if market["swap"] == true {
 
-		ch <- AsyncResult[any]{Value: this.ParseOrderBook(orderbook, market["symbol"], timestamp, "bids", "asks", "price", "volume")}
+		ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(orderbook, market["symbol"], timestamp, "bids", "asks", "price", "volume")}
 		return nil
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrderBook(orderbook, market["symbol"], timestamp, "bids", "asks")}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(orderbook, market["symbol"], timestamp, "bids", "asks")}
 	return nil
 }
 func (this *Lbank) ParseTrade(trade any, optionalArgs ...any) any {
@@ -2094,13 +2095,13 @@ func (this *Lbank) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs .
 	var fees []any = SafeListTyped(response, "data")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(fees); i++ {
-		var fee any = this.ParseTradingFee(func() any {
+		var fee map[string]any = this.ParseTradingFee(func() any {
 			if i >= 0 && i < len(fees) {
 				return DerefScalar(fees[i])
 			}
 			return nil
 		}())
-		var symbol *string = SafeStringPtr(GetValue(fee, "symbol"))
+		var symbol *string = SafeStringPtr(fee["symbol"])
 		AddElementToObject(result, symbol, fee)
 	}
 
@@ -2146,11 +2147,11 @@ func (this *Lbank) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], sy
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes164415 map[string]any = MapTyped(r1.Value)
-	if retRes164415 == nil {
+	var retRes164515 map[string]any = r1.Value
+	if retRes164515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes164415}
+		ch <- AsyncResult[any]{Value: retRes164515}
 	}
 	return nil
 }
@@ -2169,12 +2170,12 @@ func (this *Lbank) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], sy
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Lbank) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Lbank) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Lbank) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Lbank) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2278,7 +2279,7 @@ func (this *Lbank) createOrderBody(ch chan AsyncResult[any], symbol string, type
 	//
 	var result map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
 		"id":   this.SafeString(result, "order_id"),
 		"info": result,
 	}, market)}
@@ -2454,12 +2455,12 @@ func (this *Lbank) ParseOrder(order any, optionalArgs ...any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Lbank) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Lbank) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Lbank) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2484,11 +2485,11 @@ func (this *Lbank) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes192919 map[string]any = r1.Value
-		if retRes192919 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+		var retRes193019 map[string]any = r1.Value
+		if retRes193019 == nil {
+			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes192919}
+			ch <- AsyncResult[map[string]any]{Value: retRes193019}
 		}
 		return nil
 	}
@@ -2497,11 +2498,11 @@ func (this *Lbank) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes193115 map[string]any = r2.Value
-	if retRes193115 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+	var retRes193215 map[string]any = r2.Value
+	if retRes193215 == nil {
+		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes193115}
+		ch <- AsyncResult[map[string]any]{Value: retRes193215}
 	}
 	return nil
 }
@@ -2908,12 +2909,12 @@ func (this *Lbank) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Lbank) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Lbank) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Lbank) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Lbank) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2961,7 +2962,7 @@ func (this *Lbank) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArg
 	//  }
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(data)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data)}
 	return nil
 }
 
@@ -4355,7 +4356,7 @@ func (this *Lbank) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = r.Value.(int64)
+	var res int64 = ParseInt(BoxAbsent(r.Value))
 	return res, nil
 }
 

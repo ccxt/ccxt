@@ -1033,10 +1033,10 @@ func (this *Coinbaseinternational) HandleFundingRate(client any, message map[str
 	//    }
 	//
 	var channel *string = this.SafeString(message, "channel")
-	var fundingRate any = this.ParseFundingRate(message)
-	ccxt.AddElementToObject(this.FundingRates, ccxt.GetValue(fundingRate, "symbol"), fundingRate)
+	var fundingRate map[string]any = this.ParseFundingRate(message)
+	ccxt.AddElementToObject(this.FundingRates, fundingRate["symbol"], fundingRate)
 	if channel != nil {
-		client.(ccxt.ClientInterface).Resolve(fundingRate, ccxt.Add(*channel+"::", ccxt.GetValue(fundingRate, "symbol")))
+		client.(ccxt.ClientInterface).Resolve(fundingRate, ccxt.Add(*channel+"::", fundingRate["symbol"]))
 	}
 }
 func (this *Coinbaseinternational) HandleErrorMessage(client any, message any) bool {

@@ -618,12 +618,12 @@ func (this *Okx) HandleFundingRate(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
 		var rawfr any = this.SafeDict(data, i)
-		var fundingRate any = this.ParseFundingRate(rawfr)
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(fundingRate, "symbol"))
+		var fundingRate map[string]any = this.ParseFundingRate(rawfr)
+		var symbol *string = ccxt.SafeStringPtr(fundingRate["symbol"])
 		if symbol != nil {
 			ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
 		}
-		client.(ccxt.ClientInterface).Resolve(fundingRate, ccxt.Add("funding-rate"+":", ccxt.GetValue(fundingRate, "symbol")))
+		client.(ccxt.ClientInterface).Resolve(fundingRate, ccxt.Add("funding-rate"+":", fundingRate["symbol"]))
 	}
 }
 

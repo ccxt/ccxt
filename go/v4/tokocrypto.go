@@ -788,12 +788,12 @@ func (this *Tokocrypto) Nonce() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Tokocrypto) FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Tokocrypto) FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[*int64] {
+	ch := make(chan AsyncResult[*int64], 1)
 	go this.fetchTimeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) fetchTimeBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Tokocrypto) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -813,7 +813,7 @@ func (this *Tokocrypto) fetchTimeBody(ch chan AsyncResult[any], optionalArgs ...
 	//     "timestamp": 1737378074159
 	// }
 	//
-	ch <- AsyncResult[any]{Value: this.SafeInteger(response, "timestamp")}
+	ch <- AsyncResult[*int64]{Value: this.SafeInteger(response, "timestamp")}
 	return nil
 }
 
@@ -1019,12 +1019,12 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Tokocrypto) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Tokocrypto) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Tokocrypto) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1095,7 +1095,7 @@ func (this *Tokocrypto) fetchOrderBookBody(ch chan AsyncResult[any], symbol stri
 	var orderbook map[string]any = this.ParseOrderBook(data, symbol, timestamp)
 	orderbook["nonce"] = this.SafeInteger(data, "lastUpdateId")
 
-	ch <- AsyncResult[any]{Value: orderbook}
+	ch <- AsyncResult[map[string]any]{Value: orderbook}
 	return nil
 }
 func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any {
@@ -1590,12 +1590,12 @@ func (this *Tokocrypto) GetMarketIdByType(market any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Tokocrypto) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Tokocrypto) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) fetchTickerBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Tokocrypto) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1623,11 +1623,11 @@ func (this *Tokocrypto) fetchTickerBody(ch chan AsyncResult[any], symbol string,
 	if IsArray(response) {
 		var firstTicker map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
-		ch <- AsyncResult[any]{Value: this.ParseTicker(firstTicker, market)}
+		ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(firstTicker, market)}
 		return nil
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
 	return nil
 }
 
@@ -2133,12 +2133,12 @@ func (this *Tokocrypto) ParseOrderType(status *string) *string {
  * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Tokocrypto) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Tokocrypto) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2325,7 +2325,7 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[any], symbol string,
 	//
 	var rawOrder map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(rawOrder, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(rawOrder, market)}
 	return nil
 }
 
@@ -2339,12 +2339,12 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[any], symbol string,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Tokocrypto) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Tokocrypto) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Tokocrypto) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2394,7 +2394,7 @@ func (this *Tokocrypto) fetchOrderBody(ch chan AsyncResult[any], id any, optiona
 	var list []any = SafeListTyped(data, "list")
 	var rawOrder map[string]any = this.SafeDictMap(list, 0, map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(rawOrder)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(rawOrder)}
 	return nil
 }
 
@@ -2589,12 +2589,12 @@ func (this *Tokocrypto) fetchClosedOrdersBody(ch chan AsyncResult[any], optional
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Tokocrypto) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Tokocrypto) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Tokocrypto) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2639,7 +2639,7 @@ func (this *Tokocrypto) cancelOrderBody(ch chan AsyncResult[any], id any, option
 	//
 	var rawOrder map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(rawOrder)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(rawOrder)}
 	return nil
 }
 
@@ -3462,7 +3462,7 @@ func (this *Tokocrypto) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = r.Value.(int64)
+	var res int64 = ParseInt(BoxAbsent(r.Value))
 	return res, nil
 }
 

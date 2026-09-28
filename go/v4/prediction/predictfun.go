@@ -1448,12 +1448,12 @@ func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
  */
-func (this *Predictfun) FetchOrderBookAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) FetchOrderBookAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.fetchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchOrderBookBody(ch chan ccxt.AsyncResult[any], outcome string, optionalArgs ...any) any {
+func (this *Predictfun) fetchOrderBookBody(ch chan ccxt.AsyncResult[map[string]any], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1503,7 +1503,7 @@ func (this *Predictfun) fetchOrderBookBody(ch chan ccxt.AsyncResult[any], outcom
 	if isYesOutcome {
 		var yesOrderbook map[string]any = this.ParseOrderBook(data, outcomeSymbol, timestamp, "bids", "asks", 0, 1)
 
-		ch <- ccxt.AsyncResult[any]{Value: this.SafePredictionOrderBook(yesOrderbook, outcomeObj)}
+		ch <- ccxt.AsyncResult[map[string]any]{Value: this.SafePredictionOrderBook(yesOrderbook, outcomeObj)}
 		return nil
 	} else {
 		var bids []any = ccxt.SafeListTyped(data, "bids")
@@ -1544,7 +1544,7 @@ func (this *Predictfun) fetchOrderBookBody(ch chan ccxt.AsyncResult[any], outcom
 			"nonce":     nil,
 		}
 
-		ch <- ccxt.AsyncResult[any]{Value: this.SafePredictionOrderBook(noOrderbook, outcomeObj)}
+		ch <- ccxt.AsyncResult[map[string]any]{Value: this.SafePredictionOrderBook(noOrderbook, outcomeObj)}
 		return nil
 	}
 }
@@ -1558,12 +1558,12 @@ func (this *Predictfun) fetchOrderBookBody(ch chan ccxt.AsyncResult[any], outcom
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Predictfun) FetchTickerAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) FetchTickerAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.fetchTickerBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchTickerBody(ch chan ccxt.AsyncResult[any], outcome string, optionalArgs ...any) any {
+func (this *Predictfun) fetchTickerBody(ch chan ccxt.AsyncResult[map[string]any], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1619,7 +1619,7 @@ func (this *Predictfun) fetchTickerBody(ch chan ccxt.AsyncResult[any], outcome s
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- ccxt.AsyncResult[any]{Value: this.ParsePredictionTicker(data, outcomeObj)}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: this.ParsePredictionTicker(data, outcomeObj)}
 	return nil
 }
 
@@ -1632,7 +1632,7 @@ func (this *Predictfun) fetchTickerBody(ch chan ccxt.AsyncResult[any], outcome s
  * @param {object} [market] the outcome the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Predictfun) ParsePredictionTicker(ticker any, optionalArgs ...any) any {
+func (this *Predictfun) ParsePredictionTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": 2107,
@@ -2289,12 +2289,12 @@ func (this *Predictfun) SignPredictfunOrder(order any, isNegRisk any, isYieldBea
  * @param {bool} [params.isYieldBearing] override the market's yield bearing flag
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Predictfun) CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[any], outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[map[string]any], outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2477,7 +2477,7 @@ func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[any], outcome s
 	// the venue answers with an id and a hash and nothing else - no price, size, side or
 	// status - so the returned order is built from what was requested and signed, with only
 	// the identifiers taken from the response
-	ch <- ccxt.AsyncResult[any]{Value: this.SafePredictionOrder(map[string]any{
+	ch <- ccxt.AsyncResult[map[string]any]{Value: this.SafePredictionOrder(map[string]any{
 		"id":            this.SafeString2(result, "orderHash", "hash"),
 		"clientOrderId": nil,
 		"info":          response,
@@ -2779,12 +2779,12 @@ func (this *Predictfun) ParsePredictionPosition(position any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Predictfun) CancelOrderAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) CancelOrderAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) cancelOrderBody(ch chan ccxt.AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Predictfun) cancelOrderBody(ch chan ccxt.AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2797,12 +2797,12 @@ func (this *Predictfun) cancelOrderBody(ch chan ccxt.AsyncResult[any], id any, o
 		panic(r.Err)
 	}
 	var orders []any = ccxt.ListTyped(r.Value)
-	var order any = this.SafeDict(orders, 0)
+	var order map[string]any = ccxt.SafeMapTyped(orders, 0)
 	if order == nil {
 		panic(ccxt.OrderNotFound(ccxt.Add(this.Id+" cancelOrder() could not remove ", id)))
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: order}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: order}
 	return nil
 }
 
@@ -2920,12 +2920,12 @@ func (this *Predictfun) cancelOrdersBody(ch chan ccxt.AsyncResult[any], ids any,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Predictfun) FetchOrderAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) FetchOrderAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchOrderBody(ch chan ccxt.AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Predictfun) fetchOrderBody(ch chan ccxt.AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2990,7 +2990,7 @@ func (this *Predictfun) fetchOrderBody(ch chan ccxt.AsyncResult[any], id any, op
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- ccxt.AsyncResult[any]{Value: this.ParsePredictionOrder(data, outcomeObj)}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: this.ParsePredictionOrder(data, outcomeObj)}
 	return nil
 }
 
@@ -3191,7 +3191,7 @@ func (this *Predictfun) fetchOrdersHelperBody(ch chan ccxt.AsyncResult[any], opt
  * @param {object} [market] the outcome the order belongs to, resolved from the token id when omitted
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Predictfun) ParsePredictionOrder(order any, optionalArgs ...any) any {
+func (this *Predictfun) ParsePredictionOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// fetchOrder
 	//     {

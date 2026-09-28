@@ -31,7 +31,7 @@ func testFetchLedgerEntryBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICore
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			item := r1.Value
+			item := ccxt.BoxAbsent(r1.Value)
 			var now int64 = exchange.Milliseconds()
 			TestLedgerEntry(exchange, skippedProperties, method, item, code, now)
 		}

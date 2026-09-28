@@ -3512,7 +3512,8 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         const orders = await this.cancelOrders ([ id ], symbol, params);
-        return this.safeDict (orders, 0, {}) as Order;
+        const order = this.safeDict (orders, 0, {});
+        return order as Order;
     }
 
     /**

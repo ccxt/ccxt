@@ -1002,12 +1002,12 @@ func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *Binance) FetchTickerAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Binance) FetchTickerAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.fetchTickerBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchTickerBody(ch chan ccxt.AsyncResult[any], outcome string, optionalArgs ...any) any {
+func (this *Binance) fetchTickerBody(ch chan ccxt.AsyncResult[map[string]any], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1032,7 +1032,7 @@ func (this *Binance) fetchTickerBody(ch chan ccxt.AsyncResult[any], outcome stri
 	//
 	//     { "marketId": 5567895, "lastTradePrice": "0.52" }
 	//
-	ch <- ccxt.AsyncResult[any]{Value: this.ParsePredictionTicker(response, outcomeObj)}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: this.ParsePredictionTicker(response, outcomeObj)}
 	return nil
 }
 
@@ -1045,7 +1045,7 @@ func (this *Binance) fetchTickerBody(ch chan ccxt.AsyncResult[any], outcome stri
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *Binance) ParsePredictionTicker(raw any, optionalArgs ...any) any {
+func (this *Binance) ParsePredictionTicker(raw any, optionalArgs ...any) map[string]any {
 	//
 	//     { "marketId": 5567895, "lastTradePrice": "0.52" }
 	//
@@ -1160,7 +1160,7 @@ func (this *Binance) fetchTickersBody(ch chan ccxt.AsyncResult[any], optionalArg
 			response = r1.Raw
 			ccxt.AddElementToObject(responsesByMarketId, marketId, response)
 		}
-		var ticker any = this.ParsePredictionTicker(response, outcomeObj)
+		var ticker map[string]any = this.ParsePredictionTicker(response, outcomeObj)
 		var symbolKey *string = this.SafeString(ticker, "outcome", outcomes[i])
 		ccxt.AddElementToObject(result, symbolKey, ticker)
 	}
@@ -1179,12 +1179,12 @@ func (this *Binance) fetchTickersBody(ch chan ccxt.AsyncResult[any], optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
  */
-func (this *Binance) FetchOrderBookAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Binance) FetchOrderBookAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.fetchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchOrderBookBody(ch chan ccxt.AsyncResult[any], outcome string, optionalArgs ...any) any {
+func (this *Binance) fetchOrderBookBody(ch chan ccxt.AsyncResult[map[string]any], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1221,7 +1221,7 @@ func (this *Binance) fetchOrderBookBody(ch chan ccxt.AsyncResult[any], outcome s
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var orderbook map[string]any = this.ParseOrderBook(response, this.SafeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size")
 
-	ch <- ccxt.AsyncResult[any]{Value: this.SafePredictionOrderBook(orderbook, outcomeObj)}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: this.SafePredictionOrderBook(orderbook, outcomeObj)}
 	return nil
 }
 
@@ -1290,7 +1290,7 @@ func (this *Binance) fetchBalanceBody(ch chan ccxt.AsyncResult[any], optionalArg
  * @param {object} [outcomeObj] the ourtome the order belongs to
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Binance) ParsePredictionOrder(order any, optionalArgs ...any) any {
+func (this *Binance) ParsePredictionOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "orderId": "54124",
@@ -2286,12 +2286,12 @@ func (this *Binance) AmountToPrecision(outcome any, amount any) *string {
  * @param {string} [params.cost] Buy prediction market with USDT cost, only for buy side
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Binance) CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Binance) CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Binance) createOrderBody(ch chan ccxt.AsyncResult[any], outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Binance) createOrderBody(ch chan ccxt.AsyncResult[map[string]any], outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2385,7 +2385,7 @@ func (this *Binance) createOrderBody(ch chan ccxt.AsyncResult[any], outcome stri
 	}
 	response := r3.Raw
 
-	ch <- ccxt.AsyncResult[any]{Value: this.SafePredictionOrder(map[string]any{
+	ch <- ccxt.AsyncResult[map[string]any]{Value: this.SafePredictionOrder(map[string]any{
 		"id":            this.SafeString(response, "orderId"),
 		"clientOrderId": nil,
 		"info":          response,
@@ -2420,12 +2420,12 @@ func (this *Binance) createOrderBody(ch chan ccxt.AsyncResult[any], outcome stri
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Binance) CreateMarketOrderWithCostAsync(symbol string, side string, cost any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Binance) CreateMarketOrderWithCostAsync(symbol string, side string, cost any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.createMarketOrderWithCostBody(ch, symbol, side, cost, optionalArgs...)
 	return ch
 }
-func (this *Binance) createMarketOrderWithCostBody(ch chan ccxt.AsyncResult[any], symbol string, side string, cost any, optionalArgs ...any) any {
+func (this *Binance) createMarketOrderWithCostBody(ch chan ccxt.AsyncResult[map[string]any], symbol string, side string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2438,11 +2438,11 @@ func (this *Binance) createMarketOrderWithCostBody(ch chan ccxt.AsyncResult[any]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes181415 map[string]any = ccxt.MapTyped(r.Value)
+	var retRes181415 map[string]any = r.Value
 	if retRes181415 == nil {
-		ch <- ccxt.AsyncResult[any]{Value: nil}
+		ch <- ccxt.AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[any]{Value: retRes181415}
+		ch <- ccxt.AsyncResult[map[string]any]{Value: retRes181415}
 	}
 	return nil
 }
@@ -2457,12 +2457,12 @@ func (this *Binance) createMarketOrderWithCostBody(ch chan ccxt.AsyncResult[any]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Binance) CancelOrderAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Binance) CancelOrderAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Binance) cancelOrderBody(ch chan ccxt.AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Binance) cancelOrderBody(ch chan ccxt.AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2475,8 +2475,9 @@ func (this *Binance) cancelOrderBody(ch chan ccxt.AsyncResult[any], id any, opti
 		panic(r.Err)
 	}
 	var orders []any = ccxt.ListTyped(r.Value)
+	var first map[string]any = this.SafeDictMap(orders, 0, map[string]any{})
 
-	ch <- ccxt.AsyncResult[any]{Value: this.SafeDict(orders, 0, map[string]any{})}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: first}
 	return nil
 }
 

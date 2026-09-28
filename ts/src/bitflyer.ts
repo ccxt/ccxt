@@ -886,7 +886,8 @@ export default class bitflyer extends Exchange {
         const orders = await this.fetchOrders (symbol);
         const ordersById = this.indexBy (orders, 'id');
         if (id in ordersById) {
-            return ordersById[id] as Order;
+            const found = this.safeDict (ordersById, id);
+            return found as Order;
         }
         throw new OrderNotFound (this.id + ' No order found with id ' + id);
     }

@@ -1020,8 +1020,8 @@ func (this *Kucoin) HandleTicker(client any, message any) {
 		}
 		var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 		var rawTicker any = this.SafeDict(data, "data", data)
-		var ticker any = this.ParseSpotOrUtaTicker(rawTicker, market)
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
+		var ticker map[string]any = this.ParseSpotOrUtaTicker(rawTicker, market)
+		var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)

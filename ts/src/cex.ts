@@ -570,7 +570,8 @@ export default class cex extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.fetchTickers ([ symbol ], params);
-        return this.safeDict (response, symbol, {}) as Ticker;
+        const ticker = this.safeDict (response, symbol, {});
+        return ticker as Ticker;
     }
 
     /**
@@ -1651,11 +1652,12 @@ export default class cex extends Exchange {
             transfer = await this.transferBetweenMainAndSubAccount (code, amount, fromAccount, toAccount, params);
         }
         const fillResponseFromRequest = this.handleOption ('transfer', 'fillResponseFromRequest', true);
+        const filled: Dict = {};
         if (fillResponseFromRequest === true) {
-            transfer['fromAccount'] = fromAccount;
-            transfer['toAccount'] = toAccount;
+            filled['fromAccount'] = fromAccount;
+            filled['toAccount'] = toAccount;
         }
-        return transfer;
+        return this.extend (transfer, filled) as TransferEntry;
     }
 
     async transferBetweenMainAndSubAccount (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {

@@ -670,12 +670,12 @@ func (this *Bitflyer) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Bitflyer) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitflyer) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitflyer) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Bitflyer) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -700,7 +700,7 @@ func (this *Bitflyer) fetchOrderBookBody(ch chan AsyncResult[any], symbol string
 	}
 	var orderbook map[string]any = r1.Value
 
-	ch <- AsyncResult[any]{Value: this.ParseOrderBook(orderbook, market["symbol"], nil, "bids", "asks", "price", "size")}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(orderbook, market["symbol"], nil, "bids", "asks", "price", "size")}
 	return nil
 }
 func (this *Bitflyer) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
@@ -742,12 +742,12 @@ func (this *Bitflyer) ParseTicker(ticker any, optionalArgs ...any) map[string]an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Bitflyer) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitflyer) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitflyer) fetchTickerBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Bitflyer) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -770,7 +770,7 @@ func (this *Bitflyer) fetchTickerBody(ch chan AsyncResult[any], symbol string, o
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
 	return nil
 }
 func (this *Bitflyer) ParseTrade(trade any, optionalArgs ...any) any {
@@ -970,12 +970,12 @@ func (this *Bitflyer) fetchTradingFeeBody(ch chan AsyncResult[any], symbol strin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitflyer) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitflyer) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bitflyer) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Bitflyer) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1005,7 +1005,7 @@ func (this *Bitflyer) createOrderBody(ch chan AsyncResult[any], symbol string, t
 	// { "status": - 200, "error_message": "Insufficient funds", "data": null }
 	var id *string = this.SafeString(result, "child_order_acceptance_id")
 
-	ch <- AsyncResult[any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
 		"id":   id,
 		"info": result,
 	})}
@@ -1022,12 +1022,12 @@ func (this *Bitflyer) createOrderBody(ch chan AsyncResult[any], symbol string, t
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitflyer) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitflyer) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitflyer) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Bitflyer) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1058,7 +1058,7 @@ func (this *Bitflyer) cancelOrderBody(ch chan AsyncResult[any], id any, optional
 	//
 	//    200 OK.
 	//
-	ch <- AsyncResult[any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
 		"info": response,
 	})}
 	return nil
@@ -1276,12 +1276,12 @@ func (this *Bitflyer) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitflyer) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitflyer) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitflyer) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Bitflyer) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1299,8 +1299,9 @@ func (this *Bitflyer) fetchOrderBody(ch chan AsyncResult[any], id any, optionalA
 	orders := r.Value
 	var ordersById map[string]any = this.IndexBy(orders, "id")
 	if InOp(ordersById, id) {
+		var found map[string]any = SafeMapTyped(ordersById, id)
 
-		ch <- AsyncResult[any]{Value: GetValue(ordersById, id)}
+		ch <- AsyncResult[map[string]any]{Value: found}
 		return nil
 	}
 	panic(OrderNotFound(Add(this.Id+" No order found with id ", id)))
@@ -1351,11 +1352,11 @@ func (this *Bitflyer) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 		request["count"] = limit
 	}
 
-	listEp1258 := <-this.PrivateGetGetexecutions(this.Extend(request, params))
-	if listEp1258.Err != nil {
-		panic(listEp1258.Err)
+	listEp1259 := <-this.PrivateGetGetexecutions(this.Extend(request, params))
+	if listEp1259.Err != nil {
+		panic(listEp1259.Err)
 	}
-	var response []any = listEp1258.Value
+	var response []any = listEp1259.Value
 
 	//
 	//    [
@@ -1538,11 +1539,11 @@ func (this *Bitflyer) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs .
 		request["count"] = limit // default 100
 	}
 
-	listEp1424 := <-this.PrivateGetGetcoinins(this.Extend(request, params))
-	if listEp1424.Err != nil {
-		panic(listEp1424.Err)
+	listEp1425 := <-this.PrivateGetGetcoinins(this.Extend(request, params))
+	if listEp1425.Err != nil {
+		panic(listEp1425.Err)
 	}
-	var response []any = listEp1424.Value
+	var response []any = listEp1425.Value
 
 	//
 	//     [
@@ -1605,11 +1606,11 @@ func (this *Bitflyer) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArg
 		request["count"] = limit // default 100
 	}
 
-	listEp1484 := <-this.PrivateGetGetcoinouts(this.Extend(request, params))
-	if listEp1484.Err != nil {
-		panic(listEp1484.Err)
+	listEp1485 := <-this.PrivateGetGetcoinouts(this.Extend(request, params))
+	if listEp1485.Err != nil {
+		panic(listEp1485.Err)
 	}
-	var response []any = listEp1484.Value
+	var response []any = listEp1485.Value
 
 	//
 	//     [
