@@ -13369,7 +13369,7 @@ export default class binance extends Exchange {
                 }
             }
         }
-        return this.safeNumber (config, 'cost', 1);
+        return this.safeValue (config, 'cost', 1);
     }
 
     override async request (path: any, api = 'public', method: any = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: any = {}) {
