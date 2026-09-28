@@ -317,7 +317,6 @@ impl LighterCore {
         m.insert("4h".to_string(), Value::Str("4h".into()));
         m.insert("12h".to_string(), Value::Str("12h".into()));
         m.insert("1d".to_string(), Value::Str("1d".into()));
-        m.insert("1w".to_string(), Value::Str("1w".into()));
     m
 }));
         m.insert("hostname".to_string(), Value::Str("zklighter.elliot.ai".into()));
