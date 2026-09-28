@@ -841,7 +841,7 @@ public partial class btcmarkets : Exchange
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // fetchTicker
@@ -929,7 +929,7 @@ public partial class btcmarkets : Exchange
         //         "timestamp":"2020-08-09T18:28:23.280000Z"
         //     }
         //
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
+        return this.parseTicker(response, market);
     }
 
     public async virtual Task<ccxt.Ticker> FetchTicker2(string symbol, IDictionary<string, object>? parameters = null)
@@ -944,7 +944,7 @@ public partial class btcmarkets : Exchange
             { "id", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetMarketsMarketIdTicker(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
+        return this.parseTicker(response, market);
     }
 
     public override Dictionary<string, object> parseTrade(object trade, object market = null)

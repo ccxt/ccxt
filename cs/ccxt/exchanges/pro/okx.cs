@@ -699,9 +699,9 @@ public partial class okx : ccxt.okx
         Dictionary<string, object> newTickers = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            Dictionary<string, object> ticker = this.parseTicker(data[i]);
-            this.tickers[(string)symbol] = ticker;
-            newTickers[(string)symbol] = ticker;
+            ccxt.Ticker ticker = this.parseTicker(data[i]);
+            this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
+            newTickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
         }
         if ((channel != null))
         {
@@ -844,7 +844,7 @@ public partial class okx : ccxt.okx
             bid = this.safeString(firstBid, 0);
             bidVolume = this.safeString(firstBid, 1);
         }
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -853,7 +853,7 @@ public partial class okx : ccxt.okx
             { "bid", bid },
             { "bidVolume", bidVolume },
             { "info", ticker },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     /**

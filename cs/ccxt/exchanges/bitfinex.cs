@@ -1493,7 +1493,7 @@ public partial class bitfinex : Exchange
         return ccxt.BaseExchange.ToOrderBook(result);
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // on trading pairs (ex. tBTCUSD)
@@ -1708,7 +1708,7 @@ public partial class bitfinex : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> ticker = await this.publicGetTickerSymbol(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
+        return this.parseTicker(ticker, market);
     }
 
     public override Dictionary<string, object> parseTrade(object trade, object market = null)

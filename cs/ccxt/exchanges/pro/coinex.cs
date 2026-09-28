@@ -161,9 +161,9 @@ public partial class coinex : ccxt.coinex
             string? marketId = this.safeString(entry, "market");
             string? symbol = this.safeSymbol(marketId, null, null, defaultType);
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, defaultType);
-            Dictionary<string, object> parsedTicker = this.parseWSTicker(entry, market);
-            this.tickers[(string)symbol] = parsedTicker;
-            newTickers[(string)symbol] = parsedTicker;
+            ccxt.Ticker parsedTicker = this.parseWSTicker(entry, market);
+            this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsedTicker);
+            newTickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsedTicker);
         }
         List<object> messageHashes = this.findMessageHashes(client, "tickers::");
         for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
@@ -183,7 +183,7 @@ public partial class coinex : ccxt.coinex
         client.resolve(newTickers, "tickers");
     }
 
-    public virtual Dictionary<string, object> parseWSTicker(object ticker, IDictionary<string, object> market = null)
+    public virtual ccxt.Ticker parseWSTicker(object ticker, IDictionary<string, object> market = null)
     {
         //
         //  spot
@@ -1510,7 +1510,7 @@ public partial class coinex : ccxt.coinex
         string? marketId = this.safeString(ticker, "market");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, defaultType);
         Int64? timestamp = this.safeInteger(ticker, "updated_at");
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(marketId, marketResolved, null, defaultType) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -1519,7 +1519,7 @@ public partial class coinex : ccxt.coinex
             { "bid", this.safeNumber(ticker, "best_bid_price") },
             { "bidVolume", this.safeNumber(ticker, "best_bid_size") },
             { "info", ticker },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     public override void handleMessage(WebSocketClient client, object message)

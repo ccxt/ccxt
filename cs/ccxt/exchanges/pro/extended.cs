@@ -713,16 +713,16 @@ public partial class extended : ccxt.extended
         {
             timestamp = this.safeInteger(message, "ts");
         }
-        Dictionary<string, object> ticker = this.safeTicker(new Dictionary<string, object>() {
+        ccxt.Ticker ticker = this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "markPrice", this.safeString(data, "p") },
             { "info", message },
         }, market);
-        this.tickers[(string)symbol] = ticker;
+        this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
         string messageHash = ("markPrice:" + symbol);
-        client.resolve(ticker, messageHash);
+        client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
     }
 
     /**

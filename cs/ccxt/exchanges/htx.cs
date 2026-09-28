@@ -2869,7 +2869,7 @@ public partial class htx : Exchange
         return symbolOrMarketId;
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // fetchTicker
@@ -3062,11 +3062,11 @@ public partial class htx : Exchange
         //     }
         //
         IDictionary<string, object> tick = this.safeDict(response, "tick", new Dictionary<string, object>() {});
-        Dictionary<string, object> ticker = this.parseTicker(tick, market);
+        ccxt.Ticker ticker = this.parseTicker(tick, market);
         Int64? timestamp = this.safeInteger(response, "ts");
-        ticker["timestamp"] = timestamp;
-        ticker["datetime"] = this.iso8601(timestamp);
-        return ccxt.BaseExchange.ToTicker(ticker);
+        ticker.timestamp = ccxt.BaseExchange.StructInt64(timestamp);
+        ticker.datetime = ccxt.BaseExchange.StructString(this.iso8601(timestamp));
+        return ticker;
     }
 
     /**
@@ -3196,7 +3196,7 @@ public partial class htx : Exchange
         //     }
         //
         List<object> rawTickers = this.safeList2(response, "data", "ticks", new List<object>() {});
-        Dictionary<string, object> tickers = this.parseTickers(rawTickers, symbolsNormalized, paramsSubType);
+        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickerMap(this.parseTickers(rawTickers, symbolsNormalized, paramsSubType));
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbolsNormalized));
     }
 

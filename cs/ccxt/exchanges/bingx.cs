@@ -2703,10 +2703,10 @@ public partial class bingx : Exchange
         if ((data != null))
         {
             IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
-            return ccxt.BaseExchange.ToTicker(this.parseTicker(first, market));
+            return this.parseTicker(first, market);
         }
         IDictionary<string, object> dataDict = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(dataDict, market));
+        return this.parseTicker(dataDict, market);
     }
 
     /**
@@ -2824,9 +2824,9 @@ public partial class bingx : Exchange
         }
         if (((GetValue(response, "data") is IList<object>) || (GetValue(response, "data").GetType().IsGenericType && GetValue(response, "data").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            return ccxt.BaseExchange.ToTicker(this.parseTicker(this.safeDict(GetValue(response, "data"), 0, new Dictionary<string, object>() {}), market));
+            return this.parseTicker(this.safeDict(GetValue(response, "data"), 0, new Dictionary<string, object>() {}), market);
         }
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(GetValue(response, "data"), market));
+        return this.parseTicker(GetValue(response, "data"), market);
     }
 
     /**
@@ -2900,7 +2900,7 @@ public partial class bingx : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // mark price

@@ -299,10 +299,10 @@ public partial class deribit : ccxt.deribit
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "instrument_name");
         string? symbol = this.safeSymbol(marketId);
-        Dictionary<string, object> ticker = this.parseTicker(data);
+        ccxt.Ticker ticker = this.parseTicker(data);
         string? messageHash = this.safeString(parameters, "channel");
-        this.tickers[(string)symbol] = ticker;
-        client.resolve(ticker, messageHash);
+        this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
+        client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
     }
 
     /**
@@ -386,7 +386,7 @@ public partial class deribit : ccxt.deribit
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -395,7 +395,7 @@ public partial class deribit : ccxt.deribit
             { "bid", this.safeString(ticker, "best_bid_price") },
             { "bidVolume", this.safeString(ticker, "best_bid_amount") },
             { "info", ticker },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     /**

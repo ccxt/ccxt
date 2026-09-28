@@ -1093,7 +1093,7 @@ public partial class delta : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // spot: fetchTicker, fetchTickers
@@ -1391,7 +1391,7 @@ public partial class delta : Exchange
         //     }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(result, market));
+        return this.parseTicker(result, market);
     }
 
     /**
@@ -1549,11 +1549,11 @@ public partial class delta : Exchange
             {
                 continue;
             }
-            Dictionary<string, object> ticker = this.parseTicker(rawTicker);
-            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+            ccxt.Ticker ticker = this.parseTicker(rawTicker);
+            string? symbol = ticker.symbol;
             if ((symbol != null))
             {
-                result[(string)symbol] = ticker;
+                result[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             }
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));

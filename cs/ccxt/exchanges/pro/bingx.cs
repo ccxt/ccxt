@@ -294,16 +294,16 @@ public partial class bingx : ccxt.bingx
         // ticker even when the market id could not be resolved
         string? inverseUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "inverse");
         bool isInverse = ((inverseUrl != null)) && ((((string)client.url).IndexOf(inverseUrl, StringComparison.Ordinal) == 0));
-        Dictionary<string, object> ticker = this.parseWsTicker(data, market, isInverse);
-        this.tickers[(string)symbol] = ticker;
-        client.resolve(ticker, this.getMessageHash("ticker", symbol));
+        ccxt.Ticker ticker = this.parseWsTicker(data, market, isInverse);
+        this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
+        client.resolve(ccxt.BaseExchange.FromTicker(ticker), this.getMessageHash("ticker", symbol));
         if ((this.safeString(message, "dataType") == "all@ticker"))
         {
-            client.resolve(ticker, this.getMessageHash("ticker"));
+            client.resolve(ccxt.BaseExchange.FromTicker(ticker), this.getMessageHash("ticker"));
         }
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(IDictionary<string, object> message, object market = null, object isInverse = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> message, object market = null, object isInverse = null)
     {
         //
         //     {

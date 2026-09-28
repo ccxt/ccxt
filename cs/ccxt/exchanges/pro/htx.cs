@@ -246,16 +246,16 @@ public partial class htx : ccxt.htx
         List<object> parts = ch.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        Dictionary<string, object> ticker = this.parseTicker(tick, market);
+        ccxt.Ticker ticker = this.parseTicker(tick, market);
         Int64? timestamp = this.safeInteger(message, "ts");
-        ticker["timestamp"] = timestamp;
-        ticker["datetime"] = this.iso8601(timestamp);
-        string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+        ticker.timestamp = ccxt.BaseExchange.StructInt64(timestamp);
+        ticker.datetime = ccxt.BaseExchange.StructString(this.iso8601(timestamp));
+        string? symbol = ticker.symbol;
         if ((symbol != null))
         {
-            this.tickers[(string)symbol] = ticker;
+            this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
         }
-        client.resolve(ticker, ch);
+        client.resolve(ccxt.BaseExchange.FromTicker(ticker), ch);
         return message;
     }
 

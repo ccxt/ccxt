@@ -857,7 +857,7 @@ public partial class onetrading : Exchange
         };
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // fetchTicker, fetchTickers
@@ -950,7 +950,7 @@ public partial class onetrading : Exchange
         //         "low":"8110.0"
         //     }
         //
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
+        return this.parseTicker(response, market);
     }
 
     /**
@@ -995,11 +995,11 @@ public partial class onetrading : Exchange
         IList<object> rawTickers = this.toArray(response);
         for (int i = 0; i < (rawTickers?.Count ?? 0); i++)
         {
-            Dictionary<string, object> ticker = this.parseTicker(rawTickers[i]);
-            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+            ccxt.Ticker ticker = this.parseTicker(rawTickers[i]);
+            string? symbol = ticker.symbol;
             if ((symbol != null))
             {
-                result[(string)symbol] = ticker;
+                result[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             }
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));

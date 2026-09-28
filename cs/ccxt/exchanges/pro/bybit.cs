@@ -650,7 +650,7 @@ public partial class bybit : ccxt.bybit
         Dictionary<string, object> parsed = null;
         if ((updateType == "snapshot"))
         {
-            parsed = this.parseTicker(data);
+            parsed = ccxt.BaseExchange.FromTicker(this.parseTicker(data));
             symbol = this.safeString(parsed, "symbol");
         } else if (updateType == "delta")
         {
@@ -663,7 +663,7 @@ public partial class bybit : ccxt.bybit
             IDictionary<string, object> ticker = this.safeDict(this.tickers, symbol, new Dictionary<string, object>() {});
             IDictionary<string, object> rawTicker = this.safeDict(ticker, "info", new Dictionary<string, object>() {});
             Dictionary<string, object> merged = this.extend(rawTicker, data);
-            parsed = this.parseTicker(merged);
+            parsed = ccxt.BaseExchange.FromTicker(this.parseTicker(merged));
         }
         if (((parsed == null)) || ((symbol == null)))
         {
@@ -721,7 +721,7 @@ public partial class bybit : ccxt.bybit
         List<object> asks = this.sortBy(this.aggregate(orderbook?.asks), 0);
         List<object> bestBid = this.safeList(bids, 0, new List<object>() {});
         List<object> bestAsk = this.safeList(asks, 0, new List<object>() {});
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", this.safeString(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -730,7 +730,7 @@ public partial class bybit : ccxt.bybit
             { "bid", this.safeNumber(bestBid, 0) },
             { "bidVolume", this.safeNumber(bestBid, 1) },
             { "info", orderbook },
-        }, market);
+        }, market));
     }
 
     /**

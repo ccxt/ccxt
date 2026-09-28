@@ -1221,7 +1221,7 @@ public partial class BaseExchange
         return result;
     }
 
-    public virtual Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public virtual ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         throw new NotSupported ((this.id + " parseTicker() is not supported yet")) ;
     }
@@ -3130,7 +3130,7 @@ public partial class BaseExchange
         return result;
     }
 
-    public virtual Dictionary<string, object> safeTicker(object ticker, object market = null)
+    public virtual ccxt.Ticker safeTicker(object ticker, object market = null)
     {
         string? open = ((string)this.omitZero(this.safeString(ticker, "open")));
         string? close = ((string)this.omitZero(this.safeString2(ticker, "close", "last")));
@@ -3222,7 +3222,7 @@ public partial class BaseExchange
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
         double? closeParsed = this.parseNumber(this.omitZero(close));
-        return this.extend(ticker, new Dictionary<string, object>() {
+        return new ccxt.Ticker(this.extend(ticker, new Dictionary<string, object>() {
             { "bid", this.parseNumber(this.omitZero(this.safeString(ticker, "bid"))) },
             { "bidVolume", this.safeNumber(ticker, "bidVolume") },
             { "ask", this.parseNumber(this.omitZero(this.safeString(ticker, "ask"))) },
@@ -3241,7 +3241,7 @@ public partial class BaseExchange
             { "previousClose", this.safeNumber(ticker, "previousClose") },
             { "indexPrice", this.safeNumber(ticker, "indexPrice") },
             { "markPrice", this.safeNumber(ticker, "markPrice") },
-        });
+        }));
     }
 
     public async virtual Task<Dictionary<string, object>> FetchBorrowRate(string code, object amount, object parameters = null)
@@ -6075,7 +6075,7 @@ public partial class BaseExchange
         return this.filterByArray(results, "symbol", symbolsNormalized);
     }
 
-    public virtual Dictionary<string, object> parseTickers(object tickers, IList<object> symbols = null, object parameters = null)
+    public virtual Dictionary<string, ccxt.Ticker> parseTickers(object tickers, IList<object> symbols = null, object parameters = null)
     {
         //
         // the value of tickers is either a dict or a list
@@ -6105,8 +6105,8 @@ public partial class BaseExchange
         {
             for (int i = 0; i < getArrayLength(tickers); i++)
             {
-                Dictionary<string, object> parsedTicker = this.parseTicker(getValue(tickers, i));
-                Dictionary<string, object> ticker = this.extend(parsedTicker, parameters);
+                ccxt.Ticker parsedTicker = this.parseTicker(getValue(tickers, i));
+                Dictionary<string, object> ticker = this.extend(ccxt.BaseExchange.FromTicker(parsedTicker), parameters);
                 results.Add(ticker);
             }
         } else
@@ -6116,13 +6116,13 @@ public partial class BaseExchange
             {
                 string? marketId = ((string)marketIds[i]);
                 Dictionary<string, object> market = this.safeMarket(marketId);
-                Dictionary<string, object> parsed = this.parseTicker(getValue(tickers, marketId), market);
-                Dictionary<string, object> ticker = this.extend(parsed, parameters);
+                ccxt.Ticker parsed = this.parseTicker(getValue(tickers, marketId), market);
+                Dictionary<string, object> ticker = this.extend(ccxt.BaseExchange.FromTicker(parsed), parameters);
                 results.Add(ticker);
             }
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        return ((Dictionary<string, object>)((object)(this.filterByArray(results, "symbol", symbolsNormalized))));
+        return new ccxt.Tickers(this.filterByArray(results, "symbol", symbolsNormalized)).tickers;
     }
 
     public virtual object parseDepositAddresses(object addresses, object codes = null, bool? indexed = null, object parameters = null)

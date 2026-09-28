@@ -1254,7 +1254,7 @@ public partial class alpaca : Exchange
             IDictionary<string, object> latestQuote = this.safeDict(entry, "latestQuote", new Dictionary<string, object>() {});
             IDictionary<string, object> latestTrade = this.safeDict(entry, "latestTrade", new Dictionary<string, object>() {});
             string? datetime = this.safeString(latestQuote, "t");
-            Dictionary<string, object> ticker = this.safeTicker(new Dictionary<string, object>() {
+            ccxt.Ticker ticker = this.safeTicker(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
                 { "timestamp", this.parse8601(datetime) },
@@ -1276,7 +1276,7 @@ public partial class alpaca : Exchange
                 { "baseVolume", this.safeString(dailyBar, "v") },
                 { "quoteVolume", Precise.stringMul(this.safeString(dailyBar, "v"), this.safeString(dailyBar, "vw")) },
             }, market);
-            results.Add(ticker);
+            results.Add(ccxt.BaseExchange.FromTicker(ticker));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(results, "symbol", symbolsNormalized));
     }

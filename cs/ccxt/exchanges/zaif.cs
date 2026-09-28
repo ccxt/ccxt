@@ -472,7 +472,7 @@ public partial class zaif : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null)));
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // {
@@ -546,7 +546,7 @@ public partial class zaif : Exchange
         //     "ask": 1e-07
         // }
         //
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
+        return this.parseTicker(ticker, market);
     }
 
     public override Dictionary<string, object> parseTrade(object trade, object market = null)

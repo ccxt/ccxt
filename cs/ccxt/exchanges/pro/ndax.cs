@@ -100,16 +100,16 @@ public partial class ndax : ccxt.ndax
         //         "TimeStamp": "1534862990358"
         //     }
         //
-        Dictionary<string, object> ticker = this.parseTicker(payload);
-        string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+        ccxt.Ticker ticker = this.parseTicker(payload);
+        string? symbol = ticker.symbol;
         Dictionary<string, object> market = this.market(symbol);
         if ((symbol != null))
         {
-            this.tickers[(string)symbol] = ticker;
+            this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
         }
         string name = "SubscribeLevel1";
         string messageHash = ((name + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
-        client.resolve(ticker, messageHash);
+        client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
     }
 
     /**

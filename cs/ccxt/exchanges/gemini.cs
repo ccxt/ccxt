@@ -1252,7 +1252,7 @@ public partial class gemini : Exchange
         //         "last":"9115.23"
         //     }
         //
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
+        return this.parseTicker(response, market);
     }
 
     public async virtual Task<ccxt.Ticker> FetchTickerV2(string symbol, object parameters = null)
@@ -1280,7 +1280,7 @@ public partial class gemini : Exchange
         //         "ask":"9115.87"
         //     }
         //
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
+        return this.parseTicker(response, market);
     }
 
     public async virtual Task<ccxt.Ticker> FetchTickerV1AndV2(string symbol, object parameters = null)
@@ -1320,7 +1320,7 @@ public partial class gemini : Exchange
         return await this.FetchTickerV1AndV2(symbol, parameters);
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // fetchTickers
@@ -1453,7 +1453,7 @@ public partial class gemini : Exchange
         //         },
         //     ]
         //
-        Dictionary<string, object> result = this.parseTickers(response, symbols);
+        Dictionary<string, object> result = ccxt.BaseExchange.FromTickerMap(this.parseTickers(response, symbols));
         List<object> brokenPairs = this.safeList(this.options, "brokenPairs", new List<object>() {});
         return ccxt.BaseExchange.ToTickers(this.removeKeysFromDict(result, brokenPairs));
     }

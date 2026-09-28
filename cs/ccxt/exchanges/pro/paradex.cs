@@ -482,13 +482,13 @@ public partial class paradex : ccxt.paradex
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? channel = this.safeString(parameters, "channel");
-        Dictionary<string, object> ticker = this.parseTicker(data, market);
-        this.tickers[(string)symbol] = ticker;
-        client.resolve(ticker, channel);
+        ccxt.Ticker ticker = this.parseTicker(data, market);
+        this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
+        client.resolve(ccxt.BaseExchange.FromTicker(ticker), channel);
         if ((channel != null))
         {
             string messageHash = ((channel + ".") + symbol);
-            client.resolve(ticker, messageHash);
+            client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
         }
         return message;
     }

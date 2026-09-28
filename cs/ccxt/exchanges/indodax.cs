@@ -574,7 +574,7 @@ public partial class indodax : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "buy", "sell"));
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -653,7 +653,7 @@ public partial class indodax : Exchange
         //     }
         //
         IDictionary<string, object> ticker = this.safeDict(response, "ticker", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
+        return this.parseTicker(ticker, market);
     }
 
     /**
@@ -698,8 +698,8 @@ public partial class indodax : Exchange
             object rawTicker = (key != null && tickers.ContainsKey(key) ? tickers[key] : null);
             string marketId = key.Replace("_", (string)"");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            Dictionary<string, object> parsed = this.parseTicker(rawTicker, market);
-            parsedTickers[(string)marketId] = parsed;
+            ccxt.Ticker parsed = this.parseTicker(rawTicker, market);
+            parsedTickers[(string)marketId] = ccxt.BaseExchange.FromTicker(parsed);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(parsedTickers, "symbol", symbols));
     }

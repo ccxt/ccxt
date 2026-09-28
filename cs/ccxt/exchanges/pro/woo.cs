@@ -436,7 +436,7 @@ public partial class woo : ccxt.woo
         return await this.unwatchPublic(subHash, (market.ContainsKey("symbol") ? market["symbol"] : null), topic, paramsMethod);
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object ticker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -498,10 +498,10 @@ public partial class woo : ccxt.woo
         Dictionary<string, object> market = this.safeMarket(marketId);
         Int64? timestamp = this.safeInteger(message, "ts");
         ((IDictionary<string,object>)data)["date"] = timestamp;
-        Dictionary<string, object> ticker = this.parseWsTicker(data, market);
-        ticker["symbol"] = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        this.tickers[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
-        client.resolve(ticker, topic);
+        ccxt.Ticker ticker = this.parseWsTicker(data, market);
+        ticker.symbol = ccxt.BaseExchange.StructString((market.ContainsKey("symbol") ? market["symbol"] : null));
+        this.tickers[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ccxt.BaseExchange.FromTicker(ticker);
+        client.resolve(ccxt.BaseExchange.FromTicker(ticker), topic);
         return message;
     }
 
@@ -597,11 +597,11 @@ public partial class woo : ccxt.woo
         {
             string? marketId = this.safeString(getValue(data, i), "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            Dictionary<string, object> ticker = this.parseWsTicker(this.extend(getValue(data, i), new Dictionary<string, object>() {
+            ccxt.Ticker ticker = this.parseWsTicker(this.extend(getValue(data, i), new Dictionary<string, object>() {
                 { "date", timestamp },
             }), market);
-            this.tickers[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
-            result.Add(ticker);
+            this.tickers[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ccxt.BaseExchange.FromTicker(ticker);
+            result.Add(ccxt.BaseExchange.FromTicker(ticker));
         }
         client.resolve(result, topic);
     }
@@ -712,7 +712,7 @@ public partial class woo : ccxt.woo
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(ticker, "ts");
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -721,7 +721,7 @@ public partial class woo : ccxt.woo
             { "bid", this.safeString(ticker, "bid") },
             { "bidVolume", this.safeString(ticker, "bidSize") },
             { "info", ticker },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     /**

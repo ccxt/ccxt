@@ -729,7 +729,7 @@ public partial class hollaex : Exchange
         //         "timestamp": "2020-03-03T03:11:18.965Z"
         //     }
         //
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
+        return this.parseTicker(response, market);
     }
 
     /**
@@ -768,7 +768,7 @@ public partial class hollaex : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseTickers(object tickers, IList<object> symbols = null, object parameters = null)
+    public override Dictionary<string, ccxt.Ticker> parseTickers(object tickers, IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -780,12 +780,12 @@ public partial class hollaex : Exchange
             string? marketId = this.safeString(ticker, "symbol", key);
             Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            result[(string)symbol] = this.extend(this.parseTicker(ticker, market), parameters);
+            result[(string)symbol] = this.extend(ccxt.BaseExchange.FromTicker(this.parseTicker(ticker, market)), parameters);
         }
-        return ((Dictionary<string, object>)((object)(this.filterByArrayTickers(result, "symbol", symbols))));
+        return new ccxt.Tickers(this.filterByArrayTickers(result, "symbol", symbols)).tickers;
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // fetchTicker

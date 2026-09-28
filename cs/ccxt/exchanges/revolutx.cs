@@ -545,7 +545,7 @@ public partial class revolutx : Exchange
      * @param {object} [market] the market the ticker is for
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         string? tickerSymbol = this.safeString(ticker, "symbol");
         string? symbol = this.safeSymbol(tickerSymbol, market, "/");
@@ -645,13 +645,13 @@ public partial class revolutx : Exchange
         {
             IDictionary<string, object> tickerData = this.safeDict(data, i, new Dictionary<string, object>() {});
             tickerData["timestamp"] = timestamp;
-            Dictionary<string, object> ticker = this.parseTicker(tickerData);
-            string? symbol = this.safeString(ticker, "symbol", "");
+            ccxt.Ticker ticker = this.parseTicker(tickerData);
+            string? symbol = this.safeString(ccxt.BaseExchange.FromTicker(ticker), "symbol", "");
             if ((symbol == ""))
             {
                 continue;
             }
-            result[(string)symbol] = ticker;
+            result[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
         }
         if ((symbols != null))
         {

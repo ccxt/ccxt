@@ -2181,9 +2181,9 @@ public partial class xt : Exchange
         object ticker = this.safeValue(response, "result");
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            return ccxt.BaseExchange.ToTicker(this.parseTicker(getValue(ticker, 0), market));
+            return this.parseTicker(getValue(ticker, 0), market);
         }
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
+        return this.parseTicker(ticker, market);
     }
 
     /**
@@ -2279,11 +2279,11 @@ public partial class xt : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            Dictionary<string, object> ticker = this.parseTicker(tickers[i], market);
-            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+            ccxt.Ticker ticker = this.parseTicker(tickers[i], market);
+            string? symbol = ticker.symbol;
             if ((symbol != null))
             {
-                result[(string)symbol] = ticker;
+                result[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             }
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(result, "symbol", symbolsNormalized));
@@ -2384,17 +2384,17 @@ public partial class xt : Exchange
                 marketType = "contract";
             }
             Dictionary<string, object> marketInner = this.safeMarket(marketId, market, "_", marketType);
-            Dictionary<string, object> ticker = this.parseTicker(rawTicker, marketInner);
-            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+            ccxt.Ticker ticker = this.parseTicker(rawTicker, marketInner);
+            string? symbol = ticker.symbol;
             if ((symbol != null))
             {
-                result[(string)symbol] = ticker;
+                result[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             }
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(result, "symbol", symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // spot: fetchTicker, fetchTickers

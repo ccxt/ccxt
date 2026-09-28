@@ -2859,7 +2859,7 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object message, object marketType)
+    public virtual ccxt.Ticker parseWsTicker(object message, object marketType)
     {
         // markPrice
         //   {
@@ -3034,8 +3034,8 @@ public partial class binance : ccxt.binance
         //
         string? messageHash = this.safeString(message, "id");
         IDictionary<string, object> result = this.safeDict(message, "result", new Dictionary<string, object>() {});
-        Dictionary<string, object> ticker = this.parseWsTicker(result, "future");
-        client.resolve(ticker, messageHash);
+        ccxt.Ticker ticker = this.parseWsTicker(result, "future");
+        client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
     }
 
     public virtual void handleBidsAsks(WebSocketClient client, object message)
@@ -3147,28 +3147,28 @@ public partial class binance : ccxt.binance
                 tickerFallbackType = "spot";
             }
             object tickerMarketType = ((tickerMarketById != null)) ? GetValue(tickerMarketById, "type") : tickerFallbackType;
-            Dictionary<string, object> parsedTicker = this.parseWsTicker(ticker, tickerMarketType);
-            string? symbol = ((string)(parsedTicker != null && parsedTicker.ContainsKey("symbol") ? parsedTicker["symbol"] : null));
+            ccxt.Ticker parsedTicker = this.parseWsTicker(ticker, tickerMarketType);
+            string? symbol = parsedTicker.symbol;
             if ((symbol != null))
             {
-                newTickers[(string)symbol] = parsedTicker;
+                newTickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsedTicker);
             }
             if (isBidAsk)
             {
                 if ((symbol != null))
                 {
-                    this.bidsasks[(string)symbol] = parsedTicker;
+                    this.bidsasks[(string)symbol] = ccxt.BaseExchange.FromTicker(parsedTicker);
                 }
             } else
             {
                 if ((symbol != null))
                 {
-                    this.tickers[(string)symbol] = parsedTicker;
+                    this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsedTicker);
                 }
             }
             string messageHash = ((((unifiedPrefix + ":") + channelName) + "@") + symbol);
             resolvedMessageHashes.Add(messageHash);
-            client.resolve(parsedTicker, messageHash);
+            client.resolve(ccxt.BaseExchange.FromTicker(parsedTicker), messageHash);
         }
         // resolve batch endpoint
         int length = (resolvedMessageHashes?.Count ?? 0);
@@ -5545,7 +5545,7 @@ public partial class binance : ccxt.binance
                 continue;
             }
             Int64? timestamp = this.safeInteger(rate, "t");
-            Dictionary<string, object> parsed = this.safeTicker(new Dictionary<string, object>() {
+            ccxt.Ticker parsed = this.safeTicker(new Dictionary<string, object>() {
                 { "symbol", symbol },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
@@ -5554,9 +5554,9 @@ public partial class binance : ccxt.binance
                 { "previousClose", this.safeString(rate, "pc") },
                 { "info", rate },
             });
-            this.tickers[(string)symbol] = parsed;
-            tickers[(string)symbol] = parsed;
-            client.resolve(parsed, ("stock:price:" + symbol));
+            this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsed);
+            tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsed);
+            client.resolve(ccxt.BaseExchange.FromTicker(parsed), ("stock:price:" + symbol));
         }
         client.resolve(tickers, "stock:price");
     }
@@ -5570,7 +5570,7 @@ public partial class binance : ccxt.binance
             return;
         }
         Int64? timestamp = this.safeInteger2(message, "E", "T");
-        Dictionary<string, object> parsed = this.safeTicker(new Dictionary<string, object>() {
+        ccxt.Ticker parsed = this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -5580,8 +5580,8 @@ public partial class binance : ccxt.binance
             { "askVolume", this.safeString(message, "as") },
             { "info", message },
         });
-        this.bidsasks[(string)symbol] = parsed;
-        client.resolve(parsed, ("stock:quote:" + symbol));
+        this.bidsasks[(string)symbol] = ccxt.BaseExchange.FromTicker(parsed);
+        client.resolve(ccxt.BaseExchange.FromTicker(parsed), ("stock:quote:" + symbol));
     }
 
     public virtual void handleOptionsOrderUpdate(WebSocketClient client, Dictionary<string, object> message)

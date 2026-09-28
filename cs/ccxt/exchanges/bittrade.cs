@@ -862,7 +862,7 @@ public partial class bittrade : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // fetchTicker
@@ -1054,11 +1054,11 @@ public partial class bittrade : Exchange
         //     }
         //
         IDictionary<string, object> tick = this.safeDict(response, "tick", new Dictionary<string, object>() {});
-        Dictionary<string, object> ticker = this.parseTicker(tick, market);
+        ccxt.Ticker ticker = this.parseTicker(tick, market);
         Int64? timestamp = this.safeInteger(response, "ts");
-        ticker["timestamp"] = timestamp;
-        ticker["datetime"] = this.iso8601(timestamp);
-        return ccxt.BaseExchange.ToTicker(ticker);
+        ticker.timestamp = ccxt.BaseExchange.StructInt64(timestamp);
+        ticker.datetime = ccxt.BaseExchange.StructString(this.iso8601(timestamp));
+        return ticker;
     }
 
     /**
@@ -1086,10 +1086,10 @@ public partial class bittrade : Exchange
             string? marketId = this.safeString(tickers[i], "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            Dictionary<string, object> ticker = this.parseTicker(tickers[i], market);
-            ticker["timestamp"] = timestamp;
-            ticker["datetime"] = this.iso8601(timestamp);
-            result[(string)symbol] = ticker;
+            ccxt.Ticker ticker = this.parseTicker(tickers[i], market);
+            ticker.timestamp = ccxt.BaseExchange.StructInt64(timestamp);
+            ticker.datetime = ccxt.BaseExchange.StructString(this.iso8601(timestamp));
+            result[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }

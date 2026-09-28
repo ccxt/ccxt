@@ -1834,7 +1834,7 @@ public partial class coinbaseinternational : Exchange
             string? marketId = this.safeString(instrument, "symbol");
             string? symbol = this.safeSymbol(marketId);
             IDictionary<string, object> quote = this.safeDict(instrument, "quote", new Dictionary<string, object>() {});
-            tickers[(string)symbol] = this.parseTicker(quote, this.safeMarket(marketId));
+            tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(quote, this.safeMarket(marketId)));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(tickers, "symbol", symbolsNormalized, true));
     }
@@ -1860,10 +1860,10 @@ public partial class coinbaseinternational : Exchange
             { "instrument", this.marketId(symbol) },
         };
         Dictionary<string, object> ticker = await this.v1PublicGetInstrumentsInstrumentQuote(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
+        return this.parseTicker(ticker, market);
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         //    {

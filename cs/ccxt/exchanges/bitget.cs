@@ -5292,7 +5292,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, bidsKey, asksKey));
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         //   {
@@ -5604,7 +5604,7 @@ public partial class bitget : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTicker(this.parseTicker((data != null && 0 < data.Count ? data[0] : null), market));
+        return this.parseTicker((data != null && 0 < data.Count ? data[0] : null), market);
     }
 
     /**
@@ -5640,7 +5640,7 @@ public partial class bitget : Exchange
             response = await this.publicMixGetV2MixMarketSymbolPrice(this.extend(request, paramsProductType));
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTicker(this.parseTicker((data != null && 0 < data.Count ? data[0] : null), market));
+        return this.parseTicker((data != null && 0 < data.Count ? data[0] : null), market);
     }
 
     /**

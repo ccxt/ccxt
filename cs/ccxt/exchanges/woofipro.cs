@@ -1398,7 +1398,7 @@ public partial class woofipro : Exchange
         return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(rows, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -1492,7 +1492,7 @@ public partial class woofipro : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         data["timestamp"] = this.safeInteger(response, "timestamp");
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(data, market));
+        return this.parseTicker(data, market);
     }
 
     /**
@@ -1552,7 +1552,7 @@ public partial class woofipro : Exchange
             Dictionary<string, object> ticker = this.extend(new Dictionary<string, object>() {
                 { "timestamp", timestamp },
             }, row);
-            result.Add(this.parseTicker(ticker));
+            result.Add(ccxt.BaseExchange.FromTicker(this.parseTicker(ticker)));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }

@@ -1184,7 +1184,7 @@ public partial class kraken : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, symbol));
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -1277,7 +1277,7 @@ public partial class kraken : Exchange
             Dictionary<string, object> market = this.safeMarket(id);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             object ticker = (id != null && tickers.ContainsKey(id) ? tickers[id] : null);
-            result[(string)symbol] = this.parseTicker(ticker, market);
+            result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(ticker, market));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
@@ -1305,7 +1305,7 @@ public partial class kraken : Exchange
         Dictionary<string, object> response = await this.publicGetTicker(this.extend(request, parameters));
         IDictionary<string, object> tickerResult = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object ticker = this.safeValue(tickerResult, (market.ContainsKey("id") ? market["id"] : null));
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
+        return this.parseTicker(ticker, market);
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)

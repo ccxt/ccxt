@@ -337,13 +337,13 @@ public partial class deepcoin : ccxt.deepcoin
         string? marketId = this.safeString(data, "I");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "/");
         string? symbol = this.safeSymbol(marketId, market);
-        Dictionary<string, object> parsedTicker = this.parseWsTicker(data, market);
+        ccxt.Ticker parsedTicker = this.parseWsTicker(data, market);
         string messageHash = (("ticker" + "::") + symbol);
-        this.tickers[(string)symbol] = parsedTicker;
-        client.resolve(parsedTicker, messageHash);
+        this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsedTicker);
+        client.resolve(ccxt.BaseExchange.FromTicker(parsedTicker), messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(IDictionary<string, object> ticker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {

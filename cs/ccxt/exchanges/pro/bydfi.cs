@@ -323,10 +323,10 @@ public partial class bydfi : ccxt.bydfi
         //         "o": 0.04657
         //     }
         //
-        Dictionary<string, object> ticker = this.parseTicker(message);
-        string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+        ccxt.Ticker ticker = this.parseTicker(message);
+        string? symbol = ticker.symbol;
         string messageHash = ("ticker::" + symbol);
-        this.tickers[(string)symbol] = ticker;
+        this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
         client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
         client.resolve(this.tickers, "ticker::all");
     }

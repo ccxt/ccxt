@@ -666,7 +666,7 @@ public partial class coinmate : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data");
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(data, market));
+        return this.parseTicker(data, market);
     }
 
     /**
@@ -712,13 +712,13 @@ public partial class coinmate : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             Dictionary<string, object> market = this.market(keys[i]);
-            Dictionary<string, object> ticker = this.parseTicker(this.safeValue(data, keys[i]), market);
-            result[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
+            ccxt.Ticker ticker = this.parseTicker(this.safeValue(data, keys[i]), market);
+            result[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ccxt.BaseExchange.FromTicker(ticker);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         //     {

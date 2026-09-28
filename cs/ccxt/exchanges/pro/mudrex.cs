@@ -268,14 +268,14 @@ public partial class mudrex : ccxt.mudrex
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             Int64 timestamp = this.milliseconds();
             double? last = this.safeNumber(t, "p");
-            Dictionary<string, object> result = this.safeTicker(new Dictionary<string, object>() {
+            Dictionary<string, object> result = ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
                 { "symbol", symbol },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
                 { "last", last },
                 { "close", last },
                 { "info", t },
-            });
+            }));
             this.tickers[(string)symbol] = result;
             string messageHash = ("ticker:" + symbol);
             client.resolve(result, messageHash);

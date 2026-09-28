@@ -1409,12 +1409,12 @@ public partial class weex : Exchange
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             string? marketId = this.safeString(rawTicker, "symbol");
             Dictionary<string, object> tickerMarket = this.safeMarket(marketId, null, null, marketType);
-            results.Add(this.parseTicker(rawTicker, tickerMarket));
+            results.Add(ccxt.BaseExchange.FromTicker(this.parseTicker(rawTicker, tickerMarket)));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(results, "symbol", symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // spot
@@ -1615,7 +1615,7 @@ public partial class weex : Exchange
         {
             ticker["markPrice"] = this.safeString(ticker, "price");
         }
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
+        return this.parseTicker(ticker, market);
     }
 
     /**

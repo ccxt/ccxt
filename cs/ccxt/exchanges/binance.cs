@@ -6109,7 +6109,7 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         // markPrices
         //
@@ -6392,13 +6392,13 @@ public partial class binance : Exchange
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             IDictionary<string, object> firstTicker = this.safeDict(response, 0, new Dictionary<string, object>() {});
-            return ccxt.BaseExchange.ToTicker(this.parseTicker(firstTicker, market));
+            return this.parseTicker(firstTicker, market);
         }
         if ((response == null))
         {
             throw new NullResponse ((this.id + " fetchTicker() returned empty response")) ;
         }
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
+        return this.parseTicker(response, market);
     }
 
     public virtual void checkNoStockSymbols(IList<object> symbols, object methodName)
@@ -6653,9 +6653,9 @@ public partial class binance : Exchange
         {
             string? marketId = this.safeString(getValue(response, i), "symbol");
             Dictionary<string, object> tickerMarket = this.safeMarket(marketId, null, null, "spot");
-            Dictionary<string, object> parsedTicker = this.parseTicker(getValue(response, i));
-            parsedTicker["symbol"] = (tickerMarket != null && tickerMarket.ContainsKey("symbol") ? tickerMarket["symbol"] : null);
-            results.Add(parsedTicker);
+            ccxt.Ticker parsedTicker = this.parseTicker(getValue(response, i));
+            parsedTicker.symbol = ccxt.BaseExchange.StructString((tickerMarket != null && tickerMarket.ContainsKey("symbol") ? tickerMarket["symbol"] : null));
+            results.Add(ccxt.BaseExchange.FromTicker(parsedTicker));
         }
         return this.filterByArray(results, "symbol", symbols);
     }
@@ -6705,13 +6705,13 @@ public partial class binance : Exchange
         }
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            return ccxt.BaseExchange.ToTicker(this.parseTicker(this.safeDict(response, 0, new Dictionary<string, object>() {}), market));
+            return this.parseTicker(this.safeDict(response, 0, new Dictionary<string, object>() {}), market);
         }
         if ((response == null))
         {
             throw new NullResponse ((this.id + " fetchMarkPrice() returned empty response")) ;
         }
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
+        return this.parseTicker(response, market);
     }
 
     /**

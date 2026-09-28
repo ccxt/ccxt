@@ -746,10 +746,10 @@ public partial class kucoin : ccxt.kucoin
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-        Dictionary<string, object> ticker = this.parseTicker(data, market);
-        this.tickers[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
+        ccxt.Ticker ticker = this.parseTicker(data, market);
+        this.tickers[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ccxt.BaseExchange.FromTicker(ticker);
         string messageHash = ("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        client.resolve(ticker, messageHash);
+        client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
     }
 
     public virtual void handleUtaTicker(WebSocketClient client, Dictionary<string, object> message)
@@ -804,7 +804,7 @@ public partial class kucoin : ccxt.kucoin
         {
             timestamp = this.safeIntegerProduct(ticker, "M", 0.000001);
         }
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -827,7 +827,7 @@ public partial class kucoin : ccxt.kucoin
             { "markPrice", this.safeString(ticker, "mp") },
             { "indexPrice", this.safeString(ticker, "ip") },
             { "info", ticker },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     /**
@@ -953,7 +953,7 @@ public partial class kucoin : ccxt.kucoin
             List<object> ask = this.safeList(data, "asks", new List<object>() {});
             List<object> bid = this.safeList(data, "bids", new List<object>() {});
             Int64? timestamp = this.safeInteger(data, "timestamp");
-            return this.safeTicker(new Dictionary<string, object>() {
+            return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
                 { "symbol", symbol },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
@@ -962,7 +962,7 @@ public partial class kucoin : ccxt.kucoin
                 { "bid", this.safeNumber(bid, 0) },
                 { "bidVolume", this.safeNumber(bid, 1) },
                 { "info", ticker },
-            }, marketResolved);
+            }, marketResolved));
         } else
         {
             // futures
@@ -971,7 +971,7 @@ public partial class kucoin : ccxt.kucoin
             Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
             string? symbol = this.safeString(marketResolved, "symbol");
             Int64? timestamp = this.safeIntegerProduct(data, "ts", 0.000001);
-            return this.safeTicker(new Dictionary<string, object>() {
+            return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
                 { "symbol", symbol },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
@@ -980,7 +980,7 @@ public partial class kucoin : ccxt.kucoin
                 { "bid", this.safeNumber(data, "bestBidPrice") },
                 { "bidVolume", this.safeNumber(data, "bestBidSize") },
                 { "info", ticker },
-            }, marketResolved);
+            }, marketResolved));
         }
     }
 

@@ -43,7 +43,7 @@ public partial class BaseTest
             // the merged dict is a regular safeBalance input. safeBalance parses to a number,
             // and each port spells that number differently (JS "3", PHP "3.0"), so Assert on
             // the parsed value rather than on its string form
-            Dictionary<string, object> balance = exchange.safeBalance(result);
+            Dictionary<string, object> balance = toDict(exchange.safeBalance(result));
             Assert(isEqual(exchange.safeNumber((balance != null && ((IDictionary<string, object>)balance).ContainsKey("BTC") ? ((IDictionary<string, object>)balance)["BTC"] : null), "free"), exchange.parseNumber("3")));
             Assert(isEqual(exchange.safeNumber((balance != null && ((IDictionary<string, object>)balance).ContainsKey("free") ? ((IDictionary<string, object>)balance)["free"] : null), "USDT"), exchange.parseNumber("5")));
             Assert(isEqual(exchange.safeNumber((balance != null && ((IDictionary<string, object>)balance).ContainsKey("debt") ? ((IDictionary<string, object>)balance)["debt"] : null), "BTC"), exchange.parseNumber("0.1")));

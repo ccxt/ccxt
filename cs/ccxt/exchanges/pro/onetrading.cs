@@ -221,7 +221,7 @@ public partial class onetrading : ccxt.onetrading
             object ticker = tickers[i];
             string? marketId = this.safeString(ticker, "instrument");
             string? symbol = this.safeSymbol(marketId);
-            this.tickers[(string)symbol] = this.parseWSTicker(ticker);
+            this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseWSTicker(ticker));
             Int64? timestamp = this.parse8601(datetime);
             ((IDictionary<string,object>)(this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null))["timestamp"] = timestamp;
             ((IDictionary<string,object>)(this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null))["datetime"] = this.iso8601(timestamp);
@@ -230,7 +230,7 @@ public partial class onetrading : ccxt.onetrading
         client.resolve(this.tickers, "tickers");
     }
 
-    public virtual Dictionary<string, object> parseWSTicker(object ticker, IDictionary<string, object> market = null)
+    public virtual ccxt.Ticker parseWSTicker(object ticker, IDictionary<string, object> market = null)
     {
         //
         //     {

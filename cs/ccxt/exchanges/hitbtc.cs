@@ -1278,7 +1278,7 @@ public partial class hitbtc : Exchange
         //         "timestamp": "2021-06-02T17:52:36.732Z"
         //     }
         //
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
+        return this.parseTicker(response, market);
     }
 
     /**
@@ -1329,12 +1329,12 @@ public partial class hitbtc : Exchange
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             IDictionary<string, object> entry = this.safeDict(response, marketId, new Dictionary<string, object>() {});
-            result[(string)symbol] = this.parseTicker(entry, market);
+            result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(entry, market));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         //     {

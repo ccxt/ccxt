@@ -1338,7 +1338,7 @@ public partial class bitrue : Exchange
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // fetchBidsAsks
@@ -1493,7 +1493,7 @@ public partial class bitrue : Exchange
         //         "time": 1699348013000
         //     }
         //
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(data, market));
+        return this.parseTicker(data, market);
     }
 
     /**

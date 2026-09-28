@@ -300,12 +300,12 @@ public partial class grvt : ccxt.grvt
         string? marketId = this.safeString(parts, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        Dictionary<string, object> ticker = this.parseWsTicker(data, market);
-        this.tickers[(string)symbol] = ticker;
-        client.resolve(ticker, ("ticker::" + symbol));
+        ccxt.Ticker ticker = this.parseWsTicker(data, market);
+        this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
+        client.resolve(ccxt.BaseExchange.FromTicker(ticker), ("ticker::" + symbol));
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(IDictionary<string, object> message, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> message, object market = null)
     {
         // same dict as REST api
         return this.parseTicker(message, market);

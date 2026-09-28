@@ -1731,7 +1731,6 @@ public partial class binance : PredictionExchange
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "lastTradeTimestamp", this.safeInteger(trade, "modifyTime") },
             { "outcome", this.safeString(outcomeObjResolved, "outcome") },
             { "outcomeId", this.safeString(outcomeObjResolved, "id") },
             { "label", this.safeString(outcomeObjResolved, "label") },
@@ -1742,7 +1741,6 @@ public partial class binance : PredictionExchange
             { "takerOrMaker", null },
             { "price", price },
             { "amount", this.safeString(trade, "makerShareQty") },
-            { "filled", filled },
             { "cost", cost },
             { "fee", fee },
         }, outcomeObjResolved);

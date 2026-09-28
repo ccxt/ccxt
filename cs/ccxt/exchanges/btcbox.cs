@@ -471,7 +471,7 @@ public partial class btcbox : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null)));
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         string? symbol = this.safeSymbol(null, market);
         string? last = this.safeString(ticker, "last");
@@ -523,7 +523,7 @@ public partial class btcbox : Exchange
             request["coin"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
         }
         Dictionary<string, object> response = await this.publicGetTicker(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
+        return this.parseTicker(response, market);
     }
 
     /**

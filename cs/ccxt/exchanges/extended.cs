@@ -927,7 +927,7 @@ public partial class extended : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(data, market));
+        return this.parseTicker(data, market);
     }
 
     /**
@@ -981,17 +981,17 @@ public partial class extended : Exchange
             string? marketId = this.safeString(marketData, "name");
             Dictionary<string, object> market = this.safeMarket(marketId);
             IDictionary<string, object> stats = this.safeDict(marketData, "marketStats", new Dictionary<string, object>() {});
-            Dictionary<string, object> ticker = this.parseTicker(stats, market);
-            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+            ccxt.Ticker ticker = this.parseTicker(stats, market);
+            string? symbol = ticker.symbol;
             if ((symbol != null))
             {
-                tickers[(string)symbol] = ticker;
+                tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             }
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         //     {

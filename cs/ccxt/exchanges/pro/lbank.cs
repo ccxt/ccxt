@@ -344,15 +344,15 @@ public partial class lbank : ccxt.lbank
         string? marketId = this.safeString(message, "pair");
         string? symbol = this.safeSymbol(marketId);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        Dictionary<string, object> parsedTicker = this.parseWsTicker(message, market);
-        this.tickers[(string)symbol] = parsedTicker;
+        ccxt.Ticker parsedTicker = this.parseWsTicker(message, market);
+        this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsedTicker);
         string messageHash = ("ticker:" + symbol);
-        client.resolve(parsedTicker, messageHash);
+        client.resolve(ccxt.BaseExchange.FromTicker(parsedTicker), messageHash);
         messageHash = ("fetchTicker:" + symbol);
-        client.resolve(parsedTicker, messageHash);
+        client.resolve(ccxt.BaseExchange.FromTicker(parsedTicker), messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object ticker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(object ticker, object market = null)
     {
         //
         //     {

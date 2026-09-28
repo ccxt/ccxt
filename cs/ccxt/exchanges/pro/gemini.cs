@@ -550,7 +550,7 @@ public partial class gemini : ccxt.gemini
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if (!((this.bidsasks != null && symbol != null && this.bidsasks.ContainsKey(symbol))))
         {
-            this.bidsasks[(string)symbol] = this.parseTicker(new Dictionary<string, object>() {});
+            this.bidsasks[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(new Dictionary<string, object>() {}));
             ((IDictionary<string,object>)(this.bidsasks != null && symbol != null && this.bidsasks.ContainsKey(symbol) ? this.bidsasks[symbol] : null))["symbol"] = symbol;
         }
         object currentBidAsk = (this.bidsasks != null && symbol != null && this.bidsasks.ContainsKey(symbol) ? this.bidsasks[symbol] : null);

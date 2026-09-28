@@ -129,7 +129,7 @@ public partial class phemex : ccxt.phemex
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(lastString, openString), "2"));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringSub(Precise.stringDiv(lastString, openString), "1"), "100"));
         }
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -152,7 +152,7 @@ public partial class phemex : ccxt.phemex
             { "markPrice", this.parseNumber(this.fromEp(this.safeString(ticker, "markPrice"), marketValue)) },
             { "indexPrice", this.parseNumber(this.fromEp(this.safeString(ticker, "indexPrice"), marketValue)) },
             { "info", ticker },
-        });
+        }));
     }
 
     public virtual Dictionary<string, object> parsePerpetualTicker(object ticker, IDictionary<string, object> market = null)
@@ -192,7 +192,7 @@ public partial class phemex : ccxt.phemex
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(lastString, openString), "2"));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringSub(Precise.stringDiv(lastString, openString), "1"), "100"));
         }
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
             { "datetime", null },
@@ -213,7 +213,7 @@ public partial class phemex : ccxt.phemex
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
             { "info", ticker },
-        });
+        }));
     }
 
     public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
@@ -301,7 +301,7 @@ public partial class phemex : ccxt.phemex
         } else if ((message != null && message.ContainsKey("spot_market24h")))
         {
             object ticker = this.safeValue(message, "spot_market24h");
-            tickers.Add(this.parseTicker(ticker));
+            tickers.Add(ccxt.BaseExchange.FromTicker(this.parseTicker(ticker)));
         } else if ((message != null && message.ContainsKey("data")))
         {
             List<object> data = this.safeList(message, "data", new List<object>() {});

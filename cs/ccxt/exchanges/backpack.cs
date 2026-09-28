@@ -984,7 +984,7 @@ public partial class backpack : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         List<object> response = await this.publicGetApiV1Tickers(this.extend(request, parameters));
-        Dictionary<string, object> tickers = this.parseTickers(response);
+        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickerMap(this.parseTickers(response));
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbols));
     }
 
@@ -1009,10 +1009,10 @@ public partial class backpack : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetApiV1Ticker(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
+        return this.parseTicker(response, market);
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // fetchTicker/fetchTickers
@@ -1047,7 +1047,7 @@ public partial class backpack : Exchange
             percentage = Precise.stringMul(this.safeString(ticker, "priceChangePercent"), "100");
         }
         string? change = this.safeString(ticker, "priceChange");
-        Dictionary<string, object> parsedTicker = this.safeTicker(new Dictionary<string, object>() {
+        ccxt.Ticker parsedTicker = this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
             { "datetime", null },

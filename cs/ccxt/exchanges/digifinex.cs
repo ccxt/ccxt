@@ -1335,11 +1335,11 @@ public partial class digifinex : Exchange
             Dictionary<string, object> rawTicker = this.extend(new Dictionary<string, object>() {
                 { "date", date },
             }, tickers[i]);
-            Dictionary<string, object> ticker = this.parseTicker(rawTicker);
-            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+            ccxt.Ticker ticker = this.parseTicker(rawTicker);
+            string? symbol = ticker.symbol;
             if ((symbol != null))
             {
-                result[(string)symbol] = ticker;
+                result[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             }
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
@@ -1437,10 +1437,10 @@ public partial class digifinex : Exchange
         {
             throw new NullResponse ((this.id + " fetchTicker() returned empty response")) ;
         }
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(result, market));
+        return this.parseTicker(result, market);
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // spot: fetchTicker, fetchTickers

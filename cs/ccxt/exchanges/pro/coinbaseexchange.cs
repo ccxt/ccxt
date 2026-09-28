@@ -918,21 +918,21 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         string? marketId = this.safeString(message, "product_id");
         if ((marketId != null))
         {
-            Dictionary<string, object> ticker = this.parseTicker(message);
-            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+            ccxt.Ticker ticker = this.parseTicker(message);
+            string? symbol = ticker.symbol;
             if ((symbol != null))
             {
-                this.tickers[(string)symbol] = ticker;
+                this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             }
             string messageHash = ("ticker:" + symbol);
             string idMessageHash = ("ticker:" + marketId);
-            client.resolve(ticker, messageHash);
-            client.resolve(ticker, idMessageHash);
+            client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
+            client.resolve(ccxt.BaseExchange.FromTicker(ticker), idMessageHash);
         }
         return message;
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         //     {

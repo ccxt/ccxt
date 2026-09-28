@@ -188,12 +188,12 @@ public partial class mexc : ccxt.mexc
         Dictionary<string, object> ticker = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            ticker = this.parseWsTicker(rawTicker, market);
+            ticker = ccxt.BaseExchange.FromTicker(this.parseWsTicker(rawTicker, market));
             ticker["timestamp"] = timestamp;
             ticker["datetime"] = this.iso8601(timestamp);
         } else if ((rawTicker != null))
         {
-            ticker = this.parseTicker(rawTicker, market);
+            ticker = ccxt.BaseExchange.FromTicker(this.parseTicker(rawTicker, market));
         } else
         {
             return;
@@ -339,10 +339,10 @@ public partial class mexc : ccxt.mexc
             Dictionary<string, object> ticker = null;
             if ((isSpot is true))
             {
-                ticker = this.parseWsTicker(entry, market);
+                ticker = ccxt.BaseExchange.FromTicker(this.parseWsTicker(entry, market));
             } else
             {
-                ticker = this.parseTicker(entry);
+                ticker = ccxt.BaseExchange.FromTicker(this.parseTicker(entry));
             }
             string? symbol = ((string)GetValue(ticker, "symbol"));
             if ((symbol != null))
@@ -356,7 +356,7 @@ public partial class mexc : ccxt.mexc
         client.resolve(result, topic);
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object ticker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(object ticker, object market = null)
     {
         // protobuf ticker
         // "bidprice": "93387.28",  // Best bid price
@@ -510,7 +510,7 @@ public partial class mexc : ccxt.mexc
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(ticker, "t");
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -519,7 +519,7 @@ public partial class mexc : ccxt.mexc
             { "bid", this.safeNumber(data, "b") },
             { "bidVolume", this.safeNumber(data, "B") },
             { "info", ticker },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     public async virtual Task<object> watchSpotPublic(object channel, object messageHash, object parameters = null)

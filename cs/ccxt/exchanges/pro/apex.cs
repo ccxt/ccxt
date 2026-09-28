@@ -492,10 +492,10 @@ public partial class apex : ccxt.apex
         string? updateType = this.safeString(message, "type", "");
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? symbol = null;
-        Dictionary<string, object> parsed = this.parseTicker(data);
+        Dictionary<string, object> parsed = ccxt.BaseExchange.FromTicker(this.parseTicker(data));
         if ((updateType == "snapshot"))
         {
-            parsed = this.parseTicker(data);
+            parsed = ccxt.BaseExchange.FromTicker(this.parseTicker(data));
             symbol = this.safeString(parsed, "symbol");
         } else if (updateType == "delta")
         {
@@ -507,7 +507,7 @@ public partial class apex : ccxt.apex
             IDictionary<string, object> ticker = this.safeDict(this.tickers, symbol, new Dictionary<string, object>() {});
             IDictionary<string, object> rawTicker = this.safeDict(ticker, "info", new Dictionary<string, object>() {});
             Dictionary<string, object> merged = this.extend(rawTicker, data);
-            parsed = this.parseTicker(merged);
+            parsed = ccxt.BaseExchange.FromTicker(this.parseTicker(merged));
         }
         Int64? timestamp = this.safeIntegerProduct(message, "ts", 0.001);
         parsed["timestamp"] = timestamp;

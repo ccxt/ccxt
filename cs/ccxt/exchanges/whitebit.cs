@@ -1647,10 +1647,10 @@ public partial class whitebit : Exchange
         //     }
         //
         IDictionary<string, object> ticker = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
+        return this.parseTicker(ticker, market);
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         //  FetchTicker (v1)
@@ -1987,9 +1987,9 @@ public partial class whitebit : Exchange
         {
             string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
-            Dictionary<string, object> ticker = this.parseTicker((response != null && marketId != null && response.ContainsKey(marketId) ? response[marketId] : null), market);
-            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
-            result[(string)symbol] = ticker;
+            ccxt.Ticker ticker = this.parseTicker((response != null && marketId != null && response.ContainsKey(marketId) ? response[marketId] : null), market);
+            string? symbol = ticker.symbol;
+            result[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }

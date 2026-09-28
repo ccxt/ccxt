@@ -307,17 +307,17 @@ public partial class bitget : ccxt.bitget
         //     }
         //
         this.handleBidAsk(client, message);
-        Dictionary<string, object> ticker = this.parseWsTicker(message);
-        string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+        ccxt.Ticker ticker = this.parseWsTicker(message);
+        string? symbol = ticker.symbol;
         if ((symbol != null))
         {
-            this.tickers[(string)symbol] = ticker;
+            this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
         }
         string messageHash = ("ticker:" + symbol);
-        client.resolve(ticker, messageHash);
+        client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object message, string? market = null)
+    public virtual ccxt.Ticker parseWsTicker(object message, string? market = null)
     {
         //
         // spot
@@ -547,7 +547,7 @@ public partial class bitget : ccxt.bitget
         string? utaMarketId = this.safeString(arg, "symbol");
         string? marketId = this.safeString(ticker, "instId", utaMarketId);
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -556,7 +556,7 @@ public partial class bitget : ccxt.bitget
             { "bid", this.safeString2(ticker, "bidPr", "bid1Price") },
             { "bidVolume", this.safeString2(ticker, "bidSz", "bid1Size") },
             { "info", ticker },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     /**

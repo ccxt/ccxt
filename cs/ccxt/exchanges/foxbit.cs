@@ -658,7 +658,7 @@ public partial class foxbit : Exchange
         //  }
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> result = this.safeDict(data, 0, new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(result, market));
+        return this.parseTicker(result, market);
     }
 
     /**
@@ -1922,7 +1922,7 @@ public partial class foxbit : Exchange
         };
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         string? marketId = this.safeString(ticker, "market_symbol");
         string? symbol = this.safeSymbol(marketId, market, null, "spot");

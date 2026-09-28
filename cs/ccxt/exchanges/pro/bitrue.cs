@@ -834,13 +834,13 @@ public partial class bitrue : ccxt.bitrue
             return;
         }
         Int64? timestamp = this.safeInteger(message, "ts");
-        Dictionary<string, object> parsed = this.parseWsTicker(tick, market, timestamp);
-        this.tickers[(string)symbol] = parsed;
+        ccxt.Ticker parsed = this.parseWsTicker(tick, market, timestamp);
+        this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsed);
         string messageHash = ("ticker:" + (symbol));
-        client.resolve(parsed, messageHash);
+        client.resolve(ccxt.BaseExchange.FromTicker(parsed), messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(IDictionary<string, object> tick, object market, object timestamp = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> tick, object market, object timestamp = null)
     {
         object symbol = getValue(market, "symbol");
         double? rawVol = this.safeNumber(tick, "vol");

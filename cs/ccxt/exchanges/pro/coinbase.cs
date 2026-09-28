@@ -517,26 +517,26 @@ public partial class coinbase : ccxt.coinbase
                 {
                     continue;
                 }
-                Dictionary<string, object> result = this.parseWsTicker(ticker);
-                result["timestamp"] = timestamp;
-                result["datetime"] = datetime;
-                string? symbol = ((string)(result != null && result.ContainsKey("symbol") ? result["symbol"] : null));
+                ccxt.Ticker result = this.parseWsTicker(ticker);
+                result.timestamp = ccxt.BaseExchange.StructInt64(timestamp);
+                result.datetime = ccxt.BaseExchange.StructString(datetime);
+                string? symbol = result.symbol;
                 if ((symbol != null))
                 {
-                    this.tickers[(string)symbol] = result;
+                    this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(result);
                 }
-                newTickers.Add(result);
+                newTickers.Add(ccxt.BaseExchange.FromTicker(result));
                 if ((channel != null))
                 {
                     string messageHash = ((channel + "::") + symbol);
-                    client.resolve(result, messageHash);
-                    this.tryResolveUsdc(client, messageHash, result);
+                    client.resolve(ccxt.BaseExchange.FromTicker(result), messageHash);
+                    this.tryResolveUsdc(client, messageHash, ccxt.BaseExchange.FromTicker(result));
                 }
             }
         }
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object ticker, string? market = null)
+    public virtual ccxt.Ticker parseWsTicker(object ticker, string? market = null)
     {
         //
         //     {

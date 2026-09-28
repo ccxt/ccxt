@@ -797,7 +797,7 @@ public partial class apex : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // {
@@ -875,7 +875,7 @@ public partial class apex : Exchange
         Dictionary<string, object> response = await this.publicGetV3Ticker(this.extend(request, parameters));
         List<object> tickers = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> rawTicker = this.safeDict(tickers, 0, new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(rawTicker, market));
+        return this.parseTicker(rawTicker, market);
     }
 
     /**

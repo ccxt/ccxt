@@ -2544,17 +2544,17 @@ public partial class pacifica : Exchange
         for (int i = 0; i < data.Count; i++)
         {
             object info = data[i];
-            Dictionary<string, object> ticker = this.parseTicker(info);
-            string? symbol = this.safeString(ticker, "symbol");
+            ccxt.Ticker ticker = this.parseTicker(info);
+            string? symbol = ticker.symbol;
             if ((symbol != null))
             {
-                result[(string)symbol] = ticker;
+                result[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             }
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         //     {

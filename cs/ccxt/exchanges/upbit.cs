@@ -822,7 +822,7 @@ public partial class upbit : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.safeDict(orderbooks, symbol));
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         //       {                market: "BTC-ETH",

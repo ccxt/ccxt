@@ -442,7 +442,7 @@ public partial class bitopro : ccxt.bitopro
         Dictionary<string, object> market = this.safeMarket(marketId, null, "_");
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? eventVar = this.safeString(message, "event");
-        Dictionary<string, object> result = this.parseTicker(message, market);
+        Dictionary<string, object> result = ccxt.BaseExchange.FromTicker(this.parseTicker(message, market));
         result["symbol"] = this.safeString(market, "symbol"); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         Int64? timestamp = this.safeInteger(message, "timestamp");
         result["timestamp"] = timestamp;

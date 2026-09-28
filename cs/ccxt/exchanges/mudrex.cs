@@ -475,7 +475,7 @@ public partial class mudrex : Exchange
         };
         Dictionary<string, object> response = await this.privateGetFuturesAssetId(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(data, market));
+        return this.parseTicker(data, market);
     }
 
     /**
@@ -513,12 +513,12 @@ public partial class mudrex : Exchange
             {
                 continue;
             }
-            resultTickers[(string)symbol] = this.parseTicker(t, m);
+            resultTickers[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(t, m));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(resultTickers, "symbol", symbols));
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         string? ms = this.safeString(ticker, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(ms, market);

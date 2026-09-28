@@ -775,7 +775,7 @@ public partial class zebpay : Exchange
             response = await this.publicSwapGetV1MarketTicker24Hr(this.extend(request, parameters));
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(data, market));
+        return this.parseTicker(data, market);
     }
 
     /**
@@ -2104,7 +2104,7 @@ public partial class zebpay : Exchange
         };
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         //     [
@@ -2133,7 +2133,6 @@ public partial class zebpay : Exchange
         string? bidVolume = this.safeString(ticker, "bidVolume");
         string? askVolume = this.safeString(ticker, "askVolume");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "id", marketId },
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },

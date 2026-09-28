@@ -3285,7 +3285,7 @@ public partial class kucoin : Exchange
         string? baseVolume = this.safeString2(ticker, "vol", "baseVolume");
         string? quoteVolume = this.safeString2(ticker, "volValue", "quoteVolume");
         Int64? timestamp = this.safeIntegerN(ticker, new List<object>() {"time", "datetime", "timePoint"});
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -3308,14 +3308,14 @@ public partial class kucoin : Exchange
             { "markPrice", this.safeString2(ticker, "markPrice", "value") },
             { "indexPrice", this.safeString(ticker, "indexPrice") },
             { "info", ticker },
-        }, marketResolved);
+        }, marketResolved));
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         // wrapper for parseTickers
         // parseTickers used only in methods for contract markets
-        return ((Dictionary<string, object>)((object)(this.parseContractTicker(ticker, market))));
+        return new ccxt.Ticker(this.parseContractTicker(ticker, market));
     }
 
     public virtual object parseContractTicker(object ticker, object market = null)
@@ -3417,7 +3417,7 @@ public partial class kucoin : Exchange
             percentage = Precise.stringMul(this.safeString(ticker, "priceChgPct"), "100");
         }
         // Otherwise safeTicker derives percentage from last and change, since priceChgPct can be inconsistent.
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -3440,7 +3440,7 @@ public partial class kucoin : Exchange
             { "markPrice", this.safeString2(ticker, "markPrice", "value") },
             { "indexPrice", this.safeString(ticker, "indexPrice") },
             { "info", ticker },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     public virtual string? typeToTradeType(string? type)
@@ -3606,7 +3606,7 @@ public partial class kucoin : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data");
-        Dictionary<string, object> tickers = this.parseTickers(data, symbols);
+        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickerMap(this.parseTickers(data, symbols));
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbols));
     }
 
@@ -3722,7 +3722,7 @@ public partial class kucoin : Exchange
             //    }
             //
             IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            return ccxt.BaseExchange.ToTicker(this.parseTicker(data, market));
+            return this.parseTicker(data, market);
         } else
         {
             response = await this.publicGetMarketStats(this.extend(request, paramsMarketType));
@@ -3780,7 +3780,7 @@ public partial class kucoin : Exchange
         {
             response = await this.futuresPublicGetMarkPriceSymbolCurrent(this.extend(request, parameters));
             IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            return ccxt.BaseExchange.ToTicker(this.parseTicker(data, market));
+            return this.parseTicker(data, market);
         } else
         {
             response = await this.publicGetMarkPriceSymbolCurrent(this.extend(request, parameters));

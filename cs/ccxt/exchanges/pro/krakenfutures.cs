@@ -1170,14 +1170,14 @@ public partial class krakenfutures : ccxt.krakenfutures
         string? marketId = this.safeString(message, "product_id");
         if ((marketId != null))
         {
-            Dictionary<string, object> ticker = this.parseWsTicker(message);
-            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+            ccxt.Ticker ticker = this.parseWsTicker(message);
+            string? symbol = ticker.symbol;
             if ((symbol != null))
             {
-                this.tickers[(string)symbol] = ticker;
+                this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             }
             string? messageHash = this.getMessageHash("ticker", null, symbol);
-            client.resolve(ticker, messageHash);
+            client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
         }
     }
 
@@ -1202,18 +1202,18 @@ public partial class krakenfutures : ccxt.krakenfutures
         string? marketId = this.safeString(message, "product_id");
         if ((marketId != null))
         {
-            Dictionary<string, object> ticker = this.parseWsTicker(message);
-            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+            ccxt.Ticker ticker = this.parseWsTicker(message);
+            string? symbol = ticker.symbol;
             if ((symbol != null))
             {
-                this.bidsasks[(string)symbol] = ticker;
+                this.bidsasks[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             }
             string? messageHash = this.getMessageHash("bidask", null, symbol);
-            client.resolve(ticker, messageHash);
+            client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
         }
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object ticker, string? market = null)
+    public virtual ccxt.Ticker parseWsTicker(object ticker, string? market = null)
     {
         //
         //    {

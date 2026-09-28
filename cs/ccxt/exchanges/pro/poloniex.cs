@@ -1157,15 +1157,15 @@ public partial class poloniex : ccxt.poloniex
             string? marketId = this.safeString(item, "symbol");
             if ((marketId != null))
             {
-                Dictionary<string, object> ticker = this.parseTicker(item);
-                string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+                ccxt.Ticker ticker = this.parseTicker(item);
+                string? symbol = ticker.symbol;
                 if ((symbol != null))
                 {
-                    this.tickers[(string)symbol] = ticker;
+                    this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
                 }
                 if ((symbol != null))
                 {
-                    newTickers[(string)symbol] = ticker;
+                    newTickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
                 }
             }
         }

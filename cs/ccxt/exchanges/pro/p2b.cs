@@ -425,14 +425,14 @@ public partial class p2b : ccxt.p2b
         if (method == "price.update")
         {
             string? lastPrice = this.safeString(data, 1);
-            ticker = this.safeTicker(new Dictionary<string, object>() {
+            ticker = ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
                 { "last", lastPrice },
                 { "close", lastPrice },
                 { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
-            });
+            }));
         } else
         {
-            ticker = this.parseTicker(tickerData, market);
+            ticker = ccxt.BaseExchange.FromTicker(this.parseTicker(tickerData, market));
         }
         string? symbol = ((string)GetValue(ticker, "symbol"));
         this.tickers[(string)symbol] = ticker;

@@ -1042,7 +1042,7 @@ public partial class coinbaseexchange : Exchange
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // fetchTickers
@@ -1174,7 +1174,7 @@ public partial class coinbaseexchange : Exchange
             List<object> first = this.safeList(entry, 0, new List<object>() {});
             Dictionary<string, object> market = this.safeMarket(marketId, null, delimiter);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            result[(string)symbol] = this.parseTicker(first, market);
+            result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(first, market));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
@@ -1231,7 +1231,7 @@ public partial class coinbaseexchange : Exchange
         //         "volume": "2.41000000"
         //     }
         //
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
+        return this.parseTicker(response, market);
     }
 
     public override Dictionary<string, object> parseTrade(object trade, object market = null)

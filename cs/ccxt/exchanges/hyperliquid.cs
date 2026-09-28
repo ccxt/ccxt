@@ -1384,9 +1384,9 @@ public partial class hyperliquid : Exchange
         {
             object market = getValue(response, i);
             object info = getValue(market, "info");
-            Dictionary<string, object> ticker = this.parseTicker(info, market);
-            string? symbol = this.safeString(ticker, "symbol");
-            result[(string)symbol] = ticker;
+            ccxt.Ticker ticker = this.parseTicker(info, market);
+            string? symbol = ticker.symbol;
+            result[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
@@ -1524,7 +1524,7 @@ public partial class hyperliquid : Exchange
         };
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         //     {

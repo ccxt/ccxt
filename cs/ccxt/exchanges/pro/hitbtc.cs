@@ -469,16 +469,16 @@ public partial class hitbtc : ccxt.hitbtc
             string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            Dictionary<string, object> ticker = this.parseWsTicker((marketId != null && data.ContainsKey(marketId) ? data[marketId] : null), market);
-            this.tickers[(string)symbol] = ticker;
-            result.Add(ticker);
+            ccxt.Ticker ticker = this.parseWsTicker((marketId != null && data.ContainsKey(marketId) ? data[marketId] : null), market);
+            this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
+            result.Add(ccxt.BaseExchange.FromTicker(ticker));
             string messageHash = ((topic + "::") + symbol);
-            client.resolve(ticker, messageHash);
+            client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
         }
         client.resolve(result, topic);
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object ticker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(object ticker, object market = null)
     {
         //
         //    {
@@ -627,7 +627,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             bidAskSymbol = (market != null && market.ContainsKey("symbol") ? market["symbol"] : null);
         }
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", bidAskSymbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -636,7 +636,7 @@ public partial class hitbtc : ccxt.hitbtc
             { "bid", this.safeString(ticker, "b") },
             { "bidVolume", this.safeString(ticker, "B") },
             { "info", ticker },
-        }, market);
+        }, market));
     }
 
     /**

@@ -242,10 +242,10 @@ public partial class hashkey : ccxt.hashkey
         //     }
         //
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        Dictionary<string, object> ticker = this.parseTicker(this.safeDict(data, 0, new Dictionary<string, object>() {}));
-        string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+        ccxt.Ticker ticker = this.parseTicker(this.safeDict(data, 0, new Dictionary<string, object>() {}));
+        string? symbol = ticker.symbol;
         string messageHash = ("ticker:" + symbol);
-        this.tickers[(string)symbol] = ticker;
+        this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
         client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
     }
 

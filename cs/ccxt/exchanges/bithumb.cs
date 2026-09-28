@@ -947,7 +947,7 @@ public partial class bithumb : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"));
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // generation 1: fetchTicker, fetchTickers
@@ -1244,7 +1244,7 @@ public partial class bithumb : Exchange
                     {
                         continue;
                     }
-                    result[(string)symbol] = this.parseTicker(entry, market);
+                    result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(entry, market));
                 }
             }
         } else
@@ -1298,7 +1298,7 @@ public partial class bithumb : Exchange
                     string symbol = ((bs + "/") + (quote));
                     Dictionary<string, object> market = this.safeMarket(symbol);
                     ((IDictionary<string,object>)ticker)["date"] = timestamp;
-                    result[(string)symbol] = this.parseTicker(ticker, market);
+                    result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(ticker, market));
                 }
             }
         }
@@ -1393,7 +1393,7 @@ public partial class bithumb : Exchange
             //
             data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         }
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(data, market));
+        return this.parseTicker(data, market);
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)

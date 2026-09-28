@@ -255,7 +255,7 @@ public partial class derive : ccxt.derive
             string? marketId = this.safeString(parts, 1);
             Dictionary<string, object> market = this.safeMarket(marketId);
             IDictionary<string, object> stats = this.safeDict(data, "stats", new Dictionary<string, object>() {});
-            ticker = this.safeTicker(new Dictionary<string, object>() {
+            ticker = ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
                 { "timestamp", this.safeInteger(data, "t") },
                 { "datetime", this.iso8601(this.safeInteger(data, "t")) },
@@ -271,10 +271,10 @@ public partial class derive : ccxt.derive
                 { "markPrice", this.safeString(data, "M") },
                 { "indexPrice", this.safeString(data, "I") },
                 { "info", rawData },
-            }, market);
+            }, market));
         } else
         {
-            ticker = this.parseTicker(data);
+            ticker = ccxt.BaseExchange.FromTicker(this.parseTicker(data));
         }
         string? tickerSymbol = ((string)GetValue(ticker, "symbol"));
         if ((tickerSymbol != null))

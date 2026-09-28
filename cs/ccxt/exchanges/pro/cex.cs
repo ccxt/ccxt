@@ -396,7 +396,7 @@ public partial class cex : ccxt.cex
         //     }
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        Dictionary<string, object> ticker = this.parseWsTicker(data);
+        Dictionary<string, object> ticker = ccxt.BaseExchange.FromTicker(this.parseWsTicker(data));
         string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
         if ((symbol == null))
         {
@@ -413,7 +413,7 @@ public partial class cex : ccxt.cex
         }
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(IDictionary<string, object> ticker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //  public

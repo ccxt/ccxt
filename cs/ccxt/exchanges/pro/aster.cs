@@ -464,17 +464,17 @@ public partial class aster : ccxt.aster
         //
         string marketType = this.getAccountTypeFromUrl(client.url);
         object ticker = message;
-        Dictionary<string, object> parsed = this.parseWsTicker(ticker, marketType);
-        string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+        ccxt.Ticker parsed = this.parseWsTicker(ticker, marketType);
+        string? symbol = parsed.symbol;
         string messageHash = ("ticker:" + symbol);
         if ((symbol != null))
         {
-            this.tickers[(string)symbol] = parsed;
+            this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsed);
             client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
         }
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object message, string? marketType)
+    public virtual ccxt.Ticker parseWsTicker(object message, string? marketType)
     {
         string? eventVar = this.safeString(message, "e");
         string? marketId = this.safeString(message, "s");
@@ -662,7 +662,7 @@ public partial class aster : ccxt.aster
         {
             bidAskSymbol = (market != null && market.ContainsKey("symbol") ? market["symbol"] : null);
         }
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", bidAskSymbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -671,7 +671,7 @@ public partial class aster : ccxt.aster
             { "bid", this.safeString(message, "b") },
             { "bidVolume", this.safeString(message, "B") },
             { "info", message },
-        }, market);
+        }, market));
     }
 
     /**

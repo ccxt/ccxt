@@ -292,7 +292,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             return;
         } else if (eventVar == "snapshot")
         {
-            ticker = this.parseTicker(message, market);
+            ticker = ccxt.BaseExchange.FromTicker(this.parseTicker(message, market));
         } else if (eventVar == "updated")
         {
             IDictionary<string, object> lastTicker = this.safeDict(this.tickers, symbol);
@@ -317,7 +317,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         string? marketId = this.safeString(ticker, "symbol");
         string? symbol = this.safeSymbol(marketId, null, "-");
         string? last = this.safeString(ticker, "mark_price");
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
             { "datetime", null },
@@ -338,7 +338,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             { "baseVolume", this.safeString(lastTicker, "baseVolume") },
             { "quoteVolume", null },
             { "info", this.extend(this.safeDict(lastTicker, "info", new Dictionary<string, object>() {}), ticker) },
-        }, market);
+        }, market));
     }
 
     /**

@@ -351,10 +351,10 @@ public partial class whitebit : ccxt.whitebit
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         IDictionary<string, object> rawTicker = this.safeDict(tickers, 1, new Dictionary<string, object>() {});
         string messageHash = (("ticker" + ":") + symbol);
-        Dictionary<string, object> ticker = this.parseTicker(rawTicker, market);
-        this.tickers[(string)symbol] = ticker;
+        ccxt.Ticker ticker = this.parseTicker(rawTicker, market);
+        this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
         // watchTicker
-        client.resolve(ticker, messageHash);
+        client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
         // watchTickers
         List<object> messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
         for (int i = 0; i < messageHashes.Count; i++)
@@ -371,7 +371,7 @@ public partial class whitebit : ccxt.whitebit
                 // user might have multiple watchTickers promises
                 // watchTickers ( ['LTC/USDT', 'ETH/USDT'] ), watchTickers ( ['ETC/USDT', 'DOGE/USDT'] )
                 // and we want to make sure we resolve only the correct ones
-                client.resolve(ticker, currentMessageHash);
+                client.resolve(ccxt.BaseExchange.FromTicker(ticker), currentMessageHash);
             }
         }
         return message;

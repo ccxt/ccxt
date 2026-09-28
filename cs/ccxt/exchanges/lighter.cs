@@ -1669,7 +1669,7 @@ public partial class lighter : Exchange
         return ccxt.BaseExchange.ToOrderBook(result);
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // fetchTicker, fetchTickers
@@ -1740,7 +1740,6 @@ public partial class lighter : Exchange
         string? baseVolume = this.safeString(ticker, "daily_base_token_volume");
         string? quoteVolume = this.safeString(ticker, "daily_quote_token_volume");
         string? change = this.safeString(ticker, "daily_price_change");
-        string? openInterest = this.safeString(ticker, "open_interest");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
@@ -1763,7 +1762,6 @@ public partial class lighter : Exchange
             { "quoteVolume", quoteVolume },
             { "markPrice", this.safeString(ticker, "mark_price") },
             { "indexPrice", this.safeString(ticker, "index_price") },
-            { "openInterest", openInterest },
             { "info", ticker },
         }, marketResolved);
     }
@@ -1841,7 +1839,7 @@ public partial class lighter : Exchange
         List<object> swapTickers = this.safeList(response, "order_book_details", new List<object>() {});
         List<object> tickers = this.arrayConcat(spotTickers, swapTickers);
         IDictionary<string, object> first = this.safeDict(tickers, 0, new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(first, market));
+        return this.parseTicker(first, market);
     }
 
     /**

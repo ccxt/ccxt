@@ -1786,7 +1786,7 @@ public partial class nado : ccxt.nado
         string? marketId = this.safeString(bidask, "product_id");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.parseWsTimestamp(bidask, "timestamp");
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -1795,7 +1795,7 @@ public partial class nado : ccxt.nado
             { "bid", this.parseX18(this.safeString(bidask, "bid_price")) },
             { "bidVolume", this.parseX18(this.safeString(bidask, "bid_qty")) },
             { "info", bidask },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     public virtual void handleBidAsk(WebSocketClient client, Dictionary<string, object> message)
@@ -1841,7 +1841,7 @@ public partial class nado : ccxt.nado
             string maxPrice = "170141183460469231731687303715884105727";
             if (Precise.stringGt(bid, "0") && Precise.stringGt(ask, "0") && !Precise.stringEquals(bid, maxPrice) && !Precise.stringEquals(ask, maxPrice))
             {
-                Dictionary<string, object> ticker = this.safeTicker(new Dictionary<string, object>() {
+                ccxt.Ticker ticker = this.safeTicker(new Dictionary<string, object>() {
                     { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
                     { "timestamp", timestamp },
                     { "datetime", this.iso8601(timestamp) },
@@ -1850,7 +1850,7 @@ public partial class nado : ccxt.nado
                     { "info", bbo },
                 }, market);
                 string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-                result[(string)symbol] = ticker;
+                result[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             }
         }
         return result;

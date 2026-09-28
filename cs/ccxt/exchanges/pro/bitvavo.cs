@@ -187,14 +187,14 @@ public partial class bitvavo : ccxt.bitvavo
             object data = tickers[i];
             string? marketId = this.safeString(data, "market");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-            Dictionary<string, object> ticker = this.parseTicker(data, market);
-            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
-            this.tickers[(string)symbol] = ticker;
-            result.Add(ticker);
+            ccxt.Ticker ticker = this.parseTicker(data, market);
+            string? symbol = ticker.symbol;
+            this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
+            result.Add(ccxt.BaseExchange.FromTicker(ticker));
             if ((eventVar != null))
             {
                 string messageHash = ((eventVar + "@") + marketId);
-                client.resolve(ticker, messageHash);
+                client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
             }
         }
         client.resolve(result, eventVar);
@@ -246,7 +246,7 @@ public partial class bitvavo : ccxt.bitvavo
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, null, "-");
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -255,7 +255,7 @@ public partial class bitvavo : ccxt.bitvavo
             { "bid", this.safeNumber(ticker, "bid") },
             { "bidVolume", this.safeNumber(ticker, "bidSize") },
             { "info", ticker },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     /**

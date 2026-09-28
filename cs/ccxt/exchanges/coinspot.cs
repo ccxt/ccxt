@@ -692,7 +692,7 @@ public partial class coinspot : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "buyorders", "sellorders", "rate", "amount"));
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -763,7 +763,7 @@ public partial class coinspot : Exchange
         //     }
         //
         IDictionary<string, object> ticker = this.safeDict(prices, id, new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
+        return this.parseTicker(ticker, market);
     }
 
     /**
@@ -811,7 +811,7 @@ public partial class coinspot : Exchange
             {
                 string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
                 object ticker = (id != null && prices.ContainsKey(id) ? prices[id] : null);
-                result[(string)symbol] = this.parseTicker(ticker, market);
+                result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(ticker, market));
             }
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));

@@ -1570,8 +1570,8 @@ public partial class bitteam : Exchange
         for (int i = 0; i < (rawTickers?.Count ?? 0); i++)
         {
             object rawTicker = rawTickers[i];
-            Dictionary<string, object> ticker = this.parseTicker(rawTicker);
-            tickers.Add(ticker);
+            ccxt.Ticker ticker = this.parseTicker(rawTicker);
+            tickers.Add(ccxt.BaseExchange.FromTicker(ticker));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbols));
     }
@@ -1782,10 +1782,10 @@ public partial class bitteam : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         IDictionary<string, object> pair = this.safeDict(result, "pair", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(pair, market));
+        return this.parseTicker(pair, market);
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // fetchTicker

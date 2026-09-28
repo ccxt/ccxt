@@ -859,7 +859,7 @@ public partial class bigone : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // spot
@@ -986,7 +986,7 @@ public partial class bigone : Exchange
             //     }
             //
             IDictionary<string, object> ticker = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
+            return this.parseTicker(ticker, market);
         } else
         {
             Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, paramsMarketType));
@@ -1064,7 +1064,7 @@ public partial class bigone : Exchange
             List<object> instruments = await this.contractPublicGetInstruments(paramsMarketType);
             data = this.toArray(instruments);
         }
-        Dictionary<string, object> tickers = this.parseTickers(data, symbolsNormalized);
+        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickerMap(this.parseTickers(data, symbolsNormalized));
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbolsNormalized));
     }
 

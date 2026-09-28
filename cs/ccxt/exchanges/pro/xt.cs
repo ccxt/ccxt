@@ -1020,11 +1020,11 @@ public partial class xt : ccxt.xt
         {
             string? cv = this.safeString(data, "cv");
             bool isSpot = (cv != null);
-            Dictionary<string, object> ticker = this.parseTicker(data);
-            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+            ccxt.Ticker ticker = this.parseTicker(data);
+            string? symbol = ticker.symbol;
             if ((symbol != null))
             {
-                this.tickers[(string)symbol] = ticker;
+                this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             }
             string? eventVar = this.safeString(message, "event");
             string messageHashTail = "contract";
@@ -1035,7 +1035,7 @@ public partial class xt : ccxt.xt
             if ((eventVar != null))
             {
                 string messageHash = ((eventVar + "::") + messageHashTail);
-                client.resolve(ticker, messageHash);
+                client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
             }
         }
         return message;
@@ -1122,13 +1122,13 @@ public partial class xt : ccxt.xt
         for (int i = 0; i < data.Count; i++)
         {
             object tickerData = data[i];
-            Dictionary<string, object> ticker = this.parseTicker(tickerData);
-            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+            ccxt.Ticker ticker = this.parseTicker(tickerData);
+            string? symbol = ticker.symbol;
             if ((symbol != null))
             {
-                this.tickers[(string)symbol] = ticker;
+                this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             }
-            newTickers.Add(ticker);
+            newTickers.Add(ccxt.BaseExchange.FromTicker(ticker));
         }
         string messageHashStart = ((this.safeString(message, "topic") + "::") + tradeType);
         List<object> messageHashes = this.findMessageHashes(client, (messageHashStart + "::"));

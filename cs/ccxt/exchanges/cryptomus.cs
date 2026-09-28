@@ -574,7 +574,7 @@ public partial class cryptomus : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         //     {

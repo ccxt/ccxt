@@ -351,14 +351,14 @@ public partial class weex : ccxt.weex
         }
         List<object> tickers = this.safeList(message, "d", new List<object>() {});
         IDictionary<string, object> data = this.safeDict(tickers, 0, new Dictionary<string, object>() {});
-        Dictionary<string, object> ticker = this.parseWsTicker(data, market);
+        ccxt.Ticker ticker = this.parseWsTicker(data, market);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("ticker::" + symbol);
-        this.tickers[(string)symbol] = ticker;
+        this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
         client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(IDictionary<string, object> ticker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -1220,7 +1220,7 @@ public partial class weex : ccxt.weex
         {
             symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
         }
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -1229,7 +1229,7 @@ public partial class weex : ccxt.weex
             { "bid", this.safeString(message, "b") },
             { "bidVolume", this.safeString(message, "B") },
             { "info", message },
-        }, market);
+        }, market));
     }
 
     /**

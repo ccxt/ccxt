@@ -285,13 +285,13 @@ public partial class bithumb : ccxt.bithumb
         {
             return;
         }
-        Dictionary<string, object> ticker = this.parseWsTicker(tickerMessage);
+        ccxt.Ticker ticker = this.parseWsTicker(tickerMessage);
         string messageHash = ("ticker:" + symbol);
-        this.tickers[(string)symbol] = ticker;
+        this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
         client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object ticker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(object ticker, object market = null)
     {
         //
         //    {

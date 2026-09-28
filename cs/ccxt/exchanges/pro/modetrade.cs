@@ -192,7 +192,7 @@ public partial class modetrade : ccxt.modetrade
         return ccxt.BaseExchange.ToTicker(await this.watchPublic(topic, message));
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(IDictionary<string, object> ticker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -254,10 +254,10 @@ public partial class modetrade : ccxt.modetrade
         Dictionary<string, object> market = this.safeMarket(marketId);
         Int64? timestamp = this.safeInteger(message, "ts");
         data["date"] = timestamp;
-        Dictionary<string, object> ticker = this.parseWsTicker(data, market);
-        ticker["symbol"] = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        this.tickers[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
-        client.resolve(ticker, topic);
+        ccxt.Ticker ticker = this.parseWsTicker(data, market);
+        ticker.symbol = ccxt.BaseExchange.StructString((market.ContainsKey("symbol") ? market["symbol"] : null));
+        this.tickers[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ccxt.BaseExchange.FromTicker(ticker);
+        client.resolve(ccxt.BaseExchange.FromTicker(ticker), topic);
         return message;
     }
 
@@ -318,11 +318,11 @@ public partial class modetrade : ccxt.modetrade
         {
             string? marketId = this.safeString(data[i], "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            Dictionary<string, object> ticker = this.parseWsTicker(this.extend(data[i], new Dictionary<string, object>() {
+            ccxt.Ticker ticker = this.parseWsTicker(this.extend(data[i], new Dictionary<string, object>() {
                 { "date", timestamp },
             }), market);
-            this.tickers[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
-            result.Add(ticker);
+            this.tickers[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ccxt.BaseExchange.FromTicker(ticker);
+            result.Add(ccxt.BaseExchange.FromTicker(ticker));
         }
         client.resolve(result, topic);
     }
@@ -397,7 +397,7 @@ public partial class modetrade : ccxt.modetrade
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(ticker, "ts");
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -406,7 +406,7 @@ public partial class modetrade : ccxt.modetrade
             { "bid", this.safeString(ticker, "bid") },
             { "bidVolume", this.safeString(ticker, "bidSize") },
             { "info", ticker },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     /**

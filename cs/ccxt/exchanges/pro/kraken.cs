@@ -609,7 +609,7 @@ public partial class kraken : ccxt.kraken
             quoteVolume = Precise.stringMul(baseVolume, vwap);
         }
         string? last = this.safeString(ticker, "last");
-        Dictionary<string, object> result = this.safeTicker(new Dictionary<string, object>() {
+        ccxt.Ticker result = this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
             { "datetime", null },
@@ -631,8 +631,8 @@ public partial class kraken : ccxt.kraken
             { "quoteVolume", quoteVolume },
             { "info", ticker },
         });
-        this.tickers[symbol] = result;
-        client.resolve(result, messageHash);
+        this.tickers[symbol] = ccxt.BaseExchange.FromTicker(result);
+        client.resolve(ccxt.BaseExchange.FromTicker(result), messageHash);
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)

@@ -865,16 +865,16 @@ public partial class pacifica : ccxt.pacifica
             string? marketId = this.safeString(info, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            Dictionary<string, object> ticker = this.parseWsTicker(info, market);
-            this.tickers[(string)symbol] = ticker;
-            parsedTickers.Add(ticker);
+            ccxt.Ticker ticker = this.parseWsTicker(info, market);
+            this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
+            parsedTickers.Add(ccxt.BaseExchange.FromTicker(ticker));
         }
         Dictionary<string, object> tickers = this.indexBy(parsedTickers, "symbol");
         client.resolve(tickers, "tickers");
         return true;
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object rawTicker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(object rawTicker, object market = null)
     {
         return this.parseTicker(rawTicker, market);
     }

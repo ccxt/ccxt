@@ -21,7 +21,7 @@ public partial class BaseTest
             Dictionary<string, object> initialParams = new Dictionary<string, object>() {
                 { "defaultType", "valueFromParam" },
             };
-            Dictionary<string, object> market = exchange.safeMarket("TEST1/TEST2");
+            Dictionary<string, object> market = toDict(exchange.safeMarket("TEST1/TEST2"));
             market["type"] = "spot";
             //
             // ########### test different variations ###########

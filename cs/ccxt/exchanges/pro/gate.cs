@@ -1035,23 +1035,23 @@ public partial class gate : ccxt.gate
             object rawTicker = results[i];
             string? marketId = this.safeString(rawTicker, "s");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "_", marketType);
-            Dictionary<string, object> parsedItem = this.parseTicker(rawTicker, market);
-            string? symbol = ((string)(parsedItem != null && parsedItem.ContainsKey("symbol") ? parsedItem["symbol"] : null));
+            ccxt.Ticker parsedItem = this.parseTicker(rawTicker, market);
+            string? symbol = parsedItem.symbol;
             if (isTicker)
             {
                 if ((symbol != null))
                 {
-                    this.tickers[(string)symbol] = parsedItem;
+                    this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsedItem);
                 }
             } else
             {
                 if ((symbol != null))
                 {
-                    this.bidsasks[(string)symbol] = parsedItem;
+                    this.bidsasks[(string)symbol] = ccxt.BaseExchange.FromTicker(parsedItem);
                 }
             }
             string messageHash = ((objectName + ":") + symbol);
-            client.resolve(parsedItem, messageHash);
+            client.resolve(ccxt.BaseExchange.FromTicker(parsedItem), messageHash);
         }
     }
 

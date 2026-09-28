@@ -688,17 +688,17 @@ public partial class cryptocom : ccxt.cryptocom
         for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> ticker = ((IDictionary<string, object>)data[i]);
-            Dictionary<string, object> parsed = this.parseWsTicker(ticker, market);
-            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+            ccxt.Ticker parsed = this.parseWsTicker(ticker, market);
+            string? symbol = parsed.symbol;
             if ((symbol != null))
             {
-                this.tickers[(string)symbol] = parsed;
+                this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsed);
             }
-            client.resolve(parsed, messageHash);
+            client.resolve(ccxt.BaseExchange.FromTicker(parsed), messageHash);
         }
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(IDictionary<string, object> ticker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -815,7 +815,7 @@ public partial class cryptocom : ccxt.cryptocom
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(ticker, "t");
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -824,7 +824,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "bid", this.safeString(ticker, "b") },
             { "bidVolume", this.safeString(ticker, "bs") },
             { "info", ticker },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     /**

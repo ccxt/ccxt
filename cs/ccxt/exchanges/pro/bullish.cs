@@ -290,13 +290,13 @@ public partial class bullish : ccxt.bullish
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        Dictionary<string, object> parsed = this.parseTicker(data, market);
+        Dictionary<string, object> parsed = ccxt.BaseExchange.FromTicker(this.parseTicker(data, market));
         if (updateType == "update")
         {
             IDictionary<string, object> ticker = this.safeDict(this.tickers, symbol, new Dictionary<string, object>() {});
             IDictionary<string, object> rawTicker = this.safeDict(ticker, "info", new Dictionary<string, object>() {});
             Dictionary<string, object> merged = this.extend(rawTicker, data);
-            parsed = this.parseTicker(merged, market);
+            parsed = ccxt.BaseExchange.FromTicker(this.parseTicker(merged, market));
         }
         this.tickers[(string)symbol] = parsed;
         string messageHash = ("ticker::" + symbol);

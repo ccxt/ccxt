@@ -627,10 +627,10 @@ public partial class hyperliquid : ccxt.hyperliquid
                 string? marketId = this.coinToMarketId(name);
                 Dictionary<string, object> market = this.safeMarket(marketId, null, null, "swap");
                 string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-                Dictionary<string, object> ticker = this.parseWsTicker(new Dictionary<string, object>() {
+                ccxt.Ticker ticker = this.parseWsTicker(new Dictionary<string, object>() {
                     { "price", this.safeNumber(mids, name) },
                 }, market);
-                this.tickers[(string)symbol] = ticker;
+                this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             }
             string messageHash = "tickers";
             string? dexMessage = this.safeString(data, "dex");
@@ -673,14 +673,14 @@ public partial class hyperliquid : ccxt.hyperliquid
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         IDictionary<string, object> ctx = this.safeDict(data, "ctx", new Dictionary<string, object>() {});
-        Dictionary<string, object> ticker = this.parseWsTicker(ctx, market);
-        this.tickers[(string)symbol] = ticker;
+        ccxt.Ticker ticker = this.parseWsTicker(ctx, market);
+        this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
         string messageHash = ("ticker:" + symbol);
-        client.resolve(ticker, messageHash);
+        client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
         return true;
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(IDictionary<string, object> rawTicker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> rawTicker, object market = null)
     {
         return this.parseTicker(rawTicker, market);
     }

@@ -681,7 +681,7 @@ public partial class cex : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         string? marketId = this.safeString(ticker, "id");
         string? symbol = this.safeSymbol(marketId, market);

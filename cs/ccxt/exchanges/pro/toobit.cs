@@ -559,23 +559,23 @@ public partial class toobit : ccxt.toobit
         for (int i = 0; i < data.Count; i++)
         {
             object ticker = data[i];
-            Dictionary<string, object> parsed = this.parseWsTicker(ticker);
-            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+            ccxt.Ticker parsed = this.parseWsTicker(ticker);
+            string? symbol = parsed.symbol;
             if ((symbol != null))
             {
-                this.tickers[(string)symbol] = parsed;
+                this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsed);
             }
             if ((symbol != null))
             {
-                newTickers[(string)symbol] = parsed;
+                newTickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsed);
             }
             string messageHash = ("ticker::" + symbol);
-            client.resolve(parsed, messageHash);
+            client.resolve(ccxt.BaseExchange.FromTicker(parsed), messageHash);
         }
         client.resolve(newTickers, "tickers");
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object ticker, string? market = null)
+    public virtual ccxt.Ticker parseWsTicker(object ticker, string? market = null)
     {
         return this.parseTicker(ticker, market);
     }

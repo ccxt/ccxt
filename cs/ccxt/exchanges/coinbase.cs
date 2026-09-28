@@ -2405,7 +2405,7 @@ public partial class coinbase : Exchange
             object marketId = add(add(baseId, delimiter), quoteId);
             Dictionary<string, object> market = this.safeMarket(marketId, null, delimiter);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            result[(string)symbol] = this.parseTicker(getValue(rates, baseId), market);
+            result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(getValue(rates, baseId), market));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
@@ -2486,7 +2486,7 @@ public partial class coinbase : Exchange
             string? marketId = this.safeString(entry, "product_id");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            result[(string)symbol] = this.parseTicker(entry, market);
+            result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(entry, market));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
@@ -2545,7 +2545,7 @@ public partial class coinbase : Exchange
             { "ask", this.safeNumber(askData, "amount") },
             { "price", this.safeNumber(spotData, "amount") },
         };
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(bidAskLast, market));
+        return this.parseTicker(bidAskLast, market);
     }
 
     public async virtual Task<ccxt.Ticker> FetchTickerV3(string symbol, object parameters = null)
@@ -2591,13 +2591,13 @@ public partial class coinbase : Exchange
         //
         List<object> data = this.safeList(response, "trades", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
-        Dictionary<string, object> ticker = this.parseTicker(first, market);
-        ticker["bid"] = this.safeNumber(response, "best_bid");
-        ticker["ask"] = this.safeNumber(response, "best_ask");
-        return ccxt.BaseExchange.ToTicker(ticker);
+        ccxt.Ticker ticker = this.parseTicker(first, market);
+        ticker.bid = ccxt.BaseExchange.StructDouble(this.safeNumber(response, "best_bid"));
+        ticker.ask = ccxt.BaseExchange.StructDouble(this.safeNumber(response, "best_ask"));
+        return ticker;
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // fetchTickerV2

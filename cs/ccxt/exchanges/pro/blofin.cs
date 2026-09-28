@@ -343,9 +343,9 @@ public partial class blofin : ccxt.blofin
         List<object> data = this.safeList(message, "data");
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            Dictionary<string, object> ticker = this.parseWsTicker(data[i]);
-            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
-            this.tickers[(string)symbol] = ticker;
+            ccxt.Ticker ticker = this.parseWsTicker(data[i]);
+            string? symbol = ticker.symbol;
+            this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             if ((channelName != null))
             {
                 string messageHash = ((channelName + ":") + symbol);
@@ -354,7 +354,7 @@ public partial class blofin : ccxt.blofin
         }
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object ticker, string? market = null)
+    public virtual ccxt.Ticker parseWsTicker(object ticker, string? market = null)
     {
         return this.parseTicker(ticker, market);
     }
@@ -428,7 +428,7 @@ public partial class blofin : ccxt.blofin
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(ticker, "ts");
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -437,7 +437,7 @@ public partial class blofin : ccxt.blofin
             { "bid", this.safeString(ticker, "bidPrice") },
             { "bidVolume", this.safeString(ticker, "bidSize") },
             { "info", ticker },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     /**

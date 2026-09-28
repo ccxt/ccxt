@@ -400,7 +400,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         //
         string? marketId = this.safeString(ticker, "product_id");
         string? datetime = this.safeString(ticker, "time");
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "info", ticker },
             { "symbol", this.safeSymbol(marketId, market, "-") },
             { "timestamp", this.parse8601(datetime) },
@@ -421,7 +421,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             { "average", null },
             { "baseVolume", this.safeString2(ticker, "total_24_hour_quantity", "total24_hour_quantity") },
             { "quoteVolume", this.safeString2(ticker, "total_24_hour_volume", "total24_hour_volume") },
-        });
+        }));
     }
 
     public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
@@ -450,16 +450,16 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         //       "type": "UPDATE"
         //    }
         //
-        Dictionary<string, object> ticker = this.parseWsTicker(message);
+        ccxt.Ticker ticker = this.parseWsTicker(message);
         string? channel = this.safeString(message, "channel");
-        client.resolve(ticker, channel);
+        client.resolve(ccxt.BaseExchange.FromTicker(ticker), channel);
         if ((channel != null))
         {
-            client.resolve(ticker, ((channel + "::") + ((ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null))));
+            client.resolve(ccxt.BaseExchange.FromTicker(ticker), ((channel + "::") + ((((object)ticker.symbol)))));
         }
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object ticker, string? market = null)
+    public virtual ccxt.Ticker parseWsTicker(object ticker, string? market = null)
     {
         //
         //    {

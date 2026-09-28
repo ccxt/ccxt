@@ -1013,7 +1013,7 @@ public partial class luno : Exchange
         return await this.FetchOrdersByState("COMPLETE", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         // {
         //     "pair":"XBTAUD",
@@ -1080,7 +1080,7 @@ public partial class luno : Exchange
             Dictionary<string, object> market = this.safeMarket(id);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             object ticker = (id != null && tickers.ContainsKey(id) ? tickers[id] : null);
-            result[(string)symbol] = this.parseTicker(ticker, market);
+            result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(ticker, market));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
@@ -1115,7 +1115,7 @@ public partial class luno : Exchange
         //     "rolling_24_hour_volume":"1.89510000",
         //     "status":"ACTIVE"
         // }
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
+        return this.parseTicker(response, market);
     }
 
     public override Dictionary<string, object> parseTrade(object trade, object market = null)

@@ -654,14 +654,14 @@ public partial class bitfinex : ccxt.bitfinex
         string? marketId = this.safeString(subscription, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeSymbol(marketId);
-        Dictionary<string, object> parsed = this.parseWsTicker(ticker, market);
+        ccxt.Ticker parsed = this.parseWsTicker(ticker, market);
         string channel = "ticker";
         string messageHash = ((channel + ":") + marketId);
-        this.tickers[(string)symbol] = parsed;
-        client.resolve(parsed, messageHash);
+        this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsed);
+        client.resolve(ccxt.BaseExchange.FromTicker(parsed), messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object ticker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(object ticker, object market = null)
     {
         //
         //     [

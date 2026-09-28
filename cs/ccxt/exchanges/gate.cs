@@ -3925,10 +3925,10 @@ public partial class gate : Exchange
         {
             throw new NullResponse ((this.id + " fetchTicker() returned empty response")) ;
         }
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
+        return this.parseTicker(ticker, market);
     }
 
-    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         // SPOT
