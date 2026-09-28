@@ -28,7 +28,10 @@ public partial class BaseExchange
         private readonly object futuresSync = new object();
         public bool verbose = false;
         public bool isConnected = false;
-        public bool startedConnecting = false;
+        public volatile bool startedConnecting = false;
+        private readonly object connectSync = new object();
+        private readonly CancellationTokenSource connectCancellation = new CancellationTokenSource();
+        private Task connectTask = null;
         private ManualResetEvent waitHandle = new ManualResetEvent(false);
 
         public TaskCompletionSource<bool> connected = null;
@@ -203,6 +206,11 @@ public partial class BaseExchange
                 this.error = error;
             }
             this.isConnected = false; // stops PingLoop's while() condition
+            if (this.startedConnecting)
+            {
+                var connectionError = error as Exception ?? new Exception(error?.ToString() ?? "WebSocket connection failed");
+                this.connected.TrySetException(connectionError);
+            }
             this.reset(error);
             this.onErrorCallback?.Invoke(this, error);
         }
@@ -223,10 +231,26 @@ public partial class BaseExchange
 
         public Task connect(int backoffDelay = 0)
         {
-            if (!this.startedConnecting)
+            lock (connectSync)
             {
-                this.startedConnecting = true;
-                Task.Run(async () => Connect());
+                if (!this.startedConnecting)
+                {
+                    this.startedConnecting = true;
+                    object priorError;
+                    lock (futuresSync)
+                    {
+                        priorError = this.error;
+                    }
+                    if (priorError != null)
+                    {
+                        var connectionError = priorError as Exception ?? new Exception(priorError.ToString());
+                        this.connected.TrySetException(connectionError);
+                    }
+                    else
+                    {
+                        this.connectTask = Connect(backoffDelay, this.connectCancellation.Token);
+                    }
+                }
             }
             return this.connected.Task;
         }
@@ -335,48 +359,46 @@ public partial class BaseExchange
 
         private static readonly SemaphoreSlim _connectSemaphore = new SemaphoreSlim(1, 1);
 
-        public void Connect()
+        private async Task Connect(int backoffDelay, CancellationToken cancellationToken)
         {
-            var tcs = this.connected;
-            // Run the connection logic in a background task
-
-            if (this.webSocket.State == WebSocketState.Open)
+            var acquired = false;
+            try
             {
-                return; // already connected, return. Might happen when we call connect multiple times in a row
+                if (backoffDelay > 0)
+                {
+                    await Task.Delay(backoffDelay, cancellationToken);
+                }
 
+                await _connectSemaphore.WaitAsync(cancellationToken);
+                acquired = true;
+                if (this.webSocket.State == WebSocketState.Open)
+                {
+                    return;
+                }
+
+                await webSocket.ConnectAsync(new Uri(url), cancellationToken);
+                if (this.verbose)
+                {
+                    Console.WriteLine("WebSocket connected to " + url);
+                }
+                this.onOpen();
+                _ = Receiving(webSocket);
             }
-            Task.Run(async () =>
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                try
-                {
-                    await _connectSemaphore.WaitAsync();
-                    if (this.webSocket.State == WebSocketState.Open)
-                    {
-                        return; // already connected, return. Might happen when we call connect multiple times in a row
-
-                    }
-                    await webSocket.ConnectAsync(new Uri(url), CancellationToken.None);
-                    if (this.verbose)
-                    {
-                        Console.WriteLine("WebSocket connected to " + url);
-                    }
-                    this.onOpen();
-                    Task.Run(async () =>
-                    {
-                        Receiving(webSocket);
-                    });
-                }
-                catch (Exception ex)
-                {
-                    tcs.SetException(ex); // Set the exception if something goes wrong
-                }
-                finally
+                this.onError(this.error ?? new ExchangeClosedByUser("Connection closed by the user"));
+            }
+            catch (Exception ex)
+            {
+                this.onError(ex);
+            }
+            finally
+            {
+                if (acquired)
                 {
                     _connectSemaphore.Release();
                 }
-            });
-
-            // return tcs.Task;
+            }
         }
 
 
@@ -605,7 +627,17 @@ public partial class BaseExchange
 
         public async Task Close()
         {
+            Task pendingConnect;
+            lock (connectSync)
+            {
+                this.connectCancellation.Cancel();
+                pendingConnect = this.connectTask;
+            }
             this.onError(new ExchangeClosedByUser("Connection closed by the user"));
+            if (pendingConnect != null)
+            {
+                await pendingConnect;
+            }
             if (this.webSocket.State == WebSocketState.Open)
             {
                 try
