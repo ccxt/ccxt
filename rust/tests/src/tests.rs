@@ -3082,16 +3082,31 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("triggerPrice".to_string(), Value::Int(101000));
                 m
             })]).await;
-            let mut checkOrderRequest: Value = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
-            let mut algoOrderIdDefined: Value = (Value::Bool(checkOrderRequest.as_map().and_then(|__m| __m.get("algoOrderId")).cloned().unwrap_or(Value::Null) != Value::Null));
-            assert(algoOrderIdDefined.clone(), &[Value::Str("binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined".into())]);
-            let mut clientAlgoIdSwap: Value = swapAlgoOrderRequest.as_map().and_then(|__m| __m.get("clientAlgoId")).cloned().unwrap_or(Value::Null);
-            let mut swapAlgoIdString: Value = to_string_val(&swapId);
-            assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientAlgoIdSwap, &swapAlgoIdString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - swap clientOrderId: ".into()), &clientAlgoIdSwap), Value::Str(" does not start with swapId".into())).into()), swapAlgoIdString).into())]);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             swapAlgoOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
+        let mut clientAlgoIdSwap: Value = swapAlgoOrderRequest.as_map().and_then(|__m| __m.get("clientAlgoId")).cloned().unwrap_or(Value::Null);
+        assert((clientAlgoIdSwap != Value::Null), &[Value::Str("binance - swap conditional order must send clientAlgoId".into())]);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientAlgoIdSwap, &swapIdString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - swap clientAlgoId: ".into()), &clientAlgoIdSwap), Value::Str(" does not start with swapId".into())).into()), swapIdString).into())]);
+        // inverse swap conditional order
+        let mut inverseAlgoOrderRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USD:BTC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000), Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("triggerPrice".to_string(), Value::Int(21000));
+                m
+            })]).await;
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            inverseAlgoOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
+        }
+        let mut clientAlgoIdInverse: Value = inverseAlgoOrderRequest.as_map().and_then(|__m| __m.get("clientAlgoId")).cloned().unwrap_or(Value::Null);
+        assert((clientAlgoIdInverse != Value::Null), &[Value::Str("binance - inverse swap conditional order must send clientAlgoId".into())]);
+        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientAlgoIdInverse, &inverseSwapId)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - inverse swap clientAlgoId: ".into()), &clientAlgoIdInverse), Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
         let mut createOrdersRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3128,6 +3143,65 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             assert(Value::Bool(is_equal(&Value::Bool(starts_with(&currentClientOrderId, &swapIdString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance createOrders - clientOrderId: ".into()), &currentClientOrderId), Value::Str(" does not start with swapId".into())).into()), swapIdString).into())]);
         }
         }
+        // linear conditional orders cannot be batched
+        let mut linearConditionalBatchNotSupported: Value = Value::Bool(false);
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            let mut linearConditionalOrders: Value = Value::from(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".into()));
+        m.insert("type".to_string(), Value::Str("limit".into()));
+        m.insert("side".to_string(), Value::Str("buy".into()));
+        m.insert("amount".to_string(), Value::Int(1));
+        m.insert("price".to_string(), Value::Int(20000));
+        m.insert("params".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("triggerPrice".to_string(), Value::Int(21000));
+    m
+}));
+    m
+})]);
+            crate::live_dispatch::dispatch(&mut exchange, "create_orders", vec![linearConditionalOrders.clone()]).await;
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            linearConditionalBatchNotSupported = Value::Bool(matches!(&e, Value::Str(__s) if __s.contains("[NotSupported]")));
+        }
+        assert(linearConditionalBatchNotSupported.clone(), &[Value::Str("binance createOrders - linear conditional order must throw NotSupported".into())]);
+        // inverse conditional orders are batched in the regular (non-algo) format
+        let mut inverseConditionalBatchRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let mut inverseConditionalBatchNotSupported: Value = Value::Bool(false);
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            let mut inverseConditionalOrders: Value = Value::from(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("symbol".to_string(), Value::Str("BTC/USD:BTC".into()));
+        m.insert("type".to_string(), Value::Str("limit".into()));
+        m.insert("side".to_string(), Value::Str("buy".into()));
+        m.insert("amount".to_string(), Value::Int(1));
+        m.insert("price".to_string(), Value::Int(20000));
+        m.insert("params".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("triggerPrice".to_string(), Value::Int(21000));
+    m
+}));
+    m
+})]);
+            crate::live_dispatch::dispatch(&mut exchange, "create_orders", vec![inverseConditionalOrders.clone()]).await;
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            inverseConditionalBatchNotSupported = Value::Bool(matches!(&e, Value::Str(__s) if __s.contains("[NotSupported]")));
+            inverseConditionalBatchRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
+        }
+        assert(Value::Bool(!is_true(&inverseConditionalBatchNotSupported)), &[Value::Str("binance createOrders - inverse conditional order must not throw NotSupported".into())]);
+        let mut inverseConditionalBatchOrders: Value = exchange.safe_list(inverseConditionalBatchRequest.clone(), Value::Str("batchOrders".into()), &[Value::from(vec![])]);
+        let mut inverseConditionalBatchOrder: Value = exchange.safe_dict(inverseConditionalBatchOrders.clone(), Value::Int(0), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        let mut inverseConditionalClientOrderId: Value = exchange.safe_string(inverseConditionalBatchOrder.clone(), Value::Str("newClientOrderId".into()), &[]);
+        assert((inverseConditionalClientOrderId != Value::Null), &[Value::Str("binance createOrders - inverse conditional order must send newClientOrderId".into())]);
+        assert((Value::Bool(starts_with(&inverseConditionalClientOrderId, &inverseSwapId)).as_bool() == Some(true)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance createOrders - inverse conditional clientOrderId: ".into()), inverseConditionalClientOrderId).into()), Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
