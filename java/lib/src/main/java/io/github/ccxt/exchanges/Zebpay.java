@@ -2284,7 +2284,6 @@ public class Zebpay extends ZebpayApi
         String bidVolume = this.safeString(ticker, "bidVolume");
         String askVolume = this.safeString(ticker, "askVolume");
         return this.safeTicker(new HashMap<String, Object>() {{
-            put( "id", marketId );
             put( "symbol", marketResolved.get("symbol") );
             put( "timestamp", timestamp );
             put( "datetime", Zebpay.this.iso8601(timestamp) );

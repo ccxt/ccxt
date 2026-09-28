@@ -1847,7 +1847,6 @@ public class Lighter extends LighterApi
         String baseVolume = this.safeString(ticker, "daily_base_token_volume");
         String quoteVolume = this.safeString(ticker, "daily_quote_token_volume");
         String change = this.safeString(ticker, "daily_price_change");
-        String openInterest = this.safeString(ticker, "open_interest");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -1870,7 +1869,6 @@ public class Lighter extends LighterApi
             put( "quoteVolume", quoteVolume );
             put( "markPrice", Lighter.this.safeString(ticker, "mark_price") );
             put( "indexPrice", Lighter.this.safeString(ticker, "index_price") );
-            put( "openInterest", openInterest );
             put( "info", ticker );
         }}, marketResolved);
     }

@@ -572,11 +572,7 @@ public class P2b extends P2bApi
             //    }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Long timestamp = this.safeIntegerProduct(response, "cache_time", 1000);
-            return this.extend(new HashMap<String, Object>() {{
-                put( "timestamp", timestamp );
-                put( "datetime", P2b.this.iso8601(timestamp) );
-            }}, this.parseTicker(result, market));
+            return this.parseTicker(result, market);
         }).thenApply(Ticker::new);
 
     }

@@ -1381,7 +1381,6 @@ public class Poloniex extends PoloniexApi
         String relativeChange = this.safeString2(ticker, "dailyChange", "dc");
         String percentage = Precise.stringMul(relativeChange, "100");
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("id", marketId);
         mapLiteral3.put("symbol", marketResolved.get("symbol"));
         mapLiteral3.put("timestamp", timestamp);
         mapLiteral3.put("datetime", this.iso8601(timestamp));

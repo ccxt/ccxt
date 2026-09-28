@@ -1828,7 +1828,6 @@ public class Binance extends BinanceApi
         mapLiteral5.put("info", trade);
         mapLiteral5.put("timestamp", timestamp);
         mapLiteral5.put("datetime", this.iso8601(timestamp));
-        mapLiteral5.put("lastTradeTimestamp", this.safeInteger(trade, "modifyTime"));
         mapLiteral5.put("outcome", this.safeString(outcomeObjResolved, "outcome"));
         mapLiteral5.put("outcomeId", this.safeString(outcomeObjResolved, "id"));
         mapLiteral5.put("label", this.safeString(outcomeObjResolved, "label"));
@@ -1839,7 +1838,6 @@ public class Binance extends BinanceApi
         mapLiteral5.put("takerOrMaker", null);
         mapLiteral5.put("price", price);
         mapLiteral5.put("amount", this.safeString(trade, "makerShareQty"));
-        mapLiteral5.put("filled", filled);
         mapLiteral5.put("cost", cost);
         mapLiteral5.put("fee", fee);
         return this.safePredictionTrade(mapLiteral5, outcomeObjResolved);
