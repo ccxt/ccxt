@@ -564,6 +564,13 @@ const JAVA_STRUCT_RETURN_METHODS = {
     'safeTicker': 'io.github.ccxt.types.Ticker',
     'parseWsTicker': 'io.github.ccxt.types.Ticker',
     'parseContractTicker': 'io.github.ccxt.types.Ticker',
+    'parseTrade': 'io.github.ccxt.types.Trade',
+    'safeTrade': 'io.github.ccxt.types.Trade',
+    'parseWsTrade': 'io.github.ccxt.types.Trade',
+    'parseDustTrade': 'io.github.ccxt.types.Trade',
+    'parseMyUtaTrade': 'io.github.ccxt.types.Trade',
+    'parseSpotOrUtaTrade': 'io.github.ccxt.types.Trade',
+    'parseContractTrade': 'io.github.ccxt.types.Trade',
 };
 
 // ===== safeDict locals (JAVA-01) =====
@@ -2144,6 +2151,18 @@ function structReturnSite (printer, node, method) {
             && (ts.getCombinedNodeFlags (declaration) & ts.NodeFlags.Const) !== 0
             && declaration.initializer !== undefined && sameTable (unwrapParens (declaration.initializer))) {
             return { open: '(' + struct + ') ', close: '' };
+        }
+        // const local of an object literal, or an own `Dict` parameter: a Map box
+        const typeName = declaration?.type !== undefined && ts.isTypeReferenceNode (declaration.type)
+            && ts.isIdentifier (declaration.type.typeName) ? declaration.type.typeName.text : undefined;
+        if (declaration !== undefined && ts.isVariableDeclaration (declaration)
+            && (ts.getCombinedNodeFlags (declaration) & ts.NodeFlags.Const) !== 0
+            && declaration.initializer !== undefined && ts.isObjectLiteralExpression (unwrapParens (declaration.initializer))) {
+            return { open: 'new ' + struct + '(', close: ')' };
+        }
+        if (declaration !== undefined && ts.isParameter (declaration) && declaration.parent === method
+            && typeName === 'Dict' && declaration.dotDotDotToken === undefined) {
+            return { open: 'new ' + struct + '(', close: ')' };
         }
     }
     throw new Error ('java-local-types: unproven ' + method.name.text + ' return shape in '
