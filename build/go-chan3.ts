@@ -531,22 +531,28 @@ function goChan3PromiseAllPass (content: string, table: Map<string, string>): st
         elems.push ({ 'start': s, 'end': close - 1 });
         const types = new Set<string> ();
         const local: Edit[] = [];
+        const args: string[] = [];
+        // `EndpointRaw(this.E(..))` re-boxes a typed stub for PromiseAll: the typed variant takes the channel itself
+        const unwrap = (t: string) => { const w = /^(?:ccxt\.)?EndpointRaw\(([\s\S]*)\)$/.exec (t); return ((w !== null) && (goChanClose (t, t.indexOf ('(')) === t.length)) ? w[1] : t; };
         let ok = elems.length > 0;
         for (const e of elems) {
             const text = masked.substring (e.start, e.end).trim ();
-            let call = text;
+            let call = unwrap (text);
             const id = /^\w+$/.exec (text);
             if (id !== null) {
-                const decl = new RegExp ('\\n\\t+var ' + text + ' any = (this\\.\\w+\\([^\\n]*\\))\\n', 'g');
+                const decl = new RegExp ('\\n(\\t+)var ' + text + ' any = ([^\\n]*)\\n', 'g');
                 const d = [ ...fn.matchAll (decl) ];
                 const uses = fn.match (new RegExp ('(?<![\\w.])' + text + '(?!\\w)', 'g')) || [];
                 if ((d.length !== 1) || (uses.length !== 2)) {
                     ok = false;
                     break;
                 }
-                call = d[0][1];
-                const at = fs0 + (d[0].index as number) + d[0][0].indexOf ('var ');
-                local.push ({ 'start': at, 'end': at + ('var ' + text + ' any = ').length, 'text': text + ' := ' });
+                call = unwrap (d[0][2]);
+                const at = fs0 + (d[0].index as number) + 1;
+                local.push ({ 'start': at, 'end': at + d[0][0].length - 2, 'text': d[0][1] + text + ' := ' + content.substring (at + d[0][0].length - 2 - d[0][2].length, at + d[0][0].length - 2).replace (/^(?:ccxt\.)?EndpointRaw\(([\s\S]*)\)$/, '$1') });
+                args.push (text);
+            } else {
+                args.push (content.substring (e.start, e.end).trim ().replace (/^(?:ccxt\.)?EndpointRaw\(([\s\S]*)\)$/, '$1'));
             }
             const c = /^this\.(\w+)\(/.exec (call);
             if ((c === null) || (goChanClose (call, call.indexOf ('(')) !== call.length)) {
@@ -579,7 +585,7 @@ function goChan3PromiseAllPass (content: string, table: Map<string, string>): st
             continue;
         }
         edits.push (...local, ...reads);
-        edits.push ({ 'start': m.index + m[1].length + r.length + 6, 'end': close + 1, 'text': q + 'PromiseAllTyped[' + type + ', ' + carrier + '](' + content.substring (open + 1, close - 1) + ')' });
+        edits.push ({ 'start': m.index + m[1].length + r.length + 6, 'end': close + 1, 'text': q + 'PromiseAllTyped[' + type + ', ' + carrier + '](' + args.join (', ') + ')' });
         const varLine = head[0].split ('\n')[3];
         edits.push ({ 'start': declEnd - 1 - varLine.length, 'end': declEnd - 1, 'text': ind + 'var ' + v + ' []' + type + ' = ' + r + '.Value' });
     }
@@ -731,7 +737,7 @@ export function goChan3SelfTest (): string[] {
     ok (throws ('package ccxt\n' + core ('X', '\tvar response any = nil\n\tr := <-this.PubGetL(a)\n\tresponse = r.Raw\n\tr1 := <-this.PubGetA(a)\n\tresponse = r1.Raw\n\tch <- AsyncResult[any]{Value: response}\n\treturn nil\n')), 'mixed endpoint join throws');
     ok (throws ('package ccxt\n' + core ('X', '\tr := <-this.PubGetA(a)\n\tresponse := r.Raw\n\tthis.Use(response)\n\tch <- AsyncResult[any]{Value: response}\n\treturn nil\n')), 'other use throws');
     // typed promiseAll
-    const pall = 'package ccxt\n\nfunc (this *Y) f(p any) any {\n\tvar a any = this.PubGetA(p)\n\tr := <-promiseAll([]any{a, this.PubGetA(p)})\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tvar v []any = ListTyped(r.Value)\n\tx := GetValue(v, 0)\n\treturn []any{x, GetValue(v, 1)}\n}\n';
+    const pall = 'package ccxt\n\nfunc (this *Y) f(p any) any {\n\tvar a any = EndpointRaw(this.PubGetA(p))\n\tr := <-promiseAll([]any{a, this.PubGetA(p)})\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tvar v []any = ListTyped(r.Value)\n\tx := GetValue(v, 0)\n\treturn []any{x, GetValue(v, 1)}\n}\n';
     const pt = run (pall);
     ok (pt.includes ('\ta := this.PubGetA(p)\n\tr := <-PromiseAllTyped[map[string]any, EndpointResult[map[string]any]](a, this.PubGetA(p))\n') && pt.includes ('\tvar v []map[string]any = r.Value\n\tx := BoxAbsent(v[0])\n\treturn []any{x, BoxAbsent(v[1])}'), 'typed promiseAll: ' + pt);
     ok (run (pt) === pt, 'typed promiseAll idempotent');
