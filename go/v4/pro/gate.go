@@ -230,12 +230,12 @@ func (this *Gate) createOrderWsBody(ch chan ccxt.AsyncResult[any], symbol string
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Gate) CreateOrdersWsAsync(orders any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Gate) CreateOrdersWsAsync(orders any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
+	ch := make(chan ccxt.AsyncResult[[]any], 1)
 	go this.createOrdersWsBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Gate) createOrdersWsBody(ch chan ccxt.AsyncResult[any], orders any, optionalArgs ...any) any {
+func (this *Gate) createOrdersWsBody(ch chan ccxt.AsyncResult[[]any], orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -269,7 +269,7 @@ func (this *Gate) createOrdersWsBody(ch chan ccxt.AsyncResult[any], orders any, 
 	}
 	rawOrders := r2.Value
 
-	ch <- ccxt.AsyncResult[any]{Value: this.ParseOrders(rawOrders, market)}
+	ch <- ccxt.AsyncResult[[]any]{Value: this.ParseOrders(rawOrders, market)}
 	return nil
 }
 
@@ -562,7 +562,7 @@ func (this *Gate) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResult[any], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes36515 []any = ccxt.ListTyped(r.Value)
+	var retRes36515 []any = r.Value
 	if retRes36515 == nil {
 		ch <- ccxt.AsyncResult[any]{Value: nil}
 	} else {
@@ -603,7 +603,7 @@ func (this *Gate) fetchClosedOrdersWsBody(ch chan ccxt.EndpointResult[[]any], op
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes38015 []any = ccxt.ListTyped(r.Value)
+	var retRes38015 []any = r.Value
 	if retRes38015 == nil {
 		ch <- ccxt.EndpointResult[[]any]{}
 	} else {
@@ -626,12 +626,12 @@ func (this *Gate) fetchClosedOrdersWsBody(ch chan ccxt.EndpointResult[[]any], op
  * @param {int} [params.limit] the maximum number of order structures to retrieve
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Gate) FetchOrdersByStatusWsAsync(status string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Gate) FetchOrdersByStatusWsAsync(status string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
+	ch := make(chan ccxt.AsyncResult[[]any], 1)
 	go this.fetchOrdersByStatusWsBody(ch, status, optionalArgs...)
 	return ch
 }
-func (this *Gate) fetchOrdersByStatusWsBody(ch chan ccxt.AsyncResult[any], status string, optionalArgs ...any) any {
+func (this *Gate) fetchOrdersByStatusWsBody(ch chan ccxt.AsyncResult[[]any], status string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -682,7 +682,7 @@ func (this *Gate) fetchOrdersByStatusWsBody(ch chan ccxt.AsyncResult[any], statu
 	rawOrders := r2.Value
 	var orders any = this.ParseOrders(rawOrders, market)
 
-	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limit)}
+	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limit)}
 	return nil
 }
 
@@ -701,12 +701,12 @@ func (this *Gate) fetchOrdersByStatusWsBody(ch chan ccxt.AsyncResult[any], statu
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Gate) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Gate) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Gate) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Gate) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	limit := ccxt.GetArg(optionalArgs, 0, nil)
@@ -778,7 +778,7 @@ func (this *Gate) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol strin
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[any]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 	return nil
 }
 

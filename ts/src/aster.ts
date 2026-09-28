@@ -3774,7 +3774,7 @@ export default class aster extends Exchange {
             }
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -4038,7 +4038,7 @@ export default class aster extends Exchange {
         const filterClosed = this.handleOptionBoolAndParams (params, 'fetchAccountPositions', 'filterClosed', false)[0];
         const result = this.parseAccountPositions (response, filterClosed);
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     async loadLeverageBrackets (reload: boolean = false, params: Dict = {}): Promise<Dict> {

@@ -2569,7 +2569,7 @@ export default class bullish extends Exchange {
         //     ]
         //
         const results = this.parsePositions (response, symbols);
-        return this.filterByArrayPositions (results, 'symbol', symbols, false);
+        return this.filterByArrayPositions (results, 'symbol', symbols);
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {

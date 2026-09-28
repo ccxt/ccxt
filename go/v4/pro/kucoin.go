@@ -144,12 +144,12 @@ func (this *Kucoin) negotiateBody(ch chan ccxt.AsyncResult[any], privateChannel 
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Kucoin) NegotiateHelperAsync(privateChannel any, connectId any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Kucoin) NegotiateHelperAsync(privateChannel any, connectId any, optionalArgs ...any) <-chan ccxt.AsyncResult[string] {
+	ch := make(chan ccxt.AsyncResult[string], 1)
 	go this.negotiateHelperBody(ch, privateChannel, connectId, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) negotiateHelperBody(ch chan ccxt.AsyncResult[any], privateChannel any, connectId any, optionalArgs ...any) any {
+func (this *Kucoin) negotiateHelperBody(ch chan ccxt.AsyncResult[string], privateChannel any, connectId any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	chSent := false
@@ -221,7 +221,7 @@ func (this *Kucoin) negotiateHelperBody(ch chan ccxt.AsyncResult[any], privateCh
 			var client ccxt.ClientInterface = this.Client(result)
 			client.(ccxt.ClientInterface).SetKeepAlive(pingInterval)
 
-			ch <- ccxt.AsyncResult[any]{Value: result}
+			ch <- ccxt.AsyncResult[string]{Value: result}
 			chSent = true
 			return nil
 
@@ -1020,8 +1020,8 @@ func (this *Kucoin) HandleTicker(client any, message any) {
 		}
 		var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 		var rawTicker any = this.SafeDict(data, "data", data)
-		var ticker any = this.ParseSpotOrUtaTicker(rawTicker, market)
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
+		var ticker map[string]any = this.ParseSpotOrUtaTicker(rawTicker, market)
+		var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
@@ -2044,12 +2044,12 @@ func (this *Kucoin) ParseWsUtaTrade(trade map[string]any, optionalArgs ...any) a
  * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Kucoin) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Kucoin) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Kucoin) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	//
@@ -2092,7 +2092,7 @@ func (this *Kucoin) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol str
 		}
 		var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-		ch <- ccxt.AsyncResult[any]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+		ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 		return nil
 	}
 
@@ -2100,7 +2100,7 @@ func (this *Kucoin) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol str
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r2.Value}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: r2.Value}
 	return nil
 }
 
@@ -2188,12 +2188,12 @@ func (this *Kucoin) unWatchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Kucoin) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Kucoin) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[any], symbols any, optionalArgs ...any) any {
+func (this *Kucoin) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	limit := ccxt.GetArg(optionalArgs, 0, nil)
@@ -2268,7 +2268,7 @@ func (this *Kucoin) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[any], 
 	}
 	var orderbook ccxt.OrderBookInterface = r2.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[any]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 	return nil
 }
 

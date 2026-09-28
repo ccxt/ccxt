@@ -315,7 +315,7 @@ func (this *ExchangeTyped) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = r.Value.(int64)
+	var res int64 = ParseInt(BoxAbsent(r.Value))
 	return res, nil
 }
 func (this *ExchangeTyped) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
@@ -655,12 +655,12 @@ func (this *ExchangeTyped) FetchOpenInterests(options ...FetchOpenInterestsOptio
 	var res OpenInterests = NewOpenInterests(r.Value)
 	return res, nil
 }
-func (this *ExchangeTyped) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *ExchangeTyped) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	r := <-this.Exchange.FetchPaymentMethodsAsync(params...)
 	if r.Err != nil {
-		return map[string]any{}, r.Err
+		return nil, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res []map[string]any = NewMapArray(r.Value)
 	return res, nil
 }
 func (this *ExchangeTyped) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
@@ -3669,7 +3669,7 @@ func (this *BaseExchangeTyped) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = r.Value.(int64)
+	var res int64 = ParseInt(BoxAbsent(r.Value))
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
@@ -4009,12 +4009,12 @@ func (this *BaseExchangeTyped) FetchOpenInterests(options ...FetchOpenInterestsO
 	var res OpenInterests = NewOpenInterests(r.Value)
 	return res, nil
 }
-func (this *BaseExchangeTyped) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *BaseExchangeTyped) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	r := <-this.BaseExchange.FetchPaymentMethodsAsync(params...)
 	if r.Err != nil {
-		return map[string]any{}, r.Err
+		return nil, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res []map[string]any = NewMapArray(r.Value)
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {

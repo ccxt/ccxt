@@ -4258,7 +4258,7 @@ export default class coinex extends Exchange {
         for (let i = 0; i < position.length; i++) {
             result.push (this.parsePosition (position[i], market));
         }
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     /**

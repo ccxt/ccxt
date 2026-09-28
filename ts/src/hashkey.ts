@@ -4435,7 +4435,8 @@ export default class hashkey extends Exchange {
         let response: Dict | List | undefined = undefined;
         if (market['spot'] === true) {
             response = await this.fetchTradingFees (params);
-            return this.safeDict (response, symbol) as TradingFeeInterface;
+            const fee = this.safeDict (response, symbol);
+            return fee as TradingFeeInterface;
         } else if (market['swap'] === true) {
             response = await this.privateGetApiV1FuturesCommissionRate (this.extend ({ 'symbol': market['id'] }, params));
             return this.parseTradingFee (response as Dict, market);

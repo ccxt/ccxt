@@ -413,7 +413,7 @@ func (this *Zaif) ParseMarket(market any) any {
 		"info":    market,
 	})
 }
-func (this *Zaif) ParseBalance(response any) any {
+func (this *Zaif) ParseBalance(response any) map[string]any {
 	var balances map[string]any = SafeMapTyped(response, "return")
 	var deposit map[string]any = SafeMapTyped(balances, "deposit")
 	var result map[string]any = map[string]any{
@@ -445,7 +445,7 @@ func (this *Zaif) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -494,12 +494,12 @@ func (this *Zaif) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Zaif) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zaif) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Zaif) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Zaif) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -524,7 +524,7 @@ func (this *Zaif) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, op
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[any]{Value: this.ParseOrderBook(response, market["symbol"])}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(response, market["symbol"])}
 	return nil
 }
 func (this *Zaif) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
@@ -579,12 +579,12 @@ func (this *Zaif) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Zaif) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zaif) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Zaif) fetchTickerBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Zaif) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -618,7 +618,7 @@ func (this *Zaif) fetchTickerBody(ch chan AsyncResult[any], symbol string, optio
 	//     "ask": 1e-07
 	// }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
 	return nil
 }
 func (this *Zaif) ParseTrade(trade any, optionalArgs ...any) any {
@@ -746,12 +746,12 @@ func (this *Zaif) fetchTradesBody(ch chan AsyncResult[any], symbol any, optional
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Zaif) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zaif) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Zaif) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Zaif) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -788,7 +788,7 @@ func (this *Zaif) createOrderBody(ch chan AsyncResult[any], symbol string, typeV
 	response := r1.Raw
 	var data map[string]any = SafeMapTyped(response, "return")
 
-	ch <- AsyncResult[any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
 		"info": response,
 		"id":   ToString(data["order_id"]),
 	}, market)}
@@ -805,12 +805,12 @@ func (this *Zaif) createOrderBody(ch chan AsyncResult[any], symbol string, typeV
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Zaif) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zaif) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Zaif) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Zaif) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -842,7 +842,7 @@ func (this *Zaif) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs
 	//
 	var data map[string]any = this.SafeDictMap(response, "return", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(data)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data)}
 	return nil
 }
 func (this *Zaif) ParseOrder(order any, optionalArgs ...any) map[string]any {
@@ -1770,7 +1770,7 @@ func (this *Zaif) FetchOrderStatus(id string, options ...FetchOrderStatusOptions
 func (this *Zaif) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Zaif) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Zaif) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Zaif) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

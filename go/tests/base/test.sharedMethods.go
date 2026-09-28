@@ -472,7 +472,7 @@ func fetchBestBidAskBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		orderbook := r.Value
+		orderbook := ccxt.BoxAbsent(r.Value)
 		var bids any = exchange.SafeList(orderbook, "bids")
 		var asks any = exchange.SafeList(orderbook, "asks")
 		var bestBidArray any = exchange.SafeList(bids, 0)
@@ -497,7 +497,7 @@ func fetchBestBidAskBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		ticker := r2.Value
+		ticker := ccxt.BoxAbsent(r2.Value)
 		bestBid = exchange.SafeNumber(ticker, "bid")
 		bestAsk = exchange.SafeNumber(ticker, "ask")
 	} else if (!IsEqual(GetValue(exchange.GetHas(), "fetchTickers"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchTickers"), false)) {

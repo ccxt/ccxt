@@ -11,7 +11,7 @@ import (
 // }
 
 type OrderBookInterface interface {
-	Limit() any
+	Limit() OrderBookInterface
 	Update(snapshot any) any
 	Reset(optionalArgs ...any) any
 	GetCache() *any
@@ -126,7 +126,7 @@ func NewWsOrderBook(snapshot any, depth any) *WsOrderBook {
 	}
 }
 
-func (this *WsOrderBook) Limit() any {
+func (this *WsOrderBook) Limit() OrderBookInterface {
 	// Ensure child sides are depth-limited in-place and return the same pointer
 	this.Asks.Limit()
 	this.Bids.Limit()
@@ -469,7 +469,7 @@ func OrderBookTyped(v any) OrderBookInterface {
 	}
 	return nil
 }
-func (this *CountedOrderBook) Limit() any {
+func (this *CountedOrderBook) Limit() OrderBookInterface {
 	return this.WsOrderBook.Limit()
 }
 func (this *CountedOrderBook) Update(snapshot any) any {
@@ -487,7 +487,7 @@ func (this *CountedOrderBook) SetCache(cache any) {
 func (this *CountedOrderBook) GetValue(key string, defaultValue any) any {
 	return this.WsOrderBook.GetValue(key, defaultValue)
 }
-func (this *IndexedOrderBook) Limit() any {
+func (this *IndexedOrderBook) Limit() OrderBookInterface {
 	return this.WsOrderBook.Limit()
 }
 func (this *IndexedOrderBook) Update(snapshot any) any {

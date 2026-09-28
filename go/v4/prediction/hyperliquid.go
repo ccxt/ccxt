@@ -725,12 +725,12 @@ func (this *Hyperliquid) CalculatePricePrecision(midPx any, szDecimals any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Hyperliquid) FetchTickerAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hyperliquid) FetchTickerAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.fetchTickerBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchTickerBody(ch chan ccxt.AsyncResult[any], outcome string, optionalArgs ...any) any {
+func (this *Hyperliquid) fetchTickerBody(ch chan ccxt.AsyncResult[map[string]any], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -768,7 +768,7 @@ func (this *Hyperliquid) fetchTickerBody(ch chan ccxt.AsyncResult[any], outcome 
 		"book": response,
 	}, "book", map[string]any{})
 
-	ch <- ccxt.AsyncResult[any]{Value: this.ParsePredictionTicker(tickerData, outcomeObj)}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: this.ParsePredictionTicker(tickerData, outcomeObj)}
 	return nil
 }
 
@@ -855,7 +855,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan ccxt.AsyncResult[any], optiona
 			continue
 		}
 		// Build minimal ticker from mid price
-		var ticker any = this.ParsePredictionTicker(map[string]any{
+		var ticker map[string]any = this.ParsePredictionTicker(map[string]any{
 			"levels": []any{[]any{}, []any{}},
 			"mid":    mid,
 		}, outcomeObj)
@@ -875,7 +875,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan ccxt.AsyncResult[any], optiona
  * @param {object} [market] the market the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Hyperliquid) ParsePredictionTicker(raw any, optionalArgs ...any) any {
+func (this *Hyperliquid) ParsePredictionTicker(raw any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "coin": "#10",
@@ -976,12 +976,12 @@ func (this *Hyperliquid) ParsePredictionTicker(raw any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
-func (this *Hyperliquid) FetchOrderBookAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hyperliquid) FetchOrderBookAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.fetchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchOrderBookBody(ch chan ccxt.AsyncResult[any], outcome string, optionalArgs ...any) any {
+func (this *Hyperliquid) fetchOrderBookBody(ch chan ccxt.AsyncResult[map[string]any], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1034,7 +1034,7 @@ func (this *Hyperliquid) fetchOrderBookBody(ch chan ccxt.AsyncResult[any], outco
 		"asks": asks,
 	}, this.SafeString(outcomeObj, "outcome", outcome), timestamp)
 
-	ch <- ccxt.AsyncResult[any]{Value: this.SafePredictionOrderBook(orderbook, outcomeObj)}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: this.SafePredictionOrderBook(orderbook, outcomeObj)}
 	return nil
 }
 
@@ -1551,12 +1551,12 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
  * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Hyperliquid) CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hyperliquid) CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) createOrderBody(ch chan ccxt.AsyncResult[any], outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Hyperliquid) createOrderBody(ch chan ccxt.AsyncResult[map[string]any], outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1696,7 +1696,7 @@ func (this *Hyperliquid) createOrderBody(ch chan ccxt.AsyncResult[any], outcome 
 		orderStatus = "open"
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: this.SafePredictionOrder(map[string]any{
+	ch <- ccxt.AsyncResult[map[string]any]{Value: this.SafePredictionOrder(map[string]any{
 		"id":            oid,
 		"clientOrderId": clientOrderId,
 		"info":          response,
@@ -1732,12 +1732,12 @@ func (this *Hyperliquid) createOrderBody(ch chan ccxt.AsyncResult[any], outcome 
  * @param {string} [params.vaultAddress] optional subaccount/vault address to cancel on behalf of
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Hyperliquid) CancelOrderAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hyperliquid) CancelOrderAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) cancelOrderBody(ch chan ccxt.AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Hyperliquid) cancelOrderBody(ch chan ccxt.AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1750,8 +1750,9 @@ func (this *Hyperliquid) cancelOrderBody(ch chan ccxt.AsyncResult[any], id any, 
 		panic(r.Err)
 	}
 	var orders []any = ccxt.ListTyped(r.Value)
+	var first map[string]any = ccxt.SafeMapTyped(orders, 0)
 
-	ch <- ccxt.AsyncResult[any]{Value: this.SafeDict(orders, 0)}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: first}
 	return nil
 }
 
@@ -2090,12 +2091,12 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan ccxt.AsyncResult[any], optional
  * @param {string} [params.clientOrderId] fetch by client order id instead
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Hyperliquid) FetchOrderAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hyperliquid) FetchOrderAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchOrderBody(ch chan ccxt.AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Hyperliquid) fetchOrderBody(ch chan ccxt.AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2134,7 +2135,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan ccxt.AsyncResult[any], id any, o
 		orderStatus = response
 	}
 	var orderWrapper any = this.SafeDict(orderStatus, "order", orderStatus)
-	var parsed any = this.ParsePredictionOrder(orderWrapper, nil)
+	var parsed map[string]any = this.ParsePredictionOrder(orderWrapper, nil)
 	if outcome != nil {
 
 		r1 := <-this.LoadOutcomeAsync(outcome)
@@ -2148,7 +2149,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan ccxt.AsyncResult[any], id any, o
 		}
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: parsed}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: parsed}
 	return nil
 }
 
@@ -2161,7 +2162,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan ccxt.AsyncResult[any], id any, o
  * @param {object} [market] the market the order belongs to
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Hyperliquid) ParsePredictionOrder(order any, optionalArgs ...any) any {
+func (this *Hyperliquid) ParsePredictionOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// from frontendOpenOrders:
 	// {
@@ -3814,7 +3815,7 @@ func (this *Hyperliquid) FetchOrderTrades(id string, params map[string]any, opti
 	var res []ccxt.PredictionTrade = ccxt.NewPredictionTradeArray(r.Value)
 	return res, nil
 }
-func (this *Hyperliquid) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Hyperliquid) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 

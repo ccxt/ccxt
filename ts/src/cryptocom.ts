@@ -950,7 +950,8 @@ export default class cryptocom extends Exchange {
         }
         const symbolValue: string = this.symbol (symbol);
         const tickers = await this.fetchTickers ([ symbolValue ], params);
-        return this.safeValue (tickers, symbolValue) as Ticker;
+        const ticker = this.safeDict (tickers, symbolValue);
+        return ticker as Ticker;
     }
 
     /**
@@ -3356,7 +3357,7 @@ export default class cryptocom extends Exchange {
             const marketInner = this.safeMarket (marketId, undefined, undefined, 'contract');
             result.push (this.parsePosition (entry, marketInner));
         }
-        return this.filterByArrayPositions (result, 'symbol', undefined, false);
+        return this.filterByArrayPositions (result, 'symbol', undefined);
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {

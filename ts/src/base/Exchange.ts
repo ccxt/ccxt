@@ -3780,7 +3780,8 @@ export class BaseExchange {
     async fetchMarginMode (symbol: string, params: Dict = {}): Promise<MarginMode> {
         if (this.has['fetchMarginModes'] !== undefined && this.has['fetchMarginModes'] !== false) {
             const marginModes = await this.fetchMarginModes ([ symbol ], params);
-            return this.safeDict (marginModes, symbol) as MarginMode;
+            const marginMode = this.safeDict (marginModes, symbol);
+            return marginMode as MarginMode;
         } else {
             throw new NotSupported (this.id + ' fetchMarginMode() is not supported yet');
         }
@@ -3962,7 +3963,8 @@ export class BaseExchange {
     async fetchLeverage (symbol: string, params: Dict = {}): Promise<Leverage> {
         if (this.has['fetchLeverages'] !== undefined && this.has['fetchLeverages'] !== false) {
             const leverages = await this.fetchLeverages ([ symbol ], params);
-            return this.safeDict (leverages, symbol) as Leverage;
+            const leverage = this.safeDict (leverages, symbol);
+            return leverage as Leverage;
         } else {
             throw new NotSupported (this.id + ' fetchLeverage() is not supported yet');
         }
@@ -4031,7 +4033,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' signIn() is not supported yet');
     }
 
-    async fetchPaymentMethods (params: Dict = {}): Promise<{}> {
+    async fetchPaymentMethods (params: Dict = {}): Promise<Dict[]> {
         throw new NotSupported (this.id + ' fetchPaymentMethods() is not supported yet');
     }
 
@@ -6173,7 +6175,7 @@ export class BaseExchange {
             const position = this.extend (this.parsePosition (positionsArray[i]), params);
             result.push (position);
         }
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     parseADLRank (info: Dict, market: Market = undefined): ADL {
@@ -6191,7 +6193,7 @@ export class BaseExchange {
             const rank = this.extend (this.parseADLRank (ranksArray[i]), params);
             result.push (rank);
         }
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     parseAccounts (accounts: NullableList, params: Dict = {}): Account[] {
@@ -6849,11 +6851,11 @@ export class BaseExchange {
             throw new NotSupported (this.id + ' fetchCrossBorrowRate() is not supported yet');
         }
         const borrowRates = await this.fetchCrossBorrowRates (params);
-        const rate = this.safeValue (borrowRates, code);
+        const rate = this.safeDict (borrowRates, code);
         if (rate === undefined) {
             throw new ExchangeError (this.id + ' fetchCrossBorrowRate() could not find the borrow rate for currency code ' + code);
         }
-        return rate;
+        return rate as CrossBorrowRate;
     }
 
     async fetchIsolatedBorrowRate (symbol: string, params: Dict = {}): Promise<IsolatedBorrowRate> {
@@ -6862,11 +6864,11 @@ export class BaseExchange {
             throw new NotSupported (this.id + ' fetchIsolatedBorrowRate() is not supported yet');
         }
         const borrowRates = await this.fetchIsolatedBorrowRates (params);
-        const rate = this.safeDict (borrowRates, symbol) as IsolatedBorrowRate;
+        const rate = this.safeDict (borrowRates, symbol);
         if (rate === undefined) {
             throw new ExchangeError (this.id + ' fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ' + symbol);
         }
-        return rate;
+        return rate as IsolatedBorrowRate;
     }
 
     /* eslint-disable no-unused-vars */
@@ -7771,7 +7773,7 @@ export class BaseExchange {
             }
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArray (results, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers (results, 'symbol', symbolsNormalized);
     }
 
     parseDepositAddresses (addresses: any, codes: Strings = undefined, indexed = true, params: Dict = {}): DepositAddress[] {
@@ -7853,7 +7855,7 @@ export class BaseExchange {
                 fundingRates[parsed['symbol']] = parsed;
             }
         }
-        return this.filterByArray (fundingRates, 'symbol', symbols);
+        return this.indexBy (this.filterByArray (fundingRates, 'symbol', symbols, false), 'symbol') as FundingRates;
     }
 
     parseLongShortRatio (info: Dict, market: Market = undefined): LongShortRatio {
@@ -8066,11 +8068,11 @@ export class BaseExchange {
                 throw new BadSymbol (this.id + ' fetchFundingRate() supports contract markets only');
             }
             const rates = await this.fetchFundingRates ([ symbolResolved ], params);
-            const rate = this.safeValue (rates, symbolResolved);
+            const rate = this.safeDict (rates, symbolResolved);
             if (rate === undefined) {
                 throw new NullResponse (this.id + ' fetchFundingRate () returned no data for ' + symbolResolved);
             } else {
-                return rate;
+                return rate as FundingRate;
             }
         } else {
             throw new NotSupported (this.id + ' fetchFundingRate () is not supported yet');
@@ -8086,11 +8088,11 @@ export class BaseExchange {
                 throw new BadSymbol (this.id + ' fetchFundingInterval() supports contract markets only');
             }
             const rates = await this.fetchFundingIntervals ([ symbolResolved ], params);
-            const rate = this.safeValue (rates, symbolResolved);
+            const rate = this.safeDict (rates, symbolResolved);
             if (rate === undefined) {
                 throw new NullResponse (this.id + ' fetchFundingInterval() returned no data for ' + symbolResolved);
             } else {
-                return rate;
+                return rate as FundingRate;
             }
         } else {
             throw new NotSupported (this.id + ' fetchFundingInterval() is not supported yet');
@@ -8240,7 +8242,7 @@ export class BaseExchange {
         }
     }
 
-    parseDepositWithdrawFees (response: any, codes: Strings = undefined, currencyIdKey: Str = undefined): any {
+    parseDepositWithdrawFees (response: any, codes: Strings = undefined, currencyIdKey: Str = undefined): Dict {
         /**
          * @ignore
          * @method
@@ -8391,22 +8393,22 @@ export class BaseExchange {
         }
     }
 
-    filterByArrayPositions (objects: any, key: IndexType, values: any = undefined, indexed = true): Position[] {
+    filterByArrayPositions (objects: any, key: IndexType, values: any = undefined): Position[] {
         /**
          * @ignore
          * @method
          * @description Typed wrapper for filterByArray that returns a list of positions
          */
-        return this.filterByArray (objects, key, values, indexed) as Position[];
+        return this.toArray (this.filterByArray (objects, key, values, false)) as Position[];
     }
 
-    filterByArrayTickers (objects: any, key: IndexType, values: any = undefined, indexed = true): Dictionary<Ticker> {
+    filterByArrayTickers (objects: any, key: IndexType, values: any = undefined): Dictionary<Ticker> {
         /**
          * @ignore
          * @method
          * @description Typed wrapper for filterByArray that returns a dictionary of tickers
          */
-        return this.filterByArray (objects, key, values, indexed) as Dictionary<Ticker>;
+        return this.indexBy (this.filterByArray (objects, key, values, false), key) as Dictionary<Ticker>;
     }
 
     filterByArrayADLRanks (objects: any, key: IndexType, values: any = undefined, indexed = true): ADL[] {
@@ -9910,7 +9912,8 @@ export default class Exchange extends BaseExchange {
     async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
         if (this.has['fetchOpenInterests'] !== undefined && this.has['fetchOpenInterests'] !== false) {
             const openInterests = await this.fetchOpenInterests ([ symbol ], params);
-            return this.safeDict (openInterests, symbol) as OpenInterest;
+            const openInterest = this.safeDict (openInterests, symbol);
+            return openInterest as OpenInterest;
         } else {
             throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
         }
@@ -10394,7 +10397,8 @@ export default class Exchange extends BaseExchange {
             throw new NotSupported (this.id + ' fetchTradingFee() is not supported yet');
         }
         const fees = await this.fetchTradingFees (params);
-        return this.safeDict (fees, symbol) as TradingFeeInterface;
+        const fee = this.safeDict (fees, symbol);
+        return fee as TradingFeeInterface;
     }
 }
 

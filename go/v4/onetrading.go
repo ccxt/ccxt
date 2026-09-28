@@ -457,12 +457,12 @@ func (this *Onetrading) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Onetrading) FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Onetrading) FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[*int64] {
+	ch := make(chan AsyncResult[*int64], 1)
 	go this.fetchTimeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Onetrading) fetchTimeBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Onetrading) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -480,7 +480,7 @@ func (this *Onetrading) fetchTimeBody(ch chan AsyncResult[any], optionalArgs ...
 	//         "epoch_millis": 1594358246716,
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.SafeInteger(response, "epoch_millis")}
+	ch <- AsyncResult[*int64]{Value: this.SafeInteger(response, "epoch_millis")}
 	return nil
 }
 
@@ -1065,12 +1065,12 @@ func (this *Onetrading) ParseTicker(ticker any, optionalArgs ...any) map[string]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Onetrading) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Onetrading) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Onetrading) fetchTickerBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Onetrading) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1111,7 +1111,7 @@ func (this *Onetrading) fetchTickerBody(ch chan AsyncResult[any], symbol string,
 	//         "low":"8110.0"
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
 	return nil
 }
 
@@ -1199,12 +1199,12 @@ func (this *Onetrading) fetchTickersBody(ch chan AsyncResult[any], optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Onetrading) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Onetrading) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Onetrading) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Onetrading) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1288,7 +1288,7 @@ func (this *Onetrading) fetchOrderBookBody(ch chan AsyncResult[any], symbol stri
 	//
 	var timestamp *int64 = this.Parse8601(this.SafeString(response, "time"))
 
-	ch <- AsyncResult[any]{Value: this.ParseOrderBook(response, market["symbol"], timestamp, "bids", "asks", "price", "amount")}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(response, market["symbol"], timestamp, "bids", "asks", "price", "amount")}
 	return nil
 }
 func (this *Onetrading) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -1500,7 +1500,7 @@ func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) any {
 		"info":         tradeValue,
 	}, market)
 }
-func (this *Onetrading) ParseBalance(response any) any {
+func (this *Onetrading) ParseBalance(response any) map[string]any {
 	var balances []any = SafeListTyped(response, "balances")
 	var result map[string]any = map[string]any{
 		"info": response,
@@ -1516,7 +1516,7 @@ func (this *Onetrading) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -1718,12 +1718,12 @@ func (this *Onetrading) ParseTimeInForce(timeInForce *string) *string {
  * @param {float} [params.triggerPrice] onetrading only does stop limit orders and does not do stop market
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Onetrading) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Onetrading) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Onetrading) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Onetrading) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1804,7 +1804,7 @@ func (this *Onetrading) createOrderBody(ch chan AsyncResult[any], symbol string,
 	//         "time_in_force": "GOOD_TILL_CANCELLED"
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 
@@ -1819,12 +1819,12 @@ func (this *Onetrading) createOrderBody(ch chan AsyncResult[any], symbol string,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Onetrading) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Onetrading) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Onetrading) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Onetrading) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1868,7 +1868,7 @@ func (this *Onetrading) cancelOrderBody(ch chan AsyncResult[any], id any, option
 	//
 	// responds with an empty body
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
 	return nil
 }
 
@@ -1984,12 +1984,12 @@ func (this *Onetrading) cancelOrdersBody(ch chan AsyncResult[any], ids any, opti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Onetrading) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Onetrading) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Onetrading) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Onetrading) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2054,7 +2054,7 @@ func (this *Onetrading) fetchOrderBody(ch chan AsyncResult[any], id any, optiona
 	//         ]
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
 	return nil
 }
 
@@ -2537,7 +2537,7 @@ func (this *Onetrading) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = r.Value.(int64)
+	var res int64 = ParseInt(BoxAbsent(r.Value))
 	return res, nil
 }
 
@@ -3236,7 +3236,7 @@ func (this *Onetrading) FetchOrders(options ...FetchOrdersOptions) ([]Order, err
 func (this *Onetrading) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Onetrading) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Onetrading) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Onetrading) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

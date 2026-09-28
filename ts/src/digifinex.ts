@@ -2058,7 +2058,8 @@ export default class digifinex extends Exchange {
                 throw new OrderNotFound (this.id + ' cancelOrder() ' + idValue + ' not found');
             }
             const orders = this.parseCancelOrders (response);
-            return this.safeDict (orders, 0) as Order;
+            const canceled = this.safeDict (orders, 0);
+            return canceled as Order;
         } else {
             return this.safeOrder ({
                 'info': response,
@@ -3764,7 +3765,7 @@ export default class digifinex extends Exchange {
         for (let i = 0; i < positions.length; i++) {
             result.push (this.parsePosition (positions[i], market));
         }
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     /**

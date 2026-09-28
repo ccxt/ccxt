@@ -390,12 +390,12 @@ func (this *Bitrue) ParseWsOrder(order any, optionalArgs ...any) any {
 		},
 	}, market)
 }
-func (this *Bitrue) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Bitrue) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitrue) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Bitrue) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -441,7 +441,7 @@ func (this *Bitrue) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol str
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: ccxt.OrderBookTyped(r1.Value)}
 	return nil
 }
 func (this *Bitrue) HandleOrderBook(client any, message any) {

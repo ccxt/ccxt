@@ -1387,7 +1387,8 @@ export default class polymarket extends Exchange {
         //
         //     1781273248
         //
-        return this.parseToInt (response) * 1000;
+        const result: Dict = { 'serverTime': response };
+        return this.safeTimestamp (result, 'serverTime');
     }
 
     /**

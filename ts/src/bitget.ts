@@ -3130,7 +3130,8 @@ export default class bitget extends Exchange {
             'orderId': id,
         };
         const deposits = await this.fetchDeposits (code, undefined, undefined, this.extend (request, params));
-        return this.safeDict (deposits, 0, {}) as Transaction;
+        const deposit = this.safeDict (deposits, 0, {});
+        return deposit as Transaction;
     }
 
     /**
@@ -3327,7 +3328,8 @@ export default class bitget extends Exchange {
             'orderId': id,
         };
         const withdrawals = await this.fetchWithdrawals (code, undefined, undefined, this.extend (request, params));
-        return this.safeDict (withdrawals, 0, {}) as Transaction;
+        const withdrawal = this.safeDict (withdrawals, 0, {});
+        return withdrawal as Transaction;
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -9013,7 +9015,7 @@ export default class bitget extends Exchange {
             result.push (this.parsePosition (position[i], market));
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {

@@ -1336,7 +1336,8 @@ export default class poloniex extends Exchange {
         };
         if (market['contract'] === true) {
             const tickers = await this.fetchTickers ([ market['symbol'] ], params);
-            return this.safeDict (tickers, symbol) as Ticker;
+            const contractTicker = this.safeDict (tickers, symbol);
+            return contractTicker as Ticker;
         }
         const response = await this.publicGetMarketsSymbolTicker24h (this.extend (request, params));
         //

@@ -1719,7 +1719,7 @@ export default class coinbaseexchange extends Exchange {
         return [ this.safeOrder ({ 'info': response }) ];
     }
 
-    override async fetchPaymentMethods (params: Dict = {}): Promise<Dict> {
+    override async fetchPaymentMethods (params: Dict = {}): Promise<Dict[]> {
         return await this.privateGetPaymentMethods (params);
     }
 

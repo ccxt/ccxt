@@ -384,12 +384,12 @@ func (this *Nado) Describe() any {
  * @param {int} [params.id] client-provided request id, returned by the exchange in the response
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Nado) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Nado) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Nado) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Nado) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -439,7 +439,7 @@ func (this *Nado) createOrderBody(ch chan AsyncResult[any], symbol string, typeV
 	//         "id": 100
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOrder(this.Extend(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(this.Extend(map[string]any{
 		"place_order": placeOrder,
 	}, response), market)}
 	return nil
@@ -614,12 +614,12 @@ func (this *Nado) createOrderRequestBody(ch chan EndpointResult[map[string]any],
  * @param {float} [params.triggerPrice] not supported, editing trigger orders throws NotSupported, the same applies to params.stopPrice, params.stopLossPrice and params.takeProfitPrice
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Nado) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Nado) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Nado) editOrderBody(ch chan AsyncResult[any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Nado) editOrderBody(ch chan AsyncResult[map[string]any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -660,7 +660,7 @@ func (this *Nado) editOrderBody(ch chan AsyncResult[any], id string, symbol any,
 	var cancelAndPlace map[string]any = SafeMapTyped(request, "cancel_and_place")
 	var placeOrder map[string]any = this.SafeDictMap(cancelAndPlace, "place_order", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(this.Extend(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(this.Extend(map[string]any{
 		"place_order": placeOrder,
 	}, response), market)}
 	return nil
@@ -797,12 +797,12 @@ func (this *Nado) editOrderRequestBody(ch chan EndpointResult[map[string]any], i
  * @param {int} [params.id] client-provided request id, returned by the exchange in the response
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Nado) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Nado) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Nado) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Nado) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -816,8 +816,9 @@ func (this *Nado) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs
 	}
 	listRecv779, _ := r.Value.([]any)
 	var orders []any = listRecv779
+	var canceled map[string]any = SafeMapTyped(orders, 0)
 
-	ch <- AsyncResult[any]{Value: this.SafeDict(orders, 0)}
+	ch <- AsyncResult[map[string]any]{Value: canceled}
 	return nil
 }
 
@@ -1125,12 +1126,12 @@ func (this *Nado) cancelOrdersRequestBody(ch chan EndpointResult[map[string]any]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Nado) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Nado) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Nado) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Nado) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1178,7 +1179,7 @@ func (this *Nado) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs 
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
 	return nil
 }
 
@@ -1343,11 +1344,11 @@ func (this *Nado) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes104819 []any = ListTyped(r1.Value)
-		if retRes104819 == nil {
+		var retRes104919 []any = ListTyped(r1.Value)
+		if retRes104919 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes104819}
+			ch <- AsyncResult[any]{Value: retRes104919}
 		}
 		return nil
 	}
@@ -1456,11 +1457,11 @@ func (this *Nado) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes112419 []any = ListTyped(r1.Value)
-		if retRes112419 == nil {
+		var retRes112519 []any = ListTyped(r1.Value)
+		if retRes112519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes112419}
+			ch <- AsyncResult[any]{Value: retRes112519}
 		}
 		return nil
 	}
@@ -1533,12 +1534,12 @@ func (this *Nado) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Nado) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Nado) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Nado) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Nado) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1557,11 +1558,11 @@ func (this *Nado) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArgs
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes118815 []any = ListTyped(r.Value)
-	if retRes118815 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+	var retRes118915 []any = ListTyped(r.Value)
+	if retRes118915 == nil {
+		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes118815}
+		ch <- AsyncResult[[]any]{Value: retRes118915}
 	}
 	return nil
 }
@@ -1577,12 +1578,12 @@ func (this *Nado) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Nado) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Nado) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchCanceledAndClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Nado) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Nado) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1601,11 +1602,11 @@ func (this *Nado) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[any], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes120815 []any = ListTyped(r.Value)
-	if retRes120815 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+	var retRes120915 []any = ListTyped(r.Value)
+	if retRes120915 == nil {
+		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes120815}
+		ch <- AsyncResult[[]any]{Value: retRes120915}
 	}
 	return nil
 }
@@ -1816,11 +1817,11 @@ func (this *Nado) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...an
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes135315 []any = ListTyped(r.Value)
-	if retRes135315 == nil {
+	var retRes135415 []any = r.Value
+	if retRes135415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes135315}
+		ch <- AsyncResult[any]{Value: retRes135415}
 	}
 	return nil
 }
@@ -1859,20 +1860,20 @@ func (this *Nado) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ..
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes137015 []any = ListTyped(r.Value)
-	if retRes137015 == nil {
+	var retRes137115 []any = r.Value
+	if retRes137115 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes137015}
+		ch <- AsyncResult[any]{Value: retRes137115}
 	}
 	return nil
 }
-func (this *Nado) QueryTransactionsByEventTypeAsync(eventType string, transactionType string, methodName string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Nado) QueryTransactionsByEventTypeAsync(eventType string, transactionType string, methodName string, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.queryTransactionsByEventTypeBody(ch, eventType, transactionType, methodName, optionalArgs...)
 	return ch
 }
-func (this *Nado) queryTransactionsByEventTypeBody(ch chan AsyncResult[any], eventType string, transactionType string, methodName string, optionalArgs ...any) any {
+func (this *Nado) queryTransactionsByEventTypeBody(ch chan AsyncResult[[]any], eventType string, transactionType string, methodName string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1984,7 +1985,7 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan AsyncResult[any], eve
 		transactions = append(transactions, this.ParseTransaction(transaction, currency))
 	}
 
-	ch <- AsyncResult[any]{Value: this.FilterByCurrencySinceLimit(transactions, code, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.FilterByCurrencySinceLimit(transactions, code, since, limit)}
 	return nil
 }
 
@@ -2093,7 +2094,7 @@ func (this *Nado) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...a
 		}, position)))
 	}
 
-	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)}
+	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized)}
 	return nil
 }
 
@@ -2105,12 +2106,12 @@ func (this *Nado) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Nado) FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Nado) FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[*int64] {
+	ch := make(chan AsyncResult[*int64], 1)
 	go this.fetchTimeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Nado) fetchTimeBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Nado) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2133,7 +2134,7 @@ func (this *Nado) fetchTimeBody(ch chan AsyncResult[any], optionalArgs ...any) a
 	//         "server_time": "1780000000123"
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.SafeInteger(response, "server_time")}
+	ch <- AsyncResult[*int64]{Value: this.SafeInteger(response, "server_time")}
 	return nil
 }
 
@@ -2425,11 +2426,11 @@ func (this *Nado) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp2255 := <-this.GatewayV2PublicGetAssets(params)
-	if listEp2255.Err != nil {
-		panic(listEp2255.Err)
+	listEp2256 := <-this.GatewayV2PublicGetAssets(params)
+	if listEp2256.Err != nil {
+		panic(listEp2256.Err)
 	}
-	var response []any = listEp2255.Value
+	var response []any = listEp2256.Value
 	var result map[string]any = map[string]any{}
 	var assets []any = this.ToArray(response)
 	for i := 0; i < len(assets); i++ {
@@ -2524,12 +2525,12 @@ func (this *Nado) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Nado) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Nado) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Nado) fetchTickerBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Nado) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2552,7 +2553,7 @@ func (this *Nado) fetchTickerBody(ch chan AsyncResult[any], symbol string, optio
 		panic(BadSymbol(this.Id + " fetchTicker() ticker not found for " + *symbolValue))
 	}
 
-	ch <- AsyncResult[any]{Value: ticker}
+	ch <- AsyncResult[map[string]any]{Value: ticker}
 	return nil
 }
 
@@ -2566,12 +2567,12 @@ func (this *Nado) fetchTickerBody(ch chan AsyncResult[any], symbol string, optio
  * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Nado) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Nado) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Nado) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Nado) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2617,7 +2618,7 @@ func (this *Nado) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, 
 	//
 	var data map[string]any = this.SafeDictMap(response, tickerId, map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseFundingRate(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseFundingRate(data, market)}
 	return nil
 }
 
@@ -2800,12 +2801,12 @@ func (this *Nado) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs .
  * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
  * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Nado) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Nado) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Nado) fetchOpenInterestBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Nado) fetchOpenInterestBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2851,7 +2852,7 @@ func (this *Nado) fetchOpenInterestBody(ch chan AsyncResult[any], symbol string,
 	//
 	var data map[string]any = this.SafeDictMap(response, tickerId, map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOpenInterest(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOpenInterest(data, market)}
 	return nil
 }
 
@@ -2939,12 +2940,12 @@ func (this *Nado) fetchOpenInterestsBody(ch chan AsyncResult[any], optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Nado) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Nado) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Nado) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Nado) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2990,7 +2991,7 @@ func (this *Nado) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, op
 	//
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 
-	ch <- AsyncResult[any]{Value: this.ParseOrderBook(response, market["symbol"], timestamp)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(response, market["symbol"], timestamp)}
 	return nil
 }
 
@@ -3034,11 +3035,11 @@ func (this *Nado) fetchTradesBody(ch chan AsyncResult[any], symbol any, optional
 		request["limit"] = mathMin(limit, 500)
 	}
 
-	listEp2801 := <-this.ArchiveV2PublicGetTrades(this.Extend(request, params))
-	if listEp2801.Err != nil {
-		panic(listEp2801.Err)
+	listEp2802 := <-this.ArchiveV2PublicGetTrades(this.Extend(request, params))
+	if listEp2802.Err != nil {
+		panic(listEp2802.Err)
 	}
-	var response []any = listEp2801.Value
+	var response []any = listEp2802.Value
 
 	//
 	//     [
@@ -3274,7 +3275,7 @@ func (this *Nado) ParseTrade(trade any, optionalArgs ...any) any {
 		"fee":          fee,
 	}, marketResolved)
 }
-func (this *Nado) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Nado) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "product_id": 1,
@@ -3444,7 +3445,7 @@ func (this *Nado) ParseCurrency(rawCurrency any) map[string]any {
 		"info": rawCurrency,
 	})
 }
-func (this *Nado) ParseBalance(response any) any {
+func (this *Nado) ParseBalance(response any) map[string]any {
 	//
 	//     {
 	//         "subaccount": "0x8d7d64d6cf1d4f018dd101482ac71ad49e30c56064656661756c740000000000",
@@ -3486,7 +3487,7 @@ func (this *Nado) ParseBalance(response any) any {
 			AddElementToObject(result, code, account)
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 func (this *Nado) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
@@ -4683,7 +4684,7 @@ func (this *Nado) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = r.Value.(int64)
+	var res int64 = ParseInt(BoxAbsent(r.Value))
 	return res, nil
 }
 
@@ -5243,7 +5244,7 @@ func (this *Nado) FetchOrderStatus(id string, options ...FetchOrderStatusOptions
 func (this *Nado) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Nado) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Nado) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Nado) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

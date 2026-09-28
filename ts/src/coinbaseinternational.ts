@@ -1191,7 +1191,7 @@ export default class coinbaseinternational extends Exchange {
             return positions;
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (positions, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (positions, 'symbol', symbolsNormalized);
     }
 
     /**

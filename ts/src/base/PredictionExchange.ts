@@ -1513,11 +1513,13 @@ export default class PredictionExchange extends BaseExchange {
         // `symbol` with the `outcome` handle and attach the outcome identity fields
         // outcomeId and market - so books match the PredictionOrderBook structure.
         const fallback = this.safeString2 (orderbook, 'outcome', 'symbol');
-        orderbook['outcome'] = (outcomeObj === undefined) ? fallback : this.safeString (outcomeObj, 'outcome', fallback);
-        orderbook['outcomeId'] = (outcomeObj === undefined) ? this.safeString (orderbook, 'outcomeId') : this.safeString (outcomeObj, 'outcomeId');
-        orderbook['market'] = (outcomeObj === undefined) ? this.safeString (orderbook, 'market') : this.safeString (outcomeObj, 'market');
+        const identity: Dict = {
+            'outcome': (outcomeObj === undefined) ? fallback : this.safeString (outcomeObj, 'outcome', fallback),
+            'outcomeId': (outcomeObj === undefined) ? this.safeString (orderbook, 'outcomeId') : this.safeString (outcomeObj, 'outcomeId'),
+            'market': (outcomeObj === undefined) ? this.safeString (orderbook, 'market') : this.safeString (outcomeObj, 'market'),
+        };
         // omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
-        return this.omit (orderbook, 'symbol') as PredictionOrderBook;
+        return this.extend (this.omit (orderbook, 'symbol'), identity) as PredictionOrderBook;
     }
 
     parsePredictionTicker (ticker: Dict, market: Market = undefined): PredictionTicker {

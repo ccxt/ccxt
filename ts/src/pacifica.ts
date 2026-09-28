@@ -2761,7 +2761,7 @@ export default class pacifica extends Exchange {
         for (let i = 0; i < data.length; i++) {
             result.push (this.parsePosition (data[i], undefined));
         }
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {
@@ -3444,7 +3444,7 @@ export default class pacifica extends Exchange {
         return await this.privatePostAccountBuilderCodesApprove (this.extend (request, params));
     }
 
-    async fetchBuilderApprovals (address: string): Promise<Dict> {
+    async fetchBuilderApprovals (address: string): Promise<Dict[]> {
         const request: Dict = {
             'account': address,
         };

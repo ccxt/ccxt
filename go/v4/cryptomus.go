@@ -689,12 +689,12 @@ func (this *Cryptomus) ParseTicker(ticker any, optionalArgs ...any) map[string]a
  * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Cryptomus) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Cryptomus) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Cryptomus) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Cryptomus) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -745,7 +745,7 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan AsyncResult[any], symbol strin
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	var timestamp *int64 = this.SafeTimestamp(data, "timestamp")
 
-	ch <- AsyncResult[any]{Value: this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")}
 	return nil
 }
 
@@ -896,7 +896,7 @@ func (this *Cryptomus) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs .
 	ch <- AsyncResult[any]{Value: this.ParseBalance(result)}
 	return nil
 }
-func (this *Cryptomus) ParseBalance(balance any) any {
+func (this *Cryptomus) ParseBalance(balance any) map[string]any {
 	//
 	//     {
 	//         "ticker": "AVAX",
@@ -918,7 +918,7 @@ func (this *Cryptomus) ParseBalance(balance any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -937,12 +937,12 @@ func (this *Cryptomus) ParseBalance(balance any) any {
  * @param {string} [params.clientOrderId] a unique identifier for the order (optional)
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cryptomus) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Cryptomus) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Cryptomus) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Cryptomus) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1033,7 +1033,7 @@ func (this *Cryptomus) createOrderBody(ch chan AsyncResult[any], symbol string, 
 	//         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBMG"
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 
@@ -1047,12 +1047,12 @@ func (this *Cryptomus) createOrderBody(ch chan AsyncResult[any], symbol string, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cryptomus) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Cryptomus) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Cryptomus) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Cryptomus) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1080,7 +1080,7 @@ func (this *Cryptomus) cancelOrderBody(ch chan AsyncResult[any], id any, optiona
 	//         "success": true
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
 		"info": response,
 	})}
 	return nil
@@ -1102,12 +1102,12 @@ func (this *Cryptomus) cancelOrderBody(ch chan AsyncResult[any], id any, optiona
  * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cryptomus) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Cryptomus) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchCanceledAndClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1191,7 +1191,7 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[any]
 		orders = append(orders, this.ParseOrder(order, market))
 	}
 
-	ch <- AsyncResult[any]{Value: orders}
+	ch <- AsyncResult[[]any]{Value: orders}
 	return nil
 }
 
@@ -2154,7 +2154,7 @@ func (this *Cryptomus) FetchOrderStatus(id string, options ...FetchOrderStatusOp
 func (this *Cryptomus) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Cryptomus) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Cryptomus) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Cryptomus) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

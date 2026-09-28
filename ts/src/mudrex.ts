@@ -1057,7 +1057,7 @@ export default class mudrex extends Exchange {
             const pos = this.parsePosition (p, m);
             outPos.push (pos);
         }
-        return this.filterByArrayPositions (outPos, 'symbol', symbols, false);
+        return this.filterByArrayPositions (outPos, 'symbol', symbols);
     }
 
     /**
@@ -1251,7 +1251,7 @@ export default class mudrex extends Exchange {
         };
         const paramsOmitted: Dict = this.omit (params, [ 'position_id' ]);
         const response: Dict = await this.privatePostFuturesPositionsPositionIdAddMargin (this.extend (request, paramsOmitted));
-        return response as MarginModification;
+        return this.extend (response, {}) as MarginModification;
     }
 
     /**

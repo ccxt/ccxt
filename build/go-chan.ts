@@ -25,7 +25,8 @@ let GO_CHAN_TABLE: Map<string, string> | undefined = undefined;
 export function goChanTable (): Map<string, string> {
     if (GO_CHAN_TABLE === undefined) {
         const table = new Map<string, string> ();
-        const files = fs.existsSync (GO_CHAN_TABLE_DIR) ? fs.readdirSync (GO_CHAN_TABLE_DIR).filter ((f) => f.endsWith ('.json')).sort () : [];
+        // chan3-*.json are AsyncResult[T] tables (build/go-chan3.ts), not EndpointResult carriers
+        const files = fs.existsSync (GO_CHAN_TABLE_DIR) ? fs.readdirSync (GO_CHAN_TABLE_DIR).filter ((f) => f.endsWith ('.json') && !f.startsWith ('chan3-')).sort () : [];
         for (const f of files) {
             const entries = JSON.parse (fs.readFileSync (path.join (GO_CHAN_TABLE_DIR, f), 'utf8'));
             for (const method of Object.keys (entries)) {
@@ -73,7 +74,7 @@ export function goChanMask (content: string): string {
 }
 
 // index just past the bracket matching masked[open]
-function goChanClose (masked: string, open: number): number {
+export function goChanClose (masked: string, open: number): number {
     let depth = 0;
     for (let i = open; i < masked.length; i++) {
         const c = masked[i];
@@ -90,7 +91,7 @@ function goChanClose (masked: string, open: number): number {
 }
 
 // end (exclusive, trailing blanks trimmed) of the expression starting at `start`: the first newline at depth 0
-function goChanExprEnd (masked: string, start: number): number {
+export function goChanExprEnd (masked: string, start: number): number {
     let depth = 0;
     let i = start;
     for (; i < masked.length; i++) {
@@ -109,13 +110,13 @@ function goChanExprEnd (masked: string, start: number): number {
     return i;
 }
 
-function goChanQual (content: string): string {
+export function goChanQual (content: string): string {
     return /^package ccxt\s*$/m.test (content) ? '' : 'ccxt.';
 }
 
 // the Go type of a sent expression, or a reason it is unproven. Only duplicable forms are admitted,
 // because the send spells the value twice (Value and Raw).
-function goChanSendType (expr: string, fnMasked: string, signature: string, ownCall: (name: string) => string | undefined = () => undefined): { type?: string, bind?: boolean, nil?: boolean, reason?: string } {
+export function goChanSendType (expr: string, fnMasked: string, signature: string, ownCall: (name: string) => string | undefined = () => undefined): { type?: string, bind?: boolean, nil?: boolean, reason?: string } {
     if (expr === 'nil') {
         return { 'nil': true };
     }
@@ -159,7 +160,7 @@ function goChanSendType (expr: string, fnMasked: string, signature: string, ownC
 
 // every path out of the body sends exactly as today's receiver expects one value: body-level `return nil`
 // follows a send, the body ends in such a return or a panic, and no `panic("break")` (it sends nothing)
-function goChanEveryExitSends (lines: string[]): boolean {
+export function goChanEveryExitSends (lines: string[]): boolean {
     let depth = 0;
     let literal = 0;
     let last = '';
@@ -246,7 +247,7 @@ export function goChanSetBaseReturnsForTest (map: Map<string, string> | undefine
 
 // `this.M` on R: R's own declaration in the file decides. Otherwise R must directly embed Exchange (package ccxt)
 // or ccxt.PredictionExchange; the promoted method is the shallowest declaration, which must have a concrete type.
-function goChanMethodReturn (masked: string, receiver: string, name: string): string | undefined {
+export function goChanMethodReturn (masked: string, receiver: string, name: string): string | undefined {
     if (new RegExp ('^func \\(this \\*' + receiver + '\\) ' + name + '\\(', 'm').test (masked)) {
         return goChanOwnReturn (masked, receiver, name);
     }
@@ -260,7 +261,9 @@ function goChanMethodReturn (masked: string, receiver: string, name: string): st
     } else if ((embed !== null) && (embed[1] === (own ? '' : 'ccxt.') + 'PredictionExchange')) {
         chain = [ 'PredictionExchange', 'BaseExchange' ];
     } else {
-        return undefined;
+        // pro venue `type R struct {\n\t*ccxt.V`: V's REST declaration decides, else V's promoted Exchange chain
+        const venue = own ? null : new RegExp ('^type ' + receiver + ' struct \\{\\n\\t\\*ccxt\\.(\\w+)\\n', 'm').exec (masked);
+        return (venue === null) ? undefined : goChanVenueReturn (venue[1], name);
     }
     const map = goChanBaseReturns ();
     for (const s of chain) {
@@ -270,6 +273,16 @@ function goChanMethodReturn (masked: string, receiver: string, name: string): st
         }
     }
     return undefined;
+}
+
+// the concrete return of V.name for a REST venue V (go/v4/<v>.go), falling back to its Exchange/BaseExchange chain
+function goChanVenueReturn (venue: string, name: string): string | undefined {
+    const file = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'go', 'v4', venue.toLowerCase () + '.go');
+    const masked = fs.existsSync (file) ? goChanMask (fs.readFileSync (file, 'utf8')) : '';
+    if (!new RegExp ('^type ' + venue + ' struct \\{\\n\\tExchange\\n', 'm').test (masked)) {
+        return undefined;
+    }
+    return goChanMethodReturn (masked, venue, name);
 }
 
 interface GoChanCore { receiver: string, method: string, asyncStart: number, asyncEnd: number, bodyStart: number, bodyEnd: number, sends: { start: number, end: number, expr: string, bind: boolean }[] }

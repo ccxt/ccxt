@@ -1118,7 +1118,8 @@ export default class sxbet extends Exchange {
         const request: Dict = { 'orders': [ { 'orderId': id } ] };
         const response = await this.sxbetPrivateDeleteOrdersV3 (this.extend (request, params));
         const orders = this.parseSxbetCancelResponse (response);
-        return this.safeDict (orders, 0) as PredictionOrder;
+        const first = this.safeDict (orders, 0);
+        return first as PredictionOrder;
     }
 
     /**

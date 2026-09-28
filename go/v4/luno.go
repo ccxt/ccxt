@@ -783,7 +783,7 @@ func (this *Luno) fetchAccountsBody(ch chan AsyncResult[any], optionalArgs ...an
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Luno) ParseBalance(response any) any {
+func (this *Luno) ParseBalance(response any) map[string]any {
 	var wallets []any = SafeListTyped(response, "balance")
 	var result map[string]any = map[string]any{
 		"info":      response,
@@ -825,7 +825,7 @@ func (this *Luno) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -885,12 +885,12 @@ func (this *Luno) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Luno) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Luno) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Luno) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Luno) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -926,7 +926,7 @@ func (this *Luno) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, op
 	}
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 
-	ch <- AsyncResult[any]{Value: this.ParseOrderBook(response, market["symbol"], timestamp, "bids", "asks", "price", "volume")}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(response, market["symbol"], timestamp, "bids", "asks", "price", "volume")}
 	return nil
 }
 func (this *Luno) ParseOrderStatus(status *string) *string {
@@ -1026,12 +1026,12 @@ func (this *Luno) ParseOrder(order any, optionalArgs ...any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Luno) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Luno) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Luno) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Luno) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1055,15 +1055,15 @@ func (this *Luno) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs 
 	}
 	var response map[string]any = MapTyped(r1.Raw)
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
 	return nil
 }
-func (this *Luno) FetchOrdersByStateAsync(state any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Luno) FetchOrdersByStateAsync(state any, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchOrdersByStateBody(ch, state, optionalArgs...)
 	return ch
 }
-func (this *Luno) fetchOrdersByStateBody(ch chan AsyncResult[any], state any, optionalArgs ...any) any {
+func (this *Luno) fetchOrdersByStateBody(ch chan AsyncResult[[]any], state any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1098,7 +1098,7 @@ func (this *Luno) fetchOrdersByStateBody(ch chan AsyncResult[any], state any, op
 	var response map[string]any = r1.Value
 	var orders []any = SafeListTypedDefault(response, "orders", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(orders, market, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.ParseOrders(orders, market, since, limit)}
 	return nil
 }
 
@@ -1134,7 +1134,7 @@ func (this *Luno) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any)
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes90715 []any = ListTyped(r.Value)
+	var retRes90715 []any = r.Value
 	if retRes90715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -1175,7 +1175,7 @@ func (this *Luno) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes92215 []any = ListTyped(r.Value)
+	var retRes92215 []any = r.Value
 	if retRes92215 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -1216,7 +1216,7 @@ func (this *Luno) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes93715 []any = ListTyped(r.Value)
+	var retRes93715 []any = r.Value
 	if retRes93715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -1330,12 +1330,12 @@ func (this *Luno) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Luno) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Luno) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Luno) fetchTickerBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Luno) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1367,7 +1367,7 @@ func (this *Luno) fetchTickerBody(ch chan AsyncResult[any], symbol string, optio
 	//     "rolling_24_hour_volume":"1.89510000",
 	//     "status":"ACTIVE"
 	// }
-	ch <- AsyncResult[any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
 	return nil
 }
 func (this *Luno) ParseTrade(trade any, optionalArgs ...any) any {
@@ -1767,12 +1767,12 @@ func (this *Luno) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string, o
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Luno) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Luno) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Luno) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Luno) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1826,7 +1826,7 @@ func (this *Luno) createOrderBody(ch chan AsyncResult[any], symbol string, typeV
 		panic(NullResponse(this.Id + " createOrder() returned empty response"))
 	}
 
-	ch <- AsyncResult[any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
 		"info": response,
 		"id":   GetValue(response, "order_id"),
 	}, market)}
@@ -1843,12 +1843,12 @@ func (this *Luno) createOrderBody(ch chan AsyncResult[any], symbol string, typeV
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Luno) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Luno) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Luno) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Luno) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1877,7 +1877,7 @@ func (this *Luno) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs
 	//        "success": true
 	//    }
 	//
-	ch <- AsyncResult[any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
 		"info": response,
 	})}
 	return nil
@@ -2230,7 +2230,7 @@ func (this *Luno) fetchDepositAddressBody(ch chan AsyncResult[any], code string,
 	ch <- AsyncResult[any]{Value: this.ParseDepositAddress(response, currency)}
 	return nil
 }
-func (this *Luno) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Luno) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "account_id": "string",
@@ -3183,7 +3183,7 @@ func (this *Luno) FetchOrderStatus(id string, options ...FetchOrderStatusOptions
 func (this *Luno) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Luno) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Luno) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Luno) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

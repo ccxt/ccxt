@@ -652,7 +652,8 @@ export default class nado extends Exchange {
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const orders = await this.cancelOrders ([ id ], symbol, params);
-        return this.safeDict (orders, 0) as Order;
+        const canceled = this.safeDict (orders, 0);
+        return canceled as Order;
     }
 
     /**
@@ -1529,7 +1530,7 @@ export default class nado extends Exchange {
             }
             result.push (this.parsePosition (this.extend ({ 'product': product }, position)));
         }
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     /**

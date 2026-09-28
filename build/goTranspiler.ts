@@ -12,6 +12,7 @@ import log from 'ololog';
 import ansi from 'ansicolor';
 import { goChanCarrierPass, goChanSelfTest } from './go-chan.js';
 import { goErrValuePass, goErrSelfTest } from './go-err.js';
+import { goChan3Pass, goChan3SelfTest } from './go-chan3.js';
 import {Transpiler as OldTranspiler } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import Piscina from 'piscina';
@@ -2689,6 +2690,7 @@ function formatGoSource (filePath: string, content: string): string {
     content = goChanCarrierPass (content);
     content = g10kLenNative (content);
     content = goErrValuePass (goEndpointCheckedReceives (content));  // G10K-err-a
+    content = goChan3Pass (content);  // GO-CHAN3: AsyncResult[any] -> AsyncResult[T], after go-err
     return goGofmtSplicedText (content);
 }
 
@@ -3733,7 +3735,9 @@ const GO_MAP_RETURNING_METHODS = [ 'Market', 'Currency', 'SafeCurrency', 'SafeMa
 function goProvenParseMapMethods (): string[] {
     return [ 'SafeOrder', 'SafeTicker', 'SafeLedgerEntry', 'ParseOrder', 'ParseTicker', 'ParseTransaction', 'ParseTransfer', 'ParseLedgerEntry',
         'ParseContractTicker', 'ParseUtaOrder', 'ParseContractOrder', 'ParseSpotOrder', 'ParseSwapOrder',
-        'SafeMarketStructure', 'SafeCurrencyStructure', 'SafeOpenInterest', 'ParseCurrency', 'ParseOpenInterest' ];
+        'SafeMarketStructure', 'SafeCurrencyStructure', 'SafeOpenInterest', 'ParseCurrency', 'ParseOpenInterest',
+        'SafePredictionOrder', 'SafePredictionTicker', 'SafePredictionOrderBook', 'ParsePredictionOrder', 'ParsePredictionTicker', 'ParsePredictionOpenInterest',
+        'ParseSpotOrUtaTicker', 'ParseContractOrderBook', 'ParseFundingRate', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositAddress', 'ParseMarginMode', 'ParseGreeks', 'ParseOption', 'ParseBorrowRate', 'ParseIsolatedBorrowRate', 'ParseConversion', 'ParseMarginModification', 'ParseTradeTx', 'ParseLeverageFromMarket', 'ParseLeverageFromSetting', 'ParseMarginModeFromSetting' ];
 }
 
 // function-level `return` expressions of a Go body (func literal bodies skipped); undefined when unscannable
@@ -3785,8 +3789,33 @@ function goFunctionLevelReturnExprs (body: string): string[] | undefined {
  * these can return nil. Go interfaces pin one signature, so an unproven def throws instead of staying `any`.
  */
 export function retypeGoProvenParseMethods (content: string): string {
-    const names = goProvenParseMapMethods ();
-    const provenCall = new RegExp ('^(?:ccxt\\.)?this\\.(?:DerivedExchange\\.|base\\.)?(?:Extend|' + names.join ('|') + ')\\(');
+    const lists = goProvenListMethods ();
+    content = retypeGoProvenFamily (content, lists, '[]any', 'this.ToArray', lists.concat ([ 'ArraySlice', 'ToArray', 'SortBy', 'SortBy2', 'ArrayConcat' ]));
+    const maps = goProvenParseMapMethods ().concat (goProvenMapCollectionMethods ());
+    return retypeGoProvenFamily (content, maps, 'map[string]any', 'MapTyped', maps.concat ([ 'Extend', 'DeepExtend', 'IndexBy' ]));
+}
+
+// list producers (base + every override): TS `X[]`; a returned `array` parameter is coerced with ToArray (caches too)
+function goProvenListMethods (): string[] {
+    return [ 'ParseOrders', 'ParseTrades', 'ParseTradesHelper', 'ParseTransactions', 'ParseOHLCVs', 'ParseLedger', 'ParsePositions', 'ParseMarkets',
+        'ParseTransfers', 'FilterBySinceLimit', 'FilterBySymbolSinceLimit', 'FilterBySymbolsSinceLimit', 'FilterByArrayPositions',
+        'FilterByValueSinceLimit', 'FilterByCurrencySinceLimit', 'FilterByLimit' ];
+}
+
+// dict producers beyond the single-structure parsers (Balances/Tickers/FundingRates/Dictionary<..>). SafeBalance stays
+// `any` (ws venues hand it this.Balance, a *sync.Map); it returns its argument, so `SafeBalance(<map literal local>)` is proven
+function goProvenMapCollectionMethods (): string[] {
+    return [ 'ParseBalance', 'ParseTickers', 'ParseCurrencies', 'FilterByArrayTickers', 'ParseFundingRate', 'ParseFundingRates',
+        'ParseDepositAddress', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositWithdrawFees' ];
+}
+
+// one family: `names` retype to `type`; returns proven by a `type` literal, a call of `calls`, a typed/proven local,
+// or (paramWrap) a parameter of the def wrapped in the coercion
+function retypeGoProvenFamily (content: string, names: string[], type: string, paramWrap: string, calls: string[]): string {
+    const literal = type + '{';
+    const provenCall = new RegExp ('^(?:ccxt\\.)?this\\.(?:DerivedExchange\\.|base\\.)?(?:' + calls.join ('|') + ')\\(');
+    const proven = (e: string) => e.startsWith (literal) || provenCall.test (e);
+    const typeRe = type.replace (/[[\]]/g, '\\$&');
     const head = new RegExp ('\\nfunc \\(this \\*(\\w+)\\) (' + names.join ('|') + ')\\(([^)\\n]*)\\) any \\{\\n', 'g');
     let out = '';
     let cursor = 0;
@@ -3803,21 +3832,37 @@ export function retypeGoProvenParseMethods (content: string): string {
             throw new Error ('retypeGoProvenParseMethods: ' + where + ' has no return and does not end in panic');
         }
         let newBody = body;
+        const params = m[3].split (',').map ((p) => p.trim ().split (' ')[0]);
         for (const expr of exprs) {
-            if (expr.startsWith ('map[string]any{') || provenCall.test (expr)) {
+            if (proven (expr)) {
+                continue;
+            }
+            const balance = /^this\.SafeBalance\((\w+)\)$/.exec (expr);
+            if ((type === 'map[string]any') && (balance !== null) && ((newBody.match (new RegExp ('\\bvar ' + balance[1] + '\\b', 'g')) || []).length === 1)
+                && new RegExp ('\\n\\t+var ' + balance[1] + ' map\\[string\\]any = map\\[string\\]any\\{').test (newBody)
+                && !new RegExp ('(^|[^\\w.])' + balance[1] + '\\s*[-+*/:]?=[^=]', 'm').test (newBody)) {
+                newBody = newBody.replace (new RegExp ('\\n(\\t+)return this\\.SafeBalance\\(' + balance[1] + '\\)\\n', 'g'), '\n$1return this.SafeBalance(' + balance[1] + ').(map[string]any)\n');
                 continue;
             }
             const local = /^\w+$/.test (expr) ? expr : undefined;
-            const declRe = (local === undefined) ? undefined : new RegExp ('\\n(\\t+)var ' + local + ' (?:any|map\\[string\\]any) = ([^\\n]*)');
+            if ((local !== undefined) && params.includes (local) && !new RegExp ('\\n\\t+(?:var ' + local + '\\b|' + local + ' :?=)').test (newBody)) {
+                newBody = newBody.replace (new RegExp ('\\n(\\t+)return ' + local + '\\n', 'g'), '\n$1return ' + paramWrap + '(' + local + ')\n');
+                continue;
+            }
+            const declRe = (local === undefined) ? undefined : new RegExp ('\\n(\\t+)var ' + local + ' (any|' + typeRe + ') = ([^\\n]*)');
             const decl = (declRe === undefined) ? null : declRe.exec (newBody);
             const writes = (local === undefined) ? [] : (newBody.match (new RegExp ('(^|[^\\w.])' + local + '(\\s*[-+*/]?=[^=]|\\s*:=|\\s*,[^\\n]*?=)', 'gm')) || []);
+            const nilWrites = (local === undefined) ? [] : (newBody.match (new RegExp ('(^|[^\\w.])' + local + ' = nil\\b', 'gm')) || []);
             const declCount = (local === undefined) ? 0 : (newBody.match (new RegExp ('\\bvar ' + local + '\\b', 'g')) || []).length;
-            if ((decl === null) || (declCount !== 1) || !(decl[2].startsWith ('map[string]any{') || provenCall.test (decl[2])) || (writes.length !== 0)) {
+            // a local the printer already typed `type` compiles whatever its writes; nil writes stay rejected
+            const typedOk = (decl !== null) && (decl[2] === type) && (proven (decl[3]) || (nilWrites.length === 0) && (decl[3] !== 'nil'));
+            const anyOk = (decl !== null) && proven (decl[3]) && (writes.length === 0);
+            if ((decl === null) || (declCount !== 1) || !(typedOk || anyOk)) {
                 throw new Error ('retypeGoProvenParseMethods: ' + where + ' returns unproven `' + expr.split ('\n')[0] + '`');
             }
-            newBody = newBody.replace (declRe, '\n$1var ' + local + ' map[string]any = $2');
+            newBody = newBody.replace (declRe, '\n$1var ' + local + ' ' + type + ' = $3');
         }
-        out += content.substring (cursor, m.index) + m[0].replace (/ any \{\n$/, ' map[string]any {') + newBody;
+        out += content.substring (cursor, m.index) + m[0].replace (/ any \{\n$/, ' ' + type + ' {') + newBody;
         cursor = close + 1;
     }
     return out + content.substring (cursor);
@@ -5157,7 +5202,8 @@ class NewTranspiler {
 
         // custom handling for now
         if (methodName === 'fetchTime'){
-            return `(res).(int64)`;
+            // fetchTime cores carry *int64 (AsyncResult[*int64]); ParseInt derefs it
+            return `ParseInt(res)`;
         }
 
         if (unwrappedType === 'float64') {
@@ -6141,7 +6187,7 @@ ${constStatements.join('\n')}
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
-            fs.writeFileSync (goPredictionBase, goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (normalizeGoFileHeader (file))))));
+            fs.writeFileSync (goPredictionBase, goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file))))))));
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -8660,7 +8706,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ());
+        const problems = g10kArithSelfTest ().concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goChan3SelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);

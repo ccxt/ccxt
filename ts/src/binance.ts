@@ -11906,7 +11906,7 @@ export default class binance extends Exchange {
         for (let i = 0; i < positions.length; i++) {
             result.push (this.parseOptionPosition (positions[i], market));
         }
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     parseOptionPosition (position: Dict, market: Market = undefined) {
@@ -12132,7 +12132,7 @@ export default class binance extends Exchange {
         const filterClosed = this.handleOptionBoolAndParams (paramsPapi, 'fetchAccountPositions', 'filterClosed', false)[0];
         const result = this.parseAccountPositions (response, filterClosed);
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -12315,7 +12315,7 @@ export default class binance extends Exchange {
             }
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -13561,7 +13561,8 @@ export default class binance extends Exchange {
             'symbol': symbol,
         };
         const borrowRates = await this.fetchIsolatedBorrowRates (this.extend (request, params));
-        return this.safeDict (borrowRates, symbol) as IsolatedBorrowRate;
+        const rate = this.safeDict (borrowRates, symbol);
+        return rate as IsolatedBorrowRate;
     }
 
     /**
@@ -14258,9 +14259,9 @@ export default class binance extends Exchange {
             const symbolValue: string = market['symbol'];
             const result = this.parseOpenInterestsHistory (response, market);
             for (let i = 0; i < result.length; i++) {
-                const item = result[i];
-                if (item['symbol'] === symbolValue) {
-                    return item;
+                const item = this.safeDict (result, i);
+                if (this.safeString (item, 'symbol') === symbolValue) {
+                    return item as OpenInterest;
                 }
             }
             throw new NullResponse (this.id + ' fetchOpenInterest() could not find open interest for ' + symbolValue);
@@ -14855,7 +14856,8 @@ export default class binance extends Exchange {
             //
         } else if (subType === 'inverse') {
             const fetchMarginModesResponse = await this.fetchMarginModes ([ symbol ], paramsSubType);
-            return fetchMarginModesResponse[symbol];
+            const marginMode = this.safeDict (fetchMarginModesResponse, symbol);
+            return marginMode as MarginMode;
         } else {
             throw new BadRequest (this.id + ' fetchMarginMode () supports linear and inverse subTypes only');
         }

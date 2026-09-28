@@ -842,12 +842,12 @@ func (this *Xt) unWatchTradesBody(ch chan ccxt.AsyncResult[any], symbol string, 
  * @param {int} [params.levels] 5, 10, 20, or 50
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Xt) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Xt) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Xt) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Xt) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -875,7 +875,7 @@ func (this *Xt) watchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string,
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[any]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 	return nil
 }
 
@@ -1239,11 +1239,11 @@ func (this *Xt) HandleFundingRate(client any, message map[string]any) any {
 			"symbol":      marketId,
 			"fundingRate": this.SafeString(data, "r"),
 		}
-		var fundingRate any = this.ParseFundingRate(raw)
+		var fundingRate map[string]any = this.ParseFundingRate(raw)
 		var timestamp *int64 = this.SafeInteger(data, "t")
-		ccxt.AddElementToObject(fundingRate, "timestamp", timestamp)
-		ccxt.AddElementToObject(fundingRate, "datetime", this.Iso8601(timestamp))
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(fundingRate, "symbol"))
+		fundingRate["timestamp"] = timestamp
+		fundingRate["datetime"] = this.Iso8601(timestamp)
+		var symbol *string = ccxt.SafeStringPtr(fundingRate["symbol"])
 		ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
 		var event *string = this.SafeString(message, "event")
 		if event != nil {

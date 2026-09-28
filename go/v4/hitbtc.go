@@ -1272,7 +1272,7 @@ func (this *Hitbtc) fetchDepositAddressBody(ch chan AsyncResult[any], code strin
 	}}
 	return nil
 }
-func (this *Hitbtc) ParseBalance(response any) any {
+func (this *Hitbtc) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -1287,7 +1287,7 @@ func (this *Hitbtc) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -1376,12 +1376,12 @@ func (this *Hitbtc) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Hitbtc) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hitbtc) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) fetchTickerBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Hitbtc) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1417,7 +1417,7 @@ func (this *Hitbtc) fetchTickerBody(ch chan AsyncResult[any], symbol string, opt
 	//         "timestamp": "2021-06-02T17:52:36.732Z"
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
 	return nil
 }
 
@@ -2176,12 +2176,12 @@ func (this *Hitbtc) fetchOrderBooksBody(ch chan EndpointResult[map[string]any], 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Hitbtc) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hitbtc) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Hitbtc) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2210,10 +2210,10 @@ func (this *Hitbtc) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, 
 	var response map[string]any = r1.Value
 	var timestamp *int64 = this.Parse8601(this.SafeString(response, "timestamp"))
 
-	ch <- AsyncResult[any]{Value: this.ParseOrderBook(response, symbol, timestamp, "bid", "ask")}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(response, symbol, timestamp, "bid", "ask")}
 	return nil
 }
-func (this *Hitbtc) ParseTradingFee(fee any, optionalArgs ...any) any {
+func (this *Hitbtc) ParseTradingFee(fee any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol":"ARVUSDT", // returned from fetchTradingFees only
@@ -2353,8 +2353,8 @@ func (this *Hitbtc) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs 
 	//
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(response); i++ {
-		var fee any = this.ParseTradingFee(GetValue(response, i))
-		var symbol *string = SafeStringPtr(GetValue(fee, "symbol"))
+		var fee map[string]any = this.ParseTradingFee(GetValue(response, i))
+		var symbol *string = SafeStringPtr(fee["symbol"])
 		if symbol != nil {
 			result[*symbol] = fee
 		}
@@ -2631,12 +2631,12 @@ func (this *Hitbtc) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs
  * @param {bool} [params.margin] true for fetching a margin order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hitbtc) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hitbtc) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Hitbtc) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2715,7 +2715,7 @@ func (this *Hitbtc) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArg
 	//
 	var order map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
 	return nil
 }
 
@@ -3126,12 +3126,12 @@ func (this *Hitbtc) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs .
  * @param {bool} [params.margin] true for canceling a margin order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hitbtc) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hitbtc) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Hitbtc) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3190,15 +3190,15 @@ func (this *Hitbtc) cancelOrderBody(ch chan AsyncResult[any], id any, optionalAr
 		}
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Hitbtc) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hitbtc) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) editOrderBody(ch chan AsyncResult[any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Hitbtc) editOrderBody(ch chan AsyncResult[map[string]any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3266,7 +3266,7 @@ func (this *Hitbtc) editOrderBody(ch chan AsyncResult[any], id string, symbol an
 		}
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 
@@ -3290,12 +3290,12 @@ func (this *Hitbtc) editOrderBody(ch chan AsyncResult[any], id string, symbol an
  * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hitbtc) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hitbtc) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Hitbtc) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3339,7 +3339,7 @@ func (this *Hitbtc) createOrderBody(ch chan AsyncResult[any], symbol string, typ
 		response = r3.Value
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 func (this *Hitbtc) CreateOrderRequest(market any, marketType any, typeVar any, side any, amount any, optionalArgs ...any) any {
@@ -3606,7 +3606,7 @@ func (this *Hitbtc) fetchMarginModesBody(ch chan AsyncResult[any], optionalArgs 
 	ch <- AsyncResult[any]{Value: this.ParseMarginModes(config, symbolsNormalized, "symbol")}
 	return nil
 }
-func (this *Hitbtc) ParseMarginMode(marginMode any, optionalArgs ...any) any {
+func (this *Hitbtc) ParseMarginMode(marginMode any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(marginMode, "symbol")
@@ -3629,12 +3629,12 @@ func (this *Hitbtc) ParseMarginMode(marginMode any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Hitbtc) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hitbtc) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) transferBody(ch chan AsyncResult[any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Hitbtc) transferBody(ch chan AsyncResult[map[string]any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// account can be "spot", "wallet", or "derivatives"
@@ -3675,7 +3675,7 @@ func (this *Hitbtc) transferBody(ch chan AsyncResult[any], code string, amount a
 	//         "2db6ebab-fb26-4537-9ef8-1a689472d236"
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTransfer(response, currency)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTransfer(response, currency)}
 	return nil
 }
 func (this *Hitbtc) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
@@ -3920,10 +3920,8 @@ func (this *Hitbtc) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs
 		var rawFundingRate map[string]any = SafeMapTyped(response, marketId)
 		var marketInner map[string]any = this.Market(marketId)
 		var symbol *string = SafeStringPtr(marketInner["symbol"])
-		var fundingRate any = this.ParseFundingRate(rawFundingRate, marketInner)
-		if symbol != nil {
-			fundingRates[*symbol] = fundingRate
-		}
+		var fundingRate map[string]any = this.ParseFundingRate(rawFundingRate, marketInner)
+		AddElementToObject(fundingRates, symbol, fundingRate)
 	}
 
 	ch <- AsyncResult[any]{Value: this.FilterByArray(fundingRates, "symbol", symbolsNormalized)}
@@ -4100,26 +4098,26 @@ func (this *Hitbtc) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ..
 	var response []any = nil
 	if marginMode != nil {
 
-		listEp3727 := <-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted))
-		if listEp3727.Err != nil {
-			panic(listEp3727.Err)
+		listEp3725 := <-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted))
+		if listEp3725.Err != nil {
+			panic(listEp3725.Err)
 		}
-		response = listEp3727.Value
+		response = listEp3725.Value
 	} else {
 		if marketType != nil && *marketType == "swap" {
 
-			listEp3731 := <-this.PrivateGetFuturesAccount(this.Extend(request, paramsOmitted))
-			if listEp3731.Err != nil {
-				panic(listEp3731.Err)
+			listEp3729 := <-this.PrivateGetFuturesAccount(this.Extend(request, paramsOmitted))
+			if listEp3729.Err != nil {
+				panic(listEp3729.Err)
 			}
-			response = listEp3731.Value
+			response = listEp3729.Value
 		} else if marketType != nil && *marketType == "margin" {
 
-			listEp3734 := <-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted))
-			if listEp3734.Err != nil {
-				panic(listEp3734.Err)
+			listEp3732 := <-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted))
+			if listEp3732.Err != nil {
+				panic(listEp3732.Err)
 			}
-			response = listEp3734.Value
+			response = listEp3732.Value
 		} else {
 			panic(NotSupported(this.Id + " fetchPositions() not support this market type"))
 		}
@@ -4468,12 +4466,12 @@ func (this *Hitbtc) fetchOpenInterestsBody(ch chan AsyncResult[any], optionalArg
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure}
  */
-func (this *Hitbtc) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hitbtc) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) fetchOpenInterestBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Hitbtc) fetchOpenInterestBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4514,7 +4512,7 @@ func (this *Hitbtc) fetchOpenInterestBody(ch chan AsyncResult[any], symbol strin
 	//         "timestamp": "2022-03-22T08:08:26.687Z"
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOpenInterest(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOpenInterest(response, market)}
 	return nil
 }
 
@@ -4527,12 +4525,12 @@ func (this *Hitbtc) fetchOpenInterestBody(ch chan AsyncResult[any], symbol strin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Hitbtc) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hitbtc) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Hitbtc) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4573,10 +4571,10 @@ func (this *Hitbtc) fetchFundingRateBody(ch chan AsyncResult[any], symbol string
 	//         "timestamp": "2022-03-22T08:08:26.687Z"
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseFundingRate(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseFundingRate(response, market)}
 	return nil
 }
-func (this *Hitbtc) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Hitbtc) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "contract_type": "perpetual",
@@ -4704,7 +4702,7 @@ func (this *Hitbtc) modifyMarginHelperBody(ch chan AsyncResult[any], symbol stri
 	})}
 	return nil
 }
-func (this *Hitbtc) ParseMarginModification(data any, optionalArgs ...any) any {
+func (this *Hitbtc) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
 	//
 	// addMargin/reduceMargin
 	//
@@ -4797,12 +4795,12 @@ func (this *Hitbtc) reduceMarginBody(ch chan EndpointResult[map[string]any], sym
  * @param {bool} [params.margin] true for adding spot-margin
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Hitbtc) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hitbtc) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) addMarginBody(ch chan AsyncResult[any], symbol string, amount any, optionalArgs ...any) any {
+func (this *Hitbtc) addMarginBody(ch chan AsyncResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4814,9 +4812,9 @@ func (this *Hitbtc) addMarginBody(ch chan AsyncResult[any], symbol string, amoun
 	}
 	var retRes356915 map[string]any = MapTyped(r.Value)
 	if retRes356915 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes356915}
+		ch <- AsyncResult[map[string]any]{Value: retRes356915}
 	}
 	return nil
 }
@@ -4833,12 +4831,12 @@ func (this *Hitbtc) addMarginBody(ch chan AsyncResult[any], symbol string, amoun
  * @param {bool} [params.margin] true for fetching spot-margin leverage
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Hitbtc) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hitbtc) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) fetchLeverageBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Hitbtc) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4921,10 +4919,10 @@ func (this *Hitbtc) fetchLeverageBody(ch chan AsyncResult[any], symbol any, opti
 	//         ]
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseLeverage(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseLeverage(response, market)}
 	return nil
 }
-func (this *Hitbtc) ParseLeverage(leverage any, optionalArgs ...any) any {
+func (this *Hitbtc) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "symbol")
@@ -6560,7 +6558,7 @@ func (this *Hitbtc) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) 
 func (this *Hitbtc) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Hitbtc) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Hitbtc) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Hitbtc) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

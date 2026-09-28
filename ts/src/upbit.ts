@@ -736,7 +736,8 @@ export default class upbit extends Exchange {
      */
     override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         const orderbooks = await this.fetchOrderBooks ([ symbol ], limit, params);
-        return this.safeDict (orderbooks, symbol) as OrderBook;
+        const orderbook = this.safeDict (orderbooks, symbol);
+        return orderbook as OrderBook;
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -918,7 +919,8 @@ export default class upbit extends Exchange {
      */
     override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         const tickers = await this.fetchTickers ([ symbol ], params);
-        return this.safeDict (tickers, symbol) as Ticker;
+        const ticker = this.safeDict (tickers, symbol);
+        return ticker as Ticker;
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {

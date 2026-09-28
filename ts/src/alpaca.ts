@@ -476,25 +476,11 @@ export default class alpaca extends Exchange {
         //         next_close: '2023-11-22T16:00:00-05:00'
         //     }
         //
-        const timestamp = this.safeString (response, 'timestamp');
+        const timestamp = this.parse8601 (this.safeString (response, 'timestamp'));
         if (timestamp === undefined) {
             throw new ExchangeError (this.id + ' fetchTime() missing timestamp');
         }
-        const localTime = timestamp.slice (0, 23);
-        if (timestamp === undefined) {
-            throw new ExchangeError (this.id + ' fetchTime() missing timestamp');
-        }
-        const jetlagStrStart = timestamp.length - 6;
-        if (timestamp === undefined) {
-            throw new ExchangeError (this.id + ' fetchTime() missing timestamp');
-        }
-        const jetlagStrEnd = timestamp.length - 3;
-        if (timestamp === undefined) {
-            throw new ExchangeError (this.id + ' fetchTime() missing timestamp');
-        }
-        const jetlag = timestamp.slice (jetlagStrStart, jetlagStrEnd);
-        const iso: int = this.parseToInt (this.parse8601 (localTime)) - this.parseToNumeric (jetlag) * 3600 * 1000;
-        return iso;
+        return timestamp;
     }
 
     /**
@@ -956,7 +942,8 @@ export default class alpaca extends Exchange {
         }
         const symbolValue: string = this.symbol (symbol);
         const tickers = await this.fetchTickers ([ symbolValue ], params);
-        return this.safeDict (tickers, symbolValue) as Ticker;
+        const ticker = this.safeDict (tickers, symbolValue);
+        return ticker as Ticker;
     }
 
     /**

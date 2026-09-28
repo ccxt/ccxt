@@ -2482,7 +2482,7 @@ export default class blofin extends Exchange {
         const response = await this.privateGetAccountPositions (params);
         const data = this.safeList (response, 'data', []);
         const result = this.parsePositions (data);
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     /**

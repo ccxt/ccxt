@@ -1398,12 +1398,12 @@ func (this *Bitfinex) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Bitfinex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) transferBody(ch chan AsyncResult[any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Bitfinex) transferBody(ch chan AsyncResult[map[string]any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// transferring between derivatives wallet and regular wallet is not documented in their API
@@ -1487,7 +1487,7 @@ func (this *Bitfinex) transferBody(ch chan AsyncResult[any], code string, amount
 		panic(ExchangeError(this.Id + " " + *message))
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTransfer(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTransfer(map[string]any{
 		"result": response,
 	}, currency)}
 	return nil
@@ -1588,12 +1588,12 @@ func (this *Bitfinex) ConvertDerivativesId(currency any, typeVar any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Bitfinex) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Bitfinex) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1659,7 +1659,7 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan AsyncResult[any], symbol string
 	result["bids"] = this.SortBy(result["bids"], 0, true)
 	result["asks"] = this.SortBy(result["asks"], 0)
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[map[string]any]{Value: result}
 	return nil
 }
 func (this *Bitfinex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
@@ -1878,12 +1878,12 @@ func (this *Bitfinex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Bitfinex) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchTickerBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Bitfinex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1906,7 +1906,7 @@ func (this *Bitfinex) fetchTickerBody(ch chan AsyncResult[any], symbol string, o
 	}
 	ticker := r1.Value
 
-	ch <- AsyncResult[any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
 	return nil
 }
 func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
@@ -2463,12 +2463,12 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
  * @param {string} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Bitfinex) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2549,7 +2549,7 @@ func (this *Bitfinex) createOrderBody(ch chan AsyncResult[any], symbol string, t
 		"result": order,
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(newOrder, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(newOrder, market)}
 	return nil
 }
 
@@ -2708,12 +2708,12 @@ func (this *Bitfinex) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Bitfinex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2764,7 +2764,7 @@ func (this *Bitfinex) cancelOrderBody(ch chan AsyncResult[any], id any, optional
 		"result": order,
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(newOrder, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(newOrder, market)}
 	return nil
 }
 
@@ -4670,7 +4670,7 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], opti
 	ch <- AsyncResult[any]{Value: reversedArray}
 	return nil
 }
-func (this *Bitfinex) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Bitfinex) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	//       [
 	//          "tBTCF0:USTF0",
@@ -4864,12 +4864,12 @@ func (this *Bitfinex) fetchOpenInterestsBody(ch chan AsyncResult[any], optionalA
  * @param {object} [params] exchange specific parameters
  * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Bitfinex) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchOpenInterestBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Bitfinex) fetchOpenInterestBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4923,7 +4923,7 @@ func (this *Bitfinex) fetchOpenInterestBody(ch chan AsyncResult[any], symbol str
 	//
 	var oi []any = SafeListTyped(response, 0)
 
-	ch <- AsyncResult[any]{Value: this.ParseOpenInterest(oi, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOpenInterest(oi, market)}
 	return nil
 }
 
@@ -5297,7 +5297,7 @@ func (this *Bitfinex) setMarginBody(ch chan AsyncResult[any], symbol any, amount
 	ch <- AsyncResult[any]{Value: this.ParseMarginModification(data, market)}
 	return nil
 }
-func (this *Bitfinex) ParseMarginModification(data any, optionalArgs ...any) any {
+func (this *Bitfinex) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
 	//
 	// setMargin
 	//
@@ -5339,12 +5339,12 @@ func (this *Bitfinex) ParseMarginModification(data any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Bitfinex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -5423,7 +5423,7 @@ func (this *Bitfinex) fetchOrderBody(ch chan AsyncResult[any], id any, optionalA
 		"result": order,
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(newOrder, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(newOrder, market)}
 	return nil
 }
 
@@ -5448,12 +5448,12 @@ func (this *Bitfinex) fetchOrderBody(ch chan AsyncResult[any], id any, optionalA
  * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) editOrderBody(ch chan AsyncResult[any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Bitfinex) editOrderBody(ch chan AsyncResult[map[string]any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -5586,7 +5586,7 @@ func (this *Bitfinex) editOrderBody(ch chan AsyncResult[any], id string, symbol 
 		"result": order,
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(newOrder, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(newOrder, market)}
 	return nil
 }
 
@@ -6778,7 +6778,7 @@ func (this *Bitfinex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error
 func (this *Bitfinex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Bitfinex) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bitfinex) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bitfinex) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
