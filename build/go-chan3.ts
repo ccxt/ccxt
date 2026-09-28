@@ -109,6 +109,97 @@ function goChan3ReceiveMethod (masked: string, recvAt: number, table: Map<string
 
 interface GoChan3Core { receiver: string, method: string, asyncStart: number, asyncEnd: number, bodyStart: number, bodyEnd: number, edits: Edit[] }
 
+let GO_CHAN3_STUBS: Map<string, string> | undefined = undefined;
+
+// implicit-API stub name -> T of its `EndpointResult[T]` when every `*_api.go` declaring it agrees
+export function goChan3EndpointStubs (): Map<string, string> {
+    if (GO_CHAN3_STUBS === undefined) {
+        const dir = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'go', 'v4');
+        const seen = new Map<string, string> ();
+        const sig = /^func \(this \*\w+\) (\w+)\(args \.\.\.any\) <-chan (?:ccxt\.)?(?:EndpointResult\[(.+)\]|AsyncResult\[any\]) \{$/gm;
+        for (const d of [ dir, path.join (dir, 'prediction') ]) {
+            for (const f of fs.existsSync (d) ? fs.readdirSync (d).filter ((x) => x.endsWith ('_api.go')) : []) {
+                const text = fs.readFileSync (path.join (d, f), 'utf8');
+                for (let m = sig.exec (text); m !== null; m = sig.exec (text)) {
+                    const t = m[2] || '';
+                    seen.set (m[1], (seen.has (m[1]) && (seen.get (m[1]) !== t)) ? '' : t);
+                }
+            }
+        }
+        GO_CHAN3_STUBS = new Map ([ ...seen ].filter (([ , t ]) => t !== ''));
+    }
+    return GO_CHAN3_STUBS;
+}
+
+export function goChan3SetStubsForTest (map: Map<string, string> | undefined) {
+    GO_CHAN3_STUBS = map;
+}
+
+// a sent local whose every write is an awaited typed endpoint (`x := rN.Raw`, `var x any = nil` + `x = rN.Raw`)
+// and whose other uses are nil tests only: typed T, writes read Value (endpointValue[T] of Raw) instead of Raw
+function goChan3LocalJoin (name: string, fnMasked: string, bodyStart: number): { type?: string, reason?: string, edits: Edit[] } {
+    const edits: Edit[] = [];
+    const types = new Set<string> ();
+    const stubs = goChan3EndpointStubs ();
+    const signatureEnd = fnMasked.indexOf ('{');
+    const occ = new RegExp ('(?<![\\w.])' + name + '(?!\\w)', 'g');
+    let decls = 0;
+    let nilable = false;
+    let declAt = -1;
+    const bad = (reason: string) => ({ reason, 'edits': [] as Edit[] });
+    for (let o = occ.exec (fnMasked); o !== null; o = occ.exec (fnMasked)) {
+        if (o.index < signatureEnd) {
+            return bad ('local-param');
+        }
+        const ls = fnMasked.lastIndexOf ('\n', o.index) + 1;
+        const le = fnMasked.indexOf ('\n', o.index);
+        const lead = fnMasked.substring (ls, o.index);
+        const after = fnMasked.substring (o.index + name.length, le);
+        const w = /^ (:?=) (r\d*)\.(Raw|Value)\s*$/.exec (after);
+        if (/^\t+$/.test (lead) && (w !== null)) {
+            decls += (w[1] === ':=') ? 1 : 0;
+            const binds = fnMasked.match (new RegExp ('\\n\\t+' + w[2] + ' := <-this\\.(\\w+)\\(', 'g')) || [];
+            const stub = (binds.length === 1) ? /<-this\.(\w+)\($/.exec (binds[0]) : null;
+            const t = (stub === null) ? undefined : stubs.get (stub[1]);
+            if (t === undefined) {
+                return bad ('local-untyped');
+            }
+            types.add (t);
+            if (w[3] === 'Raw') {
+                const at = o.index + name.length + w[1].length + 2 + w[2].length + 1;
+                edits.push ({ 'start': bodyStart + at, 'end': bodyStart + at + 3, 'text': 'Value' });
+            }
+            continue;
+        }
+        const init = /^ any = (nil|map\[string\]any\{\})\s*$/.exec (after);
+        if (/^\t+var $/.test (lead) && (init !== null)) {
+            decls++;
+            nilable = nilable || (init[1] === 'nil');
+            if (init[1] !== 'nil') {
+                types.add ('map[string]any');
+            }
+            declAt = o.index + name.length + 1;
+            continue;
+        }
+        if ((/^\t+$/.test (lead) && /^ = nil\s*$/.test (after)) || /^ [!=]= nil\b/.test (after)) {
+            nilable = true;
+            continue;
+        }
+        if (/^\t+ch <- (?:ccxt\.)?AsyncResult\[any\]\{Value: $/.test (lead) && /^\}\s*$/.test (after)) {
+            continue;
+        }
+        return bad ('local-any');
+    }
+    const list = [ ...types ];
+    if ((decls !== 1) || (list.length !== 1) || (nilable && !goChan3Nilable (list[0]))) {
+        return bad ((list.length > 1) ? 'local-mixed' : 'local-any');
+    }
+    if (declAt >= 0) {
+        edits.push ({ 'start': bodyStart + declAt, 'end': bodyStart + declAt + 3, 'text': list[0] });
+    }
+    return { 'type': list[0], edits };
+}
+
 // cores of tabled methods (or every core in audit mode) with their send edits; throws on an unprovable tabled core
 function goChan3Cores (content: string, masked: string, table: Map<string, string>, audit?: Report): GoChan3Core[] {
     const cores: GoChan3Core[] = [];
@@ -140,6 +231,7 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
         const bodyStart = headAt + 1;
         const bodyEnd = (headAt < 0) ? -1 : masked.indexOf ('\n}\n', bodyStart) + 3;
         const edits: Edit[] = [];
+        const joins = new Map<string, { type?: string, reason?: string, edits: Edit[] }> ();
         if (headAt >= 0) {
             const fnMasked = masked.substring (bodyStart, bodyEnd);
             const fnText = content.substring (bodyStart, bodyEnd);
@@ -204,7 +296,16 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                         continue;
                     }
                 } else {
-                    const proof = goChanSendType (expr.replace (/^ccxt\./, ''), fnMasked, signature, (name) => goChanMethodReturn (masked, receiver, name));
+                    let proof: { type?: string, nil?: boolean, reason?: string } = goChanSendType (expr.replace (/^ccxt\./, ''), fnMasked, signature, (name) => goChanMethodReturn (masked, receiver, name));
+                    if ((proof.reason !== undefined) && /^local-/.test (proof.reason)) {
+                        let join = joins.get (expr);
+                        if (join === undefined) {
+                            join = goChan3LocalJoin (expr, fnMasked, bodyStart);
+                            joins.set (expr, join);
+                            edits.push (...join.edits);
+                        }
+                        proof = (join.type !== undefined) ? { 'type': join.type } : { 'reason': join.reason || proof.reason };
+                    }
                     if (proof.nil) {
                         type = 'nil';
                     } else if (proof.reason !== undefined) {
@@ -386,8 +487,108 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
     return edits;
 }
 
+// ===== GO-CHAN3 promiseAll: a literal list of same-T typed channels awaits through PromiseAllTyped[T] =====
+// `rN := <-promiseAll([]any{A, B})` + `var V []any = ListTyped(rN.Value)`, V read only as `GetValue(V, k)`, every
+// element an endpoint stub / tabled core of one T (direct call or a `var p any = call` local used only in the list):
+// -> `PromiseAllTyped[T, C](A, B)` (C = AsyncResult[T] | EndpointResult[T]), `var V []T = rN.Value`, `BoxAbsent(V[k])` (absent element stays untyped nil).
+function goChan3PromiseAllPass (content: string, table: Map<string, string>): string {
+    if (content.search (/[pP]romiseAll\(\[\]any\{/) < 0) {
+        return content;
+    }
+    const masked = goChanMask (content);
+    const q = goChanQual (content);
+    const stubs = goChan3EndpointStubs ();
+    const edits: Edit[] = [];
+    const site = /^(\t+)(r\d*) := <-(?:ccxt\.)?[pP]romiseAll\(\[\]any\{/gm;
+    for (let m = site.exec (masked); m !== null; m = site.exec (masked)) {
+        const open = m.index + m[0].length - 1;
+        const close = goChanClose (masked, open);
+        if (masked.substring (close, close + 2) !== ')\n') {
+            continue;
+        }
+        const [ fs0, fe0 ] = goChan3Func (masked, m.index);
+        const fn = masked.substring (fs0, fe0);
+        const r = m[2];
+        const tail = masked.substring (close + 2);
+        const ind = m[1];
+        const head = new RegExp ('^' + ind + 'if ' + r + '\\.Err != nil \\{\\n' + ind + '\\tpanic\\(' + r + '\\.Err\\)\\n' + ind + '\\}\\n' + ind + 'var (\\w+) \\[\\]any = (?:ccxt\\.)?ListTyped\\(' + r + '\\.Value\\)\\n').exec (tail);
+        if (head === null) {
+            continue;
+        }
+        const v = head[1];
+        // elements split at depth 0
+        const elems: { start: number, end: number }[] = [];
+        let depth = 0;
+        let s = open + 1;
+        for (let i = open + 1; i < close - 1; i++) {
+            const c = masked[i];
+            depth += ((c === '(') || (c === '{') || (c === '[')) ? 1 : (((c === ')') || (c === '}') || (c === ']')) ? -1 : 0);
+            if ((c === ',') && (depth === 0)) {
+                elems.push ({ 'start': s, 'end': i });
+                s = i + 1;
+            }
+        }
+        elems.push ({ 'start': s, 'end': close - 1 });
+        const types = new Set<string> ();
+        const local: Edit[] = [];
+        let ok = elems.length > 0;
+        for (const e of elems) {
+            const text = masked.substring (e.start, e.end).trim ();
+            let call = text;
+            const id = /^\w+$/.exec (text);
+            if (id !== null) {
+                const decl = new RegExp ('\\n\\t+var ' + text + ' any = (this\\.\\w+\\([^\\n]*\\))\\n', 'g');
+                const d = [ ...fn.matchAll (decl) ];
+                const uses = fn.match (new RegExp ('(?<![\\w.])' + text + '(?!\\w)', 'g')) || [];
+                if ((d.length !== 1) || (uses.length !== 2)) {
+                    ok = false;
+                    break;
+                }
+                call = d[0][1];
+                const at = fs0 + (d[0].index as number) + d[0][0].indexOf ('var ');
+                local.push ({ 'start': at, 'end': at + ('var ' + text + ' any = ').length, 'text': text + ' := ' });
+            }
+            const c = /^this\.(\w+)\(/.exec (call);
+            if ((c === null) || (goChanClose (call, call.indexOf ('(')) !== call.length)) {
+                ok = false;
+                break;
+            }
+            const core = /^(\w+)Async$/.exec (c[1]);
+            const t = (core !== null) ? table.get (core[1]) : stubs.get (c[1]);
+            types.add (((core !== null) ? 'A:' : 'E:') + (t || '?'));
+            ok = ok && (t !== undefined);
+        }
+        if (!ok || (types.size !== 1)) {
+            continue;
+        }
+        const kind = [ ...types ][0];
+        const type = kind.substring (2);
+        const carrier = q + ((kind[0] === 'A') ? 'AsyncResult[' : 'EndpointResult[') + type + ']';
+        const declEnd = close + 2 + head[0].length;
+        const rest = masked.substring (declEnd, fe0);
+        const read = new RegExp ('(?<![\\w.])((?:ccxt\\.)?GetValue\\()?' + v + '(?!\\w)(, (\\d+)\\))?', 'g');
+        const reads: Edit[] = [];
+        for (let u = read.exec (rest); u !== null; u = read.exec (rest)) {
+            if ((u[1] === undefined) || (u[3] === undefined) || (Number (u[3]) >= elems.length)) {
+                ok = false;
+                break;
+            }
+            reads.push ({ 'start': declEnd + u.index, 'end': declEnd + u.index + u[0].length, 'text': q + 'BoxAbsent(' + v + '[' + u[3] + '])' });
+        }
+        if (!ok || new RegExp ('(?<![\\w.])' + r + '(?!\\w)').test (rest)) {
+            continue;
+        }
+        edits.push (...local, ...reads);
+        edits.push ({ 'start': m.index + m[1].length + r.length + 6, 'end': close + 1, 'text': q + 'PromiseAllTyped[' + type + ', ' + carrier + '](' + content.substring (open + 1, close - 1) + ')' });
+        const varLine = head[0].split ('\n')[3];
+        edits.push ({ 'start': declEnd - 1 - varLine.length, 'end': declEnd - 1, 'text': ind + 'var ' + v + ' []' + type + ' = ' + r + '.Value' });
+    }
+    return edits.length ? goChan3Splice (content, edits) : content;
+}
+
 // the shared pass: retypes tabled cores, their consumers and interface lines (idempotent)
 export function goChan3Pass (content: string, table: Map<string, string> = goChan3Table ()): string {
+    content = goChan3PromiseAllPass (content, table);
     if ((table.size === 0) || (content.indexOf ('Async') < 0)) {
         return content;
     }
@@ -523,6 +724,20 @@ export function goChan3SelfTest (): string[] {
     const seen: string[] = [];
     goChan3Cores ('package ccxt\n' + core ('X', '\tch <- AsyncResult[any]{Value: this.ParseOrder(a)}\n\treturn nil\n'), goChanMask ('package ccxt\n' + core ('X', '\tch <- AsyncResult[any]{Value: this.ParseOrder(a)}\n\treturn nil\n')), new Map (), (mm, rr, reason) => seen.push (mm + ':' + reason));
     ok (seen.length === 1 && seen[0] === 'SetX:call-send:ParseOrder', 'audit reason: ' + seen.join (';'));
+    // endpoint-joined locals
+    goChan3SetStubsForTest (new Map ([ [ 'PubGetA', 'map[string]any' ], [ 'PubGetL', '[]any' ] ]));
+    const joined = run ('package ccxt\n' + core ('X', '\tvar response any = nil\n\tif a == nil {\n\n\t\tr := <-this.PubGetA(a)\n\t\tif r.Err != nil {\n\t\t\tpanic(r.Err)\n\t\t}\n\t\tresponse = r.Raw\n\t} else {\n\n\t\tr1 := <-this.PubGetA(a)\n\t\tif r1.Err != nil {\n\t\t\tpanic(r1.Err)\n\t\t}\n\t\tresponse = r1.Raw\n\t}\n\tif response == nil {\n\t\tpanic(\"x\")\n\t}\n\tch <- AsyncResult[any]{Value: response}\n\treturn nil\n'));
+    ok (joined.includes ('\tvar response map[string]any = nil\n') && joined.includes ('response = r.Value\n') && joined.includes ('response = r1.Value\n') && joined.includes ('ch <- AsyncResult[map[string]any]{Value: response}'), 'endpoint join: ' + joined);
+    ok (throws ('package ccxt\n' + core ('X', '\tvar response any = nil\n\tr := <-this.PubGetL(a)\n\tresponse = r.Raw\n\tr1 := <-this.PubGetA(a)\n\tresponse = r1.Raw\n\tch <- AsyncResult[any]{Value: response}\n\treturn nil\n')), 'mixed endpoint join throws');
+    ok (throws ('package ccxt\n' + core ('X', '\tr := <-this.PubGetA(a)\n\tresponse := r.Raw\n\tthis.Use(response)\n\tch <- AsyncResult[any]{Value: response}\n\treturn nil\n')), 'other use throws');
+    // typed promiseAll
+    const pall = 'package ccxt\n\nfunc (this *Y) f(p any) any {\n\tvar a any = this.PubGetA(p)\n\tr := <-promiseAll([]any{a, this.PubGetA(p)})\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tvar v []any = ListTyped(r.Value)\n\tx := GetValue(v, 0)\n\treturn []any{x, GetValue(v, 1)}\n}\n';
+    const pt = run (pall);
+    ok (pt.includes ('\ta := this.PubGetA(p)\n\tr := <-PromiseAllTyped[map[string]any, EndpointResult[map[string]any]](a, this.PubGetA(p))\n') && pt.includes ('\tvar v []map[string]any = r.Value\n\tx := BoxAbsent(v[0])\n\treturn []any{x, BoxAbsent(v[1])}'), 'typed promiseAll: ' + pt);
+    ok (run (pt) === pt, 'typed promiseAll idempotent');
+    ok (run (pall.replace ('this.PubGetA(p)})', 'this.PubGetL(p)})')) === pall.replace ('this.PubGetA(p)})', 'this.PubGetL(p)})'), 'mixed promiseAll untouched');
+    ok (run (pall.replace ('x := GetValue(v, 0)', 'x := v')) === pall.replace ('x := GetValue(v, 0)', 'x := v'), 'whole-list read untouched');
+    goChan3SetStubsForTest (undefined);
     goChanSetBaseReturnsForTest (undefined);
     return problems;
 }
