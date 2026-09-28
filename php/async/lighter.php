@@ -374,6 +374,7 @@ class lighter extends Exchange {
                 'integratorTakerFee' => 1000,
                 'authDeadlineExpiry' => 28800, // 8h validity for auth tokens
                 'authDeadlineMinimumRemaining' => 60,
+                'tiersForAccountIndexes' => array(), // being filled on the fly
             ),
             'features' => array(
                 'default' => array(
@@ -678,6 +679,11 @@ class lighter extends Exchange {
             return true;
         }
         try {
+            $isStandardTier = Async\await($this->check_if_standard_tier($this->parse_to_int($accountIndex)));
+            if ($isStandardTier) {
+                $this->options['builderFee'] = false;
+                return false;
+            }
             $builder = $this->safe_integer($this->options, 'integratorAccountIndex', 718718);
             $takerFeeRate = $this->safe_integer($this->options, 'integratorTakerFee', 1000);
             $makerFeeRate = $this->safe_integer($this->options, 'integratorMakerFee', 1000);
@@ -687,6 +693,40 @@ class lighter extends Exchange {
             $this->options['builderFee'] = false;
         }
         return true;
+    }
+
+    public function check_if_standard_tier(float $accountIndex) {
+        return Async\async(self::do_check_if_standard_tier(...))($accountIndex);
+    }
+
+    private function do_check_if_standard_tier(float $accountIndex) {
+        $tiersForAccountIndexes = $this->safe_dict($this->options, 'tiersForAccountIndexes', array());
+        $accountIndexStr = (string) $accountIndex;
+        $isStandardTier = $this->safe_bool($tiersForAccountIndexes, $accountIndexStr);
+        if ($isStandardTier !== null) {
+            return $isStandardTier;
+        }
+        $accountLimits = Async\await($this->privateGetAccountLimits(array( 'account_index' => $accountIndex )));
+        //
+        //    {
+        //        "code": 200,
+        //        "max_llp_percentage": 100,
+        //        "max_llp_amount": "0.000000",
+        //        "user_tier": "standard",
+        //        "can_create_public_pool": false,
+        //        "user_tier_name": "standard",
+        //        "current_maker_fee_tick": 0,
+        //        "current_taker_fee_tick": 0,
+        //        "leased_lit": "0.00000000",
+        //        "effective_lit_stakes": "0.00000000",
+        //        "user_tier_last_update": 0
+        //    }
+        //
+        $tier = $this->safe_string($accountLimits, 'user_tier');
+        $isStandard = ($tier === 'standard');
+        $tiersForAccountIndexes[$accountIndexStr] = $isStandard;
+        $this->options['tiersForAccountIndexes'] = $tiersForAccountIndexes;
+        return $isStandard;
     }
 
     public function approve_builder_fee(float $builder, float $takerFeeRate, float $makerFeeRate, float $accountIndex, float $apiKeyIndex, $params = array()): PromiseInterface {
@@ -956,23 +996,32 @@ class lighter extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $accountIndex = null;
-        list($accountIndex, $params) = Async\await($this->handle_account_index($params, $method, 'accountIndex', 'account_index'));
-        $params['accountIndex'] = $accountIndex;
+        // non-destructively get values from opts/params
+        $accIndexAndParams = Async\await($this->handle_account_index($params, $method, 'accountIndex', 'account_index'));
+        $accountIndex = $accIndexAndParams[0];
+        $apiKeyIndexAndParams = $this->handle_api_key_index($params, $method, 'apiKeyIndex', 'api_key_index');
+        $apiKeyIndex = $apiKeyIndexAndParams[0];
+        // before order-req creation, we need to know account status
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
+        try {
+            $isStandardTier = Async\await($this->check_if_standard_tier($accountIndex));
+            if ($isStandardTier) {
+                $this->options['builderFee'] = false;
+            }
+        } catch (Exception $e) {
+            $this->options['builderFee'] = false;
+        }
         $market = $this->market($symbol);
         $groupingType = null;
         list($groupingType, $params) = $this->handle_option_and_params($params, $method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         $orderRequests = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $totalOrderRequests = count($orderRequests);
-        $apiKeyIndex = null;
         $order = null;
         if ($totalOrderRequests > 0) {
             $order = $orderRequests[0];
-            $apiKeyIndex = $order['api_key_index'];
         }
-        $strAccountIndex = $this->number_to_string($accountIndex);
-        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-        $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
         // the nonce could be updated
         if ($this->safe_integer($order, 'nonce') === null) {
             $order['nonce'] = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex));
