@@ -324,7 +324,13 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
                 if (assert[1] !== type) {
                     throw new Error ('GOCHAN3: ' + name + '.Value of ' + m[1] + ' asserted to ' + assert[1] + ', table says ' + type);
                 }
-                edits.push ({ 'start': end, 'end': end + assert[0].length, 'text': '' });
+                // comma-ok `x, ok := r.Value.(T)`: ok was false only for an absent (nil) value
+                const commaOk = /^\t+\w+, \w+ :?= $/.test (before) && /^\s*$/.test (after.substring (assert[0].length));
+                const nilable = /^(?:\[\]|map\[|\*)/.test (type);
+                if (commaOk && !nilable) {
+                    throw new Error ('GOCHAN3: comma-ok assertion of ' + m[1] + ' on a value type ' + type);
+                }
+                edits.push ({ 'start': end, 'end': end + assert[0].length, 'text': commaOk ? (', ' + name + '.Value != nil') : '' });
                 continue;
             }
             const typed = /((?:ccxt\.)?)(MapTyped|ListTyped)\($/.exec (before);
@@ -509,6 +515,8 @@ export function goChan3SelfTest (): string[] {
     ok (c.includes ('[]any{this.SetXAsync(5), this.OtherAsync()}') && c.includes ('this.Spawn(this.SetXAsync, 6)') && c.includes ('PanicOnError((<-this.SetXAsync(7)))'), 'reflective consumers untouched');
     ok (run (c) === c, 'consumer idempotent');
     ok ((() => { try { run ('package ccxt\n\nfunc (this *Y) f() {\n\tr := <-this.SetXAsync(1)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\t_ = r.Value.([]any)\n}\n'); return false; } catch (e) { return true; } }) (), 'mismatched assertion throws');
+    const okForm = run ('package ccxt\n\nfunc (this *Y) f() {\n\tr := <-this.SetXAsync(1)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tv, ok := r.Value.(map[string]any)\n\t_, _ = v, ok\n}\n');
+    ok (okForm.includes ('\tv, ok := r.Value, r.Value != nil\n'), 'comma-ok assertion keeps its nil verdict');
     // forward of a tabled receive into an untabled core
     const into = run ('package ccxt\n' + core ('X', '\tch <- <-this.DerivedExchange.SetXAsync(a)\n\treturn nil\n', 'Other'));
     ok (into.includes ('\tr := <-this.DerivedExchange.SetXAsync(a)\n\tch <- AsyncResult[any]{Value: BoxAbsent(r.Value), Err: r.Err}\n'), 'forward into any core: ' + into);
