@@ -8,7 +8,7 @@ import "sync"
 // cannot live on the shared IDerivedExchange; the base loops run only on prediction instances, so
 // the transpiler type-asserts DerivedExchange to this interface there.
 type IPredictionDispatch interface {
-	ParsePredictionOrder(order any, optionalArgs ...any) any
+	ParsePredictionOrder(order any, optionalArgs ...any) map[string]any
 	ParsePredictionTrade(trade any, optionalArgs ...any) any
 	ParsePredictionPosition(position any, optionalArgs ...any) any
 }

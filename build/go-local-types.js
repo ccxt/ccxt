@@ -164,7 +164,8 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     'this.SafeMarket': 'map[string]any',
     // structure parsers retyped by goTranspiler.ts#retypeGoProvenParseMethods (never nil, base + every override)
     ...Object.fromEntries ([ 'SafeOrder', 'SafeTicker', 'SafeLedgerEntry', 'ParseOrder', 'ParseTicker', 'ParseTransaction', 'ParseTransfer', 'ParseLedgerEntry',
-        'SafeMarketStructure', 'SafeCurrencyStructure', 'SafeOpenInterest', 'ParseCurrency', 'ParseOpenInterest' ]
+        'SafeMarketStructure', 'SafeCurrencyStructure', 'SafeOpenInterest', 'ParseCurrency', 'ParseOpenInterest',
+        'SafePredictionOrder', 'SafePredictionTicker', 'SafePredictionOrderBook', 'ParsePredictionOrder', 'ParsePredictionTicker', 'ParsePredictionOpenInterest' ]
         .flatMap ((name) => [ [ 'this.' + name, 'map[string]any' ], [ 'this.DerivedExchange.' + name, 'map[string]any' ] ])),
     // exchange_prediction.go: retyped by transpilePredictionBaseMethods (no venue overrides)
     'this.Outcome': 'map[string]any',
@@ -1676,7 +1677,9 @@ function ccxtGoSafeCollectionReadsDecodedValue (goTranspiler, node, depth = 0) {
         if ((current.kind === ts.SyntaxKind.ElementAccessExpression) || (current.kind === ts.SyntaxKind.ParenthesizedExpression)) {
             current = current.expression;
         } else if (current.kind === ts.SyntaxKind.AwaitExpression) {
-            return ccxtGoAwaitsGeneratedEndpoint (checker, current.expression);
+            return ccxtGoAwaitsGeneratedEndpoint (checker, current.expression) || ccxtGoPredictionStructureList (checker, current);
+        } else if ((current.kind === ts.SyntaxKind.CallExpression) && ccxtGoPredictionStructureList (checker, current)) {
+            return true;
         } else if ((current.kind === ts.SyntaxKind.CallExpression) && CCXT_GO_SAFE_ACCESSOR_CALLEE.test ('this.' + ((current.expression?.name?.text ?? '').charAt (0).toUpperCase () + (current.expression?.name?.text ?? '').slice (1)))
             && (current.expression?.expression?.kind === ts.SyntaxKind.ThisKeyword)) {
             current = current.arguments[0];
@@ -1685,6 +1688,20 @@ function ccxtGoSafeCollectionReadsDecodedValue (goTranspiler, node, depth = 0) {
         }
     }
     return false;
+}
+
+// a ts/src/prediction REST call (`[await] this.m (..)`, never watch*) typed as a list of plain
+// Prediction* structures: Go holds a []any of parsed maps (no ws cache/struct element)
+function ccxtGoPredictionStructureList (checker, node) {
+    const call = (node.kind === ts.SyntaxKind.AwaitExpression) ? node.expression : node;
+    if ((call?.kind !== ts.SyntaxKind.CallExpression) || (call.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression)
+        || (call.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword) || /^(un)?watch/.test (call.expression.name?.text ?? 'watch')
+        || !(/(^|[\\/])ts[\\/]src[\\/]prediction[\\/][^\\/]+\.ts$/).test (call.getSourceFile?. ()?.fileName ?? '')) {
+        return false;
+    }
+    const type = checker.getTypeAtLocation (node);
+    const element = ((type !== undefined) && checker.isArrayType (type)) ? checker.getTypeArguments (type)[0] : undefined;
+    return (element !== undefined) && /^Prediction[A-Z]\w*$/.test (checker.typeToString (element)) && !ccxtGoElementReadIsObject (checker, element);
 }
 
 // `this.<endpoint> (...)` declared in ts/src/abstract: the awaited value is the decoded HTTP body
