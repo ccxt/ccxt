@@ -11578,6 +11578,8 @@
             {
                 "description": "calendar months keep the earliest entries from since on, okx returns the latest first",
                 "method": "fetchLongShortRatioHistory",
+                "disabledGO": true,
+                "disabledRS": true,
                 "input": [
                     "BTC/USDT:USDT",
                     "1M",
