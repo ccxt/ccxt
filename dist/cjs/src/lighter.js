@@ -142,7 +142,6 @@ class lighter extends lighter$1["default"] {
                 '4h': '4h',
                 '12h': '12h',
                 '1d': '1d',
-                '1w': '1w',
             },
             'hostname': 'zklighter.elliot.ai',
             'urls': {
