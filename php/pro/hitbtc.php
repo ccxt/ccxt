@@ -169,7 +169,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         }
         $subscribe = array(
             'method' => 'subscribe',
-            'id' => $this->nonce(),
+            'id' => $this->incrementing_nonce(),
             'ch' => $name,
         );
         $request = $this->extend($subscribe, $params);
@@ -200,7 +200,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         $subscribe = array(
             'method' => $name,
             'params' => $params,
-            'id' => $this->nonce(),
+            'id' => $this->incrementing_nonce(),
         );
         return Async\await($this->watch($url, $messageHash, $subscribe, $messageHash));
     }
@@ -220,7 +220,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         }
         Async\await($this->authenticate());
         $url = $this->urls['api']['ws']['private'];
-        $messageHash = (string) $this->nonce();
+        $messageHash = (string) $this->incrementing_nonce();
         $subscribe = array(
             'method' => $name,
             'params' => $params,
@@ -256,9 +256,9 @@ class hitbtc extends \ccxt\async\hitbtc {
         $name = $this->safe_string_2($params, 'method', 'defaultMethod', $defaultMethod);
         $depth = $this->safe_string($params, 'depth', '20');
         $speed = $this->safe_string($params, 'depth', '100');
-        if ($name === 'orderbook/{$depth}/{$speed}') {
+        if ($name === 'orderbook/{depth}/{speed}') {
             $name = 'orderbook/D' . $depth . '/' . $speed . 'ms';
-        } elseif ($name === 'orderbook/{$depth}/{$speed}/batch') {
+        } elseif ($name === 'orderbook/{depth}/{speed}/batch') {
             $name = 'orderbook/D' . $depth . '/' . $speed . 'ms/batch';
         }
         $market = $this->market($symbol);
@@ -384,7 +384,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         }
         $symbols = $this->market_symbols($symbols);
         $options = $this->safe_dict($this->options, 'watchTicker');
-        $defaultMethod = $this->safe_string($options, 'method', 'ticker/{$speed}/batch');
+        $defaultMethod = $this->safe_string($options, 'method', 'ticker/{speed}/batch');
         $method = $this->safe_string_2($params, 'method', 'defaultMethod', $defaultMethod);
         $speed = $this->safe_string($params, 'speed', '1s');
         $name = $this->implode_params($method, array( 'speed' => $speed ));
@@ -549,7 +549,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         }
         $symbols = $this->market_symbols($symbols, null, false);
         $options = $this->safe_dict($this->options, 'watchBidsAsks');
-        $defaultMethod = $this->safe_string($options, 'method', 'orderbook/top/{$speed}/batch');
+        $defaultMethod = $this->safe_string($options, 'method', 'orderbook/top/{speed}/batch');
         $method = $this->safe_string_2($params, 'method', 'defaultMethod', $defaultMethod);
         $speed = $this->safe_string($params, 'speed', '100ms');
         $name = $this->implode_params($method, array( 'speed' => $speed ));

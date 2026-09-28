@@ -1106,7 +1106,7 @@ class independentreserve extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            throw new BadRequest($this->id . ' withdraw () does not accept $params["networkCode"]');
+            throw new BadRequest($this->id . ' withdraw () does not accept params["networkCode"]');
         }
         $response = Async\await($this->privatePostWithdrawDigitalCurrency($this->extend($request, $params)));
         //
@@ -1182,6 +1182,11 @@ class independentreserve extends Exchange {
         );
     }
 
+    public function nonce(): float {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return $this->milliseconds();
+    }
+
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'public') {
@@ -1190,7 +1195,8 @@ class independentreserve extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce();
+            // independentreserve requires an increasing nonce
+            $nonce = $this->incrementing_nonce();
             $auth = array(
                 $url,
                 'apiKey=' . $this->apiKey,

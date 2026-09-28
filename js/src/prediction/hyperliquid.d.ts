@@ -7,6 +7,7 @@ import type { Int, int, Str, Num, Dict, Market, PredictionOrderBook, OHLCV, Bala
 export default class hyperliquid extends Exchange {
     describe(): any;
     setSandboxMode(enabled: boolean): void;
+    nonce(): number;
     /**
      * @ignore
      * @method

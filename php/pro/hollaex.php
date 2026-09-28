@@ -503,7 +503,7 @@ class hollaex extends \ccxt\async\hollaex {
             $timeout = intval(($this->timeout / (string) 1000));
             $expires = $this->sum($this->seconds(), $timeout);
             if ($expires === null) {
-                throw new ArgumentsRequired($this->id . ' watchPrivate() $expires is required');
+                throw new ArgumentsRequired($this->id . ' watchPrivate() expires is required');
             }
             $expires = (string) $expires;
             // we need to memoize these values to avoid generating a new url on each method execution

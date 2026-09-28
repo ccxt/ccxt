@@ -1682,7 +1682,11 @@ class Transpiler {
         // same idea for dynamic constructor calls, e.g. new $broad[$broadKey] ($error);
         // the variable only gets its "$" from phpVariablesRegexes below, so handle it here.
         const noSpaceBeforeDynamicNewParen = [ /new (\$[A-Za-z_][A-Za-z0-9_]*(?:\[[^\]]*\])*) \(/g, 'new $1(' ]
-        let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes).concat ([ noSpaceBeforeCallParen, noSpaceBeforeDynamicNewParen ]))
+        let phpBody = this.regexAll (js, phpRegexes)
+        // string literals are data, the variable rules must never turn '&signature=' into '&$signature='
+        const { masked: phpCode, literals } = this.maskPhpStringLiterals (phpBody)
+        phpBody = this.unmaskPhpStringLiterals (this.regexAll (phpCode, phpVariablesRegexes.concat (variablePropertiesRegexes)), literals)
+        phpBody = this.regexAll (phpBody, [ noSpaceBeforeCallParen, noSpaceBeforeDynamicNewParen ])
         // indent async php — awaiting bodies stay flat here on purpose: the caller
         // (transpileMethodsToAllLanguages) emits a thin public stub
         // `return Async\async(self::do_<name>(...))($args);` and re-homes this flat
@@ -1788,6 +1792,53 @@ class Transpiler {
 
     unmaskStringSpaceParens (body: string) {
         return body.replace (/\x02/g, ' ')
+    }
+
+    maskPhpStringLiterals (body: string) {
+        // swaps the contents of every quoted literal that closes on its own line for a
+        // regex-inert token; docstring lines and text after a // marker are left as is
+        const literals: string[] = []
+        const lines = body.split ('\n')
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i]
+            if (/^\s*\/?\*/.test (line) || (line.indexOf ("'") < 0 && line.indexOf ('"') < 0)) {
+                continue
+            }
+            let out = ''
+            let j = 0
+            while (j < line.length) {
+                const c = line[j]
+                if (c === '/' && line[j + 1] === '/') {
+                    break
+                }
+                if (c !== "'" && c !== '"') {
+                    out += c
+                    j++
+                    continue
+                }
+                let k = j + 1
+                while (k < line.length && line[k] !== c) {
+                    k += (line[k] === '\\') ? 2 : 1
+                }
+                if (k >= line.length) {
+                    break
+                }
+                const content = line.slice (j + 1, k)
+                if (content.length > 0) {
+                    literals.push (content)
+                    out += c + '\x03' + (literals.length - 1).toString () + '\x03' + c
+                } else {
+                    out += c + c
+                }
+                j = k + 1
+            }
+            lines[i] = out + line.slice (j)
+        }
+        return { masked: lines.join ('\n'), literals }
+    }
+
+    unmaskPhpStringLiterals (body: string, literals: string[]) {
+        return body.replace (/\x03(\d+)\x03/g, (match: string, index: string) => literals[parseInt (index)])
     }
 
     maskComments (js: string) {

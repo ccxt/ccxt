@@ -11,6 +11,7 @@ from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
+from ccxt.base.precise import Precise
 
 
 class weex(ccxt.async_support.weex):
@@ -338,7 +339,8 @@ class weex(ccxt.async_support.weex):
             'last': close,
             'previousClose': self.safe_string(ticker, 'x'),
             'change': self.safe_string(ticker, 'p'),
-            'percentage': self.safe_string(ticker, 'P'),
+            # The live spot and contract streams report P as a relative change.
+            'percentage': Precise.string_mul(self.safe_string(ticker, 'P'), '100'),
             'average': self.safe_string(ticker, 'w'),
             'baseVolume': self.safe_string(ticker, 'v'),
             'quoteVolume': self.safe_string(ticker, 'q'),

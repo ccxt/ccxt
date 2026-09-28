@@ -77,7 +77,7 @@ class bitopro extends \ccxt\async\bitopro {
          */
         if ($limit !== null) {
             if (($limit !== 5) && ($limit !== 10) && ($limit !== 20) && ($limit !== 50) && ($limit !== 100) && ($limit !== 500) && ($limit !== 1000)) {
-                throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 5, 10, 20, 50, 100, 500 or 1000');
+                throw new ExchangeError($this->id . ' watchOrderBook limit argument must be null, 5, 10, 20, 50, 100, 500 or 1000');
             }
         }
         if ($this->markets === null) {

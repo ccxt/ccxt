@@ -1159,7 +1159,7 @@ class coinbaseexchange extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
@@ -1946,7 +1946,7 @@ class coinbaseexchange extends Exchange {
          */
         // https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $code param');
+            throw new ArgumentsRequired($this->id . ' fetchLedger() requires a code param');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1956,7 +1956,7 @@ class coinbaseexchange extends Exchange {
         $accountsByCurrencyCode = $this->index_by($this->accounts, 'code');
         $account = $this->safe_dict($accountsByCurrencyCode, $code);
         if ($account === null) {
-            throw new ExchangeError($this->id . ' fetchLedger() could not find $account id for ' . $code);
+            throw new ExchangeError($this->id . ' fetchLedger() could not find account id for ' . $code);
         }
         $request = array(
             'id' => $account['id'],
@@ -2016,7 +2016,7 @@ class coinbaseexchange extends Exchange {
                 $accountsByCurrencyCode = $this->index_by($this->accounts, 'code');
                 $account = $this->safe_dict($accountsByCurrencyCode, $code);
                 if ($account === null) {
-                    throw new ExchangeError($this->id . ' fetchDepositsWithdrawals() could not find $account $id for ' . $code);
+                    throw new ExchangeError($this->id . ' fetchDepositsWithdrawals() could not find account id for ' . $code);
                 }
                 $id = $account['id'];
             }
@@ -2266,7 +2266,7 @@ class coinbaseexchange extends Exchange {
         $account = $this->safe_dict($this->options['coinbaseAccountsByCurrencyId'], $currencyId);
         if ($account === null) {
             // eslint-disable-next-line quotes
-            throw new InvalidAddress($this->id . " createDepositAddress() could not find $currency $code " . $code . " with id = " . $currencyId . " in $this->options['coinbaseAccountsByCurrencyId']");
+            throw new InvalidAddress($this->id . " createDepositAddress() could not find currency code " . $code . " with id = " . $currencyId . " in $this->options['coinbaseAccountsByCurrencyId']");
         }
         $request = array(
             'id' => $account['id'],

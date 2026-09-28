@@ -635,7 +635,7 @@ class bit2c extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1045,7 +1045,8 @@ class bit2c extends Exchange {
             $url .= '.json';
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce();
+            // bit2c requires an increasing nonce per key
+            $nonce = $this->incrementing_nonce();
             $query = $this->extend(array(
                 'nonce' => $nonce,
             ), $params);

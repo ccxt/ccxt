@@ -1452,7 +1452,7 @@ class deribit extends Exchange {
             for ($i = 0; $i < count($symbols); $i++) {
                 $market = $this->market($symbols[$i]);
                 if ($code !== null && $code !== $market['base']) {
-                    throw new BadRequest($this->id . ' fetchTickers the base $currency must be the same for all $symbols, this endpoint only supports one base $currency at a time. Read more about it here => https://docs.deribit.com/#public-get_book_summary_by_currency');
+                    throw new BadRequest($this->id . ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here => https://docs.deribit.com/#public-get_book_summary_by_currency');
                 }
                 if ($code === null) {
                     $code = $market['base'];
@@ -1461,7 +1461,7 @@ class deribit extends Exchange {
             }
         }
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTickers requires a currency/code (eg => BTC/ETH/USDT) parameter to fetch $tickers for');
+            throw new ArgumentsRequired($this->id . ' fetchTickers requires a currency/code (eg => BTC/ETH/USDT) parameter to fetch tickers for');
         }
         $currency = $this->currency($code);
         $request = array(
@@ -2204,7 +2204,7 @@ class deribit extends Exchange {
         $isStopLossOrder = $isStopLimit || $isStopMarket || ($stopLossPrice !== null);
         $isTakeProfitOrder = $isTakeLimit || $isTakeMarket || ($takeProfitPrice !== null);
         if ($isStopLossOrder && $isTakeProfitOrder) {
-            throw new InvalidOrder($this->id . ' createOrder () only allows one of $stopLossPrice or $takeProfitPrice to be specified');
+            throw new InvalidOrder($this->id . ' createOrder () only allows one of stopLossPrice or takeProfitPrice to be specified');
         }
         $isStopOrder = $isStopLossOrder || $isTakeProfitOrder;
         $isLimitOrder = ($type === 'limit') || $isStopLimit || $isTakeLimit;
@@ -2348,7 +2348,7 @@ class deribit extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($amount === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires an amount argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2694,7 +2694,7 @@ class deribit extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a currency code argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2749,7 +2749,7 @@ class deribit extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a currency code argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3136,7 +3136,7 @@ class deribit extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a currency code argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3490,7 +3490,7 @@ class deribit extends Exchange {
         if (is_array($params) && array_key_exists('isDeribitPaginationCall' ?? '', $params)) {
             $params = $this->omit($params, 'isDeribitPaginationCall');
             if ($limit === null) {
-                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $limit argument');
+                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a limit argument');
             }
             $maxUntil = $this->sum($since, $limit * $duration);
             $request['end_timestamp'] = min($request['end_timestamp'], $maxUntil);
@@ -3668,7 +3668,7 @@ class deribit extends Exchange {
          * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyLiquidations() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyLiquidations() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());

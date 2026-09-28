@@ -2649,7 +2649,7 @@ class ndax extends Exchange {
         $templateTypes = $this->safe_list($withdrawTemplateTypesResponse, 'TemplateTypes', array());
         $firstTemplateType = $this->safe_dict($templateTypes, 0);
         if ($firstTemplateType === null) {
-            throw new ExchangeError($this->id . ' withdraw() could not find a withdraw $template type for ' . $currency['code']);
+            throw new ExchangeError($this->id . ' withdraw() could not find a withdraw template type for ' . $currency['code']);
         }
         $templateName = $this->safe_string($firstTemplateType, 'TemplateName');
         $withdrawTemplateRequest = array(
@@ -2670,7 +2670,7 @@ class ndax extends Exchange {
         //
         $template = $this->safe_string($withdrawTemplateResponse, 'Template');
         if ($template === null) {
-            throw new ExchangeError($this->id . ' withdraw() could not find a withdraw $template for ' . $currency['code']);
+            throw new ExchangeError($this->id . ' withdraw() could not find a withdraw template for ' . $currency['code']);
         }
         $withdrawTemplate = json_decode($template, $as_associative_array = true);
         $withdrawTemplate['ExternalAddress'] = $address;

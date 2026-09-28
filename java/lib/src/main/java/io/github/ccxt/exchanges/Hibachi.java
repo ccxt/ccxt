@@ -1153,7 +1153,7 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object nonce = this.nonce();
+            Object nonce = this.incrementingNonce();
             Object request = this.createOrderRequest(nonce, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             ((Map<String, Object>)request).put("accountId", this.getAccountId());
             Map<String, Object> response = (this.privatePostTradeOrder(request)).join();
@@ -1189,7 +1189,7 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object nonce = this.nonce();
+            Object nonce = this.incrementingNonce();
             List<Object> requestOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
@@ -1286,7 +1286,7 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object nonce = this.nonce();
+            Object nonce = this.incrementingNonce();
             Object request = this.editOrderRequest(nonce, (String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             ((Map<String, Object>)request).put("accountId", this.getAccountId());
             (this.privatePutTradeOrder(request)).join();
@@ -1321,7 +1321,7 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object nonce = this.nonce();
+            Object nonce = this.incrementingNonce();
             List<Object> requestOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
@@ -1475,7 +1475,7 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object nonce = this.nonce();
+            Object nonce = this.incrementingNonce();
             String nonce16 = this.intToBase16(nonce);
             Object noncePadded = Helpers.padStart(nonce16, ((Number)16).intValue(), ((String)"0").charAt(0));
             Object message = this.base16ToBinary(noncePadded);

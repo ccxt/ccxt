@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
+use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
@@ -379,7 +380,8 @@ class weex extends \ccxt\async\weex {
             'last' => $close,
             'previousClose' => $this->safe_string($ticker, 'x'),
             'change' => $this->safe_string($ticker, 'p'),
-            'percentage' => $this->safe_string($ticker, 'P'),
+            // The live spot and contract streams report P as a relative change.
+            'percentage' => Precise::string_mul($this->safe_string($ticker, 'P'), '100'),
             'average' => $this->safe_string($ticker, 'w'),
             'baseVolume' => $this->safe_string($ticker, 'v'),
             'quoteVolume' => $this->safe_string($ticker, 'q'),
@@ -651,7 +653,7 @@ class weex extends \ccxt\async\weex {
             $symbolString = $this->safe_string($data, 0);
             $market = $this->market($symbolString);
             if ($market['type'] !== $firstMarket['type']) {
-                throw new BadRequest($this->id . ' ' . $callerMethodName . ' $market symbols must be of the same type');
+                throw new BadRequest($this->id . ' ' . $callerMethodName . ' market symbols must be of the same type');
             }
             $symbolString = $market['symbol'];
             $unifiedTimeframe = $this->safe_string($data, 1, '1');
@@ -725,7 +727,7 @@ class weex extends \ccxt\async\weex {
             $symbolString = $this->safe_string($data, 0);
             $market = $this->market($symbolString);
             if ($market['type'] !== $firstMarket['type']) {
-                throw new BadRequest($this->id . ' ' . $callerMethodName . ' $market symbols must be of the same type');
+                throw new BadRequest($this->id . ' ' . $callerMethodName . ' market symbols must be of the same type');
             }
             $symbolString = $market['symbol'];
             $unifiedTimeframe = $this->safe_string($data, 1, '1');
@@ -1205,7 +1207,7 @@ class weex extends \ccxt\async\weex {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol !== null) {
-            throw new NotSupported($this->id . ' unWatchMyTrades does not support a $symbol argument. Unsubscribing from myTrades is global for all symbols.');
+            throw new NotSupported($this->id . ' unWatchMyTrades does not support a symbol argument. Unsubscribing from myTrades is global for all symbols.');
         }
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('unWatchMyTrades', null, $params);
@@ -1420,7 +1422,7 @@ class weex extends \ccxt\async\weex {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol !== null) {
-            throw new NotSupported($this->id . ' unWatchOrders does not support a $symbol argument. Unsubscribing from orders is global for all symbols.');
+            throw new NotSupported($this->id . ' unWatchOrders does not support a symbol argument. Unsubscribing from orders is global for all symbols.');
         }
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('unWatchOrders', null, $params);
@@ -1917,7 +1919,7 @@ class weex extends \ccxt\async\weex {
          * @return {array} status of the unwatch request
          */
         if ($symbols !== null) {
-            throw new NotSupported($this->id . ' unWatchPositions does not support a $symbols argument. Unsubscribing from positions is global for all $symbols->');
+            throw new NotSupported($this->id . ' unWatchPositions does not support a symbols argument. Unsubscribing from positions is global for all symbols.');
         }
         $subHash = 'positions';
         $unSubHash = 'unsubscribe::' . $subHash;

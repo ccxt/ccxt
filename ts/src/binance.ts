@@ -3790,6 +3790,7 @@ export default class binance extends Exchange {
         let fees: Dict = this.fees;
         let linear: Bool = undefined;
         let inverse: Bool = undefined;
+        let subType: SubType = undefined;
         let symbol = base + '/' + quote;
         let strike: Str = undefined;
         if (contract) {
@@ -3804,6 +3805,11 @@ export default class binance extends Exchange {
             contractSize = this.safeNumber2 (market, 'contractSize', 'unit', this.parseNumber ('1'));
             linear = settle === quote;
             inverse = settle === base;
+            if (linear === true) {
+                subType = 'linear';
+            } else if (inverse === true) {
+                subType = 'inverse';
+            }
             const feesType = linear ? 'linear' : 'inverse';
             fees = this.safeDict (this.fees, feesType, {});
         }
@@ -3875,6 +3881,7 @@ export default class binance extends Exchange {
             'contract': contract,
             'linear': linear,
             'inverse': inverse,
+            'subType': subType,
             'taker': fees['trading']['taker'],
             'maker': fees['trading']['maker'],
             'contractSize': contractSize,
@@ -4449,7 +4456,7 @@ export default class binance extends Exchange {
         //
         //     {
         //         "symbol": "BTCUSDT",
-        //         "markPrice": "11793.63104563", // mark price
+        //         "markPrice": "11793.63104565", // mark price
         //         "indexPrice": "11781.80495970", // index price
         //         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts
         //         "lastFundingRate": "0.00038246",  // This is the lastest estimated funding rate
@@ -5079,7 +5086,7 @@ export default class binance extends Exchange {
         //         "open": "32.2",
         //         "high": "32.2",
         //         "low": "32.2",
-        //         "close": "32.2",
+        //         "close": "32.3",
         //         "volume": "0",
         //         "interval": "5m",
         //         "tradeCount": 0,

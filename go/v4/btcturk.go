@@ -600,6 +600,17 @@ func (this *Btcturk) ParseTicker(ticker any, optionalArgs ...any) any {
 	var symbol any = GetValue(market, "symbol")
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
 	var last *string = this.SafeString(ticker, "last")
+	var open *string = this.SafeString(ticker, "open")
+	var change any = DerefScalar(this.SafeString(ticker, "daily"))
+	var percentage any = DerefScalar(this.SafeString(ticker, "dailyPercent"))
+	var average any = DerefScalar(this.SafeString(ticker, "average"))
+	if (open != nil) && (last != nil) && !Precise.StringEq(open, "0") {
+		// The reported daily fields can disagree with last - open.
+		// Let safeTicker derive the unified change, percentage and average from these prices.
+		change = nil
+		percentage = nil
+		average = nil
+	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -611,13 +622,13 @@ func (this *Btcturk) ParseTicker(ticker any, optionalArgs ...any) any {
 		"ask":           this.SafeString(ticker, "ask"),
 		"askVolume":     nil,
 		"vwap":          nil,
-		"open":          this.SafeString(ticker, "open"),
+		"open":          open,
 		"close":         last,
 		"last":          last,
 		"previousClose": nil,
-		"change":        this.SafeString(ticker, "daily"),
-		"percentage":    this.SafeString(ticker, "dailyPercent"),
-		"average":       this.SafeString(ticker, "average"),
+		"change":        change,
+		"percentage":    percentage,
+		"average":       average,
 		"baseVolume":    this.SafeString(ticker, "volume"),
 		"quoteVolume":   nil,
 		"info":          ticker,
@@ -647,8 +658,8 @@ func (this *Btcturk) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes54212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes54212)
+		retRes55312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes55312)
 	}
 
 	response := (<-this.PublicGetTicker(params))
@@ -680,8 +691,8 @@ func (this *Btcturk) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 	if this.Markets == nil {
 
-		retRes56012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes56012)
+		retRes57112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes57112)
 	}
 
 	tickers := (<-this.FetchTickersAsync([]any{symbol}, params))
@@ -782,8 +793,8 @@ func (this *Btcturk) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 	if this.Markets == nil {
 
-		retRes64212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes64212)
+		retRes65312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes65312)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	// let maxCount = 50;
@@ -869,8 +880,8 @@ func (this *Btcturk) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = params
 	if this.Markets == nil {
 
-		retRes71412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes71412)
+		retRes72512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes72512)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1000,8 +1011,8 @@ func (this *Btcturk) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	_ = params
 	if this.Markets == nil {
 
-		retRes81912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes81912)
+		retRes83012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes83012)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1098,8 +1109,8 @@ func (this *Btcturk) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes88112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes88112)
+		retRes89212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes89212)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -1147,8 +1158,8 @@ func (this *Btcturk) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes90912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes90912)
+		retRes92012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes92012)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1296,8 +1307,8 @@ func (this *Btcturk) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes103712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes103712)
+		retRes104812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes104812)
 	}
 	var market any = nil
 	if symbol != nil {

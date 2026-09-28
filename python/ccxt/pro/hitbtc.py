@@ -153,7 +153,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             messageHashes.append(messageHashPrefix)
         subscribe = {
             'method': 'subscribe',
-            'id': self.nonce(),
+            'id': self.incrementing_nonce(),
             'ch': name,
         }
         request = self.extend(subscribe, params)
@@ -177,7 +177,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         subscribe = {
             'method': name,
             'params': params,
-            'id': self.nonce(),
+            'id': self.incrementing_nonce(),
         }
         return await self.watch(url, messageHash, subscribe, messageHash)
 
@@ -191,7 +191,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             await self.load_markets()
         await self.authenticate()
         url = self.urls['api']['ws']['private']
-        messageHash = str(self.nonce())
+        messageHash = str(self.incrementing_nonce())
         subscribe = {
             'method': name,
             'params': params,

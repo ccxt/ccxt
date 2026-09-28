@@ -1059,7 +1059,7 @@ class bitbank(Exchange, ImplicitAPI):
             isTimeWindow = (authMethod == 'timeWindow')
             requestTime = str(self.milliseconds())
             timeWindow = self.safe_string(self.options, 'timeWindow', '5000')
-            nonce = str(self.nonce())
+            nonce = str(self.incrementing_nonce())
             auth = None
             if isTimeWindow:
                 auth = requestTime + timeWindow

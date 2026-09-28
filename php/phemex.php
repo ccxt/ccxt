@@ -1200,7 +1200,7 @@ class phemex extends Exchange {
 
     public function custom_parse_bid_ask(array $bidask, float $priceKey = 0, float $amountKey = 1, ?array $market = null): array {
         if ($market === null) {
-            throw new ArgumentsRequired($this->id . ' customParseBidAsk() requires a $market argument');
+            throw new ArgumentsRequired($this->id . ' customParseBidAsk() requires a market argument');
         }
         $amount = $this->safe_string($bidask, $amountKey);
         if ($market['spot'] === true) {
@@ -2161,7 +2161,7 @@ class phemex extends Exchange {
             } else {
                 $currency = $this->safe_string($params, 'currency');
                 if ($currency === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchBalance() requires a $code parameter or a $currency or $settle parameter for ' . $type . ' type');
+                    throw new ArgumentsRequired($this->id . ' fetchBalance() requires a code parameter or a currency or settle parameter for ' . $type . ' type');
                 }
                 $response = $this->privateGetSpotWallets($this->extend($request, $params));
             }
@@ -2758,7 +2758,7 @@ class phemex extends Exchange {
                         $quoteAmount = Precise::string_mul($amountString, $priceString);
                         $cost = $this->parse_number($quoteAmount);
                     } elseif ($cost === null) {
-                        throw new ArgumentsRequired($this->id . ' createOrder() ' . $qtyType . ' requires a $price argument or a $cost parameter');
+                        throw new ArgumentsRequired($this->id . ' createOrder() ' . $qtyType . ' requires a price argument or a cost parameter');
                     }
                 }
                 $cost = ($cost === null) ? $amount : $cost;
@@ -2819,7 +2819,7 @@ class phemex extends Exchange {
                 if ($hasStopLoss) {
                     $stopLossTriggerPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'stopPrice');
                     if ($stopLossTriggerPrice === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires a trigger $price in $params["stopLoss"]["triggerPrice"] for a stop loss order');
+                        throw new InvalidOrder($this->id . ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"] for a stop loss order');
                     }
                     if ($isStableSettled) {
                         $request['stopLossRp'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
@@ -2838,7 +2838,7 @@ class phemex extends Exchange {
                 if ($hasTakeProfit) {
                     $takeProfitTriggerPrice = $this->safe_number_2($takeProfit, 'triggerPrice', 'stopPrice');
                     if ($takeProfitTriggerPrice === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires a trigger $price in $params["takeProfit"]["triggerPrice"] for a take profit order');
+                        throw new InvalidOrder($this->id . ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"] for a take profit order');
                     }
                     if ($isStableSettled) {
                         $request['takeProfitRp'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
@@ -3056,7 +3056,7 @@ class phemex extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -3098,7 +3098,7 @@ class phemex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -3163,7 +3163,7 @@ class phemex extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -3192,9 +3192,9 @@ class phemex extends Exchange {
             $numOrders = count($data);
             if ($numOrders < 1) {
                 if ($clientOrderId !== null) {
-                    throw new OrderNotFound($this->id . ' fetchOrder() ' . $symbol . ' $order with $clientOrderId ' . $clientOrderId . ' not found');
+                    throw new OrderNotFound($this->id . ' fetchOrder() ' . $symbol . ' order with clientOrderId ' . $clientOrderId . ' not found');
                 } else {
-                    throw new OrderNotFound($this->id . ' fetchOrder() ' . $symbol . ' $order with $id ' . $id . ' not found');
+                    throw new OrderNotFound($this->id . ' fetchOrder() ' . $symbol . ' order with id ' . $id . ' not found');
                 }
             }
             $order = $this->safe_dict($data, 0, array());
@@ -3203,9 +3203,9 @@ class phemex extends Exchange {
             $numRows = count($rows);
             if ($numRows < 1) {
                 if ($clientOrderId !== null) {
-                    throw new OrderNotFound($this->id . ' fetchOrder() ' . $symbol . ' $order with $clientOrderId ' . $clientOrderId . ' not found');
+                    throw new OrderNotFound($this->id . ' fetchOrder() ' . $symbol . ' order with clientOrderId ' . $clientOrderId . ' not found');
                 } else {
-                    throw new OrderNotFound($this->id . ' fetchOrder() ' . $symbol . ' $order with $id ' . $id . ' not found');
+                    throw new OrderNotFound($this->id . ' fetchOrder() ' . $symbol . ' order with id ' . $id . ' not found');
                 }
             }
             $order = $this->safe_dict($rows, 0, array());
@@ -3226,7 +3226,7 @@ class phemex extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -3272,7 +3272,7 @@ class phemex extends Exchange {
             $this->load_markets();
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -3574,7 +3574,7 @@ class phemex extends Exchange {
         $network = $this->safe_string_upper_2($params, 'network', 'chainName', $defaultNetwork);
         $network = $this->safe_string($networks, $network, $network);
         if ($network === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a $network parameter');
+            throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a network parameter');
         } else {
             $request['chainName'] = $network;
             $params = $this->omit($params, 'network');
@@ -4217,7 +4217,7 @@ class phemex extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -4230,7 +4230,7 @@ class phemex extends Exchange {
         );
         if ($limit !== null) {
             if ($limit > 200) {
-                throw new BadRequest($this->id . ' fetchFundingHistory() $limit argument cannot exceed 200');
+                throw new BadRequest($this->id . ' fetchFundingHistory() limit argument cannot exceed 200');
             }
             $request['limit'] = $limit;
         }
@@ -4491,7 +4491,7 @@ class phemex extends Exchange {
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -4502,7 +4502,7 @@ class phemex extends Exchange {
         }
         $marginMode = strtolower($marginMode);
         if ($marginMode !== 'isolated' && $marginMode !== 'cross') {
-            throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
+            throw new BadRequest($this->id . ' setMarginMode() marginMode argument should be isolated or cross');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -4521,7 +4521,7 @@ class phemex extends Exchange {
             $leverage = 0;
         }
         if ($leverage === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a leverage parameter');
         }
         $request['leverage'] = $leverage;
         return $this->privatePutPositionsLeverage($this->extend($request, $params));
@@ -4756,10 +4756,10 @@ class phemex extends Exchange {
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if (($leverage < -100) || ($leverage > 100)) {
-            throw new BadRequest($this->id . ' setLeverage() $leverage should be between -100 and 100');
+            throw new BadRequest($this->id . ' setLeverage() leverage should be between -100 and 100');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -4894,7 +4894,7 @@ class phemex extends Exchange {
             $this->load_markets();
         }
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a code argument');
         }
         $currency = $this->currency($code);
         $request = array(
@@ -5013,7 +5013,7 @@ class phemex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -5114,7 +5114,7 @@ class phemex extends Exchange {
             if (!($this->in_array($code, $stableCoins))) {
                 $networkId = $currency['id'];
             } else {
-                throw new ArgumentsRequired($this->id . ' withdraw () requires an extra argument $params["network"]');
+                throw new ArgumentsRequired($this->id . ' withdraw () requires an extra argument params["network"]');
             }
         }
         $request = array(

@@ -28,7 +28,6 @@ pub(crate) use ccxt::exchanges::{
     bitflyer::BitflyerCore,
     bitget::BitgetCore,
     bithumb::BithumbCore,
-    bitmex::BitmexCore,
     bitopro::BitoproCore,
     bitrue::BitrueCore,
     bitso::BitsoCore,
@@ -129,6 +128,13 @@ pub(crate) use ccxt::prediction::{
 
 pub(crate) use ccxt::prediction::binance::BinanceCore as PredBinanceCore;
 pub(crate) use ccxt::prediction::hyperliquid::HyperliquidCore as PredHyperliquidCore;
+pub(crate) use ccxt::prediction::kalshi::KalshiCore as PredKalshiCore;
+pub(crate) use ccxt::prediction::limitless::LimitlessCore as PredLimitlessCore;
+pub(crate) use ccxt::prediction::myriad::MyriadCore as PredMyriadCore;
+pub(crate) use ccxt::prediction::opinion::OpinionCore as PredOpinionCore;
+pub(crate) use ccxt::prediction::polymarket::PolymarketCore as PredPolymarketCore;
+pub(crate) use ccxt::prediction::predictfun::PredictfunCore as PredPredictfunCore;
+pub(crate) use ccxt::prediction::sxbet::SxbetCore as PredSxbetCore;
 
 pub(crate) use ccxt_pro::pro::{
     alpaca::AlpacaCore as WsAlpacaCore,
@@ -144,7 +150,6 @@ pub(crate) use ccxt_pro::pro::{
     bitfinex::BitfinexCore as WsBitfinexCore,
     bitget::BitgetCore as WsBitgetCore,
     bithumb::BithumbCore as WsBithumbCore,
-    bitmex::BitmexCore as WsBitmexCore,
     bitopro::BitoproCore as WsBitoproCore,
     bitrue::BitrueCore as WsBitrueCore,
     bitstamp::BitstampCore as WsBitstampCore,
@@ -230,7 +235,6 @@ macro_rules! for_each_core {
         $cb!(bitflyer, BitflyerCore);
         $cb!(bitget, BitgetCore);
         $cb!(bithumb, BithumbCore);
-        $cb!(bitmex, BitmexCore);
         $cb!(bitopro, BitoproCore);
         $cb!(bitrue, BitrueCore);
         $cb!(bitso, BitsoCore);
@@ -343,7 +347,6 @@ macro_rules! for_each_ws_core {
         $cb!(bitfinex, WsBitfinexCore);
         $cb!(bitget, WsBitgetCore);
         $cb!(bithumb, WsBithumbCore);
-        $cb!(bitmex, WsBitmexCore);
         $cb!(bitopro, WsBitoproCore);
         $cb!(bitrue, WsBitrueCore);
         $cb!(bitstamp, WsBitstampCore);

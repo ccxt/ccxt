@@ -5410,6 +5410,16 @@ public partial class bingx : Exchange
             response = await this.contractV1PrivateGetAllOrders(this.extend(request, parameters));
         } else if ((type == "spot"))
         {
+            if ((since != null))
+            {
+                ((IDictionary<string,object>)request)["startTime"] = since;
+            }
+            Int64? until = this.safeInteger2(parameters, "until", "till");
+            if (!isEqual(until, null))
+            {
+                ((IDictionary<string,object>)request)["endTime"] = until;
+            }
+            parameters = this.omit(parameters, new List<object>() {"until", "till"});
             if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["pageSize"] = limit;

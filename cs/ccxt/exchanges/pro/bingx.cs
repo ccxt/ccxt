@@ -2078,7 +2078,17 @@ public partial class bingx : ccxt.bingx
             IDictionary<string, object> data = this.safeDict(message, "o", new Dictionary<string, object>() {});
             string? type = this.safeString(data, "x");
             string? status = this.safeString(data, "X");
-            if (((type == "TRADE")) && ((status == "FILLED")))
+            bool isExecution = ((status == "FILLED"));
+            if (((type == "TRADE")) && ((status == "PARTIALLY_FILLED")))
+            {
+                string? marketId = this.safeString(data, "s");
+                Dictionary<string, object> market = this.safeMarket(marketId, null, "-", "swap");
+                // parseTrade gates its `l`/`L` last-fill preference on the same
+                // `market['linear'] === true`, so an unresolved market id must be skipped here:
+                // delivering it would report the order aggregate `q`/`p` as a single fill.
+                isExecution = ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) && ((this.safeString(data, "l") != null)) && ((this.safeString(data, "L") != null));
+            }
+            if (((type == "TRADE")) && isExecution)
             {
                 this.handleMyTrades(client as WebSocketClient, message);
             }

@@ -1850,7 +1850,16 @@ export default class bingx extends bingxRest {
             const data = this.safeDict (message, 'o', {});
             const type = this.safeString (data, 'x');
             const status = this.safeString (data, 'X');
-            if ((type === 'TRADE') && (status === 'FILLED')) {
+            let isExecution = (status === 'FILLED');
+            if ((type === 'TRADE') && (status === 'PARTIALLY_FILLED')) {
+                const marketId = this.safeString (data, 's');
+                const market = this.safeMarket (marketId, undefined, '-', 'swap');
+                // parseTrade gates its `l`/`L` last-fill preference on the same
+                // `market['linear'] === true`, so an unresolved market id must be skipped here:
+                // delivering it would report the order aggregate `q`/`p` as a single fill.
+                isExecution = (market['linear'] === true) && (this.safeString (data, 'l') !== undefined) && (this.safeString (data, 'L') !== undefined);
+            }
+            if ((type === 'TRADE') && isExecution) {
                 this.handleMyTrades (client, message);
             }
         }

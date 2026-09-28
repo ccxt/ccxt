@@ -1996,7 +1996,7 @@ class gate extends Exchange {
         $request = array();
         if (!$trigger) {
             if ($market === null) {
-                throw new ArgumentsRequired($this->id . ' spotOrderPrepareRequest() requires a $market argument for non-$trigger orders');
+                throw new ArgumentsRequired($this->id . ' spotOrderPrepareRequest() requires a market argument for non-trigger orders');
             }
             $request['account'] = $marginMode;
             $request['currency_pair'] = $market['id']; // Should always be set for non-trigger
@@ -2052,7 +2052,7 @@ class gate extends Exchange {
                 $marginMode = 'normal';
             }
             if ($marginMode === 'cross_margin') {
-                throw new BadRequest($this->id . ' getMarginMode() does not support $trigger orders for cross margin');
+                throw new BadRequest($this->id . ' getMarginMode() does not support trigger orders for cross margin');
             }
         }
         $isUnifiedAccount = false;
@@ -2848,7 +2848,7 @@ class gate extends Exchange {
         } elseif ($type === 'future') {
             $response = Async\await($this->privateDeliveryGetSettleAccountBook($this->extend($request, $requestParams)));
         } else {
-            throw new NotSupported($this->id . ' fetchFundingHistory() only support swap & future $market type');
+            throw new NotSupported($this->id . ' fetchFundingHistory() only support swap & future market type');
         }
         //
         //    [
@@ -2951,7 +2951,7 @@ class gate extends Exchange {
         } elseif ($market['option'] === true) {
             $response = Async\await($this->publicOptionsGetOrderBook($this->extend($request, $query)));
         } else {
-            throw new NotSupported($this->id . ' fetchOrderBook() not support this $market type');
+            throw new NotSupported($this->id . ' fetchOrderBook() not support this market type');
         }
         //
         // spot
@@ -3066,7 +3066,7 @@ class gate extends Exchange {
             $request['underlying'] = $this->safe_string($optionParts, 0);
             $response = Async\await($this->publicOptionsGetTickers($this->extend($request, $query)));
         } else {
-            throw new NotSupported($this->id . ' fetchTicker() not support this $market type');
+            throw new NotSupported($this->id . ' fetchTicker() not support this market type');
         }
         $ticker = null;
         if ($market['option'] === true) {
@@ -3243,7 +3243,7 @@ class gate extends Exchange {
             $request['underlying'] = $this->safe_string($optionParts, 0);
             $response = Async\await($this->publicOptionsGetTickers($this->extend($request, $requestParams)));
         } else {
-            throw new NotSupported($this->id . ' fetchTickers() not support this $market $type, provide $symbols or set $params["defaultType"] to one from spot/margin/swap/future/option');
+            throw new NotSupported($this->id . ' fetchTickers() not support this market type, provide symbols or set params["defaultType"] to one from spot/margin/swap/future/option');
         }
         return $this->parse_tickers($response, $symbols);
     }
@@ -3318,7 +3318,7 @@ class gate extends Exchange {
         } elseif ($type === 'option') {
             $response = Async\await($this->privateOptionsGetAccounts($this->extend($request, $requestQuery)));
         } else {
-            throw new NotSupported($this->id . ' fetchBalance() not support this $market type');
+            throw new NotSupported($this->id . ' fetchBalance() not support this market type');
         }
         $contract = (($type === 'swap') || ($type === 'future') || ($type === 'option'));
         if ($contract) {
@@ -3671,7 +3671,7 @@ class gate extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3840,7 +3840,7 @@ class gate extends Exchange {
         } elseif ($market['type'] === 'option') {
             $response = Async\await($this->publicOptionsGetTrades($this->extend($request, $query)));
         } else {
-            throw new NotSupported($this->id . ' fetchTrades() not support this $market type.');
+            throw new NotSupported($this->id . ' fetchTrades() not support this market type.');
         }
         //
         // spot
@@ -3906,7 +3906,7 @@ class gate extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -4011,7 +4011,7 @@ class gate extends Exchange {
         } elseif ($type === 'option') {
             $response = Async\await($this->privateOptionsGetMyTrades($this->extend($request, $params)));
         } else {
-            throw new NotSupported($this->id . ' fetchMyTrades() not support this $market $type->');
+            throw new NotSupported($this->id . ' fetchMyTrades() not support this market type.');
         }
         //
         // spot
@@ -4677,7 +4677,7 @@ class gate extends Exchange {
             throw new BadRequest($this->id . ' createOrders() requires at least one order');
         }
         if ($ordersLength > 10) {
-            throw new BadRequest($this->id . ' createOrders() accepts a maximum of 10 $orders at a time');
+            throw new BadRequest($this->id . ' createOrders() accepts a maximum of 10 orders at a time');
         }
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $orders[$i];
@@ -4738,10 +4738,10 @@ class gate extends Exchange {
 
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $contract = $market['contract'];
@@ -4753,7 +4753,7 @@ class gate extends Exchange {
         $isTakeProfitOrder = $takeProfitPrice !== null;
         $isTpsl = $isStopLossOrder || $isTakeProfitOrder;
         if ($isStopLossOrder && $isTakeProfitOrder) {
-            throw new ExchangeError($this->id . ' createOrder() $stopLossPrice and $takeProfitPrice cannot both be defined');
+            throw new ExchangeError($this->id . ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
         }
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
         $exchangeSpecificTimeInForce = $this->safe_string_lower_n($params, array( 'timeInForce', 'tif', 'time_in_force' ));
@@ -4770,11 +4770,11 @@ class gate extends Exchange {
         $isLimitOrder = ($type === 'limit');
         $isMarketOrder = ($type === 'market');
         if ($isLimitOrder && $price === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder () requires a $price argument for ' . $type . ' orders');
+            throw new ArgumentsRequired($this->id . ' createOrder () requires a price argument for ' . $type . ' orders');
         }
         if ($isMarketOrder) {
             if (($timeInForce === 'poc') || ($timeInForce === 'gtc')) {
-                throw new ExchangeError($this->id . ' createOrder () $timeInForce for $market order can only be "FOK" or "IOC"');
+                throw new ExchangeError($this->id . ' createOrder () timeInForce for market order can only be "FOK" or "IOC"');
             } else {
                 if ($timeInForce === null) {
                     $defaultTif = $this->safe_string($this->options, 'defaultTimeInForce', 'IOC');
@@ -4850,7 +4850,7 @@ class gate extends Exchange {
                         $quoteAmount = $this->cost_to_precision($symbol, $cost);
                     } elseif ($createMarketBuyOrderRequiresPrice) {
                         if ($price === null) {
-                            throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
+                            throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                         } else {
                             $amountString = $this->number_to_string($amount);
                             $priceString = $this->number_to_string($price);
@@ -4878,7 +4878,7 @@ class gate extends Exchange {
                 //     no longer than 28 bytes without t- prefix
                 //     can only include 0-9, A-Z, a-z, underscores (_), hyphens (-) or dots (.)
                 if (strlen($clientOrderId) > 28) {
-                    throw new BadRequest($this->id . ' createOrder () $clientOrderId or text param must be up to 28 characters');
+                    throw new BadRequest($this->id . ' createOrder () clientOrderId or text param must be up to 28 characters');
                 }
                 $params = $this->omit($params, 'textIsRequired');
                 if ($clientOrderId[0] !== 't') {
@@ -4928,7 +4928,7 @@ class gate extends Exchange {
                     }
                     $priceType = $this->safe_integer($params, 'price_type', 0);
                     if ($priceType < 0 || $priceType > 2) {
-                        throw new BadRequest($this->id . ' createOrder () price_type should be 0 latest deal $price, 1 mark $price, 2 index price');
+                        throw new BadRequest($this->id . ' createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price');
                     }
                     $params = $this->omit($params, array( 'price_type' ));
                     $request['trigger'] = array(
@@ -5580,7 +5580,7 @@ class gate extends Exchange {
         } elseif ($type === 'option') {
             $response = Async\await($this->privateOptionsGetOrdersOrderId($this->extend($request, $requestParams)));
         } else {
-            throw new NotSupported($this->id . ' fetchOrder() not support this $market type');
+            throw new NotSupported($this->id . ' fetchOrder() not support this market type');
         }
         return $this->parse_order($response, $market);
     }
@@ -5764,7 +5764,7 @@ class gate extends Exchange {
         } elseif ($type === 'option') {
             $response = Async\await($this->privateOptionsGetOrders($this->extend($request, $requestParams)));
         } else {
-            throw new NotSupported($this->id . ' fetchOrders() not support this $market type');
+            throw new NotSupported($this->id . ' fetchOrders() not support this market type');
         }
         //
         // spot open orders
@@ -5980,7 +5980,7 @@ class gate extends Exchange {
         } elseif ($type === 'option') {
             $response = Async\await($this->privateOptionsDeleteOrdersOrderId($this->extend($request, $requestParams)));
         } else {
-            throw new NotSupported($this->id . ' cancelOrder() not support this $market type');
+            throw new NotSupported($this->id . ' cancelOrder() not support this market type');
         }
         //
         // spot
@@ -6097,7 +6097,7 @@ class gate extends Exchange {
         list($type, $params) = $this->handle_market_type_and_params('cancelOrders', $market, $params);
         $isSpot = ($type === 'spot');
         if ($isSpot && ($symbol === null)) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders requires a $symbol argument for spot markets');
+            throw new ArgumentsRequired($this->id . ' cancelOrders requires a symbol argument for spot markets');
         }
         if ($isSpot) {
             $ordersRequests = array();
@@ -6220,7 +6220,7 @@ class gate extends Exchange {
         } elseif ($type === 'option') {
             $response = Async\await($this->privateOptionsDeleteOrders($this->extend($request, $requestParams)));
         } else {
-            throw new NotSupported($this->id . ' cancelAllOrders() not support this $market type');
+            throw new NotSupported($this->id . ' cancelAllOrders() not support this market type');
         }
         //
         //    [
@@ -6297,7 +6297,7 @@ class gate extends Exchange {
         if ($fromId === 'margin' || $toId === 'margin') {
             $symbol = $this->safe_string_2($params, 'symbol', 'currency_pair');
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' transfer requires $params["symbol"] for isolated margin transfers');
+                throw new ArgumentsRequired($this->id . ' transfer requires params["symbol"] for isolated margin transfers');
             }
             $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
@@ -6361,12 +6361,12 @@ class gate extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (($leverage < 0) || ($leverage > 100)) {
-            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 100');
+            throw new BadRequest($this->id . ' setLeverage() leverage should be between 1 and 100');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -6392,7 +6392,7 @@ class gate extends Exchange {
         } elseif ($market['future'] === true) {
             $response = Async\await($this->privateDeliveryPostSettlePositionsContractLeverage($this->extend($request, $query)));
         } else {
-            throw new NotSupported($this->id . ' setLeverage() not support this $market type');
+            throw new NotSupported($this->id . ' setLeverage() not support this market type');
         }
         //
         //     {
@@ -7384,7 +7384,7 @@ class gate extends Exchange {
         }
         $url = $this->urls['api'][$authentication][$type];
         if ($url === null) {
-            throw new NotSupported($this->id . ' does not have a testnet for the ' . $type . ' market $type->');
+            throw new NotSupported($this->id . ' does not have a testnet for the ' . $type . ' market type.');
         }
         $url .= $entirePath;
         if ($authentication === 'public') {
@@ -7462,7 +7462,7 @@ class gate extends Exchange {
         } elseif ($market['future'] === true) {
             $response = Async\await($this->privateDeliveryPostSettlePositionsContractMargin($this->extend($request, $query)));
         } else {
-            throw new NotSupported($this->id . ' modifyMarginHelper() not support this $market type');
+            throw new NotSupported($this->id . ' modifyMarginHelper() not support this market type');
         }
         return $this->parse_margin_modification($response, $market);
     }
@@ -7663,7 +7663,7 @@ class gate extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=settlement-history-structure settlement history objects~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchSettlementHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchSettlementHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -7763,7 +7763,7 @@ class gate extends Exchange {
             if ($market === null) {
                 $underlying = $this->safe_string($params, 'underlying');
                 if ($underlying === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchMySettlementHistory() requires a $symbol argument or an $underlying parameter in params');
+                    throw new ArgumentsRequired($this->id . ' fetchMySettlementHistory() requires a symbol argument or an underlying parameter in params');
                 }
             } else {
                 $marketId = $market['id'];
@@ -8270,7 +8270,7 @@ class gate extends Exchange {
          * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyLiquidations() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyLiquidations() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());

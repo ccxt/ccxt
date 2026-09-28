@@ -1240,7 +1240,8 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (java.util.Objects.equals(authenticated, null))
             {
-                Long nonce = this.milliseconds();
+                // the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
+                Object nonce = this.incrementingNonce();
                 String payload = ("AUTH" + String.valueOf(nonce));
                 Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384(), "hex");
                 String eventVar = "auth";
