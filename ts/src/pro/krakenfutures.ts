@@ -918,8 +918,12 @@ export default class krakenfutures extends krakenfuturesRest {
         //        ]
         //    }
         const orders = this.safeList (message, 'orders', []);
-        const limit = this.safeInteger (this.options, 'ordersLimit');
-        this.orders = new ArrayCacheBySymbolById (limit);
+        // reuse the existing cache: replacing it would orphan consumers holding
+        // a reference to the old one across a reconnect snapshot
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit');
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
         const feed = this.safeString (message, 'feed');
         let messageHash = 'orders';
         if (feed === 'open_orders_verbose_snapshot') {
