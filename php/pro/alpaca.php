@@ -690,7 +690,7 @@ class alpaca extends \ccxt\async\alpaca {
         //
         $code = $this->safe_string($message, 'code');
         $msg = $this->safe_value($message, 'msg', array());
-        throw new ExchangeError($this->id . ' $code => ' . $code . ' $message => ' . $msg);
+        throw new ExchangeError($this->id . ' code => ' . $code . ' message => ' . $msg);
     }
 
     public function handle_connected(Client $client, array $message): array {

@@ -854,10 +854,10 @@ class hibachi extends Exchange {
 
     public function order_message(array $market, float $nonce, float $feeRate, ?string $type, ?string $side, ?float $amount, ?float $price = null) {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $sideInternal = 0;
         if ($side === 'sell') {
@@ -910,10 +910,10 @@ class hibachi extends Exchange {
 
     public function create_order_request(float $nonce, ?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $takerFee = $this->safe_number($market, 'taker', $this->safe_number($this->options, 'defaultTakerFee', 0.00045));
@@ -982,7 +982,7 @@ class hibachi extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $nonce = $this->nonce();
+        $nonce = $this->incrementing_nonce();
         $request = $this->create_order_request($nonce, $symbol, $type, $side, $amount, $price, $params);
         $request['accountId'] = $this->get_account_id();
         $response = Async\await($this->privatePostTradeOrder($request));
@@ -1014,7 +1014,7 @@ class hibachi extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $nonce = $this->nonce();
+        $nonce = $this->incrementing_nonce();
         $requestOrders = array();
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $orders[$i];
@@ -1051,10 +1051,10 @@ class hibachi extends Exchange {
 
     public function edit_order_request(float $nonce, ?string $id, ?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $takerFee = $this->safe_number($market, 'taker', 0);
@@ -1097,7 +1097,7 @@ class hibachi extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $nonce = $this->nonce();
+        $nonce = $this->incrementing_nonce();
         $request = $this->edit_order_request($nonce, $id, $symbol, $type, $side, $amount, $price, $params);
         $request['accountId'] = $this->get_account_id();
         Async\await($this->privatePutTradeOrder($request));
@@ -1128,7 +1128,7 @@ class hibachi extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $nonce = $this->nonce();
+        $nonce = $this->incrementing_nonce();
         $requestOrders = array();
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $orders[$i];
@@ -1264,7 +1264,7 @@ class hibachi extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $nonce = $this->nonce();
+        $nonce = $this->incrementing_nonce();
         $nonce16 = $this->int_to_base16($nonce);
         $noncePadded = str_pad($nonce16, 16, '0', STR_PAD_LEFT);
         $message = $this->base16_to_binary($noncePadded);

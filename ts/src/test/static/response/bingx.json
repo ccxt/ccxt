@@ -6,6 +6,7 @@
         "fetchDepositWithdrawFees": [
             {
                 "description": "Single-network withdrawal fee from live currency metadata",
+                "disabledCS": true,
                 "method": "fetchDepositWithdrawFees",
                 "input": [
                     [

@@ -77,7 +77,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                     }} );
                 }} );
             }} );
-            put( "options", new HashMap<String, Object>() {{}} );
+            put( "options", new HashMap<String, Object>() {{
+                put( "unsubscribeTimeout", 10000 );
+            }} );
             put( "streaming", new HashMap<String, Object>() {{
                 put( "ping", "ping");
                 put( "keepAlive", 20000 );
@@ -328,6 +330,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
+            (this.waitForPendingUnsubscribe(url, messageHash)).join();
             Object orderbook = (this.watch(url, messageHash, message, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
@@ -358,7 +361,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             String subMessageHash = ("orderbook:" + symbol);
             String messageHash = ("unsubscribe:" + subMessageHash);
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            Object id = String.valueOf(this.nonce());
+            Object id = String.valueOf(this.incrementingNonce());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "method", "unsubscribe" );
@@ -457,6 +460,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                     put( "coin", (((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)))) ? ((Map<String, Object>)market).get("baseName") : ((Map<String, Object>)market).get("id") );
                 }} );
             }};
+            (this.waitForPendingUnsubscribe(url, messageHash)).join();
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
         }).thenApply(Ticker::new);
 
@@ -546,6 +550,8 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 Helpers.addElementToObject(request.get("subscription"), "type", "allMids");
                 Helpers.addElementToObject(request.get("subscription"), "dex", defaultDex);
             }
+            // unWatchTickers always registers the bare 'unsubscribe:tickers' hash, dex-scoped or not
+            (this.waitForPendingUnsubscribe(url, "tickers")).join();
             Object tickers = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             if (this.newUpdates)
             {
@@ -641,6 +647,8 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 throw new ArgumentsRequired((this.id + " watchMyTrades() requires a user address")) ;
             }
             String subscribeHash = ("subscribe:userFills::" + userAddress.toLowerCase());
+            // unWatchMyTrades registers 'unsubscribe:myTrades', not the per-user dedup hash
+            (this.waitForPendingUnsubscribe(url, "myTrades")).join();
             Object trades = (this.watch(url, messageHash, message, subscribeHash, null)).join();
             if (this.newUpdates)
             {
@@ -882,6 +890,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
+            (this.waitForPendingUnsubscribe(url, messageHash)).join();
             Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
             if (this.newUpdates)
             {
@@ -1084,6 +1093,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }};
             String messageHash = ((("candles:" + timeframe) + ":") + symbol);
             Map<String, Object> message = this.extend(request, parameters);
+            (this.waitForPendingUnsubscribe(url, messageHash)).join();
             Object ohlcv = (this.watch(url, messageHash, message, messageHash, null)).join();
             if (this.newUpdates)
             {
@@ -1226,7 +1236,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             parameters = this.safeDict(unifiedResult, 1, parameters);
             String dex = this.safeString(parameters, "dex");
             Boolean isSpot = ((java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(isUnifiedEnabled, true))) && (java.util.Objects.equals(dex, null));
-            String topic = (((java.util.Objects.equals(isSpot, true)))) ? "spotState" : "clearinghouseState";
+            Object topic = (((java.util.Objects.equals(isSpot, true)))) ? "spotState" : "clearinghouseState";
             Object messageHash = (topic + "::balance");
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             final Object finalTopic = topic;
@@ -1253,6 +1263,10 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "subscription", subscription );
             }};
             Map<String, Object> message = this.extend(request, parameters);
+            // the swap topic 'clearinghouseState' is one server subscription shared
+            // with watchPositions, so a pending unWatchPositions delays this watch
+            // too - its ack tears the shared stream down and sweeps both futures
+            (this.waitForPendingUnsubscribe(url, topic)).join();
             return (this.watch(url, messageHash, message, topic, null)).join();
         }).thenApply(Balances::new);
 
@@ -1499,7 +1513,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object userAddressResult = this.handlePublicAddress("watchPositions", (Map<String, Object>) (parameters));
             userAddress = this.safeString(userAddressResult, 0);
             parameters = this.safeDict(userAddressResult, 1, parameters);
-            String topic = "clearinghouseState";
+            Object topic = "clearinghouseState";
             String messageHash = (topic + "::positions");
             if ((!java.util.Objects.equals(symbols, null)) && !this.isEmpty(symbols))
             {
@@ -1523,6 +1537,10 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "subscription", subscription );
             }};
             Map<String, Object> message = this.extend(request, parameters);
+            // the topic 'clearinghouseState' is one server subscription shared with
+            // the swap watchBalance, so a pending unWatchBalance delays this watch
+            // too - its ack tears the shared stream down and sweeps both futures
+            (this.waitForPendingUnsubscribe(url, topic)).join();
             Client client = this.client(url);
             this.setPositionsCache(client, symbols);
             Object cache = this.positions;
@@ -1687,6 +1705,8 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 throw new ArgumentsRequired((this.id + " watchOrders() requires a user address")) ;
             }
             String subscribeHash = ("subscribe:orderUpdates::" + userAddress.toLowerCase());
+            // unWatchOrders registers 'unsubscribe:order', not the per-user dedup hash
+            (this.waitForPendingUnsubscribe(url, "order")).join();
             Object orders = (this.watch(url, messageHash, message, subscribeHash, null)).join();
             if (this.newUpdates)
             {
@@ -1873,6 +1893,62 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             return true;
         }
         return false;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#waitForPendingUnsubscribe
+     * @ignore
+     * @description waits for the acknowledgement of a still-pending unsubscribe request for the same subscription before subscribing again — a watch armed inside that window would never send a subscribe (deduplicated against the stale entry) and its future would be rejected by the pending ack, see https://github.com/ccxt/ccxt/issues/30419
+     * @param {string} url the websocket endpoint the subscription lives on
+     * @param {string} subHash the subscription hash the watch call is about to register
+     * @returns {any} resolves once no unsubscribe request is pending for the subscription, or after options.unsubscribeTimeout ms
+     */
+    public CompletableFuture<Object> waitForPendingUnsubscribe(Object url2, Object subHash)
+    {
+        final Object url3 = url2;
+        return BaseExchange.supplyAsync(() -> {
+            Object url = url3;
+            if (((Map<?, ?>)this.clients).containsKey(url))
+            {
+                Client client = this.client(url);
+                String unsubHash = ("unsubscribe:" + subHash);
+                if (((Map<?, ?>)client.subscriptions).containsKey(unsubHash))
+                {
+                    // share the unWatch caller's future; a lost ack is timed out so the watch cannot hang
+                    Long timeout = this.safeInteger(this.options, "unsubscribeTimeout", 10000);
+                    this.scheduleCallback(timeout, "expirePendingUnsubscribe", client, subHash, unsubHash);
+                    try
+                    {
+                        client.future(unsubHash).getFuture().join();
+                    } catch(Exception e)
+                    {
+                        if (!(Helpers.isInstance(e, RequestTimeout.class)))
+                        {
+                            throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+                        }
+                    }
+                }
+            }
+            return null;
+        });
+
+    }
+
+    public CompletableFuture<Object> expirePendingUnsubscribe(Client client, Object subHash, Object unsubHash2)
+    {
+        final Object unsubHash3 = unsubHash2;
+        return BaseExchange.supplyAsync(() -> {
+            Object unsubHash = unsubHash3;
+            if (((Map<?, ?>)client.subscriptions).containsKey(unsubHash))
+            {
+                var error = new RequestTimeout((((this.id + " unsubscribe ") + subHash) + " was not acknowledged"));
+                client.reject(error, unsubHash);
+                this.cleanUnsubscription(client, (String) (subHash), (String) (unsubHash));
+            }
+            return null;
+        });
+
     }
 
     public void handleOrderBookUnsubscription(Client client, Map<String, Object> subscription)
@@ -2077,7 +2153,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             } else if (java.util.Objects.equals(type, "userFills"))
             {
                 this.handleMyTradesUnsubscription(client, (Map<String, Object>) (subscription));
-            } else if (java.util.Objects.equals(type, "clearinghoustState"))
+            } else if (java.util.Objects.equals(type, "clearinghouseState"))
             {
                 this.handlePositionsUnsubscription(client, (Map<String, Object>) (subscription));
             } else if (java.util.Objects.equals(type, "spotState"))

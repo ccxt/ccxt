@@ -2701,7 +2701,7 @@ class xt extends Exchange {
                 $createMarketBuyOrderRequiresPrice = $this->safe_bool($this->options, 'createMarketBuyOrderRequiresPrice', true);
                 if ($createMarketBuyOrderRequiresPrice === true) {
                     if ($price === null && ($cost === null)) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires a $price argument or $cost in $params for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
+                        throw new InvalidOrder($this->id . ' createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
@@ -2794,7 +2794,7 @@ class xt extends Exchange {
         }
         if (($trailingTriggerPrice !== null) && !$isTrailing) {
             // do not silently place a regular order when a trailing activation price was requested
-            throw new ArgumentsRequired($this->id . ' createOrder() $trailingTriggerPrice requires $trailingPercent or trailingAmount');
+            throw new ArgumentsRequired($this->id . ' createOrder() trailingTriggerPrice requires trailingPercent or trailingAmount');
         }
         if ($price !== null) {
             if (!($isStopLoss) && !($isTakeProfit) && !($isTrailing)) {
@@ -2909,7 +2909,7 @@ class xt extends Exchange {
         if ($trailing === true) {
             $isContract = ($subType !== null) || ($type === 'swap') || ($type === 'future');
             if (!$isContract) {
-                throw new NotSupported($this->id . ' fetchOrder() $trailing orders are only supported on swap and future markets');
+                throw new NotSupported($this->id . ' fetchOrder() trailing orders are only supported on swap and future markets');
             }
         }
         if ($trigger === true) {
@@ -3116,7 +3116,7 @@ class xt extends Exchange {
         if ($trailing === true) {
             $isContract = ($subType !== null) || ($type === 'swap') || ($type === 'future');
             if (!$isContract) {
-                throw new NotSupported($this->id . ' fetchOrders() $trailing $orders are only supported on swap and future markets');
+                throw new NotSupported($this->id . ' fetchOrders() trailing orders are only supported on swap and future markets');
             }
         }
         if ($trigger === true) {
@@ -3290,7 +3290,7 @@ class xt extends Exchange {
         if ($trailing === true) {
             $isContract = ($subType !== null) || ($type === 'swap') || ($type === 'future');
             if (!$isContract) {
-                throw new NotSupported($this->id . ' fetchOrdersByStatus() $trailing $orders are only supported on swap and future markets');
+                throw new NotSupported($this->id . ' fetchOrdersByStatus() trailing orders are only supported on swap and future markets');
             }
             // the track endpoints do not accept a state filter, and a server-side
             // size would truncate the mixed-state page before the local status
@@ -3693,7 +3693,7 @@ class xt extends Exchange {
         if ($trailing === true) {
             $isContract = ($subType !== null) || ($type === 'swap') || ($type === 'future');
             if (!$isContract) {
-                throw new NotSupported($this->id . ' cancelOrder() $trailing orders are only supported on swap and future markets');
+                throw new NotSupported($this->id . ' cancelOrder() trailing orders are only supported on swap and future markets');
             }
         }
         if ($trigger === true) {
@@ -3800,7 +3800,7 @@ class xt extends Exchange {
         if ($trailing === true) {
             $isContract = ($subType !== null) || ($type === 'swap') || ($type === 'future');
             if (!$isContract) {
-                throw new NotSupported($this->id . ' cancelAllOrders() $trailing orders are only supported on swap and future markets');
+                throw new NotSupported($this->id . ' cancelAllOrders() trailing orders are only supported on swap and future markets');
             }
         }
         if ($trigger === true) {
@@ -4586,12 +4586,12 @@ class xt extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         $positionSide = $this->safe_string($params, 'positionSide');
         $this->check_required_argument('setLeverage', $positionSide, 'positionSide', array( 'LONG', 'SHORT' ));
         if (($leverage < 1) || ($leverage > 125)) {
-            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 125');
+            throw new BadRequest($this->id . ' setLeverage() leverage should be between 1 and 125');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -4914,7 +4914,7 @@ class xt extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -5830,7 +5830,7 @@ class xt extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -5841,7 +5841,7 @@ class xt extends Exchange {
         }
         $marginMode = strtolower($marginMode);
         if ($marginMode !== 'isolated' && $marginMode !== 'cross') {
-            throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
+            throw new BadRequest($this->id . ' setMarginMode() marginMode argument should be isolated or cross');
         }
         if ($marginMode === 'cross') {
             $marginMode = 'CROSSED';
@@ -5901,7 +5901,7 @@ class xt extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($amount === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires an amount argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());

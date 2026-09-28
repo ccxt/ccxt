@@ -1314,7 +1314,7 @@ class derive extends Exchange {
         }
         $market = $this->market($symbol);
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument');
         }
         $subaccountId = null;
         list($subaccountId, $params) = $this->handle_derive_subaccount_id('createOrder', $params);
@@ -1325,7 +1325,7 @@ class derive extends Exchange {
         $orderType = strtolower($type);
         $orderSide = strtolower($side);
         $orderSideIsBuy = ($orderSide === 'buy'); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         $signatureExpiry = $this->safe_integer($params, 'signature_expiry_sec', $this->seconds() + 7776000);
         $ACTION_TYPEHASH = $this->base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
@@ -1520,7 +1520,7 @@ class derive extends Exchange {
         $orderType = strtolower($type);
         $orderSide = strtolower($side);
         $orderSideIsBuy = ($orderSide === 'buy'); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $signatureExpiry = $this->safe_number($params, 'signature_expiry_sec', $this->seconds() + 7776000);
         // TODO: subaccount id / trade module address
         $ACTION_TYPEHASH = $this->base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
@@ -1681,7 +1681,7 @@ class derive extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2848,7 +2848,7 @@ class derive extends Exchange {
         if ($optionsWallet !== null) {
             return array( $optionsWallet, $params );
         }
-        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $deriveWalletAddress parameter inside \'params\' or exchange.options[\'deriveWalletAddress\'] = ADDRESS, the address can find in HOME => Developers tab.');
+        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a deriveWalletAddress parameter inside \'params\' or exchange.options[\'deriveWalletAddress\'] = ADDRESS, the address can find in HOME => Developers tab.');
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
@@ -2864,6 +2864,12 @@ class derive extends Exchange {
             throw new ExchangeError($feedback);
         }
         return null;
+    }
+
+    public function nonce(): float {
+        // the order nonce is a millisecond timestamp and must be unique per wallet (error 11017), while staying a valid date (error 11018)
+        // incrementingNonce () reads this and bumps past the previous value when two orders share a millisecond
+        return $this->milliseconds();
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {

@@ -250,6 +250,12 @@ impl BybiteuCore {
         m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("mica".to_string(), Value::Bool(true));
+        m.insert("defaultType".to_string(), Value::Str("spot".into()));
+        m.insert("fetchMarkets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("types".to_string(), Value::from(vec![Value::Str("spot".into())]));
+    m
+}));
     m
 }));
     m

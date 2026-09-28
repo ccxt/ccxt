@@ -1477,7 +1477,8 @@ impl BitfinexCore {
         let mut future: Value = client.reusable_future(messageHash.clone());
         let mut authenticated: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[]);
         if (authenticated == Value::Null) {
-            let mut nonce: Value = self.milliseconds();
+            // the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
+            let mut nonce: Value = self.incrementing_nonce();
             let mut payload: Value = Value::Str(format!("{}{}", Value::Str("AUTH".into()), to_string_val(&nonce)).into());
             let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[Value::Str("hex".into())]);
             let mut event: Value = Value::Str("auth".into());

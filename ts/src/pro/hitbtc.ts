@@ -157,7 +157,7 @@ export default class hitbtc extends hitbtcRest {
         }
         const subscribe: Dict = {
             'method': 'subscribe',
-            'id': this.nonce (),
+            'id': this.incrementingNonce (),
             'ch': name,
         };
         const request = this.extend (subscribe, params);
@@ -185,7 +185,7 @@ export default class hitbtc extends hitbtcRest {
         const subscribe: Dict = {
             'method': name,
             'params': params,
-            'id': this.nonce (),
+            'id': this.incrementingNonce (),
         };
         return await this.watch (url, messageHash, subscribe, messageHash);
     }
@@ -202,7 +202,7 @@ export default class hitbtc extends hitbtcRest {
         }
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
-        const messageHash = this.nonce ().toString ();
+        const messageHash = this.incrementingNonce ().toString ();
         const subscribe: Dict = {
             'method': name,
             'params': params,

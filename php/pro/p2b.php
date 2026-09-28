@@ -113,7 +113,7 @@ class p2b extends \ccxt\async\p2b {
         $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $channel = $this->safe_integer($timeframes, $timeframe);
         if ($channel === null) {
-            throw new BadRequest($this->id . ' watchOHLCV cannot take a $timeframe of ' . $timeframe);
+            throw new BadRequest($this->id . ' watchOHLCV cannot take a timeframe of ' . $timeframe);
         }
         $market = $this->market($symbol);
         $request = array(
@@ -525,7 +525,7 @@ class p2b extends \ccxt\async\p2b {
     public function handle_error_message(Client $client, array $message): ?bool {
         $error = $this->safe_string($message, 'error');
         if ($error !== null) {
-            throw new ExchangeError($this->id . ' $error => ' . $this->json($error));
+            throw new ExchangeError($this->id . ' error => ' . $this->json($error));
         }
         return false;
     }

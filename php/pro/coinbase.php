@@ -293,7 +293,7 @@ class coinbase extends \ccxt\async\coinbase {
             $subscribe['signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
         } else {
             if (str_starts_with($this->apiKey, '-----BEGIN')) {
-                throw new ArgumentsRequired($this->id . ' apiKey should contain the $name (eg => organizations/3b910e93....) and not the public key');
+                throw new ArgumentsRequired($this->id . ' apiKey should contain the name (eg => organizations/3b910e93....) and not the public key');
             }
             $currentToken = $this->safe_string($this->options, 'wsToken');
             $tokenTimestamp = $this->safe_integer($this->options, 'wsTokenTimestamp', 0);

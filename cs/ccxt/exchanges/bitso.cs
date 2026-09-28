@@ -2178,7 +2178,8 @@ public partial class bitso : Exchange
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
-            string nonce = ((object)this.nonce()).ToString();
+            // bitso rejects a nonce that is not higher than the previous one (error 104)
+            string nonce = ((object)this.incrementingNonce()).ToString();
             endpoint = ("/api" + endpoint);
             List<object> content = new List<object>() {nonce, method, endpoint};
             object request = String.Join("", ((IList<object>)content).ToArray());

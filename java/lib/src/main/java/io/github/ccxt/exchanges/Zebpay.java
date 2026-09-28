@@ -784,7 +784,7 @@ public class Zebpay extends ZebpayApi
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-order-book
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
@@ -803,13 +803,13 @@ public class Zebpay extends ZebpayApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
+            if (!java.util.Objects.equals(limit, null))
+            {
+                ((Map<String, Object>)request).put("limit", limit);
+            }
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                if (!java.util.Objects.equals(limit, null))
-                {
-                    ((Map<String, Object>)request).put("limit", limit);
-                }
                 //
                 //       {
                 //         "asks": [
@@ -936,9 +936,11 @@ public class Zebpay extends ZebpayApi
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch. Swap: 1–1000, omit for 1000
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch (inclusive). Swap: requires since
      * @param {int} [params.endtime] the latest time in ms to fetch orders for
+     * @param {string} [params.priceType] *swap only* LTP (default) or MARK_PRICE
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
@@ -955,50 +957,52 @@ public class Zebpay extends ZebpayApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            if (java.util.Objects.equals(limit, null))
-            {
-                limit = 100; // default is 200
-            }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
-            {
-                ((Map<String, Object>)request).put("interval", this.safeString(this.timeframes, timeframe, timeframe));
-            } else
-            {
-                ((Map<String, Object>)request).put("interval", timeframe);
-            }
-            if ((java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)) && (!java.util.Objects.equals(limit, null)))
-            {
-                ((Map<String, Object>)request).put("limit", limit);
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
-                {
-                    ((Map<String, Object>)request).put("startTime", since);
-                } else
-                {
-                    ((Map<String, Object>)request).put("since", since);
-                }
-            }
             Long until = (Long) this.safeInteger2(parameters, "until", "endtime");
-            if (!java.util.Objects.equals(until, null))
-            {
-                ((Map<String, Object>)request).put("endTime", until);
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("endtime", "until")));
-            }
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "endtime", "endTime", "interval", "startTime")));
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
+                if (java.util.Objects.equals(limit, null))
+                {
+                    limit = 100;
+                }
+                ((Map<String, Object>)request).put("interval", this.safeString(this.timeframes, timeframe, timeframe));
+                if (!java.util.Objects.equals(since, null))
+                {
+                    ((Map<String, Object>)request).put("startTime", since);
+                }
+                if (!java.util.Objects.equals(until, null))
+                {
+                    ((Map<String, Object>)request).put("endTime", until);
+                }
                 if (java.util.Objects.equals(until, null) || java.util.Objects.equals(since, null))
                 {
                     throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a both a since and until/endtime parameter for spot markets")) ;
                 }
+                parameters = this.omit(parameters, "priceType");
                 response = (this.publicSpotGetV2MarketKlines(this.extend(request, parameters))).join();
             } else
             {
+                ((Map<String, Object>)request).put("timeframe", timeframe);
+                if (!java.util.Objects.equals(limit, null))
+                {
+                    ((Map<String, Object>)request).put("limit", limit);
+                }
+                if (!java.util.Objects.equals(since, null))
+                {
+                    ((Map<String, Object>)request).put("since", since);
+                }
+                if (!java.util.Objects.equals(until, null))
+                {
+                    if (java.util.Objects.equals(since, null))
+                    {
+                        throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a since argument when params[\"until\"] is used")) ;
+                    }
+                    ((Map<String, Object>)request).put("until", until);
+                }
                 response = (this.publicSwapPostV1MarketKlines(this.extend(request, parameters))).join();
             }
             //
@@ -2439,6 +2443,14 @@ public class Zebpay extends ZebpayApi
                 }
             } else
             {
+                String priceType = this.safeString(parameters, "priceType");
+                parameters = this.omit(parameters, "priceType");
+                if (!java.util.Objects.equals(priceType, null))
+                {
+                    url = Helpers.add(url, ("?" + this.urlencode(new HashMap<String, Object>() {{
+    put( "priceType", priceType );
+}})));
+                }
                 body = Helpers.json(parameters);
                 headers = new HashMap<String, Object>() {{
                     put( "Referrer", "ccxt" );

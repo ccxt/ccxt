@@ -75,7 +75,9 @@ impl crate::exchange::DerivedExchange for BitbankCore {
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitbankCore.
-        BitbankCore::sign(self, path, &[api, method, params, headers, body])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitbankCore as *mut BitbankCore) };
+        BitbankCore::sign(me, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitbankCore.
@@ -1558,7 +1560,7 @@ impl BitbankCore {
     Value::Null
 }
 
-    pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
+    pub fn sign(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
         let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -1584,7 +1586,7 @@ impl BitbankCore {
             let mut isTimeWindow: bool = authMethod.as_deref() == Some("timeWindow");
             let mut requestTime: Value = to_string_val(&self.milliseconds());
             let mut timeWindow: Value = self.safe_string_k(self.options.clone(), "timeWindow", &[Value::Str("5000".into())]);
-            let mut nonce: Value = to_string_val(&self.nonce());
+            let mut nonce: Value = to_string_val(&self.incrementing_nonce());
             let mut auth: Value = Value::Null;
             if isTimeWindow {
                 auth = Value::Str(format!("{}{}", requestTime, timeWindow).into());

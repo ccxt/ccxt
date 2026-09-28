@@ -282,7 +282,7 @@ export default class whitebit extends whitebitRest {
         symbols = this.marketSymbols(symbols, undefined, false);
         const method = 'market_subscribe';
         const url = this.urls['api']['ws'];
-        const id = this.nonce();
+        const id = this.incrementingNonce();
         const messageHashes = [];
         const args = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -869,7 +869,7 @@ export default class whitebit extends whitebitRest {
     }
     async watchPublic(messageHash, method, reqParams = [], params = {}) {
         const url = this.urls['api']['ws'];
-        const id = this.nonce();
+        const id = this.incrementingNonce();
         const request = {
             'id': id,
             'method': method,
@@ -883,7 +883,7 @@ export default class whitebit extends whitebitRest {
             await this.loadMarkets();
         }
         const url = this.urls['api']['ws'];
-        const id = this.nonce();
+        const id = this.incrementingNonce();
         const client = this.safeValue(this.clients, url);
         let request = undefined;
         let marketIds = [];
@@ -945,7 +945,7 @@ export default class whitebit extends whitebitRest {
         this.checkRequiredCredentials();
         await this.authenticate();
         const url = this.urls['api']['ws'];
-        const id = this.nonce();
+        const id = this.incrementingNonce();
         const request = {
             'id': id,
             'method': method,
@@ -1001,7 +1001,7 @@ export default class whitebit extends whitebitRest {
                 // venue answers that with an opaque socket drop
                 throw new AuthenticationError(this.id + ' authenticate() received an empty websocket_token');
             }
-            const id = this.nonce();
+            const id = this.incrementingNonce();
             const request = {
                 'id': id,
                 'method': 'authorize',

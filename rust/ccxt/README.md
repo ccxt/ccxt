@@ -18,6 +18,23 @@ let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
 println!("{} {:?}", ticker.symbol, ticker.last);
 ```
 
+## Pick your exchanges (build time and memory)
+
+Every exchange is behind a cargo feature named after its id. The default feature set
+(`all`) compiles all of them, which needs roughly 19 GB of RAM and several minutes for a
+fresh debug build. Disable the defaults and list the venues you use to compile only those:
+
+```toml
+[dependencies]
+ccxt = { version = "4", default-features = false, features = ["binance", "kraken", "okx"] }
+```
+
+Measured on the same machine, a fresh build of a crate using those three exchanges drops
+from 3m23s / 18.6 GB peak RSS to 29s / 2.5 GB (release: 7m49s / 50 GB to 3m05s / 4.9 GB). A derived venue enables
+its parent automatically (`binanceus` pulls in `binance`). `ccxt-pro` and
+`ccxt-prediction` use the same feature names, so use the same list on every ccxt crate you
+depend on. `from_id` only knows the venues that were compiled in.
+
 ## WebSocket (`watch*`)
 
 Streaming lives in [`ccxt-pro`](https://crates.io/crates/ccxt-pro). Its wrappers carry the

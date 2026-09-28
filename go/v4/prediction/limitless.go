@@ -2682,7 +2682,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 		}(this)
 
 	}
-	var nonce int64 = this.Milliseconds()
+	var nonce any = this.IncrementingNonce()
 	var sides map[string]any = map[string]any{
 		"buy":  0,
 		"sell": 1,
@@ -4028,6 +4028,11 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan any, tags any, optional
 
 	ch <- allRaw
 	return nil
+}
+func (this *Limitless) Nonce() any {
+	// the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
+	// unique when two orders are signed within the same millisecond
+	return this.Milliseconds()
 }
 
 /**

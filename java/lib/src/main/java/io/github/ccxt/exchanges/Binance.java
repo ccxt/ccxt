@@ -5424,6 +5424,7 @@ public class Binance extends BinanceApi
         Object fees = this.fees;
         Object linear = null;
         Object inverse = null;
+        String subType = null;
         Object symbol = ((base + "/") + quote);
         Object strike = null;
         if (Boolean.TRUE.equals(contract))
@@ -5442,6 +5443,13 @@ public class Binance extends BinanceApi
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
             linear = java.util.Objects.equals(settle, quote);
             inverse = java.util.Objects.equals(settle, base);
+            if (java.util.Objects.equals(linear, true))
+            {
+                subType = "linear";
+            } else if (java.util.Objects.equals(inverse, true))
+            {
+                subType = "inverse";
+            }
             String feesType = ((Boolean.TRUE.equals(linear))) ? "linear" : "inverse";
             fees = this.safeDict(this.fees, feesType, new HashMap<String, Object>() {{}});
         }
@@ -5520,6 +5528,7 @@ public class Binance extends BinanceApi
         final Object finalContract = contract;
         final Object finalLinear = linear;
         final Object finalInverse = inverse;
+        final Object finalSubType = subType;
         final Object finalFees = fees;
         final Object finalContractSize = contractSize;
         final Object finalExpiry = expiry;
@@ -5546,6 +5555,7 @@ public class Binance extends BinanceApi
             put( "contract", finalContract );
             put( "linear", finalLinear );
             put( "inverse", finalInverse );
+            put( "subType", finalSubType );
             put( "taker", Helpers.GetValue(((Map<String, Object>)finalFees).get("trading"), "taker") );
             put( "maker", Helpers.GetValue(((Map<String, Object>)finalFees).get("trading"), "maker") );
             put( "contractSize", finalContractSize );
@@ -6207,7 +6217,7 @@ public class Binance extends BinanceApi
         //
         //     {
         //         "symbol": "BTCUSDT",
-        //         "markPrice": "11793.63104563", // mark price
+        //         "markPrice": "11793.63104565", // mark price
         //         "indexPrice": "11781.80495970", // index price
         //         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts
         //         "lastFundingRate": "0.00038246",  // This is the lastest estimated funding rate
@@ -6950,7 +6960,7 @@ public class Binance extends BinanceApi
         //         "open": "32.2",
         //         "high": "32.2",
         //         "low": "32.2",
-        //         "close": "32.2",
+        //         "close": "32.3",
         //         "volume": "0",
         //         "interval": "5m",
         //         "tradeCount": 0,

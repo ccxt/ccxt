@@ -1015,8 +1015,8 @@ func (this *Upbit) ParseTicker(ticker any, optionalArgs ...any) any {
 		"close":         last,
 		"last":          last,
 		"previousClose": this.SafeString(ticker, "prev_closing_price"),
-		"change":        this.SafeString(ticker, "signed_change_price"),
-		"percentage":    Precise.StringMul(this.SafeString(ticker, "signed_change_rate"), "100"),
+		"change":        nil,
+		"percentage":    nil,
 		"average":       nil,
 		"baseVolume":    this.SafeString(ticker, "acc_trade_volume_24h"),
 		"quoteVolume":   this.SafeString(ticker, "acc_trade_price_24h"),
@@ -1051,8 +1051,8 @@ func (this *Upbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes80812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes80812)
+		retRes81012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes81012)
 	}
 	symbols = this.MarketSymbols(symbols)
 	var tickers any = []any{}
@@ -1285,8 +1285,8 @@ func (this *Upbit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = params
 	if this.Markets == nil {
 
-		retRes100112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes100112)
+		retRes100312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes100312)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if limit == nil {
@@ -1348,8 +1348,8 @@ func (this *Upbit) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	if this.Markets == nil {
 
-		retRes104912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes104912)
+		retRes105112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes105112)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1429,8 +1429,8 @@ func (this *Upbit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes111512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes111512)
+		retRes111712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes111712)
 	}
 
 	fetchMarketResponse := (<-this.FetchMarketsAsync(params))
@@ -1505,8 +1505,8 @@ func (this *Upbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = params
 	if this.Markets == nil {
 
-		retRes117612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes117612)
+		retRes117812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes117812)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var timeframePeriod any = this.ParseTimeframe(timeframe)
@@ -1635,8 +1635,8 @@ func (this *Upbit) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	_ = params
 	if this.Markets == nil {
 
-		retRes128412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes128412)
+		retRes128612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes128612)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
@@ -1773,8 +1773,8 @@ func (this *Upbit) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 	_ = params
 	if this.Markets == nil {
 
-		retRes140412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes140412)
+		retRes140612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes140612)
 	}
 	var request map[string]any = map[string]any{
 		"uuid": id,
@@ -1843,8 +1843,8 @@ func (this *Upbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 	_ = params
 	if this.Markets == nil {
 
-		retRes145512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes145512)
+		retRes145712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes145712)
 	}
 	var request map[string]any = map[string]any{}
 	var prevClientOrderId *string = this.SafeString(params, "clientOrderId")
@@ -1984,8 +1984,8 @@ func (this *Upbit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes157512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes157512)
+		retRes157712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes157712)
 	}
 	var request map[string]any = map[string]any{}
 	var currency any = nil
@@ -2046,8 +2046,8 @@ func (this *Upbit) fetchDepositBody(ch chan any, id any, optionalArgs ...any) an
 	_ = params
 	if this.Markets == nil {
 
-		retRes162312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes162312)
+		retRes162512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes162512)
 	}
 	var request map[string]any = map[string]any{
 		"uuid": id,
@@ -2110,8 +2110,8 @@ func (this *Upbit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes166612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes166612)
+		retRes166812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes166812)
 	}
 	var request map[string]any = map[string]any{}
 	var currency any = nil
@@ -2173,8 +2173,8 @@ func (this *Upbit) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...any)
 	_ = params
 	if this.Markets == nil {
 
-		retRes171412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes171412)
+		retRes171612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes171612)
 	}
 	var request map[string]any = map[string]any{
 		"uuid": id,
@@ -2489,8 +2489,8 @@ func (this *Upbit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes200912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes200912)
+		retRes201112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes201112)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -2562,8 +2562,8 @@ func (this *Upbit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes206112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes206112)
+		retRes206312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes206312)
 	}
 	var request any = map[string]any{
 		"state": "done",
@@ -2644,8 +2644,8 @@ func (this *Upbit) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if this.Markets == nil {
 
-		retRes212012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes212012)
+		retRes212212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes212212)
 	}
 	var request any = map[string]any{
 		"state": "cancel",
@@ -2720,8 +2720,8 @@ func (this *Upbit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	_ = params
 	if this.Markets == nil {
 
-		retRes217712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes217712)
+		retRes217912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes217912)
 	}
 	var request map[string]any = map[string]any{
 		"uuid": id,
@@ -2801,8 +2801,8 @@ func (this *Upbit) fetchDepositAddressesBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if this.Markets == nil {
 
-		retRes224112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes224112)
+		retRes224312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes224312)
 	}
 
 	response := (<-this.PrivateGetDepositsCoinAddresses(params))
@@ -2879,8 +2879,8 @@ func (this *Upbit) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 	_ = params
 	if this.Markets == nil {
 
-		retRes230312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes230312)
+		retRes230512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes230512)
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var networkCode any = nil
@@ -2931,8 +2931,8 @@ func (this *Upbit) createDepositAddressBody(ch chan any, code any, optionalArgs 
 	_ = params
 	if this.Markets == nil {
 
-		retRes233812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes233812)
+		retRes234012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes234012)
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
@@ -2996,8 +2996,8 @@ func (this *Upbit) withdrawBody(ch chan any, code any, amount any, address any, 
 	params = GetValue(tagparamsVariable, 1)
 	if this.Markets == nil {
 
-		retRes238412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes238412)
+		retRes238612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes238612)
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{

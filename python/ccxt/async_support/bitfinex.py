@@ -2926,7 +2926,8 @@ class bitfinex(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(query)
         if api == 'private':
             self.check_required_credentials()
-            nonce = str(self.nonce())
+            # bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
+            nonce = str(self.incrementing_nonce())
             body = self.json(query)
             auth = '/api/' + request + nonce + body
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha384)

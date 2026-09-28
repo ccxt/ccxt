@@ -1,24 +1,43 @@
-<a id="4.0.3"></a>
-# [4.0.3](https://github.com/ccxt/ccxt/releases/tag/4.0.3) - 2023-07-01
+<a id="v4.5.84"></a>
+# [v4.5.84](https://github.com/ccxt/ccxt/releases/tag/v4.5.84) - 2026-09-24
 
-We are happy to announce the release of CCXT version 4!
-
-During the last months we have been working hard on a few major improvements to the library adding important upgrades, including:
-
-* the merge of CCXT Pro Websocket APIs with the master repository of CCXT
-* the ESM and TypeScript migration for type-safety and portability
-* AST-based transpilation to support popular programming languages like C#
-* unification of perpetual swaps and futures markets among the leading exchanges like Binance and BitMEX
-* adding Bybit v3 and v5 APIs support
-* cryptocom v1 upgrades
-* per-exchange class method specifications: https://docs.ccxt.com/#/spec
-* unified proxy support
-* and many many more fixes and unifications
+## What's Changed
+* fix(foxbit): precision mode to TICK_SIZE by [@ttodua](https://github.com/ttodua) in [#30594](https://github.com/ccxt/ccxt/pull/30594)
+* chore: delist bitmex :/  by [@carlosmiei](https://github.com/carlosmiei) in [#30612](https://github.com/ccxt/ccxt/pull/30612)
+* feat(binance): FX swap tests and FAQ by [@Dan-krm](https://github.com/Dan-krm) in [#30614](https://github.com/ccxt/ccxt/pull/30614)
+* feat(rust): add per crate features to improve build by [@carlosmiei](https://github.com/carlosmiei) in [#30615](https://github.com/ccxt/ccxt/pull/30615)
+* chore: update rust readme [ci skip] by [@carlosmiei](https://github.com/carlosmiei) in [#30618](https://github.com/ccxt/ccxt/pull/30618)
 
 
-We highly recommend downloading and installing the most recent release of CCXT version 4.0.3+ in order to get a much smoother experience for your trading operations.
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.83...v4.5.84
 
-[Changes][4.0.3]
+[Changes][v4.5.84]
+
+
+<a id="v4.5.83"></a>
+# [v4.5.83](https://github.com/ccxt/ccxt/releases/tag/v4.5.83) - 2026-09-23
+
+## What's Changed
+* Emit native Go/Java/C#/Rust instead of runtime helpers where the checker proves operand types by [@carlotestor](https://github.com/carlotestor) in [#30516](https://github.com/ccxt/ccxt/pull/30516)
+* fix(bingx): preserve Coin-M trade IDs by [@AresArtemius](https://github.com/AresArtemius) in [#30570](https://github.com/ccxt/ccxt/pull/30570)
+* fix(pacifica): fill the average price of a filled order in fetchOrder by [@rayBastard](https://github.com/rayBastard) in [#30572](https://github.com/ccxt/ccxt/pull/30572)
+* fix(rust): adapt to new types by [@carlosmiei](https://github.com/carlosmiei) in [#30581](https://github.com/ccxt/ccxt/pull/30581)
+* fix(mexc): parse futures maker trades by [@AresArtemius](https://github.com/AresArtemius) in [#30578](https://github.com/ccxt/ccxt/pull/30578)
+* chore: update rust readme by [@carlosmiei](https://github.com/carlosmiei) in [#30584](https://github.com/ccxt/ccxt/pull/30584)
+* feat(sxbet): file sxbet.ts added by [@rayBastard](https://github.com/rayBastard) in [#29449](https://github.com/ccxt/ccxt/pull/29449)
+* fix(extended): keep object identity across ws updates - watchBalance by [@yzh-pelle](https://github.com/yzh-pelle) in [#30585](https://github.com/ccxt/ccxt/pull/30585)
+* fix(bybitid): permission error correction by [@ttodua](https://github.com/ttodua) in [#30589](https://github.com/ccxt/ccxt/pull/30589)
+* fix(build): announce the right release, and stop pruning tags that back a release by [@pcriadoperez](https://github.com/pcriadoperez) in [#30577](https://github.com/ccxt/ccxt/pull/30577)
+* fix(bitvavo): fetchOHLCV max limit & fixture by [@ttodua](https://github.com/ttodua) in [#30587](https://github.com/ccxt/ccxt/pull/30587)
+* fix(apex): fetchOHLCV max limit by [@ttodua](https://github.com/ttodua) in [#30586](https://github.com/ccxt/ccxt/pull/30586)
+* fix(zaif): pass since and limit to closed orders by [@AresArtemius](https://github.com/AresArtemius) in [#30579](https://github.com/ccxt/ccxt/pull/30579)
+* fix(okx): ignore a false trigger param when routing order requests by [@rayBastard](https://github.com/rayBastard) in [#30575](https://github.com/ccxt/ccxt/pull/30575)
+* feat(bitget): add fetchDeposit and fetchWithdrawal by [@rayBastard](https://github.com/rayBastard) in [#30559](https://github.com/ccxt/ccxt/pull/30559)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.82...v4.5.83
+
+[Changes][v4.5.83]
 
 
 <a id="v4.5.82"></a>
@@ -14375,7 +14394,8 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.3.22]
 
 
-[4.0.3]: https://github.com/ccxt/ccxt/compare/v4.5.82...4.0.3
+[v4.5.84]: https://github.com/ccxt/ccxt/compare/v4.5.83...v4.5.84
+[v4.5.83]: https://github.com/ccxt/ccxt/compare/v4.5.82...v4.5.83
 [v4.5.82]: https://github.com/ccxt/ccxt/compare/v4.5.81...v4.5.82
 [v4.5.81]: https://github.com/ccxt/ccxt/compare/v4.5.80...v4.5.81
 [v4.5.80]: https://github.com/ccxt/ccxt/compare/v4.5.78...v4.5.80

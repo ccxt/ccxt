@@ -160,7 +160,7 @@ export default class hyperliquid extends Exchange {
                 'public': {
                     'post': {
                         'info': {
-                            'cost': 20,
+                            'cost': 10,
                             'byType': {
                                 'l2Book': 2,
                                 'allMids': 2,
@@ -2122,7 +2122,7 @@ export default class hyperliquid extends Exchange {
         await this.initializeClient();
         const market = this.market(symbol);
         const nonce = this.incrementingNonce();
-        const isBuy = (side === 'BUY');
+        const isBuy = (side.toUpperCase() === 'BUY');
         let vaultAddress = undefined;
         const randomize = this.safeBool(params, 'randomize', false);
         params = this.omit(params, 'randomize');

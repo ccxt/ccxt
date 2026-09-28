@@ -1697,7 +1697,49 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         //         }
         //     }
         //
+        //
+        //     {
+        //         "error": {
+        //             "code": 30003,
+        //             "message": "Already Subscribed to : market_stats:all"
+        //         }
+        //     }
+        //
+        //     {
+        //         "error": {
+        //             "code": 30002,
+        //             "message": "Not Subscribed to : order_book:0"
+        //         }
+        //     }
+        //
         Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error");
+        String errorCode = this.safeString(error, "code");
+        if (java.util.Objects.equals(errorCode, "30003"))
+        {
+            // a duplicate subscribe is harmless - the server-side subscription is intact and
+            // data keeps flowing, while the generic reject below would hit every pending
+            // future on the connection because the venue echoes no request id,
+            // same handling for the same notice on hyperliquid, apex and krakenfutures
+            return true;
+        }
+        if (java.util.Objects.equals(errorCode, "30002"))
+        {
+            // the requested state is already reached, so the unWatch call resolves and only
+            // its own channel gets cleaned up. The channel is available solely inside the
+            // message text, a changed text format falls through to the generic reject below
+            String notSubscribedMessage = this.safeString(error, "message", "");
+            Object messageParts = new ArrayList<Object>(Arrays.asList(((String)notSubscribedMessage).split(java.util.regex.Pattern.quote(" : "))));
+            String notSubscribedChannel = this.safeString(messageParts, 1);
+            if (!java.util.Objects.equals(notSubscribedChannel, null))
+            {
+                final Object finalNotSubscribedChannel = notSubscribedChannel;
+                Map<String, Object> unsubscribed = new HashMap<String, Object>() {{
+                    put( "channel", finalNotSubscribedChannel );
+                }};
+                this.handleUnSubscription(client, (Map<String, Object>) (unsubscribed));
+                return true;
+            }
+        }
         try
         {
             if (!java.util.Objects.equals(error, null))

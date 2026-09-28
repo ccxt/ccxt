@@ -1343,7 +1343,8 @@ func (this *Bitfinex) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(authenticated, nil) {
-		var nonce int64 = this.Milliseconds()
+		// the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
+		var nonce any = this.IncrementingNonce()
 		var payload any = "AUTH" + ccxt.ToString(nonce)
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha384, "hex")
 		var event string = "auth"
@@ -1358,9 +1359,9 @@ func (this *Bitfinex) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
-	retRes105015 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes105015)
-	ch <- retRes105015
+	retRes105115 := <-future.(*ccxt.Future).Await()
+	ccxt.PanicOnError(retRes105115)
+	ch <- retRes105115
 	return nil
 }
 func (this *Bitfinex) HandleAuthenticationMessage(client any, message map[string]any) {
@@ -1408,8 +1409,8 @@ func (this *Bitfinex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes108212 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes108212)
+		retRes108312 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes108312)
 	}
 	var messageHash any = "orders"
 	if symbol != nil {

@@ -571,7 +571,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         list($account, $params) = $this->handle_option_and_params($params, 'watchBalance', 'account');
         if ($account !== null) {
             if ($account !== 'futures' && $account !== 'flex_futures') {
-                throw new ArgumentsRequired($this->id . ' watchBalance $account must be either \'futures\' or \'flex_futures\'');
+                throw new ArgumentsRequired($this->id . ' watchBalance account must be either \'futures\' or \'flex_futures\'');
             }
             $messageHash .= ':' . $account;
         }
