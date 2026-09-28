@@ -452,6 +452,10 @@ func promiseAll(tasksInterface interface{}) <-chan ccxt.AsyncResult[any] {
 	return ccxt.PromiseAll(tasksInterface)
 }
 
+func PromiseAllTyped[T any, R ccxt.TypedOutcome[T]](tasks ...<-chan R) <-chan ccxt.AsyncResult[[]T] {
+	return ccxt.PromiseAllTyped[T, R](tasks...)
+}
+
 func ParseInt(number interface{}) int64 {
 	return ccxt.ParseInt(number)
 }

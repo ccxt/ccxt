@@ -2516,6 +2516,47 @@ type AsyncOutcome interface {
 	Failure() error
 }
 
+// TypedOutcome is an async result carrying a T: AsyncResult[T] and EndpointResult[T].
+type TypedOutcome[T any] interface {
+	Typed() T
+	Failure() error
+}
+
+// PromiseAllTyped awaits same-T typed channels; the first failing task by index fails the whole call.
+func PromiseAllTyped[T any, R TypedOutcome[T]](tasks ...<-chan R) <-chan AsyncResult[[]T] {
+	ch := make(chan AsyncResult[[]T], 1)
+	go func() {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		results := make([]T, len(tasks))
+		failures := make([]error, len(tasks))
+		var wg sync.WaitGroup
+		wg.Add(len(tasks))
+		for i, task := range tasks {
+			go func(i int, task <-chan R) {
+				defer wg.Done()
+				defer func() {
+					if r := recover(); r != nil && r != "break" {
+						failures[i] = RecoveredError(r)
+					}
+				}()
+				if r, ok := <-task; ok {
+					results[i], failures[i] = r.Typed(), r.Failure()
+				}
+			}(i, task)
+		}
+		wg.Wait()
+		for _, err := range failures {
+			if err != nil {
+				ch <- AsyncResult[[]T]{Err: err}
+				return
+			}
+		}
+		ch <- AsyncResult[[]T]{Value: results}
+	}()
+	return ch
+}
+
 var asyncOutcomeType = reflect.TypeOf((*AsyncOutcome)(nil)).Elem()
 
 // awaitOutcome receives one result from an async core channel or a *Future; anything else reads nil.
@@ -3193,6 +3234,11 @@ func (r AsyncResult[T]) Failure() error {
 	return r.Err
 }
 
+// Typed returns the carried value.
+func (r AsyncResult[T]) Typed() T {
+	return r.Value
+}
+
 // AwaitResult receives once from an async core; on success conv builds the typed Value.
 func AwaitResult[T any](conv func(any) T, ch <-chan AsyncResult[any]) AsyncResult[T] {
 	r := <-ch
@@ -3228,6 +3274,11 @@ func (r EndpointResult[T]) Boxed() any {
 // Failure returns the carried error, nil on success.
 func (r EndpointResult[T]) Failure() error {
 	return r.Err
+}
+
+// Typed returns the typed view of the response.
+func (r EndpointResult[T]) Typed() T {
+	return r.Value
 }
 
 // Checked panics with the carried error, else returns the typed view.
