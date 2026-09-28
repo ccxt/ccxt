@@ -1037,11 +1037,11 @@ export default class bigone extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const timestamp = this.safeInteger (data, 'Timestamp');
+        const timestamp = this.safeIntegerProduct (data, 'Timestamp', 0.000001);
         if (timestamp === undefined) {
             throw new ExchangeError (this.id + ' fetchTime() missing timestamp');
         }
-        return this.parseToInt (timestamp / 1000000);
+        return timestamp;
     }
 
     /**
