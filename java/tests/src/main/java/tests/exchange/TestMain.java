@@ -3169,16 +3169,27 @@ public class TestMain extends BaseTest
                 ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "limit", "buy", 0.002, 102000, new HashMap<String, Object>() {{
                     put( "triggerPrice", 101000 );
                 }}})).join();
-                Object checkOrderRequest = this.urlencodedToDict(exchange.last_request_body);
-                Boolean algoOrderIdDefined = (!java.util.Objects.equals(((Map<String, Object>)checkOrderRequest).get("algoOrderId"), null));
-                Assert(algoOrderIdDefined, "binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined");
-                Object clientAlgoIdSwap = ((Map<String, Object>)swapAlgoOrderRequest).get("clientAlgoId");
-                String swapAlgoIdString = String.valueOf(swapId);
-                Assert(java.util.Objects.equals(((String)clientAlgoIdSwap).startsWith(swapAlgoIdString), true), ((("binance - swap clientOrderId: " + clientAlgoIdSwap) + " does not start with swapId") + swapAlgoIdString));
             } catch(Exception e)
             {
                 swapAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
             }
+            Object clientAlgoIdSwap = ((Map<String, Object>)swapAlgoOrderRequest).get("clientAlgoId");
+            Assert(!java.util.Objects.equals(clientAlgoIdSwap, null), "binance - swap conditional order must send clientAlgoId");
+            Assert(java.util.Objects.equals(((String)clientAlgoIdSwap).startsWith(swapIdString), true), ((("binance - swap clientAlgoId: " + clientAlgoIdSwap) + " does not start with swapId") + swapIdString));
+            // inverse swap conditional order
+            Object inverseAlgoOrderRequest = new HashMap<String, Object>() {{}};
+            try
+            {
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USD:BTC", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{
+                    put( "triggerPrice", 21000 );
+                }}})).join();
+            } catch(Exception e)
+            {
+                inverseAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            Object clientAlgoIdInverse = ((Map<String, Object>)inverseAlgoOrderRequest).get("clientAlgoId");
+            Assert(!java.util.Objects.equals(clientAlgoIdInverse, null), "binance - inverse swap conditional order must send clientAlgoId");
+            Assert(java.util.Objects.equals(((String)clientAlgoIdInverse).startsWith(inverseSwapId), true), ((("binance - inverse swap clientAlgoId: " + clientAlgoIdInverse) + " does not start with inverseSwapId") + inverseSwapId));
             Object createOrdersRequest = new HashMap<String, Object>() {{}};
             try
             {
@@ -3206,6 +3217,53 @@ public class TestMain extends BaseTest
                 Object currentClientOrderId = Helpers.GetValue(current, "newClientOrderId");
                 Assert(java.util.Objects.equals(((String)currentClientOrderId).startsWith(swapIdString), true), ((("binance createOrders - clientOrderId: " + currentClientOrderId) + " does not start with swapId") + swapIdString));
             }
+            // linear conditional orders cannot be batched
+            Boolean linearConditionalBatchNotSupported = false;
+            try
+            {
+                List<Object> linearConditionalOrders = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+        put( "symbol", "BTC/USDT:USDT" );
+        put( "type", "limit" );
+        put( "side", "buy" );
+        put( "amount", 1 );
+        put( "price", 20000 );
+        put( "params", new HashMap<String, Object>() {{
+            put( "triggerPrice", 21000 );
+        }} );
+    }}));
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrders", new Object[]{linearConditionalOrders, new HashMap<String, Object>() {{}}})).join();
+            } catch(Exception e)
+            {
+                linearConditionalBatchNotSupported = (Helpers.isInstance(e, NotSupported.class));
+            }
+            Assert(linearConditionalBatchNotSupported, "binance createOrders - linear conditional order must throw NotSupported");
+            // inverse conditional orders are batched in the regular (non-algo) format
+            Object inverseConditionalBatchRequest = new HashMap<String, Object>() {{}};
+            Boolean inverseConditionalBatchNotSupported = false;
+            try
+            {
+                List<Object> inverseConditionalOrders = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+        put( "symbol", "BTC/USD:BTC" );
+        put( "type", "limit" );
+        put( "side", "buy" );
+        put( "amount", 1 );
+        put( "price", 20000 );
+        put( "params", new HashMap<String, Object>() {{
+            put( "triggerPrice", 21000 );
+        }} );
+    }}));
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrders", new Object[]{inverseConditionalOrders, new HashMap<String, Object>() {{}}})).join();
+            } catch(Exception e)
+            {
+                inverseConditionalBatchNotSupported = (Helpers.isInstance(e, NotSupported.class));
+                inverseConditionalBatchRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            Assert(!Boolean.TRUE.equals(inverseConditionalBatchNotSupported), "binance createOrders - inverse conditional order must not throw NotSupported");
+            Object inverseConditionalBatchOrders = exchange.safeList(inverseConditionalBatchRequest, "batchOrders", new ArrayList<Object>(Arrays.asList()));
+            Object inverseConditionalBatchOrder = exchange.safeDict(inverseConditionalBatchOrders, 0, new HashMap<String, Object>() {{}});
+            String inverseConditionalClientOrderId = exchange.safeString(inverseConditionalBatchOrder, "newClientOrderId");
+            Assert(!java.util.Objects.equals(inverseConditionalClientOrderId, null), "binance createOrders - inverse conditional order must send newClientOrderId");
+            Assert(java.util.Objects.equals(inverseConditionalClientOrderId.startsWith(((String)inverseSwapId)), true), ((("binance createOrders - inverse conditional clientOrderId: " + inverseConditionalClientOrderId) + " does not start with inverseSwapId") + inverseSwapId));
             if (!Helpers.isTrue(isSync()))
             {
                 (close(exchange)).join();

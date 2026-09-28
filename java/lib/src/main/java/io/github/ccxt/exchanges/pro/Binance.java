@@ -4530,24 +4530,22 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String messageHash = String.valueOf(requestId);
             Boolean sor = (Boolean) this.safeBool2(parameters, "sor", "SOR", false);
             Map<String, Object> paramsOmitted = this.omit(parameters, "sor", "SOR");
-            String triggerPrice = this.safeString2(paramsOmitted, "triggerPrice", "stopPrice");
-            String stopLossPrice = this.safeString(paramsOmitted, "stopLossPrice", triggerPrice);
-            String takeProfitPrice = this.safeString(paramsOmitted, "takeProfitPrice");
-            String trailingDelta = this.safeString(paramsOmitted, "trailingDelta");
-            String trailingPercent = this.safeStringN(paramsOmitted, new ArrayList<Object>(Arrays.asList("trailingPercent", "callbackRate", "trailingDelta")));
-            Boolean isTrailingPercentOrder = !java.util.Objects.equals(trailingPercent, null);
-            Boolean isStopLoss = !java.util.Objects.equals(stopLossPrice, null) || !java.util.Objects.equals(trailingDelta, null);
-            Boolean isTakeProfit = !java.util.Objects.equals(takeProfitPrice, null);
-            Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
-            Boolean isConditional = Boolean.TRUE.equals(isTriggerOrder) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit);
-            Map<String, Object> payload = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsOmitted);
+            Boolean isConditional = this.isConditionalOrder(paramsOmitted);
+            if ((java.util.Objects.equals(market.get("inverse"), true)) && Boolean.TRUE.equals(isConditional))
+            {
+                throw new NotSupported((this.id + " createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead")) ;
+            }
+            Boolean isAlgoOrder = (java.util.Objects.equals(market.get("linear"), true)) && ((java.util.Objects.equals(market.get("swap"), true)) || (java.util.Objects.equals(market.get("future"), true))) && Boolean.TRUE.equals(isConditional);
+            Map<String, Object> payload = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, this.extend(paramsOmitted, new HashMap<String, Object>() {{
+                put( "isAlgoOrder", isAlgoOrder );
+            }}));
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsOmitted), "createOrderWs", "returnRateLimits", false);
             Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
             Map<String, Object> paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.second();
             payload.put("returnRateLimits", returnRateLimits);
             Boolean test = (Boolean) this.safeBool(paramsReturnRateLimits, "test", false);
             Map<String, Object> paramsOmitted2 = this.omit(paramsReturnRateLimits, "test");
-            if ((java.util.Objects.equals(market.get("linear"), true)) && (java.util.Objects.equals(market.get("swap"), true)) && Boolean.TRUE.equals(isConditional))
+            if (Boolean.TRUE.equals(isAlgoOrder))
             {
                 payload.put("algoType", "CONDITIONAL");
             }
@@ -4566,7 +4564,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     message.put("method", "order.test");
                 }
             }
-            if ((java.util.Objects.equals(market.get("linear"), true)) && (java.util.Objects.equals(market.get("swap"), true)) && Boolean.TRUE.equals(isConditional))
+            if (Boolean.TRUE.equals(isAlgoOrder))
             {
                 message.put("method", "algoOrder.place");
             }
@@ -5572,6 +5570,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             clientOrderId = this.safeString(order, "c");
         }
         String stopPrice = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("P", "sp", "tp")));
+        String orderType = this.safeStringLower(order, "o");
+        // stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
+        boolean isTakeProfitType = this.inArray(orderType, new ArrayList<Object>(Arrays.asList("take_profit", "take_profit_market", "take_profit_limit")));
+        Object takeProfitPrice = ((isTakeProfitType)) ? this.omitZero(stopPrice) : null;
         String timeInForce = this.safeString(order, "f");
         if (java.util.Objects.equals(timeInForce, "GTX"))
         {
@@ -5587,7 +5589,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         mapLiteral11.put("datetime", this.iso8601(timestamp));
         mapLiteral11.put("lastTradeTimestamp", lastTradeTimestamp);
         mapLiteral11.put("lastUpdateTimestamp", lastUpdateTimestamp);
-        mapLiteral11.put("type", this.parseOrderTypeByMarket(this.safeStringLower(order, "o"), marketType));
+        mapLiteral11.put("type", this.parseOrderTypeByMarket((String) (orderType), marketType));
         mapLiteral11.put("timeInForce", timeInForce);
         mapLiteral11.put("postOnly", null);
         mapLiteral11.put("reduceOnly", this.safeBool(order, "R", (Object) null));
@@ -5595,6 +5597,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         mapLiteral11.put("price", this.safeString(order, "p"));
         mapLiteral11.put("stopPrice", stopPrice);
         mapLiteral11.put("triggerPrice", stopPrice);
+        mapLiteral11.put("takeProfitPrice", takeProfitPrice);
         mapLiteral11.put("amount", this.safeString(order, "q"));
         mapLiteral11.put("cost", this.safeString(order, "Z"));
         mapLiteral11.put("average", this.safeString(order, "ap"));
