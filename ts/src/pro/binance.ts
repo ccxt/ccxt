@@ -3466,7 +3466,7 @@ export default class binance extends binanceRest {
             'method': this.handlePositionsWs,
         };
         const result = await this.watch (url, messageHash, message, messageHash, subscription);
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     handlePositionsWs (client: Client, message: Dict) {

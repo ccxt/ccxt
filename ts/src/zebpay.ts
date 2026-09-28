@@ -1519,7 +1519,7 @@ export default class zebpay extends Exchange {
         //
         const positions: Dict[] = this.safeList (response, 'data', []);
         const result = this.parsePositions (positions);
-        return this.filterByArrayPositions (result, 'symbol', symbols, false);
+        return this.filterByArrayPositions (result, 'symbol', symbols);
     }
 
     /**

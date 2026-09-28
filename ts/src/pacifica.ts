@@ -2761,7 +2761,7 @@ export default class pacifica extends Exchange {
         for (let i = 0; i < data.length; i++) {
             result.push (this.parsePosition (data[i], undefined));
         }
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {

@@ -6866,7 +6866,7 @@ export default class bybit extends Exchange {
             }
             results.push (this.parsePosition (rawPosition));
         }
-        return this.filterByArrayPositions (results, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (results, 'symbol', symbolsNormalized);
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {

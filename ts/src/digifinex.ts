@@ -3764,7 +3764,7 @@ export default class digifinex extends Exchange {
         for (let i = 0; i < positions.length; i++) {
             result.push (this.parsePosition (positions[i], market));
         }
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     /**

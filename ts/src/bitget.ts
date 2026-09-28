@@ -9013,7 +9013,7 @@ export default class bitget extends Exchange {
             result.push (this.parsePosition (position[i], market));
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {
