@@ -333,7 +333,7 @@ class toobit extends \ccxt\async\toobit {
             $unfiedTimeframe = $this->safe_string($data, 1, '1m');
             $rawTimeframe = $this->safe_string($timeframes, $unfiedTimeframe, $unfiedTimeframe);
             if ($selectedTimeframe !== null && $selectedTimeframe !== $rawTimeframe) {
-                throw new NotSupported($this->id . ' watchOHLCVForSymbols() only supports a single $timeframe for all symbols');
+                throw new NotSupported($this->id . ' watchOHLCVForSymbols() only supports a single timeframe for all symbols');
             } else {
                 $selectedTimeframe = $rawTimeframe;
             }
@@ -1083,7 +1083,7 @@ class toobit extends \ccxt\async\toobit {
         if (!$this->is_empty($symbols)) {
             $symbols = $this->market_symbols($symbols);
             if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
+                throw new ArgumentsRequired($this->id . ' watchPositions() symbols is required');
             }
             $messageHash = '::' . implode(',', $symbols);
         }
@@ -1340,7 +1340,7 @@ class toobit extends \ccxt\async\toobit {
         $code = $this->safe_string($message, 'code');
         if ($code !== null) {
             $desc = $this->safe_string($message, 'desc');
-            $msg = $this->id . ' $code => ' . $code . ' $message => ' . $desc;
+            $msg = $this->id . ' code => ' . $code . ' message => ' . $desc;
             $exception = new ExchangeError($msg); // c# fix
             $client->reject($exception);
             return true;

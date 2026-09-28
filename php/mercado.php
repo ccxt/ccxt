@@ -587,7 +587,7 @@ class mercado extends Exchange {
         } else {
             if ($side === 'buy') {
                 if ($price === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and amount');
+                    throw new InvalidOrder($this->id . ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount');
                 }
                 $amountString = $this->number_to_string($amount);
                 $priceString = $this->number_to_string($price);
@@ -615,7 +615,7 @@ class mercado extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -745,7 +745,7 @@ class mercado extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -785,17 +785,17 @@ class mercado extends Exchange {
         if ($code === 'BRL') {
             $account_ref = (is_array($params) && array_key_exists('account_ref' ?? '', $params));
             if (!$account_ref) {
-                throw new ArgumentsRequired($this->id . ' withdraw() requires $account_ref parameter to withdraw ' . $code);
+                throw new ArgumentsRequired($this->id . ' withdraw() requires account_ref parameter to withdraw ' . $code);
             }
         } elseif ($code !== 'LTC') {
             $tx_fee = (is_array($params) && array_key_exists('tx_fee' ?? '', $params));
             if (!$tx_fee) {
-                throw new ArgumentsRequired($this->id . ' withdraw() requires $tx_fee parameter to withdraw ' . $code);
+                throw new ArgumentsRequired($this->id . ' withdraw() requires tx_fee parameter to withdraw ' . $code);
             }
             if ($code === 'XRP') {
                 if ($tag === null) {
                     if (!(is_array($params) && array_key_exists('destination_tag' ?? '', $params))) {
-                        throw new ArgumentsRequired($this->id . ' withdraw() requires a $tag argument or destination_tag parameter to withdraw ' . $code);
+                        throw new ArgumentsRequired($this->id . ' withdraw() requires a tag argument or destination_tag parameter to withdraw ' . $code);
                     }
                 } else {
                     $request['destination_tag'] = $tag;
@@ -921,7 +921,7 @@ class mercado extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -946,7 +946,7 @@ class mercado extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -972,7 +972,7 @@ class mercado extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1001,6 +1001,11 @@ class mercado extends Exchange {
         return $result;
     }
 
+    public function nonce(): float {
+        // the venue accepts any strictly-increasing integer tonce, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return $this->milliseconds();
+    }
+
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api'][$api] . '/';
         $query = $this->omit($params, $this->extract_params($path));
@@ -1012,7 +1017,8 @@ class mercado extends Exchange {
         } else {
             $this->check_required_credentials();
             $url .= $this->version . '/';
-            $nonce = $this->nonce();
+            // mercado requires each tonce to be greater than the previous one
+            $nonce = $this->incrementing_nonce();
             $body = $this->urlencode($this->extend(array(
                 'tapi_method' => $path,
                 'tapi_nonce' => $nonce,

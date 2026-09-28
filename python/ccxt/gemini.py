@@ -1922,7 +1922,8 @@ class gemini(Exchange, ImplicitAPI):
             apiKey = self.apiKey
             if apiKey.find('account') < 0:
                 raise AuthenticationError(self.id + ' sign() requires an account-key, master-keys are not-supported')
-            nonce = str(self.nonce())
+            # gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
+            nonce = str(self.incrementing_nonce())
             finalUrl = url
             request = self.extend({
                 'request': finalUrl,

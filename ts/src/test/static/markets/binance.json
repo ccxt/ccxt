@@ -4795,7 +4795,7 @@
     "contract": true,
     "linear": true,
     "inverse": false,
-    "subType": null,
+    "subType": "linear",
     "taker": 0.0005,
     "maker": 0.0002,
     "contractSize": 1,

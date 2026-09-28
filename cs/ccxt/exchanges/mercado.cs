@@ -1151,6 +1151,12 @@ public partial class mercado : Exchange
         return ((List<object>)((object)(result)));
     }
 
+    public override Int64 nonce()
+    {
+        // the venue accepts any strictly-increasing integer tonce, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return this.milliseconds();
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
@@ -1169,7 +1175,8 @@ public partial class mercado : Exchange
         {
             this.checkRequiredCredentials();
             url = add(url, (this.version + "/"));
-            Int64 nonce = this.nonce();
+            // mercado requires each tonce to be greater than the previous one
+            object nonce = this.incrementingNonce();
             body = this.urlencode(this.extend(new Dictionary<string, object>() {
                 { "tapi_method", path },
                 { "tapi_nonce", nonce },

@@ -791,7 +791,7 @@ class cryptomus extends Exchange {
                 list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 if ($createMarketBuyOrderRequiresPrice) {
                     if (($price === null) && ($cost === null)) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option of param to false and pass the $cost to spend in the $amount argument');
+                        throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument');
                     } elseif ($cost === null) {
                         $cost = Precise::string_mul($amountToString, $priceToString);
                     }
@@ -805,13 +805,13 @@ class cryptomus extends Exchange {
             $response = Async\await($this->privatePostV2UserApiExchangeOrdersMarket($this->extend($request, $params)));
         } elseif ($type === 'limit') {
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price parameter for a ' . $type . ' order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a price parameter for a ' . $type . ' order');
             }
             $request['quantity'] = $amountToString;
             $request['price'] = $price;
             $response = Async\await($this->privatePostV2UserApiExchangeOrders($this->extend($request, $params)));
         } else {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $type parameter (limit or $market)');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a type parameter (limit or market)');
         }
         //
         //     {

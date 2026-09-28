@@ -763,9 +763,11 @@ class upbit(Exchange, ImplicitAPI):
             'close': last,
             'last': last,
             'previousClose': self.safe_string(ticker, 'prev_closing_price'),
-            'change': self.safe_string(ticker, 'signed_change_price'),
-            # signed_change_rate is a ratio, and a ticker reports a percentage
-            'percentage': Precise.string_mul(self.safe_string(ticker, 'signed_change_rate'), '100'),
+            # signed_change_* are measured against prev_closing_price, so safeTicker derives
+            # change/percentage from open instead; change, percentage and average are all
+            # undefined when opening_price is missing or zero.
+            'change': None,
+            'percentage': None,
             'average': None,
             'baseVolume': self.safe_string(ticker, 'acc_trade_volume_24h'),
             'quoteVolume': self.safe_string(ticker, 'acc_trade_price_24h'),

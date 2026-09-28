@@ -141,7 +141,7 @@ class bithumb extends \ccxt\async\bithumb {
         $symbols = $this->market_symbols($symbols, null, false, true, true);
         $symbolsLength = ($symbols === null) ? 0 : count($symbols);
         if ($isGenerationTwo && ($symbolsLength === 0)) {
-            throw new ArgumentsRequired($this->id . ' watchTickers() requires $symbols for the $generation 2 API');
+            throw new ArgumentsRequired($this->id . ' watchTickers() requires symbols for the generation 2 API');
         }
         if ($symbols === null) {
             $symbols = $this->symbols;
@@ -769,7 +769,7 @@ class bithumb extends \ccxt\async\bithumb {
             } else {
                 $addedMessage = '';
             }
-            $client->reject(new ExchangeError($this->id . ' websocket $error ' . $errorName . $addedMessage));
+            $client->reject(new ExchangeError($this->id . ' websocket error ' . $errorName . $addedMessage));
             return false;
         }
         if (!(is_array($message) && array_key_exists('status' ?? '', $message))) {
@@ -811,7 +811,7 @@ class bithumb extends \ccxt\async\bithumb {
         $generation = null;
         list($generation, $params) = $this->handle_option_and_params($params, 'watchBalance', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' watchBalance() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' watchBalance() is only supported for the generation 2 API');
         }
         Async\await($this->authenticate());
         $url = $this->urls['api']['ws']['privateGen2'];
@@ -935,7 +935,7 @@ class bithumb extends \ccxt\async\bithumb {
         $generation = null;
         list($generation, $params) = $this->handle_option_and_params($params, 'watchOrders', 'generation', 2);
         if ($generation !== 2) {
-            throw new BadRequest($this->id . ' watchOrders() is only supported for the $generation 2 API');
+            throw new BadRequest($this->id . ' watchOrders() is only supported for the generation 2 API');
         }
         Async\await($this->authenticate());
         $url = $this->urls['api']['ws']['privateGen2'];

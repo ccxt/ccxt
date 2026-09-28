@@ -3692,7 +3692,8 @@ export default class kraken extends Exchange {
             const isCancelOrderBatch = (path === 'CancelOrderBatch');
             const isBatchOrder = (path === 'AddOrderBatch');
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
+            // kraken rejects a nonce that is not greater than the previous one for the key (EAPI:Invalid nonce)
+            const nonce = this.incrementingNonce ().toString ();
             if (isCancelOrderBatch || isTriggerPercent || isBatchOrder) {
                 body = this.json (this.extend ({ 'nonce': nonce }, params));
             } else {

@@ -1,6 +1,6 @@
 [package]
 name = "ccxt"
-version = "4.5.83"
+version = "4.5.84"
 edition = "2021"
 description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – typed unified-method API (re-exports the ccxt-base engine)"
 license = "MIT"
@@ -134,7 +134,7 @@ all = ["alpaca", "apex", "aster", "backpack", "bequant", "bigone", "binance", "b
 # invocation compiles the whole generated surface at once (CI memory ceiling).
 # This `ccxt` crate re-exports ccxt-base at its root, so `ccxt::Value`,
 # `ccxt::exchanges::…`, `ccxt::runtime::…` resolve alongside the typed wrappers.
-ccxt-base = { path = "../ccxt-base", version = "4.5.83", features = ["engine"] }
+ccxt-base = { path = "../ccxt-base", version = "4.5.84", features = ["engine"] }
 
 # The generated typed wrappers (`src/exchanges/*_typed.rs`, `typed.rs`, emitted
 # by build/generateRustWrappers.ts) reference exactly one external crate

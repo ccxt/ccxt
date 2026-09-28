@@ -482,11 +482,16 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'instrument': market['id'],
             'granularity': this.safeString(this.timeframes, timeframe, timeframe),
         };
+        const duration = this.parseTimeframe(timeframe);
         if (since !== undefined) {
             request['start'] = this.iso8601(since);
         }
         else {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOHLCV() requires a since argument');
+            if (limit === undefined) {
+                limit = 300; // the default of api
+            }
+            since = this.sum(this.milliseconds(), -limit * duration * 1000);
+            request['start'] = this.iso8601(since);
         }
         const unitl = this.safeInteger(params, 'until');
         if (unitl !== undefined) {

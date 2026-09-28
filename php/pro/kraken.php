@@ -132,7 +132,7 @@ class kraken extends \ccxt\async\kraken {
         $isLimitOrder = str_ends_with($type, 'limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
         if ($isLimitOrder) {
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . ' limit orders require a $price argument');
+                throw new ArgumentsRequired($this->id . ' limit orders require a price argument');
             }
             $request['params']['limit_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
         }
@@ -244,7 +244,7 @@ class kraken extends \ccxt\async\kraken {
             }
         } elseif ($method === 'editOrderWs') {
             if ($isPresetStopLoss || $isPresetTakeProfit) {
-                throw new NotSupported($this->id . ' editing the $stopLoss and $takeProfit on existing orders is currently not supported');
+                throw new NotSupported($this->id . ' editing the stopLoss and takeProfit on existing orders is currently not supported');
             }
             if ($isStopLossPriceOrder || $isTakeProfitPriceOrder) {
                 if ($isStopLossPriceOrder) {
@@ -399,7 +399,7 @@ class kraken extends \ccxt\async\kraken {
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol !== null) {
-            throw new NotSupported($this->id . ' cancelOrdersWs () does not support cancelling orders for a specific $symbol->');
+            throw new NotSupported($this->id . ' cancelOrdersWs () does not support cancelling orders for a specific symbol.');
         }
         Async\await($this->load_markets());
         $token = Async\await($this->authenticate());
@@ -433,7 +433,7 @@ class kraken extends \ccxt\async\kraken {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol !== null) {
-            throw new NotSupported($this->id . ' cancelOrderWs () does not support cancelling orders for a specific $symbol->');
+            throw new NotSupported($this->id . ' cancelOrderWs () does not support cancelling orders for a specific symbol.');
         }
         Async\await($this->load_markets());
         $token = Async\await($this->authenticate());
@@ -825,7 +825,7 @@ class kraken extends \ccxt\async\kraken {
             if ($this->in_array($limit, array( 10, 25, 100, 500, 1000 ))) {
                 $requiredParams['depth'] = $limit; // default 10, valid options 10, 25, 100, 500, 1000
             } else {
-                throw new NotSupported($this->id . ' watchOrderBook accepts $limit values of 10, 25, 100, 500 and 1000 only');
+                throw new NotSupported($this->id . ' watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only');
             }
         }
         $orderbook = Async\await($this->watch_multi_helper('orderbook', 'book', $symbols, array( 'limit' => $limit ), $this->extend($requiredParams, $params)));

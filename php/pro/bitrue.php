@@ -625,7 +625,7 @@ class bitrue extends \ccxt\async\bitrue {
         $futuresTimeframes = $this->safe_dict($this->options, 'futuresTimeframes', array());
         $interval = $this->safe_string($futuresTimeframes, $timeframe);
         if ($interval === null) {
-            throw new NotSupported($this->id . ' watchOHLCV does not support $timeframe ' . $timeframe);
+            throw new NotSupported($this->id . ' watchOHLCV does not support timeframe ' . $timeframe);
         }
         $baseIdLower = $this->safe_string_lower($market, 'baseId');
         $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
@@ -931,7 +931,7 @@ class bitrue extends \ccxt\async\bitrue {
                     throw new AuthenticationError($this->id . ' authenticate() received an empty listenKey');
                 }
                 $this->options['listenKey'] = $key;
-                $this->options['listenKeyUrl'] = $this->urls['api']['ws']['private'] . '/stream?$listenKey=' . $key;
+                $this->options['listenKeyUrl'] = $this->urls['api']['ws']['private'] . '/stream?listenKey=' . $key;
                 $client->resolve($key, $messageHash);
             } catch (Exception $e) {
                 // reject the flight - all waiters throw and the next caller

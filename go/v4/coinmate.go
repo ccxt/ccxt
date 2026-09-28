@@ -1720,7 +1720,8 @@ func (this *Coinmate) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var nonce string = ToString(this.Nonce())
+		// coinmate requires each nonce to be greater than the previous one for the key
+		var nonce string = ToString(this.IncrementingNonce())
 		var auth any = Add(Add(nonce, this.Uid), this.ApiKey)
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		body = this.Urlencode(this.Extend(map[string]any{

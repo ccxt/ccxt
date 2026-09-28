@@ -1171,7 +1171,7 @@ class hollaex extends Exchange {
         //             }
         $order = $response;
         if ($order === null) {
-            throw new OrderNotFound($this->id . ' fetchOrder() could not find $order $id ' . $id);
+            throw new OrderNotFound($this->id . ' fetchOrder() could not find order id ' . $id);
         }
         return $this->parse_order($order);
     }
@@ -1439,7 +1439,7 @@ class hollaex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1919,7 +1919,7 @@ class hollaex extends Exchange {
         }
         $network = $this->safe_string($params, 'network');
         if ($network === null) {
-            throw new ArgumentsRequired($this->id . ' withdraw() requires a $network parameter');
+            throw new ArgumentsRequired($this->id . ' withdraw() requires a network parameter');
         }
         $params = $this->omit($params, 'network');
         $request = array(
@@ -2000,7 +2000,7 @@ class hollaex extends Exchange {
                 $currencyCode = $this->safe_currency_code($currencyId);
                 $networkCode = $this->network_id_to_code($key, $currencyCode);
                 if ($networkCode === null) {
-                    throw new ArgumentsRequired($this->id . ' requires a $networkCode argument');
+                    throw new ArgumentsRequired($this->id . ' requires a networkCode argument');
                 }
                 $networkCodeUpper = strtoupper($networkCode); // default to the upper case network code
                 $withdrawalFee = $this->safe_number($value, 'value');

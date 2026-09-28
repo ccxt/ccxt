@@ -2033,7 +2033,8 @@ export default class gemini extends Exchange {
             if (apiKey.indexOf ('account') < 0) {
                 throw new AuthenticationError (this.id + ' sign() requires an account-key, master-keys are not-supported');
             }
-            const nonce = this.nonce ().toString ();
+            // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
+            const nonce = this.incrementingNonce ().toString ();
             const finalUrl = url;
             const request = this.extend ({
                 'request': finalUrl,

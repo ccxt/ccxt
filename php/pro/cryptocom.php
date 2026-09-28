@@ -79,7 +79,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         try {
             Async\await($client->send(array( 'id' => $this->safe_integer($message, 'id'), 'method' => 'public/respond-heartbeat' )));
         } catch (Exception $e) {
-            $error = new NetworkError($this->id . ' pong failed with $error ' . $this->exception_message($e));
+            $error = new NetworkError($this->id . ' pong failed with error ' . $this->exception_message($e));
             $client->reset($error);
         }
     }
@@ -578,7 +578,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $messageHashes[] = 'ticker.' . $marketId;
         }
         $url = $this->urls['api']['ws']['public'];
-        $id = $this->nonce();
+        $id = $this->incrementing_nonce();
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -740,7 +740,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $topics[] = 'ticker.' . $marketId;
         }
         $url = $this->urls['api']['ws']['public'];
-        $id = $this->nonce();
+        $id = $this->incrementing_nonce();
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -987,7 +987,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
         Async\await($this->authenticate());
         $url = $this->urls['api']['ws']['private'];
-        $id = $this->nonce();
+        $id = $this->incrementing_nonce();
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -999,7 +999,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $symbols = $this->market_symbols($symbols);
         if (!$this->is_empty($symbols)) {
             if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
+                throw new ArgumentsRequired($this->id . ' watchPositions() symbols is required');
             }
             $messageHash = 'positions::' . implode(',', $symbols);
         }
@@ -1221,7 +1221,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             'method' => 'private/create-order',
             'params' => $params,
         );
-        $messageHash = $this->nonce();
+        $messageHash = $this->incrementing_nonce();
         return Async\await($this->watch_private_request($messageHash, $request));
     }
 
@@ -1253,7 +1253,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             'method' => 'private/amend-order',
             'params' => $params,
         );
-        $messageHash = $this->nonce();
+        $messageHash = $this->incrementing_nonce();
         return Async\await($this->watch_private_request($messageHash, $request));
     }
 
@@ -1300,7 +1300,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             'method' => 'private/cancel-order',
             'params' => $params,
         );
-        $messageHash = $this->nonce();
+        $messageHash = $this->incrementing_nonce();
         return Async\await($this->watch_private_request($messageHash, $request));
     }
 
@@ -1330,7 +1330,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $market = $this->market($symbol);
             $request['params']['instrument_name'] = $market['id'];
         }
-        $messageHash = $this->nonce();
+        $messageHash = $this->incrementing_nonce();
         return Async\await($this->watch_private_request($messageHash, $request));
     }
 
@@ -1352,7 +1352,7 @@ class cryptocom extends \ccxt\async\cryptocom {
 
     private function do_watch_public(?string $messageHash, $params = array()) {
         $url = $this->urls['api']['ws']['public'];
-        $id = $this->nonce();
+        $id = $this->incrementing_nonce();
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -1370,7 +1370,7 @@ class cryptocom extends \ccxt\async\cryptocom {
 
     private function do_watch_public_multiple(array $messageHashes, array $topics, $params = array()) {
         $url = $this->urls['api']['ws']['public'];
-        $id = $this->nonce();
+        $id = $this->incrementing_nonce();
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -1388,7 +1388,7 @@ class cryptocom extends \ccxt\async\cryptocom {
 
     private function do_un_watch_public_multiple(string $topic, array $symbols, array $messageHashes, array $subMessageHashes, array $topics, $params = array(), array $subExtend = array()) {
         $url = $this->urls['api']['ws']['public'];
-        $id = $this->nonce();
+        $id = $this->incrementing_nonce();
         $request = array(
             'method' => 'unsubscribe',
             'params' => array(
@@ -1430,7 +1430,7 @@ class cryptocom extends \ccxt\async\cryptocom {
     private function do_watch_private_subscribe(?string $messageHash, $params = array()) {
         Async\await($this->authenticate());
         $url = $this->urls['api']['ws']['private'];
-        $id = $this->nonce();
+        $id = $this->incrementing_nonce();
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -1575,7 +1575,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $authenticated = $this->safe_value($client->subscriptions, $messageHash);
         if ($authenticated === null) {
             $method = 'public/auth';
-            $nonce = (string) $this->nonce();
+            $nonce = (string) $this->incrementing_nonce();
             $auth = $method . $nonce . $this->apiKey . $nonce;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $request = array(

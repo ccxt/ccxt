@@ -1874,7 +1874,8 @@ class bitso(Exchange, ImplicitAPI):
         url = self.urls['api']['rest'] + endpoint
         if api == 'private':
             self.check_required_credentials()
-            nonce = str(self.nonce())
+            # bitso rejects a nonce that is not higher than the previous one (error 104)
+            nonce = str(self.incrementing_nonce())
             endpoint = '/api' + endpoint
             content = [nonce, method, endpoint]
             request = ''.join(content)

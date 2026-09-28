@@ -1633,7 +1633,7 @@ class toobit extends Exchange {
             return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params);
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -1796,11 +1796,11 @@ class toobit extends Exchange {
 
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         $market = $this->market($symbol);
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a side argument');
         }
         $id = $market['id'];
         $request = array(
@@ -1814,7 +1814,7 @@ class toobit extends Exchange {
         list($cost, $params) = $this->handle_param_string($params, 'cost');
         if ($type === 'market' && $side === 'buy') {
             if ($cost === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires $params["cost"] for $market buy order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires params["cost"] for market buy order');
             }
             $request['quantity'] = $this->cost_to_precision($symbol, $cost);
         } else {
@@ -1832,10 +1832,10 @@ class toobit extends Exchange {
 
     public function create_contract_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -2073,7 +2073,7 @@ class toobit extends Exchange {
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params, 'none');
         if ($marketType === 'none') {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
         }
         $response = array();
         if ($marketType === 'spot') {
@@ -2112,7 +2112,7 @@ class toobit extends Exchange {
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params, 'none');
         if ($marketType === 'none') {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
         }
         $response = null;
         if ($marketType === 'spot') {
@@ -2159,7 +2159,7 @@ class toobit extends Exchange {
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('cancelOrders', $market, $params, 'none');
         if ($marketType === 'none') {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
         }
         $response = null;
         if ($marketType === 'spot') {
@@ -2203,7 +2203,7 @@ class toobit extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2464,7 +2464,7 @@ class toobit extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2710,7 +2710,7 @@ class toobit extends Exchange {
             $symbol = null;
             list($symbol, $params) = $this->handle_param_string($params, 'symbol');
             if ($symbol === null) {
-                throw new BadRequest($this->id . ' fetchTradingFees requires a $params["symbol"]');
+                throw new BadRequest($this->id . ' fetchTradingFees requires a params["symbol"]');
             }
             $market = $this->market($symbol);
             $request = array(
@@ -3055,7 +3055,7 @@ class toobit extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -3088,7 +3088,7 @@ class toobit extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -3168,7 +3168,7 @@ class toobit extends Exchange {
         if ($symbols !== null) {
             $length = count($symbols);
             if ($length > 1) {
-                throw new BadRequest($this->id . ' fetchPositions() only accepts an array with a single symbol or without $symbols argument');
+                throw new BadRequest($this->id . ' fetchPositions() only accepts an array with a single symbol or without symbols argument');
             }
             $firstSymbol = $this->safe_string($symbols, 0);
             if ($firstSymbol !== null) {
@@ -3275,10 +3275,10 @@ class toobit extends Exchange {
             }
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'hex');
             if ($queryString !== '') {
-                $queryString .= '&$signature=' . $signature;
+                $queryString .= '&signature=' . $signature;
                 $url .= '?' . $queryString;
             } else {
-                $body .= '&$signature=' . $signature;
+                $body .= '&signature=' . $signature;
             }
             $headers = array(
                 'Referrer' => 'CCXT',

@@ -44,6 +44,10 @@ impl HyperliquidCore {
 }
 
 impl crate::exchange::DerivedExchange for HyperliquidCore {
+    fn nonce(&self, ) -> crate::Value {
+        // Forward to the inherent method on HyperliquidCore.
+        HyperliquidCore::nonce(self, )
+    }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on HyperliquidCore.
         HyperliquidCore::parse_ohlcv(self, ohlcv, &[market])
@@ -103,6 +107,7 @@ impl crate::exchange_generated::ExchangeBase for HyperliquidCore {
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "handle_public_address" => self.handle_public_address(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "initialize_client" => self.initialize_client().await,
+                "nonce" => self.nonce(),
                 "outcome_asset_id" => self.outcome_asset_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "outcome_encoding" => self.outcome_encoding(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -321,6 +326,12 @@ impl HyperliquidCore {
     pub fn set_sandbox_mode(&mut self, mut enabled: Value) {
         self.super_set_sandbox_mode(enabled.clone());
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sandboxMode".into(), enabled); }
+}
+
+    pub fn nonce(&self) -> Value {
+        return self.milliseconds();
+
+    Value::Null
 }
 
 /*
@@ -1731,7 +1742,7 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut nonce: Value = self.milliseconds();
+        let mut nonce: Value = self.incrementing_nonce();
         let mut isBuy: Value = (Value::Bool(to_upper(&side).as_str() == Some("BUY")));
         let mut isMarket: bool = to_upper(&type_var).as_str() == Some("MARKET");
         let mut assetId: Value = self.safe_integer_k(outcomeInfo, "assetId", &[]);
@@ -1937,7 +1948,7 @@ impl HyperliquidCore {
     m
 })]);
         let mut assetId: Value = self.safe_integer_k(outcomeInfo, "assetId", &[]);
-        let mut nonce: Value = self.milliseconds();
+        let mut nonce: Value = self.incrementing_nonce();
         let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]);
         let mut cancelReq: Value = Value::from(vec![]);
@@ -2961,7 +2972,7 @@ impl HyperliquidCore {
  * @returns {object} the raw exchange response
  */
     pub async fn approve_builder_fee(&mut self, mut builder: Value, mut maxFeeRate: Value) -> Value {
-        let mut nonce: Value = self.milliseconds();
+        let mut nonce: Value = self.incrementing_nonce();
         let mut isSandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         let mut payload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

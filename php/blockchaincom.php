@@ -641,7 +641,7 @@ class blockchaincom extends Exchange {
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clOrdId', $this->uuid16());
         $params = $this->omit($params, array( 'ordType', 'clientOrderId', 'clOrdId' ));
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a side argument');
         }
         $request = array(
             // 'stopPx' : limit price
@@ -658,7 +658,7 @@ class blockchaincom extends Exchange {
         $params = $this->omit($params, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
         if ($uppercaseOrderType === 'STOP' || $uppercaseOrderType === 'STOPLIMIT') {
             if ($triggerPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPx or $triggerPrice param for a ' . $uppercaseOrderType . ' order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPx or triggerPrice param for a ' . $uppercaseOrderType . ' order');
             }
         }
         if ($triggerPrice !== null) {

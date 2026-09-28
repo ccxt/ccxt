@@ -668,7 +668,7 @@ class bitfinex extends \ccxt\async\bitfinex {
          */
         if ($limit !== null) {
             if (($limit !== 25) && ($limit !== 100)) {
-                throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 25 or 100');
+                throw new ExchangeError($this->id . ' watchOrderBook limit argument must be null, 25 or 100');
             }
         }
         $options = $this->safe_dict($this->options, 'watchOrderBook', array());
@@ -1061,7 +1061,8 @@ class bitfinex extends \ccxt\async\bitfinex {
         $future = $client->reusableFuture($messageHash);
         $authenticated = $this->safe_value($client->subscriptions, $messageHash);
         if ($authenticated === null) {
-            $nonce = $this->milliseconds();
+            // the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
+            $nonce = $this->incrementing_nonce();
             $payload = 'AUTH' . (string) $nonce;
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384', 'hex');
             $event = 'auth';

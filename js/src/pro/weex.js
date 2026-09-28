@@ -9,6 +9,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import weexRest from '../weex.js';
 import { BadRequest, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import Precise from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 export default class weex extends weexRest {
     describe() {
@@ -344,7 +345,8 @@ export default class weex extends weexRest {
             'last': close,
             'previousClose': this.safeString(ticker, 'x'),
             'change': this.safeString(ticker, 'p'),
-            'percentage': this.safeString(ticker, 'P'),
+            // The live spot and contract streams report P as a relative change.
+            'percentage': Precise.stringMul(this.safeString(ticker, 'P'), '100'),
             'average': this.safeString(ticker, 'w'),
             'baseVolume': this.safeString(ticker, 'v'),
             'quoteVolume': this.safeString(ticker, 'q'),

@@ -740,7 +740,7 @@ class paradex extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTradingFee() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchTradingFee() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1090,7 +1090,7 @@ class paradex extends Exchange {
         $rates = $this->fetch_funding_rates(array( $market['symbol'] ), $params);
         $rate = $this->safe_dict($rates, $market['symbol']);
         if ($rate === null) {
-            throw new BadSymbol($this->id . ' fetchFundingRate() could not find a funding $rate for ' . $symbol);
+            throw new BadSymbol($this->id . ' fetchFundingRate() could not find a funding rate for ' . $symbol);
         }
         return $rate;
     }
@@ -1695,10 +1695,10 @@ class paradex extends Exchange {
 
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
@@ -1906,10 +1906,10 @@ class paradex extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($amount === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires an amount argument');
         }
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a price argument');
         }
         $this->authenticate_rest();
         if ($this->markets === null) {
@@ -2075,7 +2075,7 @@ class paradex extends Exchange {
         $hasOrderIds = ($ids !== null) && ((gettype($ids) === 'array' && array_keys($ids) === array_keys(array_keys($ids))));
         $hasClientOrderIds = ($clientOrderIds !== null) && ((gettype($clientOrderIds) === 'array' && array_keys($clientOrderIds) === array_keys(array_keys($clientOrderIds))));
         if (!$hasOrderIds && !$hasClientOrderIds) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a non-empty $ids argument or a non-empty $clientOrderIds parameter');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter');
         }
         $request = array();
         if ($hasOrderIds) {
@@ -2146,7 +2146,7 @@ class paradex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument');
         }
         $this->authenticate_rest();
         if ($this->markets === null) {
@@ -3302,7 +3302,7 @@ class paradex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a symbol argument');
         }
         $this->authenticate_rest();
         if ($this->markets === null) {
@@ -3388,7 +3388,7 @@ class paradex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rate-history-structure funding $rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();

@@ -800,6 +800,17 @@ impl BtcturkCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
         let mut last: Value = self.safe_string_k(ticker.clone(), "last", &[]);
+        let mut open: Value = self.safe_string_k(ticker.clone(), "open", &[]);
+        let mut change: Value = self.safe_string_k(ticker.clone(), "daily", &[]);
+        let mut percentage: Value = self.safe_string_k(ticker.clone(), "dailyPercent", &[]);
+        let mut average: Value = self.safe_string_k(ticker.clone(), "average", &[]);
+        if (open != Value::Null) && (last != Value::Null) && !is_true(&crate::precise::Precise::stringEq(&open, &Value::Str("0".into()))) {
+            // The reported daily fields can disagree with last - open.
+            // Let safeTicker derive the unified change, percentage and average from these prices.
+            change = Value::Null;
+            percentage = Value::Null;
+            average = Value::Null;
+        }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
@@ -812,13 +823,13 @@ impl BtcturkCore {
         m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "ask", &[]));
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), self.safe_string_k(ticker.clone(), "open", &[]));
+        m.insert("open".to_string(), open);
         m.insert("close".to_string(), last.clone());
         m.insert("last".to_string(), last);
         m.insert("previousClose".to_string(), Value::Null);
-        m.insert("change".to_string(), self.safe_string_k(ticker.clone(), "daily", &[]));
-        m.insert("percentage".to_string(), self.safe_string_k(ticker.clone(), "dailyPercent", &[]));
-        m.insert("average".to_string(), self.safe_string_k(ticker.clone(), "average", &[]));
+        m.insert("change".to_string(), change);
+        m.insert("percentage".to_string(), percentage);
+        m.insert("average".to_string(), average);
         m.insert("baseVolume".to_string(), self.safe_string_k(ticker.clone(), "volume", &[]));
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), ticker);

@@ -716,7 +716,7 @@ class mudrex extends Exchange {
         if (($stopLossPrice !== null) || ($takeProfitPrice !== null)) {
             $positionId = $this->safe_string_2($params, 'positionId', 'position_id');
             if ($positionId === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $positionId parameter to place a $stopLossPrice or $takeProfitPrice order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order');
             }
             $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'positionId', 'position_id' ));
             $riskRequest = array(
@@ -736,7 +736,7 @@ class mudrex extends Exchange {
         }
         $lev = $this->safe_integer($params, 'leverage', 1);
         if (($type === 'market') && ($price === null)) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for $market orders');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for market orders');
         }
         $request = array(
             'asset_id' => $market['id'],

@@ -631,6 +631,11 @@ export default class paymium extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    override nonce (): number {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return this.milliseconds ();
+    }
+
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -640,7 +645,8 @@ export default class paymium extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
+            // paymium requires an increasing nonce
+            const nonce = this.incrementingNonce ().toString ();
             let auth = nonce + url;
             headers = {
                 'Api-Key': this.apiKey,
