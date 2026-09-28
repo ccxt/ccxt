@@ -258,7 +258,7 @@ function goChan3ResolvedStmts (ind: string, expr: string, want: string, q: strin
         : [ 'case *sync.Map:', '\t' + v + ' = ' + q + 'SafeMapToMap(' + box + ')' ];
     const lines = [
         'var ' + v + ' ' + want,
-        'switch ' + box + ' := ' + expr + '.(type) {',
+        'switch ' + box + ' := ' + (/^this\.[A-Z]\w*$/.test (expr) ? ('any(' + expr + ')') : expr) + '.(type) {',  // struct fields are concrete
         'case ' + want + ':', '\t' + v + ' = ' + box,
         ...conv,
         'case nil:',
