@@ -4607,12 +4607,12 @@ func (this *Polymarket) HandleTrade(client any, event any) {
  * @param {object} [params] extra params (currently unused)
  * @returns {object} a [prediction order book structure]{@link https://docs.ccxt.com/#/?id=prediction-order-book-structure}
  */
-func (this *Polymarket) WatchOrderBookAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Polymarket) WatchOrderBookAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) watchOrderBookBody(ch chan ccxt.AsyncResult[any], outcome string, optionalArgs ...any) any {
+func (this *Polymarket) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -4641,7 +4641,7 @@ func (this *Polymarket) watchOrderBookBody(ch chan ccxt.AsyncResult[any], outcom
 	}
 	orderbook := r1.Value
 
-	ch <- ccxt.AsyncResult[any]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 	return nil
 }
 

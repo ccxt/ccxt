@@ -1278,12 +1278,12 @@ func (this *PredictionExchange) watchTickerBody(ch chan AsyncResult[any], outcom
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
  */
-func (this *PredictionExchange) WatchOrderBookAsync(outcome string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *PredictionExchange) WatchOrderBookAsync(outcome string, optionalArgs ...any) <-chan AsyncResult[OrderBookInterface] {
+	ch := make(chan AsyncResult[OrderBookInterface], 1)
 	go this.watchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) watchOrderBookBody(ch chan AsyncResult[any], outcome string, optionalArgs ...any) any {
+func (this *PredictionExchange) watchOrderBookBody(ch chan AsyncResult[OrderBookInterface], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

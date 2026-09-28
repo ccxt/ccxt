@@ -51,7 +51,7 @@ func testWatchOrderBookBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreEx
 				if r.Err != nil {
 					panic(r.Err)
 				}
-				response = (UnWrapType(r.Value))
+				response = (UnWrapType(ccxt.BoxAbsent(r.Value)))
 				PanicOnError(response)
 				return nil
 			}()

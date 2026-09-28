@@ -9556,12 +9556,12 @@ func (this *Exchange) fetchL3OrderBookBody(ch chan EndpointResult[map[string]any
 	_ = params
 	panic(BadRequest(this.Id + " fetchL3OrderBook() is not supported yet"))
 }
-func (this *Exchange) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Exchange) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[OrderBookInterface] {
+	ch := make(chan AsyncResult[OrderBookInterface], 1)
 	go this.watchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Exchange) watchOrderBookForSymbolsBody(ch chan AsyncResult[any], symbols any, optionalArgs ...any) any {
+func (this *Exchange) watchOrderBookForSymbolsBody(ch chan AsyncResult[OrderBookInterface], symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -10549,12 +10549,12 @@ func (this *Exchange) fetchRestOrderBookSafeBody(ch chan AsyncResult[any], symbo
 
 	return nil
 }
-func (this *Exchange) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Exchange) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBookInterface] {
+	ch := make(chan AsyncResult[OrderBookInterface], 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Exchange) watchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Exchange) watchOrderBookBody(ch chan AsyncResult[OrderBookInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
