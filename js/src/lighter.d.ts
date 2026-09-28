@@ -26,6 +26,7 @@ export default class lighter extends Exchange {
     signHash(hash: any, privateKey: any): string;
     signL1AndPrepareTxInfo(txInfo: any, message: any, privateKey: any): string;
     handleBuilderFeeApproval(accountIndex: number, apiKeyIndex: number): Promise<boolean>;
+    checkIfStandardTier(accountIndex: number): Promise<boolean>;
     approveBuilderFee(builder: number, takerFeeRate: number, makerFeeRate: number, accountIndex: number, apiKeyIndex: number, params?: Dict): Promise<Dict>;
     changeApiKey(params?: Dict): Promise<any>;
     setSandboxMode(enable: boolean): void;
