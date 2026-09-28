@@ -980,28 +980,28 @@ public class BaseExchange {
     // Generic
     // =======================
     // sortBy / sortBy2
-    public java.util.List<Object> sortBy(Object array, Object value1) {
+    public <T> java.util.List<T> sortBy(Object array, Object value1) {
         return io.github.ccxt.base.Generic.sortBy(array, value1, null, null);
     }
 
-    public java.util.List<Object> sortBy(Object array, Object value1, Object desc) {
+    public <T> java.util.List<T> sortBy(Object array, Object value1, Object desc) {
         return io.github.ccxt.base.Generic.sortBy(array, value1, desc, null);
     }
 
-    public java.util.List<Object> sortBy(Object array, Object value1, Object desc, Object defaultValue) {
+    public <T> java.util.List<T> sortBy(Object array, Object value1, Object desc, Object defaultValue) {
         return io.github.ccxt.base.Generic.sortBy(array, value1, desc, defaultValue);
     }
 
-    public java.util.List<Object> sortBy2(Object array, Object key1, Object key2, Object desc) {
+    public <T> java.util.List<T> sortBy2(Object array, Object key1, Object key2, Object desc) {
         return io.github.ccxt.base.Generic.sortBy2(array, key1, key2, desc);
     }
 
-    public java.util.List<Object> sortBy2(Object array, Object key1, Object key2) {
+    public <T> java.util.List<T> sortBy2(Object array, Object key1, Object key2) {
         return io.github.ccxt.base.Generic.sortBy2(array, key1, key2, null);
     }
 
     // filterBy
-    public java.util.List<Object> filterBy(Object aa, Object key, Object value) {
+    public <T> java.util.List<T> filterBy(Object aa, Object key, Object value) {
         return io.github.ccxt.base.Generic.filterBy(aa, key, value);
     }
 

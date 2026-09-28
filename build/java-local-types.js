@@ -584,6 +584,15 @@ const JAVA_STRUCT_RETURN_METHODS = {
     'safeBalance': 'io.github.ccxt.types.Balances',
     'parseBalance': 'io.github.ccxt.types.Balances',
     'parseOrderBook': 'io.github.ccxt.types.OrderBook',
+    // build-once producers only; market()/currency()/safeMarket()/safeCurrency() stay Map (hot
+    // lookups: the view ctor snapshots ~45 keys and copies info, per call)
+    'safeMarketStructure': 'io.github.ccxt.types.MarketInterface',
+    'createExpiredOptionMarket': 'io.github.ccxt.types.MarketInterface',
+    'parseMarket': 'io.github.ccxt.types.MarketInterface',
+    'parseSpotMarket': 'io.github.ccxt.types.MarketInterface',
+    'parseSwapMarket': 'io.github.ccxt.types.MarketInterface',
+    'safeCurrencyStructure': 'io.github.ccxt.types.CurrencyInterface',
+    'parseCurrency': 'io.github.ccxt.types.CurrencyInterface',
 };
 
 // ===== safeDict locals (JAVA-01) =====
@@ -2151,19 +2160,27 @@ function structReturnSite (printer, node, method) {
         || (ts.isIdentifier (expression) && expression.text === 'undefined') || sameTable (expression)) {
         return undefined;
     }
-    // provably a Map: literal, or 2-arg extend/deepExtend (declared Map<String, Object>)
-    if (ts.isObjectLiteralExpression (expression)
-        || (isThisCall (expression) && [ 'extend', 'deepExtend' ].includes (expression.expression.name.text)
-            && expression.arguments.length === 2 && !expression.arguments.some (ts.isSpreadElement))) {
+    // provably a fresh Map: literal, or extend/deepExtend (1-arg prints Object, still a Map)
+    const freshMap = (e) => ts.isObjectLiteralExpression (e)
+        || (isThisCall (e) && [ 'extend', 'deepExtend' ].includes (e.expression.name.text)
+            && e.arguments.length >= 1 && e.arguments.length <= 2 && !e.arguments.some (ts.isSpreadElement));
+    if (freshMap (expression)) {
         return { open: 'new ' + struct + '(', close: ')' };
     }
-    // `const x = this.<same-table>(...)` local: already a struct box
+    // const local: same-table call is already a struct box; a fresh map wraps at the return
+    // (after any in-place writes, so the field snapshot is current)
     if (ts.isIdentifier (expression)) {
         const declaration = printer.getChecker ().getSymbolAtLocation (expression)?.valueDeclaration?.resolve ();
         if (declaration !== undefined && ts.isVariableDeclaration (declaration)
             && (ts.getCombinedNodeFlags (declaration) & ts.NodeFlags.Const) !== 0
-            && declaration.initializer !== undefined && sameTable (unwrapParens (declaration.initializer))) {
-            return { open: '(' + struct + ') ', close: '' };
+            && declaration.initializer !== undefined) {
+            const init = unwrapParens (declaration.initializer);
+            if (sameTable (init)) {
+                return { open: '(' + struct + ') ', close: '' };
+            }
+            if (freshMap (init)) {
+                return { open: 'new ' + struct + '(', close: ')' };
+            }
         }
         // const local of an object literal, or an own `Dict` parameter: a Map box
         const typeName = declaration?.type !== undefined && ts.isTypeReferenceNode (declaration.type)
