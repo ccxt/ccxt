@@ -107,6 +107,7 @@ impl crate::exchange_generated::ExchangeBase for LighterCore {
                 "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "cancel_order" => self.cancel_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "change_api_key" => self.change_api_key(&args[..]).await,
+                "check_if_standard_tier" => self.check_if_standard_tier(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
                 "create_order" => self.create_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "create_sub_account" => self.create_sub_account(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -806,6 +807,10 @@ impl LighterCore {
         m.insert("integratorTakerFee".to_string(), Value::Int(1000));
         m.insert("authDeadlineExpiry".to_string(), Value::Int(28800));
         m.insert("authDeadlineMinimumRemaining".to_string(), Value::Int(60));
+        m.insert("tiersForAccountIndexes".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
     m
 }));
         m.insert("features".to_string(), Value::Map({
@@ -1173,16 +1178,60 @@ impl LighterCore {
             return Value::Bool(true);
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            let mut isStandardTier: Value = self.check_if_standard_tier(self.parse_to_int(accountIndex.clone())).await;
+            if is_true(&isStandardTier) {
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }
+                return Value::Bool(false);
+            }
             let mut builder: Value = self.safe_integer_k(self.options.clone(), "integratorAccountIndex", &[Value::Int(718718)]);
             let mut takerFeeRate: Value = self.safe_integer_k(self.options.clone(), "integratorTakerFee", &[Value::Int(1000)]);
             let mut makerFeeRate: Value = self.safe_integer_k(self.options.clone(), "integratorMakerFee", &[Value::Int(1000)]);
             Box::pin(self.approve_builder_fee(builder, takerFeeRate, makerFeeRate, accountIndex, apiKeyIndex, &[])).await;
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("approvedBuilderFee".into(), Value::Bool(true)); }
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }
-        }
+         } }
         return Value::Bool(true);
+
+    Value::Null
+}
+
+    pub async fn check_if_standard_tier(&mut self, mut accountIndex: Value) -> Value {
+        let mut tiersForAccountIndexes: Value = self.safe_dict_k(self.options.clone(), "tiersForAccountIndexes", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut accountIndexStr: Value = to_string_val(&accountIndex);
+        let mut isStandardTier: Value = self.safe_bool(tiersForAccountIndexes.clone(), accountIndexStr.clone(), &[]);
+        if (isStandardTier != Value::Null) {
+            return isStandardTier;
+        }
+        let mut accountLimits: Value = self.private_get_account_limits(&[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("account_index".to_string(), accountIndex);
+            m
+        })]).await;
+        //
+        //    {
+        //        "code": 200,
+        //        "max_llp_percentage": 100,
+        //        "max_llp_amount": "0.000000",
+        //        "user_tier": "standard",
+        //        "can_create_public_pool": false,
+        //        "user_tier_name": "standard",
+        //        "current_maker_fee_tick": 0,
+        //        "current_taker_fee_tick": 0,
+        //        "leased_lit": "0.00000000",
+        //        "effective_lit_stakes": "0.00000000",
+        //        "user_tier_last_update": 0
+        //    }
+        //
+        let mut tier: Option<String> = self.safe_string_k(accountLimits, "user_tier", &[]).as_str().map(str::to_owned);
+        let mut isStandard: Value = (Value::Bool(tier.as_deref() == Some("standard")));
+        if let Value::Dict(__d) = &mut tiersForAccountIndexes { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountIndexStr), isStandard.clone()); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("tiersForAccountIndexes".into(), tiersForAccountIndexes); }
+        return isStandard;
 
     Value::Null
 }
@@ -1514,23 +1563,33 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut accountIndex: Value = Value::Null;
-        { let __destr_tmp = self.handle_account_index(params.clone(), method.clone(), Value::Str("accountIndex".into()), Value::Str("account_index".into()), &[]).await; accountIndex = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("accountIndex".into(), accountIndex.clone()); }
+        // non-destructively get values from opts/params
+        let mut accIndexAndParams: Value = self.handle_account_index(params.clone(), method.clone(), Value::Str("accountIndex".into()), Value::Str("account_index".into()), &[]).await;
+        let mut accountIndex: Value = accIndexAndParams.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut apiKeyIndexAndParams: Value = self.handle_api_key_index(params.clone(), method.clone(), Value::Str("apiKeyIndex".into()), Value::Str("api_key_index".into()), &[]);
+        let mut apiKeyIndex: Value = apiKeyIndexAndParams.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        // before order-req creation, we need to know account status
+        let mut strAccountIndex: Value = self.number_to_string(accountIndex.clone());
+        let mut strApiKeyIndex: Value = self.number_to_string(apiKeyIndex.clone());
+        let mut signer: Value = self.load_account(self.options.as_map().and_then(|__m| __m.get("chainId")).cloned().unwrap_or(Value::Null), self.get_lighter_private_key(strAccountIndex.clone(), strApiKeyIndex.clone()), strApiKeyIndex, strAccountIndex, &[params.clone()]).await;
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            let mut isStandardTier: Value = self.check_if_standard_tier(accountIndex.clone()).await;
+            if is_true(&isStandardTier) {
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }
+            }
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut groupingType: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), method, Value::Str("groupingType".into()), &[Value::Int(3)]); groupingType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }; // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
-        let mut orderRequests: Value = self.create_order_request(symbol, type_var, side, amount, &[price, params.clone()]);
+        let mut orderRequests: Value = self.create_order_request(symbol, type_var, side, amount, &[price, params]);
         let mut totalOrderRequests: f64 = ((orderRequests.len() as i64) as f64);
-        let mut apiKeyIndex: Value = Value::Null;
         let mut order: Value = Value::Null;
         if totalOrderRequests > ((0i64) as f64) {
             order = orderRequests.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-            apiKeyIndex = order.as_map().and_then(|__m| __m.get("api_key_index")).cloned().unwrap_or(Value::Null);
         }
-        let mut strAccountIndex: Value = self.number_to_string(accountIndex.clone());
-        let mut strApiKeyIndex: Value = self.number_to_string(apiKeyIndex.clone());
-        let mut signer: Value = self.load_account(self.options.as_map().and_then(|__m| __m.get("chainId")).cloned().unwrap_or(Value::Null), self.get_lighter_private_key(strAccountIndex.clone(), strApiKeyIndex.clone()), strApiKeyIndex, strAccountIndex, &[params]).await;
         // the nonce could be updated
         if (self.safe_integer_k(order.clone(), "nonce", &[]) == Value::Null) {
             add_element_to_object(&mut order, &Value::Str("nonce".into()), self.fetch_nonce(accountIndex.clone(), apiKeyIndex.clone(), &[]).await);
