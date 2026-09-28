@@ -451,12 +451,12 @@ func (this *Hyperliquid) fetchStatusBody(ch chan EndpointResult[map[string]any],
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Hyperliquid) FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hyperliquid) FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[*int64] {
+	ch := make(chan AsyncResult[*int64], 1)
 	go this.fetchTimeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchTimeBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hyperliquid) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -474,7 +474,7 @@ func (this *Hyperliquid) fetchTimeBody(ch chan AsyncResult[any], optionalArgs ..
 	//
 	// { specialStatuses: null, time: '1764617438643' }
 	//
-	ch <- AsyncResult[any]{Value: this.SafeInteger(response, "time")}
+	ch <- AsyncResult[*int64]{Value: this.SafeInteger(response, "time")}
 	return nil
 }
 
@@ -1381,12 +1381,12 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Hyperliquid) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hyperliquid) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Hyperliquid) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1445,7 +1445,7 @@ func (this *Hyperliquid) fetchOrderBookBody(ch chan AsyncResult[any], symbol str
 	}
 	var timestamp *int64 = this.SafeInteger(response, "time")
 
-	ch <- AsyncResult[any]{Value: this.ParseOrderBook(result, market["symbol"], timestamp, "bids", "asks", "px", "sz")}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(result, market["symbol"], timestamp, "bids", "asks", "px", "sz")}
 	return nil
 }
 
@@ -1549,12 +1549,12 @@ func (this *Hyperliquid) fetchTickersBody(ch chan AsyncResult[any], optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
  */
-func (this *Hyperliquid) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hyperliquid) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Hyperliquid) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1576,7 +1576,7 @@ func (this *Hyperliquid) fetchFundingRateBody(ch chan AsyncResult[any], symbol s
 		panic(BadSymbol(this.Id + " fetchFundingRate() could not find a funding rate for " + symbol))
 	}
 
-	ch <- AsyncResult[any]{Value: rate}
+	ch <- AsyncResult[map[string]any]{Value: rate}
 	return nil
 }
 
@@ -2712,12 +2712,12 @@ func (this *Hyperliquid) setAgentAbstractionBody(ch chan AsyncResult[any], abstr
  * @param {string} [params.subAccountAddress] sub account user address
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hyperliquid) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) createOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Hyperliquid) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2740,8 +2740,9 @@ func (this *Hyperliquid) createOrderBody(ch chan AsyncResult[any], symbol string
 		panic(r1.Err)
 	}
 	var orders []any = ListTyped(r1.Value)
+	var created map[string]any = SafeMapTyped(orders, 0)
 
-	ch <- AsyncResult[any]{Value: GetValue(orders, 0)}
+	ch <- AsyncResult[map[string]any]{Value: created}
 	return nil
 }
 
@@ -3164,12 +3165,12 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) an
  * @param {boolean} [params.twap] whether the order to cancel is a twap order, (default is false)
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hyperliquid) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3182,11 +3183,11 @@ func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[any], id any, optio
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes249119 map[string]any = r.Value
-		if retRes249119 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+		var retRes249219 map[string]any = r.Value
+		if retRes249219 == nil {
+			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes249119}
+			ch <- AsyncResult[map[string]any]{Value: retRes249219}
 		}
 		return nil
 	}
@@ -3195,10 +3196,11 @@ func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[any], id any, optio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv3046, _ := r1.Value.([]any)
-	var orders []any = listRecv3046
+	listRecv3047, _ := r1.Value.([]any)
+	var orders []any = listRecv3047
+	var canceled map[string]any = SafeMapTyped(orders, 0)
 
-	ch <- AsyncResult[any]{Value: this.SafeDict(orders, 0)}
+	ch <- AsyncResult[map[string]any]{Value: canceled}
 	return nil
 }
 
@@ -3793,12 +3795,12 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) any 
  * @param {string} [params.subAccountAddress] sub account user address
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hyperliquid) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) editOrderBody(ch chan AsyncResult[any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Hyperliquid) editOrderBody(ch chan AsyncResult[map[string]any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	amount := GetArg(optionalArgs, 0, nil)
@@ -3826,8 +3828,9 @@ func (this *Hyperliquid) editOrderBody(ch chan AsyncResult[any], id string, symb
 		panic(r1.Err)
 	}
 	var orders []any = r1.Value
+	var edited map[string]any = SafeMapTyped(orders, 0)
 
-	ch <- AsyncResult[any]{Value: GetValue(orders, 0)}
+	ch <- AsyncResult[map[string]any]{Value: edited}
 	return nil
 }
 
@@ -4448,12 +4451,12 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs 
  * @param {string} [params.subAccountAddress] sub account user address
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hyperliquid) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Hyperliquid) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4528,7 +4531,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan AsyncResult[any], id any, option
 	//
 	var data map[string]any = SafeMapTyped(response, "order")
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
 	return nil
 }
 func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) map[string]any {
@@ -5351,12 +5354,12 @@ func (this *Hyperliquid) setLeverageBody(ch chan AsyncResult[any], leverage int6
  * @param {string} [params.subAccountAddress] sub account user address
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Hyperliquid) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hyperliquid) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) addMarginBody(ch chan AsyncResult[any], symbol string, amount any, optionalArgs ...any) any {
+func (this *Hyperliquid) addMarginBody(ch chan AsyncResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5366,11 +5369,11 @@ func (this *Hyperliquid) addMarginBody(ch chan AsyncResult[any], symbol string, 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes407215 map[string]any = MapTyped(r.Value)
-	if retRes407215 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+	var retRes407515 map[string]any = MapTyped(r.Value)
+	if retRes407515 == nil {
+		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes407215}
+		ch <- AsyncResult[map[string]any]{Value: retRes407515}
 	}
 	return nil
 }
@@ -5402,11 +5405,11 @@ func (this *Hyperliquid) reduceMarginBody(ch chan EndpointResult[map[string]any]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes408815 map[string]any = MapTyped(r.Value)
-	if retRes408815 == nil {
+	var retRes409115 map[string]any = MapTyped(r.Value)
+	if retRes409115 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes408815, Raw: retRes408815}
+		ch <- EndpointResult[map[string]any]{Value: retRes409115, Raw: retRes409115}
 	}
 	return nil
 }
@@ -5471,7 +5474,7 @@ func (this *Hyperliquid) modifyMarginHelperBody(ch chan AsyncResult[any], symbol
 	})}
 	return nil
 }
-func (this *Hyperliquid) ParseMarginModification(data any, optionalArgs ...any) any {
+func (this *Hyperliquid) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        'type': 'default'
@@ -5506,12 +5509,12 @@ func (this *Hyperliquid) ParseMarginModification(data any, optionalArgs ...any) 
  * @param {string} [params.vaultAddress] the vault address for order
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Hyperliquid) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hyperliquid) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) transferBody(ch chan AsyncResult[any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Hyperliquid) transferBody(ch chan AsyncResult[map[string]any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5579,7 +5582,7 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[any], code string, amo
 		// spot <> swap branch returned the raw acknowledgement, breaking the shape
 		var currency map[string]any = this.SafeCurrency(code)
 
-		ch <- AsyncResult[any]{Value: this.ParseTransfer(transferResponse, currency)}
+		ch <- AsyncResult[map[string]any]{Value: this.ParseTransfer(transferResponse, currency)}
 		return nil
 	}
 	// transfer between main account and subaccount
@@ -5624,7 +5627,7 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[any], code string, amo
 		//
 		// {'response': {'type': 'default'}, 'status': 'ok'}
 		//
-		ch <- AsyncResult[any]{Value: this.ParseTransfer(response)}
+		ch <- AsyncResult[map[string]any]{Value: this.ParseTransfer(response)}
 		return nil
 	} else {
 		// Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
@@ -5657,7 +5660,7 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[any], code string, amo
 		}
 		response := r3.Raw
 
-		ch <- AsyncResult[any]{Value: this.ParseTransfer(response)}
+		ch <- AsyncResult[map[string]any]{Value: this.ParseTransfer(response)}
 		return nil
 	}
 }
@@ -6338,12 +6341,12 @@ func (this *Hyperliquid) fetchOpenInterestsBody(ch chan AsyncResult[any], option
  * @param {object} [params] exchange specific parameters
  * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Hyperliquid) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hyperliquid) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchOpenInterestBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Hyperliquid) fetchOpenInterestBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6362,8 +6365,9 @@ func (this *Hyperliquid) fetchOpenInterestBody(ch chan AsyncResult[any], symbol 
 		panic(r1.Err)
 	}
 	ois := r1.Value
+	var openInterest map[string]any = SafeMapTyped(ois, symbolValue)
 
-	ch <- AsyncResult[any]{Value: GetValue(ois, symbolValue)}
+	ch <- AsyncResult[map[string]any]{Value: openInterest}
 	return nil
 }
 func (this *Hyperliquid) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
@@ -6844,7 +6848,7 @@ func (this *Hyperliquid) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = r.Value.(int64)
+	var res int64 = ParseInt(BoxAbsent(r.Value))
 	return res, nil
 }
 

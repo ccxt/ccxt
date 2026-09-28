@@ -1740,12 +1740,12 @@ func (this *Bitflyer) ParseTransaction(transaction any, optionalArgs ...any) map
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Bitflyer) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitflyer) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitflyer) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Bitflyer) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1774,7 +1774,7 @@ func (this *Bitflyer) fetchFundingRateBody(ch chan AsyncResult[any], symbol stri
 	//        "next_funding_rate_settledate": "2024-04-15T13:00:00"
 	//    }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseFundingRate(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseFundingRate(response, market)}
 	return nil
 }
 func (this *Bitflyer) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {

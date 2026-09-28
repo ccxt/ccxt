@@ -5320,12 +5320,12 @@ func (this *Coinex) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Coinex) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Coinex) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinex) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Coinex) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5371,7 +5371,7 @@ func (this *Coinex) fetchFundingRateBody(ch chan AsyncResult[any], symbol string
 	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseFundingRate(first, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseFundingRate(first, market)}
 	return nil
 }
 
@@ -5399,7 +5399,7 @@ func (this *Coinex) fetchFundingIntervalBody(ch chan AsyncResult[map[string]any]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes487015 map[string]any = MapTyped(r.Value)
+	var retRes487015 map[string]any = r.Value
 	if retRes487015 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
@@ -6273,12 +6273,12 @@ func (this *Coinex) ParseIsolatedBorrowRate(info any, optionalArgs ...any) map[s
  * @param {string} params.code unified currency code
  * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
  */
-func (this *Coinex) FetchIsolatedBorrowRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Coinex) FetchIsolatedBorrowRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchIsolatedBorrowRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinex) fetchIsolatedBorrowRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Coinex) fetchIsolatedBorrowRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6323,7 +6323,7 @@ func (this *Coinex) fetchIsolatedBorrowRateBody(ch chan AsyncResult[any], symbol
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseIsolatedBorrowRate(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseIsolatedBorrowRate(data, market)}
 	return nil
 }
 
@@ -6849,12 +6849,12 @@ func (this *Coinex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
  * @param {string} params.code unified currency code
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Coinex) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Coinex) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinex) fetchLeverageBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Coinex) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6899,7 +6899,7 @@ func (this *Coinex) fetchLeverageBody(ch chan AsyncResult[any], symbol any, opti
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseLeverage(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseLeverage(data, market)}
 	return nil
 }
 func (this *Coinex) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {

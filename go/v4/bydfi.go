@@ -1337,12 +1337,12 @@ func (this *Bydfi) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Bydfi) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bydfi) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bydfi) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Bydfi) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1379,7 +1379,7 @@ func (this *Bydfi) fetchFundingRateBody(ch chan AsyncResult[any], symbol string,
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
 
-	ch <- AsyncResult[any]{Value: this.ParseFundingRate(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseFundingRate(data, market)}
 	return nil
 }
 func (this *Bydfi) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
@@ -2603,12 +2603,12 @@ func (this *Bydfi) setLeverageBody(ch chan AsyncResult[any], leverage int64, opt
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Bydfi) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bydfi) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bydfi) fetchLeverageBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Bydfi) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2650,7 +2650,7 @@ func (this *Bydfi) fetchLeverageBody(ch chan AsyncResult[any], symbol any, optio
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseLeverage(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseLeverage(data, market)}
 	return nil
 }
 func (this *Bydfi) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {

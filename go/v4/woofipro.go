@@ -1059,7 +1059,7 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var result map[string]any = map[string]any{}
-	var tokenPromise any = this.V1PublicGetPublicToken(params)
+	tokenPromise := this.V1PublicGetPublicToken(params)
 	//
 	// {
 	//     "success": true,
@@ -1082,14 +1082,14 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs
 	//     }
 	// }
 	//
-	var chainPromise any = this.V1PublicGetPublicChainInfo(params)
-	r := <-promiseAll([]any{tokenPromise, chainPromise})
+	chainPromise := this.V1PublicGetPublicChainInfo(params)
+	r := <-PromiseAllTyped[map[string]any, EndpointResult[map[string]any]](tokenPromise, chainPromise)
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var tokenResponsechainResponseVariable []any = ListTyped(r.Value)
-	tokenResponse := GetValue(tokenResponsechainResponseVariable, 0)
-	chainResponse := GetValue(tokenResponsechainResponseVariable, 1)
+	var tokenResponsechainResponseVariable []map[string]any = r.Value
+	tokenResponse := BoxAbsent(tokenResponsechainResponseVariable[0])
+	chainResponse := BoxAbsent(tokenResponsechainResponseVariable[1])
 	var tokenData map[string]any = SafeMapTyped(tokenResponse, "data")
 	var tokenRows []any = SafeListTyped(tokenData, "rows")
 	var chainData map[string]any = SafeMapTyped(chainResponse, "data")
@@ -1412,7 +1412,7 @@ func (this *Woofipro) fetchFundingIntervalBody(ch chan AsyncResult[map[string]an
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes100315 map[string]any = MapTyped(r.Value)
+	var retRes100315 map[string]any = r.Value
 	if retRes100315 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
@@ -1430,12 +1430,12 @@ func (this *Woofipro) fetchFundingIntervalBody(ch chan AsyncResult[map[string]an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Woofipro) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Woofipro) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Woofipro) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1474,7 +1474,7 @@ func (this *Woofipro) fetchFundingRateBody(ch chan AsyncResult[any], symbol stri
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseFundingRate(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseFundingRate(data, market)}
 	return nil
 }
 
@@ -4703,12 +4703,12 @@ func (this *Woofipro) ParseLeverage(leverage any, optionalArgs ...any) map[strin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Woofipro) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Woofipro) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) fetchLeverageBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Woofipro) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4756,7 +4756,7 @@ func (this *Woofipro) fetchLeverageBody(ch chan AsyncResult[any], symbol any, op
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseLeverage(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseLeverage(data, market)}
 	return nil
 }
 

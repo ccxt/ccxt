@@ -4772,12 +4772,12 @@ func (this *Krakenfutures) fetchLeveragesBody(ch chan AsyncResult[any], optional
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Krakenfutures) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchLeverageBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Krakenfutures) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4816,7 +4816,7 @@ func (this *Krakenfutures) fetchLeverageBody(ch chan AsyncResult[any], symbol an
 	var leveragePreferences []any = SafeListTyped(response, "leveragePreferences")
 	var data map[string]any = this.SafeDictMap(leveragePreferences, 0, map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseLeverage(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseLeverage(data, market)}
 	return nil
 }
 func (this *Krakenfutures) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {

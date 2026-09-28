@@ -902,17 +902,17 @@ func (this *Derive) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...a
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var spotMarketsPromise any = this.FetchSpotMarketsAsync(params)
-	var swapMarketsPromise any = this.FetchSwapMarketsAsync(params)
-	var optionMarketsPromise any = this.FetchOptionMarketsAsync(params)
-	r := <-promiseAll([]any{spotMarketsPromise, swapMarketsPromise, optionMarketsPromise})
+	spotMarketsPromise := this.FetchSpotMarketsAsync(params)
+	swapMarketsPromise := this.FetchSwapMarketsAsync(params)
+	optionMarketsPromise := this.FetchOptionMarketsAsync(params)
+	r := <-PromiseAllTyped[[]any, AsyncResult[[]any]](spotMarketsPromise, swapMarketsPromise, optionMarketsPromise)
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var spotMarketsswapMarketsoptionMarketsVariable []any = ListTyped(r.Value)
-	spotMarkets := GetValue(spotMarketsswapMarketsoptionMarketsVariable, 0)
-	swapMarkets := GetValue(spotMarketsswapMarketsoptionMarketsVariable, 1)
-	optionMarkets := GetValue(spotMarketsswapMarketsoptionMarketsVariable, 2)
+	var spotMarketsswapMarketsoptionMarketsVariable [][]any = r.Value
+	spotMarkets := BoxAbsent(spotMarketsswapMarketsoptionMarketsVariable[0])
+	swapMarkets := BoxAbsent(spotMarketsswapMarketsoptionMarketsVariable[1])
+	optionMarkets := BoxAbsent(spotMarketsswapMarketsoptionMarketsVariable[2])
 	//
 	// {
 	//     "result": {
@@ -1632,12 +1632,12 @@ func (this *Derive) fetchFundingRateHistoryBody(ch chan AsyncResult[any], option
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Derive) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Derive) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Derive) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Derive) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1664,7 +1664,7 @@ func (this *Derive) fetchFundingRateBody(ch chan AsyncResult[any], symbol string
 	//
 	var data map[string]any = SafeMapTyped(response, 0)
 
-	ch <- AsyncResult[any]{Value: this.ParseFundingRate(data)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseFundingRate(data)}
 	return nil
 }
 func (this *Derive) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {

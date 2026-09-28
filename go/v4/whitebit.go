@@ -4841,12 +4841,12 @@ func (this *Whitebit) ParseBorrowInterest(info any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Whitebit) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Whitebit) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Whitebit) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4865,8 +4865,9 @@ func (this *Whitebit) fetchFundingRateBody(ch chan AsyncResult[any], symbol stri
 		panic(r1.Err)
 	}
 	var response map[string]any = MapTyped(r1.Value)
+	var fundingRate map[string]any = SafeMapTyped(response, symbolValue)
 
-	ch <- AsyncResult[any]{Value: this.SafeValue(response, symbolValue)}
+	ch <- AsyncResult[map[string]any]{Value: fundingRate}
 	return nil
 }
 
@@ -5548,11 +5549,11 @@ func (this *Whitebit) fetchPositionHistoryBody(ch chan AsyncResult[any], symbol 
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endDate", request, params)
 
-	listEp5195 := <-this.V4PrivatePostCollateralAccountPositionsHistory(this.Extend(requestUntil, paramsUntil))
-	if listEp5195.Err != nil {
-		panic(listEp5195.Err)
+	listEp5196 := <-this.V4PrivatePostCollateralAccountPositionsHistory(this.Extend(requestUntil, paramsUntil))
+	if listEp5196.Err != nil {
+		panic(listEp5196.Err)
 	}
-	var response []any = listEp5195.Value
+	var response []any = listEp5196.Value
 	//
 	//     [
 	//         {
@@ -5612,11 +5613,11 @@ func (this *Whitebit) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs 
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp5252 := <-this.V4PrivatePostCollateralAccountPositionsOpen(params)
-	if listEp5252.Err != nil {
-		panic(listEp5252.Err)
+	listEp5253 := <-this.V4PrivatePostCollateralAccountPositionsOpen(params)
+	if listEp5253.Err != nil {
+		panic(listEp5253.Err)
 	}
-	var response []any = listEp5252.Value
+	var response []any = listEp5253.Value
 
 	//
 	//     [
@@ -5674,11 +5675,11 @@ func (this *Whitebit) fetchPositionBody(ch chan AsyncResult[any], symbol any, op
 		"symbol": market["id"],
 	}
 
-	listEp5307 := <-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params))
-	if listEp5307.Err != nil {
-		panic(listEp5307.Err)
+	listEp5308 := <-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params))
+	if listEp5308.Err != nil {
+		panic(listEp5308.Err)
 	}
-	var response []any = listEp5307.Value
+	var response []any = listEp5308.Value
 	//
 	//     [
 	//         {
@@ -5830,11 +5831,11 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan AsyncResult[any], opti
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes422019 []any = ListTyped(r.Value)
-		if retRes422019 == nil {
+		var retRes422119 []any = ListTyped(r.Value)
+		if retRes422119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes422019}
+			ch <- AsyncResult[any]{Value: retRes422119}
 		}
 		return nil
 	}
@@ -5857,11 +5858,11 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan AsyncResult[any], opti
 		requestUntil["limit"] = *limit
 	}
 
-	listEp5479 := <-this.V4PublicGetFundingHistoryMarket(this.Extend(requestUntil, paramsUntil))
-	if listEp5479.Err != nil {
-		panic(listEp5479.Err)
+	listEp5480 := <-this.V4PublicGetFundingHistoryMarket(this.Extend(requestUntil, paramsUntil))
+	if listEp5480.Err != nil {
+		panic(listEp5480.Err)
 	}
-	var response []any = listEp5479.Value
+	var response []any = listEp5480.Value
 
 	//
 	//     [

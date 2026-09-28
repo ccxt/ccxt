@@ -1163,7 +1163,7 @@ func (this *Phemex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...a
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var v2ProductsPromise any = this.V2GetPublicProducts(params)
+	v2ProductsPromise := this.V2GetPublicProducts(params)
 	//
 	//     {
 	//         "code":0,
@@ -1313,14 +1313,14 @@ func (this *Phemex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...a
 	//         }
 	//     }
 	//
-	var v1ProductsPromise any = this.V1GetExchangePublicProducts(params)
-	r := <-promiseAll([]any{v2ProductsPromise, v1ProductsPromise})
+	v1ProductsPromise := this.V1GetExchangePublicProducts(params)
+	r := <-PromiseAllTyped[map[string]any, EndpointResult[map[string]any]](v2ProductsPromise, v1ProductsPromise)
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var v2Productsv1ProductsVariable []any = ListTyped(r.Value)
-	v2Products := GetValue(v2Productsv1ProductsVariable, 0)
-	v1Products := GetValue(v2Productsv1ProductsVariable, 1)
+	var v2Productsv1ProductsVariable []map[string]any = r.Value
+	v2Products := BoxAbsent(v2Productsv1ProductsVariable[0])
+	v1Products := BoxAbsent(v2Productsv1ProductsVariable[1])
 	var v1ProductsData []any = SafeListTyped(v1Products, "data")
 	//
 	//     {
@@ -5425,12 +5425,12 @@ func (this *Phemex) ParseFundingFeeToPrecision(value any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Phemex) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Phemex) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Phemex) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Phemex) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5490,7 +5490,7 @@ func (this *Phemex) fetchFundingRateBody(ch chan AsyncResult[any], symbol string
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseFundingRate(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseFundingRate(result, market)}
 	return nil
 }
 func (this *Phemex) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {

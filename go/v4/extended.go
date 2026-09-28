@@ -3126,12 +3126,12 @@ func (this *Extended) ParseTradingFee(fee map[string]any, optionalArgs ...any) m
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Extended) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Extended) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Extended) fetchLeverageBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Extended) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3164,7 +3164,7 @@ func (this *Extended) fetchLeverageBody(ch chan AsyncResult[any], symbol any, op
 	//
 	var data []any = SafeListTyped(response, "data")
 
-	ch <- AsyncResult[any]{Value: this.ParseLeverage(this.SafeDict(data, 0, map[string]any{}), market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseLeverage(this.SafeDict(data, 0, map[string]any{}), market)}
 	return nil
 }
 

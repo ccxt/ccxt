@@ -13040,12 +13040,12 @@ func (this *Kucoin) ParseBorrowRateHistories(response []any, codes any, since an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
-func (this *Kucoin) FetchCrossBorrowRateAsync(code string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Kucoin) FetchCrossBorrowRateAsync(code string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchCrossBorrowRateBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchCrossBorrowRateBody(ch chan AsyncResult[any], code string, optionalArgs ...any) any {
+func (this *Kucoin) fetchCrossBorrowRateBody(ch chan AsyncResult[map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -13082,7 +13082,7 @@ func (this *Kucoin) fetchCrossBorrowRateBody(ch chan AsyncResult[any], code stri
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseBorrowRate(data, currency)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseBorrowRate(data, currency)}
 	return nil
 }
 
@@ -13409,12 +13409,12 @@ func (this *Kucoin) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], optio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Kucoin) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Kucoin) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchLeverageBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Kucoin) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -13455,7 +13455,7 @@ func (this *Kucoin) fetchLeverageBody(ch chan AsyncResult[any], symbol any, opti
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	var parsed map[string]any = this.ParseLeverage(data, market)
 
-	ch <- AsyncResult[any]{Value: this.Extend(parsed, map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.Extend(parsed, map[string]any{
 		"marginMode": marginMode,
 	})}
 	return nil
@@ -13691,7 +13691,7 @@ func (this *Kucoin) fetchFundingIntervalBody(ch chan AsyncResult[map[string]any]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes1005715 map[string]any = MapTyped(r.Value)
+	var retRes1005715 map[string]any = r.Value
 	if retRes1005715 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
@@ -13711,12 +13711,12 @@ func (this *Kucoin) fetchFundingIntervalBody(ch chan AsyncResult[map[string]any]
  * @param {boolean} [params.uta] set to true for the unified trading account (uta)
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Kucoin) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Kucoin) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Kucoin) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -13785,7 +13785,7 @@ func (this *Kucoin) fetchFundingRateBody(ch chan AsyncResult[any], symbol string
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseFundingRate(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseFundingRate(data, market)}
 	return nil
 }
 

@@ -1812,12 +1812,12 @@ func (this *Lbank) ParseFundingRate(ticker any, optionalArgs ...any) map[string]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Lbank) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Lbank) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Lbank) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1836,8 +1836,9 @@ func (this *Lbank) fetchFundingRateBody(ch chan AsyncResult[any], symbol string,
 		panic(r1.Err)
 	}
 	var responseForSwap map[string]any = MapTyped(r1.Value)
+	var fundingRate map[string]any = SafeMapTyped(responseForSwap, market["symbol"])
 
-	ch <- AsyncResult[any]{Value: this.SafeDict(responseForSwap, market["symbol"])}
+	ch <- AsyncResult[map[string]any]{Value: fundingRate}
 	return nil
 }
 
@@ -2055,8 +2056,9 @@ func (this *Lbank) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string, 
 		panic(r.Err)
 	}
 	var result map[string]any = MapTyped(r.Value)
+	var fee map[string]any = SafeMapTyped(result, symbol)
 
-	ch <- AsyncResult[any]{Value: this.SafeDict(result, symbol)}
+	ch <- AsyncResult[any]{Value: fee}
 	return nil
 }
 
@@ -2147,11 +2149,11 @@ func (this *Lbank) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], sy
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes164515 map[string]any = r1.Value
-	if retRes164515 == nil {
+	var retRes164715 map[string]any = r1.Value
+	if retRes164715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes164515}
+		ch <- AsyncResult[any]{Value: retRes164715}
 	}
 	return nil
 }
@@ -2485,11 +2487,11 @@ func (this *Lbank) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes193019 map[string]any = r1.Value
-		if retRes193019 == nil {
+		var retRes193219 map[string]any = r1.Value
+		if retRes193219 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes193019}
+			ch <- AsyncResult[map[string]any]{Value: retRes193219}
 		}
 		return nil
 	}
@@ -2498,11 +2500,11 @@ func (this *Lbank) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes193215 map[string]any = r2.Value
-	if retRes193215 == nil {
+	var retRes193415 map[string]any = r2.Value
+	if retRes193415 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes193215}
+		ch <- AsyncResult[map[string]any]{Value: retRes193415}
 	}
 	return nil
 }

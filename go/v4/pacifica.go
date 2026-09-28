@@ -1175,12 +1175,12 @@ func (this *Pacifica) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Pacifica) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Pacifica) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) fetchLeverageBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Pacifica) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1221,15 +1221,15 @@ func (this *Pacifica) fetchLeverageBody(ch chan AsyncResult[any], symbol any, op
 
 		// NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
 		// When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
-		ch <- AsyncResult[any]{Value: this.ParseLeverageFromMarket(market)}
+		ch <- AsyncResult[map[string]any]{Value: this.ParseLeverageFromMarket(market)}
 		return nil
 	} else {
 
-		ch <- AsyncResult[any]{Value: this.ParseLeverageFromSetting(symbol, setting)}
+		ch <- AsyncResult[map[string]any]{Value: this.ParseLeverageFromSetting(symbol, setting)}
 		return nil
 	}
 }
-func (this *Pacifica) ParseLeverageFromSetting(symbol any, setting map[string]any) any {
+func (this *Pacifica) ParseLeverageFromSetting(symbol any, setting map[string]any) map[string]any {
 	// {
 	//   "WLFI/USDC:USDC": {
 	//       "symbol": "WLFI",
@@ -1253,7 +1253,7 @@ func (this *Pacifica) ParseLeverageFromSetting(symbol any, setting map[string]an
 		"shortLeverage": leverage,
 	}
 }
-func (this *Pacifica) ParseLeverageFromMarket(market map[string]any) any {
+func (this *Pacifica) ParseLeverageFromMarket(market map[string]any) map[string]any {
 	var marketLimits map[string]any = SafeMapTyped(market, "limits")
 	var leverageLimits map[string]any = SafeMapTyped(marketLimits, "leverage")
 	return map[string]any{
@@ -1423,7 +1423,7 @@ func (this *Pacifica) fetchMarginModeBody(ch chan AsyncResult[any], symbol any, 
 		return nil
 	}
 }
-func (this *Pacifica) ParseMarginModeFromSetting(symbol any, setting map[string]any) any {
+func (this *Pacifica) ParseMarginModeFromSetting(symbol any, setting map[string]any) map[string]any {
 	// {
 	//       "symbol": "WLFI",
 	//       "isolated": false,

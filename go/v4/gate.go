@@ -2227,15 +2227,15 @@ func (this *Gate) fetchSpotMarketsBody(ch chan AsyncResult[[]any], optionalArgs 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var marginPromise any = this.PublicMarginGetCurrencyPairs(params)
-	var spotMarketsPromise any = this.PublicSpotGetCurrencyPairs(params)
-	r := <-promiseAll([]any{marginPromise, spotMarketsPromise})
+	marginPromise := this.PublicMarginGetCurrencyPairs(params)
+	spotMarketsPromise := this.PublicSpotGetCurrencyPairs(params)
+	r := <-PromiseAllTyped[[]any, EndpointResult[[]any]](marginPromise, spotMarketsPromise)
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var marginResponsespotMarketsResponseVariable []any = ListTyped(r.Value)
-	marginResponse := GetValue(marginResponsespotMarketsResponseVariable, 0)
-	spotMarketsResponse := GetValue(marginResponsespotMarketsResponseVariable, 1)
+	var marginResponsespotMarketsResponseVariable [][]any = r.Value
+	marginResponse := BoxAbsent(marginResponsespotMarketsResponseVariable[0])
+	spotMarketsResponse := BoxAbsent(marginResponsespotMarketsResponseVariable[1])
 	var marginMarkets map[string]any = this.IndexBy(marginResponse, "id")
 	//
 	//  Spot
@@ -3125,12 +3125,12 @@ func (this *Gate) ParseCurrency(rawCurrency any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Gate) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Gate) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Gate) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Gate) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3200,7 +3200,7 @@ func (this *Gate) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, 
 	//        }
 	//    ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseFundingRate(response)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseFundingRate(response)}
 	return nil
 }
 
@@ -11540,12 +11540,12 @@ func (this *Gate) closePositionBody(ch chan AsyncResult[any], symbol string, opt
  * @param {boolean} [params.unified] default false, set to true for fetching the unified accounts leverage
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Gate) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Gate) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Gate) fetchLeverageBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Gate) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -11594,7 +11594,7 @@ func (this *Gate) fetchLeverageBody(ch chan AsyncResult[any], symbol any, option
 		panic(NotSupported(Add(Add(this.Id+" fetchLeverage() does not support ", this.SafeString(market, "type")), " markets")))
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseLeverage(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseLeverage(response, market)}
 	return nil
 }
 

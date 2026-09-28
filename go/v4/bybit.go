@@ -9493,12 +9493,12 @@ func (this *Bybit) ParsePosition(position any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Bybit) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bybit) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bybit) fetchLeverageBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Bybit) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -9518,7 +9518,7 @@ func (this *Bybit) fetchLeverageBody(ch chan AsyncResult[any], symbol any, optio
 	}
 	position := r1.Value
 
-	ch <- AsyncResult[any]{Value: this.ParseLeverage(position, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseLeverage(position, market)}
 	return nil
 }
 func (this *Bybit) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {
@@ -10127,12 +10127,12 @@ func (this *Bybit) ParseOpenInterest(interest any, optionalArgs ...any) map[stri
  * @param {string} [params.vipLevel] the vip level to fetch the borrow rate for, defaults to 'No VIP'
  * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
-func (this *Bybit) FetchCrossBorrowRateAsync(code string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bybit) FetchCrossBorrowRateAsync(code string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchCrossBorrowRateBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Bybit) fetchCrossBorrowRateBody(ch chan AsyncResult[any], code string, optionalArgs ...any) any {
+func (this *Bybit) fetchCrossBorrowRateBody(ch chan AsyncResult[map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -10189,7 +10189,7 @@ func (this *Bybit) fetchCrossBorrowRateBody(ch chan AsyncResult[any], code strin
 	var coin map[string]any = this.SafeDictMap(coins, 0, map[string]any{})
 	coin["timestamp"] = timestamp
 
-	ch <- AsyncResult[any]{Value: this.ParseBorrowRate(coin, currency)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseBorrowRate(coin, currency)}
 	return nil
 }
 func (this *Bybit) ParseBorrowRate(info any, optionalArgs ...any) map[string]any {

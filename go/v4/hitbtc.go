@@ -4525,12 +4525,12 @@ func (this *Hitbtc) fetchOpenInterestBody(ch chan AsyncResult[map[string]any], s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Hitbtc) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hitbtc) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Hitbtc) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4571,7 +4571,7 @@ func (this *Hitbtc) fetchFundingRateBody(ch chan AsyncResult[any], symbol string
 	//         "timestamp": "2022-03-22T08:08:26.687Z"
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseFundingRate(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseFundingRate(response, market)}
 	return nil
 }
 func (this *Hitbtc) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
@@ -4831,12 +4831,12 @@ func (this *Hitbtc) addMarginBody(ch chan AsyncResult[map[string]any], symbol st
  * @param {bool} [params.margin] true for fetching spot-margin leverage
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Hitbtc) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hitbtc) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) fetchLeverageBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Hitbtc) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4919,7 +4919,7 @@ func (this *Hitbtc) fetchLeverageBody(ch chan AsyncResult[any], symbol any, opti
 	//         ]
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseLeverage(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseLeverage(response, market)}
 	return nil
 }
 func (this *Hitbtc) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {

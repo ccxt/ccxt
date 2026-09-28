@@ -1518,7 +1518,7 @@ func (this *Woo) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...a
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var result map[string]any = map[string]any{}
-	var tokenResponsePromise any = this.V1PublicGetToken(params)
+	tokenResponsePromise := this.V1PublicGetToken(params)
 	//
 	//    {
 	//      "rows": [
@@ -1564,7 +1564,7 @@ func (this *Woo) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...a
 	// }
 	//
 	// only make one request for currencies...
-	var tokenNetworkResponsePromise any = this.V1PublicGetTokenNetwork(params)
+	tokenNetworkResponsePromise := this.V1PublicGetTokenNetwork(params)
 	//
 	// {
 	//     "rows": [
@@ -1593,13 +1593,13 @@ func (this *Woo) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...a
 	//     "success": true
 	// }
 	//
-	r := <-promiseAll([]any{tokenResponsePromise, tokenNetworkResponsePromise})
+	r := <-PromiseAllTyped[map[string]any, EndpointResult[map[string]any]](tokenResponsePromise, tokenNetworkResponsePromise)
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var tokenResponsetokenNetworkResponseVariable []any = ListTyped(r.Value)
-	tokenResponse := GetValue(tokenResponsetokenNetworkResponseVariable, 0)
-	tokenNetworkResponse := GetValue(tokenResponsetokenNetworkResponseVariable, 1)
+	var tokenResponsetokenNetworkResponseVariable []map[string]any = r.Value
+	tokenResponse := BoxAbsent(tokenResponsetokenNetworkResponseVariable[0])
+	tokenNetworkResponse := BoxAbsent(tokenResponsetokenNetworkResponseVariable[1])
 	var tokenRows []any = SafeListTyped(tokenResponse, "rows")
 	var tokenNetworkRows []any = SafeListTyped(tokenNetworkResponse, "rows")
 	var networksById map[string]any = this.GroupBy(tokenNetworkRows, "token")
@@ -3503,7 +3503,7 @@ func (this *Woo) fetchAccountsBody(ch chan AsyncResult[any], optionalArgs ...any
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var mainAccountPromise any = this.V3PrivateGetAccountInfo(params)
+	mainAccountPromise := this.V3PrivateGetAccountInfo(params)
 	//
 	//     {
 	//         "success": true,
@@ -3533,7 +3533,7 @@ func (this *Woo) fetchAccountsBody(ch chan AsyncResult[any], optionalArgs ...any
 	//         "timestamp": 1752062807915
 	//     }
 	//
-	var subAccountPromise any = this.V3PrivateGetAccountSubAccountsAll(params)
+	subAccountPromise := this.V3PrivateGetAccountSubAccountsAll(params)
 	//
 	//     {
 	//         "success": true,
@@ -3549,13 +3549,13 @@ func (this *Woo) fetchAccountsBody(ch chan AsyncResult[any], optionalArgs ...any
 	//         "timestamp": 1721295317627
 	//     }
 	//
-	r := <-promiseAll([]any{mainAccountPromise, subAccountPromise})
+	r := <-PromiseAllTyped[map[string]any, EndpointResult[map[string]any]](mainAccountPromise, subAccountPromise)
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var mainAccountResponsesubAccountResponseVariable []any = ListTyped(r.Value)
-	mainAccountResponse := GetValue(mainAccountResponsesubAccountResponseVariable, 0)
-	subAccountResponse := GetValue(mainAccountResponsesubAccountResponseVariable, 1)
+	var mainAccountResponsesubAccountResponseVariable []map[string]any = r.Value
+	mainAccountResponse := BoxAbsent(mainAccountResponsesubAccountResponseVariable[0])
+	subAccountResponse := BoxAbsent(mainAccountResponsesubAccountResponseVariable[1])
 	var mainData map[string]any = this.SafeDictMap(mainAccountResponse, "data", map[string]any{})
 	var mainRows []any = []any{mainData}
 	var subData map[string]any = SafeMapTyped(subAccountResponse, "data")
@@ -4922,7 +4922,7 @@ func (this *Woo) fetchFundingIntervalBody(ch chan AsyncResult[map[string]any], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes376015 map[string]any = MapTyped(r.Value)
+	var retRes376015 map[string]any = r.Value
 	if retRes376015 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
@@ -4940,12 +4940,12 @@ func (this *Woo) fetchFundingIntervalBody(ch chan AsyncResult[map[string]any], s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Woo) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Woo) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woo) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Woo) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4991,7 +4991,7 @@ func (this *Woo) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, o
 	var rows []any = SafeListTyped(data, "rows")
 	var first map[string]any = this.SafeDictMap(rows, 0, map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseFundingRate(first, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseFundingRate(first, market)}
 	return nil
 }
 
@@ -5234,12 +5234,12 @@ func (this *Woo) setPositionModeBody(ch chan AsyncResult[any], hedged any, optio
  * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Woo) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Woo) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woo) fetchLeverageBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Woo) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5277,7 +5277,7 @@ func (this *Woo) fetchLeverageBody(ch chan AsyncResult[any], symbol any, optiona
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseLeverage(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseLeverage(data, market)}
 	return nil
 }
 func (this *Woo) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {

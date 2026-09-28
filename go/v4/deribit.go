@@ -4446,12 +4446,12 @@ func (this *Deribit) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], opti
  * @param {int} [params.end_timestamp] fetch funding rate ending at this timestamp
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Deribit) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Deribit) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Deribit) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Deribit) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4487,7 +4487,7 @@ func (this *Deribit) fetchFundingRateBody(ch chan AsyncResult[any], symbol strin
 	//       "testnet":false
 	//   }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseFundingRate(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseFundingRate(response, market)}
 	return nil
 }
 

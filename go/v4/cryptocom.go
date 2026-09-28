@@ -4149,12 +4149,12 @@ func (this *Cryptocom) ParseSettlements(settlements []any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func (this *Cryptocom) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Cryptocom) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Cryptocom) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Cryptocom) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4201,7 +4201,7 @@ func (this *Cryptocom) fetchFundingRateBody(ch chan AsyncResult[any], symbol str
 	var data []any = SafeListTyped(result, "data")
 	var entry map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseFundingRate(entry, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseFundingRate(entry, market)}
 	return nil
 }
 func (this *Cryptocom) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {

@@ -1561,11 +1561,11 @@ func (this *Xt) fetchSwapAndFutureMarketsBody(ch chan AsyncResult[[]any], option
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-promiseAll([]any{this.PublicLinearGetFutureMarketV1PublicSymbolList(params), this.PublicInverseGetFutureMarketV1PublicSymbolList(params)})
+	r := <-PromiseAllTyped[map[string]any, EndpointResult[map[string]any]](this.PublicLinearGetFutureMarketV1PublicSymbolList(params), this.PublicInverseGetFutureMarketV1PublicSymbolList(params))
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var markets []any = ListTyped(r.Value)
+	var markets []map[string]any = r.Value
 	//
 	//     {
 	//         "returnCode": 0,
@@ -1628,7 +1628,7 @@ func (this *Xt) fetchSwapAndFutureMarketsBody(ch chan AsyncResult[[]any], option
 	//         ]
 	//     }
 	//
-	var swapAndFutureMarkets []any = this.ArrayConcat(this.SafeList(GetValue(markets, 0), "result", []any{}), this.SafeList(GetValue(markets, 1), "result", []any{}))
+	var swapAndFutureMarkets []any = this.ArrayConcat(this.SafeList(BoxAbsent(markets[0]), "result", []any{}), this.SafeList(BoxAbsent(markets[1]), "result", []any{}))
 
 	ch <- AsyncResult[[]any]{Value: this.ParseMarkets(swapAndFutureMarkets)}
 	return nil
@@ -6576,7 +6576,7 @@ func (this *Xt) fetchFundingIntervalBody(ch chan AsyncResult[map[string]any], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes484815 map[string]any = MapTyped(r.Value)
+	var retRes484815 map[string]any = r.Value
 	if retRes484815 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
@@ -6594,12 +6594,12 @@ func (this *Xt) fetchFundingIntervalBody(ch chan AsyncResult[map[string]any], sy
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Xt) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Xt) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Xt) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Xt) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6650,7 +6650,7 @@ func (this *Xt) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, op
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseFundingRate(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseFundingRate(result, market)}
 	return nil
 }
 func (this *Xt) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {

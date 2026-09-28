@@ -2531,12 +2531,12 @@ func (this *Aster) ParseFundingRate(contract any, optionalArgs ...any) map[strin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Aster) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Aster) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Aster) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2574,7 +2574,7 @@ func (this *Aster) fetchFundingRateBody(ch chan AsyncResult[any], symbol string,
 	//         "time": 1750146970000
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseFundingRate(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseFundingRate(response, market)}
 	return nil
 }
 
