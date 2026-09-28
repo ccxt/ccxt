@@ -543,6 +543,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { csharpStructReturns } from './csharp-struct-returns.js';
 import * as astTranspilerUtils from 'ast-transpiler/tsUtils';
 
 // The generator hands TS7 nodes/checker objects to these hooks: read enums, guards and parsing
@@ -17484,6 +17485,7 @@ function tupleElementRead (cast, element, type, file, line) {
 }
 
 export function csharpTupleReturns (content, file = '') {
+    content = csharpStructReturns (content, file);
     if (typeof content !== 'string' || !new RegExp ('\\.(?:' + TUPLE_NAMES + ')\\(').test (content)) {
         return content;
     }
