@@ -581,6 +581,9 @@ const JAVA_STRUCT_RETURN_METHODS = {
     'parseWsUtaOrder': 'io.github.ccxt.types.Order',
     'parseWSSwapOrder': 'io.github.ccxt.types.Order',
     'parseTradingOrder': 'io.github.ccxt.types.Order',
+    'safeBalance': 'io.github.ccxt.types.Balances',
+    'parseBalance': 'io.github.ccxt.types.Balances',
+    'parseOrderBook': 'io.github.ccxt.types.OrderBook',
 };
 
 // ===== safeDict locals (JAVA-01) =====
