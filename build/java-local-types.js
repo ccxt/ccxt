@@ -556,6 +556,16 @@ const STRUCTURE_THIS_RETURN_TYPES = {
 // of the same family or createExpiredOptionMarket (a row) - checkcast at the return site only.
 const JAVA_MAP_RETURN_METHODS = new Set ([ 'account', 'currency', 'safeCurrency', 'market', 'safeMarket' ]);
 
+// Methods returning a unified struct (TypedMap view) on every declaration. Return sites:
+// null / same-table this|super call pass, a proven Map prints `new T(x)`, a const local of a
+// same-table call checkcasts; any other shape throws (census-proven, fail closed).
+const JAVA_STRUCT_RETURN_METHODS = {
+    'parseTicker': 'io.github.ccxt.types.Ticker',
+    'safeTicker': 'io.github.ccxt.types.Ticker',
+    'parseWsTicker': 'io.github.ccxt.types.Ticker',
+    'parseContractTicker': 'io.github.ccxt.types.Ticker',
+};
+
 // ===== safeDict locals (JAVA-01) =====
 //
 // `const x = this.safeDict (container, key [, {}])` — the TS annotation is `Dict | undefined`,
@@ -2088,6 +2098,9 @@ function javaMethodReturnType (printer, node, own) {
         return undefined;
     }
     const name = node.name.text;
+    if (Object.hasOwn (JAVA_STRUCT_RETURN_METHODS, name)) {
+        return JAVA_STRUCT_RETURN_METHODS[name];
+    }
     if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CAST.has (name)) {
         return 'String';
     }
@@ -2104,6 +2117,38 @@ function javaMethodReturnType (printer, node, own) {
 }
 
 // ===== return-statement casts =====
+
+// struct-return site: undefined = print as is; {open, close} = wrap; throws on an unproven shape
+function structReturnSite (printer, node, method) {
+    const struct = JAVA_STRUCT_RETURN_METHODS[method.name.text];
+    let expression = node.expression;
+    while (expression !== undefined && (ts.isAsExpression (expression) || ts.isNonNullExpression (expression)
+        || ts.isParenthesizedExpression (expression))) {
+        expression = expression.expression;
+    }
+    const sameTable = (e) => isThisOrSuperCall (e) && JAVA_STRUCT_RETURN_METHODS[e.expression.name.text] === struct;
+    if (expression === undefined || expression.kind === ts.SyntaxKind.NullKeyword
+        || (ts.isIdentifier (expression) && expression.text === 'undefined') || sameTable (expression)) {
+        return undefined;
+    }
+    // provably a Map: literal, or 2-arg extend/deepExtend (declared Map<String, Object>)
+    if (ts.isObjectLiteralExpression (expression)
+        || (isThisCall (expression) && [ 'extend', 'deepExtend' ].includes (expression.expression.name.text)
+            && expression.arguments.length === 2 && !expression.arguments.some (ts.isSpreadElement))) {
+        return { open: 'new ' + struct + '(', close: ')' };
+    }
+    // `const x = this.<same-table>(...)` local: already a struct box
+    if (ts.isIdentifier (expression)) {
+        const declaration = printer.getChecker ().getSymbolAtLocation (expression)?.valueDeclaration;
+        if (declaration !== undefined && ts.isVariableDeclaration (declaration)
+            && (ts.getCombinedNodeFlags (declaration) & ts.NodeFlags.Const) !== 0
+            && declaration.initializer !== undefined && sameTable (unwrapParens (declaration.initializer))) {
+            return { open: '(' + struct + ') ', close: '' };
+        }
+    }
+    throw new Error ('java-local-types: unproven ' + method.name.text + ' return shape in '
+        + node.getSourceFile ().fileName + ': ' + node.getText ());
+}
 
 // `return X;` under an enclosing `if (X === undefined|null)` guard hands back the null
 // the guard matched (`currencyId === undefined` prints Helpers.isEqual(currencyId, null))
@@ -5845,6 +5890,16 @@ export function installJavaLocalTypes (transpiler) {
             return printed;
         }
         const methodName = method.name.text;
+        if (Object.hasOwn (JAVA_STRUCT_RETURN_METHODS, methodName) && enclosingFunction (node) === method) {
+            const cast = structReturnSite (printer, node, method);
+            const at = printed.lastIndexOf ('return ');
+            const tail = printed.slice (at + 'return '.length);
+            const end = tail.lastIndexOf (';');
+            if (cast === undefined || at === -1 || end === -1) {
+                return printed;
+            }
+            return printed.slice (0, at + 'return '.length) + cast.open + tail.slice (0, end) + cast.close + tail.slice (end);
+        }
         const venueType = venueReturnJavaType (printer, method);
         if (venueType !== undefined) {
             const venueCast = venueReturnCast (printer, node, method, venueType);
