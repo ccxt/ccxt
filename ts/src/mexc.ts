@@ -1526,7 +1526,6 @@ export default class mexc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let orderbook: OrderBook | undefined = undefined;
         if (market['spot'] === true) {
             const response = await this.spotPublicGetDepth (this.extend (request, params));
             //
@@ -1543,8 +1542,9 @@ export default class mexc extends Exchange {
             //     }
             //
             const spotTimestamp = this.safeInteger (response, 'timestamp');
-            orderbook = this.parseOrderBook (response, symbol, spotTimestamp);
-            orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
+            const spotOrderbook = this.parseOrderBook (response, symbol, spotTimestamp);
+            spotOrderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
+            return spotOrderbook;
         } else if (market['swap'] === true) {
             const response = await this.contractPublicGetDepthSymbol (this.extend (request, params));
             //
@@ -1567,10 +1567,11 @@ export default class mexc extends Exchange {
             //
             const data = this.safeDict (response, 'data');
             const timestamp = this.safeInteger (data, 'timestamp');
-            orderbook = this.parseOrderBook (data, symbol, timestamp);
-            orderbook['nonce'] = this.safeInteger (data, 'version');
+            const swapOrderbook = this.parseOrderBook (data, symbol, timestamp);
+            swapOrderbook['nonce'] = this.safeInteger (data, 'version');
+            return swapOrderbook;
         }
-        return orderbook as OrderBook;
+        throw new NotSupported (this.id + ' fetchOrderBook() does not support ' + market['type'] + ' markets');
     }
 
     override parseOrderBookBidAsk (bidask: any, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
