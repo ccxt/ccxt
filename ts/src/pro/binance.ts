@@ -3767,22 +3767,17 @@ export default class binance extends binanceRest {
         const messageHash = requestId.toString ();
         const sor = this.safeBool2 (params, 'sor', 'SOR', false);
         const paramsOmitted: Dict = this.omit (params, 'sor', 'SOR');
-        const triggerPrice = this.safeString2 (paramsOmitted, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeString (paramsOmitted, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeString (paramsOmitted, 'takeProfitPrice');
-        const trailingDelta = this.safeString (paramsOmitted, 'trailingDelta');
-        const trailingPercent = this.safeStringN (paramsOmitted, [ 'trailingPercent', 'callbackRate', 'trailingDelta' ]);
-        const isTrailingPercentOrder = trailingPercent !== undefined;
-        const isStopLoss = stopLossPrice !== undefined || trailingDelta !== undefined;
-        const isTakeProfit = takeProfitPrice !== undefined;
-        const isTriggerOrder = triggerPrice !== undefined;
-        const isConditional = isTriggerOrder || isTrailingPercentOrder || isStopLoss || isTakeProfit;
-        const payload = this.createOrderRequest (symbol, type, side, amount, price, paramsOmitted);
+        const isConditional = this.isConditionalOrder (paramsOmitted);
+        if ((market['inverse'] === true) && isConditional) {
+            throw new NotSupported (this.id + ' createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead');
+        }
+        const isAlgoOrder = (market['linear'] === true) && ((market['swap'] === true) || (market['future'] === true)) && isConditional;
+        const payload = this.createOrderRequest (symbol, type, side, amount, price, this.extend (paramsOmitted, { 'isAlgoOrder': isAlgoOrder }));
         const [ returnRateLimits, paramsReturnRateLimits ] = this.handleOptionBoolAndParams (paramsOmitted, 'createOrderWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
         const test = this.safeBool (paramsReturnRateLimits, 'test', false);
         const paramsOmitted2: Dict = this.omit (paramsReturnRateLimits, 'test');
-        if ((market['linear'] === true) && (market['swap'] === true) && isConditional) {
+        if (isAlgoOrder) {
             payload['algoType'] = 'CONDITIONAL';
         }
         const message: Dict = {
@@ -3797,7 +3792,7 @@ export default class binance extends binanceRest {
                 message['method'] = 'order.test';
             }
         }
-        if ((market['linear'] === true) && (market['swap'] === true) && isConditional) {
+        if (isAlgoOrder) {
             message['method'] = 'algoOrder.place';
         }
         const subscription: Dict = {
@@ -4668,6 +4663,10 @@ export default class binance extends binanceRest {
             clientOrderId = this.safeString (order, 'c');
         }
         const stopPrice = this.safeStringN (order, [ 'P', 'sp', 'tp' ]);
+        const orderType = this.safeStringLower (order, 'o');
+        // stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
+        const isTakeProfitType = this.inArray (orderType, [ 'take_profit', 'take_profit_market', 'take_profit_limit' ]);
+        const takeProfitPrice = isTakeProfitType ? this.omitZero (stopPrice) : undefined;
         let timeInForce = this.safeString (order, 'f');
         if (timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
@@ -4682,7 +4681,7 @@ export default class binance extends binanceRest {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
-            'type': this.parseOrderTypeByMarket (this.safeStringLower (order, 'o'), marketType),
+            'type': this.parseOrderTypeByMarket (orderType, marketType),
             'timeInForce': timeInForce,
             'postOnly': undefined,
             'reduceOnly': this.safeBool (order, 'R'),
@@ -4690,6 +4689,7 @@ export default class binance extends binanceRest {
             'price': this.safeString (order, 'p'),
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'takeProfitPrice': takeProfitPrice,
             'amount': this.safeString (order, 'q'),
             'cost': this.safeString (order, 'Z'),
             'average': this.safeString (order, 'ap'),

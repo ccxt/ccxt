@@ -746,6 +746,59 @@
                 "output": "{\"order_id\":\"1699457638000\",\"instrument_id\":\"LTCUSDTPERP\"}"
             }
         ],
+        "cancelOrders": [
+            {
+                "description": "cancelOrders - swap",
+                "method": "cancelOrders",
+                "url": "https://openapi.digifinex.com/swap/v2/trade/batch_cancel_order",
+                "input": [
+                    [
+                        "2104199400262733824",
+                        "1000000000000000001"
+                    ],
+                    "LTC/USDT:USDT"
+                ],
+                "output": "[{\"instrument_id\":\"LTCUSDTPERP\",\"order_id\":\"2104199400262733824\"},{\"instrument_id\":\"LTCUSDTPERP\",\"order_id\":\"1000000000000000001\"}]"
+            }
+        ],
+        "cancelOrdersForSymbols": [
+            {
+                "description": "cancelOrdersForSymbols - spot",
+                "method": "cancelOrdersForSymbols",
+                "url": "https://openapi.digifinex.com/v3/spot/order/cancel",
+                "input": [
+                    [
+                        {
+                            "id": "8bdde1dae469ad9827e735090e8bd177",
+                            "symbol": "XRP/USDT"
+                        },
+                        {
+                            "id": "5667eab645ada5c784c95f71d2b0be78",
+                            "symbol": "LTC/USDT"
+                        }
+                    ]
+                ],
+                "output": "market=spot&order_id=8bdde1dae469ad9827e735090e8bd177%2C5667eab645ada5c784c95f71d2b0be78"
+            },
+            {
+                "description": "cancelOrdersForSymbols - swap",
+                "method": "cancelOrdersForSymbols",
+                "url": "https://openapi.digifinex.com/swap/v2/trade/batch_cancel_order",
+                "input": [
+                    [
+                        {
+                            "id": "2104487950191431681",
+                            "symbol": "BTC/USDT:USDT"
+                        },
+                        {
+                            "id": "2104487959884468224",
+                            "symbol": "LTC/USDT:USDT"
+                        }
+                    ]
+                ],
+                "output": "[{\"instrument_id\":\"BTCUSDTPERP\",\"order_id\":\"2104487950191431681\"},{\"instrument_id\":\"LTCUSDTPERP\",\"order_id\":\"2104487959884468224\"}]"
+            }
+        ],
         "fetchTime": [
             {
                 "description": "fetchTime",

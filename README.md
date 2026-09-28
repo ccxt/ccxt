@@ -26,7 +26,7 @@ Current feature list:
 
 ## CCXT Terminal
 
-[![CCXT Terminal: One App. Every Market. High-performance trading with real-time sync](https://github.com/user-attachments/assets/5bfe1227-860c-45ad-b43c-884e899b70e1)](https://terminal.ccxt.com)
+[![CCXT Terminal: One App. Every Market. High-performance trading with real-time sync](https://github.com/user-attachments/assets/11f1ead4-24bb-49d5-bb67-cd8f4be35ad6)](https://terminal.ccxt.com)
 
 [**CCXT Terminal**](https://terminal.ccxt.com) is a non-custodial trading platform built on the same open-source CCXT library you already use. It takes you from market analysis to order execution in one place, pairing a scalper DOM and real-time liquidity visualization with low-latency order routing across multiple exchanges.
 

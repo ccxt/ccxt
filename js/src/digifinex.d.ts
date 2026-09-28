@@ -1,5 +1,5 @@
 import Exchange from './abstract/digifinex.js';
-import type { Balances, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, NullableDict, CurrencyInterface, DepositWithdrawFees, Status, FundingHistory } from './base/types.js';
+import type { Balances, BorrowInterest, CancellationRequest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, NullableDict, CurrencyInterface, DepositWithdrawFees, Status, FundingHistory } from './base/types.js';
 /**
  * @class digifinex
  * @augments Exchange
@@ -180,18 +180,32 @@ export default class digifinex extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
-    parseCancelOrders(response: Dict): Order[];
+    parseCancelOrders(response: Dict, symbolsById?: Dict): Order[];
     /**
      * @method
      * @name digifinex#cancelOrders
      * @description cancel multiple orders
      * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+     * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by cancelOrders ()
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [symbol] unified market symbol, required for swap markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the request body is an array)
+     * @param {string} [params.type] 'spot', 'margin' or 'swap', defaults to the type of the symbol's market or options.defaultType
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrders(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
+    /**
+     * @method
+     * @name digifinex#cancelOrdersForSymbols
+     * @description cancel multiple orders for multiple symbols
+     * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+     * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
+     * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, all orders must be of the same market type (spot or swap), example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the request body is an array)
+     * @param {string} [params.type] 'spot' or 'margin' for spot markets, defaults to 'spot'
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    cancelOrdersForSymbols(orders: CancellationRequest[], params?: Dict): Promise<Order[]>;
     parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**

@@ -2090,14 +2090,22 @@ class testMainClass:
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 0.002, 102000, {
                 'triggerPrice': 101000,
             })
-            check_order_request = self.urlencoded_to_dict(exchange.last_request_body)
-            algo_order_id_defined = (check_order_request['algoOrderId'] is not None)
-            assert algo_order_id_defined, 'binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined'
-            client_algo_id_swap = swap_algo_order_request['clientAlgoId']
-            swap_algo_id_string = str(swap_id)
-            assert client_algo_id_swap.startswith(swap_algo_id_string), 'binance - swap clientOrderId: ' + client_algo_id_swap + ' does not start with swapId' + swap_algo_id_string
         except Exception as e:
             swap_algo_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+        client_algo_id_swap = swap_algo_order_request['clientAlgoId']
+        assert client_algo_id_swap is not None, 'binance - swap conditional order must send clientAlgoId'
+        assert client_algo_id_swap.startswith(swap_id_string), 'binance - swap clientAlgoId: ' + client_algo_id_swap + ' does not start with swapId' + swap_id_string
+        # inverse swap conditional order
+        inverse_algo_order_request = {}
+        try:
+            await exchange.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000, {
+                'triggerPrice': 21000,
+            })
+        except Exception as e:
+            inverse_algo_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+        client_algo_id_inverse = inverse_algo_order_request['clientAlgoId']
+        assert client_algo_id_inverse is not None, 'binance - inverse swap conditional order must send clientAlgoId'
+        assert client_algo_id_inverse.startswith(inverse_swap_id), 'binance - inverse swap clientAlgoId: ' + client_algo_id_inverse + ' does not start with inverseSwapId' + inverse_swap_id
         create_orders_request = {}
         try:
             orders = [{
@@ -2120,6 +2128,47 @@ class testMainClass:
             current = batch_orders[i]
             current_client_order_id = current['newClientOrderId']
             assert current_client_order_id.startswith(swap_id_string), 'binance createOrders - clientOrderId: ' + current_client_order_id + ' does not start with swapId' + swap_id_string
+        # linear conditional orders cannot be batched
+        linear_conditional_batch_not_supported = False
+        try:
+            linear_conditional_orders = [{
+    'symbol': 'BTC/USDT:USDT',
+    'type': 'limit',
+    'side': 'buy',
+    'amount': 1,
+    'price': 20000,
+    'params': {
+        'triggerPrice': 21000,
+    },
+}]
+            await exchange.create_orders(linear_conditional_orders)
+        except Exception as e:
+            linear_conditional_batch_not_supported = (isinstance(e, NotSupported))
+        assert linear_conditional_batch_not_supported, 'binance createOrders - linear conditional order must throw NotSupported'
+        # inverse conditional orders are batched in the regular (non-algo) format
+        inverse_conditional_batch_request = {}
+        inverse_conditional_batch_not_supported = False
+        try:
+            inverse_conditional_orders = [{
+    'symbol': 'BTC/USD:BTC',
+    'type': 'limit',
+    'side': 'buy',
+    'amount': 1,
+    'price': 20000,
+    'params': {
+        'triggerPrice': 21000,
+    },
+}]
+            await exchange.create_orders(inverse_conditional_orders)
+        except Exception as e:
+            inverse_conditional_batch_not_supported = (isinstance(e, NotSupported))
+            inverse_conditional_batch_request = self.urlencoded_to_dict(exchange.last_request_body)
+        assert not inverse_conditional_batch_not_supported, 'binance createOrders - inverse conditional order must not throw NotSupported'
+        inverse_conditional_batch_orders = exchange.safe_list(inverse_conditional_batch_request, 'batchOrders', [])
+        inverse_conditional_batch_order = exchange.safe_dict(inverse_conditional_batch_orders, 0, {})
+        inverse_conditional_client_order_id = exchange.safe_string(inverse_conditional_batch_order, 'newClientOrderId')
+        assert inverse_conditional_client_order_id is not None, 'binance createOrders - inverse conditional order must send newClientOrderId'
+        assert inverse_conditional_client_order_id.startswith(inverse_swap_id), 'binance createOrders - inverse conditional clientOrderId: ' + inverse_conditional_client_order_id + ' does not start with inverseSwapId' + inverse_swap_id
         if not is_sync():
             await close(exchange)
         return True
