@@ -2139,7 +2139,7 @@ function structReturnSite (printer, node, method) {
     }
     // `const x = this.<same-table>(...)` local: already a struct box
     if (ts.isIdentifier (expression)) {
-        const declaration = printer.getChecker ().getSymbolAtLocation (expression)?.valueDeclaration;
+        const declaration = printer.getChecker ().getSymbolAtLocation (expression)?.valueDeclaration?.resolve ();
         if (declaration !== undefined && ts.isVariableDeclaration (declaration)
             && (ts.getCombinedNodeFlags (declaration) & ts.NodeFlags.Const) !== 0
             && declaration.initializer !== undefined && sameTable (unwrapParens (declaration.initializer))) {
