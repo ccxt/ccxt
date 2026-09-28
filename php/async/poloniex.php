@@ -1145,7 +1145,6 @@ class poloniex extends Exchange {
         $relativeChange = $this->safe_string_2($ticker, 'dailyChange', 'dc');
         $percentage = Precise::string_mul($relativeChange, '100');
         return $this->safe_ticker(array(
-            'id' => $marketId,
             'symbol' => $marketResolved['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

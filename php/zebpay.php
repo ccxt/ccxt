@@ -1877,7 +1877,6 @@ class zebpay extends Exchange {
         $bidVolume = $this->safe_string($ticker, 'bidVolume');
         $askVolume = $this->safe_string($ticker, 'askVolume');
         return $this->safe_ticker(array(
-            'id' => $marketId,
             'symbol' => $marketResolved['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

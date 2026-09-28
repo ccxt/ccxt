@@ -1463,7 +1463,6 @@ class lighter extends Exchange {
         $baseVolume = $this->safe_string($ticker, 'daily_base_token_volume');
         $quoteVolume = $this->safe_string($ticker, 'daily_quote_token_volume');
         $change = $this->safe_string($ticker, 'daily_price_change');
-        $openInterest = $this->safe_string($ticker, 'open_interest');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
@@ -1486,7 +1485,6 @@ class lighter extends Exchange {
             'quoteVolume' => $quoteVolume,
             'markPrice' => $this->safe_string($ticker, 'mark_price'),
             'indexPrice' => $this->safe_string($ticker, 'index_price'),
-            'openInterest' => $openInterest,
             'info' => $ticker,
         ), $marketResolved);
     }

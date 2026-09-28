@@ -535,11 +535,7 @@ class p2b extends Exchange {
         //    }
         //
         $result = $this->safe_dict($response, 'result', array());
-        $timestamp = $this->safe_integer_product($response, 'cache_time', 1000);
-        return $this->extend(
-            array( 'timestamp' => $timestamp, 'datetime' => $this->iso8601($timestamp) ),
-            $this->parse_ticker($result, $market)
-        );
+        return $this->parse_ticker($result, $market);
     }
 
     public function parse_ticker(mixed $ticker, ?array $market = null) {

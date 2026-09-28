@@ -1606,7 +1606,6 @@ class binance extends Exchange {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $this->safe_integer($trade, 'modifyTime'),
             'outcome' => $this->safe_string($outcomeObjResolved, 'outcome'),
             'outcomeId' => $this->safe_string($outcomeObjResolved, 'id'),
             'label' => $this->safe_string($outcomeObjResolved, 'label'),
@@ -1617,7 +1616,6 @@ class binance extends Exchange {
             'takerOrMaker' => null,
             'price' => $price,
             'amount' => $this->safe_string($trade, 'makerShareQty'),
-            'filled' => $filled,
             'cost' => $cost,
             'fee' => $fee,
         ), $outcomeObjResolved);
