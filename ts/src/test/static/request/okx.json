@@ -1883,6 +1883,20 @@
                 ]
             },
             {
+                "description": "linear swap open interest history with until only",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/open-interest-history?instId=BTC-USDT-SWAP&period=1H&end=1790524800001",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    null,
+                    {
+                        "until": 1790524800000
+                    }
+                ]
+            },
+            {
                 "description": "currency open interest history",
                 "method": "fetchOpenInterestHistory",
                 "url": "https://www.okx.com/api/v5/rubik/stat/contracts/open-interest-volume?ccy=BTC&period=1H",
@@ -2132,6 +2146,20 @@
                     "1h",
                     1790503200000,
                     3,
+                    {
+                        "until": 1790524800000
+                    }
+                ]
+            },
+            {
+                "description": "swap long short ratio history with until only",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/long-short-account-ratio-contract?instId=BTC-USDT-SWAP&period=1H&end=1790524800001",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    null,
                     {
                         "until": 1790524800000
                     }
