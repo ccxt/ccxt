@@ -812,12 +812,12 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan EndpointResult[[]any], opt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Hyperliquid) FetchSwapMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hyperliquid) FetchSwapMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchSwapMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchSwapMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hyperliquid) fetchSwapMarketsBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -872,7 +872,7 @@ func (this *Hyperliquid) fetchSwapMarketsBody(ch chan AsyncResult[any], optional
 		result = append(result, data)
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseMarkets(result)}
+	ch <- AsyncResult[[]any]{Value: this.ParseMarkets(result)}
 	return nil
 }
 
@@ -932,12 +932,12 @@ func (this *Hyperliquid) CalculatePricePrecision(price any, amountPrecision any,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Hyperliquid) FetchSpotMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hyperliquid) FetchSpotMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchSpotMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchSpotMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hyperliquid) fetchSpotMarketsBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1100,7 +1100,7 @@ func (this *Hyperliquid) fetchSpotMarketsBody(ch chan AsyncResult[any], optional
 		markets = append(markets, this.SafeMarketStructure(entry))
 	}
 
-	ch <- AsyncResult[any]{Value: markets}
+	ch <- AsyncResult[[]any]{Value: markets}
 	return nil
 }
 func (this *Hyperliquid) ParseMarket(market any) any {
@@ -1510,14 +1510,14 @@ func (this *Hyperliquid) fetchTickersBody(ch chan AsyncResult[any], optionalArgs
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Value
+		response = BoxAbsent(r2.Value)
 	} else if typeVar != nil && *typeVar == "swap" {
 
 		r3 := <-this.FetchSwapMarketsAsync(paramsHip3)
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		response = r3.Value
+		response = BoxAbsent(r3.Value)
 	} else {
 
 		r4 := <-this.FetchMarketsAsync(paramsHip3)
@@ -1653,7 +1653,7 @@ func (this *Hyperliquid) fetchFundingRatesBody(ch chan AsyncResult[any], optiona
 	ch <- AsyncResult[any]{Value: this.ParseFundingRates(result, symbols)}
 	return nil
 }
-func (this *Hyperliquid) ParseFundingRate(info any, optionalArgs ...any) any {
+func (this *Hyperliquid) ParseFundingRate(info any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "maxLeverage": "50",
@@ -3453,12 +3453,12 @@ func (this *Hyperliquid) CancelOrdersRequest(ids any, optionalArgs ...any) any {
  * @param {string} [params.subAccountAddress] sub account user address
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CancelOrdersForSymbolsAsync(orders any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hyperliquid) CancelOrdersForSymbolsAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.cancelOrdersForSymbolsBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan AsyncResult[any], orders any, optionalArgs ...any) any {
+func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]any], orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3558,7 +3558,7 @@ func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan AsyncResult[any], or
 	//         }
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[[]any]{Value: []any{this.SafeOrder(map[string]any{
 		"info": response,
 	})}}
 	return nil
@@ -3825,7 +3825,7 @@ func (this *Hyperliquid) editOrderBody(ch chan AsyncResult[any], id string, symb
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var orders []any = ListTyped(r1.Value)
+	var orders []any = r1.Value
 
 	ch <- AsyncResult[any]{Value: GetValue(orders, 0)}
 	return nil
@@ -3840,12 +3840,12 @@ func (this *Hyperliquid) editOrderBody(ch chan AsyncResult[any], id string, symb
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) EditOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hyperliquid) EditOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.editOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) editOrdersBody(ch chan AsyncResult[any], orders any, optionalArgs ...any) any {
+func (this *Hyperliquid) editOrdersBody(ch chan AsyncResult[[]any], orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3908,7 +3908,7 @@ func (this *Hyperliquid) editOrdersBody(ch chan AsyncResult[any], orders any, op
 	var dataObject map[string]any = SafeMapTyped(responseObject, "data")
 	var statuses []any = SafeListTypedDefault(dataObject, "statuses", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(statuses)}
+	ch <- AsyncResult[[]any]{Value: this.ParseOrders(statuses)}
 	return nil
 }
 
@@ -4230,12 +4230,12 @@ func (this *Hyperliquid) fetchClosedOrdersBody(ch chan AsyncResult[any], optiona
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hyperliquid) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hyperliquid) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4261,7 +4261,7 @@ func (this *Hyperliquid) fetchCanceledOrdersBody(ch chan AsyncResult[any], optio
 	var orders []any = ListTyped(r1.Value) // don't filter here because we don't want to catch open orders
 	var closedOrders any = this.FilterByArray(orders, "status", []any{"canceled"}, false)
 
-	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(closedOrders, symbol, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(closedOrders, symbol, since, limit)}
 	return nil
 }
 
@@ -4276,12 +4276,12 @@ func (this *Hyperliquid) fetchCanceledOrdersBody(ch chan AsyncResult[any], optio
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hyperliquid) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchCanceledAndClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hyperliquid) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4307,7 +4307,7 @@ func (this *Hyperliquid) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[an
 	var orders []any = ListTyped(r1.Value) // don't filter here because we don't want to catch open orders
 	var closedOrders any = this.FilterByArray(orders, "status", []any{"canceled", "closed", "rejected"}, false)
 
-	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(closedOrders, symbol, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(closedOrders, symbol, since, limit)}
 	return nil
 }
 
@@ -5086,7 +5086,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan AsyncResult[any], optionalAr
 		}()))
 	}
 
-	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)}
+	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized)}
 	return nil
 }
 func (this *Hyperliquid) ParsePosition(position any, optionalArgs ...any) any {
@@ -5910,7 +5910,7 @@ func (this *Hyperliquid) fetchTradingFeeBody(ch chan AsyncResult[any], symbol st
 	ch <- AsyncResult[any]{Value: this.ParseTradingFee(data, market)}
 	return nil
 }
-func (this *Hyperliquid) ParseTradingFee(fee map[string]any, optionalArgs ...any) any {
+func (this *Hyperliquid) ParseTradingFee(fee map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "dailyUserVlm": [
@@ -6324,7 +6324,7 @@ func (this *Hyperliquid) fetchOpenInterestsBody(ch chan AsyncResult[any], option
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	swapMarkets := r1.Value
+	swapMarkets := BoxAbsent(r1.Value)
 
 	ch <- AsyncResult[any]{Value: this.ParseOpenInterests(swapMarkets, symbolsNormalized)}
 	return nil
@@ -8214,7 +8214,7 @@ func (this *Hyperliquid) FetchOrderStatus(id string, options ...FetchOrderStatus
 func (this *Hyperliquid) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Hyperliquid) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Hyperliquid) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Hyperliquid) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

@@ -964,12 +964,12 @@ func (this *Derive) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...a
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Derive) FetchSpotMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Derive) FetchSpotMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchSpotMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Derive) fetchSpotMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Derive) fetchSpotMarketsBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -987,15 +987,15 @@ func (this *Derive) fetchSpotMarketsBody(ch chan AsyncResult[any], optionalArgs 
 	var result map[string]any = SafeMapTyped(response, "result")
 	var data []any = SafeListTypedDefault(result, "instruments", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseMarkets(data)}
+	ch <- AsyncResult[[]any]{Value: this.ParseMarkets(data)}
 	return nil
 }
-func (this *Derive) FetchSwapMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Derive) FetchSwapMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchSwapMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Derive) fetchSwapMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Derive) fetchSwapMarketsBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1013,15 +1013,15 @@ func (this *Derive) fetchSwapMarketsBody(ch chan AsyncResult[any], optionalArgs 
 	var result map[string]any = SafeMapTyped(response, "result")
 	var data []any = SafeListTypedDefault(result, "instruments", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseMarkets(data)}
+	ch <- AsyncResult[[]any]{Value: this.ParseMarkets(data)}
 	return nil
 }
-func (this *Derive) FetchOptionMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Derive) FetchOptionMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchOptionMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Derive) fetchOptionMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Derive) fetchOptionMarketsBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1039,7 +1039,7 @@ func (this *Derive) fetchOptionMarketsBody(ch chan AsyncResult[any], optionalArg
 	var result map[string]any = SafeMapTyped(response, "result")
 	var data []any = SafeListTypedDefault(result, "instruments", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseMarkets(data)}
+	ch <- AsyncResult[[]any]{Value: this.ParseMarkets(data)}
 	return nil
 }
 func (this *Derive) ParseMarket(market any) any {
@@ -1445,7 +1445,7 @@ func (this *Derive) fetchTradesBody(ch chan AsyncResult[any], symbol any, option
 	ch <- AsyncResult[any]{Value: this.ParseTrades(data, market, since, limitResolved)}
 	return nil
 }
-func (this *Derive) ParseTrades(trades any, optionalArgs ...any) any {
+func (this *Derive) ParseTrades(trades any, optionalArgs ...any) []any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
@@ -1667,7 +1667,7 @@ func (this *Derive) fetchFundingRateBody(ch chan AsyncResult[any], symbol string
 	ch <- AsyncResult[any]{Value: this.ParseFundingRate(data)}
 	return nil
 }
-func (this *Derive) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Derive) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeString(contract, "symbol")
@@ -2595,12 +2595,12 @@ func (this *Derive) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Derive) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Derive) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Derive) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Derive) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2628,9 +2628,9 @@ func (this *Derive) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalAr
 	}
 	var retRes192415 []any = ListTyped(r1.Value)
 	if retRes192415 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes192415}
+		ch <- AsyncResult[[]any]{Value: retRes192415}
 	}
 	return nil
 }
@@ -3419,7 +3419,7 @@ func (this *Derive) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...a
 	ch <- AsyncResult[any]{Value: this.ParseBalance(result)}
 	return nil
 }
-func (this *Derive) ParseBalance(response any) any {
+func (this *Derive) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -3442,7 +3442,7 @@ func (this *Derive) ParseBalance(response any) any {
 			}
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -4598,7 +4598,7 @@ func (this *Derive) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBoo
 func (this *Derive) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Derive) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Derive) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Derive) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

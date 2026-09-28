@@ -4554,7 +4554,7 @@ func (this *Binance) fetchPositionWsBody(ch chan ccxt.EndpointResult[[]any], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes341215 []any = ccxt.ListTyped(r.Value)
+	var retRes341215 []any = r.Value
 	if retRes341215 == nil {
 		ch <- ccxt.EndpointResult[[]any]{}
 	} else {
@@ -4575,12 +4575,12 @@ func (this *Binance) fetchPositionWsBody(ch chan ccxt.EndpointResult[[]any], sym
  * @param {string|undefined} [params.method] method to use. Can be account.position or v2/account.position
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Binance) FetchPositionsWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Binance) FetchPositionsWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
+	ch := make(chan ccxt.AsyncResult[[]any], 1)
 	go this.fetchPositionsWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchPositionsWsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Binance) fetchPositionsWsBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -4642,7 +4642,7 @@ func (this *Binance) fetchPositionsWsBody(ch chan ccxt.AsyncResult[any], optiona
 	}
 	var result ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 
-	ch <- ccxt.AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)}
+	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized)}
 	return nil
 }
 func (this *Binance) HandlePositionsWs(client any, message map[string]any) {
@@ -5574,12 +5574,12 @@ func (this *Binance) fetchOrderWsBody(ch chan ccxt.AsyncResult[any], id string, 
  * @param {int} [params.limit] the maximum number of order structures to retrieve
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Binance) FetchOrdersWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Binance) FetchOrdersWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
+	ch := make(chan ccxt.AsyncResult[[]any], 1)
 	go this.fetchOrdersWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchOrdersWsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Binance) fetchOrdersWsBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -5631,7 +5631,7 @@ func (this *Binance) fetchOrdersWsBody(ch chan ccxt.AsyncResult[any], optionalAr
 	}
 	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 
-	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(orders, symbol, since, limit)}
+	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(orders, symbol, since, limit)}
 	return nil
 }
 
@@ -5667,7 +5667,7 @@ func (this *Binance) fetchClosedOrdersWsBody(ch chan ccxt.EndpointResult[[]any],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var orders []any = ccxt.ListTyped(r.Value)
+	var orders []any = r.Value
 	var closedOrders []any = []any{}
 	for i := 0; i < len(orders); i++ {
 		var order any = ccxt.GetValue(orders, i)
@@ -6839,12 +6839,12 @@ func (this *Binance) ParseWsOptionsPosition(position any, optionalArgs ...any) a
  * @param {int} [params.fromId] first trade Id to fetch
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Binance) FetchMyTradesWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Binance) FetchMyTradesWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
+	ch := make(chan ccxt.AsyncResult[[]any], 1)
 	go this.fetchMyTradesWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchMyTradesWsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Binance) fetchMyTradesWsBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -6906,7 +6906,7 @@ func (this *Binance) fetchMyTradesWsBody(ch chan ccxt.AsyncResult[any], optional
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 
-	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(trades, symbol, since, limit)}
+	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(trades, symbol, since, limit)}
 	return nil
 }
 

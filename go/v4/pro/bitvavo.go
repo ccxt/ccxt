@@ -1823,12 +1823,12 @@ func (this *Bitvavo) fetchOrderWsBody(ch chan ccxt.AsyncResult[any], id string, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {ccxt.Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) FetchOrdersWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Bitvavo) FetchOrdersWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
+	ch := make(chan ccxt.AsyncResult[[]any], 1)
 	go this.fetchOrdersWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchOrdersWsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitvavo) fetchOrdersWsBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1862,7 +1862,7 @@ func (this *Bitvavo) fetchOrdersWsBody(ch chan ccxt.AsyncResult[any], optionalAr
 	}
 	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
 
-	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(orders, symbol, since, limit)}
+	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(orders, symbol, since, limit)}
 	return nil
 }
 func (this *Bitvavo) RequestId() int64 {
@@ -1959,12 +1959,12 @@ func (this *Bitvavo) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResult[any], option
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {ccxt.Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Bitvavo) FetchMyTradesWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Bitvavo) FetchMyTradesWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
+	ch := make(chan ccxt.AsyncResult[[]any], 1)
 	go this.fetchMyTradesWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchMyTradesWsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitvavo) fetchMyTradesWsBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1998,7 +1998,7 @@ func (this *Bitvavo) fetchMyTradesWsBody(ch chan ccxt.AsyncResult[any], optional
 	}
 	var myTrades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
 
-	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(myTrades, symbol, since, limit)}
+	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(myTrades, symbol, since, limit)}
 	return nil
 }
 func (this *Bitvavo) HandleMyTrades(client any, message map[string]any) {
@@ -2110,12 +2110,12 @@ func (this *Bitvavo) HandleWithdraw(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitvavo) FetchWithdrawalsWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Bitvavo) FetchWithdrawalsWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
+	ch := make(chan ccxt.AsyncResult[[]any], 1)
 	go this.fetchWithdrawalsWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchWithdrawalsWsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitvavo) fetchWithdrawalsWsBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var code *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2146,7 +2146,7 @@ func (this *Bitvavo) fetchWithdrawalsWsBody(ch chan ccxt.AsyncResult[any], optio
 	}
 	var withdraws ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
 
-	ch <- ccxt.AsyncResult[any]{Value: this.FilterByCurrencySinceLimit(withdraws, code, since, limit)}
+	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterByCurrencySinceLimit(withdraws, code, since, limit)}
 	return nil
 }
 func (this *Bitvavo) HandleWithdraws(client any, message map[string]any) {
@@ -2234,12 +2234,12 @@ func (this *Bitvavo) fetchOHLCVWsBody(ch chan ccxt.AsyncResult[any], symbol stri
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitvavo) FetchDepositsWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Bitvavo) FetchDepositsWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
+	ch := make(chan ccxt.AsyncResult[[]any], 1)
 	go this.fetchDepositsWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchDepositsWsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitvavo) fetchDepositsWsBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var code *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2270,7 +2270,7 @@ func (this *Bitvavo) fetchDepositsWsBody(ch chan ccxt.AsyncResult[any], optional
 	}
 	var deposits ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
 
-	ch <- ccxt.AsyncResult[any]{Value: this.FilterByCurrencySinceLimit(deposits, code, since, limit)}
+	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterByCurrencySinceLimit(deposits, code, since, limit)}
 	return nil
 }
 func (this *Bitvavo) HandleDeposits(client any, message map[string]any) {

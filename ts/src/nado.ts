@@ -1529,7 +1529,7 @@ export default class nado extends Exchange {
             }
             result.push (this.parsePosition (this.extend ({ 'product': product }, position)));
         }
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     /**

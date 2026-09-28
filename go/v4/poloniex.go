@@ -1039,12 +1039,12 @@ func (this *Poloniex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: this.ArrayConcat(GetValue(results, 0), GetValue(results, 1))}
 	return nil
 }
-func (this *Poloniex) FetchSpotMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Poloniex) FetchSpotMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchSpotMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) fetchSpotMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Poloniex) fetchSpotMarketsBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1079,15 +1079,15 @@ func (this *Poloniex) fetchSpotMarketsBody(ch chan AsyncResult[any], optionalArg
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseMarkets(markets)}
+	ch <- AsyncResult[[]any]{Value: this.ParseMarkets(markets)}
 	return nil
 }
-func (this *Poloniex) FetchSwapMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Poloniex) FetchSwapMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchSwapMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) fetchSwapMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Poloniex) fetchSwapMarketsBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// do similar as spot per https://api-docs.poloniex.com/v3/futures/api/market/get-product-info
@@ -1139,7 +1139,7 @@ func (this *Poloniex) fetchSwapMarketsBody(ch chan AsyncResult[any], optionalArg
 	//
 	var markets []any = SafeListTyped(response, "data")
 
-	ch <- AsyncResult[any]{Value: this.ParseMarkets(markets)}
+	ch <- AsyncResult[[]any]{Value: this.ParseMarkets(markets)}
 	return nil
 }
 func (this *Poloniex) ParseMarket(market any) any {
@@ -3238,7 +3238,7 @@ func (this *Poloniex) fetchOrderTradesBody(ch chan AsyncResult[any], id string, 
 	ch <- AsyncResult[any]{Value: this.ParseTrades(trades)}
 	return nil
 }
-func (this *Poloniex) ParseBalance(response any) any {
+func (this *Poloniex) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
@@ -3261,7 +3261,7 @@ func (this *Poloniex) ParseBalance(response any) any {
 				result[*code] = account
 			}
 		}
-		return this.SafeBalance(result)
+		return this.SafeBalance(result).(map[string]any)
 	}
 	// for spot
 	for i := 0; i < GetArrayLength(response); i++ {
@@ -3279,7 +3279,7 @@ func (this *Poloniex) ParseBalance(response any) any {
 			}
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -4131,7 +4131,7 @@ func (this *Poloniex) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], opt
 	ch <- AsyncResult[any]{Value: this.ParseDepositWithdrawFees(data, codes)}
 	return nil
 }
-func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any) any {
+func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any) map[string]any {
 	//
 	//         {
 	//             "1CR": {
@@ -4524,7 +4524,7 @@ func (this *Poloniex) fetchLeverageBody(ch chan AsyncResult[any], symbol any, op
 	ch <- AsyncResult[any]{Value: this.ParseLeverage(response, market)}
 	return nil
 }
-func (this *Poloniex) ParseLeverage(leverage any, optionalArgs ...any) any {
+func (this *Poloniex) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var shortLeverage *int64 = nil
@@ -6153,7 +6153,7 @@ func (this *Poloniex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderB
 func (this *Poloniex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Poloniex) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Poloniex) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Poloniex) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

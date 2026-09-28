@@ -4006,7 +4006,7 @@ export default class phemex extends Exchange {
             const position = positions[i];
             result.push (this.parsePosition (position));
         }
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     /**

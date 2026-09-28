@@ -1199,7 +1199,7 @@ func (this *Bitrue) ParseMarket(market any) any {
 		"info":    market,
 	})
 }
-func (this *Bitrue) ParseBalance(response any) any {
+func (this *Bitrue) ParseBalance(response any) map[string]any {
 	//
 	// spot
 	//
@@ -1264,7 +1264,7 @@ func (this *Bitrue) ParseBalance(response any) any {
 	}
 	result["timestamp"] = timestamp
 	result["datetime"] = this.Iso8601(timestamp)
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -5208,7 +5208,7 @@ func (this *Bitrue) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Bitrue) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bitrue) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bitrue) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bitrue) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

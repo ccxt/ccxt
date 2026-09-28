@@ -366,12 +366,12 @@ func (this *Btcmarkets) Describe() any {
 		},
 	})
 }
-func (this *Btcmarkets) FetchTransactionsWithMethodAsync(method string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Btcmarkets) FetchTransactionsWithMethodAsync(method string, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchTransactionsWithMethodBody(ch, method, optionalArgs...)
 	return ch
 }
-func (this *Btcmarkets) fetchTransactionsWithMethodBody(ch chan AsyncResult[any], method string, optionalArgs ...any) any {
+func (this *Btcmarkets) fetchTransactionsWithMethodBody(ch chan AsyncResult[[]any], method string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -424,7 +424,7 @@ func (this *Btcmarkets) fetchTransactionsWithMethodBody(ch chan AsyncResult[any]
 		response = listEp408.Value
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTransactions(response, currency, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.ParseTransactions(response, currency, since, limit)}
 	return nil
 }
 
@@ -460,7 +460,7 @@ func (this *Btcmarkets) fetchDepositsWithdrawalsBody(ch chan AsyncResult[any], o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes34015 []any = ListTyped(r.Value)
+	var retRes34015 []any = r.Value
 	if retRes34015 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -501,7 +501,7 @@ func (this *Btcmarkets) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes35515 []any = ListTyped(r.Value)
+	var retRes35515 []any = r.Value
 	if retRes35515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -542,7 +542,7 @@ func (this *Btcmarkets) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes37015 []any = ListTyped(r.Value)
+	var retRes37015 []any = r.Value
 	if retRes37015 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -833,7 +833,7 @@ func (this *Btcmarkets) fetchTimeBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.Parse8601(this.SafeString(response, "timestamp"))}
 	return nil
 }
-func (this *Btcmarkets) ParseBalance(response any) any {
+func (this *Btcmarkets) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -848,7 +848,7 @@ func (this *Btcmarkets) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -2869,7 +2869,7 @@ func (this *Btcmarkets) FetchOrderStatus(id string, options ...FetchOrderStatusO
 func (this *Btcmarkets) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Btcmarkets) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Btcmarkets) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Btcmarkets) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

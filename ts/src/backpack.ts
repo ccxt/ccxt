@@ -2209,7 +2209,7 @@ export default class backpack extends Exchange {
             return positions;
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (positions, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (positions, 'symbol', symbolsNormalized);
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {

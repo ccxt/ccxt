@@ -346,7 +346,7 @@ func (this *Bit2c) Describe() any {
 		},
 	})
 }
-func (this *Bit2c) ParseBalance(response any) any {
+func (this *Bit2c) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
@@ -364,7 +364,7 @@ func (this *Bit2c) ParseBalance(response any) any {
 		}
 		result[code] = account
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -1391,7 +1391,7 @@ func (this *Bit2c) fetchDepositAddressBody(ch chan AsyncResult[any], code string
 	ch <- AsyncResult[any]{Value: this.ParseDepositAddress(response, currency)}
 	return nil
 }
-func (this *Bit2c) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Bit2c) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
@@ -2066,7 +2066,7 @@ func (this *Bit2c) FetchOrderStatus(id string, options ...FetchOrderStatusOption
 func (this *Bit2c) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bit2c) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bit2c) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bit2c) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

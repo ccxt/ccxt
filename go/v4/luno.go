@@ -783,7 +783,7 @@ func (this *Luno) fetchAccountsBody(ch chan AsyncResult[any], optionalArgs ...an
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Luno) ParseBalance(response any) any {
+func (this *Luno) ParseBalance(response any) map[string]any {
 	var wallets []any = SafeListTyped(response, "balance")
 	var result map[string]any = map[string]any{
 		"info":      response,
@@ -825,7 +825,7 @@ func (this *Luno) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -1058,12 +1058,12 @@ func (this *Luno) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs 
 	ch <- AsyncResult[any]{Value: this.ParseOrder(response)}
 	return nil
 }
-func (this *Luno) FetchOrdersByStateAsync(state any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Luno) FetchOrdersByStateAsync(state any, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchOrdersByStateBody(ch, state, optionalArgs...)
 	return ch
 }
-func (this *Luno) fetchOrdersByStateBody(ch chan AsyncResult[any], state any, optionalArgs ...any) any {
+func (this *Luno) fetchOrdersByStateBody(ch chan AsyncResult[[]any], state any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1098,7 +1098,7 @@ func (this *Luno) fetchOrdersByStateBody(ch chan AsyncResult[any], state any, op
 	var response map[string]any = r1.Value
 	var orders []any = SafeListTypedDefault(response, "orders", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(orders, market, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.ParseOrders(orders, market, since, limit)}
 	return nil
 }
 
@@ -1134,7 +1134,7 @@ func (this *Luno) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any)
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes90715 []any = ListTyped(r.Value)
+	var retRes90715 []any = r.Value
 	if retRes90715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -1175,7 +1175,7 @@ func (this *Luno) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes92215 []any = ListTyped(r.Value)
+	var retRes92215 []any = r.Value
 	if retRes92215 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -1216,7 +1216,7 @@ func (this *Luno) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes93715 []any = ListTyped(r.Value)
+	var retRes93715 []any = r.Value
 	if retRes93715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -2230,7 +2230,7 @@ func (this *Luno) fetchDepositAddressBody(ch chan AsyncResult[any], code string,
 	ch <- AsyncResult[any]{Value: this.ParseDepositAddress(response, currency)}
 	return nil
 }
-func (this *Luno) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Luno) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "account_id": "string",
@@ -3183,7 +3183,7 @@ func (this *Luno) FetchOrderStatus(id string, options ...FetchOrderStatusOptions
 func (this *Luno) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Luno) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Luno) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Luno) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

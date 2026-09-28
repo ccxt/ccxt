@@ -6173,7 +6173,7 @@ export class BaseExchange {
             const position = this.extend (this.parsePosition (positionsArray[i]), params);
             result.push (position);
         }
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     parseADLRank (info: Dict, market: Market = undefined): ADL {
@@ -6191,7 +6191,7 @@ export class BaseExchange {
             const rank = this.extend (this.parseADLRank (ranksArray[i]), params);
             result.push (rank);
         }
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     parseAccounts (accounts: NullableList, params: Dict = {}): Account[] {
@@ -7771,7 +7771,7 @@ export class BaseExchange {
             }
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArray (results, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers (results, 'symbol', symbolsNormalized);
     }
 
     parseDepositAddresses (addresses: any, codes: Strings = undefined, indexed = true, params: Dict = {}): DepositAddress[] {
@@ -7853,7 +7853,7 @@ export class BaseExchange {
                 fundingRates[parsed['symbol']] = parsed;
             }
         }
-        return this.filterByArray (fundingRates, 'symbol', symbols);
+        return this.indexBy (this.filterByArray (fundingRates, 'symbol', symbols, false), 'symbol') as FundingRates;
     }
 
     parseLongShortRatio (info: Dict, market: Market = undefined): LongShortRatio {
@@ -8391,22 +8391,22 @@ export class BaseExchange {
         }
     }
 
-    filterByArrayPositions (objects: any, key: IndexType, values: any = undefined, indexed = true): Position[] {
+    filterByArrayPositions (objects: any, key: IndexType, values: any = undefined): Position[] {
         /**
          * @ignore
          * @method
          * @description Typed wrapper for filterByArray that returns a list of positions
          */
-        return this.filterByArray (objects, key, values, indexed) as Position[];
+        return this.toArray (this.filterByArray (objects, key, values, false)) as Position[];
     }
 
-    filterByArrayTickers (objects: any, key: IndexType, values: any = undefined, indexed = true): Dictionary<Ticker> {
+    filterByArrayTickers (objects: any, key: IndexType, values: any = undefined): Dictionary<Ticker> {
         /**
          * @ignore
          * @method
          * @description Typed wrapper for filterByArray that returns a dictionary of tickers
          */
-        return this.filterByArray (objects, key, values, indexed) as Dictionary<Ticker>;
+        return this.indexBy (this.filterByArray (objects, key, values, false), key) as Dictionary<Ticker>;
     }
 
     filterByArrayADLRanks (objects: any, key: IndexType, values: any = undefined, indexed = true): ADL[] {

@@ -8274,7 +8274,7 @@ export default class htx extends Exchange {
                 'datetime': this.iso8601 (timestamp),
             }));
         }
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     /**

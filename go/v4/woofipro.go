@@ -1334,7 +1334,7 @@ func (this *Woofipro) fetchTradesBody(ch chan AsyncResult[any], symbol any, opti
 	ch <- AsyncResult[any]{Value: this.ParseTrades(rows, market, since, limit)}
 	return nil
 }
-func (this *Woofipro) ParseFundingRate(fundingRate any, optionalArgs ...any) any {
+func (this *Woofipro) ParseFundingRate(fundingRate any, optionalArgs ...any) map[string]any {
 	//
 	//         {
 	//             "symbol":"PERP_AAVE_USDT",
@@ -3769,7 +3769,7 @@ func (this *Woofipro) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 	ch <- AsyncResult[any]{Value: this.ParseTrades(trades, market, since, limit, paramsUntil)}
 	return nil
 }
-func (this *Woofipro) ParseBalance(response any) any {
+func (this *Woofipro) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -3784,7 +3784,7 @@ func (this *Woofipro) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -4681,7 +4681,7 @@ func (this *Woofipro) reduceMarginBody(ch chan EndpointResult[map[string]any], s
 	}
 	return nil
 }
-func (this *Woofipro) ParseLeverage(leverage any, optionalArgs ...any) any {
+func (this *Woofipro) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var leverageValue *int64 = this.SafeInteger(leverage, "max_leverage")
@@ -6449,7 +6449,7 @@ func (this *Woofipro) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderB
 func (this *Woofipro) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Woofipro) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Woofipro) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Woofipro) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

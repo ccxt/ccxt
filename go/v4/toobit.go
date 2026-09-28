@@ -2011,7 +2011,7 @@ func (this *Toobit) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs
 	ch <- AsyncResult[any]{Value: this.ParseFundingRates(response, symbolsNormalized)}
 	return nil
 }
-func (this *Toobit) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Toobit) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(contract, "symbol")
@@ -2181,7 +2181,7 @@ func (this *Toobit) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...a
 	ch <- AsyncResult[any]{Value: this.ParseBalance(response)}
 	return nil
 }
-func (this *Toobit) ParseBalance(response any) any {
+func (this *Toobit) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
@@ -2199,7 +2199,7 @@ func (this *Toobit) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -3396,7 +3396,7 @@ func (this *Toobit) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs 
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Toobit) ParseTradingFee(data any, optionalArgs ...any) any {
+func (this *Toobit) ParseTradingFee(data any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(data, "symbol")
@@ -3442,7 +3442,7 @@ func (this *Toobit) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes275015 []any = ListTyped(r.Value)
+	var retRes275015 []any = r.Value
 	if retRes275015 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -3483,7 +3483,7 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes276515 []any = ListTyped(r.Value)
+	var retRes276515 []any = r.Value
 	if retRes276515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -3491,12 +3491,12 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs 
 	}
 	return nil
 }
-func (this *Toobit) FetchDepositsOrWithdrawalsHelperAsync(typeVar any, code any, since any, limit any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Toobit) FetchDepositsOrWithdrawalsHelperAsync(typeVar any, code any, since any, limit any, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchDepositsOrWithdrawalsHelperBody(ch, typeVar, code, since, limit, optionalArgs...)
 	return ch
 }
-func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[any], typeVar any, code any, since any, limit any, optionalArgs ...any) any {
+func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]any], typeVar any, code any, since any, limit any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3538,7 +3538,7 @@ func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[any
 		response = r2.Raw
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTransactions(response, currency, since, limit, paramsUntil)}
+	ch <- AsyncResult[[]any]{Value: this.ParseTransactions(response, currency, since, limit, paramsUntil)}
 	return nil
 }
 func (this *Toobit) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
@@ -3701,7 +3701,7 @@ func (this *Toobit) fetchDepositAddressBody(ch chan AsyncResult[any], code strin
 	ch <- AsyncResult[any]{Value: this.ParseDepositAddress(response, currency)}
 	return nil
 }
-func (this *Toobit) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Toobit) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var address *string = this.SafeString(depositAddress, "address")
@@ -3942,7 +3942,7 @@ func (this *Toobit) fetchLeverageBody(ch chan AsyncResult[any], symbol any, opti
 	ch <- AsyncResult[any]{Value: this.ParseLeverage(data, market)}
 	return nil
 }
-func (this *Toobit) ParseLeverage(leverage any, optionalArgs ...any) any {
+func (this *Toobit) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString2(leverage, "symbolId", "symbol")
@@ -5262,7 +5262,7 @@ func (this *Toobit) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Toobit) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Toobit) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Toobit) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Toobit) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

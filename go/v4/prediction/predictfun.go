@@ -5880,7 +5880,7 @@ func (this *Predictfun) FetchOrderTrades(id string, params map[string]any, optio
 	var res []ccxt.PredictionTrade = ccxt.NewPredictionTradeArray(r.Value)
 	return res, nil
 }
-func (this *Predictfun) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Predictfun) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Predictfun) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (ccxt.PositionModeInfo, error) {

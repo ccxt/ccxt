@@ -3540,7 +3540,7 @@ export default class kraken extends Exchange {
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const result = this.safeList (response, 'result') as List;
         const results = this.parsePositions (result, symbolsNormalized);
-        return this.filterByArrayPositions (results, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (results, 'symbol', symbolsNormalized);
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {

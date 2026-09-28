@@ -5384,7 +5384,7 @@ export default class xt extends Exchange {
             const merged = this.mergePositionBreakInfo (entry, breakBySymbolSide);
             result.push (this.parsePosition (merged, marketInner));
         }
-        return this.filterByArrayPositions (result, 'symbol', symbols, false);
+        return this.filterByArrayPositions (result, 'symbol', symbols);
     }
 
     /**

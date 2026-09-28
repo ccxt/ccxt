@@ -4670,7 +4670,7 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], opti
 	ch <- AsyncResult[any]{Value: reversedArray}
 	return nil
 }
-func (this *Bitfinex) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Bitfinex) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	//       [
 	//          "tBTCF0:USTF0",
@@ -6778,7 +6778,7 @@ func (this *Bitfinex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error
 func (this *Bitfinex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Bitfinex) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bitfinex) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bitfinex) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

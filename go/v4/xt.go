@@ -1476,12 +1476,12 @@ func (this *Xt) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) 
 	ch <- AsyncResult[any]{Value: this.ArrayConcat(spotMarkets, swapAndFutureMarkets)}
 	return nil
 }
-func (this *Xt) FetchSpotMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Xt) FetchSpotMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchSpotMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Xt) fetchSpotMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Xt) fetchSpotMarketsBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
@@ -1547,15 +1547,15 @@ func (this *Xt) fetchSpotMarketsBody(ch chan AsyncResult[any], optionalArgs ...a
 	var data map[string]any = SafeMapTyped(response, "result")
 	var symbols []any = SafeListTypedDefault(data, "symbols", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseMarkets(symbols)}
+	ch <- AsyncResult[[]any]{Value: this.ParseMarkets(symbols)}
 	return nil
 }
-func (this *Xt) FetchSwapAndFutureMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Xt) FetchSwapAndFutureMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchSwapAndFutureMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Xt) fetchSwapAndFutureMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Xt) fetchSwapAndFutureMarketsBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1630,10 +1630,10 @@ func (this *Xt) fetchSwapAndFutureMarketsBody(ch chan AsyncResult[any], optional
 	//
 	var swapAndFutureMarkets []any = this.ArrayConcat(this.SafeList(GetValue(markets, 0), "result", []any{}), this.SafeList(GetValue(markets, 1), "result", []any{}))
 
-	ch <- AsyncResult[any]{Value: this.ParseMarkets(swapAndFutureMarkets)}
+	ch <- AsyncResult[[]any]{Value: this.ParseMarkets(swapAndFutureMarkets)}
 	return nil
 }
-func (this *Xt) ParseMarkets(markets any) any {
+func (this *Xt) ParseMarkets(markets any) []any {
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(markets); i++ {
 		var parsed any = this.ParseMarket(GetValue(markets, i))
@@ -3267,7 +3267,7 @@ func (this *Xt) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any) 
 	ch <- AsyncResult[any]{Value: this.ParseBalance(balances)}
 	return nil
 }
-func (this *Xt) ParseBalance(response any) any {
+func (this *Xt) ParseBalance(response any) map[string]any {
 	//
 	// spot
 	//
@@ -3316,7 +3316,7 @@ func (this *Xt) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -4243,12 +4243,12 @@ func (this *Xt) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) a
 	ch <- AsyncResult[any]{Value: this.ParseOrders(orders, market, since, limit)}
 	return nil
 }
-func (this *Xt) FetchOrdersByStatusAsync(status string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Xt) FetchOrdersByStatusAsync(status string, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchOrdersByStatusBody(ch, status, optionalArgs...)
 	return ch
 }
-func (this *Xt) fetchOrdersByStatusBody(ch chan AsyncResult[any], status string, optionalArgs ...any) any {
+func (this *Xt) fetchOrdersByStatusBody(ch chan AsyncResult[[]any], status string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4629,11 +4629,11 @@ func (this *Xt) fetchOrdersByStatusBody(ch chan AsyncResult[any], status string,
 		var parsedOrders any = this.ParseOrders(orders, market)
 		var filteredOrders []any = this.FilterBy(parsedOrders, "status", status)
 
-		ch <- AsyncResult[any]{Value: this.FilterBySinceLimit(filteredOrders, since, limit)}
+		ch <- AsyncResult[[]any]{Value: this.FilterBySinceLimit(filteredOrders, since, limit)}
 		return nil
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(orders, market, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.ParseOrders(orders, market, since, limit)}
 	return nil
 }
 
@@ -4676,7 +4676,7 @@ func (this *Xt) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...an
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes352515 []any = ListTyped(r.Value)
+	var retRes352515 []any = r.Value
 	if retRes352515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -4724,7 +4724,7 @@ func (this *Xt) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes354715 []any = ListTyped(r.Value)
+	var retRes354715 []any = r.Value
 	if retRes354715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -4751,12 +4751,12 @@ func (this *Xt) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...
  * @param {bool} [params.trailing] if the orders are trailing orders or not
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
-func (this *Xt) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Xt) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Xt) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Xt) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4772,11 +4772,11 @@ func (this *Xt) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes356915 []any = ListTyped(r.Value)
+	var retRes356915 []any = r.Value
 	if retRes356915 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes356915}
+		ch <- AsyncResult[[]any]{Value: retRes356915}
 	}
 	return nil
 }
@@ -5605,7 +5605,7 @@ func (this *Xt) fetchDepositAddressBody(ch chan AsyncResult[any], code string, o
 	ch <- AsyncResult[any]{Value: this.ParseDepositAddress(result, currency)}
 	return nil
 }
-func (this *Xt) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Xt) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "address": "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
@@ -6653,7 +6653,7 @@ func (this *Xt) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, op
 	ch <- AsyncResult[any]{Value: this.ParseFundingRate(result, market)}
 	return nil
 }
-func (this *Xt) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Xt) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol": "btc_usdt",
@@ -6924,7 +6924,7 @@ func (this *Xt) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs ...a
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Xt) ParseTradingFee(fee map[string]any, optionalArgs ...any) any {
+func (this *Xt) ParseTradingFee(fee map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol any = func() any {
@@ -7321,7 +7321,7 @@ func (this *Xt) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...any
 		result = append(result, this.ParsePosition(merged, marketInner))
 	}
 
-	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbols, false)}
+	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbols)}
 	return nil
 }
 
@@ -7337,12 +7337,12 @@ func (this *Xt) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...any
  * @param {int} [params.until] timestamp in ms of the latest position to fetch
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Xt) FetchPositionsHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Xt) FetchPositionsHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchPositionsHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Xt) fetchPositionsHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Xt) fetchPositionsHistoryBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -7435,7 +7435,7 @@ func (this *Xt) fetchPositionsHistoryBody(ch chan AsyncResult[any], optionalArgs
 	var items []any = SafeListTypedDefault(result, "items", []any{})
 	var positions any = this.ParsePositions(items, symbolsNormalized)
 
-	ch <- AsyncResult[any]{Value: this.FilterBySinceLimit(positions, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.FilterBySinceLimit(positions, since, limit)}
 	return nil
 }
 func (this *Xt) ParsePosition(position any, optionalArgs ...any) any {
@@ -9389,7 +9389,7 @@ func (this *Xt) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) 
 func (this *Xt) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Xt) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Xt) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Xt) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

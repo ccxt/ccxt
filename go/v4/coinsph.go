@@ -1814,7 +1814,7 @@ func (this *Coinsph) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseBalance(response)}
 	return nil
 }
-func (this *Coinsph) ParseBalance(response any) any {
+func (this *Coinsph) ParseBalance(response any) map[string]any {
 	var balances []any = SafeListTyped(response, "balances")
 	var result map[string]any = map[string]any{
 		"info":      response,
@@ -1832,7 +1832,7 @@ func (this *Coinsph) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -2535,7 +2535,7 @@ func (this *Coinsph) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Coinsph) ParseTradingFee(fee any, optionalArgs ...any) any {
+func (this *Coinsph) ParseTradingFee(fee any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol": "ETHUSDT",
@@ -2973,7 +2973,7 @@ func (this *Coinsph) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
 	ch <- AsyncResult[any]{Value: this.ParseDepositAddress(response, currency)}
 	return nil
 }
-func (this *Coinsph) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Coinsph) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "coin": "ETH",
@@ -3951,7 +3951,7 @@ func (this *Coinsph) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 func (this *Coinsph) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Coinsph) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Coinsph) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Coinsph) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

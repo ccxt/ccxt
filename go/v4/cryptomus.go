@@ -896,7 +896,7 @@ func (this *Cryptomus) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs .
 	ch <- AsyncResult[any]{Value: this.ParseBalance(result)}
 	return nil
 }
-func (this *Cryptomus) ParseBalance(balance any) any {
+func (this *Cryptomus) ParseBalance(balance any) map[string]any {
 	//
 	//     {
 	//         "ticker": "AVAX",
@@ -918,7 +918,7 @@ func (this *Cryptomus) ParseBalance(balance any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -1102,12 +1102,12 @@ func (this *Cryptomus) cancelOrderBody(ch chan AsyncResult[any], id any, optiona
  * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cryptomus) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Cryptomus) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchCanceledAndClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1191,7 +1191,7 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[any]
 		orders = append(orders, this.ParseOrder(order, market))
 	}
 
-	ch <- AsyncResult[any]{Value: orders}
+	ch <- AsyncResult[[]any]{Value: orders}
 	return nil
 }
 
@@ -2154,7 +2154,7 @@ func (this *Cryptomus) FetchOrderStatus(id string, options ...FetchOrderStatusOp
 func (this *Cryptomus) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Cryptomus) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Cryptomus) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Cryptomus) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

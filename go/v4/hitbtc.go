@@ -1272,7 +1272,7 @@ func (this *Hitbtc) fetchDepositAddressBody(ch chan AsyncResult[any], code strin
 	}}
 	return nil
 }
-func (this *Hitbtc) ParseBalance(response any) any {
+func (this *Hitbtc) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -1287,7 +1287,7 @@ func (this *Hitbtc) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -2213,7 +2213,7 @@ func (this *Hitbtc) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, 
 	ch <- AsyncResult[any]{Value: this.ParseOrderBook(response, symbol, timestamp, "bid", "ask")}
 	return nil
 }
-func (this *Hitbtc) ParseTradingFee(fee any, optionalArgs ...any) any {
+func (this *Hitbtc) ParseTradingFee(fee any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol":"ARVUSDT", // returned from fetchTradingFees only
@@ -4576,7 +4576,7 @@ func (this *Hitbtc) fetchFundingRateBody(ch chan AsyncResult[any], symbol string
 	ch <- AsyncResult[any]{Value: this.ParseFundingRate(response, market)}
 	return nil
 }
-func (this *Hitbtc) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Hitbtc) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "contract_type": "perpetual",
@@ -4924,7 +4924,7 @@ func (this *Hitbtc) fetchLeverageBody(ch chan AsyncResult[any], symbol any, opti
 	ch <- AsyncResult[any]{Value: this.ParseLeverage(response, market)}
 	return nil
 }
-func (this *Hitbtc) ParseLeverage(leverage any, optionalArgs ...any) any {
+func (this *Hitbtc) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "symbol")
@@ -6560,7 +6560,7 @@ func (this *Hitbtc) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) 
 func (this *Hitbtc) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Hitbtc) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Hitbtc) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Hitbtc) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

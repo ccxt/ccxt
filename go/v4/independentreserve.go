@@ -531,7 +531,7 @@ func (this *Independentreserve) fetchMarketsBody(ch chan AsyncResult[any], optio
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Independentreserve) ParseBalance(response any) any {
+func (this *Independentreserve) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -546,7 +546,7 @@ func (this *Independentreserve) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -1478,7 +1478,7 @@ func (this *Independentreserve) fetchDepositAddressBody(ch chan AsyncResult[any]
 	ch <- AsyncResult[any]{Value: this.ParseDepositAddress(response)}
 	return nil
 }
-func (this *Independentreserve) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Independentreserve) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        Tag: '3307446684',
@@ -2322,7 +2322,7 @@ func (this *Independentreserve) FetchOrderStatus(id string, options ...FetchOrde
 func (this *Independentreserve) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Independentreserve) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Independentreserve) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Independentreserve) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

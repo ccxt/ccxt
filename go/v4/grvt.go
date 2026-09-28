@@ -1924,7 +1924,7 @@ func (this *Grvt) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any
 	ch <- AsyncResult[any]{Value: this.ParseBalance(result)}
 	return nil
 }
-func (this *Grvt) ParseBalance(response any) any {
+func (this *Grvt) ParseBalance(response any) map[string]any {
 	//
 	//        {
 	//            "event_time": "1764863116142428457",
@@ -1970,7 +1970,7 @@ func (this *Grvt) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -3444,7 +3444,7 @@ func (this *Grvt) setLeverageBody(ch chan AsyncResult[any], leverage int64, opti
 	ch <- AsyncResult[any]{Value: this.ParseLeverage(response, market)}
 	return nil
 }
-func (this *Grvt) ParseLeverage(leverage any, optionalArgs ...any) any {
+func (this *Grvt) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {
 	//
 	// setLeverage
 	//
@@ -5486,7 +5486,7 @@ func (this *Grvt) FetchOrderStatus(id string, options ...FetchOrderStatusOptions
 func (this *Grvt) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Grvt) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Grvt) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Grvt) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

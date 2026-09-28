@@ -519,7 +519,7 @@ func (this *Indodax) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Indodax) ParseBalance(response any) any {
+func (this *Indodax) ParseBalance(response any) map[string]any {
 	var balances map[string]any = SafeMapTyped(response, "return")
 	var free map[string]any = SafeMapTyped(balances, "balance")
 	var used map[string]any = SafeMapTyped(balances, "balance_hold")
@@ -546,7 +546,7 @@ func (this *Indodax) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -2817,7 +2817,7 @@ func (this *Indodax) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Indodax) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Indodax) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Indodax) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Indodax) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

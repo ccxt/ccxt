@@ -814,7 +814,7 @@ func (this *Bitso) ParseCurrency(rawCurrency any) map[string]any {
 		"type":     this.SafeString(rawCurrency, "type"),
 	})
 }
-func (this *Bitso) ParseBalance(response any) any {
+func (this *Bitso) ParseBalance(response any) map[string]any {
 	var payload map[string]any = SafeMapTyped(response, "payload")
 	var balances []any = SafeListTyped(payload, "balances")
 	var result map[string]any = map[string]any{
@@ -834,7 +834,7 @@ func (this *Bitso) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -2342,7 +2342,7 @@ func (this *Bitso) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], option
 	ch <- AsyncResult[any]{Value: this.ParseDepositWithdrawFees(payload, codes)}
 	return nil
 }
-func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) any {
+func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "fees": [
@@ -3539,7 +3539,7 @@ func (this *Bitso) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 func (this *Bitso) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Bitso) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bitso) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bitso) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

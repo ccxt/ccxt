@@ -261,7 +261,9 @@ export function goChanMethodReturn (masked: string, receiver: string, name: stri
     } else if ((embed !== null) && (embed[1] === (own ? '' : 'ccxt.') + 'PredictionExchange')) {
         chain = [ 'PredictionExchange', 'BaseExchange' ];
     } else {
-        return undefined;
+        // pro venue `type R struct {\n\t*ccxt.V`: V's REST declaration decides, else V's promoted Exchange chain
+        const venue = own ? null : new RegExp ('^type ' + receiver + ' struct \\{\\n\\t\\*ccxt\\.(\\w+)\\n', 'm').exec (masked);
+        return (venue === null) ? undefined : goChanVenueReturn (venue[1], name);
     }
     const map = goChanBaseReturns ();
     for (const s of chain) {
@@ -271,6 +273,16 @@ export function goChanMethodReturn (masked: string, receiver: string, name: stri
         }
     }
     return undefined;
+}
+
+// the concrete return of V.name for a REST venue V (go/v4/<v>.go), falling back to its Exchange/BaseExchange chain
+function goChanVenueReturn (venue: string, name: string): string | undefined {
+    const file = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'go', 'v4', venue.toLowerCase () + '.go');
+    const masked = fs.existsSync (file) ? goChanMask (fs.readFileSync (file, 'utf8')) : '';
+    if (!new RegExp ('^type ' + venue + ' struct \\{\\n\\tExchange\\n', 'm').test (masked)) {
+        return undefined;
+    }
+    return goChanMethodReturn (masked, venue, name);
 }
 
 interface GoChanCore { receiver: string, method: string, asyncStart: number, asyncEnd: number, bodyStart: number, bodyEnd: number, sends: { start: number, end: number, expr: string, bind: boolean }[] }

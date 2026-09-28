@@ -429,7 +429,7 @@ func (this *Btcbox) ParseMarket(market any) any {
 		"info":    market,
 	})
 }
-func (this *Btcbox) ParseBalance(response any) any {
+func (this *Btcbox) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -447,7 +447,7 @@ func (this *Btcbox) ParseBalance(response any) any {
 			result[code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -1820,7 +1820,7 @@ func (this *Btcbox) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Btcbox) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Btcbox) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Btcbox) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Btcbox) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

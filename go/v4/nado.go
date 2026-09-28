@@ -1533,12 +1533,12 @@ func (this *Nado) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Nado) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Nado) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Nado) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Nado) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1559,9 +1559,9 @@ func (this *Nado) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArgs
 	}
 	var retRes118815 []any = ListTyped(r.Value)
 	if retRes118815 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes118815}
+		ch <- AsyncResult[[]any]{Value: retRes118815}
 	}
 	return nil
 }
@@ -1577,12 +1577,12 @@ func (this *Nado) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Nado) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Nado) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchCanceledAndClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Nado) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Nado) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1603,9 +1603,9 @@ func (this *Nado) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[any], opt
 	}
 	var retRes120815 []any = ListTyped(r.Value)
 	if retRes120815 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes120815}
+		ch <- AsyncResult[[]any]{Value: retRes120815}
 	}
 	return nil
 }
@@ -1816,7 +1816,7 @@ func (this *Nado) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...an
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes135315 []any = ListTyped(r.Value)
+	var retRes135315 []any = r.Value
 	if retRes135315 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -1859,7 +1859,7 @@ func (this *Nado) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ..
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes137015 []any = ListTyped(r.Value)
+	var retRes137015 []any = r.Value
 	if retRes137015 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -1867,12 +1867,12 @@ func (this *Nado) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ..
 	}
 	return nil
 }
-func (this *Nado) QueryTransactionsByEventTypeAsync(eventType string, transactionType string, methodName string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Nado) QueryTransactionsByEventTypeAsync(eventType string, transactionType string, methodName string, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.queryTransactionsByEventTypeBody(ch, eventType, transactionType, methodName, optionalArgs...)
 	return ch
 }
-func (this *Nado) queryTransactionsByEventTypeBody(ch chan AsyncResult[any], eventType string, transactionType string, methodName string, optionalArgs ...any) any {
+func (this *Nado) queryTransactionsByEventTypeBody(ch chan AsyncResult[[]any], eventType string, transactionType string, methodName string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1984,7 +1984,7 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan AsyncResult[any], eve
 		transactions = append(transactions, this.ParseTransaction(transaction, currency))
 	}
 
-	ch <- AsyncResult[any]{Value: this.FilterByCurrencySinceLimit(transactions, code, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.FilterByCurrencySinceLimit(transactions, code, since, limit)}
 	return nil
 }
 
@@ -2093,7 +2093,7 @@ func (this *Nado) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...a
 		}, position)))
 	}
 
-	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)}
+	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized)}
 	return nil
 }
 
@@ -3274,7 +3274,7 @@ func (this *Nado) ParseTrade(trade any, optionalArgs ...any) any {
 		"fee":          fee,
 	}, marketResolved)
 }
-func (this *Nado) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Nado) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "product_id": 1,
@@ -3444,7 +3444,7 @@ func (this *Nado) ParseCurrency(rawCurrency any) map[string]any {
 		"info": rawCurrency,
 	})
 }
-func (this *Nado) ParseBalance(response any) any {
+func (this *Nado) ParseBalance(response any) map[string]any {
 	//
 	//     {
 	//         "subaccount": "0x8d7d64d6cf1d4f018dd101482ac71ad49e30c56064656661756c740000000000",
@@ -3486,7 +3486,7 @@ func (this *Nado) ParseBalance(response any) any {
 			AddElementToObject(result, code, account)
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 func (this *Nado) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
@@ -5243,7 +5243,7 @@ func (this *Nado) FetchOrderStatus(id string, options ...FetchOrderStatusOptions
 func (this *Nado) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Nado) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Nado) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Nado) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

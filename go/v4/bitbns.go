@@ -678,7 +678,7 @@ func (this *Bitbns) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
 	ch <- AsyncResult[any]{Value: this.ParseTickers(response, symbols)}
 	return nil
 }
-func (this *Bitbns) ParseBalance(response any) any {
+func (this *Bitbns) ParseBalance(response any) map[string]any {
 	var timestamp any = nil
 	var result map[string]any = map[string]any{
 		"info":      response,
@@ -712,7 +712,7 @@ func (this *Bitbns) ParseBalance(response any) any {
 			}
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -2468,7 +2468,7 @@ func (this *Bitbns) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Bitbns) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bitbns) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bitbns) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bitbns) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

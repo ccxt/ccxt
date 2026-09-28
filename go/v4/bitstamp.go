@@ -1443,7 +1443,7 @@ func (this *Bitstamp) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(response)}
 	return nil
 }
-func (this *Bitstamp) ParseCurrencies(rawCurrencies any) any {
+func (this *Bitstamp) ParseCurrencies(rawCurrencies any) map[string]any {
 	// each market row yields two currencies so the accumulation happens
 	// in a local dictionary here instead of a temp key inside this.options
 	// because the shared scratch key raced between concurrent
@@ -2166,7 +2166,7 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, op
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(ohlc, market, timeframe, since, limitResolved)}
 	return nil
 }
-func (this *Bitstamp) ParseBalance(response any) any {
+func (this *Bitstamp) ParseBalance(response any) map[string]any {
 	var finalResponse any = response // java req
 	var result map[string]any = map[string]any{
 		"info":      finalResponse,
@@ -2189,7 +2189,7 @@ func (this *Bitstamp) ParseBalance(response any) any {
 			result[*currencyCode] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -2298,7 +2298,7 @@ func (this *Bitstamp) fetchTradingFeeBody(ch chan AsyncResult[any], symbol strin
 	ch <- AsyncResult[any]{Value: this.ParseTradingFee(tradingFee, market)}
 	return nil
 }
-func (this *Bitstamp) ParseTradingFee(fee any, optionalArgs ...any) any {
+func (this *Bitstamp) ParseTradingFee(fee any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(fee, "market")
@@ -3774,7 +3774,7 @@ func (this *Bitstamp) fetchFundingRateBody(ch chan AsyncResult[any], symbol stri
 	ch <- AsyncResult[any]{Value: this.ParseFundingRate(response, market)}
 	return nil
 }
-func (this *Bitstamp) ParseFundingRate(fundingRate any, optionalArgs ...any) any {
+func (this *Bitstamp) ParseFundingRate(fundingRate any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "funding_rate": "0.0024",
@@ -5218,7 +5218,7 @@ func (this *Bitstamp) FetchOrders(options ...FetchOrdersOptions) ([]Order, error
 func (this *Bitstamp) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bitstamp) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bitstamp) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bitstamp) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

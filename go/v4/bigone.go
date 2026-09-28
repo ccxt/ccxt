@@ -1669,7 +1669,7 @@ func (this *Bigone) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opti
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(data, market, timeframe, since, limitResolved)}
 	return nil
 }
-func (this *Bigone) ParseBalance(response any) any {
+func (this *Bigone) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
@@ -1687,7 +1687,7 @@ func (this *Bigone) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -3909,7 +3909,7 @@ func (this *Bigone) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Bigone) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bigone) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bigone) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bigone) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

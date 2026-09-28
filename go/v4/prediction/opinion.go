@@ -2096,7 +2096,7 @@ func (this *Opinion) fetchBalanceBody(ch chan ccxt.AsyncResult[any], optionalArg
  * @param {object} response the raw user-balance response
  * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
  */
-func (this *Opinion) ParseBalance(response any) any {
+func (this *Opinion) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -2112,7 +2112,7 @@ func (this *Opinion) ParseBalance(response any) any {
 			"total": this.SafeNumber(balance, "totalBalance"),
 		})
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -4045,7 +4045,7 @@ func (this *Opinion) FetchOrderTrades(id string, params map[string]any, options 
 	var res []ccxt.PredictionTrade = ccxt.NewPredictionTradeArray(r.Value)
 	return res, nil
 }
-func (this *Opinion) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Opinion) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Opinion) FetchPosition(outcome string, params map[string]any) (ccxt.PredictionPosition, error) {

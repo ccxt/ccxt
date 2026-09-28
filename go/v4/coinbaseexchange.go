@@ -1010,7 +1010,7 @@ func (this *Coinbaseexchange) ParseAccount(account any) any {
 		"info": account,
 	}
 }
-func (this *Coinbaseexchange) ParseBalance(response any) any {
+func (this *Coinbaseexchange) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -1026,7 +1026,7 @@ func (this *Coinbaseexchange) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -3681,12 +3681,12 @@ func (this *Coinbaseexchange) CancelAllOrders(options ...CancelAllOrdersOptions)
 	var res []Order = NewOrderArray(r.Value)
 	return res, nil
 }
-func (this *Coinbaseexchange) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Coinbaseexchange) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	r := <-this.FetchPaymentMethodsAsync(params...)
 	if r.Err != nil {
-		return map[string]any{}, r.Err
+		return nil, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res []map[string]any = NewMapArray(r.Value)
 	return res, nil
 }
 

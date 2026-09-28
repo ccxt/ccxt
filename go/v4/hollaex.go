@@ -892,7 +892,7 @@ func (this *Hollaex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseTickers(response, symbolsNormalized)}
 	return nil
 }
-func (this *Hollaex) ParseTickers(tickers any, optionalArgs ...any) any {
+func (this *Hollaex) ParseTickers(tickers any, optionalArgs ...any) map[string]any {
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1282,7 +1282,7 @@ func (this *Hollaex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	_ = market
 	return []any{this.Parse8601(this.SafeString(ohlcv, "time")), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
 }
-func (this *Hollaex) ParseBalance(response any) any {
+func (this *Hollaex) ParseBalance(response any) map[string]any {
 	var timestamp *int64 = this.Parse8601(this.SafeString(response, "updated_at"))
 	var result map[string]any = map[string]any{
 		"info":      response,
@@ -1304,7 +1304,7 @@ func (this *Hollaex) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -2023,7 +2023,7 @@ func (this *Hollaex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: this.ParseTrades(data, market, since, limit)}
 	return nil
 }
-func (this *Hollaex) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Hollaex) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "currency":"usdt",
@@ -3676,7 +3676,7 @@ func (this *Hollaex) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Hollaex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Hollaex) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Hollaex) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Hollaex) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

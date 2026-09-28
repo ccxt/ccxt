@@ -2384,7 +2384,7 @@ func (this *Lighter) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)}
 	return nil
 }
-func (this *Lighter) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Lighter) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "market_id": 0,
@@ -6038,7 +6038,7 @@ func (this *Lighter) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Lighter) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Lighter) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Lighter) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Lighter) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

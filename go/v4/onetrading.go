@@ -1500,7 +1500,7 @@ func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) any {
 		"info":         tradeValue,
 	}, market)
 }
-func (this *Onetrading) ParseBalance(response any) any {
+func (this *Onetrading) ParseBalance(response any) map[string]any {
 	var balances []any = SafeListTyped(response, "balances")
 	var result map[string]any = map[string]any{
 		"info": response,
@@ -1516,7 +1516,7 @@ func (this *Onetrading) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -3236,7 +3236,7 @@ func (this *Onetrading) FetchOrders(options ...FetchOrdersOptions) ([]Order, err
 func (this *Onetrading) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Onetrading) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Onetrading) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Onetrading) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

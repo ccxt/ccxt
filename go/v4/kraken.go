@@ -1189,7 +1189,7 @@ func (this *Kraken) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string,
 	ch <- AsyncResult[any]{Value: this.ParseTradingFee(result, market)}
 	return nil
 }
-func (this *Kraken) ParseTradingFee(fee map[string]any, market map[string]any) any {
+func (this *Kraken) ParseTradingFee(fee map[string]any, market map[string]any) map[string]any {
 	var makerFees map[string]any = SafeMapTyped(fee, "fees_maker")
 	var takerFees map[string]any = SafeMapTyped(fee, "fees")
 	var symbolMakerFee map[string]any = SafeMapTyped(makerFees, market["id"])
@@ -1723,12 +1723,12 @@ func (this *Kraken) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...an
 	ch <- AsyncResult[any]{Value: this.ParseLedger(items, currency, since, limit)}
 	return nil
 }
-func (this *Kraken) FetchLedgerEntriesByIdsAsync(ids any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Kraken) FetchLedgerEntriesByIdsAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchLedgerEntriesByIdsBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Kraken) fetchLedgerEntriesByIdsBody(ch chan AsyncResult[any], ids any, optionalArgs ...any) any {
+func (this *Kraken) fetchLedgerEntriesByIdsBody(ch chan AsyncResult[[]any], ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// https://www.kraken.com/features/api#query-ledgers
@@ -1778,7 +1778,7 @@ func (this *Kraken) fetchLedgerEntriesByIdsBody(ch chan AsyncResult[any], ids an
 		items = append(items, value)
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseLedger(items)}
+	ch <- AsyncResult[[]any]{Value: this.ParseLedger(items)}
 	return nil
 }
 func (this *Kraken) FetchLedgerEntryAsync(id string, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -1798,7 +1798,7 @@ func (this *Kraken) fetchLedgerEntryBody(ch chan AsyncResult[any], id string, op
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var items []any = ListTyped(r.Value)
+	var items []any = r.Value
 
 	ch <- AsyncResult[any]{Value: GetValue(items, 0)}
 	return nil
@@ -2051,7 +2051,7 @@ func (this *Kraken) fetchTradesBody(ch chan AsyncResult[any], symbol any, option
 	ch <- AsyncResult[any]{Value: this.ParseTrades(trades, market, since, limit)}
 	return nil
 }
-func (this *Kraken) ParseBalance(response any) any {
+func (this *Kraken) ParseBalance(response any) map[string]any {
 	var balances map[string]any = SafeMapTyped(response, "result")
 	var result map[string]any = map[string]any{
 		"info":      response,
@@ -2076,7 +2076,7 @@ func (this *Kraken) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -4535,7 +4535,7 @@ func (this *Kraken) fetchDepositAddressBody(ch chan AsyncResult[any], code strin
 	ch <- AsyncResult[any]{Value: this.ParseDepositAddress(firstResult, currency)}
 	return nil
 }
-func (this *Kraken) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Kraken) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3",
@@ -4709,7 +4709,7 @@ func (this *Kraken) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ..
 	var result []any = SafeListTyped(response, "result")
 	var results any = this.ParsePositions(result, symbolsNormalized)
 
-	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(results, "symbol", symbolsNormalized, false)}
+	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(results, "symbol", symbolsNormalized)}
 	return nil
 }
 func (this *Kraken) ParsePosition(position any, optionalArgs ...any) any {
@@ -6225,7 +6225,7 @@ func (this *Kraken) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) 
 func (this *Kraken) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Kraken) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Kraken) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Kraken) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

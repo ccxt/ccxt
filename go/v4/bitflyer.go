@@ -587,7 +587,7 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Bitflyer) ParseBalance(response any) any {
+func (this *Bitflyer) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -602,7 +602,7 @@ func (this *Bitflyer) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -1776,7 +1776,7 @@ func (this *Bitflyer) fetchFundingRateBody(ch chan AsyncResult[any], symbol stri
 	ch <- AsyncResult[any]{Value: this.ParseFundingRate(response, market)}
 	return nil
 }
-func (this *Bitflyer) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Bitflyer) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "current_funding_rate": -0.003750000000
@@ -2624,7 +2624,7 @@ func (this *Bitflyer) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 func (this *Bitflyer) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bitflyer) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bitflyer) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bitflyer) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

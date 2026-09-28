@@ -1326,7 +1326,7 @@ func (this *Btse) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any
 	ch <- AsyncResult[any]{Value: this.ParseBalance(response)}
 	return nil
 }
-func (this *Btse) ParseBalance(response any) any {
+func (this *Btse) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -1383,7 +1383,7 @@ func (this *Btse) ParseBalance(response any) any {
 		account["used"] = this.SafeString(useds, code)
 		result[code] = account
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -1929,7 +1929,7 @@ func (this *Btse) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs .
 	ch <- AsyncResult[any]{Value: this.ParseFundingRates(rows, symbolsNormalized)}
 	return nil
 }
-func (this *Btse) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Btse) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	// ticker/24hr contract rows
 	//     {
@@ -4301,12 +4301,12 @@ func (this *Btse) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Btse) FetchPositionsForSymbolAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Btse) FetchPositionsForSymbolAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchPositionsForSymbolBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Btse) fetchPositionsForSymbolBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Btse) fetchPositionsForSymbolBody(ch chan AsyncResult[[]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4327,9 +4327,9 @@ func (this *Btse) fetchPositionsForSymbolBody(ch chan AsyncResult[any], symbol s
 	}
 	var retRes328315 []any = ListTyped(r1.Value)
 	if retRes328315 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes328315}
+		ch <- AsyncResult[[]any]{Value: retRes328315}
 	}
 	return nil
 }
@@ -6312,7 +6312,7 @@ func (this *Btse) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 func (this *Btse) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Btse) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Btse) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Btse) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

@@ -11906,7 +11906,7 @@ export default class binance extends Exchange {
         for (let i = 0; i < positions.length; i++) {
             result.push (this.parseOptionPosition (positions[i], market));
         }
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     parseOptionPosition (position: Dict, market: Market = undefined) {
@@ -12132,7 +12132,7 @@ export default class binance extends Exchange {
         const filterClosed = this.handleOptionBoolAndParams (paramsPapi, 'fetchAccountPositions', 'filterClosed', false)[0];
         const result = this.parseAccountPositions (response, filterClosed);
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -12315,7 +12315,7 @@ export default class binance extends Exchange {
             }
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
     /**

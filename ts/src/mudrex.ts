@@ -1057,7 +1057,7 @@ export default class mudrex extends Exchange {
             const pos = this.parsePosition (p, m);
             outPos.push (pos);
         }
-        return this.filterByArrayPositions (outPos, 'symbol', symbols, false);
+        return this.filterByArrayPositions (outPos, 'symbol', symbols);
     }
 
     /**

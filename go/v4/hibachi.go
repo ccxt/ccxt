@@ -508,7 +508,7 @@ func (this *Hibachi) HardcodedCurrencies() any {
 	}
 	return result
 }
-func (this *Hibachi) ParseBalance(response any) any {
+func (this *Hibachi) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -520,7 +520,7 @@ func (this *Hibachi) ParseBalance(response any) any {
 	if code != nil {
 		result[*code] = account
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -1364,12 +1364,12 @@ func (this *Hibachi) editOrderBody(ch chan AsyncResult[any], id string, symbol a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hibachi) EditOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hibachi) EditOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.editOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Hibachi) editOrdersBody(ch chan AsyncResult[any], orders any, optionalArgs ...any) any {
+func (this *Hibachi) editOrdersBody(ch chan AsyncResult[[]any], orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1425,7 +1425,7 @@ func (this *Hibachi) editOrdersBody(ch chan AsyncResult[any], orders any, option
 		}))
 	}
 
-	ch <- AsyncResult[any]{Value: ret}
+	ch <- AsyncResult[[]any]{Value: ret}
 	return nil
 }
 func (this *Hibachi) CancelOrderRequest(id any) any {
@@ -2017,12 +2017,12 @@ func (this *Hibachi) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
  * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hibachi) FetchOrdersByStatusAsync(status any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hibachi) FetchOrdersByStatusAsync(status any, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchOrdersByStatusBody(ch, status, optionalArgs...)
 	return ch
 }
-func (this *Hibachi) fetchOrdersByStatusBody(ch chan AsyncResult[any], status any, optionalArgs ...any) any {
+func (this *Hibachi) fetchOrdersByStatusBody(ch chan AsyncResult[[]any], status any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2094,7 +2094,7 @@ func (this *Hibachi) fetchOrdersByStatusBody(ch chan AsyncResult[any], status an
 	var orders []any = SafeListTypedDefault(response, "orders", []any{})
 	var parsedOrders any = this.ParseOrders(orders, market)
 
-	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(parsedOrders, symbol, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(parsedOrders, symbol, since, limit)}
 	return nil
 }
 
@@ -2132,7 +2132,7 @@ func (this *Hibachi) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var orders []any = ListTyped(r.Value)
+	var orders []any = r.Value
 	var filtered []any = this.FilterBy(orders, "status", "closed")
 
 	ch <- AsyncResult[any]{Value: this.FilterBySinceLimit(filtered, since, limit)}
@@ -2152,12 +2152,12 @@ func (this *Hibachi) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArg
  * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hibachi) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hibachi) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hibachi) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hibachi) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2173,10 +2173,10 @@ func (this *Hibachi) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var orders []any = ListTyped(r.Value)
+	var orders []any = r.Value
 	var filtered []any = this.FilterBy(orders, "status", "canceled")
 
-	ch <- AsyncResult[any]{Value: this.FilterBySinceLimit(filtered, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.FilterBySinceLimit(filtered, since, limit)}
 	return nil
 }
 
@@ -2957,12 +2957,12 @@ func (this *Hibachi) ParseSettlements(settlements []any, optionalArgs ...any) an
  * @param {int} [params.until] timestamp in ms of the latest settlement
  * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
  */
-func (this *Hibachi) FetchMySettlementHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hibachi) FetchMySettlementHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchMySettlementHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hibachi) fetchMySettlementHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hibachi) fetchMySettlementHistoryBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3029,7 +3029,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan AsyncResult[any], opti
 	var settlements any = this.ParseSettlements(data, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
 
-	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(sorted, symbolResolved, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(sorted, symbolResolved, since, limit)}
 	return nil
 }
 
@@ -4332,7 +4332,7 @@ func (this *Hibachi) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Hibachi) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Hibachi) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Hibachi) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Hibachi) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

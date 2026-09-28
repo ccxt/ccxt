@@ -1244,7 +1244,7 @@ func (this *Whitebit) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], opt
 	ch <- AsyncResult[any]{Value: this.ParseDepositWithdrawFees(response, codes)}
 	return nil
 }
-func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any) any {
+func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "1INCH": {
@@ -3324,7 +3324,7 @@ func (this *Whitebit) cancelAllOrdersAfterBody(ch chan AsyncResult[any], timeout
 	ch <- AsyncResult[any]{Value: response}
 	return nil
 }
-func (this *Whitebit) ParseBalance(response any) any {
+func (this *Whitebit) ParseBalance(response any) map[string]any {
 	var balanceKeys []string = ObjectKeys(response)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(balanceKeys); i++ {
@@ -3347,7 +3347,7 @@ func (this *Whitebit) ParseBalance(response any) any {
 			}
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -4150,7 +4150,7 @@ func (this *Whitebit) createDepositAddressBody(ch chan AsyncResult[any], code st
 	ch <- AsyncResult[any]{Value: this.ParseDepositAddress(data, currency)}
 	return nil
 }
-func (this *Whitebit) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Whitebit) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
@@ -4731,12 +4731,12 @@ func (this *Whitebit) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
  */
-func (this *Whitebit) FetchBorrowInterestAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Whitebit) FetchBorrowInterestAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchBorrowInterestBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) fetchBorrowInterestBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Whitebit) fetchBorrowInterestBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4791,7 +4791,7 @@ func (this *Whitebit) fetchBorrowInterestBody(ch chan AsyncResult[any], optional
 	//
 	var interest any = this.ParseBorrowInterests(response, market)
 
-	ch <- AsyncResult[any]{Value: this.FilterByCurrencySinceLimit(interest, code, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.FilterByCurrencySinceLimit(interest, code, since, limit)}
 	return nil
 }
 func (this *Whitebit) ParseBorrowInterest(info any, optionalArgs ...any) any {
@@ -4954,7 +4954,7 @@ func (this *Whitebit) fetchFundingRatesBody(ch chan AsyncResult[any], optionalAr
 	ch <- AsyncResult[any]{Value: this.ParseFundingRates(data, symbolsNormalized)}
 	return nil
 }
-func (this *Whitebit) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Whitebit) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "ticker_id":"ADA_PERP",
@@ -7555,7 +7555,7 @@ func (this *Whitebit) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderB
 func (this *Whitebit) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Whitebit) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Whitebit) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Whitebit) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {

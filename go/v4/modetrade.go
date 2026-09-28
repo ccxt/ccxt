@@ -1265,7 +1265,7 @@ func (this *Modetrade) fetchTradesBody(ch chan AsyncResult[any], symbol any, opt
 	ch <- AsyncResult[any]{Value: this.ParseTrades(rows, market, since, limit)}
 	return nil
 }
-func (this *Modetrade) ParseFundingRate(fundingRate any, optionalArgs ...any) any {
+func (this *Modetrade) ParseFundingRate(fundingRate any, optionalArgs ...any) map[string]any {
 	//
 	//         {
 	//             "symbol":"PERP_AAVE_USDT",
@@ -3343,7 +3343,7 @@ func (this *Modetrade) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs 
 	ch <- AsyncResult[any]{Value: this.ParseTrades(trades, market, since, limit, paramsUntil)}
 	return nil
 }
-func (this *Modetrade) ParseBalance(response any) any {
+func (this *Modetrade) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -3358,7 +3358,7 @@ func (this *Modetrade) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -3987,7 +3987,7 @@ func (this *Modetrade) withdrawBody(ch chan EndpointResult[map[string]any], code
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Modetrade) ParseLeverage(leverage any, optionalArgs ...any) any {
+func (this *Modetrade) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var leverageValue *int64 = this.SafeInteger(leverage, "max_leverage")
@@ -5606,7 +5606,7 @@ func (this *Modetrade) FetchOrderBooks(options ...FetchOrderBooksOptions) (Order
 func (this *Modetrade) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Modetrade) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Modetrade) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Modetrade) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
