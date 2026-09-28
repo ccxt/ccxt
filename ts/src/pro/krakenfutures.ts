@@ -1463,7 +1463,6 @@ export default class krakenfutures extends krakenfuturesRest {
                 }
             }
             this.balance['cash'] = this.safeBalance (this.balance['cash']);
-            client.resolve (this.balance['cash'], messageHash);
         }
         if (futures !== undefined) {
             const futuresKeys = Object.keys (futures);                  // marginAccount
@@ -1487,7 +1486,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 }
             }
             this.balance['margin'] = this.safeBalance (this.balance['margin']);
-            client.resolve (this.balance['margin'], messageHash + 'futures');
+            client.resolve (this.balance['margin'], messageHash + ':futures');
         }
         if (flexFutures !== undefined) {
             const flexFutureCurrencies = this.safeDict (flexFutures, 'currencies', {});
@@ -1509,8 +1508,11 @@ export default class krakenfutures extends krakenfuturesRest {
                 }
             }
             this.balance['flex'] = this.safeBalance (this.balance['flex']);
-            client.resolve (this.balance['flex'], messageHash + 'flex_futures');
+            client.resolve (this.balance['flex'], messageHash + ':flex_futures');
         }
+        // resolve the plain hash exactly once per message, with the dict of wallet
+        // types the docstring promises: a second resolve on the same hash is not
+        // portable (the rust client hands the consumer the LAST resolved value)
         client.resolve (this.balance, messageHash);
     }
 
