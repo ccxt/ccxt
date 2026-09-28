@@ -11,7 +11,7 @@ use ccxt::exchange_generated::ExchangeBase;
 pub fn testUrlencode() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
     // todo: add nulls
@@ -19,12 +19,12 @@ pub fn testUrlencode() {
     let mut dict1: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
-            m.insert("c".to_string(), Value::Str("+&".to_string()));
+            m.insert("c".to_string(), Value::Str("+&".into()));
         m
     });
     // as key-order not preserved, expect mixed order
-    let mut expected1: Value = Value::Str("a=1&c=%2B%26".to_string());
-    let mut expected2: Value = Value::Str("c=%2B%26&a=1".to_string());
+    let mut expected1: Value = Value::Str("a=1&c=%2B%26".into());
+    let mut expected2: Value = Value::Str("c=%2B%26&a=1".into());
     let mut encoded: Value = exchange.urlencode(dict1.clone(), &[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&encoded, &expected1) || is_equal(&encoded, &expected2)))));
+    assert!(ccxt::runtime::is_true(&(((encoded.as_str() == expected1.as_str()) || (encoded.as_str() == expected2.as_str())))));
 }

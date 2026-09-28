@@ -95,12 +95,12 @@ func (this *Kucoinfutures) transferBody(ch chan any, code any, amount any, fromA
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes7312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes7312)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var amountToPrecision any = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
 		"currency": this.SafeString(currency, "id"),
@@ -109,17 +109,17 @@ func (this *Kucoinfutures) transferBody(ch chan any, code any, amount any, fromA
 	var toAccountString *string = this.ParseTransferType(toAccount)
 	var response any = nil
 	if (toAccountString != nil && *toAccountString == "TRADE") || (toAccountString != nil && *toAccountString == "MAIN") {
-		AddElementToObject(request, "recAccountType", toAccountString)
+		request["recAccountType"] = toAccountString
 
 		response = (<-this.FuturesPrivatePostTransferOut(this.Extend(request, params)))
 		PanicOnError(response)
 	} else if (IsEqual(toAccount, "future")) || (IsEqual(toAccount, "swap")) || (IsEqual(toAccount, "contract")) {
-		AddElementToObject(request, "payAccountType", this.ParseTransferType(fromAccount))
+		request["payAccountType"] = this.ParseTransferType(fromAccount)
 
 		response = (<-this.FuturesPrivatePostTransferIn(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		panic(BadRequest(Add(this.Id, " transfer() only supports transfers between future/swap, spot and funding accounts")))
+		panic(BadRequest(this.Id + " transfer() only supports transfers between future/swap, spot and funding accounts"))
 	}
 	var data any = this.SafeDict(response, "data", map[string]any{})
 

@@ -344,11 +344,10 @@ class apex extends apex$1["default"] {
         // }
         // }
         //
-        const timestamp = this.milliseconds();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const code = 'USDT';
         const account = this.account();
@@ -732,7 +731,6 @@ class apex extends apex$1["default"] {
         //     "tradeCount": 100
         // }
         //
-        const timestamp = this.milliseconds();
         const marketId = this.safeString(ticker, 'symbol');
         market = this.safeMarket(marketId, market);
         const symbol = this.safeSymbol(marketId, market);
@@ -744,8 +742,8 @@ class apex extends apex$1["default"] {
         const low = this.safeString(ticker, 'lowPrice24h');
         return this.safeTicker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': high,
             'low': low,
             'bid': undefined,
@@ -831,6 +829,7 @@ class apex extends apex$1["default"] {
         if (limit === undefined) {
             limit = 200; // default is 200 when requested with `since`
         }
+        limit = Math.min(limit, 200); // fix maxcap
         request['limit'] = limit; // max 200, default 200
         [request, params] = this.handleUntilOption('end', request, params, 0.001);
         if (since !== undefined) {
@@ -1047,7 +1046,6 @@ class apex extends apex$1["default"] {
         //     "tradeCount": 100
         // }
         //
-        const timestamp = this.milliseconds();
         const marketId = this.safeString(interest, 'symbol');
         market = this.safeMarket(marketId, market);
         const symbol = this.safeSymbol(marketId, market);
@@ -1055,8 +1053,8 @@ class apex extends apex$1["default"] {
             'symbol': symbol,
             'openInterestAmount': this.safeString(interest, 'openInterest'),
             'openInterestValue': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': interest,
         }, market);
     }

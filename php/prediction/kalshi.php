@@ -836,9 +836,9 @@ class kalshi extends Exchange {
 
     public function parse_prediction_open_interest(array $interest, ?array $market = null): array {
         //
-        //     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open interest in contracts
+        //     { "ticker": "...", "open_interest_fp": "60802.01", "updated_time": "2026-04-09T10:32:47.890506Z", ... }   // the market object of GET /markets/{ticker}, open interest in contracts
         //
-        $timestamp = $this->milliseconds();
+        $timestamp = $this->parse8601($this->safe_string($interest, 'updated_time'));
         $openInterest = $this->safe_open_interest(array(
             'symbol' => $this->safe_symbol(null, $market),
             'openInterestAmount' => $this->safe_number_2($interest, 'open_interest_fp', 'open_interest'),
@@ -922,7 +922,7 @@ class kalshi extends Exchange {
         $outcomeObj = $this->safe_outcome($this->safe_string($marketAny, 'outcome'), $marketAny);
         $outcomeLabel = ($market !== null && $market !== null) ? $this->safe_string($market, 'label', $this->safe_string($market['info'], 'outcomeLabel', 'YES')) : 'YES';
         $isNo = strtoupper($outcomeLabel) === 'NO';
-        $now = $this->milliseconds();
+        $timestamp = $this->parse8601($this->safe_string($raw, 'updated_time'));
         $outcome = $this->safe_string($outcomeObj, 'outcome');
         $yesAsk = $this->safe_number($raw, 'yes_ask_dollars');
         $yesBid = $this->safe_number($raw, 'yes_bid_dollars');
@@ -960,8 +960,8 @@ class kalshi extends Exchange {
             'outcomeId' => $this->safe_string_2($outcomeObj, 'outcomeId', 'id'),
             'label' => $this->safe_string($outcomeObj, 'label'),
             'market' => $this->safe_string_2($outcomeObj, 'market', 'outcome'),
-            'timestamp' => $now,
-            'datetime' => $this->iso8601($now),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
             'bid' => $bid,
@@ -997,7 +997,7 @@ class kalshi extends Exchange {
          * @return {array} a dictionary of [prediction $ticker structures](https://docs.ccxt.com/#/?id=prediction-$ticker-structure) indexed by outcome
          */
         if ($outcomes === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTickers() requires an $outcomes argument — the venue has no all-$tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
+            throw new ArgumentsRequired($this->id . ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
         }
         // batch-resolve the uncached outcomes (one markets request per 100 tickers)
         Async\await($this->load_outcomes($outcomes));
@@ -1098,7 +1098,6 @@ class kalshi extends Exchange {
         //     }
         //
         $book = $this->safe_value($response, 'orderbook_fp', $response);
-        $timestamp = $this->milliseconds();
         // Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
         $rawYes = $this->safe_list($book, 'yes_dollars', array());
         $rawNo = $this->safe_list($book, 'no_dollars', array());
@@ -1128,7 +1127,7 @@ class kalshi extends Exchange {
                 $asks[] = array( $price, $this->safe_number($rawNo[$ai], 1) );
             }
         }
-        return $this->safe_prediction_order_book($this->sorted_orders($this->safe_string($outcomeObj, 'outcome', $outcome), $timestamp, $bids, $asks), $outcomeObj);
+        return $this->safe_prediction_order_book($this->sorted_orders($this->safe_string($outcomeObj, 'outcome', $outcome), null, $bids, $asks), $outcomeObj);
     }
 
     public function sorted_orders(?string $outcome, ?int $timestamp, array $bids, array $asks): array {
@@ -1181,7 +1180,7 @@ class kalshi extends Exchange {
             // hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
             $tfKeys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
             $supported = implode(', ', $tfKeys);
-            throw new BadRequest($this->id . ' fetchOHLCV() does not support the ' . $timeframe . ' $timeframe ($supported => ' . $supported . ')');
+            throw new BadRequest($this->id . ' fetchOHLCV() does not support the ' . $timeframe . ' timeframe (supported => ' . $supported . ')');
         }
         $request = array(
             'series_ticker' => $seriesTicker,
@@ -2022,7 +2021,7 @@ class kalshi extends Exchange {
          */
         // kalshi has no market orders — every order is a limit order and the price is required
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . " createOrder() requires a $price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive $price with $params array( 'time_in_force' => 'immediate_or_cancel' )");
+            throw new ArgumentsRequired($this->id . " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params array( 'time_in_force' => 'immediate_or_cancel' )");
         }
         Async\await($this->load_outcome($outcome));
         $outcomeObj = $this->outcome($outcome);
@@ -2123,7 +2122,7 @@ class kalshi extends Exchange {
         // new order's required inputs BEFORE cancelling so a bad edit doesn't leave the user with the
         // order cancelled and nothing to replace it (kalshi is limit-only, so price + amount are required)
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $price - kalshi has only limit orders');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a price - kalshi has only limit orders');
         }
         if ($amount === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an amount');

@@ -7,162 +7,164 @@
 
 package ccxtprediction
 
+import ccxt "github.com/ccxt/ccxt/go/v4"
+
 // MyriadPublicGetQuestions returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicGetQuestions(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicGetQuestions", args...)
+	return this.Fetch2Async("questions", []string{"myriad", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetQuestionsId returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicGetQuestionsId(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicGetQuestionsId", args...)
+	return this.Fetch2Async("questions/{id}", []string{"myriad", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetMarkets returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicGetMarkets(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicGetMarkets", args...)
+	return this.Fetch2Async("markets", []string{"myriad", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetMarketsId returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicGetMarketsId(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicGetMarketsId", args...)
+	return this.Fetch2Async("markets/{id}", []string{"myriad", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetMarketsNetworkIdId returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicGetMarketsNetworkIdId(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicGetMarketsNetworkIdId", args...)
+	return this.Fetch2Async("markets/{networkId}/{id}", []string{"myriad", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetMarketsIdEvents returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicGetMarketsIdEvents(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicGetMarketsIdEvents", args...)
+	return this.Fetch2Async("markets/{id}/events", []string{"myriad", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetMarketsIdOrderbook returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicGetMarketsIdOrderbook(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicGetMarketsIdOrderbook", args...)
+	return this.Fetch2Async("markets/{id}/orderbook", []string{"myriad", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetMarketsIdTrades returns a channel that yields a JSON array.
 func (this *Myriad) MyriadPublicGetMarketsIdTrades(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicGetMarketsIdTrades", args...)
+	return this.Fetch2Async("markets/{id}/trades", []string{"myriad", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetMarketsIdHolders returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicGetMarketsIdHolders(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicGetMarketsIdHolders", args...)
+	return this.Fetch2Async("markets/{id}/holders", []string{"myriad", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetMarketsIdReferrals returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicGetMarketsIdReferrals(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicGetMarketsIdReferrals", args...)
+	return this.Fetch2Async("markets/{id}/referrals", []string{"myriad", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetEvents returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicGetEvents(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicGetEvents", args...)
+	return this.Fetch2Async("events", []string{"myriad", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetOrders returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicGetOrders(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicGetOrders", args...)
+	return this.Fetch2Async("orders", []string{"myriad", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetOrdersHash returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicGetOrdersHash(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicGetOrdersHash", args...)
+	return this.Fetch2Async("orders/{hash}", []string{"myriad", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetUsersAddressEvents returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicGetUsersAddressEvents(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicGetUsersAddressEvents", args...)
+	return this.Fetch2Async("users/{address}/events", []string{"myriad", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetUsersAddressReferrals returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicGetUsersAddressReferrals(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicGetUsersAddressReferrals", args...)
+	return this.Fetch2Async("users/{address}/referrals", []string{"myriad", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetUsersAddressPortfolio returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicGetUsersAddressPortfolio(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicGetUsersAddressPortfolio", args...)
+	return this.Fetch2Async("users/{address}/portfolio", []string{"myriad", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetUsersAddressMarkets returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicGetUsersAddressMarkets(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicGetUsersAddressMarkets", args...)
+	return this.Fetch2Async("users/{address}/markets", []string{"myriad", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetTags returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicGetTags(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicGetTags", args...)
+	return this.Fetch2Async("tags", []string{"myriad", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetTopics returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicGetTopics(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicGetTopics", args...)
+	return this.Fetch2Async("topics", []string{"myriad", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostMarketsQuote returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicPostMarketsQuote(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicPostMarketsQuote", args...)
+	return this.Fetch2Async("markets/quote", []string{"myriad", "public"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostMarketsClaim returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicPostMarketsClaim(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicPostMarketsClaim", args...)
+	return this.Fetch2Async("markets/claim", []string{"myriad", "public"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostOrders returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicPostOrders(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicPostOrders", args...)
+	return this.Fetch2Async("orders", []string{"myriad", "public"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostOrdersCancelBatch returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicPostOrdersCancelBatch(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicPostOrdersCancelBatch", args...)
+	return this.Fetch2Async("orders/cancel-batch", []string{"myriad", "public"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostOrdersCancelAll returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicPostOrdersCancelAll(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicPostOrdersCancelAll", args...)
+	return this.Fetch2Async("orders/cancel-all", []string{"myriad", "public"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostPositionsSplit returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicPostPositionsSplit(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicPostPositionsSplit", args...)
+	return this.Fetch2Async("positions/split", []string{"myriad", "public"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostPositionsMerge returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicPostPositionsMerge(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicPostPositionsMerge", args...)
+	return this.Fetch2Async("positions/merge", []string{"myriad", "public"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostPositionsRedeem returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicPostPositionsRedeem(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicPostPositionsRedeem", args...)
+	return this.Fetch2Async("positions/redeem", []string{"myriad", "public"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostPositionsRedeemVoided returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicPostPositionsRedeemVoided(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicPostPositionsRedeemVoided", args...)
+	return this.Fetch2Async("positions/redeem-voided", []string{"myriad", "public"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostPositionsNegRiskSplit returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicPostPositionsNegRiskSplit(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicPostPositionsNegRiskSplit", args...)
+	return this.Fetch2Async("positions/neg-risk/split", []string{"myriad", "public"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostPositionsNegRiskMerge returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicPostPositionsNegRiskMerge(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicPostPositionsNegRiskMerge", args...)
+	return this.Fetch2Async("positions/neg-risk/merge", []string{"myriad", "public"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicDeleteOrdersHash returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPublicDeleteOrdersHash(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPublicDeleteOrdersHash", args...)
+	return this.Fetch2Async("orders/{hash}", []string{"myriad", "public"}, "DELETE", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPrivatePostMarketsQuoteWithFee returns a channel that yields a JSON object.
 func (this *Myriad) MyriadPrivatePostMarketsQuoteWithFee(args ...any) <-chan any {
-	return this.CallEndpointAsync("myriadPrivatePostMarketsQuoteWithFee", args...)
+	return this.Fetch2Async("markets/quote_with_fee", []string{"myriad", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

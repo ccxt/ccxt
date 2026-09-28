@@ -6,6 +6,10 @@
 //   npm run cli.rs -- binance fetchTicker BTC/USDT
 //   npm run cli.rs -- bybit  fetchOHLCV  BTC/USDT 1h
 //   npm run cli.rs -- okx    fetchMarkets --verbose
+//
+// This bin requires the `all-venues` feature (every exchange compiled in),
+// which `npm run cli.rs` passes; the other examples build only the venues
+// listed on the ccxt dependencies in examples/rust/Cargo.toml.
 //   npm run cli.rs -- gate   fetchTrades BTC/USDT null 5
 //
 // `watch*` methods stream over WebSocket (via the `ccxt_pro` crate) and keep
@@ -104,9 +108,9 @@ fn parse_arg(s: &str) -> Value {
     if let Ok(n) = s.parse::<i64>() { return Value::Int(n); }
     if let Ok(f) = s.parse::<f64>() { return Value::Float(f); }
     if s.starts_with('{') || s.starts_with('[') {
-        return ccxt::runtime::json_parse(&Value::Str(s.to_string()));
+        return ccxt::runtime::json_parse(&Value::Str(s.to_string().into()));
     }
-    Value::Str(s.to_string())
+    Value::Str(s.to_string().into())
 }
 
 // Camel → snake matching the transpiler's `toSnakeCase` (fetchOHLCV → fetch_ohlcv).
@@ -143,11 +147,11 @@ fn load_credentials(id: &str) -> HashMap<String, String> {
             let path = dir.join(fname);
             if path.is_file() {
                 if let Ok(text) = std::fs::read_to_string(&path) {
-                    let parsed = ccxt::runtime::json_parse(&Value::Str(text));
+                    let parsed = ccxt::runtime::json_parse(&Value::Str(text.into()));
                     if let Value::Dict(top) = &parsed {
                         if let Some(Value::Dict(ex_obj)) = top.get(id) {
                             for (k, v) in ex_obj.iter() {
-                                if let Value::Str(s) = v { creds.insert(k.clone(), s.clone()); }
+                                if let Value::Str(s) = v { creds.insert(k.clone(), s.to_string()); }
                             }
                         }
                     }
@@ -206,10 +210,10 @@ async fn main() {
     // configured entirely at construction.
     let mut config: HashMap<String, Value> = HashMap::new();
     if !no_keys {
-        for (k, v) in load_credentials(&id) { config.insert(k, Value::Str(v)); }
+        for (k, v) in load_credentials(&id) { config.insert(k, Value::Str(v.into())); }
     }
     for (flag, key) in [("httpProxy", "httpProxy"), ("httpsProxy", "httpsProxy"), ("socksProxy", "socksProxy"), ("proxy", "proxy")] {
-        if let Some(s) = flag_value(&flags, flag) { config.insert(key.to_string(), Value::Str(s)); }
+        if let Some(s) = flag_value(&flags, flag) { config.insert(key.to_string(), Value::Str(s.into())); }
     }
     if verbose { config.insert("verbose".to_string(), Value::Bool(true)); }
 
@@ -254,7 +258,7 @@ async fn run_rest(id: &str, m: &str, args: Vec<Value>, testnet: bool, demo: bool
     let result = panic::AssertUnwindSafe(async move {
         let mut ex: Box<dyn TypedExchange> = match ccxt::from_id(id, Some(Value::Map(config))) {
             Some(e) => e,
-            None => panic!("{RED}exchange not transpiled yet: {id}{RESET}"),
+            None => panic!("{RED}exchange not compiled in: {id} (build with --features all-venues){RESET}"),
         };
         // --testnet / --demo route through the runtime dispatch, same as any method.
         if testnet { let _ = ex.call_raw("set_sandbox_mode", vec![Value::Bool(true)]).await; }
@@ -287,7 +291,7 @@ async fn run_ws(id: &str, m: &str, args: Vec<Value>, testnet: bool, demo: bool, 
     let mut ex: Box<dyn TypedExchange> = match ccxt_pro::from_id(id, Some(Value::Map(config))) {
         Some(e) => e,
         None => {
-            eprintln!("\n{RED}error:{RESET} no WebSocket (pro) venue for exchange: {id}");
+            eprintln!("\n{RED}error:{RESET} no WebSocket (pro) venue compiled in for exchange: {id} (build with --features ws,all-venues)");
             std::process::exit(1);
         }
     };

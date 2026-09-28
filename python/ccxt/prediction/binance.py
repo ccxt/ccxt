@@ -745,14 +745,13 @@ class binance(PredictionExchange, ImplicitAPI):
                 last = self.parse_number(Precise.string_sub('1', lastString))
             else:
                 last = self.parse_number(lastString)
-        now = self.milliseconds()
         return self.safe_prediction_ticker({
             'outcome': self.safe_string(outcomeObj, 'outcome'),
             'outcomeId': self.safe_string_2(outcomeObj, 'outcomeId', 'id'),
             'label': self.safe_string(outcomeObj, 'label'),
             'market': self.safe_string(outcomeObj, 'market'),
-            'timestamp': now,
-            'datetime': self.iso8601(now),
+            'timestamp': None,
+            'datetime': None,
             'high': None,
             'low': None,
             'bid': None,
@@ -1758,8 +1757,8 @@ class binance(PredictionExchange, ImplicitAPI):
                 'outcomeId': self.safe_string(outcomeObj, 'id'),
                 'label': self.safe_string(outcomeObj, 'label'),
                 'market': self.safe_string(outcomeObj, 'market'),
-                'timestamp': self.milliseconds(),
-                'datetime': self.iso8601(self.milliseconds()),
+                'timestamp': None,
+                'datetime': None,
             }
             orders.append(self.safe_prediction_order(order))
         return orders

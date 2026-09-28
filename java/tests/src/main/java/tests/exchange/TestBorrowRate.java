@@ -25,7 +25,7 @@ public class TestBorrowRate extends BaseTest {
         }};
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry);
-        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, Helpers.GetValue(entry, "currency"), requestedCode);
+        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("currency"), requestedCode);
         //
         // Assert (borrowRate['period'] === 86400000 || borrowRate['period'] === 3600000) // Milliseconds in an hour or a day
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "period", "0");

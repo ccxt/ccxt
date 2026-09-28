@@ -88,27 +88,27 @@ public partial class BaseTest
             Assert(isEqual(Precise.stringMax("3.1415", "-2"), "3.1415"));
             Assert(isEqual(Precise.stringMax("-3.1415", "-2"), "-2"));
             Assert(isEqual(Precise.stringMax("0.000", "-0.0"), "0"));
-            Assert(!isTrue(Precise.stringGt("1.0000", "2")));
+            Assert(!Precise.stringGt("1.0000", "2"));
             Assert(Precise.stringGt("2", "1.2345"));
             Assert(Precise.stringGt("3.1415", "-2"));
-            Assert(!isTrue(Precise.stringGt("-3.1415", "-2")));
-            Assert(!isTrue(Precise.stringGt("3.1415", "3.1415")));
+            Assert(!Precise.stringGt("-3.1415", "-2"));
+            Assert(!Precise.stringGt("3.1415", "3.1415"));
             Assert(Precise.stringGt("3.14150000000000000000001", "3.1415"));
-            Assert(!isTrue(Precise.stringGe("1.0000", "2")));
+            Assert(!Precise.stringGe("1.0000", "2"));
             Assert(Precise.stringGe("2", "1.2345"));
             Assert(Precise.stringGe("3.1415", "-2"));
-            Assert(!isTrue(Precise.stringGe("-3.1415", "-2")));
+            Assert(!Precise.stringGe("-3.1415", "-2"));
             Assert(Precise.stringGe("3.1415", "3.1415"));
             Assert(Precise.stringGe("3.14150000000000000000001", "3.1415"));
             Assert(Precise.stringLt("1.0000", "2"));
-            Assert(!isTrue(Precise.stringLt("2", "1.2345")));
-            Assert(!isTrue(Precise.stringLt("3.1415", "-2")));
+            Assert(!Precise.stringLt("2", "1.2345"));
+            Assert(!Precise.stringLt("3.1415", "-2"));
             Assert(Precise.stringLt("-3.1415", "-2"));
-            Assert(!isTrue(Precise.stringLt("3.1415", "3.1415")));
+            Assert(!Precise.stringLt("3.1415", "3.1415"));
             Assert(Precise.stringLt("3.1415", "3.14150000000000000000001"));
             Assert(Precise.stringLe("1.0000", "2"));
-            Assert(!isTrue(Precise.stringLe("2", "1.2345")));
-            Assert(!isTrue(Precise.stringLe("3.1415", "-2")));
+            Assert(!Precise.stringLe("2", "1.2345"));
+            Assert(!Precise.stringLe("3.1415", "-2"));
             Assert(Precise.stringLe("-3.1415", "-2"));
             Assert(Precise.stringLe("3.1415", "3.1415"));
             Assert(Precise.stringLe("3.1415", "3.14150000000000000000001"));
@@ -157,7 +157,7 @@ public partial class BaseTest
             Assert(isEqual(Precise.stringMul("-1.5E-3", "2"), "-0.003"));
             // comparisons with scientific notation
             Assert(Precise.stringGt("1e3", "999.999"));
-            Assert(!isTrue(Precise.stringLt("1e-3", "0.001"))); // equal values, different representation
+            Assert(!Precise.stringLt("1e-3", "0.001")); // equal values, different representation
             Assert(isEqual(Precise.stringMax("1e3", "999.999"), "1000"));
             Assert(isEqual(Precise.stringMin("999.999", "1e3"), "999.999"));
             // large integers

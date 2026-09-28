@@ -659,7 +659,7 @@ class bitrue extends Exchange {
         ));
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
@@ -850,7 +850,7 @@ class bitrue extends Exchange {
             }
         }
         $promises = $promisesRaw;
-        $spotMarkets = $this->safe_value($this->safe_value($promises, 0), 'symbols', array());
+        $spotMarkets = $this->safe_list($this->safe_dict($promises, 0), 'symbols', array());
         $futureMarkets = $this->safe_value($promises, 1);
         $deliveryMarkets = $this->safe_value($promises, 2);
         $markets = $spotMarkets;
@@ -1572,7 +1572,7 @@ class bitrue extends Exchange {
         );
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()): array {
         /**
          * fetches the bid and ask price and volume for multiple markets
          *
@@ -1671,7 +1671,7 @@ class bitrue extends Exchange {
         } else {
             list($type, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
             if ($type !== 'spot') {
-                throw new NotSupported($this->id . ' fetchTickers only support spot when $symbols are not proved');
+                throw new NotSupported($this->id . ' fetchTickers only support spot when symbols are not proved');
             }
             $response = $this->spotV1PublicGetTicker24hr($this->extend($request, $params));
             $data = $this->to_array($response);
@@ -2004,7 +2004,7 @@ class bitrue extends Exchange {
         ), $market);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): array {
         /**
          * create a $market buy order by providing the $symbol and $cost
          *
@@ -2027,7 +2027,7 @@ class bitrue extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -2070,7 +2070,7 @@ class bitrue extends Exchange {
         );
         if ($uppercaseType === 'LIMIT') {
             if ($price === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $price argument');
+                throw new InvalidOrder($this->id . ' createOrder() requires a price argument');
             }
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
@@ -2092,7 +2092,7 @@ class bitrue extends Exchange {
                 $cost = $this->safe_string($params, 'cost');
                 $params = $this->omit($params, 'cost');
                 if ($price === null && $cost === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with swap $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)');
+                    throw new InvalidOrder($this->id . ' createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the cost in the amount argument (the exchange-specific behaviour)');
                 } else {
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
@@ -2106,7 +2106,7 @@ class bitrue extends Exchange {
                 $request['volume'] = $this->parse_to_numeric($amount);
             }
             $request['positionType'] = 1;
-            $reduceOnly = $this->safe_value_2($params, 'reduceOnly', 'reduce_only');
+            $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
             $request['open'] = ($reduceOnly === true) ? 'CLOSE' : 'OPEN';
             $leverage = $this->safe_string($params, 'leverage', '1');
             $request['leverage'] = $this->parse_to_numeric($leverage);
@@ -2122,14 +2122,14 @@ class bitrue extends Exchange {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             $validOrderTypes = $this->safe_value($market['info'], 'orderTypes');
             if (!$this->in_array($uppercaseType, $validOrderTypes)) {
-                throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type in $market ' . $symbol);
+                throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order type in market ' . $symbol);
             }
             $clientOrderId = $this->safe_string_2($params, 'newClientOrderId', 'clientOrderId');
             if ($clientOrderId !== null) {
                 $params = $this->omit($params, array( 'newClientOrderId', 'clientOrderId' ));
                 $request['newClientOrderId'] = $clientOrderId;
             }
-            $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+            $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
             if ($triggerPrice !== null) {
                 $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
                 $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
@@ -2163,7 +2163,7 @@ class bitrue extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -2176,13 +2176,13 @@ class bitrue extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $origClientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
+        $origClientOrderId = $this->safe_string_2($params, 'origClientOrderId', 'clientOrderId');
         $params = $this->omit($params, array( 'origClientOrderId', 'clientOrderId' ));
         $response = null;
         $data = array();
@@ -2271,7 +2271,7 @@ class bitrue extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2333,7 +2333,7 @@ class bitrue extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2406,7 +2406,7 @@ class bitrue extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -2420,13 +2420,13 @@ class bitrue extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $origClientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
+        $origClientOrderId = $this->safe_string_2($params, 'origClientOrderId', 'clientOrderId');
         $params = $this->omit($params, array( 'origClientOrderId', 'clientOrderId' ));
         $response = null;
         $data = array();
@@ -2478,7 +2478,7 @@ class bitrue extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders in a $market
          *
@@ -2521,7 +2521,7 @@ class bitrue extends Exchange {
         return $this->parse_orders($data, $market);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all trades made by the user
          *
@@ -2538,7 +2538,7 @@ class bitrue extends Exchange {
             $this->load_markets();
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $response = null;
@@ -2629,7 +2629,7 @@ class bitrue extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a code argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2704,7 +2704,7 @@ class bitrue extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a code argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2753,7 +2753,7 @@ class bitrue extends Exchange {
         return $this->parse_transactions($data, $currency);
     }
 
-    public function parse_transaction_status_by_type(mixed $status, ?string $type = null) {
+    public function parse_transaction_status_by_type(?string $status, ?string $type = null): ?string {
         $statusesByType = array(
             'deposit' => array(
                 '0' => 'pending',
@@ -2952,7 +2952,7 @@ class bitrue extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
         //
         //   {
         //       "coin": "adx",
@@ -3014,7 +3014,7 @@ class bitrue extends Exchange {
         return $this->parse_deposit_withdraw_fees($coins, $codes, 'coin');
     }
 
-    public function parse_transfer(mixed $transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     fetchTransfers
         //
@@ -3162,10 +3162,10 @@ class bitrue extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if (($leverage < 1) || ($leverage > 125)) {
-            throw new BadRequest($this->id . ' $leverage should be between 1 and 125');
+            throw new BadRequest($this->id . ' leverage should be between 1 and 125');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -3250,7 +3250,7 @@ class bitrue extends Exchange {
         return $this->parse_margin_modification($response, $market);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $type = $this->safe_string($api, 0);
         $version = $this->safe_string($api, 1);
         $access = $this->safe_string($api, 2);
@@ -3395,7 +3395,7 @@ class bitrue extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, mixed $config = array()) {
         if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {
             return $config['noSymbol'];
         } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($params) && array_key_exists('limit' ?? '', $params))) {
@@ -3408,6 +3408,6 @@ class bitrue extends Exchange {
                 }
             }
         }
-        return $this->safe_value($config, 'cost', 1);
+        return $this->safe_number($config, 'cost', 1);
     }
 }

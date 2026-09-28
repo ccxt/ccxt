@@ -825,10 +825,6 @@ class myriad(PredictionExchange, ImplicitAPI):
             parsed['price'] = price
         if (self.safe_number(parsed, 'amount') is None) and (amount is not None):
             parsed['amount'] = amount
-        if self.safe_integer(parsed, 'timestamp') is None:
-            now = self.milliseconds()
-            parsed['timestamp'] = now
-            parsed['datetime'] = self.iso8601(now)
         if self.safe_string(parsed, 'status') is None:
             parsed['status'] = 'open'
         return parsed
@@ -2238,7 +2234,6 @@ class myriad(PredictionExchange, ImplicitAPI):
                 price = self.safe_number(o, 'price')
                 change = self.safe_number(o, 'priceChange24h')
                 break
-        now = self.milliseconds()
         # priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE
         # percentage from it — setting percentage = the absolute change (as before) was wrong
         previousClose = None
@@ -2254,8 +2249,8 @@ class myriad(PredictionExchange, ImplicitAPI):
             'outcomeId': self.safe_string(market, 'id'),
             'label': self.safe_string(market, 'label'),
             'market': self.safe_string(market, 'market'),
-            'timestamp': now,
-            'datetime': self.iso8601(now),
+            'timestamp': None,
+            'datetime': None,
             'high': None,
             'low': None,
             'bid': price,
@@ -2393,7 +2388,6 @@ class myriad(PredictionExchange, ImplicitAPI):
             if self.safe_string(o, 'outcomeId', self.safe_string(o, 'id')) == outcomeId:
                 price = self.safe_number(o, 'price')
                 break
-        timestamp = self.milliseconds()
         # AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
         bid = None
         ask = None
@@ -2414,8 +2408,8 @@ class myriad(PredictionExchange, ImplicitAPI):
             'outcome': self.safe_outcome_symbol(outcome, outcomeObj),
             'bids': bids,
             'asks': asks,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'nonce': None,
         }
         return self.safe_prediction_order_book(orderbook, outcomeObj)
@@ -2442,13 +2436,12 @@ class myriad(PredictionExchange, ImplicitAPI):
             rowPrice = Precise.string_div(self.safe_string(row, 0), '1000000000000000000')
             rowAmount = Precise.string_div(self.safe_string(row, 1), '1000000000000000000')
             asks.append([self.parse_number(rowPrice), self.parse_number(rowAmount)])
-        timestamp = self.milliseconds()
         return {
             'outcome': outcome,
             'bids': self.sort_by(bids, 0, True),
             'asks': self.sort_by(asks, 0),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'nonce': None,
         }
 

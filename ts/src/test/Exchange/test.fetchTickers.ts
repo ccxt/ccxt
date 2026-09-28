@@ -4,7 +4,6 @@ import testTicker from './base/test.ticker.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 import type { Str, Strings } from '../../base/types.js';
 
-
 async function testFetchTickers (exchange: Exchange, skippedProperties: object, symbol: string) {
     // prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
     // is impractical and the "every active market has a ticker" check doesn't apply — test

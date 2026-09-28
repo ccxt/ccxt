@@ -802,14 +802,13 @@ export default class binance extends Exchange {
                 last = this.parseNumber (lastString);
             }
         }
-        const now = this.milliseconds ();
         return this.safePredictionTicker ({
             'outcome': this.safeString (outcomeObj, 'outcome'),
             'outcomeId': this.safeString2 (outcomeObj, 'outcomeId', 'id'),
             'label': this.safeString (outcomeObj, 'label'),
             'market': this.safeString (outcomeObj, 'market'),
-            'timestamp': now,
-            'datetime': this.iso8601 (now),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': undefined,
             'low': undefined,
             'bid': undefined,
@@ -1898,8 +1897,8 @@ export default class binance extends Exchange {
                 'outcomeId': this.safeString (outcomeObj, 'id'),
                 'label': this.safeString (outcomeObj, 'label'),
                 'market': this.safeString (outcomeObj, 'market'),
-                'timestamp': this.milliseconds (),
-                'datetime': this.iso8601 (this.milliseconds ()),
+                'timestamp': undefined,
+                'datetime': undefined,
             };
             orders.push (this.safePredictionOrder (order) as PredictionOrder);
         }

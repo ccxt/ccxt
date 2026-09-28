@@ -3,12 +3,11 @@ import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from '../abstract/prediction/hyperliquid.js';
 import { Precise } from '../base/Precise.js';
 import { ecdsa } from '../base/functions/crypto.js';
-import type {
-    Int, int, Str, Num, Dict,
+import type { Int, int, Str, Num, Dict,
     Market, PredictionOrderBook, OHLCV,
     Balances, fetchEventsParams,
     Strings,
-    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict, List, Endpoint} from '../base/types.js';
+    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict, List, Endpoint } from '../base/types.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, RateLimitExceeded } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -153,6 +152,12 @@ export default class hyperliquid extends Exchange {
     override setSandboxMode (enabled: boolean) {
         super.setSandboxMode (enabled);
         this.options['sandboxMode'] = enabled;
+    }
+
+    override nonce (): number {
+        // the venue nonce is a millisecond timestamp and must be strictly increasing per signer
+        // incrementingNonce () reads this and bumps past the previous value when two signed actions share a millisecond
+        return this.milliseconds ();
     }
 
     /**
@@ -704,7 +709,7 @@ export default class hyperliquid extends Exchange {
                 continue;
             }
             // Build minimal ticker from mid price
-            const ticker = this.parsePredictionTicker ({ 'levels': [ [], [] ], 'mid': mid, 'time': this.milliseconds () }, outcomeObj as any);
+            const ticker = this.parsePredictionTicker ({ 'levels': [ [], [] ], 'mid': mid }, outcomeObj as any);
             tickers[outcomeHandle] = ticker;
         }
         return tickers;
@@ -730,8 +735,7 @@ export default class hyperliquid extends Exchange {
         //         "time": 1704290104840
         //     }
         //
-        const now = this.milliseconds ();
-        const timestamp = this.safeInteger (raw, 'time', now);
+        const timestamp = this.safeInteger (raw, 'time');
         // the 2nd arg carries the outcome object (callers pass the resolved outcome)
         const mkt = this.safeOutcome (undefined, market);
         const outcome = this.safeString (mkt, 'outcome');
@@ -1233,7 +1237,7 @@ export default class hyperliquid extends Exchange {
         const marketSymbol = this.safeString (outcomeObj, 'market');
         const market = this.market (marketSymbol);
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         const isBuy = (side.toUpperCase () === 'BUY');
         const isMarket = (type.toUpperCase () === 'MARKET');
         const assetId = this.safeInteger (outcomeInfo, 'assetId');
@@ -1332,8 +1336,8 @@ export default class hyperliquid extends Exchange {
             'id': oid,
             'clientOrderId': clientOrderId,
             'info': response,
-            'timestamp': nonce,
-            'datetime': this.iso8601 (nonce),
+            'timestamp': undefined,
+            'datetime': undefined,
             'status': orderStatus,
             'outcome': this.safeString (outcomeObj, 'outcome', outcome),
             'outcomeId': this.safeString (outcomeObj, 'id'),
@@ -1388,7 +1392,7 @@ export default class hyperliquid extends Exchange {
         const outcomeObj = this.outcome (outcome);
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
         const assetId = this.safeInteger (outcomeInfo, 'assetId');
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         const clientOrderId = this.safeValue2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         const cancelReq: Dict[] = [];
@@ -1452,8 +1456,8 @@ export default class hyperliquid extends Exchange {
                 'outcomeId': this.safeString (outcomeObj, 'id'),
                 'label': this.safeString (outcomeObj, 'label'),
                 'market': this.safeString (outcomeObj, 'market'),
-                'timestamp': this.milliseconds (),
-                'datetime': this.iso8601 (this.milliseconds ()),
+                'timestamp': undefined,
+                'datetime': undefined,
             };
             orders.push (this.safePredictionOrder (order));
         }
@@ -2159,7 +2163,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} the raw exchange response
      */
     async approveBuilderFee (builder: string, maxFeeRate: string): Promise<any> {
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const payload: Dict = {
             'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',

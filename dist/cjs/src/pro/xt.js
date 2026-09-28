@@ -146,7 +146,7 @@ class xt extends xt$1["default"] {
     getCacheIndex(orderbook, cache) {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         const nonce = this.safeInteger(orderbook, 'nonce');
-        const firstDelta = this.safeValue(cache, 0);
+        const firstDelta = this.safeDict(cache, 0);
         const firstDeltaNonce = this.safeInteger2(firstDelta, 'i', 'u');
         if ((nonce !== undefined) && (firstDeltaNonce !== undefined) && (nonce < firstDeltaNonce - 1)) {
             return -1;
@@ -861,7 +861,7 @@ class xt extends xt$1["default"] {
         //       }
         //    }
         //
-        const data = this.safeDict(message, 'data');
+        const data = this.safeDict(message, 'data', {});
         const marketId = this.safeString(data, 's');
         if (marketId !== undefined) {
             const cv = this.safeString(data, 'cv');
@@ -1068,7 +1068,7 @@ class xt extends xt$1["default"] {
         //        }
         //    }
         //
-        const data = this.safeDict(message, 'data');
+        const data = this.safeDict(message, 'data', {});
         const marketId = this.safeStringLower(data, 's');
         if (marketId !== undefined) {
             const trade = this.parseTrade(data);

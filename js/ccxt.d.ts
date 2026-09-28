@@ -1,11 +1,12 @@
 import { Exchange, BaseExchange } from './src/base/Exchange.js';
 import PredictionExchange from './src/base/PredictionExchange.js';
 import { Precise } from './src/base/Precise.js';
+import { OrderRouter } from './src/base/OrderRouter.js';
 import * as functions from './src/base/functions.js';
 import * as errors from './src/base/errors.js';
 import type { Int, int, Str, Strings, Num, Bool, IndexType, NullableIndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, FeeString, OHLCV, OHLCVC, safeInputType, Market, Currency, Dictionary, Endpoint, NestedDictionary, MinMax, FeeInterface, FeeStringInterface, TradingFeeInterface, MarketInterface, Precision, PredictionEvent, PredictionOutcome, PredictionMarket, PredictionSettlement, PredictionFees, PredictionOrder, PredictionTrade, PredictionPosition, PredictionTicker, PredictionOrderBook, PredictionTickers, PredictionTradingFee, PredictionOpenInterest, PredictionOrderRequest, fetchEventsParams, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, DepositAddresses, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, DepositWithdrawFees, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, AllGreeks, Conversion, Option, LastPrice, Leverage, MarginModification, MarginLoan, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, Status, PositionModeInfo } from './src/base/types.js';
 import { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError } from './src/base/errors.js';
-declare const version = "4.5.78";
+declare const version = "4.5.84";
 import alpaca from './src/alpaca.js';
 import apex from './src/apex.js';
 import aster from './src/aster.js';
@@ -24,7 +25,6 @@ import bitfinex from './src/bitfinex.js';
 import bitflyer from './src/bitflyer.js';
 import bitget from './src/bitget.js';
 import bithumb from './src/bithumb.js';
-import bitmex from './src/bitmex.js';
 import bitopro from './src/bitopro.js';
 import bitrue from './src/bitrue.js';
 import bitso from './src/bitso.js';
@@ -41,6 +41,7 @@ import btse from './src/btse.js';
 import bullish from './src/bullish.js';
 import bybit from './src/bybit.js';
 import bybiteu from './src/bybiteu.js';
+import bybitid from './src/bybitid.js';
 import bydfi from './src/bydfi.js';
 import cex from './src/cex.js';
 import coinbase from './src/coinbase.js';
@@ -123,7 +124,6 @@ import bingxPro from './src/pro/bingx.js';
 import bitfinexPro from './src/pro/bitfinex.js';
 import bitgetPro from './src/pro/bitget.js';
 import bithumbPro from './src/pro/bithumb.js';
-import bitmexPro from './src/pro/bitmex.js';
 import bitoproPro from './src/pro/bitopro.js';
 import bitruePro from './src/pro/bitrue.js';
 import bitstampPro from './src/pro/bitstamp.js';
@@ -134,6 +134,7 @@ import blofinPro from './src/pro/blofin.js';
 import bullishPro from './src/pro/bullish.js';
 import bybitPro from './src/pro/bybit.js';
 import bybiteuPro from './src/pro/bybiteu.js';
+import bybitidPro from './src/pro/bybitid.js';
 import bydfiPro from './src/pro/bydfi.js';
 import cexPro from './src/pro/cex.js';
 import coinbasePro from './src/pro/coinbase.js';
@@ -193,6 +194,8 @@ import limitlessPrediction from './src/prediction/limitless.js';
 import myriadPrediction from './src/prediction/myriad.js';
 import opinionPrediction from './src/prediction/opinion.js';
 import polymarketPrediction from './src/prediction/polymarket.js';
+import predictfunPrediction from './src/prediction/predictfun.js';
+import sxbetPrediction from './src/prediction/sxbet.js';
 declare const exchanges: {
     alpaca: typeof alpaca;
     apex: typeof apex;
@@ -212,7 +215,6 @@ declare const exchanges: {
     bitflyer: typeof bitflyer;
     bitget: typeof bitget;
     bithumb: typeof bithumb;
-    bitmex: typeof bitmex;
     bitopro: typeof bitopro;
     bitrue: typeof bitrue;
     bitso: typeof bitso;
@@ -229,6 +231,7 @@ declare const exchanges: {
     bullish: typeof bullish;
     bybit: typeof bybit;
     bybiteu: typeof bybiteu;
+    bybitid: typeof bybitid;
     bydfi: typeof bydfi;
     cex: typeof cex;
     coinbase: typeof coinbase;
@@ -313,7 +316,6 @@ declare const pro: {
     bitfinex: typeof bitfinexPro;
     bitget: typeof bitgetPro;
     bithumb: typeof bithumbPro;
-    bitmex: typeof bitmexPro;
     bitopro: typeof bitoproPro;
     bitrue: typeof bitruePro;
     bitstamp: typeof bitstampPro;
@@ -324,6 +326,7 @@ declare const pro: {
     bullish: typeof bullishPro;
     bybit: typeof bybitPro;
     bybiteu: typeof bybiteuPro;
+    bybitid: typeof bybitidPro;
     bydfi: typeof bydfiPro;
     cex: typeof cexPro;
     coinbase: typeof coinbasePro;
@@ -385,6 +388,8 @@ declare const prediction: {
     myriad: typeof myriadPrediction;
     opinion: typeof opinionPrediction;
     polymarket: typeof polymarketPrediction;
+    predictfun: typeof predictfunPrediction;
+    sxbet: typeof sxbetPrediction;
 };
 declare const ccxt: {
     version: string;
@@ -392,6 +397,7 @@ declare const ccxt: {
     BaseExchange: typeof BaseExchange;
     PredictionExchange: typeof PredictionExchange;
     Precise: typeof Precise;
+    OrderRouter: typeof OrderRouter;
     exchanges: string[];
     pro: {
         alpaca: typeof alpacaPro;
@@ -407,7 +413,6 @@ declare const ccxt: {
         bitfinex: typeof bitfinexPro;
         bitget: typeof bitgetPro;
         bithumb: typeof bithumbPro;
-        bitmex: typeof bitmexPro;
         bitopro: typeof bitoproPro;
         bitrue: typeof bitruePro;
         bitstamp: typeof bitstampPro;
@@ -418,6 +423,7 @@ declare const ccxt: {
         bullish: typeof bullishPro;
         bybit: typeof bybitPro;
         bybiteu: typeof bybiteuPro;
+        bybitid: typeof bybitidPro;
         bydfi: typeof bydfiPro;
         cex: typeof cexPro;
         coinbase: typeof coinbasePro;
@@ -479,6 +485,8 @@ declare const ccxt: {
         myriad: typeof myriadPrediction;
         opinion: typeof opinionPrediction;
         polymarket: typeof polymarketPrediction;
+        predictfun: typeof predictfunPrediction;
+        sxbet: typeof sxbetPrediction;
     };
 } & {
     alpaca: typeof alpaca;
@@ -499,7 +507,6 @@ declare const ccxt: {
     bitflyer: typeof bitflyer;
     bitget: typeof bitget;
     bithumb: typeof bithumb;
-    bitmex: typeof bitmex;
     bitopro: typeof bitopro;
     bitrue: typeof bitrue;
     bitso: typeof bitso;
@@ -516,6 +523,7 @@ declare const ccxt: {
     bullish: typeof bullish;
     bybit: typeof bybit;
     bybiteu: typeof bybiteu;
+    bybitid: typeof bybitid;
     bydfi: typeof bydfi;
     cex: typeof cex;
     coinbase: typeof coinbase;
@@ -586,5 +594,5 @@ declare const ccxt: {
     zaif: typeof zaif;
     zebpay: typeof zebpay;
 } & typeof functions & typeof errors;
-export { version, Exchange, BaseExchange, PredictionExchange, exchanges, pro, prediction, Precise, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError, Int, int, Str, Strings, Num, Bool, IndexType, NullableIndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, FeeString, OHLCV, OHLCVC, safeInputType, Market, Currency, ConstructorArgs, Dictionary, NestedDictionary, Endpoint, MinMax, FeeInterface, FeeStringInterface, TradingFeeInterface, MarketMarginModes, Precision, MarketInterface, PredictionFees, PredictionEvent, PredictionMarket, PredictionOutcome, PredictionOrder, PredictionTrade, PredictionPosition, PredictionTicker, PredictionOrderBook, PredictionTickers, PredictionTradingFee, PredictionOpenInterest, PredictionSettlement, fetchEventsParams, Trade, Order, OrderBook, OrderBooks, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, DepositAddresses, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, DepositWithdrawFees, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, OpenInterests, Liquidation, OrderRequest, PredictionOrderRequest, CancellationRequest, FundingHistory, MarginMode, Greeks, AllGreeks, Conversion, Option, LastPrice, Leverage, LongShortRatio, ADL, MarginModification, MarginLoan, Status, PositionModeInfo, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, alpaca, apex, aster, backpack, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbns, bitfinex, bitflyer, bitget, bithumb, bitmex, bitopro, bitrue, bitso, bitstamp, bitteam, bittrade, bitvavo, blockchaincom, blofin, btcbox, btcmarkets, btcturk, btse, bullish, bybit, bybiteu, bydfi, cex, coinbase, coinbaseexchange, coinbaseinternational, coincheck, coinex, coinmate, coinone, coinsph, coinspot, cryptocom, cryptomus, deepcoin, delta, deribit, derive, digifinex, dydx, extended, fmfwio, foxbit, gate, gateeu, gemini, grvt, hashkey, hibachi, hitbtc, hollaex, htx, hyperliquid, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoinfutures, latoken, lbank, lighter, luno, mercado, mexc, modetrade, mudrex, myokx, nado, ndax, okx, okxus, onetrading, p2b, pacifica, paradex, paymium, phemex, poloniex, revolutx, tokocrypto, toobit, upbit, weex, whitebit, woo, woofipro, xt, zaif, zebpay, };
+export { version, Exchange, BaseExchange, PredictionExchange, exchanges, pro, prediction, Precise, OrderRouter, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError, Int, int, Str, Strings, Num, Bool, IndexType, NullableIndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, FeeString, OHLCV, OHLCVC, safeInputType, Market, Currency, ConstructorArgs, Dictionary, NestedDictionary, Endpoint, MinMax, FeeInterface, FeeStringInterface, TradingFeeInterface, MarketMarginModes, Precision, MarketInterface, PredictionFees, PredictionEvent, PredictionMarket, PredictionOutcome, PredictionOrder, PredictionTrade, PredictionPosition, PredictionTicker, PredictionOrderBook, PredictionTickers, PredictionTradingFee, PredictionOpenInterest, PredictionSettlement, fetchEventsParams, Trade, Order, OrderBook, OrderBooks, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, DepositAddresses, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, DepositWithdrawFees, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, OpenInterests, Liquidation, OrderRequest, PredictionOrderRequest, CancellationRequest, FundingHistory, MarginMode, Greeks, AllGreeks, Conversion, Option, LastPrice, Leverage, LongShortRatio, ADL, MarginModification, MarginLoan, Status, PositionModeInfo, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, alpaca, apex, aster, backpack, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbns, bitfinex, bitflyer, bitget, bithumb, bitopro, bitrue, bitso, bitstamp, bitteam, bittrade, bitvavo, blockchaincom, blofin, btcbox, btcmarkets, btcturk, btse, bullish, bybit, bybiteu, bybitid, bydfi, cex, coinbase, coinbaseexchange, coinbaseinternational, coincheck, coinex, coinmate, coinone, coinsph, coinspot, cryptocom, cryptomus, deepcoin, delta, deribit, derive, digifinex, dydx, extended, fmfwio, foxbit, gate, gateeu, gemini, grvt, hashkey, hibachi, hitbtc, hollaex, htx, hyperliquid, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoinfutures, latoken, lbank, lighter, luno, mercado, mexc, modetrade, mudrex, myokx, nado, ndax, okx, okxus, onetrading, p2b, pacifica, paradex, paymium, phemex, poloniex, revolutx, tokocrypto, toobit, upbit, weex, whitebit, woo, woofipro, xt, zaif, zebpay, };
 export default ccxt;

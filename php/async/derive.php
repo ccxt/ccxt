@@ -460,7 +460,7 @@ class derive extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function fetch_time($params = array()) {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_time(...))($params);
     }
 
@@ -1121,7 +1121,7 @@ class derive extends Exchange {
         ), $market);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -1253,7 +1253,7 @@ class derive extends Exchange {
         return $this->hash($this->binary_concat($prefix, $binaryDomainSeparator, $accountHash), 'keccak', 'hex');
     }
 
-    public function sign_order(mixed $order, mixed $privateKey) {
+    public function sign_order(mixed $order, string $privateKey): string {
         $hashOrder = $this->hash_order_message($order);
         return $this->sign_hash(mb_substr($hashOrder, -64), mb_substr($privateKey, -64));
     }
@@ -1267,7 +1267,7 @@ class derive extends Exchange {
         return '0x' . $this->hash($this->binary_concat($prefix, $binaryMessage), 'keccak', 'hex');
     }
 
-    public function sign_hash(mixed $hash, mixed $privateKey) {
+    public function sign_hash(string $hash, string $privateKey): string {
         $this->check_required_credentials();
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
@@ -1276,11 +1276,11 @@ class derive extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_message(mixed $message, mixed $privateKey) {
+    public function sign_message(mixed $message, string $privateKey): string {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
-    public function parse_units(string $num, $dec = '1000000000000000000') {
+    public function parse_units(string $num, string $dec = '1000000000000000000'): ?string {
         return Precise::string_mul($num, $dec);
     }
 
@@ -1314,7 +1314,7 @@ class derive extends Exchange {
         }
         $market = $this->market($symbol);
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument');
         }
         $subaccountId = null;
         list($subaccountId, $params) = $this->handle_derive_subaccount_id('createOrder', $params);
@@ -1325,7 +1325,7 @@ class derive extends Exchange {
         $orderType = strtolower($type);
         $orderSide = strtolower($side);
         $orderSideIsBuy = ($orderSide === 'buy'); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         $signatureExpiry = $this->safe_integer($params, 'signature_expiry_sec', $this->seconds() + 7776000);
         $ACTION_TYPEHASH = $this->base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
@@ -1520,7 +1520,7 @@ class derive extends Exchange {
         $orderType = strtolower($type);
         $orderSide = strtolower($side);
         $orderSideIsBuy = ($orderSide === 'buy'); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $signatureExpiry = $this->safe_number($params, 'signature_expiry_sec', $this->seconds() + 7776000);
         // TODO: subaccount id / trade module address
         $ACTION_TYPEHASH = $this->base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
@@ -1663,7 +1663,7 @@ class derive extends Exchange {
         return $order;
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1681,7 +1681,7 @@ class derive extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1761,7 +1761,7 @@ class derive extends Exchange {
         return $this->extend($this->parse_order($order, $market), $extendParams);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -1904,7 +1904,7 @@ class derive extends Exchange {
         //     "id": "e5a88d4f-7ac7-40cd-aec9-e0e8152b8b92"
         // }
         //
-        $data = $this->safe_value($response, 'result');
+        $data = $this->safe_dict($response, 'result');
         $page = $this->safe_integer($params, 'page');
         if ($page !== null) {
             $pagination = $this->safe_dict($data, 'pagination');
@@ -1965,7 +1965,7 @@ class derive extends Exchange {
         return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_canceled_orders(...))($symbol, $since, $limit, $params);
     }
 
@@ -2138,7 +2138,7 @@ class derive extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
     }
 
@@ -2218,7 +2218,7 @@ class derive extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit, $params);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -2378,7 +2378,7 @@ class derive extends Exchange {
         return $this->parse_positions($positions, $symbols);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // {
         //     "instrument_type": "perp",
@@ -2455,7 +2455,7 @@ class derive extends Exchange {
         ));
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -2541,7 +2541,7 @@ class derive extends Exchange {
         return $this->parse_incomes($events, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null): array {
         //
         // {
         //     "instrument_name": "BTC-PERP",
@@ -2848,7 +2848,7 @@ class derive extends Exchange {
         if ($optionsWallet !== null) {
             return array( $optionsWallet, $params );
         }
-        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $deriveWalletAddress parameter inside \'params\' or exchange.options[\'deriveWalletAddress\'] = ADDRESS, the address can find in HOME => Developers tab.');
+        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a deriveWalletAddress parameter inside \'params\' or exchange.options[\'deriveWalletAddress\'] = ADDRESS, the address can find in HOME => Developers tab.');
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
@@ -2866,7 +2866,13 @@ class derive extends Exchange {
         return null;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function nonce(): float {
+        // the order nonce is a millisecond timestamp and must be unique per wallet (error 11017), while staying a valid date (error 11018)
+        // incrementingNonce () reads this and bumps past the previous value when two orders share a millisecond
+        return $this->milliseconds();
+    }
+
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($method === 'POST') {
             $headers = array(

@@ -2,6 +2,7 @@ namespace ccxt;
 
 using System.Net.WebSockets;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 public partial class BaseExchange
 {
@@ -80,12 +81,10 @@ public partial class BaseExchange
 
     public virtual void onClose(WebSocketClient client, object error = null)
     {
-        if (client.error)
+        if (client.error == null)
         {
-            // what do we do here?
-        }
-        else
-        {
+            // server disconnected a working connection
+            client.reset(error ?? new NetworkError("connection closed by remote server"));
             this.CleanupClients(client, error);
         }
     }
@@ -97,29 +96,12 @@ public partial class BaseExchange
 
     public void CleanupClients(WebSocketClient client, object error = null)
     {
-        // var client = (WebSocketClient)client2;
-        var urlClient = (this.clients.ContainsKey(client.url)) ? this.clients[client.url] : null;
-        if (urlClient != null) //  && urlClient.error
-        {
-            rejectFutures(urlClient, error);
-            // this.clients.Remove(client.url);
-            this.clients.TryRemove(client.url, out _);
-        }
-    }
-
-    void rejectFutures(WebSocketClient urlClient, object error)
-    {
-        // futures are keyed by messageHash while subscriptions are keyed by
-        // subscribeHash, the previous per key lookup only matched when the two
-        // strings were equal and left consumers hanging otherwise, mirror the js
-        // Client.reset behavior instead and reject every pending future, see
-        // https://github.com/ccxt/ccxt/issues/23490 and https://github.com/ccxt/ccxt/issues/21565
-        foreach (var KeyValue in urlClient.futures)
-        {
-            KeyValue.Value.reject(error);
-        }
-        urlClient.futures.Clear();
-        urlClient.subscriptions.Clear();
+        // detach the client that errored, by reference: a reconnect may have
+        // installed a healthy replacement under the same url in the meantime.
+        // the client already rejected its futures in onError.
+        // see https://github.com/ccxt/ccxt/issues/30463
+        ((ICollection<KeyValuePair<string, WebSocketClient>>)this.clients)
+            .Remove(new KeyValuePair<string, WebSocketClient>(client.url, client));
     }
 
     public virtual void handleMessage(WebSocketClient client, object messageContent)

@@ -2,7 +2,6 @@
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 
-
 function testEncode () {
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',

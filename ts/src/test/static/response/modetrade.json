@@ -1484,6 +1484,274 @@
                 ]
             }
         ],
+        "fetchLedger": [
+            {
+                "description": "deposit ledger entry from asset history",
+                "method": "fetchLedger",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1789221600000,
+                    "data": {
+                        "meta": {
+                            "total": 1,
+                            "records_per_page": 25,
+                            "current_page": 1
+                        },
+                        "rows": [
+                            {
+                                "id": "672517840941546",
+                                "tx_id": "0x40c7d1b86cb4fbe5464f9e4bf12f34c2fe967ea232f61e77cc416d5c98e6ec3c",
+                                "side": "DEPOSIT",
+                                "token": "ETH",
+                                "amount": 0.01,
+                                "fee": 0,
+                                "trans_status": "COMPLETED",
+                                "created_time": 1789221289974,
+                                "updated_time": 1789221576728,
+                                "chain_id": "11155111"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "672517840941546",
+                        "timestamp": 1789221289974,
+                        "datetime": "2026-09-12T13:54:49.974Z",
+                        "direction": "in",
+                        "account": null,
+                        "referenceId": "0x40c7d1b86cb4fbe5464f9e4bf12f34c2fe967ea232f61e77cc416d5c98e6ec3c",
+                        "referenceAccount": null,
+                        "type": "transaction",
+                        "currency": "ETH",
+                        "amount": 0.01,
+                        "before": null,
+                        "after": null,
+                        "status": "ok",
+                        "fee": {
+                            "currency": "ETH",
+                            "cost": 0
+                        },
+                        "info": {
+                            "id": "672517840941546",
+                            "tx_id": "0x40c7d1b86cb4fbe5464f9e4bf12f34c2fe967ea232f61e77cc416d5c98e6ec3c",
+                            "side": "DEPOSIT",
+                            "token": "ETH",
+                            "amount": 0.01,
+                            "fee": 0,
+                            "trans_status": "COMPLETED",
+                            "created_time": 1789221289974,
+                            "updated_time": 1789221576728,
+                            "chain_id": "11155111"
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "failed withdrawal ledger entry",
+                "method": "fetchLedger",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1789221600000,
+                    "data": {
+                        "meta": {
+                            "total": 1,
+                            "records_per_page": 25,
+                            "current_page": 1
+                        },
+                        "rows": [
+                            {
+                                "id": "230707030600002",
+                                "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+                                "side": "WITHDRAW",
+                                "token": "USDC",
+                                "amount": 555,
+                                "fee": 123,
+                                "trans_status": "FAILED",
+                                "created_time": 1688699193034,
+                                "updated_time": 1688699193096,
+                                "chain_id": "986532"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "230707030600002",
+                        "timestamp": 1688699193034,
+                        "datetime": "2023-07-07T03:06:33.034Z",
+                        "direction": "out",
+                        "account": null,
+                        "referenceId": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+                        "referenceAccount": null,
+                        "type": "transaction",
+                        "currency": "USDC",
+                        "amount": 555,
+                        "before": null,
+                        "after": null,
+                        "status": "failed",
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 123
+                        },
+                        "info": {
+                            "id": "230707030600002",
+                            "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+                            "side": "WITHDRAW",
+                            "token": "USDC",
+                            "amount": 555,
+                            "fee": 123,
+                            "trans_status": "FAILED",
+                            "created_time": 1688699193034,
+                            "updated_time": 1688699193096,
+                            "chain_id": "986532"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "completed testnet ETH deposit",
+                "method": "fetchDeposits",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1789221600000,
+                    "data": {
+                        "meta": {
+                            "total": 1,
+                            "records_per_page": 25,
+                            "current_page": 1
+                        },
+                        "rows": [
+                            {
+                                "id": "672517840941546",
+                                "tx_id": "0x40c7d1b86cb4fbe5464f9e4bf12f34c2fe967ea232f61e77cc416d5c98e6ec3c",
+                                "side": "DEPOSIT",
+                                "token": "ETH",
+                                "amount": 0.01,
+                                "fee": 0,
+                                "trans_status": "COMPLETED",
+                                "created_time": 1789221289974,
+                                "updated_time": 1789221576728,
+                                "chain_id": "11155111"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "672517840941546",
+                            "tx_id": "0x40c7d1b86cb4fbe5464f9e4bf12f34c2fe967ea232f61e77cc416d5c98e6ec3c",
+                            "side": "DEPOSIT",
+                            "token": "ETH",
+                            "amount": 0.01,
+                            "fee": 0,
+                            "trans_status": "COMPLETED",
+                            "created_time": 1789221289974,
+                            "updated_time": 1789221576728,
+                            "chain_id": "11155111"
+                        },
+                        "id": "672517840941546",
+                        "txid": "0x40c7d1b86cb4fbe5464f9e4bf12f34c2fe967ea232f61e77cc416d5c98e6ec3c",
+                        "timestamp": 1789221289974,
+                        "datetime": "2026-09-12T13:54:49.974Z",
+                        "address": null,
+                        "addressFrom": null,
+                        "addressTo": null,
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "deposit",
+                        "amount": 0.01,
+                        "currency": "ETH",
+                        "status": "ok",
+                        "updated": 1789221576728,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "currency": "ETH",
+                            "cost": 0
+                        },
+                        "network": null
+                    }
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "failed USDC withdrawal from the documented example",
+                "method": "fetchWithdrawals",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1789221600000,
+                    "data": {
+                        "meta": {
+                            "total": 1,
+                            "records_per_page": 25,
+                            "current_page": 1
+                        },
+                        "rows": [
+                            {
+                                "id": "230707030600002",
+                                "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+                                "side": "WITHDRAW",
+                                "token": "USDC",
+                                "amount": 555,
+                                "fee": 123,
+                                "trans_status": "FAILED",
+                                "created_time": 1688699193034,
+                                "updated_time": 1688699193096,
+                                "chain_id": "986532"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "230707030600002",
+                            "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+                            "side": "WITHDRAW",
+                            "token": "USDC",
+                            "amount": 555,
+                            "fee": 123,
+                            "trans_status": "FAILED",
+                            "created_time": 1688699193034,
+                            "updated_time": 1688699193096,
+                            "chain_id": "986532"
+                        },
+                        "id": "230707030600002",
+                        "txid": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+                        "timestamp": 1688699193034,
+                        "datetime": "2023-07-07T03:06:33.034Z",
+                        "address": null,
+                        "addressFrom": null,
+                        "addressTo": null,
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "withdrawal",
+                        "amount": 555,
+                        "currency": "USDC",
+                        "status": "failed",
+                        "updated": 1688699193096,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 123
+                        },
+                        "network": null
+                    }
+                ]
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public swap trades",

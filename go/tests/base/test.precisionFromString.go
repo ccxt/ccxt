@@ -51,6 +51,24 @@ func TestPrecisionFromString() {
 	Assert((ccxt.IsEqual(exchange.PrecisionFromString("1.0"), 0)))
 	// Test 20: Mixed precision
 	Assert((ccxt.IsEqual(exchange.PrecisionFromString("0.12345"), 5)))
+	// The mantissa's sign and digits must not become part of the exponent.
+	Assert((ccxt.IsEqual(exchange.PrecisionFromString("-1e-4"), 4)))
+	Assert((ccxt.IsEqual(exchange.PrecisionFromString("-1E-05"), 5)))
+	Assert((ccxt.IsEqual(exchange.PrecisionFromString("-2.5e-6"), 6)))
+	Assert((ccxt.IsEqual(exchange.PrecisionFromString("-1e4"), ccxt.OpNeg(4))))
+	Assert((ccxt.IsEqual(exchange.PrecisionFromString("-1e+4"), ccxt.OpNeg(4))))
+	Assert((ccxt.IsEqual(exchange.PrecisionFromString("+1e-4"), 4)))
+	Assert((ccxt.IsEqual(exchange.PrecisionFromString("+1E+04"), ccxt.OpNeg(4))))
+	Assert((ccxt.IsEqual(exchange.PrecisionFromString("12.34e-5"), 5)))
+	Assert((ccxt.IsEqual(exchange.PrecisionFromString("-12.34e-5"), 5)))
+	Assert((ccxt.IsEqual(exchange.PrecisionFromString("+12.34E+04"), ccxt.OpNeg(4))))
+	Assert((ccxt.IsEqual(exchange.PrecisionFromString("-.5E-04"), 4)))
+	Assert((ccxt.IsEqual(exchange.PrecisionFromString("-1e0"), 0)))
+	Assert((ccxt.IsEqual(exchange.PrecisionFromString("-0.00100"), 3)))
+	// Zero exponents must also return zero in the typed language ports.
+	Assert((ccxt.IsEqual(exchange.PrecisionFromString("1e0"), 0)))
+	Assert((ccxt.IsEqual(exchange.PrecisionFromString("1E+00"), 0)))
+	Assert((ccxt.IsEqual(exchange.PrecisionFromString("1e-0"), 0)))
 	// Test 21: Negative mantissa with negative exponent
 	Assert((ccxt.IsEqual(exchange.PrecisionFromString("-8e-8"), 8)))
 	// Test 22: Negative mantissa uppercase E with zero-padded exponent

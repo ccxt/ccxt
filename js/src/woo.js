@@ -2053,7 +2053,7 @@ export default class woo extends Exchange {
             //     }
             //
         }
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const orders = this.safeList(data, 'rows', []);
         return this.parseOrders(orders, market, since, limit);
     }
@@ -2215,9 +2215,8 @@ export default class woo extends Exchange {
         const symbol = market['symbol'];
         const price = this.safeString(order, 'price');
         const amount = this.safeString(order, 'quantity'); // This is base amount
-        const cost = this.safeString(order, 'amount'); // This is quote amount
         const orderType = this.safeStringLower(order, 'type');
-        const status = this.safeValue2(order, 'status', 'algoStatus');
+        const status = this.safeString2(order, 'status', 'algoStatus');
         const side = this.safeStringLower(order, 'side');
         const filled = this.safeString2(order, 'executed', 'totalExecutedQuantity');
         const average = this.omitZero(this.safeString(order, 'averageExecutedPrice'));
@@ -2261,7 +2260,8 @@ export default class woo extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': undefined, // computed by safeOrder from amount minus filled
-            'cost': cost,
+            // safeOrder derives the cost from filled and average; `amount` is the quote the order reserved
+            'cost': undefined,
             'trades': undefined,
             'fee': {
                 'cost': fee,
@@ -4739,7 +4739,7 @@ export default class woo extends Exchange {
             }
         }
         // if it was not returned according to above options, then return the first network of currency
-        return this.safeValue(networkKeys, 0);
+        return this.safeString(networkKeys, 0);
     }
     setSandboxMode(enable) {
         super.setSandboxMode(enable);

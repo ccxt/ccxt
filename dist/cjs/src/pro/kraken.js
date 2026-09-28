@@ -622,7 +622,7 @@ class kraken extends kraken$1["default"] {
         const timeframe = this.findTimeframe(interval);
         const messageHash = this.getMessageHash('ohlcv', undefined, symbol);
         let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new Cache.ArrayCacheByTimestamp(limit);
@@ -817,7 +817,7 @@ class kraken extends kraken$1["default"] {
     }
     async loadMarkets(reload = false, params = {}) {
         const markets = await super.loadMarkets(reload, params);
-        let marketsByWsName = this.safeValue(this.options, 'marketsByWsName');
+        let marketsByWsName = this.safeDict(this.options, 'marketsByWsName');
         if ((marketsByWsName === undefined) || reload) {
             marketsByWsName = {};
             const symbols = this.symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
@@ -825,7 +825,7 @@ class kraken extends kraken$1["default"] {
                 for (let i = 0; i < symbols.length; i++) {
                     const symbol = symbols[i];
                     const market = this.market(symbol);
-                    const info = this.safeValue(market, 'info', {});
+                    const info = this.safeDict(market, 'info', {});
                     const wsName = this.safeString(info, 'wsname');
                     marketsByWsName[wsName] = market;
                 }
@@ -925,7 +925,7 @@ class kraken extends kraken$1["default"] {
         const first = this.safeDict(data, 0, {});
         const symbol = this.safeString(first, 'symbol');
         const a = this.safeList(first, 'asks', []);
-        const b = this.safeValue(first, 'bids', []);
+        const b = this.safeList(first, 'bids', []);
         const c = this.safeInteger(first, 'checksum');
         const messageHash = this.getMessageHash('orderbook', undefined, symbol);
         let orderbook = undefined;
@@ -1332,8 +1332,8 @@ class kraken extends kraken$1["default"] {
                 const id = this.safeString(order, 'order_id');
                 const parsed = this.parseWsOrder(order);
                 const symbol = this.safeString(order, 'symbol');
-                const previousOrders = this.safeValue(stored.hashmap, symbol);
-                const previousOrder = this.safeValue(previousOrders, id);
+                const previousOrders = this.safeDict(stored.hashmap, symbol);
+                const previousOrder = this.safeDict(previousOrders, id);
                 let newOrder = parsed;
                 if (previousOrder !== undefined) {
                     const newRawOrder = this.extend(previousOrder['info'], newOrder['info']);
@@ -1520,7 +1520,7 @@ class kraken extends kraken$1["default"] {
         }
         const type = 'spot';
         const balance = this.safeBalance(result);
-        const oldBalance = this.safeValue(this.balance, type, {});
+        const oldBalance = this.safeDict(this.balance, type, {});
         const newBalance = this.deepExtend(oldBalance, balance);
         this.balance[type] = this.safeBalance(newBalance);
         const channel = this.safeString(message, 'channel');

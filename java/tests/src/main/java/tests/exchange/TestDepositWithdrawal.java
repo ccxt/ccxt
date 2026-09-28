@@ -41,13 +41,13 @@ public class TestDepositWithdrawal extends BaseTest {
         List<Object> emptyAllowedFor = new ArrayList<Object>(Arrays.asList("address", "addressTo", "addressFrom", "tag", "tagTo", "tagFrom")); // below we still do Assertion for to/from
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
-        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, Helpers.GetValue(entry, "currency"), requestedCode);
+        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("currency"), requestedCode);
         //
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "status", new ArrayList<Object>(Arrays.asList("ok", "pending", "failed", "rejected", "canceled")));
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "type", new ArrayList<Object>(Arrays.asList("deposit", "withdrawal")));
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", "0");
         TestSharedMethods.AssertFeeStructure(exchange, skippedProperties, method, entry, "fee");
-        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(entry, "type"), "deposit")))
+        if (java.util.Objects.equals(((Map<String, Object>)entry).get("type"), "deposit"))
         {
             TestSharedMethods.AssertType(exchange, skippedProperties, entry, "addressFrom", format);
         } else

@@ -857,7 +857,7 @@ export default class bitrue extends Exchange {
             }
         }
         const promises = await Promise.all(promisesRaw);
-        const spotMarkets = this.safeValue(this.safeValue(promises, 0), 'symbols', []);
+        const spotMarkets = this.safeList(this.safeDict(promises, 0), 'symbols', []);
         const futureMarkets = this.safeValue(promises, 1);
         const deliveryMarkets = this.safeValue(promises, 2);
         let markets = spotMarkets;
@@ -2125,7 +2125,7 @@ export default class bitrue extends Exchange {
                 request['volume'] = this.parseToNumeric(amount);
             }
             request['positionType'] = 1;
-            const reduceOnly = this.safeValue2(params, 'reduceOnly', 'reduce_only');
+            const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
             request['open'] = (reduceOnly === true) ? 'CLOSE' : 'OPEN';
             const leverage = this.safeString(params, 'leverage', '1');
             request['leverage'] = this.parseToNumeric(leverage);
@@ -2150,7 +2150,7 @@ export default class bitrue extends Exchange {
                 params = this.omit(params, ['newClientOrderId', 'clientOrderId']);
                 request['newClientOrderId'] = clientOrderId;
             }
-            const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+            const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
             if (triggerPrice !== undefined) {
                 params = this.omit(params, ['triggerPrice', 'stopPrice']);
                 request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
@@ -2203,7 +2203,7 @@ export default class bitrue extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const origClientOrderId = this.safeValue2(params, 'origClientOrderId', 'clientOrderId');
+        const origClientOrderId = this.safeString2(params, 'origClientOrderId', 'clientOrderId');
         params = this.omit(params, ['origClientOrderId', 'clientOrderId']);
         let response = undefined;
         let data = {};
@@ -2452,7 +2452,7 @@ export default class bitrue extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const origClientOrderId = this.safeValue2(params, 'origClientOrderId', 'clientOrderId');
+        const origClientOrderId = this.safeString2(params, 'origClientOrderId', 'clientOrderId');
         params = this.omit(params, ['origClientOrderId', 'clientOrderId']);
         let response = undefined;
         let data = {};
@@ -3436,6 +3436,6 @@ export default class bitrue extends Exchange {
                 }
             }
         }
-        return this.safeValue(config, 'cost', 1);
+        return this.safeNumber(config, 'cost', 1);
     }
 }

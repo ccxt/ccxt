@@ -39,7 +39,7 @@ public partial class BaseTest
             Assert(isEqual(exchange.safeString(getValue(result, "USDT"), "free"), "5"));
             Assert(isEqual(exchange.safeString(getValue(result, "USDT"), "used"), null));
             List<object> keys = new List<object>(((IDictionary<string,object>)result).Keys);
-            Assert(isEqual(getArrayLength(keys), 2));
+            Assert((keys.Count == 2));
             // the merged dict is a regular safeBalance input. safeBalance parses to a number,
             // and each port spells that number differently (JS "3", PHP "3.0"), so Assert on
             // the parsed value rather than on its string form

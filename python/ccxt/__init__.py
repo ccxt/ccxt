@@ -22,12 +22,13 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.78'
+__version__ = '4.5.84'
 
 # ----------------------------------------------------------------------------
 
 from ccxt.base.exchange import Exchange                     # noqa: F401
 from ccxt.base.precise import Precise                       # noqa: F401
+from ccxt.base.order_router import OrderRouter              # noqa: F401
 
 from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa: F401
 from ccxt.base.decimal_to_precision import TRUNCATE              # noqa: F401
@@ -102,7 +103,6 @@ from ccxt.bitfinex import bitfinex                                    # noqa: F4
 from ccxt.bitflyer import bitflyer                                    # noqa: F401
 from ccxt.bitget import bitget                                        # noqa: F401
 from ccxt.bithumb import bithumb                                      # noqa: F401
-from ccxt.bitmex import bitmex                                        # noqa: F401
 from ccxt.bitopro import bitopro                                      # noqa: F401
 from ccxt.bitrue import bitrue                                        # noqa: F401
 from ccxt.bitso import bitso                                          # noqa: F401
@@ -119,6 +119,7 @@ from ccxt.btse import btse                                            # noqa: F4
 from ccxt.bullish import bullish                                      # noqa: F401
 from ccxt.bybit import bybit                                          # noqa: F401
 from ccxt.bybiteu import bybiteu                                      # noqa: F401
+from ccxt.bybitid import bybitid                                      # noqa: F401
 from ccxt.bydfi import bydfi                                          # noqa: F401
 from ccxt.cex import cex                                              # noqa: F401
 from ccxt.coinbase import coinbase                                    # noqa: F401
@@ -208,7 +209,6 @@ exchanges = [
     'bitflyer',
     'bitget',
     'bithumb',
-    'bitmex',
     'bitopro',
     'bitrue',
     'bitso',
@@ -225,6 +225,7 @@ exchanges = [
     'bullish',
     'bybit',
     'bybiteu',
+    'bybitid',
     'bydfi',
     'cex',
     'coinbase',

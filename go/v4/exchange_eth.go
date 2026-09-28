@@ -328,7 +328,7 @@ func (this *BaseExchange) EthEncodeStructuredData(domain2 any, messageTypes2 any
 	domainTyped := apitypes.TypedDataDomain{
 		Name:              SafeString(domain, "name", "").(string),
 		Version:           SafeString(domain, "version", "").(string),
-		ChainId:           (*math.HexOrDecimal256)(big.NewInt(SafeInteger(domain, "chainId", nil).(int64))),
+		ChainId:           (*math.HexOrDecimal256)(big.NewInt(SafeInteger(domain, "chainId", int64(0)).(int64))),
 		VerifyingContract: SafeString(domain, "verifyingContract", "").(string),
 	}
 
@@ -810,6 +810,11 @@ func SafeInt(v any) int64 {
 		return int64(val)
 	case uint8:
 		return int64(val)
+	case *int64:
+		if val == nil {
+			return 0
+		}
+		return *val
 	case string:
 		i, err := strconv.ParseInt(val, 10, 64)
 		if err != nil {
@@ -857,6 +862,16 @@ func (this *BaseExchange) lighterCreateClient(signer any, chainId uint32, privat
 		panic(err)
 	}
 	return txClient
+}
+
+// safeIntOr mirrors safeInteger(request, key, default) used by the other
+// language bindings: a key that is absent (builderFee disabled) yields the
+// default instead of panicking in SafeInt.
+func safeIntOr(v any, defaultValue int64) int64 {
+	if v == nil {
+		return defaultValue
+	}
+	return SafeInt(v)
 }
 
 func (this *BaseExchange) lighterL2TxAttr(integratorAccountIndex int64, integratorTakerFee uint32, integratorMakerFee uint32, skipNonce uint8) types.L2TxAttributes {
@@ -920,8 +935,8 @@ func (this *BaseExchange) lighterSignCreateGroupedOrders(signer *client.TxClient
 		Orders:       ordersArr,
 	}
 
-	nonce := int64(SafeInt(request["nonce"]))
-	l2TxAttr := this.lighterL2TxAttr(int64(SafeInt(request["integrator_account_index"])), uint32(SafeInt(request["integrator_taker_fee"])), uint32(SafeInt(request["integrator_maker_fee"])), uint8(1))
+	nonce := safeIntOr(request["nonce"], 0)
+	l2TxAttr := this.lighterL2TxAttr(safeIntOr(request["integrator_account_index"], 0), uint32(safeIntOr(request["integrator_taker_fee"], 0)), uint32(safeIntOr(request["integrator_maker_fee"], 0)), uint8(1))
 	ops := &types.TransactOpts{
 		Nonce:        &nonce,
 		TxAttributes: &l2TxAttr,
@@ -966,8 +981,8 @@ func (this *BaseExchange) lighterSignCreateOrder(signer *client.TxClient, reques
 		TriggerPrice:     uint32(SafeInt(request["trigger_price"])),
 		OrderExpiry:      orderExpiry,
 	}
-	nonce := int64(SafeInt(request["nonce"]))
-	l2TxAttr := this.lighterL2TxAttr(int64(SafeInt(request["integrator_account_index"])), uint32(SafeInt(request["integrator_taker_fee"])), uint32(SafeInt(request["integrator_maker_fee"])), uint8(1))
+	nonce := safeIntOr(request["nonce"], 0)
+	l2TxAttr := this.lighterL2TxAttr(safeIntOr(request["integrator_account_index"], 0), uint32(safeIntOr(request["integrator_taker_fee"], 0)), uint32(safeIntOr(request["integrator_maker_fee"], 0)), uint8(1))
 	ops := &types.TransactOpts{
 		Nonce:        &nonce,
 		TxAttributes: &l2TxAttr,

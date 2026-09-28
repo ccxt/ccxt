@@ -755,9 +755,9 @@ class btse extends Exchange {
                 $type = 'swap';
             }
         }
-        $fees = $this->safe_value($this->fees, 'contract');
+        $fees = $this->safe_dict($this->fees, 'contract', array());
         if ($isSpot) {
-            $fees = $this->safe_value($this->fees, 'spot');
+            $fees = $this->safe_dict($this->fees, 'spot', array());
         }
         return $this->safe_market_structure(array(
             'id' => $id,
@@ -812,11 +812,11 @@ class btse extends Exchange {
         ));
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    private function do_fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -980,7 +980,7 @@ class btse extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rate-history-structure funding $rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
@@ -1038,7 +1038,7 @@ class btse extends Exchange {
         return $result;
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "timestamp": 1786003200911,
@@ -1428,7 +1428,7 @@ class btse extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interest(...))($symbol, $params);
     }
 
@@ -1445,7 +1445,7 @@ class btse extends Exchange {
         Async\await($this->load_markets());
         $market = $this->market($symbol);
         if ($market['spot'] === true) {
-            throw new BadRequest($this->id . ' fetchOpenInterest() $symbol does not support $market ' . $symbol);
+            throw new BadRequest($this->id . ' fetchOpenInterest() symbol does not support market ' . $symbol);
         }
         $request = array(
             'symbol' => $market['id'],
@@ -1459,7 +1459,7 @@ class btse extends Exchange {
         return $this->parse_open_interest($interest, $market);
     }
 
-    public function fetch_open_interests(?array $symbols = null, $params = array()) {
+    public function fetch_open_interests(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interests(...))($symbols, $params);
     }
 
@@ -1488,7 +1488,7 @@ class btse extends Exchange {
         return $this->parse_open_interests($rows, $symbols);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         // ticker/24hr contract rows, see parseFundingRate for the full shape
         //
@@ -1522,7 +1522,7 @@ class btse extends Exchange {
         Async\await($this->load_markets());
         $market = $this->market($symbol);
         if ($market['spot'] === true) {
-            throw new BadRequest($this->id . ' fetchFundingRate() $symbol does not support spot markets');
+            throw new BadRequest($this->id . ' fetchFundingRate() symbol does not support spot markets');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -1734,7 +1734,7 @@ class btse extends Exchange {
         $response = null;
         if ($marketType === 'spot') {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument for spot markets');
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument for spot markets');
             }
             //
             //     {
@@ -1840,7 +1840,7 @@ class btse extends Exchange {
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId === null) {
             if ($id === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires an $id argument or a $clientOrderId parameter');
+                throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires an id argument or a clientOrderId parameter');
             } else {
                 $params = $this->extend($params, array( 'orderID' => $id ));
             }
@@ -2064,7 +2064,7 @@ class btse extends Exchange {
         $isAlgoOrder = $isConditionalOrder || (!$isMarketOrder && !$isLimitOrder);
         if ($isLimitOrder || ($type === 'PEG') || ($type === 'OCO')) {
             if ($price === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for ' . $type . ' orders');
+                throw new InvalidOrder($this->id . ' createOrder() requires a price argument for ' . $type . ' orders');
             }
         }
         // market and trailing buys are denominated in the quote currency while
@@ -2081,7 +2081,7 @@ class btse extends Exchange {
                 $quoteAmount = $this->cost_to_precision($symbol, $cost);
             } elseif ($createMarketBuyOrderRequiresPrice) {
                 if ($price === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend, alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                    throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend, alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                 } else {
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
@@ -2260,7 +2260,7 @@ class btse extends Exchange {
             list($marginMode, $params) = $this->handle_option_and_params($params, 'createOrder', 'marginMode', $marginMode);
             if ($marginMode === 'isolated') {
                 if ($hedged) {
-                    throw new BadRequest($this->id . ' createOrder() cannot use isolated margin with $hedged positions');
+                    throw new BadRequest($this->id . ' createOrder() cannot use isolated margin with hedged positions');
                 }
                 $request['positionMode'] = 'ISOLATED';
             } elseif ($hedged) {
@@ -2289,7 +2289,7 @@ class btse extends Exchange {
         $isAlgoOrder = $isConditionalOrder || (!$isMarketOrder && !$isLimitOrder);
         if ($isLimitOrder || ($type === 'OCO')) {
             if ($price === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for ' . $type . ' orders');
+                throw new InvalidOrder($this->id . ' createOrder() requires a price argument for ' . $type . ' orders');
             }
         }
         // here we handling with attached take profit and stop loss orders
@@ -2452,7 +2452,7 @@ class btse extends Exchange {
             $request['clOrderId'] = $clientOrderId;
             $params = $this->omit($params, 'clientOrderId');
         } elseif ($id === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires an $id argument or a $clientOrderId parameter');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires an id argument or a clientOrderId parameter');
         } else {
             $request['orderId'] = $id;
         }
@@ -2478,7 +2478,7 @@ class btse extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -2510,7 +2510,7 @@ class btse extends Exchange {
             $request['clOrderId'] = $clientOrderId;
             $params = $this->omit($params, 'clientOrderId');
         } elseif ($id === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires an $id argument or a $clientOrderId parameter');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires an id argument or a clientOrderId parameter');
         } else {
             $request['orderId'] = $id;
         }
@@ -2527,7 +2527,7 @@ class btse extends Exchange {
         }
         $isSlide = $this->safe_bool($params, 'slide', false);
         if (($amount === null) && ($price === null) && ($triggerPrice === null) && ($isSlide !== true)) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument, a $price argument or a $triggerPrice parameter');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires an amount argument, a price argument or a triggerPrice parameter');
         }
         $response = null;
         if ($market['spot'] === true) {
@@ -2539,7 +2539,7 @@ class btse extends Exchange {
             $request['symbol'] = $this->futures_request_id($market);
             if ($triggerPrice !== null) {
                 if (($amount !== null) || ($price !== null)) {
-                    throw new BadRequest($this->id . ' editOrder() can not amend the trigger $price together with the $price or the $amount on contract markets');
+                    throw new BadRequest($this->id . ' editOrder() can not amend the trigger price together with the price or the amount on contract markets');
                 }
                 $request['amendType'] = 'TRIGGER_PRICE';
             } elseif (($amount !== null) && ($price !== null)) {
@@ -2555,7 +2555,7 @@ class btse extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -2573,7 +2573,7 @@ class btse extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
@@ -2583,7 +2583,7 @@ class btse extends Exchange {
             $request['clOrderId'] = $clientOrderId;
             $params = $this->omit($params, 'clientOrderId');
         } elseif ($id === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires an $id argument or a $clientOrderId parameter');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires an id argument or a clientOrderId parameter');
         } else {
             $request['orderId'] = $id;
         }
@@ -2646,7 +2646,7 @@ class btse extends Exchange {
             $response = Async\await($this->privateDeleteSpotApiV4TradeOrdersAll($this->extend($request, $params)));
         } else {
             if ($market === null) {
-                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument for contract markets');
+                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument for contract markets');
             }
             // the unified futures api has no cancel all endpoint, the legacy
             // endpoint cancels every order for the symbol when no order id is
@@ -2977,7 +2977,7 @@ class btse extends Exchange {
         } elseif ($walletType === 'SPOT') {
             // the exchange rejects spot wallet history queries without an asset,
             // verified live, and omitting walletType still defaults to spot
-            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $code argument for the spot wallet history');
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a code argument for the spot wallet history');
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -3211,7 +3211,7 @@ class btse extends Exchange {
         } elseif ($walletType === 'SPOT') {
             // the exchange rejects spot wallet history queries without an asset,
             // verified live, and omitting walletType still defaults to spot
-            throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $code argument for the spot wallet history');
+            throw new ArgumentsRequired($this->id . ' fetchLedger() requires a code argument for the spot wallet history');
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -3433,7 +3433,7 @@ class btse extends Exchange {
         return Async\await($this->fetch_positions(array( $symbol ), $params));
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         //     {
         //         "marginType": 91,
@@ -3556,7 +3556,7 @@ class btse extends Exchange {
          * @return {array} an object detailing whether the $market is in $hedged or one-way mode
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchPositionMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchPositionMode() requires a symbol argument');
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
@@ -3602,7 +3602,7 @@ class btse extends Exchange {
         // it terms of btse positionMode could be HEDGE, ONE_WAY or ISOLATED
         // ISOLATED positionMode is always hedged and multi-position
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setPositionMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setPositionMode() requires a symbol argument');
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
@@ -3684,24 +3684,24 @@ class btse extends Exchange {
         // we use params.hedged to define the positionMode when marginMode is cross
         // and warn user if the params are not correct for the marginMode being set
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
         $marginMode = strtolower($marginMode);
         $positionMode = 'ONE_WAY';
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be either cross or isolated');
+            throw new BadRequest($this->id . ' setMarginMode() marginMode argument should be either cross or isolated');
         }
         $hedged = $this->safe_bool($params, 'hedged');
         if ($marginMode === 'cross') {
             if (!(is_array($params) && array_key_exists('hedged' ?? '', $params))) {
-                throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $hedged parameter for cross margin mode');
+                throw new ArgumentsRequired($this->id . ' setMarginMode() requires a hedged parameter for cross margin mode');
             } elseif ($hedged === true) {
                 $positionMode = 'HEDGE';
             }
         } elseif ((is_array($params) && array_key_exists('hedged' ?? '', $params)) && ($hedged !== true)) {
-            throw new BadRequest($this->id . ' setMarginMode() $hedged parameter cannot be false for isolated margin mode');
+            throw new BadRequest($this->id . ' setMarginMode() hedged parameter cannot be false for isolated margin mode');
         } else {
             $positionMode = 'ISOLATED';
         }
@@ -3736,7 +3736,7 @@ class btse extends Exchange {
         $market = $this->market($symbol);
         $positionId = $this->safe_string($params, 'positionId');
         if ($positionId === null) {
-            throw new ArgumentsRequired($this->id . ' closePosition() requires a $positionId parameter');
+            throw new ArgumentsRequired($this->id . ' closePosition() requires a positionId parameter');
         }
         $request = array(
             'symbol' => $this->futures_request_id($market),
@@ -3748,7 +3748,7 @@ class btse extends Exchange {
         if ($type === 'LIMIT') {
             $price = $this->safe_string($params, 'price');
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . ' closePosition() requires a $price parameter for limit orders');
+                throw new ArgumentsRequired($this->id . ' closePosition() requires a price parameter for limit orders');
             }
             $request['orderPrice'] = $this->price_to_precision($symbol, $price);
             $params = $this->omit($params, 'price');
@@ -3847,7 +3847,7 @@ class btse extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
@@ -4005,7 +4005,7 @@ class btse extends Exchange {
         return $result;
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 }

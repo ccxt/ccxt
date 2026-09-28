@@ -40,56 +40,56 @@ public class TestOrderBook extends BaseTest {
         TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, orderbook, "symbol", symbol);
         Object logText = TestSharedMethods.logTemplate(exchange, method, orderbook);
         // todo: check non-emtpy arrays for bids/asks for toptier exchanges
-        Object bids = Helpers.GetValue(orderbook, "bids");
-        Object bidsLength = Helpers.getArrayLength(bids);
+        Object bids = ((Map<String, Object>)orderbook).get("bids");
+        Object bidsLength = ((List<?>)bids).size();
         for (var i = 0; Helpers.isLessThan(i, bidsLength); i++)
         {
-            String currentBidString = exchange.safeString(Helpers.GetValue(bids, i), 0);
-            if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "compareToNextItem"))))
+            String currentBidString = exchange.safeString((bids == null || i < 0 || i >= ((List<?>)bids).size() ? null : ((List<?>)bids).get(i)), 0);
+            if (!(Helpers.inOp(skippedProperties, "compareToNextItem")))
             {
-                Object nextI = Helpers.add(i, 1);
-                if (Helpers.isTrue(Helpers.isGreaterThan(bidsLength, nextI)))
+                Object nextI = (((long) i) + 1L);
+                if (Helpers.isGreaterThan(bidsLength, nextI))
                 {
                     String nextBidString = exchange.safeString(Helpers.GetValue(bids, nextI), 0);
-                    Assert(Precise.stringGt(currentBidString, nextBidString), Helpers.add(Helpers.add(Helpers.add(Helpers.add("current bid should be > than the next one: ", currentBidString), ">"), nextBidString), logText));
+                    Assert(Precise.stringGt(currentBidString, nextBidString), Helpers.add(((("current bid should be > than the next one: " + currentBidString) + ">") + nextBidString), logText));
                 }
             }
-            if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "compareToZero"))))
+            if (!(Helpers.inOp(skippedProperties, "compareToZero")))
             {
                 // compare price & volume to zero
-                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, Helpers.GetValue(bids, i), 0, "0");
-                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, Helpers.GetValue(bids, i), 1, "0");
+                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, (bids == null || i < 0 || i >= ((List<?>)bids).size() ? null : ((List<?>)bids).get(i)), 0, "0");
+                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, (bids == null || i < 0 || i >= ((List<?>)bids).size() ? null : ((List<?>)bids).get(i)), 1, "0");
             }
         }
-        Object asks = Helpers.GetValue(orderbook, "asks");
-        Object asksLength = Helpers.getArrayLength(asks);
+        Object asks = ((Map<String, Object>)orderbook).get("asks");
+        Object asksLength = ((List<?>)asks).size();
         for (var i = 0; Helpers.isLessThan(i, asksLength); i++)
         {
-            String currentAskString = exchange.safeString(Helpers.GetValue(asks, i), 0);
-            if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "compareToNextItem"))))
+            String currentAskString = exchange.safeString((asks == null || i < 0 || i >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(i)), 0);
+            if (!(Helpers.inOp(skippedProperties, "compareToNextItem")))
             {
-                Object nextI = Helpers.add(i, 1);
-                if (Helpers.isTrue(Helpers.isGreaterThan(asksLength, nextI)))
+                Object nextI = (((long) i) + 1L);
+                if (Helpers.isGreaterThan(asksLength, nextI))
                 {
                     String nextAskString = exchange.safeString(Helpers.GetValue(asks, nextI), 0);
-                    Assert(Precise.stringLt(currentAskString, nextAskString), Helpers.add(Helpers.add(Helpers.add(Helpers.add("current ask should be < than the next one: ", currentAskString), "<"), nextAskString), logText));
+                    Assert(Precise.stringLt(currentAskString, nextAskString), Helpers.add(((("current ask should be < than the next one: " + currentAskString) + "<") + nextAskString), logText));
                 }
             }
-            if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "compareToZero"))))
+            if (!(Helpers.inOp(skippedProperties, "compareToZero")))
             {
                 // compare price & volume to zero
-                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, Helpers.GetValue(asks, i), 0, "0");
-                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, Helpers.GetValue(asks, i), 1, "0");
+                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, (asks == null || i < 0 || i >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(i)), 0, "0");
+                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, (asks == null || i < 0 || i >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(i)), 1, "0");
             }
         }
-        if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "spread"))))
+        if (!(Helpers.inOp(skippedProperties, "spread")))
         {
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(bidsLength, 0))) && Helpers.isTrue((Helpers.isGreaterThan(asksLength, 0)))))
+            if ((Helpers.isGreaterThan(bidsLength, 0)) && (Helpers.isGreaterThan(asksLength, 0)))
             {
-                String firstBid = exchange.safeString(Helpers.GetValue(bids, 0), 0);
-                String firstAsk = exchange.safeString(Helpers.GetValue(asks, 0), 0);
+                String firstBid = exchange.safeString((bids == null || 0 >= ((List<?>)bids).size() ? null : ((List<?>)bids).get(0)), 0);
+                String firstAsk = exchange.safeString((asks == null || 0 >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(0)), 0);
                 // check bid-ask spread
-                Assert(Precise.stringLt(firstBid, firstAsk), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("bids[0][0] (", firstBid), ") should be < than asks[0][0] ("), firstAsk), ")"), logText));
+                Assert(Precise.stringLt(firstBid, firstAsk), ((((("bids[0][0] (" + firstBid) + ") should be < than asks[0][0] (") + firstAsk) + ")") + logText));
             }
         }
     }

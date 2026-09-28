@@ -1427,7 +1427,7 @@ class bullish extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1555,7 +1555,7 @@ class bullish extends Exchange {
         } elseif ($method === 'privateGetV2HistoryOrders') {
             $response = $this->privateGetV2HistoryOrders($this->extend($request, $params));
         } else {
-            throw new BadRequest($this->id . ' fetchOrders() $method parameter must be either "privateGetV2Orders" or "privateGetV2HistoryOrders"');
+            throw new BadRequest($this->id . ' fetchOrders() method parameter must be either "privateGetV2Orders" or "privateGetV2HistoryOrders"');
         }
         return $this->parse_orders($response, $market, $since, $limit);
     }
@@ -1787,7 +1787,7 @@ class bullish extends Exchange {
         $triggerPrice = $this->safe_string($params, 'triggerPrice');
         if ($triggerPrice !== null) {
             if ($isMarketOrder) {
-                throw new NotSupported($this->id . ' createOrder() does not support $market trigger orders');
+                throw new NotSupported($this->id . ' createOrder() does not support market trigger orders');
             }
             $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $type = 'STOP_LIMIT';
@@ -1806,7 +1806,7 @@ class bullish extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
          * edit a trade limit order
          *
@@ -1870,7 +1870,7 @@ class bullish extends Exchange {
         array( $this->load_markets(), $this->handle_token() );
         $tradingAccountId = $this->load_account($params);
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -2256,7 +2256,7 @@ class bullish extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function load_account($params = array()) {
+    public function load_account($params = array()): string {
         $tradingAccountId = null;
         list($tradingAccountId, $params) = $this->handle_option_and_params($params, 'loadAccount', 'tradingAccountId');
         if ($tradingAccountId === null) {
@@ -2272,7 +2272,7 @@ class bullish extends Exchange {
             }
         }
         if ($tradingAccountId === null) {
-            throw new ArgumentsRequired($this->id . ' loadAccount() requires a $tradingAccountId parameter in options["tradingAccountId"] or $params["tradingAccountId"], fetchAccounts() was not able to find the Primary account');
+            throw new ArgumentsRequired($this->id . ' loadAccount() requires a tradingAccountId parameter in options["tradingAccountId"] or params["tradingAccountId"], fetchAccounts() was not able to find the Primary account');
         }
         $this->options['tradingAccountId'] = $tradingAccountId;
         return $tradingAccountId;
@@ -2564,7 +2564,7 @@ class bullish extends Exchange {
         return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         //     [
         //         {
@@ -2732,7 +2732,7 @@ class bullish extends Exchange {
         return $transfer;
     }
 
-    public function parse_transfer(mixed $transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // fetchTransfers
         //     {
@@ -2833,7 +2833,7 @@ class bullish extends Exchange {
         return $this->parse_borrow_rate_history($response, $code, $since, $limit);
     }
 
-    public function parse_borrow_rate(mixed $info, ?array $currency = null) {
+    public function parse_borrow_rate(mixed $info, ?array $currency = null): array {
         //
         //     {
         //         "assetId": "1",
@@ -2919,7 +2919,7 @@ class bullish extends Exchange {
         return $this->parse_open_interest($response, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         //     {
         //         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
@@ -2971,7 +2971,7 @@ class bullish extends Exchange {
         ), $market);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
@@ -3010,7 +3010,7 @@ class bullish extends Exchange {
             } else {
                 $token = $this->token;
                 if (($token === null)) {
-                    throw new AuthenticationError($this->id . ' requires a $token, please call signIn() first');
+                    throw new AuthenticationError($this->id . ' requires a token, please call signIn() first');
                 }
                 $headers = ($headers === null) ? array() : $headers;
                 $headers['Authorization'] = 'Bearer ' . $token;
@@ -3051,7 +3051,7 @@ class bullish extends Exchange {
         return $token;
     }
 
-    public function handle_token($params = array()) {
+    public function handle_token($params = array()): string {
         $now = $this->milliseconds();
         $token = $this->token;
         $tokenExpires = $this->safe_integer($this->options, 'tokenExpires');

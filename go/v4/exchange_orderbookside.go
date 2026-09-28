@@ -183,6 +183,9 @@ func (obs *OrderBookSide) StoreArray(delta any) {
 	deltaArray, isArray := delta.([]float64)
 	deltaOB, isOB := delta.(IOrderBookSide)
 	deltaInterface, isInterface := delta.([]any)
+	if isInterface {
+		derefDelta(deltaInterface)
+	}
 	var price float64
 	var size float64
 	if isArray {
@@ -244,6 +247,24 @@ func (obs *OrderBookSide) StoreArray(delta any) {
 		copy(obs.Data[index:], obs.Data[index+1:])
 		obs.Data = obs.Data[:obs.Length-1]
 		obs.Length--
+	}
+}
+
+// derefDelta flattens typed pointer elements (*float64, *string, *int64, ...)
+// of an incoming delta row into the values they point at, in place. The go
+// emitter types Safe*/Precise locals as pointers since
+// https://github.com/ccxt/ccxt/pull/30054, and transpiled exchange code puts
+// such locals straight into []any delta literals, so rows arrive as
+// [*float64, *float64, *string]. The book's structural machinery (bisect
+// index, id hashmap, row-id comparisons, stored-row equality) needs flat
+// scalars: a pointer-priced row bisects to a duplicate level, and a
+// pointer-keyed id never matches its flat form on lookup, turning replaces
+// into duplicates and zero-size deletes into no-ops. Normalizing once at the
+// storage boundary keeps every exchange and every entry path (snapshot seed
+// via Init and live deltas alike) correct without touching generated code.
+func derefDelta(delta []any) {
+	for i, v := range delta {
+		delta[i] = derefScalar(v)
 	}
 }
 
@@ -328,6 +349,10 @@ func (obs *CountedOrderBookSide) StoreArray(delta any) {
 	deltaArray, isArray := delta.([]any)
 	deltaOB, isOB := delta.(IOrderBookSide)
 	deltaInterface, isInterface := delta.([]any)
+	if isArray {
+		// deltaInterface shares the same backing array
+		derefDelta(deltaArray)
+	}
 	var price float64
 	var size float64
 	var count any
@@ -439,7 +464,9 @@ func (iobs *IndexedOrderBookSide) Store(price any, size any) error {
 // single string form, mirroring the C# lane of
 // https://github.com/ccxt/ccxt/pull/29749
 func normalizeId(id any) string {
-	switch v := id.(type) {
+	// deref first: an id that slipped in as *string (see derefDelta) must key
+	// the hashmap by its value, not by fmt.Sprint's pointer address
+	switch v := derefScalar(id).(type) {
 	case string:
 		return v
 	case float64:
@@ -474,6 +501,10 @@ func (obs *IndexedOrderBookSide) StoreArray(delta any) {
 	deltaArray, isArray := delta.([]any)
 	deltaOB, isOB := delta.(IOrderBookSide)
 	deltaInterface, isInterface := delta.([]any)
+	if isArray {
+		// deltaInterface shares the same backing array
+		derefDelta(deltaArray)
+	}
 	var price float64
 	var size float64
 	var id any

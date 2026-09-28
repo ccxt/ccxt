@@ -11,38 +11,38 @@ use ccxt::exchange_generated::ExchangeBase;
 pub fn testUuid() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
     // uuid() - standard UUID v4: xxxxxxxx-xxxx-4xxx-[89ab]xxx-xxxxxxxxxxxx
     let mut id1: Value = exchange.uuid(&[]); // need type for .length understanding
     let mut id2: Value = exchange.uuid(&[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&id1, &Value::Null)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&id2, &Value::Null)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&id1, &id2)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&to_string_val(&id1), &id1)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&to_string_val(&id2), &id2)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&id1), &Value::Int(36))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&id2), &Value::Int(36))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_index_of(&id1, &Value::Str("-".to_string())), &Value::Int(8))))));
+    assert!(ccxt::runtime::is_true(&((id1 != Value::Null))));
+    assert!(ccxt::runtime::is_true(&((id2 != Value::Null))));
+    assert!(ccxt::runtime::is_true(&((id1.as_str() != id2.as_str()))));
+    assert!(ccxt::runtime::is_true(&((to_string_val(&id1).as_str() == id1.as_str()))));
+    assert!(ccxt::runtime::is_true(&((to_string_val(&id2).as_str() == id2.as_str()))));
+    assert!(ccxt::runtime::is_true(&((Value::Int(id1.len() as i64).as_f64() == Some(36.0)))));
+    assert!(ccxt::runtime::is_true(&((Value::Int(id2.len() as i64).as_f64() == Some(36.0)))));
+    assert!(ccxt::runtime::is_true(&((Value::Int(id1.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(8.0)))));
     // uuid16() - 16-char hex string
     let mut id16a: Value = exchange.uuid16(&[]);
     let mut id16b: Value = exchange.uuid16(&[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&id16a, &Value::Null)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&id16b, &Value::Null)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&id16a, &id16b)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&to_string_val(&id16a), &id16a)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&to_string_val(&id16b), &id16b)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&id16a), &Value::Int(16))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&id16b), &Value::Int(16))))));
+    assert!(ccxt::runtime::is_true(&((id16a != Value::Null))));
+    assert!(ccxt::runtime::is_true(&((id16b != Value::Null))));
+    assert!(ccxt::runtime::is_true(&((id16a.as_str() != id16b.as_str()))));
+    assert!(ccxt::runtime::is_true(&((to_string_val(&id16a).as_str() == id16a.as_str()))));
+    assert!(ccxt::runtime::is_true(&((to_string_val(&id16b).as_str() == id16b.as_str()))));
+    assert!(ccxt::runtime::is_true(&((Value::Int(id16a.len() as i64).as_f64() == Some(16.0)))));
+    assert!(ccxt::runtime::is_true(&((Value::Int(id16b.len() as i64).as_f64() == Some(16.0)))));
     // uuid22() - 22-char hex string
     let mut id22a: Value = exchange.uuid22(&[]);
     let mut id22b: Value = exchange.uuid22(&[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&id22a, &Value::Null)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&id22b, &Value::Null)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&id22a, &id22b)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&to_string_val(&id22a), &id22a)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&to_string_val(&id22b), &id22b)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&id22a), &Value::Int(22))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&id22b), &Value::Int(22))))));
+    assert!(ccxt::runtime::is_true(&((id22a != Value::Null))));
+    assert!(ccxt::runtime::is_true(&((id22b != Value::Null))));
+    assert!(ccxt::runtime::is_true(&((id22a.as_str() != id22b.as_str()))));
+    assert!(ccxt::runtime::is_true(&((to_string_val(&id22a).as_str() == id22a.as_str()))));
+    assert!(ccxt::runtime::is_true(&((to_string_val(&id22b).as_str() == id22b.as_str()))));
+    assert!(ccxt::runtime::is_true(&((Value::Int(id22a.len() as i64).as_f64() == Some(22.0)))));
+    assert!(ccxt::runtime::is_true(&((Value::Int(id22b.len() as i64).as_f64() == Some(22.0)))));
 }

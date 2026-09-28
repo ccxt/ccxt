@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction
+from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, FundingRateHistory
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -565,7 +565,7 @@ class cryptocom(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_currencies(self, params={}) -> Currencies:
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -687,7 +687,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'networks': networks,
         })
 
-    def fetch_markets(self, params={}) -> list[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
 
         https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-instruments
@@ -878,7 +878,7 @@ class cryptocom(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -933,7 +933,7 @@ class cryptocom(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'data', [])
         return self.parse_tickers(data, symbols)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
 
         https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
@@ -949,7 +949,7 @@ class cryptocom(Exchange, ImplicitAPI):
         tickers = self.fetch_tickers([symbol], params)
         return self.safe_value(tickers, symbol)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1026,7 +1026,7 @@ class cryptocom(Exchange, ImplicitAPI):
         orders = self.safe_list(data, 'data', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get a list of the most recent trades for a particular symbol
 
@@ -1083,7 +1083,7 @@ class cryptocom(Exchange, ImplicitAPI):
         trades = self.safe_list(result, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1151,7 +1151,7 @@ class cryptocom(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -1191,7 +1191,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'result', {})
         data = self.safe_list(result, 'data', [])
-        orderBook = self.safe_value(data, 0)
+        orderBook = self.safe_dict(data, 0)
         timestamp = self.safe_integer(orderBook, 't')
         return self.parse_order_book(orderBook, symbol, timestamp)
 
@@ -1211,7 +1211,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -1268,7 +1268,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -1324,7 +1324,7 @@ class cryptocom(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 'result', {})
         return self.parse_order(order, market)
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:
@@ -1410,7 +1410,7 @@ class cryptocom(Exchange, ImplicitAPI):
         params = self.omit(params, ['postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
         return self.extend(request, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1448,7 +1448,7 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
-    def create_orders(self, orders: list[OrderRequest], params={}):
+    def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
         create a list of trade orders
 
@@ -1526,7 +1526,7 @@ class cryptocom(Exchange, ImplicitAPI):
             return self.parse_orders(ocoOrders)
         return self.parse_orders(result)
 
-    def create_advanced_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+    def create_advanced_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:
@@ -1626,7 +1626,7 @@ class cryptocom(Exchange, ImplicitAPI):
         params = self.omit(params, ['postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
         return self.extend(request, params)
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order
 
@@ -1649,7 +1649,7 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result)
 
-    def edit_order_request(self, id: str, symbol: Str, amount: Num, price: Num = None, params={}):
+    def edit_order_request(self, id: str, symbol: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         request = {}
         if id is not None:
             request['order_id'] = id
@@ -1666,7 +1666,7 @@ class cryptocom(Exchange, ImplicitAPI):
         request['new_price'] = self.price_to_precision(symbol, price)
         return self.extend(request, params)
 
-    def cancel_all_orders(self, symbol: Str = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders
 
@@ -1686,7 +1686,7 @@ class cryptocom(Exchange, ImplicitAPI):
         response = self.v1PrivatePostPrivateCancelAllOrders(self.extend(request, params))
         return [self.safe_order({'info': response})]
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -1721,7 +1721,7 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
-    def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
 
@@ -1753,7 +1753,7 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_orders(result, market, None, None, params)
 
-    def cancel_orders_for_symbols(self, orders: list[CancellationRequest], params={}):
+    def cancel_orders_for_symbols(self, orders: list[CancellationRequest], params: dict = {}) -> list[Order]:
         """
         cancel multiple orders for multiple symbols
 
@@ -1784,7 +1784,7 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_orders(result, None, None, None, params)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1845,7 +1845,7 @@ class cryptocom(Exchange, ImplicitAPI):
         orders = self.safe_list(data, 'data', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -1924,7 +1924,7 @@ class cryptocom(Exchange, ImplicitAPI):
             address = addressString
         return [address, tag]
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1973,7 +1973,7 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result')
         return self.parse_transaction(result, currency)
 
-    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> DepositAddresses:
+    def fetch_deposit_addresses_by_network(self, code: str, params: dict = {}) -> DepositAddresses:
         """
         fetch a dictionary of addresses for a currency, indexed by network
 
@@ -2034,7 +2034,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 }
         return result
 
-    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -2053,7 +2053,7 @@ class cryptocom(Exchange, ImplicitAPI):
         keys = list(depositAddresses.keys())
         return depositAddresses[keys[0]]
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2109,7 +2109,7 @@ class cryptocom(Exchange, ImplicitAPI):
         depositList = self.safe_list(data, 'deposit_list', [])
         return self.parse_transactions(depositList, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2382,7 +2382,7 @@ class cryptocom(Exchange, ImplicitAPI):
         created = self.safe_integer(order, 'create_time')
         marketId = self.safe_string(order, 'instrument_name')
         symbol = self.safe_symbol(marketId, market)
-        execInst = self.safe_value(order, 'exec_inst')
+        execInst = self.safe_list(order, 'exec_inst')
         postOnly = None
         if execInst is not None:
             postOnly = False
@@ -2418,7 +2418,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'trades': [],
         }, market)
 
-    def parse_deposit_status(self, status: object):
+    def parse_deposit_status(self, status: Str) -> Str:
         statuses = {
             '0': 'pending',
             '1': 'ok',
@@ -2427,7 +2427,7 @@ class cryptocom(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_withdrawal_status(self, status: object):
+    def parse_withdrawal_status(self, status: Str) -> Str:
         statuses = {
             '0': 'pending',
             '1': 'pending',
@@ -2524,7 +2524,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def custom_handle_margin_mode_and_params(self, methodName: object, params={}) -> list:
+    def custom_handle_margin_mode_and_params(self, methodName: object, params: dict = {}) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -2544,7 +2544,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 marginMode = 'cross'
         return [marginMode, params]
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
         #
         #    {
         #        "full_name": "Alchemix",
@@ -2591,7 +2591,7 @@ class cryptocom(Exchange, ImplicitAPI):
                     result['withdraw']['percentage'] = False
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -2604,11 +2604,11 @@ class cryptocom(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         response = self.v1PrivatePostPrivateGetCurrencyNetworks(params)
-        data = self.safe_value(response, 'result')
+        data = self.safe_dict(response, 'result')
         currencyMap = self.safe_list(data, 'currency_map')
         return self.parse_deposit_withdraw_fees(currencyMap, codes, 'full_name')
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -2722,7 +2722,7 @@ class cryptocom(Exchange, ImplicitAPI):
             },
         }, currency)
 
-    def parse_ledger_entry_type(self, type: object):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         ledgerType = {
             'TRADING': 'trade',
             'TRADE_FEE': 'fee',
@@ -2748,7 +2748,7 @@ class cryptocom(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    def fetch_accounts(self, params={}) -> list[Account]:
+    def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -2797,7 +2797,7 @@ class cryptocom(Exchange, ImplicitAPI):
         accounts.append(masterAccount)
         return self.parse_accounts(accounts, params)
 
-    def parse_account(self, account: object):
+    def parse_account(self, account: dict) -> Account:
         #
         #     {
         #         "uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
@@ -2830,7 +2830,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[dict]:
+    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[dict]:
         """
         fetches historical settlement records
 
@@ -2880,7 +2880,7 @@ class cryptocom(Exchange, ImplicitAPI):
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_settlement(self, settlement: object, market: object):
+    def parse_settlement(self, settlement: dict, market: Market = None) -> dict:
         #
         #     {
         #         "i": "BTCUSD-230526",
@@ -2899,7 +2899,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def parse_settlements(self, settlements: object, market: object):
+    def parse_settlements(self, settlements: list[object], market: Market = None) -> list[dict]:
         #
         #     [
         #         {
@@ -2989,7 +2989,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'interval': '1h',
         }
 
-    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rates
 
@@ -3060,7 +3060,7 @@ class cryptocom(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def fetch_position(self, symbol: str, params={}):
+    def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """
         fetch data on a single open contract trade position
 
@@ -3103,7 +3103,7 @@ class cryptocom(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'data', [])
         return self.parse_position(self.safe_dict(data, 0), market)
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -3162,7 +3162,7 @@ class cryptocom(Exchange, ImplicitAPI):
             result.append(self.parse_position(entry, marketInner))
         return self.filter_by_array_positions(result, 'symbol', None, False)
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         #     {
         #         "account_id": "ce075bef-b600-4277-bd6e-ff9007251e63",
@@ -3209,10 +3209,10 @@ class cryptocom(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds()
 
-    def params_to_string(self, object: object, level: object):
+    def params_to_string(self, object: object, level: float) -> str:
         maxLevel = 3
         if level >= maxLevel:
             return str(object)
@@ -3238,7 +3238,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 returnString += str(value)
         return returnString
 
-    def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
+    def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
         """
         closes open positions for a market
 
@@ -3281,7 +3281,7 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result')
         return self.parse_order(result, market)
 
-    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+    def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
 
@@ -3316,7 +3316,7 @@ class cryptocom(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'result', {})
         return self.parse_trading_fee(data, market)
 
-    def fetch_trading_fees(self, params={}) -> TradingFees:
+    def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
 
         https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-fee-rate
@@ -3346,7 +3346,7 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_trading_fees(result)
 
-    def parse_trading_fees(self, response: object):
+    def parse_trading_fees(self, response: dict) -> TradingFees:
         #
         # {
         #         "spot_tier": "3",
@@ -3395,7 +3395,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         type = self.safe_string(api, 0)
         access = self.safe_string(api, 1)
         url = self.urls['api'][type] + '/' + path

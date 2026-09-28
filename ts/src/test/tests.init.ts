@@ -5,7 +5,6 @@ import testMainClass from './tests.js';
 import baseTestsInitRest from './base/tests.init.js';
 import baseTestsInitWs from '../pro/test/base/tests.init.js';
 
-
 // ########### args ###########
 const isWs = getCliArgValue ('--ws');
 const isBaseTests = getCliArgValue ('--baseTests');

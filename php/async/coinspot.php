@@ -554,7 +554,7 @@ class coinspot extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -690,7 +690,7 @@ class coinspot extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -712,7 +712,7 @@ class coinspot extends Exchange {
             Async\await($this->load_markets());
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a side argument');
         }
         $sideUpper = strtoupper($side);
         if ($type === 'market') {
@@ -739,7 +739,7 @@ class coinspot extends Exchange {
         ));
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -757,7 +757,7 @@ class coinspot extends Exchange {
          */
         $side = $this->safe_string($params, 'side');
         if ($side !== 'buy' && $side !== 'sell') {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $side parameter, "buy" or "sell"');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a side parameter, "buy" or "sell"');
         }
         $params = $this->omit($params, 'side');
         $request = array(
@@ -788,7 +788,12 @@ class coinspot extends Exchange {
         return null;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function nonce(): float {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return $this->milliseconds();
+    }
+
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $isVersionedApi = (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api)));
         $version = $isVersionedApi ? $api[0] : null;
         $accessType = $isVersionedApi ? $api[1] : $api;
@@ -797,7 +802,8 @@ class coinspot extends Exchange {
         $url = $this->urls['api'][$accessType] . $fullPath;
         if ($accessType === 'private') {
             $this->check_required_credentials();
-            $nonce = $this->nonce();
+            // coinspot requires an increasing nonce
+            $nonce = $this->incrementing_nonce();
             $body = $this->json($this->extend(array( 'nonce' => $nonce ), $params));
             $headers = array(
                 'Content-Type' => 'application/json',

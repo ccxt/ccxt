@@ -1,5 +1,5 @@
 import kucoin from './kucoin.js';
-import type { Strings, TransferEntry } from '../base/types.js';
+import type { Dict, Str, Strings, TransferEntry, Tickers } from '../base/types.js';
 export default class kucoinfutures extends kucoin {
     describe(): any;
     /**
@@ -10,7 +10,7 @@ export default class kucoinfutures extends kucoin {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchBidsAsks(symbols?: Strings, params?: {}): Promise<import("../base/types.js").Tickers>;
+    fetchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name kucoinfutures#transfer
@@ -22,6 +22,6 @@ export default class kucoinfutures extends kucoin {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    parseTransferType(transferType: any): import("../base/types.js").Str;
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
+    parseTransferType(transferType: Str): Str;
 }

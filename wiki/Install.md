@@ -45,14 +45,14 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.78/dist/ccxt.browser.min.js
-* unpkg: https://unpkg.com/ccxt@4.5.78/dist/ccxt.browser.min.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.84/dist/ccxt.browser.min.js
+* unpkg: https://unpkg.com/ccxt@4.5.84/dist/ccxt.browser.min.js
 * ccxt: https://cdn.ccxt.com/latest/ccxt.min.js
 
 You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) or the /latest/ on our cdn — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```html
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.78/dist/ccxt.browser.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.84/dist/ccxt.browser.min.js"></script>
 ```
 
 The default entry point for the browser is `window.ccxt` and it creates a global ccxt object:
@@ -209,6 +209,16 @@ tokio = { version = "1", features = ["full"] }
 ```
 
 `ccxt` carries the REST exchanges; `ccxt-pro` adds the WebSocket (`watch*`) ones and is only needed if you stream. Both are async and expect a Tokio runtime.
+
+By default every exchange is compiled, which needs about 19 GB of RAM for a fresh debug build (50 GB in release). Each exchange is also a cargo feature named after its id, so disable the defaults and list only the ones you use — the same names on every ccxt crate:
+
+```toml
+[dependencies]
+ccxt = { version = "4.5.75", default-features = false, features = ["binance", "kraken"] }
+ccxt-pro = { version = "4.5.75", default-features = false, features = ["binance"] }
+```
+
+With three exchanges a fresh build takes ~30 s and 2.5 GB instead of minutes and tens of GB (see [rust/BUILD-BENCHMARK.md](https://github.com/ccxt/ccxt/blob/master/rust/BUILD-BENCHMARK.md)). A derived exchange pulls in its parent (`binanceus` → `binance`), `ccxt-prediction` has its own list (`polymarket`, `kalshi`, …), and `from_id` only knows the exchanges compiled in.
 
 ```rust
 use ccxt::{Binance, Params};

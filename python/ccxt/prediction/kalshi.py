@@ -761,9 +761,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
 
     def parse_prediction_open_interest(self, interest: dict, market: Market = None) -> PredictionOpenInterest:
         #
-        #     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open interest in contracts
+        #     { "ticker": "...", "open_interest_fp": "60802.01", "updated_time": "2026-04-09T10:32:47.890506Z", ... }   // the market object of GET /markets/{ticker}, open interest in contracts
         #
-        timestamp = self.milliseconds()
+        timestamp = self.parse8601(self.safe_string(interest, 'updated_time'))
         openInterest = self.safe_open_interest({
             'symbol': self.safe_symbol(None, market),
             'openInterestAmount': self.safe_number_2(interest, 'open_interest_fp', 'open_interest'),
@@ -846,7 +846,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         outcomeObj = self.safe_outcome(self.safe_string(marketAny, 'outcome'), marketAny)
         outcomeLabel = self.safe_string(market, 'label', self.safe_string(market['info'], 'outcomeLabel', 'YES')) if (market is not None and market is not None) else 'YES'
         isNo = outcomeLabel.upper() == 'NO'
-        now = self.milliseconds()
+        timestamp = self.parse8601(self.safe_string(raw, 'updated_time'))
         outcome = self.safe_string(outcomeObj, 'outcome')
         yesAsk = self.safe_number(raw, 'yes_ask_dollars')
         yesBid = self.safe_number(raw, 'yes_bid_dollars')
@@ -883,8 +883,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'outcomeId': self.safe_string_2(outcomeObj, 'outcomeId', 'id'),
             'label': self.safe_string(outcomeObj, 'label'),
             'market': self.safe_string_2(outcomeObj, 'market', 'outcome'),
-            'timestamp': now,
-            'datetime': self.iso8601(now),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
             'bid': bid,
@@ -999,7 +999,6 @@ class kalshi(PredictionExchange, ImplicitAPI):
         #     }
         #
         book = self.safe_value(response, 'orderbook_fp', response)
-        timestamp = self.milliseconds()
         # Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
         rawYes = self.safe_list(book, 'yes_dollars', [])
         rawNo = self.safe_list(book, 'no_dollars', [])
@@ -1024,7 +1023,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 noPrice = self.safe_number(rawNo[ai], 0)
                 price = self.parse_number(Precise.string_sub('1', self.number_to_string(noPrice))) if (noPrice is not None) else None
                 asks.append([price, self.safe_number(rawNo[ai], 1)])
-        return self.safe_prediction_order_book(self.sorted_orders(self.safe_string(outcomeObj, 'outcome', outcome), timestamp, bids, asks), outcomeObj)
+        return self.safe_prediction_order_book(self.sorted_orders(self.safe_string(outcomeObj, 'outcome', outcome), None, bids, asks), outcomeObj)
 
     def sorted_orders(self, outcome: Str, timestamp: Int, bids: list[object], asks: list[object]) -> PredictionOrderBook:
         """

@@ -6,8 +6,7 @@ import { ecdsa } from '../base/functions/crypto.js';
 import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
-import type {
-    Int, Str, Num, Dict,
+import type { Int, Str, Num, Dict,
     Market, PredictionTickers, PredictionOrderBook, OHLCV,
     PredictionOrderRequest, Balances,
     Strings, PredictionOpenInterest, PredictionTradingFee,
@@ -1178,7 +1177,7 @@ export default class polymarket extends Exchange {
             last = mid;
         }
         const outcome = this.safeOutcomeSymbol (undefined, market);
-        const timestamp = this.safeInteger (bookData, 'timestamp', this.milliseconds ());
+        const timestamp = this.safeInteger (bookData, 'timestamp');
         let quoteVolume: Num = undefined;
         if (market !== undefined) {
             quoteVolume = this.safeNumber2 (market['info'], 'volume24hr', 'volume');
@@ -1443,15 +1442,14 @@ export default class polymarket extends Exchange {
         //
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
         //
-        const timestamp = this.milliseconds ();
         const openInterest: Dict = this.safeOpenInterest ({
             'symbol': this.safeOutcomeSymbol (undefined, market),
             'openInterestAmount': undefined,
             'openInterestValue': this.safeNumber (interest, 'value'),
             'baseVolume': undefined,
             'quoteVolume': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': interest,
         }, market);
         openInterest['outcome'] = this.safeOutcomeSymbol (undefined, market);
@@ -1953,7 +1951,7 @@ export default class polymarket extends Exchange {
      * @param {string} [params.funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
      * @param {string} [params.tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the outcome when omitted
      * @param {bool} [params.negRisk] whether the market is a neg-risk market; read from the outcome when omitted
-     * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
+     * @param {string} [params.salt] order salt; defaults to a strictly-increasing millisecond value (pin it for idempotent retries)
      * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
      * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
      * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
@@ -1996,13 +1994,13 @@ export default class polymarket extends Exchange {
         const bodies: Dict[] = [];
         const outcomes: Dict[] = [];
         const requests: Dict[] = [];
-        const batchSalt = this.milliseconds ();
         for (let i = 0; i < orders.length; i++) {
             const o = orders[i];
             let orderParams = this.safeDict (o, 'params', {});
             if (this.safeString (orderParams, 'salt') === undefined) {
-                // a distinct salt per order so two identical orders in one batch don't collide
-                orderParams = this.extend (orderParams, { 'salt': this.numberToString (this.sum (batchSalt, i)) });
+                // a distinct salt per order so two identical orders don't collide, within a batch or across calls
+                const orderSalt = this.incrementingNonce (); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+                orderParams = this.extend (orderParams, { 'salt': this.numberToString (orderSalt) });
             }
             const built = this.buildClobOrderBody (this.safeString (o, 'outcome'), this.safeString (o, 'type'), this.safeString (o, 'side'), this.safeNumber (o, 'amount'), this.safeNumber (o, 'price'), orderParams);
             bodies.push (this.safeDict (built, 'body', {}));
@@ -2082,8 +2080,9 @@ export default class polymarket extends Exchange {
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
         const eoa = this.ethChecksumAddress (this.ethGetAddressFromPrivateKey (this.privateKey));
         const funder = this.ethChecksumAddress (this.safeString2 (params, 'funder', 'maker', this.safeString (this.options, 'funder', this.walletAddress)));
-        // salt and timestamp default to the current time but can be pinned via params for idempotency
-        const salt = this.safeString (params, 'salt', this.numberToString (this.milliseconds ()));
+        // the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
+        const defaultSalt = this.incrementingNonce (); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+        const salt = this.safeString (params, 'salt', this.numberToString (defaultSalt));
         const timestamp = this.safeString (params, 'timestamp', this.numberToString (this.milliseconds ()));
         // GTD (good-til-date) orders need a unix-seconds expiration; 0 means no expiry
         const expiration = this.safeString (params, 'expiration', '0');
@@ -2673,6 +2672,12 @@ export default class polymarket extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
         }
         return undefined;
+    }
+
+    override nonce (): number {
+        // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
+        // unique when two identical orders are signed within the same millisecond
+        return this.milliseconds ();
     }
 
     /**
@@ -3346,13 +3351,13 @@ export default class polymarket extends Exchange {
         return this.safeString2 (market, 'market', 'symbol');
     }
 
-    parsePolyTimestamp (raw: Str): number {
+    parsePolyTimestamp (raw: Str): Int {
         if (raw === undefined) {
-            return this.milliseconds ();
+            return undefined;
         }
         const n = this.parseToInt (raw);
         if (n === undefined) {
-            return this.milliseconds ();
+            return undefined;
         }
         return n;
     }

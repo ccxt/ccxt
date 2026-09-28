@@ -306,7 +306,7 @@ export default class lighter extends lighterRest {
      * @name lighter#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {string} symbol unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -316,6 +316,9 @@ export default class lighter extends lighterRest {
         }
         const market = this.market(symbol);
         symbol = market['symbol'];
+        if (market['swap'] !== true) {
+            throw new NotSupported(this.id + ' watchTicker() is only supported for swap markets');
+        }
         const request = {
             'channel': 'market_stats/' + market['id'],
         };
@@ -327,7 +330,7 @@ export default class lighter extends lighterRest {
      * @name lighter#unWatchTicker
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {string} symbol unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -337,6 +340,9 @@ export default class lighter extends lighterRest {
         }
         const market = this.market(symbol);
         symbol = market['symbol'];
+        if (market['swap'] !== true) {
+            throw new NotSupported(this.id + ' unWatchTicker() is only supported for swap markets');
+        }
         const request = {
             'channel': 'market_stats/' + market['id'],
         };
@@ -349,16 +355,19 @@ export default class lighter extends lighterRest {
      * @name lighter#watchTickers
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols, undefined, true, true);
+        const firstMarket = this.getMarketFromSymbols(symbols);
+        if ((firstMarket !== undefined) && (firstMarket['swap'] !== true)) {
+            throw new NotSupported(this.id + ' watchTickers() is only supported for swap markets');
+        }
         const request = {
             'channel': 'market_stats/all',
         };
@@ -389,13 +398,18 @@ export default class lighter extends lighterRest {
      * @name lighter#unWatchTickers
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers(symbols = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols, undefined, true, true);
+        const firstMarket = this.getMarketFromSymbols(symbols);
+        if ((firstMarket !== undefined) && (firstMarket['swap'] !== true)) {
+            throw new NotSupported(this.id + ' unWatchTickers() is only supported for swap markets');
         }
         const request = {
             'channel': 'market_stats/all',
@@ -1314,7 +1328,45 @@ export default class lighter extends lighterRest {
         //         }
         //     }
         //
+        //
+        //     {
+        //         "error": {
+        //             "code": 30003,
+        //             "message": "Already Subscribed to : market_stats:all"
+        //         }
+        //     }
+        //
+        //     {
+        //         "error": {
+        //             "code": 30002,
+        //             "message": "Not Subscribed to : order_book:0"
+        //         }
+        //     }
+        //
         const error = this.safeDict(message, 'error');
+        const errorCode = this.safeString(error, 'code');
+        if (errorCode === '30003') {
+            // a duplicate subscribe is harmless - the server-side subscription is intact and
+            // data keeps flowing, while the generic reject below would hit every pending
+            // future on the connection because the venue echoes no request id,
+            // same handling for the same notice on hyperliquid, apex and krakenfutures
+            return true;
+        }
+        if (errorCode === '30002') {
+            // the requested state is already reached, so the unWatch call resolves and only
+            // its own channel gets cleaned up. The channel is available solely inside the
+            // message text, a changed text format falls through to the generic reject below
+            const notSubscribedMessage = this.safeString(error, 'message', '');
+            const messageParts = notSubscribedMessage.split(' : ');
+            const notSubscribedChannel = this.safeString(messageParts, 1);
+            if (notSubscribedChannel !== undefined) {
+                const unsubscribed = {
+                    'channel': notSubscribedChannel,
+                };
+                this.handleUnSubscription(client, unsubscribed);
+                return true;
+            }
+        }
         try {
             if (error !== undefined) {
                 const code = this.safeString(error, 'code');
