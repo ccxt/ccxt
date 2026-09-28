@@ -519,11 +519,7 @@ class p2b(Exchange, ImplicitAPI):
         #    }
         #
         result = self.safe_dict(response, 'result', {})
-        timestamp = self.safe_integer_product(response, 'cache_time', 1000)
-        return self.extend(
-            {'timestamp': timestamp, 'datetime': self.iso8601(timestamp)},
-            self.parse_ticker(result, market)
-        )
+        return self.parse_ticker(result, market)
 
     def parse_ticker(self, ticker: object, market: Market = None):
         #

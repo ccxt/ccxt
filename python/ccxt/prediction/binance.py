@@ -1441,7 +1441,6 @@ class binance(PredictionExchange, ImplicitAPI):
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': self.safe_integer(trade, 'modifyTime'),
             'outcome': self.safe_string(outcomeObjResolved, 'outcome'),
             'outcomeId': self.safe_string(outcomeObjResolved, 'id'),
             'label': self.safe_string(outcomeObjResolved, 'label'),
@@ -1452,7 +1451,6 @@ class binance(PredictionExchange, ImplicitAPI):
             'takerOrMaker': None,
             'price': price,
             'amount': self.safe_string(trade, 'makerShareQty'),
-            'filled': filled,
             'cost': cost,
             'fee': fee,
         }, outcomeObjResolved)

@@ -1374,7 +1374,6 @@ class lighter(Exchange, ImplicitAPI):
         baseVolume = self.safe_string(ticker, 'daily_base_token_volume')
         quoteVolume = self.safe_string(ticker, 'daily_quote_token_volume')
         change = self.safe_string(ticker, 'daily_price_change')
-        openInterest = self.safe_string(ticker, 'open_interest')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
@@ -1397,7 +1396,6 @@ class lighter(Exchange, ImplicitAPI):
             'quoteVolume': quoteVolume,
             'markPrice': self.safe_string(ticker, 'mark_price'),
             'indexPrice': self.safe_string(ticker, 'index_price'),
-            'openInterest': openInterest,
             'info': ticker,
         }, marketResolved)
 

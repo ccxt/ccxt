@@ -1777,7 +1777,6 @@ class zebpay(Exchange, ImplicitAPI):
         bidVolume = self.safe_string(ticker, 'bidVolume')
         askVolume = self.safe_string(ticker, 'askVolume')
         return self.safe_ticker({
-            'id': marketId,
             'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
