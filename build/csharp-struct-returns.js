@@ -15,13 +15,18 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // struct -> { names, kind }. kind 'one': the method returns one row (T);
-// kind 'map': it returns symbol -> row (Dictionary<string, T>), `row` names the row struct.
+// kind 'map': it returns symbol -> row (Dictionary<string, T>), `row` names the row struct;
+// kind 'list': it returns rows (List<T>, declared IList<object>), built with ToTList / boxed with FromTList.
 // HOWTO add a type: see research NOTES ("HOWTO add a type"); names are all-or-nothing.
 export const CSHARP_STRUCT_RETURN_TYPES = {
     'Ticker': { 'kind': 'one', 'names': [ 'parseTicker', 'parseWSTicker', 'parseWsTicker', 'safeTicker' ] },
     'Tickers': { 'kind': 'map', 'row': 'Ticker', 'names': [ 'parseTickers' ] },
     // REST books only; ws books (ccxt.pro.OrderBook classes in this.orderbooks) are boxed at the boundary
     'OrderBook': { 'kind': 'one', 'names': [ 'parseOrderBook' ] },
+    // --- Trade (unit trade) ---
+    'Trade': { 'kind': 'one', 'names': [ 'parseTrade', 'parseWsTrade', 'safeTrade' ] },
+    'Trades': { 'kind': 'list', 'row': 'Trade', 'names': [ 'parseTrades' ] },
+    // --- end Trade ---
 };
 
 const TYPES_FILE = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'cs', 'ccxt', 'base', 'Exchange.Types.cs');
@@ -68,11 +73,22 @@ const NAMES_RE = new RegExp ('\\b(?:' + [ ...NAME_TO_STRUCT.keys () ].sort ((a, 
 
 function structTypeName (struct) {
     const spec = CSHARP_STRUCT_RETURN_TYPES[struct];
+    if (spec.kind === 'list') return 'List<ccxt.' + spec.row + '>';
     return (spec.kind === 'map') ? 'Dictionary<string, ccxt.' + spec.row + '>' : 'ccxt.' + struct;
 }
 function boxFunction (struct) {
     const spec = CSHARP_STRUCT_RETURN_TYPES[struct];
+    if (spec.kind === 'list') return 'ccxt.BaseExchange.From' + spec.row + 'List';
     return 'ccxt.BaseExchange.' + ((spec.kind === 'map') ? 'From' + spec.row + 'Map' : 'From' + struct);
+}
+
+// the untyped declaration the pass rewrites, and the typed-core funnel it drops at call sites
+function untypedDeclType (struct) {
+    return (CSHARP_STRUCT_RETURN_TYPES[struct].kind === 'list') ? 'IList<object>' : 'Dictionary<string, object>';
+}
+function funnelFunction (struct) {
+    const spec = CSHARP_STRUCT_RETURN_TYPES[struct];
+    return 'ccxt.BaseExchange.To' + ((spec.kind === 'list') ? spec.row + 'List' : struct) + '(';
 }
 
 // code mask: true for chars outside string/char literals and comments
@@ -210,9 +226,9 @@ function processMethod (s, mask, method, edits, stats, file) {
             continue;
         }
         // funnel `ccxt.BaseExchange.ToT(call)` -> call
-        const funnel = 'ccxt.BaseExchange.To' + call.struct + '(';
+        const funnel = funnelFunction (call.struct);
         if (before.endsWith (funnel) && after.startsWith (')')) {
-            if (spec.kind === 'one') {
+            if (spec.kind !== 'map') {
                 edits.push ([ call.a - funnel.length, call.a, '' ], [ call.b, call.b + 1, '' ]);
             } // map: the typed ToTickers(Dictionary<string, Ticker>) overload binds
             stats.funnels++;
@@ -298,7 +314,9 @@ function processMethod (s, mask, method, edits, stats, file) {
             const [ ea, eb ] = stripCastWrap (s, a, end);
             const spec = CSHARP_STRUCT_RETURN_TYPES[ownStruct];
             if (ea !== a) edits.push ([ a, ea, '' ], [ eb, end, '' ]);
-            if (spec.kind === 'map') {
+            if (spec.kind === 'list') {
+                edits.push ([ a, a, 'ccxt.BaseExchange.To' + spec.row + 'List(' ], [ end, end, ')' ]);
+            } else if (spec.kind === 'map') {
                 edits.push ([ a, a, 'new ccxt.' + ownStruct + '(' ], [ end, end, ').' + mapFieldOf (ownStruct) ]);
             } else {
                 edits.push ([ a, a, 'new ccxt.' + ownStruct + '(' ], [ end, end, ')' ]);
@@ -327,6 +345,13 @@ function insideNestedFunction (s, mask, body0, pos) {
     // a `=>` lambda or delegate between the method body start and pos at a shallower brace
     const text = s.slice (body0, pos);
     return /=>\s*\{[^}]*$/.test (text) || /delegate\s*\(/.test (text.slice (-400));
+}
+
+// untyped read of a field: nested structs go back through their From* funnel (map rows)
+const NESTED_FIELD_FUNNELS = { 'Fee?': 'FromFee', 'List<Fee>?': 'FromFeeList' };
+function fieldRead (name, field, type) {
+    const f = NESTED_FIELD_FUNNELS[type];
+    return (f === undefined) ? '((object)' + name + '.' + field + ')' : 'ccxt.BaseExchange.' + f + '((object)' + name + '.' + field + ')';
 }
 
 // every occurrence of the local in its scope -> list of edits, or undefined (fail closed)
@@ -362,7 +387,7 @@ function planLocal (s, mask, name, local, ownStruct, method, file) {
                 consumed.push ([ p, p + t[0].length + 2 ]);
                 continue;
             }
-            edits.push ([ p, p + t[0].length, '((object)' + name + '.' + t[1] + ')' ]);
+            edits.push ([ p, p + t[0].length, fieldRead (name, t[1], fields[t[1]]) ]);
             consumed.push ([ p, p + t[0].length ]);
             continue;
         }
@@ -452,7 +477,7 @@ export function csharpStructReturns (content, file = '') {
         for (const method of methods) {
             const struct = NAME_TO_STRUCT.get (method.name);
             if (struct !== undefined) {
-                if (method.returnType !== 'Dictionary<string, object>') {
+                if (method.returnType !== untypedDeclType (struct)) {
                     throw new StructFail (method.name + ' declares ' + method.returnType);
                 }
                 edits.push ([ method.typeStart, method.typeStart + method.returnType.length, structTypeName (struct) ]);
