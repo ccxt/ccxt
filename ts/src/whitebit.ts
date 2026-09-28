@@ -3495,7 +3495,8 @@ export default class whitebit extends Exchange {
         }
         const symbolValue: string = this.symbol (symbol);
         const response = await this.fetchFundingRates ([ symbolValue ], params);
-        return this.safeValue (response, symbolValue);
+        const fundingRate = this.safeDict (response, symbolValue);
+        return fundingRate as FundingRate;
     }
 
     /**
