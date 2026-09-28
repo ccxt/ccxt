@@ -8204,7 +8204,7 @@ export default class okx extends Exchange {
      * @name okx#handleTradingStatisticsWindow
      * @description sets begin, end and limit of a trading statistics history request: okx treats both bounds as exclusive and returns the latest entries first, while since and until are inclusive and since with a limit asks for the earliest entries from since on
      * @param {object} request the request of the history endpoint
-     * @param {string} period the okx period of the request, e.g. 5m, 1H or 1D
+     * @param {string} period the okx period of the request, e.g. 5m, 1H, 2D, 1M or 6Hutc
      * @param {int} [since] the earliest time in ms of the entries to fetch
      * @param {int} [limit] the maximum number of entries to fetch, at most 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -8228,8 +8228,21 @@ export default class okx extends Exchange {
         }
         if (since !== undefined) {
             // end the window after limit periods, so that the earliest entries from since on come back
-            const duration = this.parseTimeframe (this.findTimeframe (period)) * 1000;
-            const windowEnd = this.sum (since, effectiveLimit * duration);
+            // okx periods are 5m, 1H, 2D, 1W, 1M, 3M and so on, optionally with a utc suffix that only moves the opening time
+            const unitPeriod = period.endsWith ('utc') ? period.slice (0, -3) : period;
+            const unit = unitPeriod.slice (-1);
+            let windowDuration: Int = undefined;
+            if (unit === 'M') {
+                // calendar months last 28 to 31 days: the window spans limit of the longest months, but no more than 100 of the shortest,
+                // all entries in it are requested and the caller keeps the earliest limit of them
+                const months = this.parseToInt (unitPeriod.slice (0, -1));
+                const day = 86400000;
+                windowDuration = Math.min (effectiveLimit * months * 31 * day, maxLimit * months * 28 * day);
+                request['limit'] = maxLimit;
+            } else {
+                windowDuration = effectiveLimit * this.parseTimeframe (unitPeriod.toLowerCase ()) * 1000;
+            }
+            const windowEnd = this.sum (since, windowDuration);
             end = (end === undefined) ? windowEnd : Math.min (end, windowEnd);
         }
         if (end !== undefined) {
@@ -9637,7 +9650,7 @@ export default class okx extends Exchange {
                 'longShortRatio': this.safeString (entry, 1),
             });
         }
-        return this.parseLongShortRatioHistory (result, market);
+        return this.parseLongShortRatioHistory (result, market, since, limit);
     }
 
     override parseLongShortRatio (info: Dict, market: Market = undefined): LongShortRatio {

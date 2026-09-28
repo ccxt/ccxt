@@ -11573,6 +11573,45 @@
                     }
                 ]
             }
+        ],
+        "fetchLongShortRatioHistory": [
+            {
+                "description": "calendar months keep the earliest entries from since on, okx returns the latest first",
+                "method": "fetchLongShortRatioHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1M",
+                    1769875200000,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        [
+                            "1772294400000",
+                            "2.0610611345694878"
+                        ],
+                        [
+                            "1769875200000",
+                            "2.5161500284761207"
+                        ]
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "timestamp": "1769875200000",
+                            "longShortRatio": "2.5161500284761207"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1769875200000,
+                        "datetime": "2026-01-31T16:00:00.000Z",
+                        "timeframe": null,
+                        "longShortRatio": 2.5161500284761207
+                    }
+                ]
+            }
         ]
     }
 }

@@ -2147,6 +2147,39 @@
                     1790503200000,
                     3
                 ]
+            },
+            {
+                "description": "swap long short ratio history with since and limit on an okx period without a unified timeframe",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/long-short-account-ratio-contract?instId=BTC-USDT-SWAP&period=2D&limit=3&begin=1790503199999&end=1791021600000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "2D",
+                    1790503200000,
+                    3
+                ]
+            },
+            {
+                "description": "swap long short ratio history with since and limit on a utc period",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/long-short-account-ratio-contract?instId=BTC-USDT-SWAP&period=6Hutc&limit=3&begin=1790503199999&end=1790568000000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "6Hutc",
+                    1790503200000,
+                    3
+                ]
+            },
+            {
+                "description": "swap long short ratio history with since and limit on calendar months",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/long-short-account-ratio-contract?instId=BTC-USDT-SWAP&period=1M&limit=100&begin=1769875199999&end=1772553600000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1M",
+                    1769875200000,
+                    1
+                ]
             }
         ],
         "fetchAllGreeks": [
