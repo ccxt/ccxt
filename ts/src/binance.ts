@@ -6779,8 +6779,7 @@ export default class binance extends Exchange {
         if (code !== undefined) {
             // cancelOrders/createOrders might have a partial success
             const msg = this.safeString (order, 'msg');
-            const cancelAllOrdersMessage = 'The operation of cancel all open ' + 'order is done.'; // split so the php transpiler does not turn it into 'open $order is done.'
-            if ((code !== '200') && !((msg === 'success') || (msg === cancelAllOrdersMessage))) {
+            if ((code !== '200') && !((msg === 'success') || (msg === 'The operation of cancel all open order is done.'))) {
                 return this.safeOrder ({ 'info': order, 'status': 'rejected' }, market);
             }
         }

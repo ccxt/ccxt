@@ -293,11 +293,11 @@ export default class binance extends binanceRest {
         return 'market';
     }
 
-    getPrivateWsUrl (type: Str, key: Str) {
+    getPrivateWsUrl (type: Str, listenKey: Str) {
         if (type === 'future') {
-            return this.getWsUrl (type, 'private') + '?listenKey=' + key;
+            return this.getWsUrl (type, 'private') + '?listenKey=' + listenKey;
         }
-        return this.urls['api']['ws'][type as string] + '/' + key;
+        return this.urls['api']['ws'][type as string] + '/' + listenKey;
     }
 
     getStockWsUrl (streamType: Str = 'market') {
@@ -5109,8 +5109,7 @@ export default class binance extends binanceRest {
             newPositions.push (position);
             cache.append (position);
         }
-        const positionsHashPrefix = accountType + ':' + 'positions::'; // split so the php transpiler does not turn it into 'future:$positions::'
-        const messageHashes = this.findMessageHashes (client, positionsHashPrefix);
+        const messageHashes = this.findMessageHashes (client, accountType + ':positions::');
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const parts = messageHash.split ('::');
@@ -5632,8 +5631,7 @@ export default class binance extends binanceRest {
             newPositions.push (position);
             cache.append (position);
         }
-        const positionsHashPrefix = accountType + ':' + 'positions::'; // split so the php transpiler does not turn it into 'option:$positions::'
-        const messageHashes = this.findMessageHashes (client, positionsHashPrefix);
+        const messageHashes = this.findMessageHashes (client, accountType + ':positions::');
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const parts = messageHash.split ('::');
