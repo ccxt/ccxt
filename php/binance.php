@@ -11894,7 +11894,7 @@ class binance extends Exchange {
         for ($i = 0; $i < count($positions); $i++) {
             $result[] = $this->parse_option_position($positions[$i], $market);
         }
-        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }
 
     public function parse_option_position(array $position, ?array $market = null) {
@@ -12120,7 +12120,7 @@ class binance extends Exchange {
         $filterClosed = $this->handle_option_bool_and_params($paramsPapi, 'fetchAccountPositions', 'filterClosed', false)[0];
         $result = $this->parse_account_positions($response, $filterClosed);
         $symbolsNormalized = $this->market_symbols($symbols);
-        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }
 
     public function fetch_positions_risk(?array $symbols = null, $params = array()): array {
@@ -12303,7 +12303,7 @@ class binance extends Exchange {
             }
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }
 
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -13534,7 +13534,7 @@ class binance extends Exchange {
 
     public function fetch_isolated_borrow_rate(string $symbol, $params = array()): array {
         /**
-         * fetch the rate of interest to borrow a currency for margin trading
+         * fetch the $rate of interest to borrow a currency for margin trading
          *
          * @see https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data
          *
@@ -13543,13 +13543,14 @@ class binance extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {array} [$params->vipLevel] user's current specific margin data will be returned if viplevel is omitted
-         * @return {array} an ~@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure isolated borrow rate structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=isolated-borrow-$rate-structure isolated borrow $rate structure~
          */
         $request = array(
             'symbol' => $symbol,
         );
         $borrowRates = $this->fetch_isolated_borrow_rates($this->extend($request, $params));
-        return $this->safe_dict($borrowRates, $symbol);
+        $rate = $this->safe_dict($borrowRates, $symbol);
+        return $rate;
     }
 
     public function fetch_isolated_borrow_rates($params = array()): array {
@@ -14246,8 +14247,8 @@ class binance extends Exchange {
             $symbolValue = $market['symbol'];
             $result = $this->parse_open_interests_history($response, $market);
             for ($i = 0; $i < count($result); $i++) {
-                $item = $result[$i];
-                if ($item['symbol'] === $symbolValue) {
+                $item = $this->safe_dict($result, $i);
+                if ($this->safe_string($item, 'symbol') === $symbolValue) {
                     return $item;
                 }
             }
@@ -14843,7 +14844,8 @@ class binance extends Exchange {
             //
         } elseif ($subType === 'inverse') {
             $fetchMarginModesResponse = $this->fetch_margin_modes(array( $symbol ), $paramsSubType);
-            return $fetchMarginModesResponse[$symbol];
+            $marginMode = $this->safe_dict($fetchMarginModesResponse, $symbol);
+            return $marginMode;
         } else {
             throw new BadRequest($this->id . ' fetchMarginMode () supports linear and inverse subTypes only');
         }

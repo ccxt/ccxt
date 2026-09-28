@@ -1398,7 +1398,8 @@ class hyperliquid extends Exchange {
          * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?$id=prediction-order-structure)
          */
         $orders = Async\await($this->cancel_orders(array( $id ), $outcome, $params));
-        return $this->safe_dict($orders, 0);
+        $first = $this->safe_dict($orders, 0);
+        return $first;
     }
 
     public function cancel_orders(array $ids, ?string $outcome = null, $params = array()): PromiseInterface {

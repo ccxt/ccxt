@@ -3156,11 +3156,11 @@ class bitget extends Exchange {
 
     private function do_fetch_deposit(string $id, ?string $code = null, $params = array()) {
         /**
-         * fetch data on a currency deposit via the deposit $id, looks back 30 days for uta accounts and 90 days otherwise
+         * fetch data on a currency $deposit via the $deposit $id, looks back 30 days for uta accounts and 90 days otherwise
          *
-         * @see https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-deposit-records
+         * @see https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-$deposit-records
          *
-         * @param {string} $id deposit $id
+         * @param {string} $id $deposit $id
          * @param {string} [$code] unified currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
@@ -3170,7 +3170,8 @@ class bitget extends Exchange {
             'orderId' => $id,
         );
         $deposits = Async\await($this->fetch_deposits($code, null, null, $this->extend($request, $params)));
-        return $this->safe_dict($deposits, 0, array());
+        $deposit = $this->safe_dict($deposits, 0, array());
+        return $deposit;
     }
 
     public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
@@ -3365,11 +3366,11 @@ class bitget extends Exchange {
 
     private function do_fetch_withdrawal(string $id, ?string $code = null, $params = array()) {
         /**
-         * fetch data on a currency withdrawal via the withdrawal $id, looks back 30 days for uta accounts and 90 days otherwise
+         * fetch data on a currency $withdrawal via the $withdrawal $id, looks back 30 days for uta accounts and 90 days otherwise
          *
-         * @see https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-withdrawal-records
+         * @see https://www.bitget.com/docs/catalog/account/deposit-$withdrawal#get-$withdrawal-records
          *
-         * @param {string} $id withdrawal $id
+         * @param {string} $id $withdrawal $id
          * @param {string} [$code] unified currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
@@ -3379,7 +3380,8 @@ class bitget extends Exchange {
             'orderId' => $id,
         );
         $withdrawals = Async\await($this->fetch_withdrawals($code, null, null, $this->extend($request, $params)));
-        return $this->safe_dict($withdrawals, 0, array());
+        $withdrawal = $this->safe_dict($withdrawals, 0, array());
+        return $withdrawal;
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -9181,7 +9183,7 @@ class bitget extends Exchange {
             $result[] = $this->parse_position($position[$i], $market);
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }
 
     public function parse_position(array $position, ?array $market = null): array {

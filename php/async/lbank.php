@@ -840,7 +840,8 @@ class lbank extends Exchange {
         $market = $this->market($symbol);
         if ($market['swap'] === true) {
             $responseForSwap = Async\await($this->fetch_tickers(array( $market['symbol'] ), $params));
-            return $this->safe_dict($responseForSwap, $market['symbol']);
+            $swapTicker = $this->safe_dict($responseForSwap, $market['symbol']);
+            return $swapTicker;
         }
         $request = array(
             'symbol' => $market['id'],
@@ -1494,7 +1495,8 @@ class lbank extends Exchange {
         }
         $market = $this->market($symbol);
         $responseForSwap = Async\await($this->fetch_funding_rates(array( $market['symbol'] ), $params));
-        return $this->safe_dict($responseForSwap, $market['symbol']);
+        $fundingRate = $this->safe_dict($responseForSwap, $market['symbol']);
+        return $fundingRate;
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
@@ -1640,15 +1642,16 @@ class lbank extends Exchange {
         /**
          * fetch the trading fees for a $market
          *
-         * @see https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query
+         * @see https://www.lbank.com/en-US/docs/index.html#transaction-$fee-rate-query
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$fee-structure $fee structure~
          */
         $market = $this->market($symbol);
         $result = Async\await($this->fetch_trading_fees($this->extend($params, array( 'category' => $market['id'] ))));
-        return $this->safe_dict($result, $symbol);
+        $fee = $this->safe_dict($result, $symbol);
+        return $fee;
     }
 
     public function fetch_trading_fees($params = array()): PromiseInterface {

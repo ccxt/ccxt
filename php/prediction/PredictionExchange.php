@@ -1496,11 +1496,13 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // `symbol` with the `outcome` handle and attach the outcome identity fields
         // outcomeId and market - so books match the PredictionOrderBook structure.
         $fallback = $this->safe_string_2($orderbook, 'outcome', 'symbol');
-        $orderbook['outcome'] = ($outcomeObj === null) ? $fallback : $this->safe_string($outcomeObj, 'outcome', $fallback);
-        $orderbook['outcomeId'] = ($outcomeObj === null) ? $this->safe_string($orderbook, 'outcomeId') : $this->safe_string($outcomeObj, 'outcomeId');
-        $orderbook['market'] = ($outcomeObj === null) ? $this->safe_string($orderbook, 'market') : $this->safe_string($outcomeObj, 'market');
+        $identity = array(
+            'outcome' => ($outcomeObj === null) ? $fallback : $this->safe_string($outcomeObj, 'outcome', $fallback),
+            'outcomeId' => ($outcomeObj === null) ? $this->safe_string($orderbook, 'outcomeId') : $this->safe_string($outcomeObj, 'outcomeId'),
+            'market' => ($outcomeObj === null) ? $this->safe_string($orderbook, 'market') : $this->safe_string($outcomeObj, 'market'),
+        );
         // omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
-        return $this->omit($orderbook, 'symbol');
+        return $this->extend($this->omit($orderbook, 'symbol'), $identity);
     }
 
     public function parse_prediction_ticker(array $ticker, ?array $market = null) {

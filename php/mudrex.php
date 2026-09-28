@@ -1049,7 +1049,7 @@ class mudrex extends Exchange {
             $pos = $this->parse_position($p, $m);
             $outPos[] = $pos;
         }
-        return $this->filter_by_array_positions($outPos, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($outPos, 'symbol', $symbols);
     }
 
     public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1243,7 +1243,7 @@ class mudrex extends Exchange {
         );
         $paramsOmitted = $this->omit($params, array( 'position_id' ));
         $response = $this->privatePostFuturesPositionsPositionIdAddMargin($this->extend($request, $paramsOmitted));
-        return $response;
+        return $this->extend($response, array());
     }
 
     public function reduce_margin(string $symbol, float $amount, $params = array()): array {

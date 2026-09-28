@@ -554,17 +554,18 @@ class cex extends Exchange {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          *
-         * @see https://trade.cex.io/docs/#rest-public-api-calls-ticker
+         * @see https://trade.cex.io/docs/#rest-public-api-calls-$ticker
          *
          * @param {string} $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $response = $this->fetch_tickers(array( $symbol ), $params);
-        return $this->safe_dict($response, $symbol, array());
+        $ticker = $this->safe_dict($response, $symbol, array());
+        return $ticker;
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): array {
@@ -1645,11 +1646,12 @@ class cex extends Exchange {
             $transfer = $this->transfer_between_main_and_sub_account($code, $amount, $fromAccount, $toAccount, $params);
         }
         $fillResponseFromRequest = $this->handle_option('transfer', 'fillResponseFromRequest', true);
+        $filled = array();
         if ($fillResponseFromRequest === true) {
-            $transfer['fromAccount'] = $fromAccount;
-            $transfer['toAccount'] = $toAccount;
+            $filled['fromAccount'] = $fromAccount;
+            $filled['toAccount'] = $toAccount;
         }
-        return $transfer;
+        return $this->extend($transfer, $filled);
     }
 
     public function transfer_between_main_and_sub_account(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {

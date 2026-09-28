@@ -4411,7 +4411,7 @@ class hashkey extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$fee-structure $fee structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -4421,7 +4421,8 @@ class hashkey extends Exchange {
         $response = null;
         if ($market['spot'] === true) {
             $response = $this->fetch_trading_fees($params);
-            return $this->safe_dict($response, $symbol);
+            $fee = $this->safe_dict($response, $symbol);
+            return $fee;
         } elseif ($market['swap'] === true) {
             $response = $this->privateGetApiV1FuturesCommissionRate($this->extend(array( 'symbol' => $market['id'] ), $params));
             return $this->parse_trading_fee($response, $market);

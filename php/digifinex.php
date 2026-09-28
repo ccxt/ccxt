@@ -2050,7 +2050,8 @@ class digifinex extends Exchange {
                 throw new OrderNotFound($this->id . ' cancelOrder() ' . $idValue . ' not found');
             }
             $orders = $this->parse_cancel_orders($response);
-            return $this->safe_dict($orders, 0);
+            $canceled = $this->safe_dict($orders, 0);
+            return $canceled;
         } else {
             return $this->safe_order(array(
                 'info' => $response,
@@ -3754,7 +3755,7 @@ class digifinex extends Exchange {
         for ($i = 0; $i < count($positions); $i++) {
             $result[] = $this->parse_position($positions[$i], $market);
         }
-        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }
 
     public function fetch_position(string $symbol, $params = array()): array {

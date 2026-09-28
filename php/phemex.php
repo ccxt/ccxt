@@ -1300,8 +1300,8 @@ class phemex extends Exchange {
         $book = $this->safe_dict_2($result, 'book', 'orderbook_p', array());
         $timestamp = $this->safe_integer_product($result, 'timestamp', 0.000001);
         $orderbook = $this->custom_parse_order_book($book, $symbol, $timestamp, 'bids', 'asks', 0, 1, $market);
-        $orderbook['nonce'] = $this->safe_integer($result, 'sequence');
-        return $orderbook;
+        $nonce = $this->safe_integer($result, 'sequence');
+        return $this->extend($orderbook, array( 'nonce' => $nonce ));
     }
 
     public function to_en(mixed $n, ?int $scale) {
@@ -3972,7 +3972,7 @@ class phemex extends Exchange {
             $position = $positions[$i];
             $result[] = $this->parse_position($position);
         }
-        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }
 
     public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {

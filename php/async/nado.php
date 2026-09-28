@@ -673,7 +673,8 @@ class nado extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $orders = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
-        return $this->safe_dict($orders, 0);
+        $canceled = $this->safe_dict($orders, 0);
+        return $canceled;
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
@@ -1610,7 +1611,7 @@ class nado extends Exchange {
             }
             $result[] = $this->parse_position($this->extend(array( 'product' => $product ), $position));
         }
-        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }
 
     public function fetch_time($params = array()): PromiseInterface {

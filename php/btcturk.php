@@ -555,19 +555,20 @@ class btcturk extends Exchange {
 
     public function fetch_ticker(string $symbol, $params = array()): array {
         /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          *
          * @see https://docs.btcturk.com/public-endpoints/ticker
          *
-         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {string} $symbol unified $symbol of the market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $tickers = $this->fetch_tickers(array( $symbol ), $params);
-        return $this->safe_dict($tickers, $symbol);
+        $ticker = $this->safe_dict($tickers, $symbol);
+        return $ticker;
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {

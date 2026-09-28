@@ -2231,7 +2231,8 @@ class hyperliquid extends Exchange {
         }
         list($order, $globalParams) = $this->parse_create_edit_order_args(null, $symbol, $type, $side, $amount, $price, $params);
         $orders = Async\await($this->create_orders(array( $order ), $globalParams));
-        return $orders[0];
+        $created = $this->safe_dict($orders, 0);
+        return $created;
     }
 
     public function create_twap_order(string $symbol, string $side, float $amount, float $duration, $params = array()): PromiseInterface {
@@ -2592,7 +2593,8 @@ class hyperliquid extends Exchange {
             return Async\await($this->cancel_twap_order($id, $symbol, $this->omit($params, 'twap')));
         }
         $orders = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
-        return $this->safe_dict($orders, 0);
+        $canceled = $this->safe_dict($orders, 0);
+        return $canceled;
     }
 
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -3070,7 +3072,8 @@ class hyperliquid extends Exchange {
         }
         list($order, $globalParams) = $this->parse_create_edit_order_args($id, $symbol, $type, $side, $amount, $price, $params);
         $orders = Async\await($this->edit_orders(array( $order ), $globalParams));
-        return $orders[0];
+        $edited = $this->safe_dict($orders, 0);
+        return $edited;
     }
 
     public function edit_orders(array $orders, $params = array()): PromiseInterface {
@@ -4011,7 +4014,7 @@ class hyperliquid extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $result[] = $this->parse_position($data[$i]);
         }
-        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }
 
     public function parse_position(array $position, ?array $market = null): array {
@@ -4987,7 +4990,8 @@ class hyperliquid extends Exchange {
             Async\await($this->load_markets());
         }
         $ois = Async\await($this->fetch_open_interests(array( $symbolValue ), $params));
-        return $ois[$symbolValue];
+        $openInterest = $this->safe_dict($ois, $symbolValue);
+        return $openInterest;
     }
 
     public function parse_open_interest(mixed $interest, ?array $market = null): array {

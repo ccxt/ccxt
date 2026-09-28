@@ -3811,7 +3811,8 @@ class okx extends Exchange {
         $isTrigger = ($trigger === true);
         if ($isTrigger || ($trailing === true)) {
             $orderInner = $this->cancel_orders(array( $id ), $symbol, $params);
-            return $this->safe_dict($orderInner, 0);
+            $canceledInner = $this->safe_dict($orderInner, 0);
+            return $canceledInner;
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -6264,7 +6265,7 @@ class okx extends Exchange {
         for ($i = 0; $i < count($positions); $i++) {
             $result[] = $this->parse_position($positions[$i]);
         }
-        return $this->filter_by_array_positions($result, 'symbol', $this->market_symbols($symbols), false);
+        return $this->filter_by_array_positions($result, 'symbol', $this->market_symbols($symbols));
     }
 
     public function fetch_positions_for_symbol(string $symbol, $params = array()): array {

@@ -1561,7 +1561,6 @@ class mexc extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $orderbook = null;
         if ($market['spot'] === true) {
             $response = Async\await($this->spotPublicGetDepth($this->extend($request, $params)));
             //
@@ -1578,8 +1577,9 @@ class mexc extends Exchange {
             //     }
             //
             $spotTimestamp = $this->safe_integer($response, 'timestamp');
-            $orderbook = $this->parse_order_book($response, $symbol, $spotTimestamp);
-            $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
+            $spotOrderbook = $this->parse_order_book($response, $symbol, $spotTimestamp);
+            $spotOrderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
+            return $spotOrderbook;
         } elseif ($market['swap'] === true) {
             $response = Async\await($this->contractPublicGetDepthSymbol($this->extend($request, $params)));
             //
@@ -1602,10 +1602,11 @@ class mexc extends Exchange {
             //
             $data = $this->safe_dict($response, 'data');
             $timestamp = $this->safe_integer($data, 'timestamp');
-            $orderbook = $this->parse_order_book($data, $symbol, $timestamp);
-            $orderbook['nonce'] = $this->safe_integer($data, 'version');
+            $swapOrderbook = $this->parse_order_book($data, $symbol, $timestamp);
+            $swapOrderbook['nonce'] = $this->safe_integer($data, 'version');
+            return $swapOrderbook;
         }
-        return $orderbook;
+        throw new NotSupported($this->id . ' fetchOrderBook() does not support ' . $market['type'] . ' markets');
     }
 
     public function parse_order_book_bid_ask(mixed $bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {

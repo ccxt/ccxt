@@ -1424,7 +1424,8 @@ class polymarket extends Exchange {
         //
         //     1781273248
         //
-        return $this->parse_to_int($response) * 1000;
+        $result = array( 'serverTime' => $response );
+        return $this->safe_timestamp($result, 'serverTime');
     }
 
     public function fetch_status($params = array()): PromiseInterface {

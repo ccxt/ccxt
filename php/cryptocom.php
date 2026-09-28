@@ -936,17 +936,18 @@ class cryptocom extends Exchange {
          *
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-$tickers
          *
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} $symbol unified $symbol of the market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $symbolValue = $this->symbol($symbol);
         $tickers = $this->fetch_tickers(array( $symbolValue ), $params);
-        return $this->safe_value($tickers, $symbolValue);
+        $ticker = $this->safe_dict($tickers, $symbolValue);
+        return $ticker;
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -3351,7 +3352,7 @@ class cryptocom extends Exchange {
             $marketInner = $this->safe_market($marketId, null, null, 'contract');
             $result[] = $this->parse_position($entry, $marketInner);
         }
-        return $this->filter_by_array_positions($result, 'symbol', null, false);
+        return $this->filter_by_array_positions($result, 'symbol', null);
     }
 
     public function parse_position(array $position, ?array $market = null): array {

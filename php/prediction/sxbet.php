@@ -1145,7 +1145,8 @@ class sxbet extends Exchange {
         $request = array( 'orders' => array( array( 'orderId' => $id ) ) );
         $response = Async\await($this->sxbetPrivateDeleteOrdersV3($this->extend($request, $params)));
         $orders = $this->parse_sxbet_cancel_response($response);
-        return $this->safe_dict($orders, 0);
+        $first = $this->safe_dict($orders, 0);
+        return $first;
     }
 
     public function cancel_orders(array $ids, ?string $outcome = null, $params = array()): PromiseInterface {

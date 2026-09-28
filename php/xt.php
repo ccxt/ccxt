@@ -5375,7 +5375,7 @@ class xt extends Exchange {
             $merged = $this->merge_position_break_info($entry, $breakBySymbolSide);
             $result[] = $this->parse_position($merged, $marketInner);
         }
-        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols);
     }
 
     public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): array {

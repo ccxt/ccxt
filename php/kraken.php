@@ -1406,7 +1406,8 @@ class kraken extends Exchange {
 
     public function fetch_ledger_entry(string $id, ?string $code = null, $params = array()): array {
         $items = $this->fetch_ledger_entries_by_ids(array( $id ), $code, $params);
-        return $items[0];
+        $entry = $this->safe_dict($items, 0);
+        return $entry;
     }
 
     public function parse_trade(mixed $trade, ?array $market = null): array {
@@ -3531,7 +3532,7 @@ class kraken extends Exchange {
         $symbolsNormalized = $this->market_symbols($symbols);
         $result = $this->safe_list($response, 'result');
         $results = $this->parse_positions($result, $symbolsNormalized);
-        return $this->filter_by_array_positions($results, 'symbol', $symbolsNormalized, false);
+        return $this->filter_by_array_positions($results, 'symbol', $symbolsNormalized);
     }
 
     public function parse_position(array $position, ?array $market = null): array {

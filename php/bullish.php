@@ -2564,7 +2564,7 @@ class bullish extends Exchange {
         //     ]
         //
         $results = $this->parse_positions($response, $symbols);
-        return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($results, 'symbol', $symbols);
     }
 
     public function parse_position(array $position, ?array $market = null): array {

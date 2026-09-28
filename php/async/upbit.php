@@ -771,7 +771,8 @@ class upbit extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         $orderbooks = Async\await($this->fetch_order_books(array( $symbol ), $limit, $params));
-        return $this->safe_dict($orderbooks, $symbol);
+        $orderbook = $this->safe_dict($orderbooks, $symbol);
+        return $orderbook;
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -955,13 +956,14 @@ class upbit extends Exchange {
          * @see https://docs.upbit.com/kr/reference/list-$tickers
          * @see https://global-docs.upbit.com/reference/list-$tickers
          *
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} $symbol unified $symbol of the market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         $tickers = Async\await($this->fetch_tickers(array( $symbol ), $params));
-        return $this->safe_dict($tickers, $symbol);
+        $ticker = $this->safe_dict($tickers, $symbol);
+        return $ticker;
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {

@@ -3921,7 +3921,7 @@ class aster extends Exchange {
             }
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
@@ -4193,7 +4193,7 @@ class aster extends Exchange {
         $filterClosed = $this->handle_option_bool_and_params($params, 'fetchAccountPositions', 'filterClosed', false)[0];
         $result = $this->parse_account_positions($response, $filterClosed);
         $symbolsNormalized = $this->market_symbols($symbols);
-        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }
 
     public function load_leverage_brackets(bool $reload = false, $params = array()): PromiseInterface {

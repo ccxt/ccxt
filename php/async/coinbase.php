@@ -3606,20 +3606,21 @@ class coinbase extends Exchange {
 
     private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
-         * cancels an open order
+         * cancels an open $order
          *
          * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-$orders
          *
-         * @param {string} $id order $id
+         * @param {string} $id $order $id
          * @param {string} $symbol not used by cancelOrder()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $orders = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
-        return $this->safe_dict($orders, 0, array());
+        $order = $this->safe_dict($orders, 0, array());
+        return $order;
     }
 
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {

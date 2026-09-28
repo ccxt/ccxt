@@ -915,7 +915,8 @@ class bigone extends Exchange {
             return $this->parse_ticker($ticker, $market);
         } else {
             $tickers = $this->fetch_tickers(array( $symbol ), $paramsMarketType);
-            return $this->safe_value($tickers, $symbol);
+            $spotTicker = $this->safe_dict($tickers, $symbol);
+            return $spotTicker;
         }
     }
 
@@ -1027,11 +1028,11 @@ class bigone extends Exchange {
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        $timestamp = $this->safe_integer($data, 'Timestamp');
+        $timestamp = $this->safe_integer_product($data, 'Timestamp', 0.000001);
         if ($timestamp === null) {
             throw new ExchangeError($this->id . ' fetchTime() missing timestamp');
         }
-        return $this->parse_to_int($timestamp / 1000000);
+        return $timestamp;
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {

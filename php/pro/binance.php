@@ -3601,7 +3601,7 @@ class binance extends \ccxt\async\binance {
             'method' => array($this, 'handle_positions_ws'),
         );
         $result = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
-        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }
 
     public function handle_positions_ws(Client $client, array $message) {

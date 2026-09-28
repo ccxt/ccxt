@@ -1619,7 +1619,7 @@ class zebpay extends Exchange {
         //
         $positions = $this->safe_list($response, 'data', array());
         $result = $this->parse_positions($positions);
-        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols);
     }
 
     public function add_margin(string $symbol, float $amount, $params = array()): PromiseInterface {

@@ -2570,7 +2570,7 @@ class blofin extends Exchange {
         $response = Async\await($this->privateGetAccountPositions($params));
         $data = $this->safe_list($response, 'data', array());
         $result = $this->parse_positions($data);
-        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }
 
     public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {

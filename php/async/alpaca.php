@@ -482,25 +482,11 @@ class alpaca extends Exchange {
         //         next_close: '2023-11-22T16:00:00-05:00'
         //     }
         //
-        $timestamp = $this->safe_string($response, 'timestamp');
+        $timestamp = $this->parse8601($this->safe_string($response, 'timestamp'));
         if ($timestamp === null) {
             throw new ExchangeError($this->id . ' fetchTime() missing timestamp');
         }
-        $localTime = mb_substr($timestamp, 0, 23 - 0);
-        if ($timestamp === null) {
-            throw new ExchangeError($this->id . ' fetchTime() missing timestamp');
-        }
-        $jetlagStrStart = strlen($timestamp) - 6;
-        if ($timestamp === null) {
-            throw new ExchangeError($this->id . ' fetchTime() missing timestamp');
-        }
-        $jetlagStrEnd = strlen($timestamp) - 3;
-        if ($timestamp === null) {
-            throw new ExchangeError($this->id . ' fetchTime() missing timestamp');
-        }
-        $jetlag = mb_substr($timestamp, $jetlagStrStart, $jetlagStrEnd - $jetlagStrStart);
-        $iso = $this->parse_to_int($this->parse8601($localTime)) - $this->parse_to_numeric($jetlag) * 3600 * 1000;
-        return $iso;
+        return $timestamp;
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
@@ -968,21 +954,22 @@ class alpaca extends Exchange {
 
     private function do_fetch_ticker(string $symbol, $params = array()) {
         /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          *
          * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
          *
-         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {string} $symbol unified $symbol of the market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->loc] crypto location, default => us
-         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $symbolValue = $this->symbol($symbol);
         $tickers = Async\await($this->fetch_tickers(array( $symbolValue ), $params));
-        return $this->safe_dict($tickers, $symbolValue);
+        $ticker = $this->safe_dict($tickers, $symbolValue);
+        return $ticker;
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {

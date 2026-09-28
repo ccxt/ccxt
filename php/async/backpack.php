@@ -2314,7 +2314,7 @@ class backpack extends Exchange {
             return $positions;
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        return $this->filter_by_array_positions($positions, 'symbol', $symbolsNormalized, false);
+        return $this->filter_by_array_positions($positions, 'symbol', $symbolsNormalized);
     }
 
     public function parse_position(array $position, ?array $market = null): array {

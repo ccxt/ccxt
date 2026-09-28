@@ -7055,7 +7055,7 @@ class bybit extends Exchange {
             }
             $results[] = $this->parse_position($rawPosition);
         }
-        return $this->filter_by_array_positions($results, 'symbol', $symbolsNormalized, false);
+        return $this->filter_by_array_positions($results, 'symbol', $symbolsNormalized);
     }
 
     public function parse_position(array $position, ?array $market = null): array {

@@ -880,7 +880,8 @@ class bitflyer extends Exchange {
         $orders = $this->fetch_orders($symbol);
         $ordersById = $this->index_by($orders, 'id');
         if (is_array($ordersById) && array_key_exists($id ?? '', $ordersById)) {
-            return $ordersById[$id];
+            $found = $this->safe_dict($ordersById, $id);
+            return $found;
         }
         throw new OrderNotFound($this->id . ' No order found with id ' . $id);
     }

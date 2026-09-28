@@ -1377,7 +1377,8 @@ class poloniex extends Exchange {
         );
         if ($market['contract'] === true) {
             $tickers = Async\await($this->fetch_tickers(array( $market['symbol'] ), $params));
-            return $this->safe_dict($tickers, $symbol);
+            $contractTicker = $this->safe_dict($tickers, $symbol);
+            return $contractTicker;
         }
         $response = Async\await($this->publicGetMarketsSymbolTicker24h($this->extend($request, $params)));
         //

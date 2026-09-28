@@ -4074,7 +4074,8 @@ class BaseExchange {
     public function fetch_margin_mode(string $symbol, $params = array()) {
         if ($this->has['fetchMarginModes'] !== null && $this->has['fetchMarginModes'] !== false) {
             $marginModes = $this->fetch_margin_modes(array( $symbol ), $params);
-            return $this->safe_dict($marginModes, $symbol);
+            $marginMode = $this->safe_dict($marginModes, $symbol);
+            return $marginMode;
         } else {
             throw new NotSupported($this->id . ' fetchMarginMode() is not supported yet');
         }
@@ -4256,7 +4257,8 @@ class BaseExchange {
     public function fetch_leverage(string $symbol, $params = array()) {
         if ($this->has['fetchLeverages'] !== null && $this->has['fetchLeverages'] !== false) {
             $leverages = $this->fetch_leverages(array( $symbol ), $params);
-            return $this->safe_dict($leverages, $symbol);
+            $leverage = $this->safe_dict($leverages, $symbol);
+            return $leverage;
         } else {
             throw new NotSupported($this->id . ' fetchLeverage() is not supported yet');
         }
@@ -6446,7 +6448,7 @@ class BaseExchange {
             $position = $this->extend($this->parse_position($positionsArray[$i]), $params);
             $result[] = $position;
         }
-        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }
 
     public function parse_adl_rank(array $info, ?array $market = null) {
@@ -6464,7 +6466,7 @@ class BaseExchange {
             $rank = $this->extend($this->parse_adl_rank($ranksArray[$i]), $params);
             $result[] = $rank;
         }
-        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }
 
     public function parse_accounts(?array $accounts, $params = array()) {
@@ -7111,7 +7113,7 @@ class BaseExchange {
             throw new NotSupported($this->id . ' fetchCrossBorrowRate() is not supported yet');
         }
         $borrowRates = $this->fetch_cross_borrow_rates($params);
-        $rate = $this->safe_value($borrowRates, $code);
+        $rate = $this->safe_dict($borrowRates, $code);
         if ($rate === null) {
             throw new ExchangeError($this->id . ' fetchCrossBorrowRate() could not find the borrow rate for currency code ' . $code);
         }
@@ -7990,7 +7992,7 @@ class BaseExchange {
             }
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        return $this->filter_by_array($results, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array_tickers($results, 'symbol', $symbolsNormalized);
     }
 
     public function parse_deposit_addresses(mixed $addresses, ?array $codes = null, $indexed = true, $params = array()) {
@@ -8072,7 +8074,7 @@ class BaseExchange {
                 $fundingRates[$parsed['symbol']] = $parsed;
             }
         }
-        return $this->filter_by_array($fundingRates, 'symbol', $symbols);
+        return $this->index_by($this->filter_by_array($fundingRates, 'symbol', $symbols, false), 'symbol');
     }
 
     public function parse_long_short_ratio(array $info, ?array $market = null) {
@@ -8282,7 +8284,7 @@ class BaseExchange {
                 throw new BadSymbol($this->id . ' fetchFundingRate() supports contract markets only');
             }
             $rates = $this->fetch_funding_rates(array( $symbolResolved ), $params);
-            $rate = $this->safe_value($rates, $symbolResolved);
+            $rate = $this->safe_dict($rates, $symbolResolved);
             if ($rate === null) {
                 throw new NullResponse($this->id . ' fetchFundingRate () returned no data for ' . $symbolResolved);
             } else {
@@ -8302,7 +8304,7 @@ class BaseExchange {
                 throw new BadSymbol($this->id . ' fetchFundingInterval() supports contract markets only');
             }
             $rates = $this->fetch_funding_intervals(array( $symbolResolved ), $params);
-            $rate = $this->safe_value($rates, $symbolResolved);
+            $rate = $this->safe_dict($rates, $symbolResolved);
             if ($rate === null) {
                 throw new NullResponse($this->id . ' fetchFundingInterval() returned no data for ' . $symbolResolved);
             } else {
@@ -8590,20 +8592,20 @@ class BaseExchange {
         }
     }
 
-    public function filter_by_array_positions(mixed $objects, int|string $key, mixed $values = null, $indexed = true) {
+    public function filter_by_array_positions(mixed $objects, int|string $key, mixed $values = null) {
         /**
          * @ignore
          * Typed wrapper for filterByArray that returns a list of positions
          */
-        return $this->filter_by_array($objects, $key, $values, $indexed);
+        return $this->to_array($this->filter_by_array($objects, $key, $values, false));
     }
 
-    public function filter_by_array_tickers(mixed $objects, int|string $key, mixed $values = null, $indexed = true) {
+    public function filter_by_array_tickers(mixed $objects, int|string $key, mixed $values = null) {
         /**
          * @ignore
          * Typed wrapper for filterByArray that returns a dictionary of tickers
          */
-        return $this->filter_by_array($objects, $key, $values, $indexed);
+        return $this->index_by($this->filter_by_array($objects, $key, $values, false), $key);
     }
 
     public function filter_by_array_adl_ranks(mixed $objects, int|string $key, mixed $values = null, $indexed = true) {
@@ -10020,7 +10022,8 @@ class Exchange extends BaseExchange {
     public function fetch_open_interest(string $symbol, $params = array()) {
         if ($this->has['fetchOpenInterests'] !== null && $this->has['fetchOpenInterests'] !== false) {
             $openInterests = $this->fetch_open_interests(array( $symbol ), $params);
-            return $this->safe_dict($openInterests, $symbol);
+            $openInterest = $this->safe_dict($openInterests, $symbol);
+            return $openInterest;
         } else {
             throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
         }
@@ -10480,6 +10483,7 @@ class Exchange extends BaseExchange {
             throw new NotSupported($this->id . ' fetchTradingFee() is not supported yet');
         }
         $fees = $this->fetch_trading_fees($params);
-        return $this->safe_dict($fees, $symbol);
+        $fee = $this->safe_dict($fees, $symbol);
+        return $fee;
     }
 }

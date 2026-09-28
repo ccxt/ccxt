@@ -3481,7 +3481,8 @@ class whitebit extends Exchange {
         }
         $symbolValue = $this->symbol($symbol);
         $response = $this->fetch_funding_rates(array( $symbolValue ), $params);
-        return $this->safe_value($response, $symbolValue);
+        $fundingRate = $this->safe_dict($response, $symbolValue);
+        return $fundingRate;
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array()): array {

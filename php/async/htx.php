@@ -8497,7 +8497,7 @@ class htx extends Exchange {
                 'datetime' => $this->iso8601($timestamp),
             ));
         }
-        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }
 
     public function fetch_position(string $symbol, $params = array()): PromiseInterface {
