@@ -2977,12 +2977,12 @@ func (this *Okx) ParseMarket(market any) any {
 		"info": market,
 	})
 }
-func (this *Okx) FetchMarketsByTypeAsync(typeVar any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Okx) FetchMarketsByTypeAsync(typeVar any, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchMarketsByTypeBody(ch, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchMarketsByTypeBody(ch chan AsyncResult[any], typeVar any, optionalArgs ...any) any {
+func (this *Okx) fetchMarketsByTypeBody(ch chan AsyncResult[[]any], typeVar any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3016,7 +3016,7 @@ func (this *Okx) fetchMarketsByTypeBody(ch chan AsyncResult[any], typeVar any, o
 			markets = this.ArrayConcat(markets, options)
 		}
 
-		ch <- AsyncResult[any]{Value: this.ParseMarkets(markets)}
+		ch <- AsyncResult[[]any]{Value: this.ParseMarkets(markets)}
 		return nil
 	}
 
@@ -3080,7 +3080,7 @@ func (this *Okx) fetchMarketsByTypeBody(ch chan AsyncResult[any], typeVar any, o
 		marketsWithoutTest = append(marketsWithoutTest, data)
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseMarkets(marketsWithoutTest)}
+	ch <- AsyncResult[[]any]{Value: this.ParseMarkets(marketsWithoutTest)}
 	return nil
 }
 
@@ -3650,12 +3650,12 @@ func (this *Okx) fetchMarkPriceBody(ch chan AsyncResult[any], symbol string, opt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Okx) FetchMarkPricesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Okx) FetchMarkPricesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchMarkPricesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchMarkPricesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Okx) fetchMarkPricesBody(ch chan AsyncResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -3692,7 +3692,7 @@ func (this *Okx) fetchMarkPricesBody(ch chan AsyncResult[any], optionalArgs ...a
 	var response map[string]any = r1.Value
 	var tickers []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTickers(tickers, symbolsNormalized)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTickers(tickers, symbolsNormalized)}
 	return nil
 }
 func (this *Okx) ParseTrade(trade any, optionalArgs ...any) any {
@@ -4306,7 +4306,7 @@ func (this *Okx) ParseFundingBalance(response any) any {
 	}
 	return this.SafeBalance(result)
 }
-func (this *Okx) ParseTradingFee(fee map[string]any, optionalArgs ...any) any {
+func (this *Okx) ParseTradingFee(fee map[string]any, optionalArgs ...any) map[string]any {
 	// https://www.okx.com/docs-v5/en/#rest-api-account-get-fee-rates
 	//
 	//     {
@@ -5651,12 +5651,12 @@ func (this *Okx) cancelOrdersBody(ch chan AsyncResult[any], ids any, optionalArg
  * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Okx) CancelOrdersForSymbolsAsync(orders any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Okx) CancelOrdersForSymbolsAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.cancelOrdersForSymbolsBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Okx) cancelOrdersForSymbolsBody(ch chan AsyncResult[any], orders any, optionalArgs ...any) any {
+func (this *Okx) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]any], orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5751,7 +5751,7 @@ func (this *Okx) cancelOrdersForSymbolsBody(ch chan AsyncResult[any], orders any
 	//
 	var ordersData []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(ordersData, nil, nil, nil, params)}
+	ch <- AsyncResult[[]any]{Value: this.ParseOrders(ordersData, nil, nil, nil, params)}
 	return nil
 }
 
@@ -6515,12 +6515,12 @@ func (this *Okx) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
  * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Okx) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Okx) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Okx) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -6708,7 +6708,7 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(data, market, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.ParseOrders(data, market, since, limit)}
 	return nil
 }
 
@@ -7338,7 +7338,7 @@ func (this *Okx) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any 
 		"fee":              fee,
 	}, currencyResolved)
 }
-func (this *Okx) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Okx) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "addr": "okbtothemoon",
@@ -8242,7 +8242,7 @@ func (this *Okx) fetchLeverageBody(ch chan AsyncResult[any], symbol any, optiona
 	ch <- AsyncResult[any]{Value: this.ParseLeverage(data, market)}
 	return nil
 }
-func (this *Okx) ParseLeverage(leverage any, optionalArgs ...any) any {
+func (this *Okx) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId any = nil
@@ -8491,7 +8491,7 @@ func (this *Okx) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...an
 		}()))
 	}
 
-	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", this.MarketSymbols(symbols), false)}
+	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", this.MarketSymbols(symbols))}
 	return nil
 }
 
@@ -8505,12 +8505,12 @@ func (this *Okx) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...an
  * @param {string} [params.instType] MARGIN (if needed)
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Okx) FetchPositionsForSymbolAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Okx) FetchPositionsForSymbolAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchPositionsForSymbolBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchPositionsForSymbolBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Okx) fetchPositionsForSymbolBody(ch chan AsyncResult[[]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -8522,9 +8522,9 @@ func (this *Okx) fetchPositionsForSymbolBody(ch chan AsyncResult[any], symbol st
 	}
 	var retRes630215 []any = ListTyped(r.Value)
 	if retRes630215 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes630215}
+		ch <- AsyncResult[[]any]{Value: retRes630215}
 	}
 	return nil
 }
@@ -9160,7 +9160,7 @@ func (this *Okx) Sign(path string, optionalArgs ...any) any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Okx) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Okx) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "fundingRate": "0.00027815",
@@ -10485,12 +10485,12 @@ func (this *Okx) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
  * @param {string} [params.marginMode] 'cross' or 'isolated'
  * @returns {object[]} An list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
  */
-func (this *Okx) FetchBorrowInterestAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Okx) FetchBorrowInterestAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchBorrowInterestBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchBorrowInterestBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Okx) fetchBorrowInterestBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -10559,7 +10559,7 @@ func (this *Okx) fetchBorrowInterestBody(ch chan AsyncResult[any], optionalArgs 
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var interest any = this.ParseBorrowInterests(data)
 
-	ch <- AsyncResult[any]{Value: this.FilterByCurrencySinceLimit(interest, code, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.FilterByCurrencySinceLimit(interest, code, since, limit)}
 	return nil
 }
 func (this *Okx) ParseBorrowInterest(info any, optionalArgs ...any) any {
@@ -11159,7 +11159,7 @@ func (this *Okx) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], optional
 	ch <- AsyncResult[any]{Value: this.ParseDepositWithdrawFees(data, codes)}
 	return nil
 }
-func (this *Okx) ParseDepositWithdrawFees(response any, optionalArgs ...any) any {
+func (this *Okx) ParseDepositWithdrawFees(response any, optionalArgs ...any) map[string]any {
 	//
 	// [
 	//   {
@@ -11254,12 +11254,12 @@ func (this *Okx) ParseDepositWithdrawFees(response any, optionalArgs ...any) any
  * @param {object} [params] exchange specific params
  * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
-func (this *Okx) FetchSettlementHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Okx) FetchSettlementHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchSettlementHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchSettlementHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Okx) fetchSettlementHistoryBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -11323,7 +11323,7 @@ func (this *Okx) fetchSettlementHistoryBody(ch chan AsyncResult[any], optionalAr
 	var settlements []any = this.ParseSettlements(data, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
 
-	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)}
 	return nil
 }
 func (this *Okx) ParseSettlement(settlement any, market map[string]any) map[string]any {
@@ -12493,12 +12493,12 @@ func (this *Okx) HandleErrors(httpCode any, reason any, url any, method any, hea
  * @param {boolean} [params.auto] true if fetching auto margin increases
  * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Okx) FetchMarginAdjustmentHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Okx) FetchMarginAdjustmentHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchMarginAdjustmentHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Okx) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -12617,7 +12617,7 @@ func (this *Okx) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[any], opti
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var modifications any = this.ParseMarginModifications(data)
 
-	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(modifications, symbol, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(modifications, symbol, since, limit)}
 	return nil
 }
 
@@ -12640,12 +12640,12 @@ func (this *Okx) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[any], opti
  * @param {string} [params.after] timestamp in ms of the latest position to fetch based on the last update time of the position
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Okx) FetchPositionsHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Okx) FetchPositionsHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchPositionsHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchPositionsHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Okx) fetchPositionsHistoryBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -12735,7 +12735,7 @@ func (this *Okx) fetchPositionsHistoryBody(ch chan AsyncResult[any], optionalArg
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var positions any = this.ParsePositions(data, symbols, paramsOmitted)
 
-	ch <- AsyncResult[any]{Value: this.FilterBySinceLimit(positions, since, limitResolved)}
+	ch <- AsyncResult[[]any]{Value: this.FilterBySinceLimit(positions, since, limitResolved)}
 	return nil
 }
 
@@ -15038,7 +15038,7 @@ func (this *Okx) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 func (this *Okx) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Okx) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Okx) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Okx) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

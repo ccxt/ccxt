@@ -1341,7 +1341,7 @@ func (this *Woo) ParseTokenAndFeeTemp(item any, feeTokenKeys any, feeAmountKeys 
 	}
 	return fee
 }
-func (this *Woo) ParseTradingFee(fee map[string]any, optionalArgs ...any) any {
+func (this *Woo) ParseTradingFee(fee map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(fee, "symbol")
@@ -3665,7 +3665,7 @@ func (this *Woo) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any)
 	ch <- AsyncResult[any]{Value: this.ParseBalance(data)}
 	return nil
 }
-func (this *Woo) ParseBalance(response any) any {
+func (this *Woo) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -3680,7 +3680,7 @@ func (this *Woo) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -3759,7 +3759,7 @@ func (this *Woo) GetDedicatedNetworkId(currency any, params any) any {
 	var currentyNetworkId *string = this.SafeString(networkEntry, "currencyNetworkId")
 	return []any{currentyNetworkId, paramsNetworkCode}
 }
-func (this *Woo) ParseDepositAddress(depositEntry any, optionalArgs ...any) any {
+func (this *Woo) ParseDepositAddress(depositEntry any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var address *string = this.SafeString(depositEntry, "address")
@@ -4843,7 +4843,7 @@ func (this *Woo) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalArgs 
 	ch <- AsyncResult[any]{Value: this.ParseIncomes(rows, market, since, limit)}
 	return nil
 }
-func (this *Woo) ParseFundingRate(fundingRate any, optionalArgs ...any) any {
+func (this *Woo) ParseFundingRate(fundingRate any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol": "PERP_BTC_USDT",
@@ -5280,7 +5280,7 @@ func (this *Woo) fetchLeverageBody(ch chan AsyncResult[any], symbol any, optiona
 	ch <- AsyncResult[any]{Value: this.ParseLeverage(data, market)}
 	return nil
 }
-func (this *Woo) ParseLeverage(leverage any, optionalArgs ...any) any {
+func (this *Woo) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "symbol")
@@ -7865,7 +7865,7 @@ func (this *Woo) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks,
 func (this *Woo) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Woo) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Woo) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Woo) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

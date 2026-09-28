@@ -1028,7 +1028,7 @@ func (this *P2b) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any)
 	ch <- AsyncResult[any]{Value: this.ParseBalance(result)}
 	return nil
 }
-func (this *P2b) ParseBalance(response any) any {
+func (this *P2b) ParseBalance(response any) map[string]any {
 	//
 	//    {
 	//        "USDT": {
@@ -1059,7 +1059,7 @@ func (this *P2b) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -2384,7 +2384,7 @@ func (this *P2b) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 func (this *P2b) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *P2b) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *P2b) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *P2b) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

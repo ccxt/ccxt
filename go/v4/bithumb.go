@@ -789,7 +789,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Bithumb) ParseBalance(response any) any {
+func (this *Bithumb) ParseBalance(response any) map[string]any {
 	//
 	// generation 1
 	//
@@ -845,7 +845,7 @@ func (this *Bithumb) ParseBalance(response any) any {
 			AddElementToObject(result, code, account)
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -3087,12 +3087,12 @@ func (this *Bithumb) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArg
  * @param {bool} [params.twap] if you want to fetch generation 2 twap orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bithumb) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bithumb) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3111,7 +3111,7 @@ func (this *Bithumb) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalA
 	}
 	var orders []any = ListTyped(r.Value)
 
-	ch <- AsyncResult[any]{Value: this.FilterBySinceLimit(orders, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.FilterBySinceLimit(orders, since, limit)}
 	return nil
 }
 
@@ -4127,7 +4127,7 @@ func (this *Bithumb) fetchDepositAddressesBody(ch chan AsyncResult[any], optiona
 	ch <- AsyncResult[any]{Value: this.ParseDepositAddresses(response, codes, false, map[string]any{})}
 	return nil
 }
-func (this *Bithumb) ParseDepositAddress(response any, optionalArgs ...any) any {
+func (this *Bithumb) ParseDepositAddress(response any, optionalArgs ...any) map[string]any {
 	//
 	// generation 2: createDepositAddress, fetchDepositAddress, fetchDepositAddresses
 	//
@@ -5406,7 +5406,7 @@ func (this *Bithumb) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Bithumb) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bithumb) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bithumb) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bithumb) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

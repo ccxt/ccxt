@@ -1349,12 +1349,12 @@ func (this *Bitteam) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
-func (this *Bitteam) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitteam) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitteam) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitteam) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1382,9 +1382,9 @@ func (this *Bitteam) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalA
 	}
 	var retRes111915 []any = ListTyped(r1.Value)
 	if retRes111915 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes111915}
+		ch <- AsyncResult[[]any]{Value: retRes111915}
 	}
 	return nil
 }
@@ -2591,7 +2591,7 @@ func (this *Bitteam) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseBalance(response)}
 	return nil
 }
-func (this *Bitteam) ParseBalance(response any) any {
+func (this *Bitteam) ParseBalance(response any) map[string]any {
 	//
 	//     {
 	//         "ok": true,
@@ -2662,7 +2662,7 @@ func (this *Bitteam) ParseBalance(response any) any {
 			}
 		}
 	}
-	return this.SafeBalance(balance)
+	return this.SafeBalance(balance).(map[string]any)
 }
 
 /**
@@ -3711,7 +3711,7 @@ func (this *Bitteam) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Bitteam) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bitteam) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bitteam) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bitteam) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

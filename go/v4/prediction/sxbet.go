@@ -2400,12 +2400,12 @@ func (this *Sxbet) ParseSxbetV3Position(raw any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. eventId, endDate, sortAsc, nextKey)
  * @returns {object[]} a list of prediction settlement structures
  */
-func (this *Sxbet) FetchSettlementsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Sxbet) FetchSettlementsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
+	ch := make(chan ccxt.AsyncResult[[]any], 1)
 	go this.fetchSettlementsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Sxbet) fetchSettlementsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Sxbet) fetchSettlementsBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2461,7 +2461,7 @@ func (this *Sxbet) fetchSettlementsBody(ch chan ccxt.AsyncResult[any], optionalA
 		}
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: result}
+	ch <- ccxt.AsyncResult[[]any]{Value: result}
 	return nil
 }
 
@@ -4950,7 +4950,7 @@ func (this *Sxbet) FetchOrderTrades(id string, params map[string]any, options ..
 	var res []ccxt.PredictionTrade = ccxt.NewPredictionTradeArray(r.Value)
 	return res, nil
 }
-func (this *Sxbet) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Sxbet) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Sxbet) FetchPosition(outcome string, params map[string]any) (ccxt.PredictionPosition, error) {

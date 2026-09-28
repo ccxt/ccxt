@@ -1206,7 +1206,7 @@ func (this *Bitopro) InsertMissingCandles(candles any, distance any, since any, 
 	}
 	return result
 }
-func (this *Bitopro) ParseBalance(response any) any {
+func (this *Bitopro) ParseBalance(response any) map[string]any {
 	//
 	//     [{
 	//         "currency":"twd",
@@ -1233,7 +1233,7 @@ func (this *Bitopro) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -3408,7 +3408,7 @@ func (this *Bitopro) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Bitopro) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bitopro) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bitopro) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bitopro) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

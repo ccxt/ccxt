@@ -413,7 +413,7 @@ func (this *Zaif) ParseMarket(market any) any {
 		"info":    market,
 	})
 }
-func (this *Zaif) ParseBalance(response any) any {
+func (this *Zaif) ParseBalance(response any) map[string]any {
 	var balances map[string]any = SafeMapTyped(response, "return")
 	var deposit map[string]any = SafeMapTyped(balances, "deposit")
 	var result map[string]any = map[string]any{
@@ -445,7 +445,7 @@ func (this *Zaif) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -1770,7 +1770,7 @@ func (this *Zaif) FetchOrderStatus(id string, options ...FetchOrderStatusOptions
 func (this *Zaif) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Zaif) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Zaif) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Zaif) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

@@ -832,7 +832,7 @@ func (this *Coinbaseinternational) ParseFundingRateHistory(info any, optionalArg
 	_ = market
 	return this.ParseFundingRate(info, market)
 }
-func (this *Coinbaseinternational) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//       "instrument_id":"149264167780483072",
@@ -1672,7 +1672,7 @@ func (this *Coinbaseinternational) fetchPositionsBody(ch chan AsyncResult[any], 
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(positions, "symbol", symbolsNormalized, false)}
+	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(positions, "symbol", symbolsNormalized)}
 	return nil
 }
 
@@ -2384,7 +2384,7 @@ func (this *Coinbaseinternational) fetchBalanceBody(ch chan AsyncResult[any], op
 	ch <- AsyncResult[any]{Value: this.ParseBalance(balances)}
 	return nil
 }
-func (this *Coinbaseinternational) ParseBalance(response any) any {
+func (this *Coinbaseinternational) ParseBalance(response any) map[string]any {
 	//
 	//    {
 	//       "asset_id":"0-0-1",
@@ -2414,7 +2414,7 @@ func (this *Coinbaseinternational) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -4372,7 +4372,7 @@ func (this *Coinbaseinternational) FetchOrderStatus(id string, options ...FetchO
 func (this *Coinbaseinternational) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Coinbaseinternational) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Coinbaseinternational) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Coinbaseinternational) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

@@ -903,12 +903,12 @@ func (this *Pacifica) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Pacifica) FetchSwapMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Pacifica) FetchSwapMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchSwapMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) fetchSwapMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Pacifica) fetchSwapMarketsBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -920,7 +920,7 @@ func (this *Pacifica) fetchSwapMarketsBody(ch chan AsyncResult[any], optionalArg
 	}
 	var markets []any = ListTyped(r.Value)
 
-	ch <- AsyncResult[any]{Value: this.FilterBy(markets, "type", "swap")}
+	ch <- AsyncResult[[]any]{Value: this.FilterBy(markets, "type", "swap")}
 	return nil
 }
 func (this *Pacifica) ParseMarket(market any) any {
@@ -1586,7 +1586,7 @@ func (this *Pacifica) fetchFundingRatesBody(ch chan AsyncResult[any], optionalAr
 	ch <- AsyncResult[any]{Value: this.ParseFundingRates(result, symbols)}
 	return nil
 }
-func (this *Pacifica) ParseFundingRate(info any, optionalArgs ...any) any {
+func (this *Pacifica) ParseFundingRate(info any, optionalArgs ...any) map[string]any {
 	//
 	//      {
 	//         "funding": "0.00010529",
@@ -3116,12 +3116,12 @@ func (this *Pacifica) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalAr
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Pacifica) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Pacifica) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Pacifica) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3147,7 +3147,7 @@ func (this *Pacifica) fetchCanceledOrdersBody(ch chan AsyncResult[any], optional
 	var orders []any = ListTyped(r1.Value) // don't filter here because we don't want to catch open orders
 	var closedOrders any = this.FilterByArray(orders, "status", []any{"canceled"}, false)
 
-	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(closedOrders, symbol, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(closedOrders, symbol, since, limit)}
 	return nil
 }
 
@@ -3163,12 +3163,12 @@ func (this *Pacifica) fetchCanceledOrdersBody(ch chan AsyncResult[any], optional
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Pacifica) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Pacifica) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchCanceledAndClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Pacifica) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3194,7 +3194,7 @@ func (this *Pacifica) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[any],
 	var orders []any = ListTyped(r1.Value) // don't filter here because we don't want to catch open orders
 	var closedOrders any = this.FilterByArray(orders, "status", []any{"canceled", "closed", "rejected"}, false)
 
-	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(closedOrders, symbol, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(closedOrders, symbol, since, limit)}
 	return nil
 }
 
@@ -3793,7 +3793,7 @@ func (this *Pacifica) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs 
 		}(), nil))
 	}
 
-	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)}
+	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized)}
 	return nil
 }
 func (this *Pacifica) ParsePosition(position any, optionalArgs ...any) any {
@@ -4089,7 +4089,7 @@ func (this *Pacifica) fetchTradingFeeBody(ch chan AsyncResult[any], symbol strin
 	ch <- AsyncResult[any]{Value: this.ParseTradingFee(data, market)}
 	return nil
 }
-func (this *Pacifica) ParseTradingFee(fee map[string]any, optionalArgs ...any) any {
+func (this *Pacifica) ParseTradingFee(fee map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//   {
 	//     "balance": "2000.000000",
@@ -6054,12 +6054,12 @@ func (this *Pacifica) FetchApiKeys(params ...any) (map[string]any, error) {
 	var res map[string]any = r.Value.(map[string]any)
 	return res, nil
 }
-func (this *Pacifica) FetchBuilderApprovals(address string) (map[string]any, error) {
+func (this *Pacifica) FetchBuilderApprovals(address string) ([]map[string]any, error) {
 	r := <-this.FetchBuilderApprovalsAsync(address)
 	if r.Err != nil {
-		return map[string]any{}, r.Err
+		return nil, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res []map[string]any = NewMapArray(r.Value)
 	return res, nil
 }
 
@@ -6305,7 +6305,7 @@ func (this *Pacifica) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 func (this *Pacifica) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Pacifica) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Pacifica) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Pacifica) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

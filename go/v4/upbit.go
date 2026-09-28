@@ -810,7 +810,7 @@ func (this *Upbit) ParseMarket(market any) any {
 		"info":    market,
 	})
 }
-func (this *Upbit) ParseBalance(response any) any {
+func (this *Upbit) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
@@ -827,7 +827,7 @@ func (this *Upbit) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -2797,12 +2797,12 @@ func (this *Upbit) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs 
  * @param {int} [params.until] timestamp in ms of the latest order
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Upbit) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Upbit) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Upbit) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Upbit) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2865,7 +2865,7 @@ func (this *Upbit) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArg
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.ParseOrders(response, market, since, limit)}
 	return nil
 }
 
@@ -3014,7 +3014,7 @@ func (this *Upbit) fetchDepositAddressesBody(ch chan AsyncResult[any], optionalA
 	ch <- AsyncResult[any]{Value: this.ParseDepositAddresses(response, codes, false)}
 	return nil
 }
-func (this *Upbit) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Upbit) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        currency: 'XRP',
@@ -4343,7 +4343,7 @@ func (this *Upbit) FetchOrderStatus(id string, options ...FetchOrderStatusOption
 func (this *Upbit) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Upbit) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Upbit) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Upbit) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

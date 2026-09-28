@@ -2224,7 +2224,7 @@ func (this *Zebpay) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ..
 	var positions []any = SafeListTypedDefault(response, "data", []any{})
 	var result any = this.ParsePositions(positions)
 
-	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbols, false)}
+	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbols)}
 	return nil
 }
 
@@ -2356,12 +2356,12 @@ func (this *Zebpay) reduceMarginBody(ch chan EndpointResult[map[string]any], sym
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Zebpay) FetchSpotMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zebpay) FetchSpotMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchSpotMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchSpotMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Zebpay) fetchSpotMarketsBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2450,15 +2450,15 @@ func (this *Zebpay) fetchSpotMarketsBody(ch chan AsyncResult[any], optionalArgs 
 		})
 	}
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[[]any]{Value: result}
 	return nil
 }
-func (this *Zebpay) FetchSwapMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zebpay) FetchSwapMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchSwapMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchSwapMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Zebpay) fetchSwapMarketsBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2546,10 +2546,10 @@ func (this *Zebpay) fetchSwapMarketsBody(ch chan AsyncResult[any], optionalArgs 
 		}))
 	}
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[[]any]{Value: result}
 	return nil
 }
-func (this *Zebpay) ParseBalance(response any) any {
+func (this *Zebpay) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
@@ -2568,7 +2568,7 @@ func (this *Zebpay) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 func (this *Zebpay) ParsePosition(position any, optionalArgs ...any) any {
 	//
@@ -2612,7 +2612,7 @@ func (this *Zebpay) ParsePosition(position any, optionalArgs ...any) any {
 		"percentage":                  nil,
 	}
 }
-func (this *Zebpay) ParseLeverage(leverage any, optionalArgs ...any) any {
+func (this *Zebpay) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "symbol")
@@ -2628,7 +2628,7 @@ func (this *Zebpay) ParseLeverage(leverage any, optionalArgs ...any) any {
 		"shortLeverage": leverageValueShort,
 	}
 }
-func (this *Zebpay) ParseTradingFee(fee any, optionalArgs ...any) any {
+func (this *Zebpay) ParseTradingFee(fee any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(fee, "symbol")
@@ -3678,7 +3678,7 @@ func (this *Zebpay) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) 
 func (this *Zebpay) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Zebpay) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Zebpay) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Zebpay) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

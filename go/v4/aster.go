@@ -2464,7 +2464,7 @@ func (this *Aster) fetchBidsAsksBody(ch chan AsyncResult[any], optionalArgs ...a
 	ch <- AsyncResult[any]{Value: this.ParseTickers(response, symbolsNormalized)}
 	return nil
 }
-func (this *Aster) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Aster) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	// fundingRate
 	//
@@ -2641,12 +2641,12 @@ func (this *Aster) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Aster) FetchFundingIntervalsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Aster) FetchFundingIntervalsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchFundingIntervalsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchFundingIntervalsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Aster) fetchFundingIntervalsBody(ch chan AsyncResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -2680,7 +2680,7 @@ func (this *Aster) fetchFundingIntervalsBody(ch chan AsyncResult[any], optionalA
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseFundingRates(response, symbolsNormalized)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseFundingRates(response, symbolsNormalized)}
 	return nil
 }
 
@@ -2820,7 +2820,7 @@ func (this *Aster) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...an
 	ch <- AsyncResult[any]{Value: this.ParseBalance(data)}
 	return nil
 }
-func (this *Aster) ParseBalance(response any) any {
+func (this *Aster) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -2836,7 +2836,7 @@ func (this *Aster) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -2982,7 +2982,7 @@ func (this *Aster) setPositionModeBody(ch chan AsyncResult[any], hedged any, opt
 	ch <- AsyncResult[any]{Value: r.Raw}
 	return nil
 }
-func (this *Aster) ParseTradingFee(fee any, optionalArgs ...any) any {
+func (this *Aster) ParseTradingFee(fee any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(fee, "symbol")
@@ -4231,7 +4231,7 @@ func (this *Aster) fetchLeveragesBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseLeverages(this.ToArray(response), symbols, "symbol")}
 	return nil
 }
-func (this *Aster) ParseLeverage(leverage any, optionalArgs ...any) any {
+func (this *Aster) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol": "INJUSDT",
@@ -4379,12 +4379,12 @@ func (this *Aster) ParseMarginMode(marginMode any, optionalArgs ...any) any {
  * @param {int} [params.until] timestamp in ms of the latest change to fetch
  * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Aster) FetchMarginAdjustmentHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Aster) FetchMarginAdjustmentHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchMarginAdjustmentHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4448,7 +4448,7 @@ func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[any], op
 	//
 	var modifications any = this.ParseMarginModifications(this.ToArray(response))
 
-	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(modifications, symbol, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(modifications, symbol, since, limit)}
 	return nil
 }
 func (this *Aster) ParseMarginModification(data any, optionalArgs ...any) any {
@@ -5066,12 +5066,12 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} data on the positions risk
  */
-func (this *Aster) FetchPositionsRiskAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Aster) FetchPositionsRiskAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchPositionsRiskBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchPositionsRiskBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Aster) fetchPositionsRiskBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -5135,7 +5135,7 @@ func (this *Aster) fetchPositionsRiskBody(ch chan AsyncResult[any], optionalArgs
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)}
+	ch <- AsyncResult[[]any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized)}
 	return nil
 }
 
@@ -5177,7 +5177,7 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes380119 []any = ListTyped(r.Value)
+		var retRes380119 []any = r.Value
 		if retRes380119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
@@ -5190,7 +5190,7 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes380319 []any = ListTyped(r1.Value)
+		var retRes380319 []any = r1.Value
 		if retRes380319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
@@ -5472,12 +5472,12 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} data on account positions
  */
-func (this *Aster) FetchAccountPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Aster) FetchAccountPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchAccountPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchAccountPositionsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Aster) fetchAccountPositionsBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -5509,7 +5509,7 @@ func (this *Aster) fetchAccountPositionsBody(ch chan AsyncResult[any], optionalA
 	var result any = this.ParseAccountPositions(response, filterClosed)
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)}
+	ch <- AsyncResult[[]any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized)}
 	return nil
 }
 func (this *Aster) LoadLeverageBracketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
@@ -7444,7 +7444,7 @@ func (this *Aster) FetchOrderStatus(id string, options ...FetchOrderStatusOption
 func (this *Aster) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Aster) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Aster) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Aster) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

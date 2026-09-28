@@ -1151,7 +1151,7 @@ func (this *Cex) ParseTradingFees(response map[string]any, optionalArgs ...any) 
 	}
 	return result
 }
-func (this *Cex) ParseTradingFee(fee any, optionalArgs ...any) any {
+func (this *Cex) ParseTradingFee(fee any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return map[string]any{
@@ -1297,7 +1297,7 @@ func (this *Cex) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any)
 	ch <- AsyncResult[any]{Value: this.ParseBalance(accountBalance)}
 	return nil
 }
-func (this *Cex) ParseBalance(response any) any {
+func (this *Cex) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -1314,7 +1314,7 @@ func (this *Cex) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -1330,12 +1330,12 @@ func (this *Cex) ParseBalance(response any) any {
  * @param {int} [params.until] timestamp in ms of the latest entry
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cex) FetchOrdersByStatusAsync(status string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Cex) FetchOrdersByStatusAsync(status string, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchOrdersByStatusBody(ch, status, optionalArgs...)
 	return ch
 }
-func (this *Cex) fetchOrdersByStatusBody(ch chan AsyncResult[any], status string, optionalArgs ...any) any {
+func (this *Cex) fetchOrdersByStatusBody(ch chan AsyncResult[[]any], status string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1426,7 +1426,7 @@ func (this *Cex) fetchOrdersByStatusBody(ch chan AsyncResult[any], status string
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(data, market, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.ParseOrders(data, market, since, limit)}
 	return nil
 }
 
@@ -1462,7 +1462,7 @@ func (this *Cex) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes112515 []any = ListTyped(r.Value)
+	var retRes112515 []any = r.Value
 	if retRes112515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -1503,7 +1503,7 @@ func (this *Cex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes114015 []any = ListTyped(r.Value)
+	var retRes114015 []any = r.Value
 	if retRes114015 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -2437,7 +2437,7 @@ func (this *Cex) fetchDepositAddressBody(ch chan AsyncResult[any], code string, 
 	ch <- AsyncResult[any]{Value: this.ParseDepositAddress(data, currency)}
 	return nil
 }
-func (this *Cex) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Cex) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var address *string = this.SafeString(depositAddress, "address")
@@ -3390,7 +3390,7 @@ func (this *Cex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions)
 func (this *Cex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Cex) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Cex) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Cex) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

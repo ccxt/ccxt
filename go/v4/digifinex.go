@@ -1115,7 +1115,7 @@ func (this *Digifinex) fetchMarketsV1Body(ch chan EndpointResult[[]any], optiona
 	ch <- EndpointResult[[]any]{Value: result, Raw: result}
 	return nil
 }
-func (this *Digifinex) ParseBalance(response any) any {
+func (this *Digifinex) ParseBalance(response any) map[string]any {
 	//
 	// spot and margin
 	//
@@ -1157,7 +1157,7 @@ func (this *Digifinex) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -3757,7 +3757,7 @@ func (this *Digifinex) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: this.ParseLedger(ledger, currency, since, limit)}
 	return nil
 }
-func (this *Digifinex) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Digifinex) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "addressTag":"",
@@ -3840,12 +3840,12 @@ func (this *Digifinex) fetchDepositAddressBody(ch chan AsyncResult[any], code st
 	ch <- AsyncResult[any]{Value: address}
 	return nil
 }
-func (this *Digifinex) FetchTransactionsByTypeAsync(typeVar any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Digifinex) FetchTransactionsByTypeAsync(typeVar any, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchTransactionsByTypeBody(ch, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) fetchTransactionsByTypeBody(ch chan AsyncResult[any], typeVar any, optionalArgs ...any) any {
+func (this *Digifinex) fetchTransactionsByTypeBody(ch chan AsyncResult[[]any], typeVar any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3910,7 +3910,7 @@ func (this *Digifinex) fetchTransactionsByTypeBody(ch chan AsyncResult[any], typ
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTransactions(data, currency, since, limit, map[string]any{
+	ch <- AsyncResult[[]any]{Value: this.ParseTransactions(data, currency, since, limit, map[string]any{
 		"type": typeVar,
 	})}
 	return nil
@@ -3948,7 +3948,7 @@ func (this *Digifinex) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes298415 []any = ListTyped(r.Value)
+	var retRes298415 []any = r.Value
 	if retRes298415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -3989,7 +3989,7 @@ func (this *Digifinex) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes299915 []any = ListTyped(r.Value)
+	var retRes299915 []any = r.Value
 	if retRes299915 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -4292,12 +4292,12 @@ func (this *Digifinex) withdrawBody(ch chan EndpointResult[map[string]any], code
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Digifinex) FetchBorrowInterestAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Digifinex) FetchBorrowInterestAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchBorrowInterestBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) fetchBorrowInterestBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Digifinex) fetchBorrowInterestBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4353,7 +4353,7 @@ func (this *Digifinex) fetchBorrowInterestBody(ch chan AsyncResult[any], optiona
 	var rows []any = SafeListTyped(response, "positions")
 	var interest any = this.ParseBorrowInterests(rows, market)
 
-	ch <- AsyncResult[any]{Value: this.FilterByCurrencySinceLimit(interest, code, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.FilterByCurrencySinceLimit(interest, code, since, limit)}
 	return nil
 }
 func (this *Digifinex) ParseBorrowInterest(info any, optionalArgs ...any) any {
@@ -4657,7 +4657,7 @@ func (this *Digifinex) fetchFundingIntervalBody(ch chan AsyncResult[any], symbol
 	}
 	return nil
 }
-func (this *Digifinex) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Digifinex) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "instrument_id": "BTCUSDTPERP",
@@ -4859,7 +4859,7 @@ func (this *Digifinex) fetchTradingFeeBody(ch chan AsyncResult[any], symbol stri
 	ch <- AsyncResult[any]{Value: this.ParseTradingFee(data, market)}
 	return nil
 }
-func (this *Digifinex) ParseTradingFee(fee map[string]any, optionalArgs ...any) any {
+func (this *Digifinex) ParseTradingFee(fee map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "instrument_id": "BTCUSDTPERP",
@@ -5031,7 +5031,7 @@ func (this *Digifinex) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs
 		}(), market))
 	}
 
-	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)}
+	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized)}
 	return nil
 }
 
@@ -5698,7 +5698,7 @@ func (this *Digifinex) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], op
 	ch <- AsyncResult[any]{Value: this.ParseDepositWithdrawFees(data, codes)}
 	return nil
 }
-func (this *Digifinex) ParseDepositWithdrawFees(response any, optionalArgs ...any) any {
+func (this *Digifinex) ParseDepositWithdrawFees(response any, optionalArgs ...any) map[string]any {
 	//
 	//     [
 	//         {
@@ -7481,7 +7481,7 @@ func (this *Digifinex) FetchOrderStatus(id string, options ...FetchOrderStatusOp
 func (this *Digifinex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Digifinex) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Digifinex) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Digifinex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

@@ -5011,7 +5011,7 @@ func (this *Phemex) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ..
 		result = append(result, this.ParsePosition(position))
 	}
 
-	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)}
+	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized)}
 	return nil
 }
 
@@ -5491,7 +5491,7 @@ func (this *Phemex) fetchFundingRateBody(ch chan AsyncResult[any], symbol string
 	ch <- AsyncResult[any]{Value: this.ParseFundingRate(result, market)}
 	return nil
 }
-func (this *Phemex) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Phemex) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "askEp": 2332500,
@@ -8495,7 +8495,7 @@ func (this *Phemex) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Phemex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Phemex) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Phemex) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Phemex) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

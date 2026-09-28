@@ -2265,12 +2265,12 @@ func (this *Bullish) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
  * @param {string} [params.tradingAccountId] the trading account id (mandatory parameter)
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bullish) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bullish) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bullish) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bullish) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2292,9 +2292,9 @@ func (this *Bullish) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalA
 	}
 	var retRes165915 []any = ListTyped(r.Value)
 	if retRes165915 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes165915}
+		ch <- AsyncResult[[]any]{Value: retRes165915}
 	}
 	return nil
 }
@@ -2357,12 +2357,12 @@ func (this *Bullish) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArg
  * @param {string} [params.tradingAccountId] the trading account id (mandatory parameter)
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bullish) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bullish) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchCanceledAndClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bullish) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bullish) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2384,9 +2384,9 @@ func (this *Bullish) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[any], 
 	}
 	var retRes169915 []any = ListTyped(r.Value)
 	if retRes169915 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes169915}
+		ch <- AsyncResult[[]any]{Value: retRes169915}
 	}
 	return nil
 }
@@ -3394,7 +3394,7 @@ func (this *Bullish) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
 	ch <- AsyncResult[any]{Value: this.ParseDepositAddress(data, currency)}
 	return nil
 }
-func (this *Bullish) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Bullish) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var id *string = this.SafeString(depositAddress, "symbol")
@@ -3497,7 +3497,7 @@ func (this *Bullish) ParseBalanceForSingleCurrency(response any, code *string) a
 	}
 	return this.SafeBalance(result)
 }
-func (this *Bullish) ParseBalance(response any) any {
+func (this *Bullish) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -3512,7 +3512,7 @@ func (this *Bullish) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -3580,7 +3580,7 @@ func (this *Bullish) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs .
 	//
 	var results any = this.ParsePositions(response, symbols)
 
-	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(results, "symbol", symbols, false)}
+	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(results, "symbol", symbols)}
 	return nil
 }
 func (this *Bullish) ParsePosition(position any, optionalArgs ...any) any {
@@ -5338,7 +5338,7 @@ func (this *Bullish) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBo
 func (this *Bullish) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Bullish) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bullish) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bullish) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

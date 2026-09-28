@@ -3329,14 +3329,14 @@ func (this *Dydx) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any
 	ch <- AsyncResult[any]{Value: this.ParseBalance(data)}
 	return nil
 }
-func (this *Dydx) ParseBalance(response any) any {
+func (this *Dydx) ParseBalance(response any) map[string]any {
 	var account map[string]any = this.Account()
 	account["free"] = this.SafeString(response, "freeCollateral")
 	var result map[string]any = map[string]any{
 		"info": response,
 		"USDC": account,
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 func (this *Dydx) Nonce() any {
 	var timeDifference *int64 = this.SafeInteger(this.Options, "timeDifference")
@@ -4379,7 +4379,7 @@ func (this *Dydx) FetchOrderStatus(id string, options ...FetchOrderStatusOptions
 func (this *Dydx) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Dydx) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Dydx) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Dydx) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

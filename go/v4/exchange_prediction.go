@@ -1782,12 +1782,12 @@ func (this *PredictionExchange) watchPositionsBody(ch chan AsyncResult[any], opt
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction settlement structures
  */
-func (this *PredictionExchange) FetchSettlementsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *PredictionExchange) FetchSettlementsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchSettlementsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchSettlementsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *PredictionExchange) fetchSettlementsBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)

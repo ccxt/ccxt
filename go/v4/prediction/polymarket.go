@@ -2561,7 +2561,7 @@ func (this *Polymarket) fetchBalanceBody(ch chan ccxt.AsyncResult[any], optional
  * @param {object} response the raw balance-allowance response
  * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
  */
-func (this *Polymarket) ParseBalance(response any) any {
+func (this *Polymarket) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -2576,7 +2576,7 @@ func (this *Polymarket) ParseBalance(response any) any {
 		"used":  nil,
 		"total": total,
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -6100,7 +6100,7 @@ func (this *Polymarket) FetchOrders(params map[string]any, options ...FetchOrder
 	var res []ccxt.PredictionOrder = ccxt.NewPredictionOrderArray(r.Value)
 	return res, nil
 }
-func (this *Polymarket) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Polymarket) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Polymarket) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (ccxt.PositionModeInfo, error) {

@@ -1370,7 +1370,7 @@ func (this *Backpack) fetchFundingRateBody(ch chan AsyncResult[any], symbol stri
 	ch <- AsyncResult[any]{Value: this.ParseFundingRate(data, market)}
 	return nil
 }
-func (this *Backpack) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Backpack) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "fundingRate": "0.0001",
@@ -1899,7 +1899,7 @@ func (this *Backpack) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: this.ParseBalance(response)}
 	return nil
 }
-func (this *Backpack) ParseBalance(response any) any {
+func (this *Backpack) ParseBalance(response any) map[string]any {
 	//
 	//     {
 	//         "USDC": {
@@ -1925,7 +1925,7 @@ func (this *Backpack) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -2294,7 +2294,7 @@ func (this *Backpack) fetchDepositAddressBody(ch chan AsyncResult[any], code str
 	ch <- AsyncResult[any]{Value: this.ParseDepositAddress(response, currency)}
 	return nil
 }
-func (this *Backpack) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Backpack) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "address": "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170"
@@ -2975,7 +2975,7 @@ func (this *Backpack) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs 
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(positions, "symbol", symbolsNormalized, false)}
+	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(positions, "symbol", symbolsNormalized)}
 	return nil
 }
 func (this *Backpack) ParsePosition(position any, optionalArgs ...any) any {
@@ -4214,7 +4214,7 @@ func (this *Backpack) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 func (this *Backpack) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Backpack) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Backpack) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Backpack) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

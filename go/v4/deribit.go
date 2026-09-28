@@ -1505,7 +1505,7 @@ func (this *Deribit) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Deribit) ParseBalance(balance any) any {
+func (this *Deribit) ParseBalance(balance any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": balance,
 	}
@@ -1527,7 +1527,7 @@ func (this *Deribit) ParseBalance(balance any) any {
 			result[*currencyCode] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -4624,7 +4624,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optio
 	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(rates, symbol, sinceResolved, limit)}
 	return nil
 }
-func (this *Deribit) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Deribit) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	//   {
 	//       "jsonrpc":"2.0",
@@ -6699,7 +6699,7 @@ func (this *Deribit) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 func (this *Deribit) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Deribit) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Deribit) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Deribit) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

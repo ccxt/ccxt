@@ -214,7 +214,7 @@ func (this *Paymium) Describe() any {
 		},
 	})
 }
-func (this *Paymium) ParseBalance(response any) any {
+func (this *Paymium) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -232,7 +232,7 @@ func (this *Paymium) ParseBalance(response any) any {
 			result[code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -638,7 +638,7 @@ func (this *Paymium) fetchDepositAddressesBody(ch chan AsyncResult[any], optiona
 	ch <- AsyncResult[any]{Value: this.ParseDepositAddresses(response, codes, false)}
 	return nil
 }
-func (this *Paymium) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Paymium) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -1526,7 +1526,7 @@ func (this *Paymium) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Paymium) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Paymium) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Paymium) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Paymium) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

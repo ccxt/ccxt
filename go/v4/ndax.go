@@ -1709,7 +1709,7 @@ func (this *Ndax) fetchAccountsBody(ch chan AsyncResult[any], optionalArgs ...an
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Ndax) ParseBalance(response any) any {
+func (this *Ndax) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
@@ -1728,7 +1728,7 @@ func (this *Ndax) ParseBalance(response any) any {
 			}
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -3052,7 +3052,7 @@ func (this *Ndax) fetchDepositAddressBody(ch chan AsyncResult[any], code string,
 	ch <- AsyncResult[any]{Value: this.ParseDepositAddress(response, currency)}
 	return nil
 }
-func (this *Ndax) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Ndax) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDepositAddress, createDepositAddress
 	//
@@ -4584,7 +4584,7 @@ func (this *Ndax) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks
 func (this *Ndax) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Ndax) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Ndax) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Ndax) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

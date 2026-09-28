@@ -351,7 +351,7 @@ func (this *Coincheck) Describe() any {
 		},
 	})
 }
-func (this *Coincheck) ParseBalance(response any) any {
+func (this *Coincheck) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -368,7 +368,7 @@ func (this *Coincheck) ParseBalance(response any) any {
 			result[code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -2037,7 +2037,7 @@ func (this *Coincheck) FetchOrderStatus(id string, options ...FetchOrderStatusOp
 func (this *Coincheck) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Coincheck) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Coincheck) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Coincheck) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

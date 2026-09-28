@@ -1575,7 +1575,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan AsyncResult[any], option
 	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)}
 	return nil
 }
-func (this *Blofin) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Blofin) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "fundingRate": "0.00027815",
@@ -1677,7 +1677,7 @@ func (this *Blofin) ParseBalanceByType(response any) any {
 		return this.ParseBalance(response)
 	}
 }
-func (this *Blofin) ParseBalance(response any) any {
+func (this *Blofin) ParseBalance(response any) map[string]any {
 	//
 	// "data" similar for REST & WS
 	//
@@ -1735,7 +1735,7 @@ func (this *Blofin) ParseBalance(response any) any {
 	}
 	result["timestamp"] = timestamp
 	result["datetime"] = this.Iso8601(timestamp)
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 func (this *Blofin) ParseFundingBalance(response any) any {
 	//
@@ -1772,7 +1772,7 @@ func (this *Blofin) ParseFundingBalance(response any) any {
 	}
 	return this.SafeBalance(result)
 }
-func (this *Blofin) ParseTradingFee(fee map[string]any, optionalArgs ...any) any {
+func (this *Blofin) ParseTradingFee(fee map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return map[string]any{
@@ -3382,7 +3382,7 @@ func (this *Blofin) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ..
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var result any = this.ParsePositions(data)
 
-	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)}
+	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbolsNormalized)}
 	return nil
 }
 
@@ -3400,12 +3400,12 @@ func (this *Blofin) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Blofin) FetchPositionsHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Blofin) FetchPositionsHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchPositionsHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Blofin) fetchPositionsHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Blofin) fetchPositionsHistoryBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -3480,7 +3480,7 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan AsyncResult[any], optional
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var positions any = this.ParsePositions(data, symbols, paramsUntil)
 
-	ch <- AsyncResult[any]{Value: this.FilterBySinceLimit(positions, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.FilterBySinceLimit(positions, since, limit)}
 	return nil
 }
 func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
@@ -3788,7 +3788,7 @@ func (this *Blofin) fetchLeverageBody(ch chan AsyncResult[any], symbol any, opti
 	ch <- AsyncResult[any]{Value: this.ParseLeverage(data, market)}
 	return nil
 }
-func (this *Blofin) ParseLeverage(leverage any, optionalArgs ...any) any {
+func (this *Blofin) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "instId")
@@ -5581,7 +5581,7 @@ func (this *Blofin) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Blofin) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Blofin) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Blofin) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Blofin) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

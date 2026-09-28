@@ -854,7 +854,7 @@ func (this *Bitbank) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(ohlcv, market, timeframe, sinceResolved, limitResolved)}
 	return nil
 }
-func (this *Bitbank) ParseBalance(response any) any {
+func (this *Bitbank) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
@@ -874,7 +874,7 @@ func (this *Bitbank) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -2263,7 +2263,7 @@ func (this *Bitbank) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Bitbank) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bitbank) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bitbank) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bitbank) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

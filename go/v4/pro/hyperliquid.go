@@ -86,12 +86,12 @@ func (this *Hyperliquid) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CreateOrdersWsAsync(orders any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hyperliquid) CreateOrdersWsAsync(orders any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
+	ch := make(chan ccxt.AsyncResult[[]any], 1)
 	go this.createOrdersWsBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) createOrdersWsBody(ch chan ccxt.AsyncResult[any], orders any, optionalArgs ...any) any {
+func (this *Hyperliquid) createOrdersWsBody(ch chan ccxt.AsyncResult[[]any], orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -118,7 +118,7 @@ func (this *Hyperliquid) createOrdersWsBody(ch chan ccxt.AsyncResult[any], order
 	var data map[string]any = ccxt.SafeMapTyped(responseOjb, "data")
 	var statuses any = this.SafeList(data, "statuses", []any{})
 
-	ch <- ccxt.AsyncResult[any]{Value: this.ParseOrders(statuses, nil)}
+	ch <- ccxt.AsyncResult[[]any]{Value: this.ParseOrders(statuses, nil)}
 	return nil
 }
 
@@ -169,7 +169,7 @@ func (this *Hyperliquid) createOrderWsBody(ch chan ccxt.AsyncResult[any], symbol
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var orders []any = ccxt.ListTyped(r1.Value)
+	var orders []any = r1.Value
 	var ordersLength int = len(orders)
 	if ordersLength == 0 {
 

@@ -681,7 +681,7 @@ func (this *Mercado) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 	ch <- AsyncResult[any]{Value: this.ParseTrades(response, market, since, limit)}
 	return nil
 }
-func (this *Mercado) ParseBalance(response any) any {
+func (this *Mercado) ParseBalance(response any) map[string]any {
 	var data map[string]any = SafeMapTyped(response, "response_data")
 	var balances map[string]any = SafeMapTyped(data, "balance")
 	var result map[string]any = map[string]any{
@@ -707,7 +707,7 @@ func (this *Mercado) ParseBalance(response any) any {
 			}
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -2104,7 +2104,7 @@ func (this *Mercado) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Mercado) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Mercado) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Mercado) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Mercado) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

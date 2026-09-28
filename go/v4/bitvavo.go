@@ -570,7 +570,7 @@ func (this *Bitvavo) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseMarkets(response)}
 	return nil
 }
-func (this *Bitvavo) ParseMarkets(markets any) any {
+func (this *Bitvavo) ParseMarkets(markets any) []any {
 	var result []any = []any{}
 	var fees any = this.Fees
 	for i := 0; i < GetArrayLength(markets); i++ {
@@ -1281,7 +1281,7 @@ func (this *Bitvavo) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string
 	ch <- AsyncResult[any]{Value: this.ParseTradingFee(response, market)}
 	return nil
 }
-func (this *Bitvavo) ParseTradingFee(fee any, optionalArgs ...any) any {
+func (this *Bitvavo) ParseTradingFee(fee any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return map[string]any{
@@ -1481,7 +1481,7 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)}
 	return nil
 }
-func (this *Bitvavo) ParseBalance(response any) any {
+func (this *Bitvavo) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
@@ -1498,7 +1498,7 @@ func (this *Bitvavo) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -4617,7 +4617,7 @@ func (this *Bitvavo) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Bitvavo) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bitvavo) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Bitvavo) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bitvavo) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

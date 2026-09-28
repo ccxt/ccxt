@@ -672,7 +672,7 @@ func (this *Gemini) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes44715 map[string]any = MapTyped(r.Value)
+	var retRes44715 map[string]any = r.Value
 	if retRes44715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -689,12 +689,12 @@ func (this *Gemini) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs .
  * @param {object} [params] extra parameters specific to the endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Gemini) FetchCurrenciesFromWebAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Gemini) FetchCurrenciesFromWebAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchCurrenciesFromWebBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Gemini) fetchCurrenciesFromWebBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Gemini) fetchCurrenciesFromWebBody(ch chan AsyncResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -707,7 +707,7 @@ func (this *Gemini) fetchCurrenciesFromWebBody(ch chan AsyncResult[any], optiona
 	data := r.Value
 	if IsEqual(data, nil) {
 
-		ch <- AsyncResult[any]{Value: map[string]any{}}
+		ch <- AsyncResult[map[string]any]{Value: map[string]any{}}
 		return nil
 	}
 	//
@@ -733,7 +733,7 @@ func (this *Gemini) fetchCurrenciesFromWebBody(ch chan AsyncResult[any], optiona
 	this.Options.Store("tradingPairs", this.SafeList(data, "tradingPairs"))
 	var currenciesArray []any = SafeListTypedDefault(data, "currencies", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseCurrencies(currenciesArray)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(currenciesArray)}
 	return nil
 }
 func (this *Gemini) ParseCurrency(rawCurrency any) map[string]any {
@@ -1881,7 +1881,7 @@ func (this *Gemini) fetchTradesBody(ch chan AsyncResult[any], symbol any, option
 	ch <- AsyncResult[any]{Value: this.ParseTrades(response, market, since, limit)}
 	return nil
 }
-func (this *Gemini) ParseBalance(response any) any {
+func (this *Gemini) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -1896,7 +1896,7 @@ func (this *Gemini) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -2781,7 +2781,7 @@ func (this *Gemini) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Gemini) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Gemini) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	//
 	//      {
 	//          "address": "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
@@ -4014,7 +4014,7 @@ func (this *Gemini) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Gemini) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Gemini) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Gemini) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Gemini) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

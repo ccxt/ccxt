@@ -2429,7 +2429,7 @@ func (this *Alpaca) fetchDepositAddressBody(ch chan AsyncResult[any], code strin
 	ch <- AsyncResult[any]{Value: this.ParseDepositAddress(response, currency)}
 	return nil
 }
-func (this *Alpaca) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Alpaca) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
@@ -2988,7 +2988,7 @@ func (this *Alpaca) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...a
 	ch <- AsyncResult[any]{Value: this.ParseBalance(response)}
 	return nil
 }
-func (this *Alpaca) ParseBalance(response any) any {
+func (this *Alpaca) ParseBalance(response any) map[string]any {
 	//
 	// crypto holdings live on the positions endpoint, the account endpoint carries only the cash currency
 	//
@@ -3069,7 +3069,7 @@ func (this *Alpaca) ParseBalance(response any) any {
 			result[*positionCode] = positionAccount
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 func (this *Alpaca) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
@@ -4070,7 +4070,7 @@ func (this *Alpaca) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Alpaca) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Alpaca) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Alpaca) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Alpaca) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

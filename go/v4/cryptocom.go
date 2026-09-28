@@ -1738,7 +1738,7 @@ func (this *Cryptocom) fetchOrderBookBody(ch chan AsyncResult[any], symbol strin
 	ch <- AsyncResult[any]{Value: this.ParseOrderBook(orderBook, symbol, timestamp)}
 	return nil
 }
-func (this *Cryptocom) ParseBalance(response any) any {
+func (this *Cryptocom) ParseBalance(response any) map[string]any {
 	var responseResult map[string]any = SafeMapTyped(response, "result")
 	var data []any = SafeListTyped(responseResult, "data")
 	var positionBalances []any = SafeListTyped(func() any {
@@ -1761,7 +1761,7 @@ func (this *Cryptocom) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -2575,12 +2575,12 @@ func (this *Cryptocom) cancelOrdersBody(ch chan AsyncResult[any], ids any, optio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cryptocom) CancelOrdersForSymbolsAsync(orders any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Cryptocom) CancelOrdersForSymbolsAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.cancelOrdersForSymbolsBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Cryptocom) cancelOrdersForSymbolsBody(ch chan AsyncResult[any], orders any, optionalArgs ...any) any {
+func (this *Cryptocom) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]any], orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2616,7 +2616,7 @@ func (this *Cryptocom) cancelOrdersForSymbolsBody(ch chan AsyncResult[any], orde
 	response := r1.Value
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(result, nil, nil, nil, params)}
+	ch <- AsyncResult[[]any]{Value: this.ParseOrders(result, nil, nil, nil, params)}
 	return nil
 }
 
@@ -4023,12 +4023,12 @@ func (this *Cryptocom) ParseAccount(account any) any {
  * @param {int} [params.type] 'future', 'option'
  * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
-func (this *Cryptocom) FetchSettlementHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Cryptocom) FetchSettlementHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchSettlementHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Cryptocom) fetchSettlementHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Cryptocom) fetchSettlementHistoryBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4090,7 +4090,7 @@ func (this *Cryptocom) fetchSettlementHistoryBody(ch chan AsyncResult[any], opti
 	var settlements any = this.ParseSettlements(data, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
 
-	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)}
 	return nil
 }
 func (this *Cryptocom) ParseSettlement(settlement any, optionalArgs ...any) map[string]any {
@@ -4203,7 +4203,7 @@ func (this *Cryptocom) fetchFundingRateBody(ch chan AsyncResult[any], symbol str
 	ch <- AsyncResult[any]{Value: this.ParseFundingRate(entry, market)}
 	return nil
 }
-func (this *Cryptocom) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Cryptocom) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	//                 {
 	//                     "v": "-0.000001884",
@@ -4518,7 +4518,7 @@ func (this *Cryptocom) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs
 		result = append(result, this.ParsePosition(entry, marketInner))
 	}
 
-	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", nil, false)}
+	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", nil)}
 	return nil
 }
 func (this *Cryptocom) ParsePosition(position any, optionalArgs ...any) any {
@@ -4827,7 +4827,7 @@ func (this *Cryptocom) ParseTradingFees(response map[string]any) any {
 	}
 	return result
 }
-func (this *Cryptocom) ParseTradingFee(fee any, optionalArgs ...any) any {
+func (this *Cryptocom) ParseTradingFee(fee any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//      "instrument_name": "BTC_USD",
@@ -6024,7 +6024,7 @@ func (this *Cryptocom) FetchOrderStatus(id string, options ...FetchOrderStatusOp
 func (this *Cryptocom) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Cryptocom) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Cryptocom) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Cryptocom) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

@@ -693,12 +693,12 @@ func (this *Lbank) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...an
 	ch <- AsyncResult[any]{Value: this.ArrayConcat(GetValue(resolvedMarkets, 0), GetValue(resolvedMarkets, 1))}
 	return nil
 }
-func (this *Lbank) FetchSpotMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Lbank) FetchSpotMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchSpotMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchSpotMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Lbank) fetchSpotMarketsBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -804,15 +804,15 @@ func (this *Lbank) fetchSpotMarketsBody(ch chan AsyncResult[any], optionalArgs .
 		})
 	}
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[[]any]{Value: result}
 	return nil
 }
-func (this *Lbank) FetchSwapMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Lbank) FetchSwapMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchSwapMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchSwapMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Lbank) fetchSwapMarketsBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -925,7 +925,7 @@ func (this *Lbank) fetchSwapMarketsBody(ch chan AsyncResult[any], optionalArgs .
 		})
 	}
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[[]any]{Value: result}
 	return nil
 }
 func (this *Lbank) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
@@ -1609,7 +1609,7 @@ func (this *Lbank) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optio
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(ohlcvs, market, timeframe, sinceResolved, limitResolved)}
 	return nil
 }
-func (this *Lbank) ParseBalance(response any) any {
+func (this *Lbank) ParseBalance(response any) map[string]any {
 	//
 	// spotPrivatePostUserInfo
 	//
@@ -1716,7 +1716,7 @@ func (this *Lbank) ParseBalance(response any) any {
 				result[*code] = account
 			}
 		}
-		return this.SafeBalance(result)
+		return this.SafeBalance(result).(map[string]any)
 	}
 	// from spotPrivatePostSupplementUserInfoAccount
 	var balances []any = SafeListTyped(data, "balances")
@@ -1732,7 +1732,7 @@ func (this *Lbank) ParseBalance(response any) any {
 				AddElementToObject(result, codeInner, account)
 			}
 		}
-		return this.SafeBalance(result)
+		return this.SafeBalance(result).(map[string]any)
 	}
 	// from spotPrivatePostSupplementUserInfo
 	var isArray bool = false
@@ -1748,11 +1748,11 @@ func (this *Lbank) ParseBalance(response any) any {
 				AddElementToObject(result, codeInner, account)
 			}
 		}
-		return this.SafeBalance(result)
+		return this.SafeBalance(result).(map[string]any)
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
-func (this *Lbank) ParseFundingRate(ticker any, optionalArgs ...any) any {
+func (this *Lbank) ParseFundingRate(ticker any, optionalArgs ...any) map[string]any {
 	// {
 	//     "symbol": "BTCUSDT",
 	//     "highestPrice": "69495.5",
@@ -2004,7 +2004,7 @@ func (this *Lbank) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...an
 	ch <- AsyncResult[any]{Value: balanceResult}
 	return nil
 }
-func (this *Lbank) ParseTradingFee(fee any, optionalArgs ...any) any {
+func (this *Lbank) ParseTradingFee(fee any, optionalArgs ...any) map[string]any {
 	//
 	//      {
 	//          "symbol":"skt_usdt",
@@ -3850,7 +3850,7 @@ func (this *Lbank) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], option
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
-			response = r2.Value
+			response = BoxAbsent(r2.Value)
 		}
 	} else {
 
@@ -3864,12 +3864,12 @@ func (this *Lbank) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], option
 	ch <- AsyncResult[any]{Value: response}
 	return nil
 }
-func (this *Lbank) FetchPrivateDepositWithdrawFeesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Lbank) FetchPrivateDepositWithdrawFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchPrivateDepositWithdrawFeesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchPrivateDepositWithdrawFeesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Lbank) fetchPrivateDepositWithdrawFeesBody(ch chan AsyncResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// complete response
@@ -3923,7 +3923,7 @@ func (this *Lbank) fetchPrivateDepositWithdrawFeesBody(ch chan AsyncResult[any],
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseDepositWithdrawFees(data, codes, "coin")}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseDepositWithdrawFees(data, codes, "coin")}
 	return nil
 }
 func (this *Lbank) FetchPublicDepositWithdrawFeesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
@@ -5367,7 +5367,7 @@ func (this *Lbank) FetchOrderStatus(id string, options ...FetchOrderStatusOption
 func (this *Lbank) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Lbank) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Lbank) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Lbank) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

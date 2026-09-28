@@ -1027,7 +1027,7 @@ func (this *Paradex) ParseMarket(market any) any {
 		"info":    market,
 	})
 }
-func (this *Paradex) ParseTradingFee(fee any, optionalArgs ...any) any {
+func (this *Paradex) ParseTradingFee(fee any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol": "BTC-USD-PERP",
@@ -1585,7 +1585,7 @@ func (this *Paradex) fetchFundingRateBody(ch chan AsyncResult[any], symbol strin
 	ch <- AsyncResult[any]{Value: rate}
 	return nil
 }
-func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol": "BTC-USD-PERP",
@@ -3452,7 +3452,7 @@ func (this *Paradex) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseBalance(data)}
 	return nil
 }
-func (this *Paradex) ParseBalance(response any) any {
+func (this *Paradex) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -3466,7 +3466,7 @@ func (this *Paradex) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -4463,7 +4463,7 @@ func (this *Paradex) fetchLeverageBody(ch chan AsyncResult[any], symbol any, opt
 	ch <- AsyncResult[any]{Value: this.ParseLeverage(this.SafeDict(configs, 0), market)}
 	return nil
 }
-func (this *Paradex) ParseLeverage(leverage any, optionalArgs ...any) any {
+func (this *Paradex) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "market")
@@ -6315,7 +6315,7 @@ func (this *Paradex) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Paradex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Paradex) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Paradex) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Paradex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

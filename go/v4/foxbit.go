@@ -1143,7 +1143,7 @@ func (this *Foxbit) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes88415 []any = ListTyped(r.Value)
+	var retRes88415 []any = r.Value
 	if retRes88415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -1184,7 +1184,7 @@ func (this *Foxbit) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes89915 []any = ListTyped(r.Value)
+	var retRes89915 []any = r.Value
 	if retRes89915 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -1192,12 +1192,12 @@ func (this *Foxbit) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs
 	}
 	return nil
 }
-func (this *Foxbit) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Foxbit) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Foxbit) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Foxbit) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1213,20 +1213,20 @@ func (this *Foxbit) fetchCanceledOrdersBody(ch chan AsyncResult[any], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes90315 []any = ListTyped(r.Value)
+	var retRes90315 []any = r.Value
 	if retRes90315 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes90315}
+		ch <- AsyncResult[[]any]{Value: retRes90315}
 	}
 	return nil
 }
-func (this *Foxbit) FetchOrdersByStatusAsync(status any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Foxbit) FetchOrdersByStatusAsync(status any, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchOrdersByStatusBody(ch, status, optionalArgs...)
 	return ch
 }
-func (this *Foxbit) fetchOrdersByStatusBody(ch chan AsyncResult[any], status any, optionalArgs ...any) any {
+func (this *Foxbit) fetchOrdersByStatusBody(ch chan AsyncResult[[]any], status any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1269,7 +1269,7 @@ func (this *Foxbit) fetchOrdersByStatusBody(ch chan AsyncResult[any], status any
 	var response map[string]any = r1.Value
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(data)}
+	ch <- AsyncResult[[]any]{Value: this.ParseOrders(data)}
 	return nil
 }
 
@@ -2422,7 +2422,7 @@ func (this *Foxbit) ParseMarket(market any) any {
 		"info": market,
 	})
 }
-func (this *Foxbit) ParseTradingFee(entry any, optionalArgs ...any) any {
+func (this *Foxbit) ParseTradingFee(entry any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return map[string]any{
@@ -2575,7 +2575,7 @@ func (this *Foxbit) ParseOrder(order any, optionalArgs ...any) map[string]any {
 		},
 	})
 }
-func (this *Foxbit) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Foxbit) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var network map[string]any = SafeMapTyped(depositAddress, "network")
@@ -3765,7 +3765,7 @@ func (this *Foxbit) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Foxbit) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Foxbit) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Foxbit) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Foxbit) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

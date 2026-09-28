@@ -2041,7 +2041,7 @@ func (this *Delta) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optio
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(result, market, timeframe, since, limitValue)}
 	return nil
 }
-func (this *Delta) ParseBalance(response any) any {
+func (this *Delta) ParseBalance(response any) map[string]any {
 	var balances []any = SafeListTyped(response, "result")
 	var result map[string]any = map[string]any{
 		"info": response,
@@ -2062,7 +2062,7 @@ func (this *Delta) ParseBalance(response any) any {
 		account["free"] = this.SafeString(balance, "available_balance")
 		AddElementToObject(result, code, account)
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -2867,7 +2867,7 @@ func (this *Delta) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes233515 []any = ListTyped(r.Value)
+	var retRes233515 []any = r.Value
 	if retRes233515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -2908,7 +2908,7 @@ func (this *Delta) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes235015 []any = ListTyped(r.Value)
+	var retRes235015 []any = r.Value
 	if retRes235015 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
@@ -2916,12 +2916,12 @@ func (this *Delta) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	}
 	return nil
 }
-func (this *Delta) FetchOrdersWithMethodAsync(method string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Delta) FetchOrdersWithMethodAsync(method string, optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchOrdersWithMethodBody(ch, method, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchOrdersWithMethodBody(ch chan AsyncResult[any], method string, optionalArgs ...any) any {
+func (this *Delta) fetchOrdersWithMethodBody(ch chan AsyncResult[[]any], method string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2990,7 +2990,7 @@ func (this *Delta) fetchOrdersWithMethodBody(ch chan AsyncResult[any], method st
 	//
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(result, market, since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.ParseOrders(result, market, since, limit)}
 	return nil
 }
 
@@ -3310,7 +3310,7 @@ func (this *Delta) fetchDepositAddressBody(ch chan AsyncResult[any], code string
 	ch <- AsyncResult[any]{Value: this.ParseDepositAddress(result, currency)}
 	return nil
 }
-func (this *Delta) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
+func (this *Delta) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "id": 1915615,
@@ -3517,7 +3517,7 @@ func (this *Delta) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs 
 	ch <- AsyncResult[any]{Value: this.ParseFundingRates(rates, symbolsNormalized)}
 	return nil
 }
-func (this *Delta) ParseFundingRate(contract any, optionalArgs ...any) any {
+func (this *Delta) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "close": 30600.5,
@@ -3967,7 +3967,7 @@ func (this *Delta) fetchLeverageBody(ch chan AsyncResult[any], symbol any, optio
 	ch <- AsyncResult[any]{Value: this.ParseLeverage(result, market)}
 	return nil
 }
-func (this *Delta) ParseLeverage(leverage any, optionalArgs ...any) any {
+func (this *Delta) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "index_symbol")
@@ -4047,12 +4047,12 @@ func (this *Delta) setLeverageBody(ch chan AsyncResult[any], leverage int64, opt
  * @param {object} [params] exchange specific params
  * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
-func (this *Delta) FetchSettlementHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Delta) FetchSettlementHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchSettlementHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchSettlementHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Delta) fetchSettlementHistoryBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4146,7 +4146,7 @@ func (this *Delta) fetchSettlementHistoryBody(ch chan AsyncResult[any], optional
 	var settlements any = this.ParseSettlements(result, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
 
-	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)}
+	ch <- AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)}
 	return nil
 }
 func (this *Delta) ParseSettlement(settlement any, market any) map[string]any {
@@ -4406,12 +4406,12 @@ func (this *Delta) ParseGreeks(greeks any, optionalArgs ...any) any {
  * @param {int} [params.user_id] the users id
  * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Delta) CloseAllPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Delta) CloseAllPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.closeAllPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Delta) closeAllPositionsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Delta) closeAllPositionsBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4436,7 +4436,7 @@ func (this *Delta) closeAllPositionsBody(ch chan AsyncResult[any], optionalArgs 
 	//
 	var position map[string]any = MapTyped(this.ParsePosition(this.SafeDict(response, "result", map[string]any{})))
 
-	ch <- AsyncResult[any]{Value: []any{position}}
+	ch <- AsyncResult[[]any]{Value: []any{position}}
 	return nil
 }
 
@@ -6302,7 +6302,7 @@ func (this *Delta) FetchOrderStatus(id string, options ...FetchOrderStatusOption
 func (this *Delta) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Delta) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Delta) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Delta) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {

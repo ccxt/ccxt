@@ -599,7 +599,7 @@ func (this *Coinmate) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Coinmate) ParseBalance(response any) any {
+func (this *Coinmate) ParseBalance(response any) map[string]any {
 	var balances map[string]any = SafeMapTyped(response, "data")
 	var result map[string]any = map[string]any{
 		"info": response,
@@ -623,7 +623,7 @@ func (this *Coinmate) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -2605,7 +2605,7 @@ func (this *Coinmate) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 func (this *Coinmate) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Coinmate) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Coinmate) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Coinmate) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

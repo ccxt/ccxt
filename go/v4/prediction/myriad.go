@@ -2773,12 +2773,12 @@ func (this *Myriad) fetchClosedOrdersBody(ch chan ccxt.AsyncResult[any], optiona
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Myriad) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Myriad) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
+	ch := make(chan ccxt.AsyncResult[[]any], 1)
 	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Myriad) fetchCanceledOrdersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Myriad) fetchCanceledOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2799,9 +2799,9 @@ func (this *Myriad) fetchCanceledOrdersBody(ch chan ccxt.AsyncResult[any], optio
 	}
 	var retRes189215 []any = ccxt.ListTyped(r.Value)
 	if retRes189215 == nil {
-		ch <- ccxt.AsyncResult[any]{Value: nil}
+		ch <- ccxt.AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[any]{Value: retRes189215}
+		ch <- ccxt.AsyncResult[[]any]{Value: retRes189215}
 	}
 	return nil
 }
@@ -6901,7 +6901,7 @@ func (this *Myriad) FetchOrderTrades(id string, params map[string]any, options .
 	var res []ccxt.PredictionTrade = ccxt.NewPredictionTradeArray(r.Value)
 	return res, nil
 }
-func (this *Myriad) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Myriad) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Myriad) FetchPosition(outcome string, params map[string]any) (ccxt.PredictionPosition, error) {

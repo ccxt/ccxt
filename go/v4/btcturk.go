@@ -450,7 +450,7 @@ func (this *Btcturk) ParseMarket(entry any) any {
 		"info":    entry,
 	})
 }
-func (this *Btcturk) ParseBalance(response any) any {
+func (this *Btcturk) ParseBalance(response any) map[string]any {
 	var data []any = SafeListTyped(response, "data")
 	var result map[string]any = map[string]any{
 		"info":      response,
@@ -469,7 +469,7 @@ func (this *Btcturk) ParseBalance(response any) any {
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -986,7 +986,7 @@ func (this *Btcturk) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(response, market, timeframe, since, limitResolved)}
 	return nil
 }
-func (this *Btcturk) ParseOHLCVs(ohlcvs any, optionalArgs ...any) any {
+func (this *Btcturk) ParseOHLCVs(ohlcvs any, optionalArgs ...any) []any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timeframe string = GetArgString(optionalArgs, 1, "1m")
@@ -2073,7 +2073,7 @@ func (this *Btcturk) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Btcturk) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Btcturk) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Btcturk) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Btcturk) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {

@@ -2243,7 +2243,7 @@ func (this *Kalshi) fetchBalanceBody(ch chan ccxt.AsyncResult[any], optionalArgs
  * @param {object} response the raw balance response
  * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
  */
-func (this *Kalshi) ParseBalance(response any) any {
+func (this *Kalshi) ParseBalance(response any) map[string]any {
 	// Kalshi balance in cents → divide by 100
 	var result map[string]any = map[string]any{
 		"info": response,
@@ -2258,7 +2258,7 @@ func (this *Kalshi) ParseBalance(response any) any {
 		"used":  0,
 		"total": total,
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -2353,12 +2353,12 @@ func (this *Kalshi) fetchPositionsBody(ch chan ccxt.AsyncResult[any], optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of prediction settlement structures
  */
-func (this *Kalshi) FetchSettlementsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Kalshi) FetchSettlementsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
+	ch := make(chan ccxt.AsyncResult[[]any], 1)
 	go this.fetchSettlementsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Kalshi) fetchSettlementsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Kalshi) fetchSettlementsBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2414,7 +2414,7 @@ func (this *Kalshi) fetchSettlementsBody(ch chan ccxt.AsyncResult[any], optional
 		}
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySinceLimit(result, since, limit, "timestamp")}
+	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySinceLimit(result, since, limit, "timestamp")}
 	return nil
 }
 
@@ -4824,7 +4824,7 @@ func (this *Kalshi) FetchOrderTrades(id string, params map[string]any, options .
 	var res []ccxt.PredictionTrade = ccxt.NewPredictionTradeArray(r.Value)
 	return res, nil
 }
-func (this *Kalshi) FetchPaymentMethods(params ...any) (map[string]any, error) {
+func (this *Kalshi) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Kalshi) FetchPosition(outcome string, params map[string]any) (ccxt.PredictionPosition, error) {
