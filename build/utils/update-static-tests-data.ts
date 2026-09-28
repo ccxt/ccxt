@@ -77,9 +77,9 @@ function add_static_result (requestOrResponse, exchangeId, method, entry, spaces
     const filePath = rootDir + `/ts/src/test/static/${requestOrResponse}/${subFolder}${exchangeId}.json`;
     let defaultStructure;
     if (isPrediction) {
-        defaultStructure = {"exchange":exchangeId, "asyncOnly": true, "skipKeys": [], "outputType": "json", "options": {"loadAllOutcomes": true}, "methods": {}};
+        defaultStructure = {"exchange":exchangeId, "asyncOnly": true, "skipKeys": [], "skipValues": [], "outputType": "json", "options": {"loadAllOutcomes": true}, "methods": {}};
     } else {
-        defaultStructure = {"exchange":exchangeId, "skipKeys": [], "options": {}, "methods": {}};
+        defaultStructure = {"exchange":exchangeId, "skipKeys": [], "skipValues": [], "options": {}, "methods": {}};
         if (requestOrResponse === 'request') {
             (defaultStructure as any).outputType = 'both';
         }
