@@ -516,12 +516,12 @@ func Print(v ...interface{}) {
 	fmt.Println(v...)
 }
 
-func ReturnPanicError(ch chan ccxt.AsyncResult[any]) {
+func ReturnPanicError[T any](ch chan ccxt.AsyncResult[T]) {
 	// recover() only stops a panic when called directly by the deferred function,
 	// so this cannot delegate to ccxt.ReturnPanicError
 	if r := recover(); r != nil {
 		if r != "break" {
-			ch <- ccxt.AsyncResult[any]{Err: ccxt.RecoveredError(r)}
+			ch <- ccxt.AsyncResult[T]{Err: ccxt.RecoveredError(r)}
 		}
 	}
 }
