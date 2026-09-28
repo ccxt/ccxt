@@ -931,6 +931,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
         const symbols: Dict = {};
         const cachedOrders = this.orders;
+        const snapshotIds: Dict = {};
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const parsed = this.parseWsOrder (order);
@@ -938,7 +939,36 @@ export default class krakenfutures extends krakenfuturesRest {
             if (symbol !== undefined) {
                 symbols[symbol] = true;
             }
+            const parsedId = this.safeString (parsed, 'id');
+            if (parsedId !== undefined) {
+                snapshotIds[parsedId] = true;
+            }
             cachedOrders.append (parsed);
+        }
+        // reconcile the reused cache with the snapshot: the snapshot lists every
+        // currently open order, so an order cached as open but missing from it is
+        // no longer open on the venue - it filled or was cancelled while we were
+        // disconnected. the snapshot does not say which, so mark it canceled
+        // instead of leaving it open in the cache forever
+        const cachedSymbols = Object.keys (cachedOrders.hashmap);
+        for (let i = 0; i < cachedSymbols.length; i++) {
+            const cachedSymbol = cachedSymbols[i];
+            const ordersById = this.safeDict (cachedOrders.hashmap, cachedSymbol, {});
+            const cachedIds = Object.keys (ordersById);
+            for (let j = 0; j < cachedIds.length; j++) {
+                const cachedId = cachedIds[j];
+                if (!(cachedId in snapshotIds)) {
+                    const cachedOrder = this.safeDict (ordersById, cachedId, {});
+                    if (this.safeString (cachedOrder, 'status') === 'open') {
+                        cachedOrder['status'] = 'canceled';
+                        // write the updated order back through append: the cache
+                        // rows are copies in the value-type runtimes (php), and
+                        // append also feeds the newUpdates accounting
+                        cachedOrders.append (cachedOrder);
+                        symbols[cachedSymbol] = true;
+                    }
+                }
+            }
         }
         const length = this.orders.length;
         if (length > 0) {
