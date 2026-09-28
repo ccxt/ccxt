@@ -333,8 +333,8 @@ public partial class upbit : ccxt.upbit
         //   "change_price": 27000,
         //   "sequential_id": 1584508285000002,
         //   "stream_type": "REALTIME" }
-        Dictionary<string, object> trade = this.parseTrade(message);
-        string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
+        ccxt.Trade trade = this.parseTrade(message);
+        string? symbol = trade.symbol;
         if ((symbol == null))
         {
             return;
@@ -346,7 +346,7 @@ public partial class upbit : ccxt.upbit
             stored = new ArrayCache(limit);
             this.trades[(string)symbol] = stored;
         }
-        stored.append(trade);
+        stored.append(ccxt.BaseExchange.FromTrade(trade));
         string messageHash = ("trade:" + symbol);
         client.resolve(stored, messageHash);
     }
@@ -536,7 +536,7 @@ public partial class upbit : ccxt.upbit
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // {
@@ -610,7 +610,7 @@ public partial class upbit : ccxt.upbit
         });
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         // see: parseWsOrder
         string? side = this.safeStringLower(trade, "ask_bid");
@@ -670,17 +670,17 @@ public partial class upbit : ccxt.upbit
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCacheBySymbolById(limit);
         }
-        Dictionary<string, object> trade = this.parseWsTrade(message);
-        myTrades.append(trade);
+        ccxt.Trade trade = this.parseWsTrade(message);
+        myTrades.append(ccxt.BaseExchange.FromTrade(trade));
         string messageHash = "myTrades";
         client.resolve(myTrades, messageHash);
-        messageHash = ("myTrades:" + ((trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null)));
+        messageHash = ("myTrades:" + ((((object)trade.symbol))));
         client.resolve(myTrades, messageHash);
     }
 
     public virtual void handleOrder(WebSocketClient client, IDictionary<string, object> message)
     {
-        Dictionary<string, object> parsed = this.parseWsOrder(message);
+        Dictionary<string, object> parsed = ccxt.BaseExchange.FromOrder(this.parseWsOrder(message));
         string? symbol = this.safeString(parsed, "symbol");
         string? orderId = this.safeString(parsed, "id");
         if ((this.orders == null))

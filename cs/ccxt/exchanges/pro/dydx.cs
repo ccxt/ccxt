@@ -131,7 +131,7 @@ public partial class dydx : ccxt.dydx
             stored = new ArrayCache(limit);
             this.trades[(string)symbol] = stored;
         }
-        IList<object> parsedTrades = this.parseTrades(rawTrades, market);
+        IList<object> parsedTrades = ccxt.BaseExchange.FromTradeList(this.parseTrades(rawTrades, market));
         for (int i = 0; i < (parsedTrades?.Count ?? 0); i++)
         {
             object parsed = parsedTrades[i];
@@ -141,7 +141,7 @@ public partial class dydx : ccxt.dydx
         client.resolve(stored, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         // {

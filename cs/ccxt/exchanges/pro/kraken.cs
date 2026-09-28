@@ -398,9 +398,9 @@ public partial class kraken : ccxt.kraken
         //     }
         //
         IDictionary<string, object> result = this.safeDict(message, "result", new Dictionary<string, object>() {});
-        Dictionary<string, object> order = this.parseOrder(result);
+        ccxt.Order order = this.parseOrder(result);
         string? messageHash = this.safeString2(message, "reqid", "req_id");
-        client.resolve(order, messageHash);
+        client.resolve(ccxt.BaseExchange.FromOrder(order), messageHash);
     }
 
     /**
@@ -666,7 +666,7 @@ public partial class kraken : ccxt.kraken
             this.trades[symbol] = stored;
         }
         Dictionary<string, object> market = this.market(symbol);
-        IList<object> parsed = this.parseTrades(data, market);
+        IList<object> parsed = ccxt.BaseExchange.FromTradeList(this.parseTrades(data, market));
         for (int i = 0; i < (parsed?.Count ?? 0); i++)
         {
             stored.append(parsed[i]);
@@ -1384,9 +1384,9 @@ public partial class kraken : ccxt.kraken
             for (int i = 0; i < (allTrades?.Count ?? 0); i++)
             {
                 IDictionary<string, object> trade = this.safeDict(allTrades, i, new Dictionary<string, object>() {});
-                Dictionary<string, object> parsed = this.parseWsTrade(trade);
-                stored.append(parsed);
-                string symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+                ccxt.Trade parsed = this.parseWsTrade(trade);
+                stored.append(ccxt.BaseExchange.FromTrade(parsed));
+                string symbol = parsed.symbol;
                 symbols[(string)symbol] = true;
             }
             string name = "myTrades";
@@ -1400,7 +1400,7 @@ public partial class kraken : ccxt.kraken
         }
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         //     {
@@ -1448,7 +1448,7 @@ public partial class kraken : ccxt.kraken
         {
             takerOrMaker = "taker";
         }
-        return new Dictionary<string, object>() {
+        return new ccxt.Trade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString(trade, "exec_id") },
             { "order", this.safeString(trade, "order_id") },
@@ -1462,7 +1462,7 @@ public partial class kraken : ccxt.kraken
             { "amount", this.safeNumber(trade, "last_qty") },
             { "cost", this.safeNumber(trade, "cost") },
             { "fee", fee },
-        };
+        });
     }
 
     /**
@@ -1526,15 +1526,15 @@ public partial class kraken : ccxt.kraken
             {
                 IDictionary<string, object> order = this.safeDict(allOrders, i, new Dictionary<string, object>() {});
                 string? id = this.safeString(order, "order_id");
-                Dictionary<string, object> parsed = this.parseWsOrder(order);
+                ccxt.Order parsed = this.parseWsOrder(order);
                 string? symbol = this.safeString(order, "symbol");
                 IDictionary<string, object> previousOrders = this.safeDict((stored as ArrayCache).hashmap, symbol);
                 IDictionary<string, object> previousOrder = this.safeDict(previousOrders, id);
-                Dictionary<string, object> newOrder = parsed;
+                Dictionary<string, object> newOrder = ccxt.BaseExchange.FromOrder(parsed);
                 if ((previousOrder != null))
                 {
                     Dictionary<string, object> newRawOrder = this.extend(GetValue(previousOrder, "info"), GetValue(newOrder, "info"));
-                    newOrder = this.parseWsOrder(newRawOrder);
+                    newOrder = ccxt.BaseExchange.FromOrder(this.parseWsOrder(newRawOrder));
                 }
                 int length = (stored?.Count ?? 0);
                 if ((length == limit) && ((previousOrder == null)))
@@ -1563,7 +1563,7 @@ public partial class kraken : ccxt.kraken
         }
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // watchOrders

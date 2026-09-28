@@ -303,14 +303,14 @@ public partial class bitvavo : ccxt.bitvavo
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string name = "trades";
         string messageHash = ((name + "@") + marketId);
-        Dictionary<string, object> trade = this.parseTrade(message, market);
+        ccxt.Trade trade = this.parseTrade(message, market);
         ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((tradesArray == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(limit);
         }
-        tradesArray.append(trade);
+        tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
         this.trades[(string)symbol] = tradesArray;
         client.resolve(tradesArray, messageHash);
     }
@@ -948,9 +948,9 @@ public partial class bitvavo : ccxt.bitvavo
             // the market was unsubscribed while this snapshot request was in flight
             return;
         }
-        Dictionary<string, object> snapshot = this.parseOrderBook(response, symbol);
-        snapshot["nonce"] = this.safeInteger(response, "nonce");
-        (orderbook as IOrderBook).reset(snapshot);
+        ccxt.OrderBook snapshot = this.parseOrderBook(response, symbol);
+        snapshot.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(response, "nonce"));
+        (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         // unroll the accumulated deltas
         IList<object> messages = (orderbook as ccxt.pro.OrderBook).cache;
         for (int i = 0; i < (messages?.Count ?? 0); i++)
@@ -1290,7 +1290,7 @@ public partial class bitvavo : ccxt.bitvavo
         List<object> response = this.safeList(message, "response");
         // const firstRawOrder = this.safeValue (response, 0, {});
         // const marketId = this.safeString (firstRawOrder, 'market');
-        IList<object> orders = this.parseOrders(response);
+        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(response));
         // let messageHash = this.buildMessageHash (action, { 'market': marketId });
         // client.resolve (orders, messageHash);
         // messageHash = this.buildMessageHash (action, message);
@@ -1457,7 +1457,7 @@ public partial class bitvavo : ccxt.bitvavo
         // const action = this.safeString (message, 'action');
         List<object> response = this.safeList(message, "response");
         // const marketId = this.safeString (firstRawTrade, 'market');
-        IList<object> trades = this.parseTrades((IList<object>)(response), null, null, null);
+        IList<object> trades = ccxt.BaseExchange.FromTradeList(this.parseTrades((IList<object>)(response), null, null, null));
         // const messageHash = this.buildMessageHash (action, { 'market': marketId });
         string? messageHash = this.safeString(message, "requestId");
         client.resolve(trades, messageHash);
@@ -1806,9 +1806,9 @@ public partial class bitvavo : ccxt.bitvavo
         //    }
         //
         IDictionary<string, object> response = this.safeDict(message, "response", new Dictionary<string, object>() {});
-        Dictionary<string, object> order = this.parseOrder(response);
+        ccxt.Order order = this.parseOrder(response);
         string? messageHash = this.safeString(message, "requestId");
-        client.resolve(order, messageHash);
+        client.resolve(ccxt.BaseExchange.FromOrder(order), messageHash);
     }
 
     public virtual void handleMarkets(WebSocketClient client, Dictionary<string, object> message)
@@ -1902,14 +1902,14 @@ public partial class bitvavo : ccxt.bitvavo
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("order:" + symbol);
-        Dictionary<string, object> order = this.parseOrder(message, market);
+        ccxt.Order order = this.parseOrder(message, market);
         if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache orders = this.orders;
-        orders.append(order);
+        orders.append(ccxt.BaseExchange.FromOrder(order));
         client.resolve(this.orders, messageHash);
     }
 
@@ -1934,14 +1934,14 @@ public partial class bitvavo : ccxt.bitvavo
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("myTrades:" + symbol);
-        Dictionary<string, object> trade = this.parseTrade(message, market);
+        ccxt.Trade trade = this.parseTrade(message, market);
         if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache(limit);
         }
         ccxt.pro.ArrayCache tradesArray = this.myTrades;
-        tradesArray.append(trade);
+        tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
         client.resolve(tradesArray, messageHash);
     }
 

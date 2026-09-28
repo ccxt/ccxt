@@ -479,7 +479,7 @@ public partial class bitbns : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(response, "timestamp");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp));
+        return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp);
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -675,7 +675,7 @@ public partial class bitbns : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -832,7 +832,7 @@ public partial class bitbns : Exchange
         //     }
         //
         Dictionary<string, object> parsed = ((response == null)) ? new Dictionary<string, object>() {} : response;
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(parsed, market));
+        return this.parseOrder(parsed, market);
     }
 
     /**
@@ -872,7 +872,7 @@ public partial class bitbns : Exchange
         request["side"] = quoteSide;
         response = await this.v2PostCancel(this.extend(request, paramsOmitted));
         Dictionary<string, object> parsed = ((response == null)) ? new Dictionary<string, object>() {} : response;
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(parsed, market));
+        return this.parseOrder(parsed, market);
     }
 
     /**
@@ -934,7 +934,7 @@ public partial class bitbns : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(first, market));
+        return this.parseOrder(first, market);
     }
 
     /**
@@ -996,10 +996,10 @@ public partial class bitbns : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+        return this.parseOrders(data, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchMyTrades
@@ -1160,7 +1160,7 @@ public partial class bitbns : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
+        return this.parseTrades(data, market, since, limit);
     }
 
     /**
@@ -1197,7 +1197,7 @@ public partial class bitbns : Exchange
         //         {"tradeId":"1909155","price":"61853.1100","quote_volume":2304.37,"base_volume":0.03716263,"timestamp":1634549670000,"type":"sell"}
         //     }
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**

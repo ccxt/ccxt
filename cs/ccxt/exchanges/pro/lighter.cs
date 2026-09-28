@@ -195,9 +195,9 @@ public partial class lighter : ccxt.lighter
         string? type = this.safeString(message, "type", "");
         if (type == "subscribed/order_book")
         {
-            Dictionary<string, object> parsed = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
-            parsed["nonce"] = this.safeInteger(data, "offset");
-            (orderbook as IOrderBook).reset(parsed);
+            ccxt.OrderBook parsed = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
+            parsed.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(data, "offset"));
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(parsed));
         } else if (type == "update/order_book")
         {
             this.handleOrderBookMessage(client, message, orderbook);
@@ -543,7 +543,7 @@ public partial class lighter : ccxt.lighter
         return await this.unWatchTickers(symbols, parameters);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         //     {
@@ -661,8 +661,8 @@ public partial class lighter : ccxt.lighter
         for (Int64 i = 0; i < dataLength; i++)
         {
             Int64 iReversed = ((dataLength - 1) - i);
-            Dictionary<string, object> trade = this.parseWsTrade(getValue(data, iReversed), market);
-            stored.append(trade);
+            ccxt.Trade trade = this.parseWsTrade(getValue(data, iReversed), market);
+            stored.append(ccxt.BaseExchange.FromTrade(trade));
         }
         string? messageHash = this.getMessageHash("trade", symbol);
         client.resolve(stored, messageHash);
@@ -801,7 +801,7 @@ public partial class lighter : ccxt.lighter
                 { "rate", feeRate },
             };
         }
-        return this.safeTrade(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", tradeId },
             { "order", order },
@@ -815,7 +815,7 @@ public partial class lighter : ccxt.lighter
             { "amount", amountString },
             { "cost", costString },
             { "fee", fee },
-        }, market);
+        }, market));
     }
 
     public virtual bool handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -1378,7 +1378,7 @@ public partial class lighter : ccxt.lighter
             { "id", requestId },
         };
         object rawMessage = await this.watch(url, messageHash, message, messageHash, subscription);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(this.deepExtend(rawMessage, order), market));
+        return this.parseOrder(this.deepExtend(rawMessage, order), market);
     }
 
     /**
@@ -1416,7 +1416,7 @@ public partial class lighter : ccxt.lighter
             { "id", requestId },
         };
         object rawMessage = await this.watch(url, messageHash, message, messageHash, subscription);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(rawMessage, market));
+        return this.parseOrder(rawMessage, market);
     }
 
     /**
@@ -1452,7 +1452,7 @@ public partial class lighter : ccxt.lighter
             { "id", requestId },
         };
         object rawMessage = await this.watch(url, messageHash, message, messageHash, subscription);
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(new List<object>() {rawMessage}));
+        return this.parseOrders(new List<object>() {rawMessage});
     }
 
     public virtual void handleWsSendtxApi(WebSocketClient client, Dictionary<string, object> message)
@@ -1506,9 +1506,9 @@ public partial class lighter : ccxt.lighter
             List<object> orders = this.safeList(data, marketId, new List<object>() {});
             for (int j = 0; j < orders.Count; j++)
             {
-                Dictionary<string, object> order = this.parseOrder(orders[j], market);
-                stored.append(order);
-                string? symbol = ((string)(order != null && order.ContainsKey("symbol") ? order["symbol"] : null));
+                ccxt.Order order = this.parseOrder(orders[j], market);
+                stored.append(ccxt.BaseExchange.FromOrder(order));
+                string? symbol = order.symbol;
                 if ((symbol != null))
                 {
                     string? symbolSpecificMessageHash = this.getMessageHash("orders", symbol);

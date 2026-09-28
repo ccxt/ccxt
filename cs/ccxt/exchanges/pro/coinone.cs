@@ -337,8 +337,8 @@ public partial class coinone : ccxt.coinone
         //     }
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        Dictionary<string, object> trade = this.parseWsTrade(data);
-        string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
+        ccxt.Trade trade = this.parseWsTrade(data);
+        string? symbol = trade.symbol;
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
@@ -346,12 +346,12 @@ public partial class coinone : ccxt.coinone
             stored = new ArrayCache(limit);
             this.trades[(string)symbol] = stored;
         }
-        stored.append(trade);
+        stored.append(ccxt.BaseExchange.FromTrade(trade));
         string messageHash = ("trade:" + symbol);
         client.resolve(stored, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         //     {

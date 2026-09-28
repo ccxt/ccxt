@@ -494,8 +494,8 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         string? marketId = this.safeString(message, "product_id");
         if ((marketId != null))
         {
-            Dictionary<string, object> trade = this.parseWsTrade(message);
-            string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
+            ccxt.Trade trade = this.parseWsTrade(message);
+            string? symbol = trade.symbol;
             // the exchange sends type = 'match'
             // but requires 'matches' upon subscribing
             // therefore we resolve 'matches' here instead of 'match'
@@ -511,7 +511,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                     this.trades[(string)symbol] = tradesArray;
                 }
             }
-            tradesArray.append(trade);
+            tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
             client.resolve(tradesArray, messageHash);
         }
         return message;
@@ -522,7 +522,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         string? marketId = this.safeString(message, "product_id");
         if ((marketId != null))
         {
-            Dictionary<string, object> trade = this.parseWsTrade(message);
+            ccxt.Trade trade = this.parseWsTrade(message);
             string type = "myTrades";
             string messageHash = ((type + ":") + marketId);
             ccxt.pro.ArrayCache tradesArray = this.myTrades;
@@ -532,13 +532,13 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                 tradesArray = new ArrayCacheBySymbolById(limit);
                 this.myTrades = tradesArray;
             }
-            tradesArray.append(trade);
+            tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
             client.resolve(tradesArray, messageHash);
         }
         return message;
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         // private trades
@@ -590,7 +590,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         //     "side": "buy",
         //     "order_type": "limit"
         // }
-        Dictionary<string, object> parsed = base.parseTrade(trade);
+        Dictionary<string, object> parsed = ccxt.BaseExchange.FromTrade(base.parseTrade(trade));
         string? feeRate = null;
         bool isMaker = false;
         if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("maker_fee_rate")))
@@ -629,7 +629,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             { "cost", this.parseNumber(feeCost) },
             { "currency", feeCurrency },
         };
-        return parsed;
+        return new ccxt.Trade(parsed);
     }
 
     public virtual string? parseWsOrderStatus(string? status)
@@ -750,8 +750,8 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             }
             if ((previousOrder == null))
             {
-                Dictionary<string, object> parsed = this.parseWsOrder(message);
-                orders.append(parsed);
+                ccxt.Order parsed = this.parseWsOrder(message);
+                orders.append(ccxt.BaseExchange.FromOrder(parsed));
                 client.resolve(orders, messageHash);
             } else
             {
@@ -766,13 +766,13 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                 {
                     if (type == "match")
                     {
-                        Dictionary<string, object> trade = this.parseWsTrade(message);
+                        ccxt.Trade trade = this.parseWsTrade(message);
                         if (isEqual(GetValue(previousOrder, "trades"), null))
                         {
                             previousOrder["trades"] = new List<object>() {};
                         }
-                        ((IList<object>)GetValue(previousOrder, "trades")).Add(trade);
-                        previousOrder["lastTradeTimestamp"] = (trade != null && trade.ContainsKey("timestamp") ? trade["timestamp"] : null);
+                        ((IList<object>)GetValue(previousOrder, "trades")).Add(ccxt.BaseExchange.FromTrade(trade));
+                        previousOrder["lastTradeTimestamp"] = (((object)trade.timestamp));
                         string? totalCost = "0";
                         string? totalAmount = "0";
                         object trades = GetValue(previousOrder, "trades");
@@ -790,7 +790,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         string? previousOrderFilled = this.safeString(previousOrder, "filled");
                         if ((previousOrderFilled != null))
                         {
-                            previousOrder["filled"] = this.parseNumber(Precise.stringAdd(previousOrderFilled, this.safeString(trade, "amount")));
+                            previousOrder["filled"] = this.parseNumber(Precise.stringAdd(previousOrderFilled, this.safeString(ccxt.BaseExchange.FromTrade(trade), "amount")));
                             if (!isEqual(GetValue(previousOrder, "amount"), null))
                             {
                                 previousOrder["remaining"] = this.parseNumber(Precise.stringSub(this.safeString(previousOrder, "amount"), this.safeString(previousOrder, "filled")));
@@ -800,14 +800,14 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         {
                             previousOrder["fee"] = new Dictionary<string, object>() {
                                 { "cost", 0 },
-                                { "currency", this.safeString((trade != null && trade.ContainsKey("fee") ? trade["fee"] : null), "currency") },
+                                { "currency", this.safeString((ccxt.BaseExchange.FromFee((object)trade.fee)), "currency") },
                             };
                         }
-                        if ((!isEqual(getValue(GetValue(previousOrder, "fee"), "cost"), null)) && (!isEqual(this.safeNumber((trade != null && trade.ContainsKey("fee") ? trade["fee"] : null), "cost"), null)))
+                        if ((!isEqual(getValue(GetValue(previousOrder, "fee"), "cost"), null)) && (!isEqual(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost"), null)))
                         {
-                            ((IDictionary<string,object>)GetValue(previousOrder, "fee"))["cost"] = this.sum(getValue(GetValue(previousOrder, "fee"), "cost"), this.safeNumber((trade != null && trade.ContainsKey("fee") ? trade["fee"] : null), "cost"));
+                            ((IDictionary<string,object>)GetValue(previousOrder, "fee"))["cost"] = this.sum(getValue(GetValue(previousOrder, "fee"), "cost"), this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost"));
                             IDictionary<string, object> previousOrderFee = this.safeDict(previousOrder, "fee");
-                            IDictionary<string, object> tradeFee = this.safeDict(trade, "fee");
+                            IDictionary<string, object> tradeFee = this.safeDict(ccxt.BaseExchange.FromTrade(trade), "fee");
                             ((IDictionary<string,object>)GetValue(previousOrder, "fee"))["cost"] = this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(tradeFee, "cost")));
                         }
                         // update the newUpdates count
@@ -816,7 +816,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                     } else if ((type == "received") || (type == "done"))
                     {
                         Dictionary<string, object> info = this.extend(GetValue(previousOrder, "info"), message);
-                        Dictionary<string, object> order = this.parseWsOrder(info);
+                        Dictionary<string, object> order = ccxt.BaseExchange.FromOrder(this.parseWsOrder(info));
                         List<object> keys = new List<object>(order.Keys);
                         // update the reference
                         for (int i = 0; i < keys.Count; i++)
@@ -840,7 +840,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         }
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         string? id = this.safeString(order, "order_id");
         string? clientOrderId = this.safeString(order, "client_oid");

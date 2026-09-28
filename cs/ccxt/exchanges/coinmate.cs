@@ -624,7 +624,7 @@ public partial class coinmate : Exchange
         Dictionary<string, object> response = await this.publicGetOrderBook(this.extend(request, parameters));
         IDictionary<string, object> orderbook = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeTimestamp(orderbook, "timestamp");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", "price", "amount"));
+        return this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", "price", "amount");
     }
 
     /**
@@ -1020,10 +1020,10 @@ public partial class coinmate : Exchange
         }
         Dictionary<string, object> response = await this.privatePostTradeHistory(this.extend(request, parameters));
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, null, since, limitResolved));
+        return this.parseTrades(data, null, since, limitResolved);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchMyTrades (private)
@@ -1130,7 +1130,7 @@ public partial class coinmate : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
+        return this.parseTrades(data, market, since, limit);
     }
 
     /**
@@ -1188,7 +1188,7 @@ public partial class coinmate : Exchange
             { "status", "open" },
         };
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, null, since, limit, extension));
+        return this.parseOrders(data, null, since, limit, extension);
     }
 
     /**
@@ -1224,7 +1224,7 @@ public partial class coinmate : Exchange
         }
         Dictionary<string, object> response = await this.privatePostOrderHistory(this.extend(request, parameters));
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+        return this.parseOrders(data, market, since, limit);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -1247,7 +1247,7 @@ public partial class coinmate : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // limit sell
@@ -1398,7 +1398,7 @@ public partial class coinmate : Exchange
             throw new InvalidOrder (((this.id + " createOrder() does not support order type ") + type)) ;
         }
         string? id = this.safeString(response, "data");
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", id },         }, market));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", id },         }, market);
     }
 
     /**
@@ -1429,7 +1429,7 @@ public partial class coinmate : Exchange
         }
         Dictionary<string, object> response = await this.privatePostOrderById(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data");
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -1461,7 +1461,7 @@ public partial class coinmate : Exchange
         //    }
         //
         IDictionary<string, object> data = this.safeDict(response, "data");
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data));
+        return this.parseOrder(data);
     }
 
     public override Int64 nonce()

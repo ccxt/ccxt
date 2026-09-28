@@ -1895,7 +1895,7 @@ public partial class deribit : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, sinceResolved, limitResolved));
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -2063,7 +2063,7 @@ public partial class deribit : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> trades = this.safeList(result, "trades", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
+        return this.parseTrades(trades, market, since, limit);
     }
 
     /**
@@ -2266,9 +2266,9 @@ public partial class deribit : Exchange
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(result, "timestamp");
         Int64? nonce = this.safeInteger(result, "change_id");
-        Dictionary<string, object> orderbook = this.parseOrderBook(result, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp);
-        orderbook["nonce"] = nonce;
-        return ccxt.BaseExchange.ToOrderBook(orderbook);
+        ccxt.OrderBook orderbook = this.parseOrderBook(result, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp);
+        orderbook.nonce = ccxt.BaseExchange.StructInt64(nonce);
+        return orderbook;
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -2304,7 +2304,7 @@ public partial class deribit : Exchange
         return this.safeString(orderTypes, orderType, orderType);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -2463,7 +2463,7 @@ public partial class deribit : Exchange
         //     }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(result, market));
+        return this.parseOrder(result, market);
     }
 
     /**
@@ -2650,7 +2650,7 @@ public partial class deribit : Exchange
         object order = this.safeValue(result, "order");
         List<object> trades = this.safeList(result, "trades", new List<object>() {});
         ((IDictionary<string,object>)order)["trades"] = trades;
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
+        return this.parseOrder(order, market);
     }
 
     /**
@@ -2703,7 +2703,7 @@ public partial class deribit : Exchange
         object order = this.safeValue(result, "order");
         List<object> trades = this.safeList(result, "trades", new List<object>() {});
         ((IDictionary<string,object>)order)["trades"] = trades;
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(order));
+        return this.parseOrder(order);
     }
 
     /**
@@ -2728,7 +2728,7 @@ public partial class deribit : Exchange
         };
         Dictionary<string, object> response = await this.privateGetCancel(this.extend(request, parameters));
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(result));
+        return this.parseOrder(result);
     }
 
     /**
@@ -2769,7 +2769,7 @@ public partial class deribit : Exchange
         //        testnet: true
         //    }
         //
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
     }
 
     /**
@@ -2807,7 +2807,7 @@ public partial class deribit : Exchange
             response = await this.privateGetGetOpenOrdersByInstrument(this.extend(request, parameters));
         }
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, market, since, limit));
+        return this.parseOrders(result, market, since, limit);
     }
 
     /**
@@ -2852,7 +2852,7 @@ public partial class deribit : Exchange
             response = await this.privateGetGetOrderHistoryByInstrument(this.extend(request, parameters));
         }
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, market, since, limit));
+        return this.parseOrders(result, market, since, limit);
     }
 
     /**
@@ -2912,7 +2912,7 @@ public partial class deribit : Exchange
         //     }
         //
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(result, null, since, limit));
+        return this.parseTrades(result, null, since, limit);
     }
 
     /**
@@ -3006,7 +3006,7 @@ public partial class deribit : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> trades = this.safeList(result, "trades", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
+        return this.parseTrades(trades, market, since, limit);
     }
 
     /**

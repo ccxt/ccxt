@@ -854,7 +854,7 @@ public partial class bitso : Exchange
         Dictionary<string, object> response = await this.publicGetOrderBook(this.extend(request, parameters));
         IDictionary<string, object> orderbook = this.safeDict(response, "payload");
         Int64? timestamp = this.parse8601(this.safeString(orderbook, "updated_at"));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", "price", "amount"));
+        return this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", "price", "amount");
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -1027,7 +1027,7 @@ public partial class bitso : Exchange
         return new List<object> {this.safeInteger(ohlcv, "bucket_start_time"), this.safeNumber(ohlcv, "first_rate"), this.safeNumber(ohlcv, "max_rate"), this.safeNumber(ohlcv, "min_rate"), this.safeNumber(ohlcv, "last_rate"), this.safeNumber(ohlcv, "volume")};
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1167,7 +1167,7 @@ public partial class bitso : Exchange
         };
         Dictionary<string, object> response = await this.publicGetTrades(this.extend(request, parameters));
         List<object> payload = this.safeList(response, "payload", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(payload, market, since, limit));
+        return this.parseTrades(payload, market, since, limit);
     }
 
     /**
@@ -1294,7 +1294,7 @@ public partial class bitso : Exchange
         };
         Dictionary<string, object> response = await this.privateGetUserTrades(this.extend(request, paramsMarker));
         List<object> payload = this.safeList(response, "payload", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(payload, market, since, limitVar));
+        return this.parseTrades(payload, market, since, limitVar);
     }
 
     /**
@@ -1331,7 +1331,7 @@ public partial class bitso : Exchange
         Dictionary<string, object> response = await this.privatePostOrders(this.extend(request, parameters));
         IDictionary<string, object> payload = this.safeDict(response, "payload", new Dictionary<string, object>() {});
         string? id = this.safeString(payload, "oid");
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", id },         }, market));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", id },         }, market);
     }
 
     /**
@@ -1363,7 +1363,7 @@ public partial class bitso : Exchange
         //
         List<object> payload = this.safeList(response, "payload", new List<object>() {});
         string? orderId = this.safeString(payload, 0);
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", orderId },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", orderId },         });
     }
 
     /**
@@ -1404,7 +1404,7 @@ public partial class bitso : Exchange
         for (int i = 0; i < payload.Count; i++)
         {
             object id = payload[i];
-            orders.Add(this.parseOrder(id, market));
+            orders.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(id, market)));
         }
         return ccxt.BaseExchange.ToOrderList(orders);
     }
@@ -1436,8 +1436,8 @@ public partial class bitso : Exchange
         List<object> canceledOrders = new List<object>() {};
         for (int i = 0; i < payload.Count; i++)
         {
-            Dictionary<string, object> order = this.parseOrder(payload[i]);
-            canceledOrders.Add(order);
+            ccxt.Order order = this.parseOrder(payload[i]);
+            canceledOrders.Add(ccxt.BaseExchange.FromOrder(order));
         }
         return ccxt.BaseExchange.ToOrderList(canceledOrders);
     }
@@ -1453,7 +1453,7 @@ public partial class bitso : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //
@@ -1548,7 +1548,7 @@ public partial class bitso : Exchange
         };
         Dictionary<string, object> response = await this.privateGetOpenOrders(this.extend(request, paramsMarker));
         List<object> payload = this.safeList(response, "payload", new List<object>() {});
-        IList<object> orders = this.parseOrders(payload, market, since, limitVar);
+        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(payload, market, since, limitVar));
         return ccxt.BaseExchange.ToOrderList(orders);
     }
 
@@ -1578,7 +1578,7 @@ public partial class bitso : Exchange
             int numOrders = payload.Count;
             if ((numOrders == 1))
             {
-                return ccxt.BaseExchange.ToOrder(this.parseOrder((payload != null && 0 < payload.Count ? payload[0] : null)));
+                return this.parseOrder((payload != null && 0 < payload.Count ? payload[0] : null));
             }
         }
         throw new OrderNotFound ((((this.id + ": The order ") + id) + " not found.")) ;
@@ -1609,7 +1609,7 @@ public partial class bitso : Exchange
         };
         Dictionary<string, object> response = await this.privateGetOrderTradesOid(this.extend(request, parameters));
         List<object> payload = this.safeList(response, "payload", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(payload, market));
+        return this.parseTrades(payload, market);
     }
 
     /**

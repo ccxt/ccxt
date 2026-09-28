@@ -899,7 +899,7 @@ public partial class alpaca : Exchange
         {
             symbolTradesList = symbolTrades;
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(symbolTradesList, market, since, limit));
+        return this.parseTrades(symbolTradesList, market, since, limit);
     }
 
     /**
@@ -968,7 +968,7 @@ public partial class alpaca : Exchange
         IDictionary<string, object> orderbooks = this.safeDict(response, "orderbooks", new Dictionary<string, object>() {});
         IDictionary<string, object> rawOrderbook = this.safeDict(orderbooks, id, new Dictionary<string, object>() {});
         Int64? timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(rawOrderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "b", "a", "p", "s"));
+        return this.parseOrderBook(rawOrderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "b", "a", "p", "s");
     }
 
     /**
@@ -1465,7 +1465,7 @@ public partial class alpaca : Exchange
         //      "hwm": null
         //   }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
+        return this.parseOrder(order, market);
     }
 
     /**
@@ -1491,7 +1491,7 @@ public partial class alpaca : Exchange
         //       "message": "order is not found."
         //   }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -1513,10 +1513,10 @@ public partial class alpaca : Exchange
         List<object> response = await this.traderPrivateDeleteV2Orders(parameters);
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            return ccxt.BaseExchange.ToOrderList(this.parseOrders(response));
+            return this.parseOrders(response);
         } else
         {
-            return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
+            return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
         }
     }
 
@@ -1543,7 +1543,7 @@ public partial class alpaca : Exchange
         Dictionary<string, object> order = await this.traderPrivateGetV2OrdersOrderId(this.extend(request, parameters));
         string? marketId = this.safeString(order, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
+        return this.parseOrder(order, market);
     }
 
     /**
@@ -1636,7 +1636,7 @@ public partial class alpaca : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -1739,10 +1739,10 @@ public partial class alpaca : Exchange
         }
         request["client_order_id"] = this.generateClientOrderId(paramsTimeInForce);
         Dictionary<string, object> response = await this.traderPrivatePatchV2OrdersOrderId(this.extend(request, this.omit(paramsTimeInForce, new List<object>() {"clientOrderId"})));
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -1933,10 +1933,10 @@ public partial class alpaca : Exchange
         //         },
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades

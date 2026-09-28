@@ -277,7 +277,7 @@ public partial class toobit : ccxt.toobit
         client.resolve(stored, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         return this.parseTrade(trade, market);
     }
@@ -752,8 +752,8 @@ public partial class toobit : ccxt.toobit
             }
             ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
             Int64? timestamp = this.safeInteger(entry, "t");
-            Dictionary<string, object> snapshot = this.parseOrderBook(entry, symbol, timestamp, "b", "a");
-            (orderbook as IOrderBook).reset(snapshot);
+            ccxt.OrderBook snapshot = this.parseOrderBook(entry, symbol, timestamp, "b", "a");
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
             client.resolve(orderbook, messageHash);
         }
     }
@@ -988,15 +988,15 @@ public partial class toobit : ccxt.toobit
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache orders = this.orders;
-        Dictionary<string, object> order = this.parseWsOrder(message);
-        orders.append(order);
+        ccxt.Order order = this.parseWsOrder(message);
+        orders.append(ccxt.BaseExchange.FromOrder(order));
         string messageHash = "orders";
         client.resolve(orders, messageHash);
-        messageHash = ("orders:" + this.safeString(order, "symbol"));
+        messageHash = ("orders:" + order.symbol);
         client.resolve(orders, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeInteger(order, "O");
         string? marketId = this.safeString(order, "s");
@@ -1126,7 +1126,7 @@ public partial class toobit : ccxt.toobit
         {
             takerOrMaker = "maker";
         }
-        return this.safeTrade(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString(trade, "T") },
             { "timestamp", ts },
@@ -1140,7 +1140,7 @@ public partial class toobit : ccxt.toobit
             { "amount", this.safeString(trade, "q") },
             { "cost", null },
             { "fee", null },
-        }, market);
+        }, market));
     }
 
     /**

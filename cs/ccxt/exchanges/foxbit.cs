@@ -789,7 +789,7 @@ public partial class foxbit : Exchange
         //    ]
         //  }
         Int64? timestamp = this.safeInteger(response, "timestamp");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, symbol, timestamp));
+        return this.parseOrderBook(response, symbol, timestamp);
     }
 
     /**
@@ -833,7 +833,7 @@ public partial class foxbit : Exchange
         // ]
         Dictionary<string, object> response = await this.v3PublicGetMarketsMarketTradesHistory(this.extend(request, parameters));
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
+        return this.parseTrades(data, market, since, limit);
     }
 
     /**
@@ -1015,7 +1015,7 @@ public partial class foxbit : Exchange
         }
         Dictionary<string, object> response = await this.v3PrivateGetOrders(this.extend(request, parameters));
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data));
+        return this.parseOrders(data);
     }
 
     /**
@@ -1105,7 +1105,7 @@ public partial class foxbit : Exchange
         //     "sn": "OKMAKSDHRVVREK",
         //     "client_order_id": "451637946501"
         // }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -1205,7 +1205,7 @@ public partial class foxbit : Exchange
         //     ]
         // }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data));
+        return this.parseOrders(data);
     }
 
     /**
@@ -1240,7 +1240,7 @@ public partial class foxbit : Exchange
         // }
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> result = this.safeDict(data, 0, new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(result));
+        return this.parseOrder(result);
     }
 
     /**
@@ -1277,7 +1277,7 @@ public partial class foxbit : Exchange
         //         }
         //     ]
         // }
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
     }
 
     /**
@@ -1320,7 +1320,7 @@ public partial class foxbit : Exchange
         //     "remark": "A remarkable note for the order.",
         //     "funds_received": "290.0"
         // }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -1387,7 +1387,7 @@ public partial class foxbit : Exchange
         //     ]
         // }
         List<object> list = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(list, market, since, limit));
+        return this.parseOrders(list, market, since, limit);
     }
 
     /**
@@ -1444,7 +1444,7 @@ public partial class foxbit : Exchange
         //     ]
         // }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
+        return this.parseTrades(data, market, since, limit);
     }
 
     /**
@@ -1745,7 +1745,7 @@ public partial class foxbit : Exchange
         //     }
         // }
         IDictionary<string, object> created = this.safeDict(response, "create", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(created, market));
+        return this.parseOrder(created, market);
     }
 
     /**
@@ -1961,7 +1961,7 @@ public partial class foxbit : Exchange
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 6)};
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         Int64? timestamp = this.parseDate(this.safeString(trade, "created_at"));
         string? price = this.safeString(trade, "price");
@@ -2004,7 +2004,7 @@ public partial class foxbit : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         string? symbol = this.safeString(order, "market_symbol");
         object marketResolved = market;

@@ -1157,10 +1157,10 @@ public partial class mexc : ccxt.mexc
             Dictionary<string, object> parsedTrade = null;
             if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
             {
-                parsedTrade = this.parseWsTrade(trades[j], market);
+                parsedTrade = ccxt.BaseExchange.FromTrade(this.parseWsTrade(trades[j], market));
             } else
             {
-                parsedTrade = this.parseTrade(trades[j], market);
+                parsedTrade = ccxt.BaseExchange.FromTrade(this.parseTrade(trades[j], market));
             }
             stored.append(parsedTrade);
         }
@@ -1263,10 +1263,10 @@ public partial class mexc : ccxt.mexc
         Dictionary<string, object> trade = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            trade = this.parseWsTrade(data, market);
+            trade = ccxt.BaseExchange.FromTrade(this.parseWsTrade(data, market));
         } else if ((data != null))
         {
-            trade = this.parseTrade(data, market);
+            trade = ccxt.BaseExchange.FromTrade(this.parseTrade(data, market));
         } else
         {
             return;
@@ -1284,7 +1284,7 @@ public partial class mexc : ccxt.mexc
         client.resolve(trades, symbolSpecificMessageHash);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         // public trade (protobuf)
@@ -1508,7 +1508,7 @@ public partial class mexc : ccxt.mexc
         Dictionary<string, object> parsed = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            parsed = this.parseWsOrder(data, market);
+            parsed = ccxt.BaseExchange.FromOrder(this.parseWsOrder(data, market));
             Int64? sendTime = this.safeInteger(message, "sendTime");
             if ((sendTime != null))
             {
@@ -1516,7 +1516,7 @@ public partial class mexc : ccxt.mexc
             }
         } else if ((data != null))
         {
-            parsed = this.parseOrder(data, market);
+            parsed = ccxt.BaseExchange.FromOrder(this.parseOrder(data, market));
         } else
         {
             return;
@@ -1534,7 +1534,7 @@ public partial class mexc : ccxt.mexc
         client.resolve(orders, symbolSpecificMessageHash);
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // spot

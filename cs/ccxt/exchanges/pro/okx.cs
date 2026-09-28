@@ -375,14 +375,14 @@ public partial class okx : ccxt.okx
         Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         for (int i = 0; i < data.Count; i++)
         {
-            Dictionary<string, object> trade = this.parseTrade(data[i]);
+            ccxt.Trade trade = this.parseTrade(data[i]);
             ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
             if ((stored == null))
             {
                 stored = new ArrayCache(tradesLimit);
                 this.trades[(string)symbol] = stored;
             }
-            stored.append(trade);
+            stored.append(ccxt.BaseExchange.FromTrade(trade));
             if ((channel != null))
             {
                 string messageHash = ((channel + ":") + symbol);
@@ -1785,8 +1785,8 @@ public partial class okx : ccxt.okx
                 {
                     object update = data[i];
                     Int64? timestamp = this.safeInteger(update, "ts");
-                    Dictionary<string, object> snapshot = this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1);
-                    (orderbook as IOrderBook).reset(snapshot);
+                    ccxt.OrderBook snapshot = this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1);
+                    (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
                     client.resolve(orderbook, messageHash);
                 }
             }
@@ -1965,7 +1965,7 @@ public partial class okx : ccxt.okx
         Int64? timestamp = this.safeInteger(info, "fillTime");
         string? feeMarketId = this.safeString(info, "fillFeeCcy");
         bool isTaker = (this.safeString(info, "execType", "") == "T");
-        return this.safeTrade(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "info", info },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -1982,7 +1982,7 @@ public partial class okx : ccxt.okx
                 { "cost", this.safeNumber(info, "fillFee") },
                 { "currency", this.safeCurrencyCode(feeMarketId) },
             } },
-        }, market);
+        }, market));
     }
 
     /**
@@ -2370,7 +2370,7 @@ public partial class okx : ccxt.okx
             }
             object stored = (channel == "orders-algo") ? this.triggerOrders : this.orders;
             List<object> marketIds = new List<object>() {};
-            IList<object> parsed = this.parseOrders(orders);
+            IList<object> parsed = ccxt.BaseExchange.FromOrderList(this.parseOrders(orders));
             for (int i = 0; i < (parsed?.Count ?? 0); i++)
             {
                 IDictionary<string, object> order = ((IDictionary<string, object>)parsed[i]);
@@ -2458,8 +2458,8 @@ public partial class okx : ccxt.okx
             string? tradeId = this.safeString(rawOrder, "tradeId", "");
             if (tradeId.Length > 0)
             {
-                Dictionary<string, object> order = this.parseOrder(rawOrder);
-                filteredOrders.Add(order);
+                ccxt.Order order = this.parseOrder(rawOrder);
+                filteredOrders.Add(ccxt.BaseExchange.FromOrder(order));
             }
         }
         int tradesLength = (filteredOrders?.Count ?? 0);
@@ -2589,7 +2589,7 @@ public partial class okx : ccxt.okx
             string stringMsg = this.json(message);
             this.handleErrors(1, "",((string)client.url), method, new Dictionary<string, object>() {}, stringMsg, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
         }
-        IList<object> orders = this.parseOrders(args, null, null, null);
+        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(args, null, null, null));
         IDictionary<string, object> first = this.safeDict(orders, 0, new Dictionary<string, object>() {});
         client.resolve(first, messageHash);
     }

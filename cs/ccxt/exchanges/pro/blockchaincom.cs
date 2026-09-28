@@ -412,13 +412,13 @@ public partial class blockchaincom : ccxt.blockchaincom
             stored = new ArrayCache(limit);
             this.trades[(string)symbol] = stored;
         }
-        Dictionary<string, object> parsed = this.parseWsTrade(message, market);
-        stored.append(parsed);
+        ccxt.Trade parsed = this.parseWsTrade(message, market);
+        stored.append(ccxt.BaseExchange.FromTrade(parsed));
         this.trades[(string)symbol] = stored;
         client.resolve((this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null), messageHash);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         //     {
@@ -589,19 +589,19 @@ public partial class blockchaincom : ccxt.blockchaincom
             for (int i = 0; i < orders.Count; i++)
             {
                 IDictionary<string, object> order = ((IDictionary<string, object>)orders[i]);
-                Dictionary<string, object> parsedOrder = this.parseWsOrder(order);
-                cachedOrders.append(parsedOrder);
+                ccxt.Order parsedOrder = this.parseWsOrder(order);
+                cachedOrders.append(ccxt.BaseExchange.FromOrder(parsedOrder));
             }
         } else if (eventVar == "updated")
         {
-            Dictionary<string, object> parsedOrder = this.parseWsOrder(message);
+            Dictionary<string, object> parsedOrder = ccxt.BaseExchange.FromOrder(this.parseWsOrder(message));
             cachedOrders.append(parsedOrder);
         }
         this.orders = cachedOrders;
         client.resolve(this.orders, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -776,8 +776,8 @@ public partial class blockchaincom : ccxt.blockchaincom
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         if (eventVar == "snapshot")
         {
-            Dictionary<string, object> snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "px", "qty", "num");
-            (orderbook as IOrderBook).reset(snapshot);
+            ccxt.OrderBook snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "px", "qty", "num");
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         } else if (eventVar == "updated")
         {
             List<object> asks = this.safeList(message, "asks", new List<object>() {});

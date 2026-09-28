@@ -1601,10 +1601,10 @@ public partial class delta : Exchange
         //     }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(result, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "buy", "sell", "price", "size"));
+        return this.parseOrderBook(result, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "buy", "sell", "price", "size");
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // public fetchTrades
@@ -1746,7 +1746,7 @@ public partial class delta : Exchange
         //     }
         //
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(result, market, since, limit));
+        return this.parseTrades(result, market, since, limit);
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -2055,7 +2055,7 @@ public partial class delta : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
@@ -2268,7 +2268,7 @@ public partial class delta : Exchange
         //     }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(result, market));
+        return this.parseOrder(result, market);
     }
 
     /**
@@ -2326,7 +2326,7 @@ public partial class delta : Exchange
         //     }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(result, market));
+        return this.parseOrder(result, market);
     }
 
     /**
@@ -2390,7 +2390,7 @@ public partial class delta : Exchange
         //     }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(result, market));
+        return this.parseOrder(result, market);
     }
 
     /**
@@ -2421,7 +2421,7 @@ public partial class delta : Exchange
         //         "success":true
         //     }
         //
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
     }
 
     /**
@@ -2483,7 +2483,7 @@ public partial class delta : Exchange
         //     }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(result, market));
+        return this.parseOrder(result, market);
     }
 
     /**
@@ -2571,7 +2571,7 @@ public partial class delta : Exchange
         //     }
         //
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, market, since, limit));
+        return this.parseOrders(result, market, since, limit);
     }
 
     /**
@@ -2651,7 +2651,7 @@ public partial class delta : Exchange
         //     }
         //
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(result, market, since, limit));
+        return this.parseTrades(result, market, since, limit);
     }
 
     /**

@@ -1006,9 +1006,9 @@ public partial class bittrade : Exchange
             }
             IDictionary<string, object> tick = this.safeDict(response, "tick");
             Int64? timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
-            Dictionary<string, object> result = this.parseOrderBook(tick, symbol, timestamp);
-            result["nonce"] = this.safeInteger(tick, "version");
-            return ccxt.BaseExchange.ToOrderBook(result);
+            ccxt.OrderBook result = this.parseOrderBook(tick, symbol, timestamp);
+            result.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(tick, "version"));
+            return result;
         }
         throw new ExchangeError (((this.id + " fetchOrderBook() returned unrecognized response: ") + this.json(response))) ;
     }
@@ -1094,7 +1094,7 @@ public partial class bittrade : Exchange
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1205,7 +1205,7 @@ public partial class bittrade : Exchange
         };
         Dictionary<string, object> response = await this.privateGetOrderOrdersIdMatchresults(this.extend(request, parameters));
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, null, since, limit));
+        return this.parseTrades(data, null, since, limit);
     }
 
     /**
@@ -1242,7 +1242,7 @@ public partial class bittrade : Exchange
         }
         Dictionary<string, object> response = await this.privateGetOrderMatchresults(this.extend(request, parameters));
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
+        return this.parseTrades(data, market, since, limit);
     }
 
     /**
@@ -1304,8 +1304,8 @@ public partial class bittrade : Exchange
             List<object> trades = this.safeList(data[i], "data", new List<object>() {});
             for (int j = 0; j < trades.Count; j++)
             {
-                Dictionary<string, object> trade = this.parseTrade(trades[j], market);
-                result.Add(trade);
+                ccxt.Trade trade = this.parseTrade(trades[j], market);
+                result.Add(ccxt.BaseExchange.FromTrade(trade));
             }
         }
         result = this.sortBy(result, "timestamp");
@@ -1609,7 +1609,7 @@ public partial class bittrade : Exchange
         //                                 "state": "filled",
         //                         "canceled-at":  0                      }  ] }
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(GetValue(response, "data"), market, since, limit));
+        return this.parseOrders(GetValue(response, "data"), market, since, limit);
     }
 
     /**
@@ -1633,7 +1633,7 @@ public partial class bittrade : Exchange
         };
         Dictionary<string, object> response = await this.privateGetOrderOrdersId(this.extend(request, parameters));
         IDictionary<string, object> order = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(order));
+        return this.parseOrder(order);
     }
 
     /**
@@ -1760,7 +1760,7 @@ public partial class bittrade : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+        return this.parseOrders(data, market, since, limit);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -1775,7 +1775,7 @@ public partial class bittrade : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {                  id:  13997833014,
@@ -1983,7 +1983,7 @@ public partial class bittrade : Exchange
             throw new NotSupported ((((this.id + " createOrder() does not support the ") + method) + " method")) ;
         }
         string? id = this.safeString(response, "data");
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", id },             { "timestamp", null },             { "datetime", null },             { "lastTradeTimestamp", null },             { "status", null },             { "symbol", symbol },             { "type", type },             { "side", side },             { "price", price },             { "amount", amount },             { "filled", null },             { "remaining", null },             { "cost", null },             { "trades", null },             { "fee", null },             { "clientOrderId", null },             { "average", null },         }, market));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", id },             { "timestamp", null },             { "datetime", null },             { "lastTradeTimestamp", null },             { "status", null },             { "symbol", symbol },             { "type", type },             { "side", side },             { "price", price },             { "amount", amount },             { "filled", null },             { "remaining", null },             { "cost", null },             { "trades", null },             { "fee", null },             { "clientOrderId", null },             { "average", null },         }, market);
     }
 
     /**
@@ -2007,7 +2007,7 @@ public partial class bittrade : Exchange
         //         "data": "10138899000",
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.extend(this.parseOrder(response), new Dictionary<string, object>() {             { "id", id },             { "status", "canceled" },         }));
+        return ccxt.BaseExchange.ToOrder(this.extend(ccxt.BaseExchange.FromOrder(this.parseOrder(response)), new Dictionary<string, object>() {             { "id", id },             { "status", "canceled" },         }));
     }
 
     /**
@@ -2116,21 +2116,21 @@ public partial class bittrade : Exchange
         for (int i = 0; i < (success?.Count ?? 0); i++)
         {
             object order = success[i];
-            result.Add(this.safeOrder(new Dictionary<string, object>() {
+            result.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", order },
                 { "status", "canceled" },
-            }));
+            })));
         }
         for (int i = 0; i < failed.Count; i++)
         {
             object order = failed[i];
-            result.Add(this.safeOrder(new Dictionary<string, object>() {
+            result.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", this.safeString2(order, "order-id", "order_id") },
                 { "status", "failed" },
                 { "clientOrderId", this.safeString(order, "client-order-id") },
-            }));
+            })));
         }
         return result;
     }
@@ -2169,7 +2169,7 @@ public partial class bittrade : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", data }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", data }, }))});
     }
 
     public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)

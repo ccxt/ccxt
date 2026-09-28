@@ -1816,7 +1816,7 @@ public partial class whitebit : Exchange
                     {
                         string? marketId = this.safeString(order, "market");
                         Dictionary<string, object> marketNew = this.safeMarket(marketId, null, "_");
-                        return ccxt.BaseExchange.ToOrder(this.parseOrder(order, marketNew));
+                        return this.parseOrder(order, marketNew);
                     }
                 }
             } catch(Exception error)
@@ -1846,7 +1846,7 @@ public partial class whitebit : Exchange
                         string? orderId = this.safeString(order, "id");
                         if ((orderId == id))
                         {
-                            return ccxt.BaseExchange.ToOrder(this.parseOrder(order, marketNew));
+                            return this.parseOrder(order, marketNew);
                         }
                     }
                 }
@@ -2040,7 +2040,7 @@ public partial class whitebit : Exchange
         //      }
         //
         Int64? timestamp = this.safeTimestamp(response, "timestamp");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, symbol, timestamp));
+        return this.parseOrderBook(response, symbol, timestamp);
     }
 
     /**
@@ -2078,7 +2078,7 @@ public partial class whitebit : Exchange
         //          },
         //      ],
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**
@@ -2146,7 +2146,7 @@ public partial class whitebit : Exchange
         //
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+            return this.parseTrades(response, market, since, limit);
         } else
         {
             List<object> results = new List<object>() {};
@@ -2156,7 +2156,7 @@ public partial class whitebit : Exchange
                 string? marketId = ((string)keys[i]);
                 Dictionary<string, object> marketNew = this.safeMarket(marketId, null, "_");
                 List<object> rawTrades = this.safeList(response, marketId, new List<object>() {});
-                IList<object> parsed = this.parseTrades(rawTrades, marketNew, since, limit);
+                IList<object> parsed = ccxt.BaseExchange.FromTradeList(this.parseTrades(rawTrades, marketNew, since, limit));
                 results = this.arrayConcat(results, parsed);
             }
             results = this.sortBy2(results, "timestamp", "id");
@@ -2164,7 +2164,7 @@ public partial class whitebit : Exchange
         }
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTradesV4
@@ -2546,7 +2546,7 @@ public partial class whitebit : Exchange
                 }
             }
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -2625,7 +2625,7 @@ public partial class whitebit : Exchange
         }
         object paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "triggerPrice", "stopPrice", "activationPrice", "total"});
         Dictionary<string, object> response = await this.v4PrivatePostOrderModify(this.extend(request, paramsOmitted));
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -2674,7 +2674,7 @@ public partial class whitebit : Exchange
         //        "activation_price": "40000" // activation price if activation price is set
         //    }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -2732,7 +2732,7 @@ public partial class whitebit : Exchange
         //
         // []
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market));
+        return this.parseOrders(response, market);
     }
 
     /**
@@ -2965,7 +2965,7 @@ public partial class whitebit : Exchange
         //         },
         //     ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit, new Dictionary<string, object>() {             { "status", "open" },         }));
+        return this.parseOrders(response, market, since, limit, new Dictionary<string, object>() {             { "status", "open" },         });
     }
 
     /**
@@ -3025,8 +3025,8 @@ public partial class whitebit : Exchange
             List<object> orders = this.safeList(response, marketId, new List<object>() {});
             for (int j = 0; j < orders.Count; j++)
             {
-                Dictionary<string, object> order = this.parseOrder(orders[j], marketNew);
-                results.Add(this.extend(order, new Dictionary<string, object>() {
+                ccxt.Order order = this.parseOrder(orders[j], marketNew);
+                results.Add(this.extend(ccxt.BaseExchange.FromOrder(order), new Dictionary<string, object>() {
                     { "status", "closed" },
                 }));
             }
@@ -3050,7 +3050,7 @@ public partial class whitebit : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder, fetchOpenOrders, cancelOrder
@@ -3227,7 +3227,7 @@ public partial class whitebit : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "records", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market));
+        return this.parseTrades(data, market);
     }
 
     /**

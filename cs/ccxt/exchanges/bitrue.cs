@@ -1333,9 +1333,9 @@ public partial class bitrue : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger2(response, "time", "lastUpdateId");
-        Dictionary<string, object> orderbook = this.parseOrderBook(response, symbol, timestamp);
-        orderbook["nonce"] = this.safeInteger(response, "lastUpdateId");
-        return ccxt.BaseExchange.ToOrderBook(orderbook);
+        ccxt.OrderBook orderbook = this.parseOrderBook(response, symbol, timestamp);
+        orderbook.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(response, "lastUpdateId"));
+        return orderbook;
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -1814,7 +1814,7 @@ public partial class bitrue : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -1961,7 +1961,7 @@ public partial class bitrue : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -1980,7 +1980,7 @@ public partial class bitrue : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder - spot
@@ -2290,7 +2290,7 @@ public partial class bitrue : Exchange
         //         }
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -2398,7 +2398,7 @@ public partial class bitrue : Exchange
         //         }
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -2462,7 +2462,7 @@ public partial class bitrue : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -2558,7 +2558,7 @@ public partial class bitrue : Exchange
         //          ]
         //      }
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+        return this.parseOrders(data, market, since, limit);
     }
 
     /**
@@ -2643,7 +2643,7 @@ public partial class bitrue : Exchange
         //         }
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -2693,7 +2693,7 @@ public partial class bitrue : Exchange
         //          'data': null
         //      }
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market));
+        return this.parseOrders(data, market);
     }
 
     /**
@@ -2797,7 +2797,7 @@ public partial class bitrue : Exchange
         //         ]
         //     }
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limitResolved));
+        return this.parseTrades(data, market, since, limitResolved);
     }
 
     /**

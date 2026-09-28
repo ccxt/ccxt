@@ -128,8 +128,8 @@ public partial class bitopro : ccxt.bitopro
             orderbook = this.orderBook(new Dictionary<string, object>() {});
         }
         Int64? timestamp = this.safeInteger(message, "timestamp");
-        Dictionary<string, object> snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount");
-        (orderbook as IOrderBook).reset(snapshot);
+        ccxt.OrderBook snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount");
+        (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         if ((eventVar != null))
         {
             string messageHash = ((eventVar + ":") + symbol);
@@ -193,7 +193,7 @@ public partial class bitopro : ccxt.bitopro
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? eventVar = this.safeString(message, "event");
         List<object> rawData = this.safeList(message, "data", new List<object>() {});
-        IList<object> trades = this.parseTrades(rawData, market);
+        IList<object> trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(rawData, market));
         ccxt.pro.ArrayCache tradesCache = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((tradesCache == null))
         {
@@ -295,8 +295,8 @@ public partial class bitopro : ccxt.bitopro
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache trades = this.myTrades;
-        Dictionary<string, object> parsed = this.parseWsTrade(data);
-        trades.append(parsed);
+        ccxt.Trade parsed = this.parseWsTrade(data);
+        trades.append(ccxt.BaseExchange.FromTrade(parsed));
         client.resolve(trades, messageHash);
         if ((messageHash != null))
         {
@@ -304,7 +304,7 @@ public partial class bitopro : ccxt.bitopro
         }
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         //     {

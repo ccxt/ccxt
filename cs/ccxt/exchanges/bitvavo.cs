@@ -938,10 +938,10 @@ public partial class bitvavo : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1185,9 +1185,9 @@ public partial class bitvavo : Exchange
         //         ]
         //     }
         //
-        Dictionary<string, object> orderbook = this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null));
-        orderbook["nonce"] = this.safeInteger(response, "nonce");
-        return ccxt.BaseExchange.ToOrderBook(orderbook);
+        ccxt.OrderBook orderbook = this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null));
+        orderbook.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(response, "nonce"));
+        return orderbook;
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -1822,7 +1822,7 @@ public partial class bitvavo : Exchange
         //          "postOnly":false
         //      }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, string? type, string? side, object amount = null, object price = null, object parameters = null)
@@ -1895,7 +1895,7 @@ public partial class bitvavo : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         Dictionary<string, object> response = await this.privatePutOrder(request);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public virtual Dictionary<string, object> cancelOrderRequest(string? id, object symbol = null, object parameters = null)
@@ -1952,7 +1952,7 @@ public partial class bitvavo : Exchange
         //         "orderId": "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -1996,7 +1996,7 @@ public partial class bitvavo : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market));
+        return this.parseOrders(response, market);
     }
 
     /**
@@ -2106,7 +2106,7 @@ public partial class bitvavo : Exchange
         //         "disableMarketProtection":false
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public virtual Dictionary<string, object> fetchOrdersRequest(string? symbol = null, object since = null, object limit = null, object parameters = null)
@@ -2200,7 +2200,7 @@ public partial class bitvavo : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -2265,7 +2265,7 @@ public partial class bitvavo : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -2288,7 +2288,7 @@ public partial class bitvavo : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // cancelOrder, cancelAllOrders
@@ -2466,7 +2466,7 @@ public partial class bitvavo : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**

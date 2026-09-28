@@ -459,7 +459,7 @@ public partial class coincheck : Exchange
         }
         Dictionary<string, object> response = await this.privateGetExchangeOrdersOpens(parameters);
         List<object> rawOrders = this.safeList(response, "orders", new List<object>() {});
-        IList<object> parsedOrders = this.parseOrders(rawOrders, market, since, limit);
+        IList<object> parsedOrders = ccxt.BaseExchange.FromOrderList(this.parseOrders(rawOrders, market, since, limit));
         List<object> result = new List<object>() {};
         for (int i = 0; i < (parsedOrders?.Count ?? 0); i++)
         {
@@ -470,7 +470,7 @@ public partial class coincheck : Exchange
         return ccxt.BaseExchange.ToOrderList(result);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // fetchOpenOrders
@@ -542,7 +542,7 @@ public partial class coincheck : Exchange
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetOrderBooks(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null)));
+        return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null));
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -624,7 +624,7 @@ public partial class coincheck : Exchange
         return this.parseTicker(ticker, market);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -758,7 +758,7 @@ public partial class coincheck : Exchange
         //      }
         //
         List<object> transactions = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(transactions, market, since, limit));
+        return this.parseTrades(transactions, market, since, limit);
     }
 
     /**
@@ -799,7 +799,7 @@ public partial class coincheck : Exchange
         //      }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
+        return this.parseTrades(data, market, since, limit);
     }
 
     /**
@@ -908,7 +908,7 @@ public partial class coincheck : Exchange
         }
         Dictionary<string, object> response = await this.privatePostExchangeOrders(this.extend(request, this.omit(parameters, "cost")));
         string? id = this.safeString(response, "id");
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", id },             { "info", response },         }, market));
+        return this.safeOrder(new Dictionary<string, object>() {             { "id", id },             { "info", response },         }, market);
     }
 
     /**
@@ -934,7 +934,7 @@ public partial class coincheck : Exchange
         //        "id": 12345
         //    }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**

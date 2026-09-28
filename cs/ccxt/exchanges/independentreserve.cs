@@ -564,7 +564,7 @@ public partial class independentreserve : Exchange
         };
         Dictionary<string, object> response = await this.publicGetGetOrderBook(this.extend(request, parameters));
         Int64? timestamp = this.parse8601(this.safeString(response, "CreatedTimestampUtc"));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "BuyOrders", "SellOrders", "Price", "Volume"));
+        return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "BuyOrders", "SellOrders", "Price", "Volume");
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -654,7 +654,7 @@ public partial class independentreserve : Exchange
         return this.parseTicker(response, market);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // fetchOrder
@@ -830,7 +830,7 @@ public partial class independentreserve : Exchange
         {
             market = this.market(symbol);
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -867,7 +867,7 @@ public partial class independentreserve : Exchange
         request["pageSize"] = limitResolved;
         Dictionary<string, object> response = await this.privatePostGetOpenOrders(this.extend(request, parameters));
         List<object> data = this.safeList(response, "Data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limitResolved));
+        return this.parseOrders(data, market, since, limitResolved);
     }
 
     /**
@@ -904,7 +904,7 @@ public partial class independentreserve : Exchange
         request["pageSize"] = limitResolved;
         Dictionary<string, object> response = await this.privatePostGetClosedOrders(this.extend(request, parameters));
         List<object> data = this.safeList(response, "Data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limitResolved));
+        return this.parseOrders(data, market, since, limitResolved);
     }
 
     /**
@@ -943,10 +943,10 @@ public partial class independentreserve : Exchange
             market = this.market(symbol);
         }
         List<object> data = this.safeList(response, "Data", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limitResolved));
+        return this.parseTrades(data, market, since, limitResolved);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         Int64? timestamp = this.parse8601(getValue(trade, "TradeTimestampUtc"));
         string? id = this.safeString(trade, "TradeGuid");
@@ -1017,7 +1017,7 @@ public partial class independentreserve : Exchange
         };
         Dictionary<string, object> response = await this.publicGetGetRecentTrades(this.extend(request, parameters));
         List<object> trades = this.safeList(response, "Trades", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
+        return this.parseTrades(trades, market, since, limit);
     }
 
     /**
@@ -1116,7 +1116,7 @@ public partial class independentreserve : Exchange
         {
             response = await this.privatePostPlaceMarketOrder(this.extend(request, parameters));
         }
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", GetValue(response, "OrderGuid") },         }, market));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", GetValue(response, "OrderGuid") },         }, market);
     }
 
     /**
@@ -1155,7 +1155,7 @@ public partial class independentreserve : Exchange
         //        "VolumeOrdered": 0.358
         //    }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**

@@ -1471,9 +1471,9 @@ public partial class bitstamp : Exchange
             throw new ExchangeError ((this.id + " fetchOrderBook() missing microtimestamp")) ;
         }
         Int64? timestamp = this.parseToInt(((double?)microtimestamp / 1000));
-        Dictionary<string, object> orderbook = this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp);
-        orderbook["nonce"] = microtimestamp;
-        return ccxt.BaseExchange.ToOrderBook(orderbook);
+        ccxt.OrderBook orderbook = this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp);
+        orderbook.nonce = ccxt.BaseExchange.StructInt64(microtimestamp);
+        return orderbook;
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -1662,7 +1662,7 @@ public partial class bitstamp : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1878,7 +1878,7 @@ public partial class bitstamp : Exchange
         //         },
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -2345,9 +2345,9 @@ public partial class bitstamp : Exchange
             }
         }
         Dictionary<string, object> orderResponse = ((response == null)) ? new Dictionary<string, object>() {} : response;
-        Dictionary<string, object> order = this.parseOrder(orderResponse, market);
-        order["type"] = type;
-        return ccxt.BaseExchange.ToOrder(order);
+        ccxt.Order order = this.parseOrder(orderResponse, market);
+        order.type = ccxt.BaseExchange.StructString(type);
+        return order;
     }
 
     /**
@@ -2389,9 +2389,9 @@ public partial class bitstamp : Exchange
         }
         object paramsOmitted = ((clientOrderId != null)) ? this.omit(parameters, new List<object>() {"clientOrderId"}) : parameters;
         Dictionary<string, object> response = await this.privatePostReplaceOrder(this.extend(request, paramsOmitted));
-        Dictionary<string, object> order = this.parseOrder(response, market);
-        order["type"] = type;
-        return ccxt.BaseExchange.ToOrder(order);
+        ccxt.Order order = this.parseOrder(response, market);
+        order.type = ccxt.BaseExchange.StructString(type);
+        return order;
     }
 
     /**
@@ -2424,7 +2424,7 @@ public partial class bitstamp : Exchange
         //        "market": "BTC/USD"
         //    }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -2472,7 +2472,7 @@ public partial class bitstamp : Exchange
         //    }
         //
         List<object> canceled = this.safeList(response, "canceled");
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(canceled));
+        return this.parseOrders(canceled);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -2559,7 +2559,7 @@ public partial class bitstamp : Exchange
         //         ]
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -2601,7 +2601,7 @@ public partial class bitstamp : Exchange
             response = await this.privatePostUserTransactions(this.extend(request, parameters));
         }
         List<object> result = this.filterBy(response, "type", "2");
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(result, market, since, limit));
+        return this.parseTrades(result, market, since, limit);
     }
 
     /**
@@ -2949,7 +2949,7 @@ public partial class bitstamp : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //   from fetch order:
@@ -3096,7 +3096,7 @@ public partial class bitstamp : Exchange
         string? type = this.parseLedgerEntryType(this.safeString(item, "type"));
         if (type == "trade")
         {
-            Dictionary<string, object> parsedTrade = this.parseTrade(item);
+            ccxt.Trade parsedTrade = this.parseTrade(item);
             object market = null;
             List<object> keys = new List<object>(((IDictionary<string,object>)item).Keys);
             for (int i = 0; i < keys.Count; i++)
@@ -3113,23 +3113,23 @@ public partial class bitstamp : Exchange
             {
                 market = this.getMarketFromTrade(item);
             }
-            string direction = ((((parsedTrade != null && parsedTrade.ContainsKey("side") ? parsedTrade["side"] : null) as string) == "buy")) ? "in" : "out";
+            string direction = ((((((object)parsedTrade.side)) as string) == "buy")) ? "in" : "out";
             return this.safeLedgerEntry(new Dictionary<string, object>() {
                 { "info", item },
-                { "id", (parsedTrade != null && parsedTrade.ContainsKey("id") ? parsedTrade["id"] : null) },
-                { "timestamp", (parsedTrade != null && parsedTrade.ContainsKey("timestamp") ? parsedTrade["timestamp"] : null) },
-                { "datetime", (parsedTrade != null && parsedTrade.ContainsKey("datetime") ? parsedTrade["datetime"] : null) },
+                { "id", (((object)parsedTrade.id)) },
+                { "timestamp", (((object)parsedTrade.timestamp)) },
+                { "datetime", (((object)parsedTrade.datetime)) },
                 { "direction", direction },
                 { "account", null },
-                { "referenceId", (parsedTrade != null && parsedTrade.ContainsKey("order") ? parsedTrade["order"] : null) },
+                { "referenceId", (((object)parsedTrade.order)) },
                 { "referenceAccount", null },
                 { "type", type },
                 { "currency", this.safeString(market, "base") },
-                { "amount", (parsedTrade != null && parsedTrade.ContainsKey("amount") ? parsedTrade["amount"] : null) },
+                { "amount", (((object)parsedTrade.amount)) },
                 { "before", null },
                 { "after", null },
                 { "status", "ok" },
-                { "fee", (parsedTrade != null && parsedTrade.ContainsKey("fee") ? parsedTrade["fee"] : null) },
+                { "fee", (ccxt.BaseExchange.FromFee((object)parsedTrade.fee)) },
             }, currency);
         } else
         {
@@ -3309,7 +3309,7 @@ public partial class bitstamp : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit, new Dictionary<string, object>() {             { "status", "open" },             { "type", "limit" },         }));
+        return this.parseOrders(response, market, since, limit, new Dictionary<string, object>() {             { "status", "open" },             { "type", "limit" },         });
     }
 
     public virtual object getCurrencyName(string? code)

@@ -934,11 +934,11 @@ public partial class hyperliquid : PredictionExchange
             IDictionary<string, object> entry = this.safeDict(rawAsks, i);
             asks.Add(new List<object> {this.safeNumber(entry, "px"), this.safeNumber(entry, "sz")});
         }
-        Dictionary<string, object> orderbook = this.parseOrderBook(new Dictionary<string, object>() {
+        ccxt.OrderBook orderbook = this.parseOrderBook(new Dictionary<string, object>() {
             { "bids", bids },
             { "asks", asks },
         }, this.safeString(outcomeObj, "outcome", outcome), timestamp);
-        return ccxt.BaseExchange.ToPredictionOrderBook(this.safePredictionOrderBook(orderbook, outcomeObj));
+        return ccxt.BaseExchange.ToPredictionOrderBook(this.safePredictionOrderBook(ccxt.BaseExchange.FromOrderBook(orderbook), outcomeObj));
     }
 
     /**

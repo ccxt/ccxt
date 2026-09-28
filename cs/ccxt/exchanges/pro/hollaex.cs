@@ -105,11 +105,11 @@ public partial class hollaex : ccxt.hollaex
         IDictionary<string, object> data = this.safeDict(message, "data");
         string? timestamp = this.safeString(data, "timestamp");
         Int64? timestampMs = this.parse8601(timestamp);
-        Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol, timestampMs);
+        ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestampMs);
         object orderbook = null;
         if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
-            orderbook = this.orderBook(snapshot);
+            orderbook = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot));
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         } else
         {
@@ -118,7 +118,7 @@ public partial class hollaex : ccxt.hollaex
             {
                 return;
             }
-            (orderbook as IOrderBook).reset(snapshot);
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         }
         if ((channel != null))
         {
@@ -186,7 +186,7 @@ public partial class hollaex : ccxt.hollaex
             this.trades[(string)symbol] = stored;
         }
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        IList<object> parsedTrades = this.parseTrades(data, market);
+        IList<object> parsedTrades = ccxt.BaseExchange.FromTradeList(this.parseTrades(data, market));
         for (int j = 0; j < (parsedTrades?.Count ?? 0); j++)
         {
             stored.append(parsedTrades[j]);
@@ -278,8 +278,8 @@ public partial class hollaex : ccxt.hollaex
         for (int i = 0; i < getArrayLength(rawTrades); i++)
         {
             object trade = getValue(rawTrades, i);
-            Dictionary<string, object> parsed = this.parseTrade(trade);
-            stored.append(parsed);
+            ccxt.Trade parsed = this.parseTrade(trade);
+            stored.append(ccxt.BaseExchange.FromTrade(parsed));
             object symbol = getValue(trade, "symbol");
             Dictionary<string, object> market = this.market(symbol);
             string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
@@ -423,8 +423,8 @@ public partial class hollaex : ccxt.hollaex
         for (int i = 0; i < getArrayLength(rawOrders); i++)
         {
             object order = getValue(rawOrders, i);
-            Dictionary<string, object> parsed = this.parseOrder(order);
-            stored.append(parsed);
+            ccxt.Order parsed = this.parseOrder(order);
+            stored.append(ccxt.BaseExchange.FromOrder(parsed));
             object symbol = getValue(order, "symbol");
             Dictionary<string, object> market = this.market(symbol);
             string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));

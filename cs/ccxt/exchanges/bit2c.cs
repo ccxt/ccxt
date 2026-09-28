@@ -477,7 +477,7 @@ public partial class bit2c : Exchange
             { "bids", bids },
             { "asks", asks },
         };
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(filtered, symbol));
+        return this.parseOrderBook(filtered, symbol);
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -592,7 +592,7 @@ public partial class bit2c : Exchange
             }
             responseList = this.toArray(response);
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(responseList, market, since, limit));
+        return this.parseTrades(responseList, market, since, limit);
     }
 
     /**
@@ -695,7 +695,7 @@ public partial class bit2c : Exchange
             request["IsBid"] = ((side == "buy"));
             response = await this.privatePostOrderAddOrder(this.extend(request, parameters));
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -715,7 +715,7 @@ public partial class bit2c : Exchange
             { "id", id },
         };
         Dictionary<string, object> response = await this.privatePostOrderCancelOrder(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -748,7 +748,7 @@ public partial class bit2c : Exchange
         IDictionary<string, object> orders = this.safeDict(response, (market.ContainsKey("id") ? market["id"] : null), new Dictionary<string, object>() {});
         List<object> asks = this.safeList(orders, "ask", new List<object>() {});
         List<object> bids = this.safeList(orders, "bid", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(this.arrayConcat(asks, bids), market, since, limit));
+        return this.parseOrders(this.arrayConcat(asks, bids), market, since, limit);
     }
 
     /**
@@ -787,10 +787,10 @@ public partial class bit2c : Exchange
         //             "initialAmount": 2.00000000
         //         }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //      createOrder
@@ -998,7 +998,7 @@ public partial class bit2c : Exchange
         {
             responseList = this.toArray(response);
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(responseList, market, since, limit));
+        return this.parseTrades(responseList, market, since, limit);
     }
 
     public virtual string? removeCommaFromValue(string? str)
@@ -1012,7 +1012,7 @@ public partial class bit2c : Exchange
         return ((string?)((object)(newString)));
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // public fetchTrades

@@ -931,7 +931,7 @@ public partial class blofin : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(first, "ts");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(first, symbol, timestamp));
+        return this.parseOrderBook(first, symbol, timestamp);
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -1067,7 +1067,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetch trades (response similar for REST & WS)
@@ -1163,7 +1163,7 @@ public partial class blofin : Exchange
                     { "currency", feeCurrency },
                 } },
             };
-            return ((Dictionary<string, object>)((object)(result)));
+            return new ccxt.Trade(result);
         } else
         {
             return this.safeTrade(new Dictionary<string, object>() {
@@ -1227,7 +1227,7 @@ public partial class blofin : Exchange
             response = await this.publicGetMarketTrades(this.extend(request, paramsMethod));
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
+        return this.parseTrades(data, market, since, limit);
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -1712,7 +1712,7 @@ public partial class blofin : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // response similar for REST & WS
@@ -1910,14 +1910,14 @@ public partial class blofin : Exchange
         if (isCombinedSlTp || isSlOrTp || isTriggerOrder)
         {
             IDictionary<string, object> dataDict = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            return ccxt.BaseExchange.ToOrder(this.parseOrder(dataDict, market));
+            return this.parseOrder(dataDict, market);
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(data, 0);
-        Dictionary<string, object> order = this.parseOrder(first, market);
-        order["type"] = type;
-        order["side"] = side;
-        return ccxt.BaseExchange.ToOrder(order);
+        ccxt.Order order = this.parseOrder(first, market);
+        order.type = ccxt.BaseExchange.StructString(type);
+        order.side = ccxt.BaseExchange.StructString(side);
+        return order;
     }
 
     public virtual Dictionary<string, object> createTpslOrderRequest(string? symbol, string? type, string? side, double? amount = null, double? price = null, object parameters = null)
@@ -2051,12 +2051,12 @@ public partial class blofin : Exchange
         {
             Dictionary<string, object> triggerResponse = await this.privatePostTradeCancelAlgo(this.extend(request, query));
             IDictionary<string, object> triggerData = this.safeDict(triggerResponse, "data");
-            return ccxt.BaseExchange.ToOrder(this.parseOrder(triggerData, market));
+            return this.parseOrder(triggerData, market);
         }
         Dictionary<string, object> response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> order = this.safeDict(data, 0);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
+        return this.parseOrder(order, market);
     }
 
     /**
@@ -2091,7 +2091,7 @@ public partial class blofin : Exchange
         }
         Dictionary<string, object> response = await this.privatePostTradeBatchOrders(ordersRequests);
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data));
+        return this.parseOrders(data);
     }
 
     /**
@@ -2153,7 +2153,7 @@ public partial class blofin : Exchange
             response = await this.privateGetTradeOrdersPending(this.extend(request, query));
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+        return this.parseOrders(data, market, since, limit);
     }
 
     /**
@@ -2234,7 +2234,7 @@ public partial class blofin : Exchange
             response = await this.privateGetTradeFillsHistory(this.extend(requestUntil, paramsMarketType));
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
+        return this.parseTrades(data, market, since, limit);
     }
 
     /**
@@ -2796,7 +2796,7 @@ public partial class blofin : Exchange
             response = await this.privatePostTradeCancelBatchOrders(request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }
         List<object> ordersData = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(ordersData, market, null, null, parameters));
+        return this.parseOrders(ordersData, market, null, null, parameters);
     }
 
     /**
@@ -3410,7 +3410,7 @@ public partial class blofin : Exchange
             response = await this.privateGetTradeOrdersHistory(this.extend(request, query));
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+        return this.parseOrders(data, market, since, limit);
     }
 
     /**

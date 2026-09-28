@@ -372,8 +372,8 @@ public partial class p2b : ccxt.p2b
         for (int i = 0; i < (((IList<object>)(trades))?.Count ?? 0); i++)
         {
             object item = getValue((IList<object>)(trades), i);
-            Dictionary<string, object> trade = this.parseTrade(item, market);
-            tradesArray.append(trade);
+            ccxt.Trade trade = this.parseTrade(item, market);
+            tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
         }
         string messageHash = ("deals::" + symbol);
         client.resolve(tradesArray, messageHash);

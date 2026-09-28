@@ -853,7 +853,7 @@ public partial class coinbase : ccxt.coinbase
             for (Int64 j = 0; j < tradesLength; j++)
             {
                 object item = getValue(currentTrades, ((tradesLength - j) - 1));
-                tradesArray.append(this.parseTrade(item));
+                tradesArray.append(ccxt.BaseExchange.FromTrade(this.parseTrade(item)));
             }
         }
         client.resolve(tradesArray, messageHash);
@@ -912,7 +912,7 @@ public partial class coinbase : ccxt.coinbase
             for (int j = 0; j < responseOrders.Count; j++)
             {
                 object responseOrder = responseOrders[j];
-                Dictionary<string, object> parsed = this.parseWsOrder(responseOrder);
+                ccxt.Order parsed = this.parseWsOrder(responseOrder);
                 ccxt.pro.ArrayCache cachedOrders = this.orders;
                 string? marketId = this.safeString(responseOrder, "product_id");
                 if ((marketId != null))
@@ -922,7 +922,7 @@ public partial class coinbase : ccxt.coinbase
                         marketIds.Add(marketId);
                     }
                 }
-                cachedOrders.append(parsed);
+                cachedOrders.append(ccxt.BaseExchange.FromOrder(parsed));
             }
         }
         for (int i = 0; i < (marketIds?.Count ?? 0); i++)
@@ -936,7 +936,7 @@ public partial class coinbase : ccxt.coinbase
         client.resolve(this.orders, "user");
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //    {

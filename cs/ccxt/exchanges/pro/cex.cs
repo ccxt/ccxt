@@ -216,7 +216,7 @@ public partial class cex : ccxt.cex
         string? amount = this.safeString(tradeParts, 2);
         string? price = this.safeString(tradeParts, 3);
         string? id = this.safeString(tradeParts, 4);
-        return this.safeTrade(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "info", tradeParts },
             { "id", id },
             { "timestamp", timestamp },
@@ -230,7 +230,7 @@ public partial class cex : ccxt.cex
             { "amount", amount },
             { "cost", null },
             { "fee", null },
-        }, market);
+        }, market));
     }
 
     public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -657,13 +657,13 @@ public partial class cex : ccxt.cex
             stored = new ArrayCacheBySymbolById(limit);
             this.myTrades = stored;
         }
-        Dictionary<string, object> trade = this.parseWsTrade(data);
-        stored.append(trade);
-        string messageHash = ("myTrades:" + ((trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null)));
+        ccxt.Trade trade = this.parseWsTrade(data);
+        stored.append(ccxt.BaseExchange.FromTrade(trade));
+        string messageHash = ("myTrades:" + ((((object)trade.symbol))));
         client.resolve(stored, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         //     {
@@ -861,7 +861,7 @@ public partial class cex : ccxt.cex
         Int64? timestamp = this.safeInteger(data, "time");
         ((IDictionary<string,object>)order)["timestamp"] = timestamp;
         ((IDictionary<string,object>)order)["datetime"] = this.iso8601(timestamp);
-        order = this.safeOrder(order);
+        order = ccxt.BaseExchange.FromOrder(this.safeOrder(order));
         storedOrders.append(order);
         string messageHash = ("orders:" + symbol);
         client.resolve(storedOrders, messageHash);
@@ -986,9 +986,9 @@ public partial class cex : ccxt.cex
         };
         if (isTransaction)
         {
-            parsedOrder["trades"] = this.parseWsTrade(order, marketResolved);
+            parsedOrder["trades"] = ccxt.BaseExchange.FromTrade(this.parseWsTrade(order, marketResolved));
         }
-        return this.safeOrder(parsedOrder, marketResolved);
+        return ccxt.BaseExchange.FromOrder(this.safeOrder(parsedOrder, marketResolved));
     }
 
     public virtual string? fromPrecision(object amount, object scale)
@@ -1038,9 +1038,9 @@ public partial class cex : ccxt.cex
         {
             IDictionary<string, object> rawOrder = ((IDictionary<string, object>)rawOrders[i]);
             Dictionary<string, object> market = this.safeMarket(symbol);
-            Dictionary<string, object> order = this.parseOrder(rawOrder, market);
-            order["status"] = "open";
-            myOrders.append(order);
+            ccxt.Order order = this.parseOrder(rawOrder, market);
+            order.status = ccxt.BaseExchange.StructString("open");
+            myOrders.append(ccxt.BaseExchange.FromOrder(order));
         }
         this.orders = myOrders;
         string messageHash = ("orders:" + symbol);
@@ -1123,9 +1123,9 @@ public partial class cex : ccxt.cex
         Int64? timestamp = this.safeInteger2(data, "timestamp_ms", "timestamp");
         Int64? incrementalId = this.safeInteger(data, "id");
         ccxt.pro.OrderBook orderbook = this.orderBook(new Dictionary<string, object>() {});
-        Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
-        snapshot["nonce"] = incrementalId;
-        (orderbook as IOrderBook).reset(snapshot);
+        ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
+        snapshot.nonce = ccxt.BaseExchange.StructInt64(incrementalId);
+        (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         ((IDictionary<string,object>)(this.options.ContainsKey("orderbook") ? this.options["orderbook"] : null))[(string)symbol] = new Dictionary<string, object>() {
             { "incrementalId", incrementalId },
         };
@@ -1407,7 +1407,7 @@ public partial class cex : ccxt.cex
             { "data", data },
         };
         object response = await this.watch(url, messageHash, request, messageHash);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -1445,7 +1445,7 @@ public partial class cex : ccxt.cex
             { "data", data },
         };
         object response = await this.watch(url, messageHash, request, messageHash);
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit, parameters));
+        return this.parseOrders(response, market, since, limit, parameters);
     }
 
     /**
@@ -1489,7 +1489,7 @@ public partial class cex : ccxt.cex
             { "data", data },
         };
         object rawOrder = await this.watch(url, messageHash, request, messageHash);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(rawOrder, market));
+        return this.parseOrder(rawOrder, market);
     }
 
     /**
@@ -1538,7 +1538,7 @@ public partial class cex : ccxt.cex
             { "data", data },
         };
         object response = await this.watch(url, messageHash, request, messageHash, messageHash);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -1575,7 +1575,7 @@ public partial class cex : ccxt.cex
             { "data", data },
         };
         object response = await this.watch(url, messageHash, request, messageHash, messageHash);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -1622,7 +1622,7 @@ public partial class cex : ccxt.cex
         //    }
         //
         List<object> canceledOrders = this.safeList(response, "cancel-orders");
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(canceledOrders, null, null, null, parameters));
+        return this.parseOrders(canceledOrders, null, null, null, parameters);
     }
 
     public virtual void resolveData(WebSocketClient client, Dictionary<string, object> message)

@@ -1321,7 +1321,7 @@ public partial class hyperliquid : Exchange
             { "asks", this.safeList(data, 1, new List<object>() {}) },
         };
         Int64? timestamp = this.safeInteger(response, "time");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(result, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", "px", "sz"));
+        return this.parseOrderBook(result, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", "px", "sz");
     }
 
     /**
@@ -1731,7 +1731,7 @@ public partial class hyperliquid : Exchange
         {
             fills = response;
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(fills, market, since, limit));
+        return this.parseTrades(fills, market, since, limit);
     }
 
     public override string? amountToPrecision(object symbol, object amount)
@@ -2408,7 +2408,7 @@ public partial class hyperliquid : Exchange
         IDictionary<string, object> status = this.safeDict(data, "status", new Dictionary<string, object>() {});
         IDictionary<string, object> running = this.safeDict(status, "running", new Dictionary<string, object>() {});
         string? orderId = this.safeString(running, "twapId");
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(new Dictionary<string, object>() {             { "status", "running" },             { "oid", orderId },         }, market));
+        return this.parseOrder(new Dictionary<string, object>() {             { "status", "running" },             { "oid", orderId },         }, market);
     }
 
     /**
@@ -2464,7 +2464,7 @@ public partial class hyperliquid : Exchange
                 ordersToBeParsed.Add(order);
             }
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(ordersToBeParsed));
+        return this.parseOrders(ordersToBeParsed);
     }
 
     public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, string? amount, object price = null, object parameters = null)
@@ -2786,10 +2786,10 @@ public partial class hyperliquid : Exchange
         for (int i = 0; i < statuses.Count; i++)
         {
             object status = statuses[i];
-            orders.Add(this.safeOrder(new Dictionary<string, object>() {
+            orders.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", status },
                 { "status", status },
-            }));
+            })));
         }
         return ccxt.BaseExchange.ToOrderList(orders);
     }
@@ -2862,7 +2862,7 @@ public partial class hyperliquid : Exchange
         IDictionary<string, object> responseObj = this.safeDict(response, "response", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(responseObj, "data", new Dictionary<string, object>() {});
         string? status = this.safeString(data, "status");
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(new Dictionary<string, object>() {             { "status", status },             { "oid", id },         }, market));
+        return this.parseOrder(new Dictionary<string, object>() {             { "status", status },             { "oid", id },         }, market);
     }
 
     public virtual Dictionary<string, object> cancelOrdersRequest(IList<object> ids, object symbol = null, object parameters = null)
@@ -3017,7 +3017,7 @@ public partial class hyperliquid : Exchange
         //         }
         //     }
         //
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
     }
 
     /**
@@ -3315,7 +3315,7 @@ public partial class hyperliquid : Exchange
         IDictionary<string, object> responseObject = this.safeDict(response, "response", new Dictionary<string, object>() {});
         IDictionary<string, object> dataObject = this.safeDict(responseObject, "data", new Dictionary<string, object>() {});
         List<object> statuses = this.safeList(dataObject, "statuses", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(statuses));
+        return this.parseOrders(statuses);
     }
 
     /**
@@ -3524,7 +3524,7 @@ public partial class hyperliquid : Exchange
             }
             orderWithStatus.Add(this.extend(order, extendOrder));
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orderWithStatus, market, since, limit));
+        return this.parseOrders(orderWithStatus, market, since, limit);
     }
 
     /**
@@ -3687,7 +3687,7 @@ public partial class hyperliquid : Exchange
             }
         }
         List<object> deduplicated = new List<object>(deduplicatedByOid.Values);
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(deduplicated, market, since, limit));
+        return this.parseOrders(deduplicated, market, since, limit);
     }
 
     /**
@@ -3763,10 +3763,10 @@ public partial class hyperliquid : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "order");
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrdersWs error
@@ -4062,10 +4062,10 @@ public partial class hyperliquid : Exchange
         {
             myFills = response;
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(myFills, market, since, limit));
+        return this.parseTrades(myFills, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         //     {

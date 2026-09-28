@@ -235,8 +235,8 @@ public partial class whitebit : ccxt.whitebit
         orderbook["datetime"] = this.iso8601(timestamp);
         if ((isSnapshot == true))
         {
-            Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol);
-            (orderbook as IOrderBook).reset(snapshot);
+            ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol);
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         } else
         {
             List<object> asks = this.safeList(data, "asks", new List<object>() {});
@@ -447,7 +447,7 @@ public partial class whitebit : ccxt.whitebit
             this.trades[(string)symbol] = stored;
         }
         List<object> data = this.safeList(parameters, 1, new List<object>() {});
-        IList<object> parsedTrades = this.parseTrades(data, market);
+        IList<object> parsedTrades = ccxt.BaseExchange.FromTradeList(this.parseTrades(data, market));
         for (int j = 0; j < (parsedTrades?.Count ?? 0); j++)
         {
             stored.append(parsedTrades[j]);
@@ -520,14 +520,14 @@ public partial class whitebit : ccxt.whitebit
             this.myTrades = new ArrayCache(limit);
         }
         ccxt.pro.ArrayCache stored = this.myTrades;
-        Dictionary<string, object> parsed = this.parseWsTrade(trade);
-        stored.append(parsed);
-        string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+        ccxt.Trade parsed = this.parseWsTrade(trade);
+        stored.append(ccxt.BaseExchange.FromTrade(parsed));
+        string? symbol = parsed.symbol;
         string messageHash = ("myTrades:" + symbol);
         client.resolve(stored, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         //   [
@@ -677,16 +677,16 @@ public partial class whitebit : ccxt.whitebit
         }
         ccxt.pro.ArrayCache stored = this.orders;
         Int64? status = this.safeInteger(parameters, 0);
-        Dictionary<string, object> parsed = this.parseWsOrder(this.extend(data, new Dictionary<string, object>() {
+        ccxt.Order parsed = this.parseWsOrder(this.extend(data, new Dictionary<string, object>() {
             { "status", status },
         }));
-        stored.append(parsed);
-        string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+        stored.append(ccxt.BaseExchange.FromOrder(parsed));
+        string? symbol = parsed.symbol;
         string messageHash = ("orders:" + symbol);
         client.resolve(this.orders, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //   {

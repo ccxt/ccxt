@@ -474,7 +474,7 @@ public partial class phemex : ccxt.phemex
             this.trades[(string)symbol] = stored;
         }
         List<object> trades = this.safeList2(message, "trades", "trades_p", new List<object>() {});
-        IList<object> parsed = this.parseTrades(trades, market);
+        IList<object> parsed = ccxt.BaseExchange.FromTradeList(this.parseTrades(trades, market));
         for (int i = 0; i < (parsed?.Count ?? 0); i++)
         {
             stored.append(parsed[i]);
@@ -1044,9 +1044,9 @@ public partial class phemex : ccxt.phemex
             object rawTrade = getValue(message, i);
             string? marketId = this.safeString(rawTrade, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            Dictionary<string, object> parsed = this.parseTrade(rawTrade);
-            cachedTrades.append(parsed);
-            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+            ccxt.Trade parsed = this.parseTrade(rawTrade);
+            cachedTrades.append(ccxt.BaseExchange.FromTrade(parsed));
+            string? symbol = parsed.symbol;
             if ((type == null))
             {
                 type = ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT")) ? "perpetual" : (market.ContainsKey("type") ? market["type"] : null);
@@ -1294,8 +1294,8 @@ public partial class phemex : ccxt.phemex
             for (int i = 0; i < (orders?.Count ?? 0); i++)
             {
                 object rawOrder = orders[i];
-                Dictionary<string, object> parsedOrder = this.parseOrder(rawOrder);
-                parsedOrders.Add(parsedOrder);
+                ccxt.Order parsedOrder = this.parseOrder(rawOrder);
+                parsedOrders.Add(ccxt.BaseExchange.FromOrder(parsedOrder));
             }
         } else
         {
@@ -1501,7 +1501,7 @@ public partial class phemex : ccxt.phemex
         string? timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
         string? stopPrice = this.safeString(order, "stopPx");
         bool postOnly = (timeInForce == "PO");
-        return this.safeOrder(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
             { "clientOrderId", clientOrderId },
@@ -1524,7 +1524,7 @@ public partial class phemex : ccxt.phemex
             { "status", status },
             { "fee", null },
             { "trades", null },
-        }, marketValue);
+        }, marketValue));
     }
 
     public override void handleMessage(WebSocketClient client, object message)

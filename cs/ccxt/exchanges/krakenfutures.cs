@@ -717,7 +717,7 @@ public partial class krakenfutures : Exchange
         //
         Int64? timestamp = this.parse8601(this.safeString(response, "serverTime"));
         IDictionary<string, object> orderBook = this.safeDict(response, "orderBook", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderBook, symbol, timestamp));
+        return this.parseOrderBook(orderBook, symbol, timestamp);
     }
 
     /**
@@ -1250,10 +1250,10 @@ public partial class krakenfutures : Exchange
             //
             rawTrades = this.safeList(response, "history", new List<object>() {});
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(rawTrades, market, since, limit));
+        return this.parseTrades(rawTrades, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (recent trades)
@@ -1613,7 +1613,7 @@ public partial class krakenfutures : Exchange
         object sendStatus = this.safeValue(response, "sendStatus");
         string? status = this.safeString(sendStatus, "status");
         this.verifyOrderActionSuccess(status, "createOrder", new List<object>() {"filled"});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(sendStatus, market));
+        return this.parseOrder(sendStatus, market);
     }
 
     /**
@@ -1673,7 +1673,7 @@ public partial class krakenfutures : Exchange
         // }
         //
         List<object> data = this.safeList(response, "batchStatus", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data));
+        return this.parseOrders(data);
     }
 
     /**
@@ -1712,7 +1712,7 @@ public partial class krakenfutures : Exchange
         IDictionary<string, object> editStatus = this.safeDict(response, "editStatus", new Dictionary<string, object>() {});
         string? status = this.safeString(editStatus, "status");
         this.verifyOrderActionSuccess(status, "editOrder", new List<object>() {"filled"});
-        Dictionary<string, object> order = this.parseOrder(editStatus);
+        Dictionary<string, object> order = ccxt.BaseExchange.FromOrder(this.parseOrder(editStatus));
         order["info"] = response;
         return ccxt.BaseExchange.ToOrder(order);
     }
@@ -1742,7 +1742,7 @@ public partial class krakenfutures : Exchange
         Dictionary<string, object> order = new Dictionary<string, object>() {};
         if (response.ContainsKey("cancelStatus"))
         {
-            order = this.parseOrder(response["cancelStatus"]);
+            order = ccxt.BaseExchange.FromOrder(this.parseOrder(response["cancelStatus"]));
         }
         return ccxt.BaseExchange.ToOrder(this.extend(new Dictionary<string, object>() {             { "info", response },         }, order));
     }
@@ -1823,7 +1823,7 @@ public partial class krakenfutures : Exchange
         //     ]
         // }
         List<object> batchStatus = this.safeList(response, "batchStatus", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(batchStatus));
+        return this.parseOrders(batchStatus);
     }
 
     /**
@@ -1884,7 +1884,7 @@ public partial class krakenfutures : Exchange
             IDictionary<string, object> order = this.safeDict(orderEvent, "order", new Dictionary<string, object>() {});
             orders.Add(order);
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders));
+        return this.parseOrders(orders);
     }
 
     /**
@@ -1945,7 +1945,7 @@ public partial class krakenfutures : Exchange
         }
         Dictionary<string, object> response = await this.privateGetOpenorders(parameters);
         List<object> orders = this.safeList(response, "openOrders", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
+        return this.parseOrders(orders, market, since, limit);
     }
 
     /**
@@ -1973,7 +1973,7 @@ public partial class krakenfutures : Exchange
         }
         Dictionary<string, object> response = await this.privateGetOrdersStatus(parameters);
         List<object> orders = this.safeList(response, "orders", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
+        return this.parseOrders(orders, market, since, limit);
     }
 
     /**
@@ -2077,7 +2077,7 @@ public partial class krakenfutures : Exchange
                 }
             }
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(closedOrders, market, since, limit));
+        return this.parseOrders(closedOrders, market, since, limit);
     }
 
     /**
@@ -2156,7 +2156,7 @@ public partial class krakenfutures : Exchange
                 canceledAndRejected.Add(innerOrder);
             }
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(canceledAndRejected, market, since, limit));
+        return this.parseOrders(canceledAndRejected, market, since, limit);
     }
 
     public virtual string? parseOrderType(object orderType)
@@ -2239,7 +2239,7 @@ public partial class krakenfutures : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // LIMIT
@@ -2632,7 +2632,7 @@ public partial class krakenfutures : Exchange
                     }
                 }
             }
-            trades = this.parseTrades(executions);
+            trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(executions));
             statusId = this.safeString(order, "status");
         }
         if ((details == null))
@@ -2815,7 +2815,7 @@ public partial class krakenfutures : Exchange
         //    }
         //
         List<object> fills = this.safeList(response, "fills", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(fills, market, since, limit));
+        return this.parseTrades(fills, market, since, limit);
     }
 
     /**

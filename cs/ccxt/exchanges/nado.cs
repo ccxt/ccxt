@@ -402,7 +402,7 @@ public partial class nado : Exchange
         //         "id": 100
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {             { "place_order", placeOrder },         }, response), market));
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {             { "place_order", placeOrder },         }, response), market);
     }
 
     /**
@@ -586,7 +586,7 @@ public partial class nado : Exchange
         //
         IDictionary<string, object> cancelAndPlace = this.safeDict(request, "cancel_and_place", new Dictionary<string, object>() {});
         IDictionary<string, object> placeOrder = this.safeDict(cancelAndPlace, "place_order", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {             { "place_order", placeOrder },         }, response), market));
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {             { "place_order", placeOrder },         }, response), market);
     }
 
     /**
@@ -761,9 +761,9 @@ public partial class nado : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < cancelledOrders.Count; i++)
         {
-            result.Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
+            result.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {
                 { "status", "canceled" },
-            }, cancelledOrders[i]), market));
+            }, cancelledOrders[i]), market)));
         }
         return ccxt.BaseExchange.ToOrderList(result);
     }
@@ -863,9 +863,9 @@ public partial class nado : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < cancelledOrders.Count; i++)
         {
-            result.Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
+            result.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {
                 { "status", "canceled" },
-            }, cancelledOrders[i]), market));
+            }, cancelledOrders[i]), market)));
         }
         return ccxt.BaseExchange.ToOrderList(result);
     }
@@ -982,7 +982,7 @@ public partial class nado : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -1072,7 +1072,7 @@ public partial class nado : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> orders = this.safeList(data, "orders", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
+        return this.parseOrders(orders, market, since, limit);
     }
 
     /**
@@ -1148,7 +1148,7 @@ public partial class nado : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> orders = this.safeList(data, "orders", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit, new Dictionary<string, object>() {             { "status", "open" },         }));
+        return this.parseOrders(orders, market, since, limit, new Dictionary<string, object>() {             { "status", "open" },         });
     }
 
     /**
@@ -1239,7 +1239,7 @@ public partial class nado : Exchange
                 }, order));
             }
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(closedOrders, market, since, limit));
+        return this.parseOrders(closedOrders, market, since, limit);
     }
 
     /**
@@ -1368,7 +1368,7 @@ public partial class nado : Exchange
             IDictionary<string, object> tx = this.safeDict(txsBySubmission, submissionIdx, new Dictionary<string, object>() {});
             trades.Add(this.extend(tx, match));
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
+        return this.parseTrades(trades, market, since, limit);
     }
 
     /**
@@ -2256,7 +2256,7 @@ public partial class nado : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(response, "timestamp");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp));
+        return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp);
     }
 
     /**
@@ -2299,7 +2299,7 @@ public partial class nado : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**
@@ -2378,7 +2378,7 @@ public partial class nado : Exchange
         return new List<object> {this.safeTimestamp(ohlcv, "timestamp"), this.parseX18(this.safeString(ohlcv, "open_x18")), this.parseX18(this.safeString(ohlcv, "high_x18")), this.parseX18(this.safeString(ohlcv, "low_x18")), this.parseX18(this.safeString(ohlcv, "close_x18")), this.parseX18(this.safeString(ohlcv, "volume"))};
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         //     {
@@ -2883,7 +2883,7 @@ public partial class nado : Exchange
         return Precise.stringGe(Precise.stringAbs(filled), Precise.stringAbs(amount));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // create order

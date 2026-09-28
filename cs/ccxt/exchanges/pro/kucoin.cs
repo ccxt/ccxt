@@ -1434,8 +1434,8 @@ public partial class kucoin : ccxt.kucoin
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        Dictionary<string, object> trade = this.parseTrade(data, market);
-        string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
+        ccxt.Trade trade = this.parseTrade(data, market);
+        string? symbol = trade.symbol;
         string messageHash = ("trades:" + symbol);
         if (!(((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol))))
         {
@@ -1444,7 +1444,7 @@ public partial class kucoin : ccxt.kucoin
             this.trades[(string)symbol] = stored;
         }
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
-        cache.append(trade);
+        cache.append(ccxt.BaseExchange.FromTrade(trade));
         client.resolve(cache, messageHash);
     }
 
@@ -1522,7 +1522,7 @@ public partial class kucoin : ccxt.kucoin
                 { "currency", feeCurrencyCode },
             };
         }
-        return this.safeTrade(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString(trade, "ti") },
             { "order", this.safeString(trade, "oi") },
@@ -1536,7 +1536,7 @@ public partial class kucoin : ccxt.kucoin
             { "amount", this.safeString(trade, "q") },
             { "cost", null },
             { "fee", fee },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     /**
@@ -1949,9 +1949,9 @@ public partial class kucoin : ccxt.kucoin
         string messageHash = ((("uta:orderbook:" + symbol) + ":depth:") + depth);
         if (type == "snapshot")
         {
-            Dictionary<string, object> parsed = this.parseOrderBook(data, symbol, timestamp, "b", "a", 0, 1);
-            parsed["nonce"] = this.safeInteger(data, "O");
-            (orderbook as IOrderBook).reset(parsed);
+            ccxt.OrderBook parsed = this.parseOrderBook(data, symbol, timestamp, "b", "a", 0, 1);
+            parsed.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(data, "O"));
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(parsed));
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         } else
         {
@@ -2292,7 +2292,7 @@ public partial class kucoin : ccxt.kucoin
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // /spotMarket/tradeOrders
@@ -2456,7 +2456,7 @@ public partial class kucoin : ccxt.kucoin
             { "currency", this.safeCurrencyCode(this.safeString(order, "fC")) },
         };
         // todo check amount for other qU values
-        return this.safeOrder(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeString(order, "oi") },
             { "clientOrderId", this.safeString(order, "ci") },
@@ -2482,7 +2482,7 @@ public partial class kucoin : ccxt.kucoin
             { "fee", fee },
             { "reduceOnly", this.safeBool(order, "rO") },
             { "postOnly", this.safeBool(order, "pO") },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
@@ -2513,7 +2513,7 @@ public partial class kucoin : ccxt.kucoin
         {
             this.handleMyTrade(client, message);
         }
-        Dictionary<string, object> parsed = this.parseWsOrder(data);
+        Dictionary<string, object> parsed = ccxt.BaseExchange.FromOrder(this.parseWsOrder(data));
         string? symbol = this.safeString(parsed, "symbol");
         string? orderId = this.safeString(parsed, "id");
         string? triggerPrice = this.safeString(parsed, "triggerPrice");
@@ -2770,15 +2770,15 @@ public partial class kucoin : ccxt.kucoin
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
         IDictionary<string, object> data = this.safeDict(message, "data");
-        Dictionary<string, object> parsed = this.parseWsTrade(data);
+        ccxt.Trade parsed = this.parseWsTrade(data);
         ccxt.pro.ArrayCache myTrades = this.myTrades;
-        myTrades.append(parsed);
+        myTrades.append(ccxt.BaseExchange.FromTrade(parsed));
         string messageHash = "myTrades";
         string? topic = this.safeString(message, "topic");
         string suffix = this.getMyTradesMessageHashSuffix(topic);
         string typeSpecificMessageHash = (messageHash + suffix);
         client.resolve(this.myTrades, typeSpecificMessageHash);
-        string symbolSpecificMessageHash = ((messageHash + ":") + ((parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null)));
+        string symbolSpecificMessageHash = ((messageHash + ":") + ((((object)parsed.symbol))));
         client.resolve(this.myTrades, symbolSpecificMessageHash);
     }
 
@@ -2819,7 +2819,7 @@ public partial class kucoin : ccxt.kucoin
         client.resolve(cache, symbolMessageHash);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         // /spotMarket/tradeOrders

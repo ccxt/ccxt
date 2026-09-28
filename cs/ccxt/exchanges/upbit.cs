@@ -1022,7 +1022,7 @@ public partial class upbit : Exchange
         return ccxt.BaseExchange.ToTicker(this.safeDict(tickers, symbol));
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -1147,7 +1147,7 @@ public partial class upbit : Exchange
         //                    "ask_bid": "ASK",
         //              "sequential_id":  15428917910540000 }  ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limitResolved));
+        return this.parseTrades(response, market, since, limitResolved);
     }
 
     /**
@@ -1535,7 +1535,7 @@ public partial class upbit : Exchange
         //         "trades_count": 0
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -1579,7 +1579,7 @@ public partial class upbit : Exchange
         //         "trades_count": 0
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -1733,7 +1733,7 @@ public partial class upbit : Exchange
         result["identifier"] = this.safeString(response, "new_order_identifier");
         result["side"] = this.safeString(response, "side");
         result["market"] = this.safeString(response, "market");
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(result));
+        return this.parseOrder(result);
     }
 
     /**
@@ -2026,7 +2026,7 @@ public partial class upbit : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         // {
         //   "market": "KRW-USDT",
@@ -2132,10 +2132,10 @@ public partial class upbit : Exchange
         string? marketId = this.safeString(order, "market");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         IList<object> trades = this.safeList(order, "trades", new List<object>() {});
-        trades = this.parseTrades(trades, marketResolved, null, null, new Dictionary<string, object>() {
+        trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(trades, marketResolved, null, null, new Dictionary<string, object>() {
             { "order", id },
             { "type", type },
-        });
+        }));
         int numTrades = (trades?.Count ?? 0);
         if (numTrades > 0)
         {
@@ -2250,7 +2250,7 @@ public partial class upbit : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -2317,7 +2317,7 @@ public partial class upbit : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -2384,7 +2384,7 @@ public partial class upbit : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -2452,7 +2452,7 @@ public partial class upbit : Exchange
         //         ]
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**

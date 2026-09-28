@@ -1116,9 +1116,9 @@ public partial class backpack : Exchange
             throw new ExchangeError ((this.id + " fetchOrderBook() missing microseconds")) ;
         }
         Int64? timestamp = this.parseToInt(((double?)microseconds / 1000));
-        Dictionary<string, object> orderbook = this.parseOrderBook(response, symbol, timestamp);
-        orderbook["nonce"] = this.safeInteger(response, "lastUpdateId");
-        return ccxt.BaseExchange.ToOrderBook(orderbook);
+        ccxt.OrderBook orderbook = this.parseOrderBook(response, symbol, timestamp);
+        orderbook.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(response, "lastUpdateId"));
+        return orderbook;
     }
 
     /**
@@ -1419,7 +1419,7 @@ public partial class backpack : Exchange
             response = await this.publicGetApiV1Trades(this.extend(request, parameters));
         }
         IList<object> responseList = this.toArray(response);
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(responseList, market, since, limit));
+        return this.parseTrades(responseList, market, since, limit);
     }
 
     /**
@@ -1470,10 +1470,10 @@ public partial class backpack : Exchange
         }
         List<object> response = await this.privateGetWapiV1HistoryFills(this.extend(request, paramsOmitted));
         IList<object> responseList = this.toArray(response);
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(responseList, market, since, limit));
+        return this.parseTrades(responseList, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -2007,7 +2007,7 @@ public partial class backpack : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         Dictionary<string, object> response = await this.privatePostApiV1Order(orderRequest);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -2041,7 +2041,7 @@ public partial class backpack : Exchange
             ordersRequests.Add(orderRequest);
         }
         List<object> response = await this.privatePostApiV1Orders(ordersRequests);
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response));
+        return this.parseOrders(response);
     }
 
     public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, object side, object amount, object price = null, object parameters = null)
@@ -2191,7 +2191,7 @@ public partial class backpack : Exchange
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         List<object> response = await this.privateGetApiV1Orders(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -2221,7 +2221,7 @@ public partial class backpack : Exchange
             { "orderId", id },
         };
         Dictionary<string, object> response = await this.privateGetApiV1Order(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -2251,7 +2251,7 @@ public partial class backpack : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.privateDeleteApiV1Order(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -2279,7 +2279,7 @@ public partial class backpack : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> response = await this.privateDeleteApiV1Orders(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market));
+        return this.parseOrders(response, market);
     }
 
     /**
@@ -2312,10 +2312,10 @@ public partial class backpack : Exchange
             request["limit"] = limit;
         }
         List<object> response = await this.privateGetWapiV1HistoryOrders(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {

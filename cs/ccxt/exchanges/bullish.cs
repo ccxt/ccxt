@@ -1113,7 +1113,7 @@ public partial class bullish : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(response, "timestamp");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, symbol, timestamp, "bids", "asks", "price", "priceLevelQuantity"));
+        return this.parseOrderBook(response, symbol, timestamp, "bids", "asks", "price", "priceLevelQuantity");
     }
 
     /**
@@ -1171,7 +1171,7 @@ public partial class bullish : Exchange
         //         }, ...
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**
@@ -1245,7 +1245,7 @@ public partial class bullish : Exchange
             //
             response = await this.privateGetV1HistoryTrades(this.extend(request, paramsSinceAndUntil));
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**
@@ -1279,7 +1279,7 @@ public partial class bullish : Exchange
         return await this.FetchMyTrades(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsExtended);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -1794,7 +1794,7 @@ public partial class bullish : Exchange
         {
             throw new BadRequest ((this.id + " fetchOrders() method parameter must be either \"privateGetV2Orders\" or \"privateGetV2HistoryOrders\"")) ;
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     public virtual object handlePaginationParams(string method, Int64? since = null, object parameters = null)
@@ -2014,7 +2014,7 @@ public partial class bullish : Exchange
         //         "createdAtTimestamp": "1621490985000",
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -2087,7 +2087,7 @@ public partial class bullish : Exchange
         //         "clientOrderId": "1234567"
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -2142,7 +2142,7 @@ public partial class bullish : Exchange
         }
         object paramsOmitted = ((postOnly == true)) ? this.omit(parameters, "postOnly") : parameters;
         Dictionary<string, object> response = await this.privatePostV2Command(this.extend(request, paramsOmitted));
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -2182,7 +2182,7 @@ public partial class bullish : Exchange
         //         "clientOrderId": null
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -2221,10 +2221,10 @@ public partial class bullish : Exchange
         //     }
         //
         List<object> orders = new List<object>() {response};
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market));
+        return this.parseOrders(orders, market);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // fetchOrders, fetchOrder

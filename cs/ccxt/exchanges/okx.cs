@@ -3183,7 +3183,7 @@ public partial class okx : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(first, "ts");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(first, symbol, timestamp));
+        return this.parseOrderBook(first, symbol, timestamp);
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -3461,7 +3461,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // public fetchTrades
@@ -3647,7 +3647,7 @@ public partial class okx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
+        return this.parseTrades(data, market, since, limit);
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -4691,10 +4691,10 @@ public partial class okx : Exchange
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
-        Dictionary<string, object> order = this.parseOrder(first, market);
-        order["type"] = type;
-        order["side"] = side;
-        return ccxt.BaseExchange.ToOrder(order);
+        ccxt.Order order = this.parseOrder(first, market);
+        order.type = ccxt.BaseExchange.StructString(type);
+        order.side = ccxt.BaseExchange.StructString(side);
+        return order;
     }
 
     /**
@@ -4755,7 +4755,7 @@ public partial class okx : Exchange
         //     "outTime": "1697979038586493"
         // }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data));
+        return this.parseOrders(data);
     }
 
     public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, string? type, string? side, object amount = null, object price = null, object parameters = null)
@@ -4945,10 +4945,10 @@ public partial class okx : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
-        Dictionary<string, object> order = this.parseOrder(first, market);
-        order["type"] = type;
-        order["side"] = side;
-        return ccxt.BaseExchange.ToOrder(order);
+        ccxt.Order order = this.parseOrder(first, market);
+        order.type = ccxt.BaseExchange.StructString(type);
+        order.side = ccxt.BaseExchange.StructString(side);
+        return order;
     }
 
     /**
@@ -5000,7 +5000,7 @@ public partial class okx : Exchange
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> order = this.safeDict(data, 0);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
+        return this.parseOrder(order, market);
     }
 
     public virtual object parseIds(object ids)
@@ -5148,7 +5148,7 @@ public partial class okx : Exchange
         // the request-only keys must not be merged onto every parsed order: a clientOrderId[]
         // request would otherwise come back as a list under the unified string field
         object orderParams = this.omit(parameters, new List<object>() {"clOrdId", "clientOrderId", "algoId", "stop", "trigger", "trailing", "method"});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(ordersData, market, null, null, orderParams));
+        return this.parseOrders(ordersData, market, null, null, orderParams);
     }
 
     /**
@@ -5244,7 +5244,7 @@ public partial class okx : Exchange
         //     }
         //
         List<object> ordersData = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(ordersData, null, null, null, parameters));
+        return this.parseOrders(ordersData, null, null, null, parameters);
     }
 
     /**
@@ -5306,7 +5306,7 @@ public partial class okx : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -5764,7 +5764,7 @@ public partial class okx : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> order = this.safeDict(data, 0);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
+        return this.parseOrder(order, market);
     }
 
     /**
@@ -5934,7 +5934,7 @@ public partial class okx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+        return this.parseOrders(data, market, since, limit);
     }
 
     /**
@@ -6128,7 +6128,7 @@ public partial class okx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+        return this.parseOrders(data, market, since, limit);
     }
 
     /**
@@ -6326,7 +6326,7 @@ public partial class okx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+        return this.parseOrders(data, market, since, limit);
     }
 
     /**
@@ -6405,7 +6405,7 @@ public partial class okx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit, query));
+        return this.parseTrades(data, market, since, limit, query);
     }
 
     /**
@@ -10287,7 +10287,7 @@ public partial class okx : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> order = this.safeDict(data, 0);
-        return ((IDictionary<string, object>)((object)(this.parseOrder(order, market))));
+        return ((IDictionary<string, object>)((object)(ccxt.BaseExchange.FromOrder(this.parseOrder(order, market)))));
     }
 
     /**

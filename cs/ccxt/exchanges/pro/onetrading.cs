@@ -401,8 +401,8 @@ public partial class onetrading : ccxt.onetrading
         }
         if (type == "ORDER_BOOK_SNAPSHOT")
         {
-            Dictionary<string, object> snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks");
-            (orderbook as IOrderBook).reset(snapshot);
+            ccxt.OrderBook snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks");
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         } else if (type == "ORDER_BOOK_UPDATE")
         {
             List<object> changes = this.safeList(message, "changes", new List<object>() {});
@@ -654,7 +654,7 @@ public partial class onetrading : ccxt.onetrading
         string? datetime = this.safeString(order, "time");
         string? marketId = this.safeString(order, "instrument_code");
         string? symbol = this.safeSymbol(marketId, market, "_");
-        return this.safeOrder(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
             { "id", this.safeString(order, "order_id") },
             { "clientOrderId", this.safeString(order, "client_id") },
             { "info", order },
@@ -676,7 +676,7 @@ public partial class onetrading : ccxt.onetrading
             { "status", this.parseTradingOrderStatus(this.safeString(order, "status")) },
             { "fee", null },
             { "trades", null },
-        }, market);
+        }, market));
     }
 
     public virtual string? parseTradingOrderStatus(string? status)
@@ -769,16 +769,16 @@ public partial class onetrading : ccxt.onetrading
         ccxt.pro.ArrayCache orders = this.orders;
         for (int i = 0; i < rawOrders.Count; i++)
         {
-            Dictionary<string, object> order = this.parseOrder(rawOrders[i]);
-            string? symbol = this.safeString(order, "symbol", "");
-            orders.append(order);
+            ccxt.Order order = this.parseOrder(rawOrders[i]);
+            string? symbol = this.safeString(ccxt.BaseExchange.FromOrder(order), "symbol", "");
+            orders.append(ccxt.BaseExchange.FromOrder(order));
             client.resolve(this.orders, ("orders:" + symbol));
             List<object> rawTrades = this.safeList(rawOrders[i], "trades", new List<object>() {});
             for (int ii = 0; ii < rawTrades.Count; ii++)
             {
-                Dictionary<string, object> trade = this.parseTrade(rawTrades[ii]);
-                symbol = this.safeString(trade, "symbol", symbol);
-                this.myTrades.append(trade);
+                ccxt.Trade trade = this.parseTrade(rawTrades[ii]);
+                symbol = this.safeString(ccxt.BaseExchange.FromTrade(trade), "symbol", symbol);
+                this.myTrades.append(ccxt.BaseExchange.FromTrade(trade));
                 client.resolve(this.myTrades, ("myTrades:" + symbol));
             }
         }
@@ -1046,9 +1046,9 @@ public partial class onetrading : ccxt.onetrading
             orders.append(orderObject);
         } else
         {
-            Dictionary<string, object> parsed = this.parseOrder(update);
-            symbol = this.safeString(parsed, "symbol", "");
-            orders.append(parsed);
+            ccxt.Order parsed = this.parseOrder(update);
+            symbol = this.safeString(ccxt.BaseExchange.FromOrder(parsed), "symbol", "");
+            orders.append(ccxt.BaseExchange.FromOrder(parsed));
         }
         client.resolve(this.orders, ("orders:" + symbol));
         client.resolve(this.orders, "orders");
@@ -1066,7 +1066,7 @@ public partial class onetrading : ccxt.onetrading
         // update trades
         if (updateType == "TRADE_SETTLED")
         {
-            Dictionary<string, object> parsed = this.parseTrade(update);
+            Dictionary<string, object> parsed = ccxt.BaseExchange.FromTrade(this.parseTrade(update));
             symbol = this.safeString(parsed, "symbol", "");
             ccxt.pro.ArrayCache myTrades = this.myTrades;
             myTrades.append(parsed);

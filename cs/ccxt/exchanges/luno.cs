@@ -825,7 +825,7 @@ public partial class luno : Exchange
             response = await this.publicGetOrderbook(this.extend(request, parameters));
         }
         Int64? timestamp = this.safeInteger(response, "timestamp");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", "price", "volume"));
+        return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", "price", "volume");
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -836,7 +836,7 @@ public partial class luno : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -936,7 +936,7 @@ public partial class luno : Exchange
             { "id", id },
         };
         Dictionary<string, object> response = await this.privateGetOrdersId(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     public async virtual Task<List<ccxt.Order>> FetchOrdersByState(object state, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -959,7 +959,7 @@ public partial class luno : Exchange
         }
         Dictionary<string, object> response = await this.privateGetListorders(this.extend(request, parameters));
         List<object> orders = this.safeList(response, "orders", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
+        return this.parseOrders(orders, market, since, limit);
     }
 
     /**
@@ -1118,7 +1118,7 @@ public partial class luno : Exchange
         return this.parseTicker(response, market);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1261,7 +1261,7 @@ public partial class luno : Exchange
         //      }
         //
         List<object> trades = this.safeList(response, "trades", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
+        return this.parseTrades(trades, market, since, limit);
     }
 
     /**
@@ -1389,7 +1389,7 @@ public partial class luno : Exchange
         //      }
         //
         List<object> trades = this.safeList(response, "trades", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
+        return this.parseTrades(trades, market, since, limit);
     }
 
     /**
@@ -1473,7 +1473,7 @@ public partial class luno : Exchange
         {
             throw new NullResponse ((this.id + " createOrder() returned empty response")) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", GetValue(response, "order_id") },         }, market));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", GetValue(response, "order_id") },         }, market);
     }
 
     /**
@@ -1502,7 +1502,7 @@ public partial class luno : Exchange
         //        "success": true
         //    }
         //
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },         });
     }
 
     public async virtual Task<List<ccxt.LedgerEntry>> FetchLedgerByEntries(string code = null, object entry = null, Int64? limit = null, IDictionary<string, object>? parameters = null)

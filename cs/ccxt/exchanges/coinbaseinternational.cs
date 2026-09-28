@@ -1499,7 +1499,7 @@ public partial class coinbaseinternational : Exchange
         };
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         //    {
@@ -2133,10 +2133,10 @@ public partial class coinbaseinternational : Exchange
         //        "fee":"0"
         //    }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -2282,7 +2282,7 @@ public partial class coinbaseinternational : Exchange
         //        "fee":"0"
         //    }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(orders, market));
+        return this.parseOrder(orders, market);
     }
 
     /**
@@ -2313,7 +2313,7 @@ public partial class coinbaseinternational : Exchange
             request["instrument"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         List<object> orders = await this.v1PrivateDeleteOrders(this.extend(request, paramsPortfolio));
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market));
+        return this.parseOrders(orders, market);
     }
 
     /**
@@ -2369,7 +2369,7 @@ public partial class coinbaseinternational : Exchange
         }
         request["client_order_id"] = clientOrderId;
         Dictionary<string, object> order = await this.v1PrivatePutOrdersId(this.extend(request, paramsPortfolio));
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
+        return this.parseOrder(order, market);
     }
 
     /**
@@ -2427,7 +2427,7 @@ public partial class coinbaseinternational : Exchange
         //        "fee":"0"
         //    }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
+        return this.parseOrder(order, market);
     }
 
     /**
@@ -2526,7 +2526,7 @@ public partial class coinbaseinternational : Exchange
         //    }
         //
         List<object> rawOrders = this.safeList(response, "results", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(rawOrders, market, since, limit));
+        return this.parseOrders(rawOrders, market, since, limit);
     }
 
     /**
@@ -2630,7 +2630,7 @@ public partial class coinbaseinternational : Exchange
         //    }
         //
         List<object> trades = this.safeList(response, "results", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
+        return this.parseTrades(trades, market, since, limit);
     }
 
     /**

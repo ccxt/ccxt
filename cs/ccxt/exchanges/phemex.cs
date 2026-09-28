@@ -2034,10 +2034,10 @@ public partial class phemex : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> trades = this.safeList2(result, "trades", "trades_p", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
+        return this.parseTrades(trades, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public) spot & contract
@@ -2801,7 +2801,7 @@ public partial class phemex : Exchange
         string? timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
         double? triggerPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, "stopPxEp"), marketResolved)));
         bool postOnly = (timeInForce == "PO");
-        return this.safeOrder(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
             { "clientOrderId", clientOrderId },
@@ -2823,7 +2823,7 @@ public partial class phemex : Exchange
             { "status", status },
             { "fee", fee },
             { "trades", null },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     public virtual string? parseOrderSide(string? side)
@@ -2996,7 +2996,7 @@ public partial class phemex : Exchange
                 { "currency", "PT" },
             };
         }
-        return this.safeOrder(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
             { "clientOrderId", clientOrderId },
@@ -3021,18 +3021,18 @@ public partial class phemex : Exchange
             { "status", status },
             { "fee", fee },
             { "trades", null },
-        });
+        }));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         bool? isSwap = this.safeBool(market, "swap", false);
         bool hasPnl = ((order != null && ((IDictionary<string, object>)order).ContainsKey("closedPnl"))) || ((order != null && ((IDictionary<string, object>)order).ContainsKey("closedPnlRv"))) || ((order != null && ((IDictionary<string, object>)order).ContainsKey("totalPnlRv")));
         if (((isSwap == true)) || hasPnl)
         {
-            return ((Dictionary<string, object>)((object)(this.parseSwapOrder(order, market))));
+            return new ccxt.Order(this.parseSwapOrder(order, market));
         }
-        return ((Dictionary<string, object>)((object)(this.parseSpotOrder(order, market))));
+        return new ccxt.Order(this.parseSpotOrder(order, market));
     }
 
     /**
@@ -3395,7 +3395,7 @@ public partial class phemex : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -3489,7 +3489,7 @@ public partial class phemex : Exchange
             response = await this.privatePutSpotOrders(this.extend(request, paramsOmitted3));
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -3544,7 +3544,7 @@ public partial class phemex : Exchange
             response = await this.privateDeleteSpotOrders(this.extend(request, paramsOmitted));
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -3588,7 +3588,7 @@ public partial class phemex : Exchange
         {
             response = await this.privateDeleteSpotOrdersAll(this.extend(request, paramsOmitted));
         }
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
     }
 
     /**
@@ -3668,7 +3668,7 @@ public partial class phemex : Exchange
             }
             order = this.safeDict(rows, 0, new Dictionary<string, object>() {});
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
+        return this.parseOrder(order, market);
     }
 
     /**
@@ -3719,7 +3719,7 @@ public partial class phemex : Exchange
         }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         List<object> rows = this.safeList(data, "rows", data);
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(rows, market, since, limit));
+        return this.parseOrders(rows, market, since, limit);
     }
 
     /**
@@ -3778,11 +3778,11 @@ public partial class phemex : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+            return this.parseOrders(data, market, since, limit);
         } else
         {
             List<object> rows = this.safeList(data, "rows", new List<object>() {});
-            return ccxt.BaseExchange.ToOrderList(this.parseOrders(rows, market, since, limit));
+            return this.parseOrders(rows, market, since, limit);
         }
     }
 
@@ -3877,11 +3877,11 @@ public partial class phemex : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+            return this.parseOrders(data, market, since, limit);
         } else
         {
             List<object> rows = this.safeList(data, "rows", new List<object>() {});
-            return ccxt.BaseExchange.ToOrderList(this.parseOrders(rows, market, since, limit));
+            return this.parseOrders(rows, market, since, limit);
         }
     }
 
@@ -4061,7 +4061,7 @@ public partial class phemex : Exchange
             data = this.safeValue(response, "data", new Dictionary<string, object>() {});
             data = this.safeList(data, "rows", new List<object>() {});
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limitResolved));
+        return this.parseTrades(data, market, since, limitResolved);
     }
 
     /**

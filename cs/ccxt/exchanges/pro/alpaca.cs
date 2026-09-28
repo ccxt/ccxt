@@ -286,8 +286,8 @@ public partial class alpaca : ccxt.alpaca
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         if ((isSnapshot == true))
         {
-            Dictionary<string, object> snapshot = this.parseOrderBook(message, symbol, timestamp, "b", "a", "p", "s");
-            (orderbook as IOrderBook).reset(snapshot);
+            ccxt.OrderBook snapshot = this.parseOrderBook(message, symbol, timestamp, "b", "a", "p", "s");
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         } else
         {
             List<object> asks = this.safeList(message, "a", new List<object>() {});
@@ -374,8 +374,8 @@ public partial class alpaca : ccxt.alpaca
             stored = new ArrayCache(limit);
             this.trades[(string)symbol] = stored;
         }
-        Dictionary<string, object> parsed = this.parseTrade(message);
-        stored.append(parsed);
+        ccxt.Trade parsed = this.parseTrade(message);
+        stored.append(ccxt.BaseExchange.FromTrade(parsed));
         string messageHash = (("trade" + ":") + symbol);
         client.resolve(stored, messageHash);
     }
@@ -525,11 +525,11 @@ public partial class alpaca : ccxt.alpaca
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache orders = this.orders;
-        Dictionary<string, object> order = this.parseOrder(rawOrder);
-        orders.append(order);
+        ccxt.Order order = this.parseOrder(rawOrder);
+        orders.append(ccxt.BaseExchange.FromOrder(order));
         string messageHash = "orders";
         client.resolve(orders, messageHash);
-        messageHash = ("orders:" + ((order != null && order.ContainsKey("symbol") ? order["symbol"] : null)));
+        messageHash = ("orders:" + ((((object)order.symbol))));
         client.resolve(orders, messageHash);
     }
 
@@ -656,7 +656,7 @@ public partial class alpaca : ccxt.alpaca
             // might be limit or stop-limit
             type = "limit";
         }
-        return this.safeTrade(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "id", this.safeString(trade, "i") },
             { "info", trade },
             { "timestamp", this.parse8601(datetime) },
@@ -670,7 +670,7 @@ public partial class alpaca : ccxt.alpaca
             { "amount", this.safeString(trade, "filled_qty") },
             { "cost", null },
             { "fee", null },
-        }, market);
+        }, market));
     }
 
     public async virtual Task<object> authenticate(string? url, IDictionary<string, object>? parameters = null)

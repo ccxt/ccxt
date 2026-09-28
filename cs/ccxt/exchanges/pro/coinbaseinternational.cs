@@ -640,8 +640,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         //       "type": "UPDATE"
         //    }
         //
-        Dictionary<string, object> trade = this.parseWsTrade(message);
-        string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
+        ccxt.Trade trade = this.parseWsTrade(message);
+        string? symbol = trade.symbol;
         string? channel = this.safeString(message, "channel");
         if (!(((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol))))
         {
@@ -650,17 +650,17 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             this.trades[(string)symbol] = tradesArrayCache;
         }
         ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
-        tradesArray.append(trade);
+        tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
         this.trades[(string)symbol] = tradesArray;
         client.resolve(tradesArray, channel);
         if ((channel != null))
         {
-            client.resolve(tradesArray, ((channel + "::") + ((trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null))));
+            client.resolve(tradesArray, ((channel + "::") + ((((object)trade.symbol)))));
         }
         return message;
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         //    {
@@ -775,8 +775,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         if (type == "SNAPSHOT")
         {
-            Dictionary<string, object> parsedSnapshot = this.parseOrderBook(message, symbol, null, "bids", "asks");
-            (orderbook as IOrderBook).reset(parsedSnapshot);
+            ccxt.OrderBook parsedSnapshot = this.parseOrderBook(message, symbol, null, "bids", "asks");
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(parsedSnapshot));
             orderbook["symbol"] = symbol;
         } else
         {

@@ -156,14 +156,14 @@ public partial class apex : ccxt.apex
         for (Int64 j = 0; j < length; j++)
         {
             Int64 index = ((length - j) - 1);
-            Dictionary<string, object> parsed = this.parseWsTrade(getValue(trades, index), market);
-            stored.append(parsed);
+            ccxt.Trade parsed = this.parseWsTrade(getValue(trades, index), market);
+            stored.append(ccxt.BaseExchange.FromTrade(parsed));
         }
         string messageHash = (("trade" + ":") + symbol);
         client.resolve(stored, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         // public
@@ -367,8 +367,8 @@ public partial class apex : ccxt.apex
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         if (isSnapshot)
         {
-            Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a");
-            (orderbook as IOrderBook).reset(snapshot);
+            ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a");
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         } else
         {
             List<object> asks = this.safeList(data, "a", new List<object>() {});
@@ -817,10 +817,10 @@ public partial class apex : ccxt.apex
         for (int i = 0; i < getArrayLength(lists); i++)
         {
             object rawTrade = getValue(lists, i);
-            Dictionary<string, object> parsed = this.parseWsTrade(rawTrade);
-            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+            ccxt.Trade parsed = this.parseWsTrade(rawTrade);
+            string? symbol = parsed.symbol;
             symbols[(string)symbol] = true;
-            trades.append(parsed);
+            trades.append(ccxt.BaseExchange.FromTrade(parsed));
         }
         List<object> keys = new List<object>(symbols.Keys);
         for (int i = 0; i < keys.Count; i++)
@@ -873,10 +873,10 @@ public partial class apex : ccxt.apex
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(lists); i++)
         {
-            Dictionary<string, object> parsed = this.parseOrder(getValue(lists, i));
-            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+            ccxt.Order parsed = this.parseOrder(getValue(lists, i));
+            string? symbol = parsed.symbol;
             symbols[(string)symbol] = true;
-            orders.append(parsed);
+            orders.append(ccxt.BaseExchange.FromOrder(parsed));
         }
         List<object> symbolsArray = new List<object>(symbols.Keys);
         for (int i = 0; i < symbolsArray.Count; i++)

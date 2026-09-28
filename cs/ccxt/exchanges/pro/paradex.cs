@@ -159,8 +159,8 @@ public partial class paradex : ccxt.paradex
         //
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
-        Dictionary<string, object> parsedTrade = this.parseTrade(data);
-        string? symbol = ((string)(parsedTrade != null && parsedTrade.ContainsKey("symbol") ? parsedTrade["symbol"] : null));
+        ccxt.Trade parsedTrade = this.parseTrade(data);
+        string? symbol = parsedTrade.symbol;
         string? messageHash = this.safeString(parameters, "channel");
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
@@ -168,7 +168,7 @@ public partial class paradex : ccxt.paradex
             stored = new ArrayCache(this.safeInteger(this.options, "tradesLimit", 1000));
             this.trades[(string)symbol] = stored;
         }
-        stored.append(parsedTrade);
+        stored.append(ccxt.BaseExchange.FromTrade(parsedTrade));
         client.resolve(stored, messageHash);
         return message;
     }
@@ -265,9 +265,9 @@ public partial class paradex : ccxt.paradex
             }
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        Dictionary<string, object> snapshot = this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks");
-        snapshot["nonce"] = this.safeInteger(data, "seq_no");
-        (orderbook as IOrderBook).reset(snapshot);
+        ccxt.OrderBook snapshot = this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks");
+        snapshot.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(data, "seq_no"));
+        (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         string? messageHash = this.safeString(parameters, "channel");
         client.resolve(orderbook, messageHash);
     }
@@ -433,14 +433,14 @@ public partial class paradex : ccxt.paradex
         //
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
-        Dictionary<string, object> parsed = this.parseOrder(data);
-        string? symbol = this.safeString(parsed, "symbol");
+        ccxt.Order parsed = this.parseOrder(data);
+        string? symbol = parsed.symbol;
         if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
-        this.orders.append(parsed);
+        this.orders.append(ccxt.BaseExchange.FromOrder(parsed));
         string messageHash = "orders";
         client.resolve(this.orders, messageHash);
         if ((symbol != null))

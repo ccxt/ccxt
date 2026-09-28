@@ -1412,7 +1412,7 @@ public partial class hitbtc : Exchange
             market = this.market(symbol);
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             List<object> responseInner = await this.publicGetPublicTradesSymbol(this.extend(request, parameters));
-            return ccxt.BaseExchange.ToTradeList(this.parseTrades(responseInner, market));
+            return this.parseTrades(responseInner, market);
         }
         Dictionary<string, object> response = await this.publicGetPublicTrades(this.extend(request, parameters));
         List<object> trades = new List<object>() {};
@@ -1422,7 +1422,7 @@ public partial class hitbtc : Exchange
             string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> marketInner = this.market(marketId);
             List<object> rawTrades = this.safeList(response, marketId, new List<object>() {});
-            IList<object> parsed = this.parseTrades(rawTrades, marketInner);
+            IList<object> parsed = ccxt.BaseExchange.FromTradeList(this.parseTrades(rawTrades, marketInner));
             trades = this.arrayConcat(trades, parsed);
         }
         return ccxt.BaseExchange.ToTradeList(trades);
@@ -1492,10 +1492,10 @@ public partial class hitbtc : Exchange
                 throw new NotSupported ((this.id + " fetchMyTrades() not support this market type")) ;
             }
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // createOrder (market)
@@ -1854,7 +1854,7 @@ public partial class hitbtc : Exchange
             IDictionary<string, object> orderbook = this.safeDict(response, marketId, new Dictionary<string, object>() {});
             string? symbol = this.safeSymbol(marketId);
             Int64? timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
-            result[(string)symbol] = this.parseOrderBook(orderbook, symbol, timestamp, "bid", "ask");
+            result[(string)symbol] = ccxt.BaseExchange.FromOrderBook(this.parseOrderBook(orderbook, symbol, timestamp, "bid", "ask"));
         }
         return ccxt.BaseExchange.ToOrderBooks(result);
     }
@@ -1886,7 +1886,7 @@ public partial class hitbtc : Exchange
         }
         Dictionary<string, object> response = await this.publicGetPublicOrderbookSymbol(this.extend(request, parameters));
         Int64? timestamp = this.parse8601(this.safeString(response, "timestamp"));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, symbol, timestamp, "bid", "ask"));
+        return this.parseOrderBook(response, symbol, timestamp, "bid", "ask");
     }
 
     public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object> market = null)
@@ -2193,7 +2193,7 @@ public partial class hitbtc : Exchange
                 throw new NotSupported ((this.id + " fetchClosedOrders() not support this market type")) ;
             }
         }
-        IList<object> parsed = this.parseOrders(response, market, since, limit);
+        IList<object> parsed = ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market, since, limit));
         return ccxt.BaseExchange.ToOrderList(this.filterByArray(parsed, "status", new List<object>() {"closed", "canceled"}, false));
     }
 
@@ -2273,7 +2273,7 @@ public partial class hitbtc : Exchange
         //     ]
         //
         IDictionary<string, object> order = this.safeDict(response, 0, new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
+        return this.parseOrder(order, market);
     }
 
     /**
@@ -2372,7 +2372,7 @@ public partial class hitbtc : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**
@@ -2450,7 +2450,7 @@ public partial class hitbtc : Exchange
         //       }
         //     ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -2509,7 +2509,7 @@ public partial class hitbtc : Exchange
                 throw new NotSupported ((this.id + " fetchOpenOrder() not support this market type")) ;
             }
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -2566,7 +2566,7 @@ public partial class hitbtc : Exchange
                 throw new NotSupported ((this.id + " cancelAllOrders() not support this market type")) ;
             }
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market));
+        return this.parseOrders(response, market);
     }
 
     /**
@@ -2625,7 +2625,7 @@ public partial class hitbtc : Exchange
                 throw new NotSupported ((this.id + " cancelOrder() not support this market type")) ;
             }
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
@@ -2679,7 +2679,7 @@ public partial class hitbtc : Exchange
                 throw new NotSupported ((this.id + " editOrder() not support this market type")) ;
             }
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -2730,7 +2730,7 @@ public partial class hitbtc : Exchange
         {
             response = await this.privatePostSpotOrder(this.extend(request, paramsValue));
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public virtual List<object> createOrderRequest(IDictionary<string, object> market, string? marketType, string? type, string? side, object amount, object price = null, object marginMode = null, object parameters = null)
@@ -2822,7 +2822,7 @@ public partial class hitbtc : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // limit
@@ -4221,7 +4221,7 @@ public partial class hitbtc : Exchange
         //     "updated_at":"2023-12-19T09:34:40.014Z"
         // }
         //
-        return ((IDictionary<string, object>)((object)(this.parseOrder(response, market))));
+        return ((IDictionary<string, object>)((object)(ccxt.BaseExchange.FromOrder(this.parseOrder(response, market)))));
     }
 
     public override (string?, object) handleMarginModeAndParams(object methodName, object parameters = null, object defaultValue = null)

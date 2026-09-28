@@ -6104,9 +6104,9 @@ public partial class binance : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(response, "T");
-        Dictionary<string, object> orderbook = this.parseOrderBook(response, symbol, timestamp);
-        orderbook["nonce"] = this.safeInteger2(response, "lastUpdateId", "u");
-        return ccxt.BaseExchange.ToOrderBook(orderbook);
+        ccxt.OrderBook orderbook = this.parseOrderBook(response, symbol, timestamp);
+        orderbook.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger2(response, "lastUpdateId", "u"));
+        return orderbook;
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -6982,11 +6982,11 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToOHLCVList(candles);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isDustTrade")))
         {
-            return this.parseDustTrade(trade, market);
+            return new ccxt.Trade(this.parseDustTrade(trade, market));
         }
         //
         // aggregate trades
@@ -7481,7 +7481,7 @@ public partial class binance : Exchange
         {
             responseList = this.toArray(response);
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(responseList, market, since, limit));
+        return this.parseTrades(responseList, market, since, limit);
     }
 
     /**
@@ -7554,7 +7554,7 @@ public partial class binance : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "newOrderResponse", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     public virtual Dictionary<string, object> editSpotOrderRequest(string? id, string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
@@ -7852,7 +7852,7 @@ public partial class binance : Exchange
         {
             throw new NullResponse ((this.id + " parseOrder() returned empty response")) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -7985,7 +7985,7 @@ public partial class binance : Exchange
         //       }
         //   ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response));
+        return this.parseOrders(response);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -8036,7 +8036,7 @@ public partial class binance : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // spot
@@ -8816,7 +8816,7 @@ public partial class binance : Exchange
         //       }
         //   ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response));
+        return this.parseOrders(response);
     }
 
     /**
@@ -8974,7 +8974,7 @@ public partial class binance : Exchange
         {
             throw new NullResponse ((this.id + " parseOrder() returned empty response")) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -9703,7 +9703,7 @@ public partial class binance : Exchange
         {
             throw new NullResponse ((this.id + " parseOrder() returned empty response")) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -10092,9 +10092,9 @@ public partial class binance : Exchange
         if ((stock == true))
         {
             List<object> result = this.safeList(response, "rows", new List<object>() {});
-            return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, market, since, limitResolved));
+            return this.parseOrders(result, market, since, limitResolved);
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limitResolved));
+        return this.parseOrders(response, market, since, limitResolved);
     }
 
     /**
@@ -10250,7 +10250,7 @@ public partial class binance : Exchange
         {
             response = await this.privateGetOpenOrders(this.extend(request, paramsMarginMode));
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -10490,7 +10490,7 @@ public partial class binance : Exchange
         {
             throw new NullResponse ((this.id + " parseOrder() returned empty response")) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -10823,7 +10823,7 @@ public partial class binance : Exchange
         {
             throw new NullResponse ((this.id + " parseOrder() returned empty response")) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -10959,13 +10959,13 @@ public partial class binance : Exchange
         }
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market));
+            return this.parseOrders(response, market);
         } else
         {
-            Dictionary<string, object> order = this.safeOrder(new Dictionary<string, object>() {
+            ccxt.Order order = this.safeOrder(new Dictionary<string, object>() {
                 { "info", response },
             });
-            return ccxt.BaseExchange.ToOrderList(new List<object>() {order});
+            return ccxt.BaseExchange.ToOrderList(new List<object>() {ccxt.BaseExchange.FromOrder(order)});
         }
     }
 
@@ -11056,7 +11056,7 @@ public partial class binance : Exchange
         //        }
         //    ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market));
+        return this.parseOrders(response, market);
     }
 
     /**
@@ -11429,7 +11429,7 @@ public partial class binance : Exchange
                 responseList = this.toArray(response);
             }
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(responseList, market, since, limitResolved));
+        return this.parseTrades(responseList, market, since, limitResolved);
     }
 
     /**
@@ -11511,7 +11511,7 @@ public partial class binance : Exchange
                 data.Add(logs[j]);
             }
         }
-        IList<object> trades = this.parseTrades(data, null, since, limit);
+        IList<object> trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(data, null, since, limit));
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit));
     }
 

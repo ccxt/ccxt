@@ -303,8 +303,8 @@ public partial class hitbtc : ccxt.hitbtc
             Int64? nonce = this.safeInteger(item, "s");
             if (type == "snapshot")
             {
-                Dictionary<string, object> parsedSnapshot = this.parseOrderBook(item, symbol, timestamp, "b", "a");
-                (orderbook as IOrderBook).reset(parsedSnapshot);
+                ccxt.OrderBook parsedSnapshot = this.parseOrderBook(item, symbol, timestamp, "b", "a");
+                (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(parsedSnapshot));
             } else
             {
                 List<object> asks = this.safeList(item, "a", new List<object>() {});
@@ -750,7 +750,7 @@ public partial class hitbtc : ccxt.hitbtc
         List<object> result = new List<object>() {};
         for (int i = 0; i < (tradesArray?.Count ?? 0); i++)
         {
-            Dictionary<string, object> trade = this.extend(this.parseWsTrade(tradesArray[i], market), parameters);
+            Dictionary<string, object> trade = this.extend(ccxt.BaseExchange.FromTrade(this.parseWsTrade(tradesArray[i], market)), parameters);
             result.Add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
@@ -758,7 +758,7 @@ public partial class hitbtc : ccxt.hitbtc
         return ((IList<object>)((object)(this.filterBySymbolSinceLimit(result, symbol, since, limit))));
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         //    {
@@ -1048,8 +1048,8 @@ public partial class hitbtc : ccxt.hitbtc
         List<object> splitMethod = method.Split(new [] {"_order"}, StringSplitOptions.None).ToList<object>();
         string? messageHash = this.safeString(splitMethod, 0);
         string? symbol = this.safeSymbol(marketId);
-        Dictionary<string, object> parsed = this.parseOrder(order);
-        orders.append(parsed);
+        ccxt.Order parsed = this.parseOrder(order);
+        orders.append(ccxt.BaseExchange.FromOrder(parsed));
         client.resolve(orders, messageHash);
         if ((messageHash != null))
         {
@@ -1087,7 +1087,7 @@ public partial class hitbtc : ccxt.hitbtc
         //
         Int64? timestamp = this.safeInteger(trade, "created_at");
         string? marketId = this.safeString(trade, "symbol");
-        return this.safeTrade(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString(trade, "trade_id") },
             { "order", this.safeString(trade, "id") },
@@ -1105,10 +1105,10 @@ public partial class hitbtc : ccxt.hitbtc
                 { "currency", null },
                 { "rate", null },
             } },
-        }, market);
+        }, market));
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -1470,13 +1470,13 @@ public partial class hitbtc : ccxt.hitbtc
             List<object> parsedOrders = new List<object>() {};
             for (int i = 0; i < getArrayLength(result); i++)
             {
-                Dictionary<string, object> parsedOrder = this.parseWsOrder(getValue(result, i));
-                parsedOrders.Add(parsedOrder);
+                ccxt.Order parsedOrder = this.parseWsOrder(getValue(result, i));
+                parsedOrders.Add(ccxt.BaseExchange.FromOrder(parsedOrder));
             }
             client.resolve(parsedOrders, messageHash);
         } else
         {
-            Dictionary<string, object> parsedOrder = this.parseWsOrder(result);
+            Dictionary<string, object> parsedOrder = ccxt.BaseExchange.FromOrder(this.parseWsOrder(result));
             client.resolve(parsedOrder, messageHash);
         }
         return message;

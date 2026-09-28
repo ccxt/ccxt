@@ -419,8 +419,8 @@ public partial class bitfinex : ccxt.bitfinex
         subscription ??= new Dictionary<string, object>();
         string name = "myTrade";
         List<object> data = this.safeList(message, 2);
-        Dictionary<string, object> trade = this.parseWsTrade(data);
-        string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
+        ccxt.Trade trade = this.parseWsTrade(data);
+        string? symbol = trade.symbol;
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ((name + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
         if ((this.myTrades == null))
@@ -429,7 +429,7 @@ public partial class bitfinex : ccxt.bitfinex
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache tradesArray = this.myTrades;
-        tradesArray.append(trade);
+        tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
         this.myTrades = tradesArray;
         // generic subscription
         client.resolve(tradesArray, name);
@@ -490,8 +490,8 @@ public partial class bitfinex : ccxt.bitfinex
             for (Int64 i = 0; i < length; i++)
             {
                 Int64 index = ((length - i) - 1);
-                Dictionary<string, object> parsed = this.parseWsTrade(getValue(trades, index), market);
-                stored.append(parsed);
+                ccxt.Trade parsed = this.parseWsTrade(getValue(trades, index), market);
+                stored.append(ccxt.BaseExchange.FromTrade(parsed));
             }
         } else
         {
@@ -504,7 +504,7 @@ public partial class bitfinex : ccxt.bitfinex
                 return;
             }
             List<object> trade = this.safeList(message, 2, new List<object>() {});
-            Dictionary<string, object> parsed = this.parseWsTrade(trade, market);
+            Dictionary<string, object> parsed = ccxt.BaseExchange.FromTrade(this.parseWsTrade(trade, market));
             stored.append(parsed);
         }
         if ((channel != null))
@@ -514,7 +514,7 @@ public partial class bitfinex : ccxt.bitfinex
         }
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         //    [
@@ -1280,14 +1280,14 @@ public partial class bitfinex : ccxt.bitfinex
             for (int i = 0; i < data.Count; i++)
             {
                 object value = data[i];
-                Dictionary<string, object> parsed = this.parseWsOrder(value);
-                object symbol = (parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null);
+                ccxt.Order parsed = this.parseWsOrder(value);
+                object symbol = (((object)parsed.symbol));
                 symbolIds[(string)((string)symbol)] = true;
-                orders.append(parsed);
+                orders.append(ccxt.BaseExchange.FromOrder(parsed));
             }
         } else
         {
-            Dictionary<string, object> parsed = this.parseWsOrder(data);
+            Dictionary<string, object> parsed = ccxt.BaseExchange.FromOrder(this.parseWsOrder(data));
             orders.append(parsed);
             object symbol = (parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null);
             symbolIds[(string)((string)symbol)] = true;
@@ -1315,7 +1315,7 @@ public partial class bitfinex : ccxt.bitfinex
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //   [

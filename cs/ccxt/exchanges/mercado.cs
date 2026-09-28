@@ -438,7 +438,7 @@ public partial class mercado : Exchange
             { "coin", (market.ContainsKey("base") ? market["base"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetCoinOrderbook(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null)));
+        return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null));
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -520,7 +520,7 @@ public partial class mercado : Exchange
         return this.parseTicker(ticker, market);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         Int64? timestamp = this.safeTimestamp2(trade, "date", "executed_timestamp");
         Dictionary<string, object> marketResolved = this.safeMarket(null, market);
@@ -592,7 +592,7 @@ public partial class mercado : Exchange
         {
             response = await this.publicGetCoinTrades(this.extend(request, parameters));
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     public override Dictionary<string, object> parseBalance(object response)
@@ -695,7 +695,7 @@ public partial class mercado : Exchange
             }
         }
         // TODO: replace this with a call to parseOrder for unification
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", getValue(getValue(GetValue(response, "response_data"), "order"), "order_id").ToString() },         }, market));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", getValue(getValue(GetValue(response, "response_data"), "order"), "order_id").ToString() },         }, market);
     }
 
     /**
@@ -749,7 +749,7 @@ public partial class mercado : Exchange
         //
         IDictionary<string, object> responseData = this.safeDict(response, "response_data", new Dictionary<string, object>() {});
         IDictionary<string, object> order = this.safeDict(responseData, "order", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
+        return this.parseOrder(order, market);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -762,7 +762,7 @@ public partial class mercado : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -865,7 +865,7 @@ public partial class mercado : Exchange
         Dictionary<string, object> response = await this.privatePostGetOrder(this.extend(request, parameters));
         IDictionary<string, object> responseData = this.safeDict(response, "response_data", new Dictionary<string, object>() {});
         IDictionary<string, object> order = this.safeDict(responseData, "order");
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
+        return this.parseOrder(order, market);
     }
 
     /**
@@ -1065,7 +1065,7 @@ public partial class mercado : Exchange
         Dictionary<string, object> response = await this.privatePostListOrders(this.extend(request, parameters));
         IDictionary<string, object> responseData = this.safeDict(response, "response_data", new Dictionary<string, object>() {});
         List<object> orders = this.safeList(responseData, "orders", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
+        return this.parseOrders(orders, market, since, limit);
     }
 
     /**
@@ -1097,7 +1097,7 @@ public partial class mercado : Exchange
         Dictionary<string, object> response = await this.privatePostListOrders(this.extend(request, parameters));
         IDictionary<string, object> responseData = this.safeDict(response, "response_data", new Dictionary<string, object>() {});
         List<object> orders = this.safeList(responseData, "orders", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
+        return this.parseOrders(orders, market, since, limit);
     }
 
     /**
@@ -1129,7 +1129,7 @@ public partial class mercado : Exchange
         Dictionary<string, object> response = await this.privatePostListOrders(this.extend(request, parameters));
         IDictionary<string, object> responseData = this.safeDict(response, "response_data", new Dictionary<string, object>() {});
         List<object> ordersRaw = this.safeList(responseData, "orders", new List<object>() {});
-        IList<object> orders = this.parseOrders(ordersRaw, market, since, limit);
+        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(ordersRaw, market, since, limit));
         List<object> trades = this.ordersToTrades(orders);
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, this.safeString(market, "symbol"), since, limit));
     }

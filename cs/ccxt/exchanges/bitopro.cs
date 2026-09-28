@@ -698,10 +698,10 @@ public partial class bitopro : Exchange
         //         ]
         //     }
         //
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "amount"));
+        return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "amount");
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -835,7 +835,7 @@ public partial class bitopro : Exchange
         //         ]
         //     }
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
+        return this.parseTrades(trades, market, since, limit);
     }
 
     /**
@@ -1131,7 +1131,7 @@ public partial class bitopro : Exchange
         return ((status == null)) ? null : this.safeString(statuses, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -1298,7 +1298,7 @@ public partial class bitopro : Exchange
         //         "timeInForce": "GTC"
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -1337,7 +1337,7 @@ public partial class bitopro : Exchange
         //         "amount":"0.01"
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public virtual List<object> parseCancelOrders(IDictionary<string, object> data)
@@ -1350,11 +1350,11 @@ public partial class bitopro : Exchange
             object orderIds = (data != null && marketId != null && data.ContainsKey(marketId) ? data[marketId] : null);
             for (int j = 0; j < getArrayLength(orderIds); j++)
             {
-                orders.Add(this.safeOrder(new Dictionary<string, object>() {
+                orders.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                     { "info", getValue(orderIds, j) },
                     { "id", getValue(orderIds, j) },
                     { "symbol", this.safeSymbol(marketId) },
-                }));
+                })));
             }
         }
         return orders;
@@ -1494,7 +1494,7 @@ public partial class bitopro : Exchange
         //         "updatedTimestamp":1644899002598
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -1563,7 +1563,7 @@ public partial class bitopro : Exchange
         //         ]
         //     }
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
+        return this.parseOrders(orders, market, since, limit);
     }
 
     /**
@@ -1593,7 +1593,7 @@ public partial class bitopro : Exchange
         }
         Dictionary<string, object> response = await this.privateGetOrdersOpen(this.extend(request, parameters));
         List<object> orders = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
+        return this.parseOrders(orders, market, since, limit);
     }
 
     /**
@@ -1663,7 +1663,7 @@ public partial class bitopro : Exchange
         //         ]
         //     }
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
+        return this.parseTrades(trades, market, since, limit);
     }
 
     public virtual string? parseTransactionStatus(string? status)

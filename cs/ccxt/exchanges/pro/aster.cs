@@ -849,8 +849,8 @@ public partial class aster : ccxt.aster
         object trade = message;
         string? marketId = this.safeString(trade, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        Dictionary<string, object> parsed = this.parseWsTrade(trade, market);
-        string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+        ccxt.Trade parsed = this.parseWsTrade(trade, market);
+        string? symbol = parsed.symbol;
         if ((symbol == null))
         {
             return;
@@ -861,11 +861,11 @@ public partial class aster : ccxt.aster
             this.trades[(string)symbol] = new ArrayCache(limit);
         }
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
-        stored.append(parsed);
+        stored.append(ccxt.BaseExchange.FromTrade(parsed));
         client.resolve(stored, ("trade::" + symbol));
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         // public watchTrades (spot)
@@ -1223,8 +1223,8 @@ public partial class aster : ccxt.aster
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a");
-        (orderbook as IOrderBook).reset(snapshot);
+        ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a");
+        (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         string messageHash = (("orderbook" + ":") + symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         client.resolve(orderbook, messageHash);
@@ -2124,11 +2124,11 @@ public partial class aster : ccxt.aster
             Dictionary<string, object> fakeMarket = this.safeMarketStructure(new Dictionary<string, object>() {
                 { "type", type },
             });
-            Dictionary<string, object> trade = this.parseWsTrade(message, fakeMarket);
-            string? orderId = this.safeString(trade, "order");
-            IDictionary<string, object> tradeFee = this.safeDict(trade, "fee", new Dictionary<string, object>() {});
+            ccxt.Trade trade = this.parseWsTrade(message, fakeMarket);
+            string? orderId = trade.order;
+            IDictionary<string, object> tradeFee = this.safeDict(ccxt.BaseExchange.FromTrade(trade), "fee", new Dictionary<string, object>() {});
             tradeFee = this.extend(new Dictionary<string, object>() {}, tradeFee);
-            string? symbol = this.safeString(trade, "symbol");
+            string? symbol = trade.symbol;
             if ((orderId != null) && (tradeFee != null) && (symbol != null))
             {
                 ccxt.pro.ArrayCache cachedOrders = this.orders;
@@ -2181,7 +2181,7 @@ public partial class aster : ccxt.aster
                         }
                         // save this trade in the order
                         List<object> orderTrades = this.safeList(order, "trades", new List<object>() {});
-                        orderTrades.Add(trade);
+                        orderTrades.Add(ccxt.BaseExchange.FromTrade(trade));
                         order["trades"] = orderTrades;
                     }
                 }
@@ -2192,7 +2192,7 @@ public partial class aster : ccxt.aster
                 this.myTrades = new ArrayCacheBySymbolById(limit);
             }
             ccxt.pro.ArrayCache myTrades = this.myTrades;
-            myTrades.append(trade);
+            myTrades.append(ccxt.BaseExchange.FromTrade(trade));
             client.resolve(this.myTrades, messageHash);
             string messageHashSymbol = ((messageHash + "::") + symbol);
             client.resolve(this.myTrades, messageHashSymbol);
@@ -2283,9 +2283,9 @@ public partial class aster : ccxt.aster
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache cache = this.orders;
-        Dictionary<string, object> parsed = this.parseWsOrder(message, market);
+        ccxt.Order parsed = this.parseWsOrder(message, market);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        cache.append(parsed);
+        cache.append(ccxt.BaseExchange.FromOrder(parsed));
         List<object> messageHashes = this.findMessageHashes(client, messageHash);
         if (!this.isEmpty(messageHashes))
         {
@@ -2295,7 +2295,7 @@ public partial class aster : ccxt.aster
         }
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         string? executionType = this.safeString(order, "x");
         string? marketId = this.safeString(order, "s");

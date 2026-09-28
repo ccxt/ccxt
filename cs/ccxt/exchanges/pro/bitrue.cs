@@ -267,19 +267,19 @@ public partial class bitrue : ccxt.bitrue
         //        "Y": "0"
         //    }
         //
-        Dictionary<string, object> parsed = this.parseWsOrder(message);
+        ccxt.Order parsed = this.parseWsOrder(message);
         if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache orders = this.orders;
-        orders.append(parsed);
+        orders.append(ccxt.BaseExchange.FromOrder(parsed));
         string messageHash = "orders";
         client.resolve(this.orders, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -449,8 +449,8 @@ public partial class bitrue : ccxt.bitrue
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        Dictionary<string, object> snapshot = this.parseOrderBook(parseable, symbol, timestamp, "buys", "asks");
-        (orderbook as IOrderBook).reset(snapshot);
+        ccxt.OrderBook snapshot = this.parseOrderBook(parseable, symbol, timestamp, "buys", "asks");
+        (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         string messageHash = ("orderbook:" + (symbol));
         client.resolve(orderbook, messageHash);
     }
@@ -603,8 +603,8 @@ public partial class bitrue : ccxt.bitrue
                 stored = new ArrayCache(limit);
                 this.trades[(string)symbol] = stored;
             }
-            Dictionary<string, object> trade = this.parseWsTrade(data[i], market);
-            stored.append(trade);
+            ccxt.Trade trade = this.parseWsTrade(data[i], market);
+            stored.append(ccxt.BaseExchange.FromTrade(trade));
             appended = true;
         }
         if (appended)
@@ -614,7 +614,7 @@ public partial class bitrue : ccxt.bitrue
         }
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         object symbol = getValue(market, "symbol");
         Int64? timestamp = this.safeInteger(trade, "ts");

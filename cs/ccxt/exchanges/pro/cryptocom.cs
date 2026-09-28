@@ -488,7 +488,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             return;
         }
-        IList<object> parsedTrades = this.parseTrades(data, market);
+        IList<object> parsedTrades = ccxt.BaseExchange.FromTradeList(this.parseTrades(data, market));
         for (int j = 0; j < (parsedTrades?.Count ?? 0); j++)
         {
             stored.append(parsedTrades[j]);
@@ -1009,7 +1009,7 @@ public partial class cryptocom : ccxt.cryptocom
                 this.orders = new ArrayCacheBySymbolById(limit);
             }
             ccxt.pro.ArrayCache stored = this.orders;
-            IList<object> parsed = this.parseOrders(orders);
+            IList<object> parsed = ccxt.BaseExchange.FromOrderList(this.parseOrders(orders));
             for (int i = 0; i < (parsed?.Count ?? 0); i++)
             {
                 stored.append(parsed[i]);
@@ -1339,8 +1339,8 @@ public partial class cryptocom : ccxt.cryptocom
         //
         string? messageHash = this.safeString(message, "id");
         IDictionary<string, object> rawOrder = this.safeDict(message, "result", new Dictionary<string, object>() {});
-        Dictionary<string, object> order = this.parseOrder(rawOrder);
-        client.resolve(order, messageHash);
+        ccxt.Order order = this.parseOrder(rawOrder);
+        client.resolve(ccxt.BaseExchange.FromOrder(order), messageHash);
     }
 
     /**

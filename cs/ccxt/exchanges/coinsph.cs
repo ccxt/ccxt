@@ -1228,9 +1228,9 @@ public partial class coinsph : Exchange
         //         ]
         //     }
         //
-        Dictionary<string, object> orderbook = this.parseOrderBook(response, symbol);
-        orderbook["nonce"] = this.safeInteger(response, "lastUpdateId");
-        return ccxt.BaseExchange.ToOrderBook(orderbook);
+        ccxt.OrderBook orderbook = this.parseOrderBook(response, symbol);
+        orderbook.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(response, "lastUpdateId"));
+        return orderbook;
     }
 
     /**
@@ -1360,7 +1360,7 @@ public partial class coinsph : Exchange
         //         },
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**
@@ -1399,7 +1399,7 @@ public partial class coinsph : Exchange
             request["limit"] = limit;
         }
         List<object> response = await this.privateGetOpenapiV1MyTrades(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**
@@ -1427,7 +1427,7 @@ public partial class coinsph : Exchange
         return await this.FetchMyTrades(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -1718,7 +1718,7 @@ public partial class coinsph : Exchange
         //         ]
         //     },
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -1749,7 +1749,7 @@ public partial class coinsph : Exchange
         }
         object paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "origClientOrderId"});
         Dictionary<string, object> response = await this.privateGetOpenapiV1Order(this.extend(request, paramsOmitted));
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -1778,7 +1778,7 @@ public partial class coinsph : Exchange
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         List<object> response = await this.privateGetOpenapiV1OpenOrders(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -1817,7 +1817,7 @@ public partial class coinsph : Exchange
             request["limit"] = limit;
         }
         List<object> response = await this.privateGetOpenapiV1HistoryOrders(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -1848,7 +1848,7 @@ public partial class coinsph : Exchange
         }
         object paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "origClientOrderId"});
         Dictionary<string, object> response = await this.privateDeleteOpenapiV1Order(this.extend(request, paramsOmitted));
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -1879,10 +1879,10 @@ public partial class coinsph : Exchange
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         List<object> response = await this.privateDeleteOpenapiV1OpenOrders(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market));
+        return this.parseOrders(response, market);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder POST /openapi/v1/order

@@ -1491,9 +1491,9 @@ public partial class paradex : Exchange
             request["depth"] = limit;
         }
         Int64? timestamp = this.safeInteger(response, "last_updated_at");
-        Dictionary<string, object> orderbook = this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp);
-        orderbook["nonce"] = this.safeInteger(response, "seq_no");
-        return ccxt.BaseExchange.ToOrderBook(orderbook);
+        ccxt.OrderBook orderbook = this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp);
+        orderbook.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(response, "seq_no"));
+        return orderbook;
     }
 
     /**
@@ -1561,10 +1561,10 @@ public partial class paradex : Exchange
         {
             ((IDictionary<string,object>)trades[i])["next"] = this.safeString(response, "next");
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
+        return this.parseTrades(trades, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1912,7 +1912,7 @@ public partial class paradex : Exchange
         return ((string?)((object)(token)));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // {
@@ -2279,8 +2279,8 @@ public partial class paradex : Exchange
         //     "type": "MARKET"
         // }
         //
-        Dictionary<string, object> order = this.parseOrder(response, market);
-        return ccxt.BaseExchange.ToOrder(order);
+        ccxt.Order order = this.parseOrder(response, market);
+        return order;
     }
 
     /**
@@ -2356,7 +2356,7 @@ public partial class paradex : Exchange
         //         "type": "MARKET"
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -2414,15 +2414,15 @@ public partial class paradex : Exchange
         // }
         //
         List<object> responseOrders = this.safeList(response, "orders", new List<object>() {});
-        IList<object> parsedOrders = this.parseOrders(responseOrders);
+        IList<object> parsedOrders = ccxt.BaseExchange.FromOrderList(this.parseOrders(responseOrders));
         List<object> errors = this.safeList(response, "errors", new List<object>() {});
         for (int i = 0; i < (errors?.Count ?? 0); i++)
         {
             object error = errors[i];
-            parsedOrders.Add(this.safeOrder(new Dictionary<string, object>() {
+            parsedOrders.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", error },
                 { "status", "rejected" },
-            }));
+            })));
         }
         return ccxt.BaseExchange.ToOrderList(parsedOrders);
     }
@@ -2462,7 +2462,7 @@ public partial class paradex : Exchange
         //
         // if success, no response...
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -2545,13 +2545,13 @@ public partial class paradex : Exchange
             {
                 orderStatus = "rejected";
             }
-            orders.Add(this.safeOrder(new Dictionary<string, object>() {
+            orders.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", result },
                 { "id", this.safeString(result, "id") },
                 { "clientOrderId", this.safeString(result, "client_id") },
                 { "status", orderStatus },
                 { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
-            }, market));
+            }, market)));
         }
         return ccxt.BaseExchange.ToOrderList(orders);
     }
@@ -2585,7 +2585,7 @@ public partial class paradex : Exchange
         //
         // if success, no response...
         //
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
     }
 
     /**
@@ -2647,7 +2647,7 @@ public partial class paradex : Exchange
         //         "trigger_price": "0"
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -2741,7 +2741,7 @@ public partial class paradex : Exchange
             ((IDictionary<string,object>)first)["next"] = paginationCursor;
             orders[Convert.ToInt32(0)] = first;
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
+        return this.parseOrders(orders, market, since, limit);
     }
 
     /**
@@ -2804,7 +2804,7 @@ public partial class paradex : Exchange
         //   }
         //
         List<object> orders = this.safeList(response, "results", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
+        return this.parseOrders(orders, market, since, limit);
     }
 
     /**
@@ -2934,7 +2934,7 @@ public partial class paradex : Exchange
         {
             ((IDictionary<string,object>)trades[i])["next"] = this.safeString(response, "next");
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
+        return this.parseTrades(trades, market, since, limit);
     }
 
     /**

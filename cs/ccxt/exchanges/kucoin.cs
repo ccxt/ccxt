@@ -4549,9 +4549,9 @@ public partial class kucoin : Exchange
                 timestamp = this.parseToInt(((double?)nanoseconds / 1000000));
             }
         }
-        Dictionary<string, object> orderbook = this.parseOrderBook(data, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", (level - 2), (level - 1));
-        orderbook["nonce"] = this.safeInteger(data, "sequence");
-        return ccxt.BaseExchange.ToOrderBook(orderbook);
+        ccxt.OrderBook orderbook = this.parseOrderBook(data, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", (level - 2), (level - 1));
+        orderbook.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(data, "sequence"));
+        return orderbook;
     }
 
     public virtual List<object> handleTriggerPrices(object parameters)
@@ -4746,7 +4746,7 @@ public partial class kucoin : Exchange
         //    }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     public virtual Dictionary<string, object> createSpotOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
@@ -4929,7 +4929,7 @@ public partial class kucoin : Exchange
         //    }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     public virtual Dictionary<string, object> createContractOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
@@ -5164,7 +5164,7 @@ public partial class kucoin : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     public virtual Dictionary<string, object> createUtaOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
@@ -5584,7 +5584,7 @@ public partial class kucoin : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         data = this.safeList(data, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data));
+        return this.parseOrders(data);
     }
 
     /**
@@ -5643,7 +5643,7 @@ public partial class kucoin : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data));
+        return this.parseOrders(data);
     }
 
     /**
@@ -5698,7 +5698,7 @@ public partial class kucoin : Exchange
         // }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -5828,7 +5828,7 @@ public partial class kucoin : Exchange
                     IDictionary<string, object> data = this.safeDict(response, "data");
                     List<object> orderIds = this.safeList(data, "cancelledOrderIds", new List<object>() {});
                     string? orderId = this.safeString(orderIds, 0);
-                    return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {                         { "info", data },                         { "id", orderId },                     }));
+                    return this.safeOrder(new Dictionary<string, object>() {                         { "info", data },                         { "id", orderId },                     });
                 } else
                 {
                     //
@@ -5856,7 +5856,7 @@ public partial class kucoin : Exchange
                 response = await this.privateDeleteOrderClientOrderClientOid(this.extend(request, paramsOmitted));
             }
             response = this.safeDict(response, "data");
-            return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+            return this.parseOrder(response);
         } else
         {
             request["orderId"] = id;
@@ -5893,7 +5893,7 @@ public partial class kucoin : Exchange
                 //    }
                 //
                 response = this.safeDict(response, "data", new Dictionary<string, object>() {});
-                return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+                return this.parseOrder(response);
             } else
             {
                 response = await this.privateDeleteOrdersOrderId(this.extend(request, paramsOmitted));
@@ -5902,7 +5902,7 @@ public partial class kucoin : Exchange
             string? orderId = this.safeString(data, "orderId");
             List<object> orderIds = this.safeList(data, "cancelledOrderIds", new List<object>() {});
             orderId = this.safeString(orderIds, 0, orderId);
-            return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {                 { "info", data },                 { "id", orderId },             }));
+            return this.safeOrder(new Dictionary<string, object>() {                 { "info", data },                 { "id", orderId },             });
         }
     }
 
@@ -5954,7 +5954,7 @@ public partial class kucoin : Exchange
         //       },
         //   }
         //
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },         });
     }
 
     /**
@@ -6026,7 +6026,7 @@ public partial class kucoin : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -6156,7 +6156,7 @@ public partial class kucoin : Exchange
         {
             response = await this.privateDeleteOrders(this.extend(request, query));
         }
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
     }
 
     /**
@@ -6203,7 +6203,7 @@ public partial class kucoin : Exchange
         //   }
         //
         IDictionary<string, object> data = this.safeDict(response, "data");
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", data }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", data }, }))});
     }
 
     /**
@@ -6267,7 +6267,7 @@ public partial class kucoin : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> orders = this.safeList(data, "items", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, null, null, new Dictionary<string, object>() {             { "status", "canceled" },         }));
+        return this.parseOrders(orders, market, null, null, new Dictionary<string, object>() {             { "status", "canceled" },         });
     }
 
     /**
@@ -6462,11 +6462,11 @@ public partial class kucoin : Exchange
         List<object> listData = this.safeList(response, "data");
         if ((listData != null))
         {
-            return ccxt.BaseExchange.ToOrderList(this.parseOrders(listData, market, since, limit));
+            return this.parseOrders(listData, market, since, limit);
         }
         IDictionary<string, object> responseData = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> orders = this.safeList(responseData, "items", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
+        return this.parseOrders(orders, market, since, limit);
     }
 
     /**
@@ -6592,7 +6592,7 @@ public partial class kucoin : Exchange
         //
         IDictionary<string, object> responseData = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> orders = this.safeList(responseData, "items", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
+        return this.parseOrders(orders, market, since, limit);
     }
 
     /**
@@ -6735,7 +6735,7 @@ public partial class kucoin : Exchange
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> orders = this.safeList(data, "items", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
+        return this.parseOrders(orders, market, since, limit);
     }
 
     /**
@@ -7008,7 +7008,7 @@ public partial class kucoin : Exchange
         {
             responseData = this.safeValue(responseData, 0);
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(responseData, market));
+        return this.parseOrder(responseData, market);
     }
 
     /**
@@ -7090,7 +7090,7 @@ public partial class kucoin : Exchange
         //
         Dictionary<string, object> market = ((symbol != null)) ? this.market(symbol) : null;
         IDictionary<string, object> responseData = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(responseData, market));
+        return this.parseOrder(responseData, market);
     }
 
     /**
@@ -7188,7 +7188,7 @@ public partial class kucoin : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     public virtual string? handleTradeType(object isContractMarket = null, object marginMode = null, bool? isUnified = null, object parameters = null)
@@ -7223,7 +7223,7 @@ public partial class kucoin : Exchange
         return tradeType;
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         string? tradeType = this.safeString(order, "tradeType");
         List<object> utaTradeTypes = new List<object>() {"SPOT", "CROSS", "ISOLATED", "FUTURES"}; // tradeType specific for uta endpoint
@@ -7234,16 +7234,16 @@ public partial class kucoin : Exchange
         }
         if (isUtaOrder)
         {
-            return ((Dictionary<string, object>)((object)(this.parseUtaOrder(order, market))));
+            return new ccxt.Order(this.parseUtaOrder(order, market));
         }
         string? marketId = this.safeString(order, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         if (((marketResolved != null)) && (((GetValue(marketResolved, "contract") as bool?) == true)))
         {
-            return ((Dictionary<string, object>)((object)(this.parseContractOrder(order, marketResolved))));
+            return new ccxt.Order(this.parseContractOrder(order, marketResolved));
         } else
         {
-            return ((Dictionary<string, object>)((object)(this.parseSpotOrder(order, marketResolved))));
+            return new ccxt.Order(this.parseSpotOrder(order, marketResolved));
         }
     }
 
@@ -7360,7 +7360,7 @@ public partial class kucoin : Exchange
         bool? postOnly = this.safeBool(order, "postOnly");
         bool? reduceOnly = this.safeBool(order, "reduceOnly");
         Int64? lastUpdateTimestamp = this.safeInteger(order, "updatedAt");
-        return this.safeOrder(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
             { "id", orderId },
             { "clientOrderId", clientOrderId },
             { "symbol", symbol },
@@ -7384,7 +7384,7 @@ public partial class kucoin : Exchange
             { "lastUpdateTimestamp", lastUpdateTimestamp },
             { "average", average },
             { "trades", null },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     public virtual object parseSpotOrder(object order, IDictionary<string, object> market = null)
@@ -7548,7 +7548,7 @@ public partial class kucoin : Exchange
         {
             status = "rejected";
         }
-        return this.safeOrder(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeStringN(order, new List<object>() {"id", "orderId", "newOrderId", "cancelledOrderId"}) },
             { "clientOrderId", this.safeString(order, "clientOid") },
@@ -7573,7 +7573,7 @@ public partial class kucoin : Exchange
             { "lastTradeTimestamp", null },
             { "average", this.safeString(order, "avgDealPrice") },
             { "trades", null },
-        }, market);
+        }, market));
     }
 
     public virtual object parseUtaOrder(object order, IDictionary<string, object> market = null)
@@ -7651,7 +7651,7 @@ public partial class kucoin : Exchange
             { "currency", this.safeCurrencyCode(this.safeString(order, "feeCurrency")) },
             { "cost", this.safeString(order, "fee") },
         };
-        return this.safeOrder(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
             { "id", this.safeString(order, "orderId") },
             { "clientOrderId", this.safeString(order, "clientOid") },
             { "symbol", symbol },
@@ -7677,7 +7677,7 @@ public partial class kucoin : Exchange
             { "stopLossPrice", this.safeString(order, "slTriggerPrice") },
             { "takeProfitPrice", this.safeString(order, "tpTriggerPrice") },
             { "info", order },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     public virtual string? parseOrderTimeInForce(string? timeInForce)
@@ -7950,7 +7950,7 @@ public partial class kucoin : Exchange
         {
             tradesList = this.toArray(trades);
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradesList, market, since, limit));
+        return this.parseTrades(tradesList, market, since, limit);
     }
 
     /**
@@ -8039,7 +8039,7 @@ public partial class kucoin : Exchange
         {
             tradesList = trades;
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradesList, market, since, limit));
+        return this.parseTrades(tradesList, market, since, limit);
     }
 
     /**
@@ -8147,7 +8147,7 @@ public partial class kucoin : Exchange
         {
             tradesList = trades;
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradesList, market, since, limit));
+        return this.parseTrades(tradesList, market, since, limit);
     }
 
     /**
@@ -8266,23 +8266,23 @@ public partial class kucoin : Exchange
         {
             tradesList = trades;
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradesList, market, since, limit));
+        return this.parseTrades(tradesList, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("liquidityRole")))
         {
-            return ((Dictionary<string, object>)((object)(this.parseMyUtaTrade(trade, market))));
+            return new ccxt.Trade(this.parseMyUtaTrade(trade, market));
         }
         string? marketId = this.safeString(trade, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         if (((marketResolved == null)) || (((GetValue(marketResolved, "spot") as bool?) == true)))
         {
-            return ((Dictionary<string, object>)((object)(this.parseSpotOrUtaTrade(trade, marketResolved))));
+            return new ccxt.Trade(this.parseSpotOrUtaTrade(trade, marketResolved));
         } else
         {
-            return ((Dictionary<string, object>)((object)(this.parseContractTrade(trade, marketResolved))));
+            return new ccxt.Trade(this.parseContractTrade(trade, marketResolved));
         }
     }
 
@@ -8418,7 +8418,7 @@ public partial class kucoin : Exchange
             type = null;
         }
         string? costString = this.safeString2(trade, "funds", "dealValue");
-        return this.safeTrade(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", id },
             { "order", orderId },
@@ -8432,7 +8432,7 @@ public partial class kucoin : Exchange
             { "amount", amountString },
             { "cost", costString },
             { "fee", fee },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     public virtual object parseContractTrade(object trade, IDictionary<string, object> market = null)
@@ -8561,7 +8561,7 @@ public partial class kucoin : Exchange
             string? contractCost = Precise.stringMul(priceString, amountString);
             costString = Precise.stringMul(contractCost, contractSize);
         }
-        return this.safeTrade(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", id },
             { "order", orderId },
@@ -8575,7 +8575,7 @@ public partial class kucoin : Exchange
             { "amount", amountString },
             { "cost", costString },
             { "fee", fee },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     public virtual object parseMyUtaTrade(object trade, object market = null)
@@ -8605,7 +8605,7 @@ public partial class kucoin : Exchange
             { "cost", this.safeString(trade, "fee") },
             { "currency", this.safeCurrencyCode(this.safeString(trade, "feeCurrency")) },
         };
-        return this.safeTrade(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString(trade, "tradeId") },
             { "order", this.safeString(trade, "orderId") },
@@ -8619,7 +8619,7 @@ public partial class kucoin : Exchange
             { "amount", this.safeString(trade, "size") },
             { "cost", this.safeString(trade, "value") },
             { "fee", fee },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     /**
@@ -12474,7 +12474,7 @@ public partial class kucoin : Exchange
             //
             orders = this.safeList(response, "data", new List<object>() {});
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market));
+        return this.parseOrders(orders, market);
     }
 
     /**
@@ -12860,7 +12860,7 @@ public partial class kucoin : Exchange
         {
             response = await this.futuresPrivatePostOrders(this.extend(request, paramsOmitted));
         }
-        return ((IDictionary<string, object>)((object)(this.parseOrder(response, market))));
+        return ((IDictionary<string, object>)((object)(ccxt.BaseExchange.FromOrder(this.parseOrder(response, market)))));
     }
 
     /**

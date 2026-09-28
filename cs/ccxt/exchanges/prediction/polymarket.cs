@@ -1623,8 +1623,8 @@ public partial class polymarket : PredictionExchange
         //     }
         //
         Int64? timestamp = this.safeInteger(response, "timestamp");
-        Dictionary<string, object> orderbook = this.parseOrderBook(response, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size");
-        return ccxt.BaseExchange.ToPredictionOrderBook(this.safePredictionOrderBook(orderbook, outcomeObj));
+        ccxt.OrderBook orderbook = this.parseOrderBook(response, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size");
+        return ccxt.BaseExchange.ToPredictionOrderBook(this.safePredictionOrderBook(ccxt.BaseExchange.FromOrderBook(orderbook), outcomeObj));
     }
 
     /**

@@ -1711,7 +1711,7 @@ public partial class bitfinex : Exchange
         return this.parseTicker(ticker, market);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1864,7 +1864,7 @@ public partial class bitfinex : Exchange
                 { "result", trades[i] },
             }); // convert to array of dicts to match parseOrder signature
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradesList, market, null, limit));
+        return this.parseTrades(tradesList, market, null, limit);
     }
 
     /**
@@ -1985,7 +1985,7 @@ public partial class bitfinex : Exchange
         return this.safeString(orderTypes, orderType, "GTC");
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         List<object> orderList = this.safeList(order, "result");
         string? id = this.safeString(orderList, 0);
@@ -2271,7 +2271,7 @@ public partial class bitfinex : Exchange
         Dictionary<string, object> newOrder = new Dictionary<string, object>() {
             { "result", order },
         };
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(newOrder, market));
+        return this.parseOrder(newOrder, market);
     }
 
     /**
@@ -2342,7 +2342,7 @@ public partial class bitfinex : Exchange
                 { "result", getValue(individualOrder, 0) },
             });
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(results));
+        return this.parseOrders(results);
     }
 
     /**
@@ -2373,7 +2373,7 @@ public partial class bitfinex : Exchange
                 { "result", orders[i] },
             });
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(ordersList));
+        return this.parseOrders(ordersList);
     }
 
     /**
@@ -2423,7 +2423,7 @@ public partial class bitfinex : Exchange
         Dictionary<string, object> newOrder = new Dictionary<string, object>() {
             { "result", order },
         };
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(newOrder, market));
+        return this.parseOrder(newOrder, market);
     }
 
     /**
@@ -2516,7 +2516,7 @@ public partial class bitfinex : Exchange
                 { "result", orders[i] },
             });
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(ordersList, market));
+        return this.parseOrders(ordersList, market);
     }
 
     /**
@@ -2647,7 +2647,7 @@ public partial class bitfinex : Exchange
                 { "result", response[i] },
             });
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(ordersList, market, since, limit));
+        return this.parseOrders(ordersList, market, since, limit);
     }
 
     /**
@@ -2747,7 +2747,7 @@ public partial class bitfinex : Exchange
                 { "result", response[i] },
             });
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(ordersList, market, since, limit));
+        return this.parseOrders(ordersList, market, since, limit);
     }
 
     /**
@@ -2789,7 +2789,7 @@ public partial class bitfinex : Exchange
                 { "result", rawTrades[i] },
             }); // convert to array of dicts to match parseOrder signature
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradesList, market, since, limit));
+        return this.parseTrades(tradesList, market, since, limit);
     }
 
     /**
@@ -2840,7 +2840,7 @@ public partial class bitfinex : Exchange
                 { "result", response[i] },
             }); // convert to array of dicts to match parseOrder signature
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradesList, market, since, limit));
+        return this.parseTrades(tradesList, market, since, limit);
     }
 
     /**
@@ -4551,7 +4551,7 @@ public partial class bitfinex : Exchange
         Dictionary<string, object> newOrder = new Dictionary<string, object>() {
             { "result", order },
         };
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(newOrder, market));
+        return this.parseOrder(newOrder, market);
     }
 
     /**
@@ -4696,6 +4696,6 @@ public partial class bitfinex : Exchange
         Dictionary<string, object> newOrder = new Dictionary<string, object>() {
             { "result", order },
         };
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(newOrder, market));
+        return this.parseOrder(newOrder, market);
     }
 }

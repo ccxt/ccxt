@@ -180,7 +180,7 @@ public partial class pacifica : ccxt.pacifica
         IDictionary<string, object> order = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? orderId = this.safeString(order, "i");
         string? clientOrderId = this.safeString(order, "I");
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", orderId },             { "clientOrderId", clientOrderId },             { "status", status },             { "info", response },             { "symbol", symbol },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "id", orderId },             { "clientOrderId", clientOrderId },             { "status", status },             { "info", response },             { "symbol", symbol },         });
     }
 
     /**
@@ -253,7 +253,7 @@ public partial class pacifica : ccxt.pacifica
         IDictionary<string, object> order = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? orderId = this.safeString(order, "i");
         string? clientOrderId = this.safeString(order, "I");
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", orderId },             { "clientOrderId", clientOrderId },             { "status", status },             { "info", response },             { "symbol", symbol },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "id", orderId },             { "clientOrderId", clientOrderId },             { "status", status },             { "info", response },             { "symbol", symbol },         });
     }
 
     /**
@@ -341,13 +341,13 @@ public partial class pacifica : ccxt.pacifica
             {
                 status = "canceled";
             }
-            ordersToReturn.Add(this.safeOrder(new Dictionary<string, object>() {
+            ordersToReturn.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "id", orderId },
                 { "clientOrderId", clientOrderId },
                 { "status", status },
                 { "info", response },
                 { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
-            }));
+            })));
         }
         return ccxt.BaseExchange.ToOrderList(ordersToReturn);
     }
@@ -424,7 +424,7 @@ public partial class pacifica : ccxt.pacifica
         IDictionary<string, object> order = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? orderId = this.safeString(order, "i");
         string? clientOrderId = this.safeString(order, "I");
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", orderId },             { "clientOrderId", clientOrderId },             { "status", status },             { "info", response },             { "symbol", symbol },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "id", orderId },             { "clientOrderId", clientOrderId },             { "status", status },             { "info", response },             { "symbol", symbol },         });
     }
 
     /**
@@ -473,7 +473,7 @@ public partial class pacifica : ccxt.pacifica
         //   "type": "cancel_all_orders"
         // }
         //
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
     }
 
     /**
@@ -615,19 +615,19 @@ public partial class pacifica : ccxt.pacifica
             { "asks", this.safeList(levels, 1, new List<object>() {}) },
         };
         Int64? timestamp = this.safeInteger(entry, "t");
-        Dictionary<string, object> snapshot = this.parseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a");
+        ccxt.OrderBook snapshot = this.parseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a");
         Int64? nonce = this.safeInteger(entry, "li");
         if (((nonce != null)) && ((nonce != 0)))
         {
-            snapshot["nonce"] = nonce;
+            snapshot.nonce = ccxt.BaseExchange.StructInt64(nonce);
         }
         if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
-            ccxt.pro.OrderBook ob = this.orderBook(snapshot);
+            ccxt.pro.OrderBook ob = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot));
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        (orderbook as IOrderBook).reset(snapshot);
+        (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         string messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
     }
@@ -921,13 +921,13 @@ public partial class pacifica : ccxt.pacifica
         for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> rawTrade = ((IDictionary<string, object>)data[i]);
-            Dictionary<string, object> parsed = this.parseWsTrade(rawTrade);
-            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+            ccxt.Trade parsed = this.parseWsTrade(rawTrade);
+            string? symbol = parsed.symbol;
             if ((symbol != null))
             {
                 symbols[(string)symbol] = true;
             }
-            trades.append(parsed);
+            trades.append(ccxt.BaseExchange.FromTrade(parsed));
         }
         List<object> keys = new List<object>(symbols.Keys);
         for (int i = 0; i < keys.Count; i++)
@@ -1065,14 +1065,14 @@ public partial class pacifica : ccxt.pacifica
         for (int i = 0; i < entry.Count; i++)
         {
             IDictionary<string, object> data = this.safeDict(entry, i, new Dictionary<string, object>() {});
-            Dictionary<string, object> trade = this.parseWsTrade(data);
-            trades.append(trade);
+            ccxt.Trade trade = this.parseWsTrade(data);
+            trades.append(ccxt.BaseExchange.FromTrade(trade));
         }
         string messageHash = ("trade:" + symbol);
         client.resolve(trades, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         // fetchMyTrades
@@ -1460,9 +1460,9 @@ public partial class pacifica : ccxt.pacifica
         for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> rawOrder = ((IDictionary<string, object>)data[i]);
-            Dictionary<string, object> order = this.parseOrder(rawOrder);
-            stored.append(order);
-            string? symbol = this.safeString(order, "symbol");
+            ccxt.Order order = this.parseOrder(rawOrder);
+            stored.append(ccxt.BaseExchange.FromOrder(order));
+            string? symbol = order.symbol;
             if ((symbol != null))
             {
                 marketSymbols[(string)symbol] = true;

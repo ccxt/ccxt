@@ -639,8 +639,8 @@ public partial class bydfi : ccxt.bydfi
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        Dictionary<string, object> parsed = this.parseOrderBook(message, symbol, timestamp, "b", "a");
-        (orderbook as IOrderBook).reset(parsed);
+        ccxt.OrderBook parsed = this.parseOrderBook(message, symbol, timestamp, "b", "a");
+        (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(parsed));
         string messageHash = ("orderbook::" + symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         client.resolve(orderbook, messageHash);
@@ -752,15 +752,15 @@ public partial class bydfi : ccxt.bydfi
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache orders = this.orders;
-        Dictionary<string, object> order = this.parseWsOrder(rawOrder, market);
+        ccxt.Order order = this.parseWsOrder(rawOrder, market);
         Int64? lastUpdateTimestamp = this.safeInteger(message, "T");
-        order["lastUpdateTimestamp"] = lastUpdateTimestamp;
-        orders.append(order);
+        order.lastUpdateTimestamp = ccxt.BaseExchange.StructInt64(lastUpdateTimestamp);
+        orders.append(ccxt.BaseExchange.FromOrder(order));
         client.resolve(orders, messageHash);
         client.resolve(orders, symbolMessageHash);
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {

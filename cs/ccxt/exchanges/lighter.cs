@@ -1221,7 +1221,7 @@ public partial class lighter : Exchange
         //     "predicted_execution_time_ms": 1766088500120
         // }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(this.deepExtend(response, order), market));
+        return this.parseOrder(this.deepExtend(response, order), market);
     }
 
     /**
@@ -1297,7 +1297,7 @@ public partial class lighter : Exchange
             { "tx_info", txInfo },
         };
         Dictionary<string, object> response = await this.publicPostSendTx(request);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -1665,8 +1665,8 @@ public partial class lighter : Exchange
         //         ]
         //     }
         //
-        Dictionary<string, object> result = this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "remaining_base_amount");
-        return ccxt.BaseExchange.ToOrderBook(result);
+        ccxt.OrderBook result = this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "remaining_base_amount");
+        return result;
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -2521,7 +2521,7 @@ public partial class lighter : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "orders", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+        return this.parseOrders(data, market, since, limit);
     }
 
     /**
@@ -2610,10 +2610,10 @@ public partial class lighter : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "orders", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+        return this.parseOrders(data, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3387,10 +3387,10 @@ public partial class lighter : Exchange
         {
             ((IDictionary<string,object>)(data != null && 0 < data.Count ? data[0] : null))["next_cursor"] = nextCursor;
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit, paramsUntil));
+        return this.parseTrades(data, market, since, limit, paramsUntil);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         //     {
@@ -3633,7 +3633,7 @@ public partial class lighter : Exchange
             { "tx_info", txInfo },
         };
         Dictionary<string, object> response = await this.publicPostSendTx(request);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public async virtual Task<object> signAndCancelAllOrders(string method, string? symbol = null, object parameters = null)
@@ -3687,7 +3687,7 @@ public partial class lighter : Exchange
             { "tx_info", txInfo },
         };
         Dictionary<string, object> response = await this.publicPostSendTx(request);
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(new List<object>() {response}));
+        return this.parseOrders(new List<object>() {response});
     }
 
     /**

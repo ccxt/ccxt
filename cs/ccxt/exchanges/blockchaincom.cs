@@ -484,7 +484,7 @@ public partial class blockchaincom : Exchange
             request["depth"] = limit;
         }
         Dictionary<string, object> response = await this.publicGetL3Symbol(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "px", "qty"));
+        return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "px", "qty");
     }
 
     public async override Task<ccxt.OrderBook> FetchL2OrderBook(string symbol, Int64? limit = null, object parameters = null)
@@ -503,7 +503,7 @@ public partial class blockchaincom : Exchange
             request["depth"] = limit;
         }
         Dictionary<string, object> response = await this.publicGetL2Symbol(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "px", "qty"));
+        return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "px", "qty");
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -602,7 +602,7 @@ public partial class blockchaincom : Exchange
         return this.safeString(states, state, state);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -636,7 +636,7 @@ public partial class blockchaincom : Exchange
         string? datetime = this.iso8601(timestamp);
         string? filled = this.safeString(order, "cumQty");
         string? remaining = this.safeString(order, "leavesQty");
-        Dictionary<string, object> result = this.safeOrder(new Dictionary<string, object>() {
+        ccxt.Order result = this.safeOrder(new Dictionary<string, object>() {
             { "id", exchangeOrderId },
             { "clientOrderId", clientOrderId },
             { "datetime", datetime },
@@ -732,7 +732,7 @@ public partial class blockchaincom : Exchange
             request["stopPx"] = this.priceToPrecision(symbol, triggerPrice);
         }
         Dictionary<string, object> response = await this.privatePostOrders(this.extend(request, paramsOmitted2));
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -752,7 +752,7 @@ public partial class blockchaincom : Exchange
             { "orderId", id },
         };
         Dictionary<string, object> response = await this.privateDeleteOrdersOrderId(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", id },             { "info", response },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "id", id },             { "info", response },         });
     }
 
     /**
@@ -783,7 +783,7 @@ public partial class blockchaincom : Exchange
         //
         // {}
         //
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
     }
 
     /**
@@ -898,10 +898,10 @@ public partial class blockchaincom : Exchange
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         List<object> response = await this.privateGetOrders(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         //     {
@@ -983,7 +983,7 @@ public partial class blockchaincom : Exchange
             market = this.market(symbol);
         }
         List<object> trades = await this.privateGetFills(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit, parameters));  // need to define
+        return this.parseTrades(trades, market, since, limit, parameters);  // need to define
     }
 
     /**
@@ -1362,7 +1362,7 @@ public partial class blockchaincom : Exchange
         //         "timestamp": 1592830770594
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)

@@ -939,7 +939,7 @@ public partial class nado : ccxt.nado
         //         "id": 100
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {             { "place_order", placeOrder },         }, response), market));
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {             { "place_order", placeOrder },         }, response), market);
     }
 
     /**
@@ -997,7 +997,7 @@ public partial class nado : ccxt.nado
         //
         IDictionary<string, object> cancelAndPlace = this.safeDict(request, "cancel_and_place", new Dictionary<string, object>() {});
         IDictionary<string, object> placeOrder = this.safeDict(cancelAndPlace, "place_order", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {             { "place_order", placeOrder },         }, response), market));
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {             { "place_order", placeOrder },         }, response), market);
     }
 
     /**
@@ -1076,9 +1076,9 @@ public partial class nado : ccxt.nado
         List<object> result = new List<object>() {};
         for (int i = 0; i < cancelledOrders.Count; i++)
         {
-            result.Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
+            result.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {
                 { "status", "canceled" },
-            }, cancelledOrders[i]), market));
+            }, cancelledOrders[i]), market)));
         }
         return ccxt.BaseExchange.ToOrderList(result);
     }
@@ -1125,9 +1125,9 @@ public partial class nado : ccxt.nado
         List<object> result = new List<object>() {};
         for (int i = 0; i < cancelledOrders.Count; i++)
         {
-            result.Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
+            result.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {
                 { "status", "canceled" },
-            }, cancelledOrders[i]), market));
+            }, cancelledOrders[i]), market)));
         }
         return ccxt.BaseExchange.ToOrderList(result);
     }
@@ -1412,7 +1412,7 @@ public partial class nado : ccxt.nado
         return this.safeInteger(message, key);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         //     {
@@ -1496,7 +1496,7 @@ public partial class nado : ccxt.nado
                 { "currency", (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) },
             };
         }
-        return this.safeTrade(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString2(trade, "id", "submission_idx") },
             { "timestamp", timestamp },
@@ -1510,7 +1510,7 @@ public partial class nado : ccxt.nado
             { "amount", this.parseX18(this.safeString(trade, "filled_qty")) },
             { "cost", null },
             { "fee", fee },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -1526,8 +1526,8 @@ public partial class nado : ccxt.nado
             trades = new ArrayCache(limit);
             this.trades[(string)symbol] = trades;
         }
-        Dictionary<string, object> trade = this.parseWsTrade(message, market);
-        trades.append(trade);
+        ccxt.Trade trade = this.parseWsTrade(message, market);
+        trades.append(ccxt.BaseExchange.FromTrade(trade));
         client.resolve(trades, messageHash);
     }
 
@@ -1587,7 +1587,7 @@ public partial class nado : ccxt.nado
         client.resolve(new List<object>() {symbol, timeframe, stored}, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1659,15 +1659,15 @@ public partial class nado : ccxt.nado
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
     {
-        Dictionary<string, object> order = this.parseWsOrder(message);
+        ccxt.Order order = this.parseWsOrder(message);
         if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache orders = this.orders;
-        orders.append(order);
-        string? symbol = ((string)(order != null && order.ContainsKey("symbol") ? order["symbol"] : null));
+        orders.append(ccxt.BaseExchange.FromOrder(order));
+        string? symbol = order.symbol;
         client.resolve(orders, "orders");
         client.resolve(orders, ("orders:" + symbol));
     }

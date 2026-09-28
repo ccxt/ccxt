@@ -309,7 +309,7 @@ public partial class bitstamp : ccxt.bitstamp
         return await this.unWatchChannel(channel, subHash, "trades", new List<object>() {symbolValue}, parameters);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         //     {
@@ -388,7 +388,7 @@ public partial class bitstamp : ccxt.bitstamp
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("trades:" + symbol);
         IDictionary<string, object> data = this.safeDict(message, "data");
-        Dictionary<string, object> trade = this.parseWsTrade(data, market);
+        ccxt.Trade trade = this.parseWsTrade(data, market);
         ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((tradesArray == null))
         {
@@ -396,7 +396,7 @@ public partial class bitstamp : ccxt.bitstamp
             tradesArray = new ArrayCache(limit);
             this.trades[(string)symbol] = tradesArray;
         }
-        tradesArray.append(trade);
+        tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
         client.resolve(tradesArray, messageHash);
     }
 
@@ -680,7 +680,7 @@ public partial class bitstamp : ccxt.bitstamp
                 { "currency", (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) },
             };
         }
-        return this.safeTrade(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString2(trade, "id_str", "id") },
             { "order", this.safeString(trade, "order_id") },
@@ -694,7 +694,7 @@ public partial class bitstamp : ccxt.bitstamp
             { "amount", this.safeString(trade, "amount") },
             { "cost", null },
             { "fee", fee },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message)
@@ -744,12 +744,12 @@ public partial class bitstamp : ccxt.bitstamp
         ccxt.pro.ArrayCache stored = this.orders;
         Dictionary<string, object> market = this.market(symbol);
         order["event"] = this.safeString(message, "event");
-        Dictionary<string, object> parsed = this.parseWsOrder(order, market);
-        stored.append(parsed);
+        ccxt.Order parsed = this.parseWsOrder(order, market);
+        stored.append(ccxt.BaseExchange.FromOrder(parsed));
         client.resolve(this.orders, channel);
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // order_deleted after a full fill - amount_str carries the amount

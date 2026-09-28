@@ -1181,7 +1181,7 @@ public partial class kraken : Exchange
         {
             orderbook = this.safeDict(result, wsName, orderbook);
         }
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, symbol));
+        return this.parseOrderBook(orderbook, symbol);
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -1570,7 +1570,7 @@ public partial class kraken : Exchange
         return ccxt.BaseExchange.ToLedgerEntry((items != null && 0 < items.Count ? items[0] : null));
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1788,7 +1788,7 @@ public partial class kraken : Exchange
         string? lastTradeId = this.safeString(result, "last");
         ((IList<object>)lastTrade).Add(lastTradeId);
         ((List<object>)trades)[Convert.ToInt32((length - 1))] = lastTrade;
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
+        return this.parseTrades(trades, market, since, limit);
     }
 
     public override Dictionary<string, object> parseBalance(object response)
@@ -1950,7 +1950,7 @@ public partial class kraken : Exchange
         // it's impossible to know if the order was created using cost or base currency
         // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
         // this usingCost flag is used to help the parsing but omitted from the order
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(result));
+        return this.parseOrder(result);
     }
 
     /**
@@ -2033,7 +2033,7 @@ public partial class kraken : Exchange
         //     }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(this.safeList(result, "orders")));
+        return this.parseOrders(this.safeList(result, "orders"));
     }
 
     public virtual object findMarketByAltnameOrId(object id)
@@ -2137,7 +2137,7 @@ public partial class kraken : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -2346,12 +2346,12 @@ public partial class kraken : Exchange
             object rawTrade = rawTrades[i];
             if ((rawTrade is string))
             {
-                trades.Add(this.safeTrade(new Dictionary<string, object>() {
+                trades.Add(ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
                     { "id", rawTrade },
                     { "orderId", id },
                     { "symbol", symbol },
                     { "info", new Dictionary<string, object>() {} },
-                }));
+                })));
             } else
             {
                 trades.Add(rawTrade);
@@ -2672,7 +2672,7 @@ public partial class kraken : Exchange
         //     }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(result, market));
+        return this.parseOrder(result, market);
     }
 
     /**
@@ -2746,7 +2746,7 @@ public partial class kraken : Exchange
         {
             throw new OrderNotFound (((this.id + " fetchOrder() could not find order id ") + id)) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {             { "id", id },         }, (result != null && result.ContainsKey(id) ? result[id] : null))));
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {             { "id", id },         }, (result != null && result.ContainsKey(id) ? result[id] : null)));
     }
 
     /**
@@ -2836,7 +2836,7 @@ public partial class kraken : Exchange
             {
                 ((IDictionary<string,object>)getValue(rawTrades, ids[i]))["id"] = ids[i];
             }
-            IList<object> trades = this.parseTrades(rawTrades, null, since, limit);
+            IList<object> trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(rawTrades, null, since, limit));
             IList<object> tradesFilteredBySymbol = this.filterBySymbol(trades, symbolResolved);
             result = this.arrayConcat(result, tradesFilteredBySymbol);
         }
@@ -2871,10 +2871,10 @@ public partial class kraken : Exchange
         {
             string? id = ((string)orderIds[i]);
             object item = (id != null && result.ContainsKey(id) ? result[id] : null);
-            Dictionary<string, object> order = this.parseOrder(this.extend(new Dictionary<string, object>() {
+            ccxt.Order order = this.parseOrder(this.extend(new Dictionary<string, object>() {
                 { "id", id },
             }, item));
-            orders.Add(order);
+            orders.Add(ccxt.BaseExchange.FromOrder(order));
         }
         return ccxt.BaseExchange.ToOrderList(orders);
     }
@@ -2953,7 +2953,7 @@ public partial class kraken : Exchange
             market = this.market(symbol);
         }
         IList<object> tradesList = this.toArray(trades);
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradesList, market, since, limit));
+        return this.parseTrades(tradesList, market, since, limit);
     }
 
     /**
@@ -3002,7 +3002,7 @@ public partial class kraken : Exchange
             }
             throw e;
         }
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },         });
     }
 
     /**
@@ -3030,7 +3030,7 @@ public partial class kraken : Exchange
         //         }
         //     }
         //
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
     }
 
     /**
@@ -3058,7 +3058,7 @@ public partial class kraken : Exchange
         //        }
         //    }
         //
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
     }
 
     /**
@@ -3197,7 +3197,7 @@ public partial class kraken : Exchange
                 { "id", id },
             }, item));
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
+        return this.parseOrders(orders, market, since, limit);
     }
 
     /**
@@ -3298,7 +3298,7 @@ public partial class kraken : Exchange
                 { "id", id },
             }, item));
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
+        return this.parseOrders(orders, market, since, limit);
     }
 
     public virtual string? parseTransactionStatus(string? status)

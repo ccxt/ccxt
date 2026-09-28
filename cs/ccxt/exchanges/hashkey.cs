@@ -1413,7 +1413,7 @@ public partial class hashkey : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(response, "t");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, symbol, timestamp, "b", "a"));
+        return this.parseOrderBook(response, symbol, timestamp, "b", "a");
     }
 
     /**
@@ -1454,7 +1454,7 @@ public partial class hashkey : Exchange
         //         ...
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**
@@ -1542,10 +1542,10 @@ public partial class hashkey : Exchange
         {
             throw new NotSupported ((((((this.id + " ") + methodName) + "() is not supported for ") + marketType) + " type of markets")) ;
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -2825,7 +2825,7 @@ public partial class hashkey : Exchange
         {
             response = await this.privatePostApiV1SpotOrder(request); // the endpoint for market buy orders by cost and other orders
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object>? parameters = null)
@@ -3047,7 +3047,7 @@ public partial class hashkey : Exchange
         //         "contractMultiplier": "0.00100000"
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -3110,7 +3110,7 @@ public partial class hashkey : Exchange
             IDictionary<string, object> responseOrder = this.safeDict(responseEntry, "order", new Dictionary<string, object>() {});
             responseOrders.Add(responseOrder);
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(responseOrders));
+        return this.parseOrders(responseOrders);
     }
 
     /**
@@ -3176,7 +3176,7 @@ public partial class hashkey : Exchange
         {
             throw new NotSupported ((((((this.id + " ") + methodName) + "() is not supported for ") + marketType) + " type of markets")) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -3223,7 +3223,7 @@ public partial class hashkey : Exchange
         {
             throw new NotSupported ((((((this.id + " ") + methodName) + "() is not supported for ") + ((market.ContainsKey("type") ? market["type"] : null))) + " type of markets")) ;
         }
-        Dictionary<string, object> order = this.safeOrder(response);
+        Dictionary<string, object> order = ccxt.BaseExchange.FromOrder(this.safeOrder(response));
         order["info"] = response;
         return ccxt.BaseExchange.ToOrderList(new List<object>() {order});
     }
@@ -3269,7 +3269,7 @@ public partial class hashkey : Exchange
         {
             throw new NotSupported ((((((this.id + " ") + methodName) + "() is not supported for ") + marketTypeOption) + " type of markets")) ;
         }
-        Dictionary<string, object> order = this.safeOrder(response);
+        Dictionary<string, object> order = ccxt.BaseExchange.FromOrder(this.safeOrder(response));
         order["info"] = response;
         return ccxt.BaseExchange.ToOrderList(new List<object>() {order});
     }
@@ -3337,7 +3337,7 @@ public partial class hashkey : Exchange
         {
             throw new NotSupported ((((((this.id + " ") + methodName) + "() is not supported for ") + marketType) + " type of markets")) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -3444,7 +3444,7 @@ public partial class hashkey : Exchange
             }
             response = await this.privateGetApiV1SpotOpenOrders(this.extend(request, paramsAccountId));
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -3506,7 +3506,7 @@ public partial class hashkey : Exchange
         {
             response = await this.privateGetApiV1FuturesOpenOrders(this.extend(request, paramsAccountId));
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -3607,7 +3607,7 @@ public partial class hashkey : Exchange
         {
             throw new NotSupported ((((((this.id + " ") + methodName) + "() is not supported for ") + marketType) + " type of markets")) ;
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     public virtual void checkTypeParam(string? methodName, object parameters)
@@ -3631,7 +3631,7 @@ public partial class hashkey : Exchange
         return new List<object>() {isTriggerStop, paramsStop};
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder spot

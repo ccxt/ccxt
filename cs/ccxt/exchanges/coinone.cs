@@ -702,7 +702,7 @@ public partial class coinone : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(response, "timestamp");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", "price", "qty"));
+        return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", "price", "qty");
     }
 
     /**
@@ -901,7 +901,7 @@ public partial class coinone : Exchange
         }, market);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1022,7 +1022,7 @@ public partial class coinone : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "transactions", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
+        return this.parseTrades(data, market, since, limit);
     }
 
     /**
@@ -1075,7 +1075,7 @@ public partial class coinone : Exchange
         //         "order_id": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -1125,7 +1125,7 @@ public partial class coinone : Exchange
         //         "averageExecutedPrice": "10011000.0"
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public virtual string? parseOrderStatus(object status)
@@ -1140,7 +1140,7 @@ public partial class coinone : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -1324,7 +1324,7 @@ public partial class coinone : Exchange
         //     }
         //
         List<object> openOrders = this.safeList2(response, "open_orders", "limitOrders", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(openOrders, market, since, limit));
+        return this.parseOrders(openOrders, market, since, limit);
     }
 
     /**
@@ -1374,7 +1374,7 @@ public partial class coinone : Exchange
         //     }
         //
         List<object> completeOrders = this.safeList(response, "completeOrders", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(completeOrders, market, since, limit));
+        return this.parseTrades(completeOrders, market, since, limit);
     }
 
     /**
@@ -1418,7 +1418,7 @@ public partial class coinone : Exchange
         //         "errorCode": "0"
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(response));
+        return this.safeOrder(response);
     }
 
     /**

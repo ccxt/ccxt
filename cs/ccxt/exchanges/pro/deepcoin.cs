@@ -495,14 +495,14 @@ public partial class deepcoin : ccxt.deepcoin
         ccxt.pro.ArrayCache strored = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
         if ((data != null))
         {
-            Dictionary<string, object> trade = this.parseWsTrade(data, market);
-            strored.append(trade);
+            ccxt.Trade trade = this.parseWsTrade(data, market);
+            strored.append(ccxt.BaseExchange.FromTrade(trade));
         }
         string messageHash = (("trades" + "::") + symbol);
         client.resolve(strored, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         // watchTrades
@@ -890,8 +890,8 @@ public partial class deepcoin : ccxt.deepcoin
             }
         }
         Int64? timestamp = this.safeInteger(message, "mt", 0);
-        Dictionary<string, object> snapshot = this.parseOrderBook(orderedEntries, symbol, timestamp);
-        (orderbook as IOrderBook).reset(snapshot);
+        ccxt.OrderBook snapshot = this.parseOrderBook(orderedEntries, symbol, timestamp);
+        (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         IList<object> cachedMessages = (orderbook as ccxt.pro.OrderBook).cache;
         for (int j = 0; j < (cachedMessages?.Count ?? 0); j++)
         {
@@ -1031,8 +1031,8 @@ public partial class deepcoin : ccxt.deepcoin
                 this.myTrades = new ArrayCacheBySymbolById(limit);
             }
             ccxt.pro.ArrayCache stored = this.myTrades;
-            Dictionary<string, object> parsed = this.parseWsTrade(data, market);
-            stored.append(parsed);
+            ccxt.Trade parsed = this.parseWsTrade(data, market);
+            stored.append(ccxt.BaseExchange.FromTrade(parsed));
             client.resolve(stored, messageHash);
             client.resolve(stored, symbolMessageHash);
         }
@@ -1118,14 +1118,14 @@ public partial class deepcoin : ccxt.deepcoin
                 Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
                 this.orders = new ArrayCacheBySymbolById(limit);
             }
-            Dictionary<string, object> parsed = this.parseWsOrder(data, market);
-            this.orders.append(parsed);
+            ccxt.Order parsed = this.parseWsOrder(data, market);
+            this.orders.append(ccxt.BaseExchange.FromOrder(parsed));
             client.resolve(this.orders, messageHash);
             client.resolve(this.orders, symbolMessageHash);
         }
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {

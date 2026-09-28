@@ -1037,12 +1037,12 @@ public partial class tokocrypto : Exchange
         //     }
         IDictionary<string, object> data = this.safeDict(response, "data", response);
         Int64? timestamp = this.safeInteger2(response, "T", "timestamp");
-        Dictionary<string, object> orderbook = this.parseOrderBook(data, symbol, timestamp);
-        orderbook["nonce"] = this.safeInteger(data, "lastUpdateId");
-        return ccxt.BaseExchange.ToOrderBook(orderbook);
+        ccxt.OrderBook orderbook = this.parseOrderBook(data, symbol, timestamp);
+        orderbook.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(data, "lastUpdateId"));
+        return orderbook;
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // aggregate trades
@@ -1252,7 +1252,7 @@ public partial class tokocrypto : Exchange
             //
             IDictionary<string, object> data = this.safeDict(responseInner, "data", new Dictionary<string, object>() {});
             List<object> list = this.safeList(data, "list", new List<object>() {});
-            return ccxt.BaseExchange.ToTradeList(this.parseTrades(list, market, since, limit));
+            return this.parseTrades(list, market, since, limit);
         }
         if ((limit != null))
         {
@@ -1311,7 +1311,7 @@ public partial class tokocrypto : Exchange
         //     ]
         //
         IList<object> responseList = this.toArray(response);
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(responseList, market, since, limit));
+        return this.parseTrades(responseList, market, since, limit);
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -1771,7 +1771,7 @@ public partial class tokocrypto : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // spot
@@ -2150,7 +2150,7 @@ public partial class tokocrypto : Exchange
         //     }
         //
         IDictionary<string, object> rawOrder = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(rawOrder, market));
+        return this.parseOrder(rawOrder, market);
     }
 
     /**
@@ -2203,7 +2203,7 @@ public partial class tokocrypto : Exchange
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> list = this.safeList(data, "list", new List<object>() {});
         IDictionary<string, object> rawOrder = this.safeDict(list, 0, new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(rawOrder));
+        return this.parseOrder(rawOrder);
     }
 
     /**
@@ -2276,7 +2276,7 @@ public partial class tokocrypto : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> orders = this.safeList(data, "list", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
+        return this.parseOrders(orders, market, since, limit);
     }
 
     /**
@@ -2364,7 +2364,7 @@ public partial class tokocrypto : Exchange
         //     }
         //
         IDictionary<string, object> rawOrder = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(rawOrder));
+        return this.parseOrder(rawOrder);
     }
 
     /**
@@ -2435,7 +2435,7 @@ public partial class tokocrypto : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> trades = this.safeList(data, "list", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
+        return this.parseTrades(trades, market, since, limit);
     }
 
     /**

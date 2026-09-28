@@ -833,14 +833,14 @@ public partial class backpack : ccxt.backpack
             this.trades[(string)symbol] = stored;
         }
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
-        Dictionary<string, object> trade = this.parseWsTrade(data, market);
-        cache.append(trade);
+        ccxt.Trade trade = this.parseWsTrade(data, market);
+        cache.append(ccxt.BaseExchange.FromTrade(trade));
         string messageHash = ("trades:" + symbol);
         client.resolve(cache, messageHash);
         client.resolve(cache, "trades");
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         //     {
@@ -1213,7 +1213,7 @@ public partial class backpack : ccxt.backpack
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        Dictionary<string, object> parsed = this.parseWsOrder(data, market);
+        ccxt.Order parsed = this.parseWsOrder(data, market);
         ccxt.pro.ArrayCache orders = this.orders;
         if ((orders == null))
         {
@@ -1221,13 +1221,13 @@ public partial class backpack : ccxt.backpack
             orders = new ArrayCacheBySymbolById(limit);
             this.orders = orders;
         }
-        orders.append(parsed);
+        orders.append(ccxt.BaseExchange.FromOrder(parsed));
         client.resolve(orders, messageHash);
         string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(orders, symbolSpecificMessageHash);
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {

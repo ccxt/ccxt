@@ -879,7 +879,7 @@ public partial class mudrex : Exchange
             }
             Dictionary<string, object> riskResponse = await this.privatePostFuturesPositionsPositionIdRiskorder(this.extend(riskRequest, paramsOmitted));
             IDictionary<string, object> riskData = this.safeDict(riskResponse, "data", riskResponse);
-            return ccxt.BaseExchange.ToOrder(this.parseOrder(riskData, market));
+            return this.parseOrder(riskData, market);
         }
         Int64? lev = this.safeInteger(parameters, "leverage", 1);
         if (((type == "market")) && ((price == null)))
@@ -917,7 +917,7 @@ public partial class mudrex : Exchange
             { "order_type", request["order_type"] },
             { "trigger_type", request["trigger_type"] },
         });
-        Dictionary<string, object> order = this.parseOrder(merged, market);
+        Dictionary<string, object> order = ccxt.BaseExchange.FromOrder(this.parseOrder(merged, market));
         order["info"] = data;
         return ccxt.BaseExchange.ToOrder(order);
     }
@@ -961,7 +961,7 @@ public partial class mudrex : Exchange
         }
         Dictionary<string, object> response = await this.privatePatchFuturesOrdersOrderId(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", response);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -982,7 +982,7 @@ public partial class mudrex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         string? oms = this.safeString(order, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(oms, market);
@@ -1084,7 +1084,7 @@ public partial class mudrex : Exchange
         };
         Dictionary<string, object> response = await this.privateDeleteFuturesOrdersOrderId(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", response);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -1114,7 +1114,7 @@ public partial class mudrex : Exchange
         };
         Dictionary<string, object> response = await this.privateGetFuturesOrdersOrderId(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", response);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -1160,7 +1160,7 @@ public partial class mudrex : Exchange
         List<object> orders = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            orders.Add(this.parseOrder(rows[i], market));
+            orders.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(rows[i], market)));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limit));
     }
@@ -1607,10 +1607,10 @@ public partial class mudrex : Exchange
                 }));
             }
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(rows, market, since, limit));
+        return this.parseTrades(rows, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         //     {

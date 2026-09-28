@@ -139,8 +139,8 @@ public partial class derive : ccxt.derive
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         Int64? timestamp = this.safeInteger(data, "timestamp");
-        Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
-        (orderbook as IOrderBook).reset(snapshot);
+        ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
+        (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         client.resolve(orderbook, topic);
     }
 
@@ -493,8 +493,8 @@ public partial class derive : ccxt.derive
         }
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            Dictionary<string, object> trade = this.parseTrade(getValue(data, i));
-            tradesArray.append(trade);
+            ccxt.Trade trade = this.parseTrade(getValue(data, i));
+            tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
         }
         this.trades[(string)symbol] = tradesArray;
         client.resolve(tradesArray, topic);
@@ -648,7 +648,7 @@ public partial class derive : ccxt.derive
         for (int i = 0; i < rawOrders.Count; i++)
         {
             object data = rawOrders[i];
-            Dictionary<string, object> parsed = this.parseOrder(data);
+            Dictionary<string, object> parsed = ccxt.BaseExchange.FromOrder(this.parseOrder(data));
             string? symbol = this.safeString(parsed, "symbol");
             string? orderId = this.safeString(parsed, "id");
             if ((symbol != null))
@@ -752,12 +752,12 @@ public partial class derive : ccxt.derive
         List<object> rawTrades = this.safeList(parameters, "data", new List<object>() {});
         for (int i = 0; i < rawTrades.Count; i++)
         {
-            Dictionary<string, object> trade = this.parseTrade(message);
-            myTrades.append(trade);
+            ccxt.Trade trade = this.parseTrade(message);
+            myTrades.append(ccxt.BaseExchange.FromTrade(trade));
             client.resolve(myTrades, topic);
             if ((topic != null))
             {
-                string messageHash = (topic + this.safeString(trade, "symbol", ""));
+                string messageHash = (topic + this.safeString(ccxt.BaseExchange.FromTrade(trade), "symbol", ""));
                 client.resolve(myTrades, messageHash);
             }
         }

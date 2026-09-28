@@ -468,7 +468,7 @@ public partial class btcbox : Exchange
             request["coin"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
         }
         Dictionary<string, object> response = await this.publicGetDepth(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null)));
+        return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null));
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -545,7 +545,7 @@ public partial class btcbox : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -619,7 +619,7 @@ public partial class btcbox : Exchange
         //          },
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**
@@ -656,7 +656,7 @@ public partial class btcbox : Exchange
         //         "id":"12"
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -687,7 +687,7 @@ public partial class btcbox : Exchange
         //
         //     {"result":true, "id":"11"}
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -706,7 +706,7 @@ public partial class btcbox : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -805,7 +805,7 @@ public partial class btcbox : Exchange
         //          "trades":[]
         //      }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public async virtual Task<List<ccxt.Order>> FetchOrdersByType(string? type, string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -835,7 +835,7 @@ public partial class btcbox : Exchange
         //      },
         // ]
         //
-        IList<object> orders = this.parseOrders(response, market, since, limit);
+        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market, since, limit));
         // status (open/closed/canceled) is undefined
         // btcbox does not return status, but we know it's 'open' as we queried for open orders
         if ((type == "open"))

@@ -745,7 +745,7 @@ public partial class dydx : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // {
@@ -824,7 +824,7 @@ public partial class dydx : Exchange
         // }
         //
         List<object> rows = this.safeList(response, "trades", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(rows, market, since, limit));
+        return this.parseTrades(rows, market, since, limit);
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -1004,7 +1004,7 @@ public partial class dydx : Exchange
         throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a user parameter inside 'params' or the walletAddress set")) ;
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // {
@@ -1115,7 +1115,7 @@ public partial class dydx : Exchange
             { "orderId", id },
         };
         Dictionary<string, object> order = await this.indexerGetOrdersOrderId(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(order));
+        return this.parseOrder(order);
     }
 
     /**
@@ -1186,7 +1186,7 @@ public partial class dydx : Exchange
         //     }
         // ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -1761,7 +1761,7 @@ public partial class dydx : Exchange
         // }
         //
         IDictionary<string, object> result = this.safeDict(response, "result");
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", result },             { "id", orderId },             { "clientOrderId", getValue(getValue(getValue(getValue(orderRequest, "value"), "order"), "orderId"), "clientId") },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", result },             { "id", orderId },             { "clientOrderId", getValue(getValue(getValue(getValue(orderRequest, "value"), "order"), "orderId"), "clientId") },         });
     }
 
     /**
@@ -1877,7 +1877,7 @@ public partial class dydx : Exchange
         // }
         //
         IDictionary<string, object> result = this.safeDict(response, "result");
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", result },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", result },         });
     }
 
     /**
@@ -1953,7 +1953,7 @@ public partial class dydx : Exchange
         // }
         //
         IDictionary<string, object> result = this.safeDict(response, "result");
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", result }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", result }, }))});
     }
 
     /**
@@ -1994,7 +1994,7 @@ public partial class dydx : Exchange
         //     ]
         // }
         //
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "size"));
+        return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "size");
     }
 
     public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)

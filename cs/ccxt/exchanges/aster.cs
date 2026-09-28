@@ -1554,7 +1554,7 @@ public partial class aster : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limit));
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -1719,7 +1719,7 @@ public partial class aster : Exchange
                 response = await this.sapiPublicGetV3Trades(this.extend(request, parameters));
             }
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**
@@ -1791,7 +1791,7 @@ public partial class aster : Exchange
         //     "positionSide": "BOTH",      // only in SPOT
         // }
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit, paramsUntil));
+        return this.parseTrades(response, market, since, limit, paramsUntil);
     }
 
     /**
@@ -1850,7 +1850,7 @@ public partial class aster : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(response, "T");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, symbol, timestamp, "bids", "asks"));
+        return this.parseOrderBook(response, symbol, timestamp, "bids", "asks");
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -2650,7 +2650,7 @@ public partial class aster : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // swap
@@ -2816,7 +2816,7 @@ public partial class aster : Exchange
         //        "newChainData": { "hash": "0x46aed5...67bdbec8ba" }   // only in SWAP
         //    }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -2888,7 +2888,7 @@ public partial class aster : Exchange
         //        "newChainData": { "hash": "0x46aed5...67bdbec8ba" }   // only in SWAP
         //    }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -2965,7 +2965,7 @@ public partial class aster : Exchange
         //            "newChainData": { "hash": "0xe17d3d5b...dbca8b01" }      // only in PERP
         //        }, ...
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -3049,7 +3049,7 @@ public partial class aster : Exchange
         //        }
         //    ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -3118,7 +3118,7 @@ public partial class aster : Exchange
         //        "newChainData": { "hash": "0x46ae....c8ba" }      // only in PERP
         //    }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -3194,7 +3194,7 @@ public partial class aster : Exchange
         //        }
         //    ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response));
+        return this.parseOrders(response);
     }
 
     public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
@@ -3447,7 +3447,7 @@ public partial class aster : Exchange
         //         "msg": "The operation of cancel all open order is done."
         //     }
         //
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
     }
 
     /**
@@ -3490,7 +3490,7 @@ public partial class aster : Exchange
         {
             response = await this.sapiPrivateDeleteV3Order(this.extend(request, paramsOmitted));
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -3536,7 +3536,7 @@ public partial class aster : Exchange
         {
             response = await this.sapiPrivateDeleteV3AllOpenOrders(this.extend(request, parameters));
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market));
+        return this.parseOrders(response, market);
     }
 
     /**

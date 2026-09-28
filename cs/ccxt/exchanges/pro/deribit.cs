@@ -489,8 +489,8 @@ public partial class deribit : ccxt.deribit
         for (int i = 0; i < trades.Count; i++)
         {
             IDictionary<string, object> trade = ((IDictionary<string, object>)trades[i]);
-            Dictionary<string, object> parsed = this.parseTrade(trade, market);
-            stored.append(parsed);
+            ccxt.Trade parsed = this.parseTrade(trade, market);
+            stored.append(ccxt.BaseExchange.FromTrade(parsed));
         }
         this.trades[(string)symbol] = stored;
         string messageHash = ((("trades|" + symbol) + "|") + interval);
@@ -578,7 +578,7 @@ public partial class deribit : ccxt.deribit
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             cachedTrades = new ArrayCacheBySymbolById(limit);
         }
-        IList<object> parsed = this.parseTrades(trades);
+        IList<object> parsed = ccxt.BaseExchange.FromTradeList(this.parseTrades(trades));
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         for (int i = 0; i < (parsed?.Count ?? 0); i++)
         {
@@ -870,11 +870,11 @@ public partial class deribit : ccxt.deribit
         IList<object> orders = new List<object>() {};
         if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            orders = this.parseOrders(data);
+            orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(data));
         } else
         {
-            Dictionary<string, object> order = this.parseOrder(data);
-            orders = new List<object>() {order};
+            ccxt.Order order = this.parseOrder(data);
+            orders = new List<object>() {ccxt.BaseExchange.FromOrder(order)};
         }
         ccxt.pro.ArrayCache cachedOrders = this.orders;
         for (int i = 0; i < (orders?.Count ?? 0); i++)

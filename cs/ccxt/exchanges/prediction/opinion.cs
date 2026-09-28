@@ -910,8 +910,8 @@ public partial class opinion : PredictionExchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(result, "timestamp");
-        Dictionary<string, object> orderbook = this.parseOrderBook(result, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size");
-        return ccxt.BaseExchange.ToPredictionOrderBook(this.safePredictionOrderBook(orderbook, outcomeObj));
+        ccxt.OrderBook orderbook = this.parseOrderBook(result, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size");
+        return ccxt.BaseExchange.ToPredictionOrderBook(this.safePredictionOrderBook(ccxt.BaseExchange.FromOrderBook(orderbook), outcomeObj));
     }
 
     /**

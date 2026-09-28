@@ -656,7 +656,7 @@ public partial class p2b : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeIntegerProduct(response, "current_time", 1000);
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(result, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", 0, 1));
+        return this.parseOrderBook(result, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", 0, 1);
     }
 
     /**
@@ -713,10 +713,10 @@ public partial class p2b : Exchange
         //    }
         //
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(result, market, since, limit));
+        return this.parseTrades(result, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -988,7 +988,7 @@ public partial class p2b : Exchange
         //    }
         //
         IDictionary<string, object> result = this.safeDict(response, "result");
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(result, market));
+        return this.parseOrder(result, market);
     }
 
     /**
@@ -1041,7 +1041,7 @@ public partial class p2b : Exchange
         //    }
         //
         IDictionary<string, object> result = this.safeDict(response, "result");
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(result));
+        return this.parseOrder(result);
     }
 
     /**
@@ -1104,7 +1104,7 @@ public partial class p2b : Exchange
         //    }
         //
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, market, since, limit));
+        return this.parseOrders(result, market, since, limit);
     }
 
     /**
@@ -1163,7 +1163,7 @@ public partial class p2b : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> records = this.safeList(result, "records", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(records, market, since, limit));
+        return this.parseTrades(records, market, since, limit);
     }
 
     /**
@@ -1250,7 +1250,7 @@ public partial class p2b : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> deals = this.safeList(result, "deals", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(deals, market, sinceResolved, limit));
+        return this.parseTrades(deals, market, sinceResolved, limit);
     }
 
     /**
@@ -1345,13 +1345,13 @@ public partial class p2b : Exchange
         {
             string? marketId = ((string)keys[i]);
             object marketOrders = (marketId != null && result.ContainsKey(marketId) ? result[marketId] : null);
-            IList<object> parsedOrders = this.parseOrders(marketOrders, market, sinceResolved, limit);
+            IList<object> parsedOrders = ccxt.BaseExchange.FromOrderList(this.parseOrders(marketOrders, market, sinceResolved, limit));
             orders = this.arrayConcat(orders, parsedOrders);
         }
         return ccxt.BaseExchange.ToOrderList(orders);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // cancelOrder, fetchOpenOrders, createOrder

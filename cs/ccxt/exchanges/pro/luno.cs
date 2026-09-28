@@ -116,14 +116,14 @@ public partial class luno : ccxt.luno
         for (int i = 0; i < rawTrades.Count; i++)
         {
             IDictionary<string, object> rawTrade = ((IDictionary<string, object>)rawTrades[i]);
-            Dictionary<string, object> trade = this.parseTrade(rawTrade, market);
-            stored.append(trade);
+            ccxt.Trade trade = this.parseTrade(rawTrade, market);
+            stored.append(ccxt.BaseExchange.FromTrade(trade));
         }
         this.trades[(string)symbol] = stored;
         client.resolve(getValue(this.trades, symbol), messageHash);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // watchTrades (public)

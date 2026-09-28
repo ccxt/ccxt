@@ -98,16 +98,16 @@ public partial class coincheck : ccxt.coincheck
         string? symbol = this.symbol(this.safeString(message, 0));
         IDictionary<string, object> data = this.safeDict(message, 1, new Dictionary<string, object>() {});
         Int64? timestamp = this.safeTimestamp(data, "last_update_at");
-        Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol, timestamp);
+        ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestamp);
         ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
         {
-            orderbook = this.orderBook(snapshot);
+            orderbook = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot));
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         } else
         {
             orderbook = this.getOrderBook(this.orderbooks, symbol);
-            (orderbook as IOrderBook).reset(snapshot);
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         }
         string messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
@@ -177,14 +177,14 @@ public partial class coincheck : ccxt.coincheck
         for (int i = 0; i < getArrayLength(message); i++)
         {
             object data = this.safeValue(message, i);
-            Dictionary<string, object> trade = this.parseWsTrade(data);
-            stored.append(trade);
+            ccxt.Trade trade = this.parseWsTrade(data);
+            stored.append(ccxt.BaseExchange.FromTrade(trade));
         }
         string messageHash = ("trade:" + symbol);
         client.resolve(stored, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         //     [

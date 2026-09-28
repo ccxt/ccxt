@@ -575,8 +575,8 @@ public partial class weex : ccxt.weex
         for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> rawTrade = this.safeDict(data, i, new Dictionary<string, object>() {});
-            Dictionary<string, object> trade = this.parseWsTrade(rawTrade, market);
-            newTrades.Add(trade);
+            ccxt.Trade trade = this.parseWsTrade(rawTrade, market);
+            newTrades.Add(ccxt.BaseExchange.FromTrade(trade));
         }
         List<object> sorted = this.sortBy(newTrades, "timestamp");
         for (int j = 0; j < (sorted?.Count ?? 0); j++)
@@ -588,7 +588,7 @@ public partial class weex : ccxt.weex
         client.resolve(tradesArray, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         //     {
@@ -1065,9 +1065,9 @@ public partial class weex : ccxt.weex
         Int64? nonce = this.safeInteger(message, "u");
         if (eventVar == "depthSnapshot")
         {
-            Dictionary<string, object> parsed = this.parseOrderBook(message, symbol, timestamp, "b", "a");
-            parsed["nonce"] = nonce;
-            (orderbook as IOrderBook).reset(parsed);
+            ccxt.OrderBook parsed = this.parseOrderBook(message, symbol, timestamp, "b", "a");
+            parsed.nonce = ccxt.BaseExchange.StructInt64(nonce);
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(parsed));
         } else
         {
             List<object> asks = this.safeList(message, "a", new List<object>() {});
@@ -1454,7 +1454,7 @@ public partial class weex : ccxt.weex
                 { "currency", feeCurrency },
             };
         }
-        return this.safeTrade(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString(trade, "id") },
             { "timestamp", timestamp },
@@ -1468,7 +1468,7 @@ public partial class weex : ccxt.weex
             { "amount", this.safeString(trade, "fillSize") },
             { "cost", this.safeString(trade, "fillValue") },
             { "fee", fee },
-        });
+        }));
     }
 
     /**
@@ -1619,9 +1619,9 @@ public partial class weex : ccxt.weex
         for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(data, i, new Dictionary<string, object>() {});
-            Dictionary<string, object> parsed = this.parseWsOrder(rawOrder);
-            orders.append(parsed);
-            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+            ccxt.Order parsed = this.parseWsOrder(rawOrder);
+            orders.append(ccxt.BaseExchange.FromOrder(parsed));
+            string? symbol = parsed.symbol;
             if ((symbol != null))
             {
                 symbols[(string)symbol] = true;
@@ -1643,7 +1643,7 @@ public partial class weex : ccxt.weex
         client.resolve(this.orders, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // spot

@@ -582,7 +582,7 @@ public partial class bitflyer : Exchange
             { "product_code", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> orderbook = await this.publicGetGetboard(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "size"));
+        return this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "size");
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -638,7 +638,7 @@ public partial class bitflyer : Exchange
         return this.parseTicker(response, market);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public) v1
@@ -749,7 +749,7 @@ public partial class bitflyer : Exchange
         //     },
         //    ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**
@@ -812,7 +812,7 @@ public partial class bitflyer : Exchange
         Dictionary<string, object> result = await this.privatePostSendchildorder(this.extend(request, parameters));
         // { "status": - 200, "error_message": "Insufficient funds", "data": null }
         string? id = this.safeString(result, "child_order_acceptance_id");
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", id },             { "info", result },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "id", id },             { "info", result },         });
     }
 
     /**
@@ -844,7 +844,7 @@ public partial class bitflyer : Exchange
         //
         //    200 OK.
         //
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },         });
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -859,7 +859,7 @@ public partial class bitflyer : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.parse8601(this.safeString(order, "child_order_date"));
         string? price = this.safeString(order, "price");
@@ -937,7 +937,7 @@ public partial class bitflyer : Exchange
             { "count", limitVar },
         };
         List<object> response = await this.privateGetGetchildorders(this.extend(request, parameters));
-        IList<object> orders = this.parseOrders(response, market, since, limitVar);
+        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market, since, limitVar));
         if ((symbol != null))
         {
             orders = this.filterBy(orders, "symbol", symbol);
@@ -1060,7 +1060,7 @@ public partial class bitflyer : Exchange
         //     },
         //    ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**

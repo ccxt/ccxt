@@ -214,8 +214,8 @@ public partial class bittrade : ccxt.bittrade
         }
         for (int i = 0; i < data.Count; i++)
         {
-            Dictionary<string, object> trade = this.parseTrade(data[i], market);
-            tradesCache.append(trade);
+            ccxt.Trade trade = this.parseTrade(data[i], market);
+            tradesCache.append(ccxt.BaseExchange.FromTrade(trade));
         }
         client.resolve(tradesCache, ch);
         return message;
@@ -389,11 +389,11 @@ public partial class bittrade : ccxt.bittrade
         Int64? timestamp = this.safeInteger(message, "ts");
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         IDictionary<string, object> data = this.safeDict(message, "data");
-        Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol);
-        snapshot["nonce"] = this.safeInteger(data, "seqNum");
-        snapshot["timestamp"] = timestamp;
-        snapshot["datetime"] = this.iso8601(timestamp);
-        (orderbook as IOrderBook).reset(snapshot);
+        ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol);
+        snapshot.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(data, "seqNum"));
+        snapshot.timestamp = ccxt.BaseExchange.StructInt64(timestamp);
+        snapshot.datetime = ccxt.BaseExchange.StructString(this.iso8601(timestamp));
+        (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         // unroll the accumulated deltas
         IList<object> messages = (orderbook as ccxt.pro.OrderBook).cache;
         for (int i = 0; i < (messages?.Count ?? 0); i++)

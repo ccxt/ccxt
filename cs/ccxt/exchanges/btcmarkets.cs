@@ -836,9 +836,9 @@ public partial class btcmarkets : Exchange
         //     }
         //
         Int64? timestamp = this.safeIntegerProduct(response, "snapshotId", 0.001);
-        Dictionary<string, object> orderbook = this.parseOrderBook(response, symbol, timestamp);
-        orderbook["nonce"] = this.safeInteger(response, "snapshotId");
-        return ccxt.BaseExchange.ToOrderBook(orderbook);
+        ccxt.OrderBook orderbook = this.parseOrderBook(response, symbol, timestamp);
+        orderbook.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(response, "snapshotId"));
+        return orderbook;
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -947,7 +947,7 @@ public partial class btcmarkets : Exchange
         return this.parseTicker(response, market);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // public fetchTrades
@@ -1055,7 +1055,7 @@ public partial class btcmarkets : Exchange
         //         {"id":"6191646590","price":"540","amount":"0.00233785","timestamp":"2020-08-09T15:21:04.171000Z","side":"Bid"},
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**
@@ -1162,7 +1162,7 @@ public partial class btcmarkets : Exchange
         //         "targetAmount": "1000"
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -1213,7 +1213,7 @@ public partial class btcmarkets : Exchange
         List<object> cancelOrders = this.safeList(response, "cancelOrders", new List<object>() {});
         List<object> unprocessedRequests = this.safeList(response, "unprocessedRequests", new List<object>() {});
         List<object> orders = this.arrayConcat(cancelOrders, unprocessedRequests);
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders));
+        return this.parseOrders(orders);
     }
 
     /**
@@ -1243,7 +1243,7 @@ public partial class btcmarkets : Exchange
         //        "clientOrderId": "123-456"
         //    }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     public override object calculateFee(string? symbol, string? type, string? side, double? amount, double? price, object takerOrMaker = null, object parameters = null)
@@ -1306,7 +1306,7 @@ public partial class btcmarkets : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -1395,7 +1395,7 @@ public partial class btcmarkets : Exchange
             { "id", id },
         };
         Dictionary<string, object> response = await this.privateGetOrdersId(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -1434,7 +1434,7 @@ public partial class btcmarkets : Exchange
             request["limit"] = limit;
         }
         List<object> response = await this.privateGetOrders(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -1536,7 +1536,7 @@ public partial class btcmarkets : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**

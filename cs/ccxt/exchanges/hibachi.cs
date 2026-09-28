@@ -578,7 +578,7 @@ public partial class hibachi : Exchange
         }, market);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         // public fetchTrades:
         //      {
@@ -697,7 +697,7 @@ public partial class hibachi : Exchange
         {
             tradesList = trades;
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradesList, market));
+        return this.parseTrades(tradesList, market);
     }
 
     /**
@@ -767,7 +767,7 @@ public partial class hibachi : Exchange
         return this.safeString(statuses, uppercaseStatus, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(order, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -872,7 +872,7 @@ public partial class hibachi : Exchange
             { "accountId", this.getAccountId() },
         };
         Dictionary<string, object> response = await this.privateGetTradeOrder(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -1071,7 +1071,7 @@ public partial class hibachi : Exchange
         //     "orderId": "578721673790138368"
         // }
         //
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", this.safeString(response, "orderId") },             { "status", "pending" },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "id", this.safeString(response, "orderId") },             { "status", "pending" },         });
     }
 
     /**
@@ -1118,11 +1118,11 @@ public partial class hibachi : Exchange
         for (int i = 0; i < responseOrders.Count; i++)
         {
             object responseOrder = responseOrders[i];
-            ret.Add(this.safeOrder(new Dictionary<string, object>() {
+            ret.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", responseOrder },
                 { "id", this.safeString(responseOrder, "orderId") },
                 { "status", "pending" },
-            }));
+            })));
         }
         return ccxt.BaseExchange.ToOrderList(ret);
     }
@@ -1186,7 +1186,7 @@ public partial class hibachi : Exchange
         //
         // {}
         //
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", id },             { "status", "pending" },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "id", id },             { "status", "pending" },         });
     }
 
     /**
@@ -1234,11 +1234,11 @@ public partial class hibachi : Exchange
         for (int i = 0; i < responseOrders.Count; i++)
         {
             object responseOrder = responseOrders[i];
-            ret.Add(this.safeOrder(new Dictionary<string, object>() {
+            ret.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", responseOrder },
                 { "id", this.safeString(responseOrder, "orderId") },
                 { "status", "pending" },
-            }));
+            })));
         }
         return ccxt.BaseExchange.ToOrderList(ret);
     }
@@ -1276,7 +1276,7 @@ public partial class hibachi : Exchange
         //
         // {}
         //
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", id },             { "status", "canceled" },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", id },             { "status", "canceled" },         });
     }
 
     /**
@@ -1312,11 +1312,11 @@ public partial class hibachi : Exchange
         for (int i = 0; i < responseOrders.Count; i++)
         {
             object responseOrder = responseOrders[i];
-            ret.Add(this.safeOrder(new Dictionary<string, object>() {
+            ret.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", responseOrder },
                 { "id", this.safeString(responseOrder, "orderId") },
                 { "status", "canceled" },
-            }));
+            })));
         }
         return ccxt.BaseExchange.ToOrderList(ret);
     }
@@ -1357,7 +1357,7 @@ public partial class hibachi : Exchange
         //
         // {}
         //
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
     }
 
     public virtual object encodeWithdrawMessage(double? amount, object maxFees, string? address)
@@ -1524,7 +1524,7 @@ public partial class hibachi : Exchange
         //         "startPrice": "3515.39"
         //     }
         // }
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(formattedResponse, symbol, this.milliseconds(), "bid", "ask", "price", "quantity"));
+        return this.parseOrderBook(formattedResponse, symbol, this.milliseconds(), "bid", "ask", "price", "quantity");
     }
 
     /**
@@ -1581,7 +1581,7 @@ public partial class hibachi : Exchange
         {
             tradesList = trades;
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradesList, market, since, limit, parameters));
+        return this.parseTrades(tradesList, market, since, limit, parameters);
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -1657,7 +1657,7 @@ public partial class hibachi : Exchange
         //         "totalQuantity": "1.234000000"
         //     }
         // ]
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -1733,7 +1733,7 @@ public partial class hibachi : Exchange
         //     }
         //
         List<object> orders = this.safeList(response, "orders", new List<object>() {});
-        IList<object> parsedOrders = this.parseOrders(orders, market);
+        IList<object> parsedOrders = ccxt.BaseExchange.FromOrderList(this.parseOrders(orders, market));
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(parsedOrders, symbol, since, limit));
     }
 

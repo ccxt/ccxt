@@ -527,7 +527,7 @@ public partial class btcturk : Exchange
         //     }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(data, "timestamp");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", 0, 1));
+        return this.parseOrderBook(data, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", 0, 1);
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -634,7 +634,7 @@ public partial class btcturk : Exchange
         return ccxt.BaseExchange.ToTicker(this.safeDict(tickers, symbol));
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -750,7 +750,7 @@ public partial class btcturk : Exchange
         {
             dataList = data;
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(dataList, market, since, limit));
+        return this.parseTrades(dataList, market, since, limit);
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -931,7 +931,7 @@ public partial class btcturk : Exchange
         }
         Dictionary<string, object> response = await this.privatePostOrder(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -958,7 +958,7 @@ public partial class btcturk : Exchange
         //        "code": 0
         //    }
         //
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },         });
     }
 
     /**
@@ -990,7 +990,7 @@ public partial class btcturk : Exchange
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> bids = this.safeList(data, "bids", new List<object>() {});
         List<object> asks = this.safeList(data, "asks", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(this.arrayConcat(bids, asks), market, since, limit));
+        return this.parseOrders(this.arrayConcat(bids, asks), market, since, limit);
     }
 
     /**
@@ -1046,7 +1046,7 @@ public partial class btcturk : Exchange
         //   ]
         // }
         List<object> data = this.safeList(response, "data");
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+        return this.parseOrders(data, market, since, limit);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -1060,7 +1060,7 @@ public partial class btcturk : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // fetchOrders / fetchOpenOrders
@@ -1179,7 +1179,7 @@ public partial class btcturk : Exchange
         {
             dataList = data;
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(dataList, market, since, limit));
+        return this.parseTrades(dataList, market, since, limit);
     }
 
     public override Int64 nonce()

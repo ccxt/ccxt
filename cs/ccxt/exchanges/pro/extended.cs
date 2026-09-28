@@ -113,9 +113,9 @@ public partial class extended : ccxt.extended
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         if (type == "SNAPSHOT")
         {
-            Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a", "p", "q");
-            snapshot["nonce"] = nonce;
-            (orderbook as IOrderBook).reset(snapshot);
+            ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a", "p", "q");
+            snapshot.nonce = ccxt.BaseExchange.StructInt64(nonce);
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
             client.resolve(orderbook, messageHash);
             return;
         }
@@ -390,10 +390,10 @@ public partial class extended : ccxt.extended
         }
         for (int i = 0; i < rawTrades.Count; i++)
         {
-            Dictionary<string, object> trade = this.parseTrade(rawTrades[i]);
-            string? symbol = this.safeString(trade, "symbol");
+            ccxt.Trade trade = this.parseTrade(rawTrades[i]);
+            string? symbol = trade.symbol;
             symbols[(string)symbol] = true;
-            stored.append(trade);
+            stored.append(ccxt.BaseExchange.FromTrade(trade));
         }
         List<object> keys = new List<object>(symbols.Keys);
         for (int i = 0; i < keys.Count; i++)
@@ -562,10 +562,10 @@ public partial class extended : ccxt.extended
         }
         for (int i = 0; i < (((IList<object>)(rawOrders))?.Count ?? 0); i++)
         {
-            Dictionary<string, object> order = this.parseOrder(getValue((IList<object>)(rawOrders), i));
-            string? symbol = this.safeString(order, "symbol");
+            ccxt.Order order = this.parseOrder(getValue((IList<object>)(rawOrders), i));
+            string? symbol = order.symbol;
             symbols[(string)symbol] = true;
-            orders.append(order);
+            orders.append(ccxt.BaseExchange.FromOrder(order));
         }
         List<object> keys = new List<object>(symbols.Keys);
         for (int i = 0; i < keys.Count; i++)
@@ -811,8 +811,8 @@ public partial class extended : ccxt.extended
         subscription["nonce"] = nonce;
         for (int i = 0; i < data.Count; i++)
         {
-            Dictionary<string, object> trade = this.parseTrade(data[i], market);
-            stored.append(trade);
+            ccxt.Trade trade = this.parseTrade(data[i], market);
+            stored.append(ccxt.BaseExchange.FromTrade(trade));
         }
         client.resolve(stored, messageHash);
     }

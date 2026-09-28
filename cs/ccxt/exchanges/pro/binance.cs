@@ -1058,9 +1058,9 @@ public partial class binance : ccxt.binance
         string? messageHash = this.safeString(message, "id");
         IDictionary<string, object> result = this.safeDict(message, "result");
         Int64? timestamp = this.safeInteger(result, "T");
-        Dictionary<string, object> orderbook = this.parseOrderBook(result, null, timestamp);
-        orderbook["nonce"] = this.safeInteger2(result, "lastUpdateId", "u");
-        client.resolve(orderbook, messageHash);
+        ccxt.OrderBook orderbook = this.parseOrderBook(result, null, timestamp);
+        orderbook.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger2(result, "lastUpdateId", "u"));
+        client.resolve(ccxt.BaseExchange.FromOrderBook(orderbook), messageHash);
     }
 
     public async virtual Task fetchOrderBookSnapshot(WebSocketClient client, object message, object subscription)
@@ -1607,7 +1607,7 @@ public partial class binance : ccxt.binance
         return await this.WatchTradesForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         // public watchTrades
@@ -1803,14 +1803,14 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("trade::" + symbol);
-        Dictionary<string, object> trade = this.parseWsTrade(message, market);
+        ccxt.Trade trade = this.parseWsTrade(message, market);
         ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((tradesArray == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(limit);
         }
-        tradesArray.append(trade);
+        tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
         this.trades[(string)symbol] = tradesArray;
         client.resolve(tradesArray, messageHash);
     }
@@ -4422,8 +4422,8 @@ public partial class binance : ccxt.binance
         //
         string? messageHash = this.safeString(message, "id");
         IDictionary<string, object> result = this.safeDict(message, "result", new Dictionary<string, object>() {});
-        Dictionary<string, object> order = this.parseOrder(result);
-        client.resolve(order, messageHash);
+        ccxt.Order order = this.parseOrder(result);
+        client.resolve(ccxt.BaseExchange.FromOrder(order), messageHash);
     }
 
     public virtual void handleOrdersWs(WebSocketClient client, object message)
@@ -4467,7 +4467,7 @@ public partial class binance : ccxt.binance
         //
         string? messageHash = this.safeString(message, "id");
         List<object> result = this.safeList(message, "result", new List<object>() {});
-        IList<object> orders = this.parseOrders(result);
+        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(result));
         client.resolve(orders, messageHash);
     }
 
@@ -4637,10 +4637,10 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> order = null;
         if ((newSpotOrder != null))
         {
-            order = this.parseOrder(newSpotOrder);
+            order = ccxt.BaseExchange.FromOrder(this.parseOrder(newSpotOrder));
         } else
         {
-            order = this.parseOrder(result);
+            order = ccxt.BaseExchange.FromOrder(this.parseOrder(result));
         }
         client.resolve(order, messageHash);
     }
@@ -5103,7 +5103,7 @@ public partial class binance : ccxt.binance
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // spot
@@ -6187,7 +6187,7 @@ public partial class binance : ccxt.binance
         //
         string? messageHash = this.safeString(message, "id");
         List<object> result = this.safeList(message, "result", new List<object>() {});
-        IList<object> trades = this.parseTrades(result);
+        IList<object> trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(result));
         client.resolve(trades, messageHash);
     }
 
@@ -6280,11 +6280,11 @@ public partial class binance : ccxt.binance
         string? executionType = this.safeString(message, "x");
         if (executionType == "TRADE")
         {
-            Dictionary<string, object> trade = this.parseWsTrade(message);
-            string? orderId = this.safeString(trade, "order");
-            IDictionary<string, object> tradeFee = this.safeDict(trade, "fee", new Dictionary<string, object>() {});
+            ccxt.Trade trade = this.parseWsTrade(message);
+            string? orderId = trade.order;
+            IDictionary<string, object> tradeFee = this.safeDict(ccxt.BaseExchange.FromTrade(trade), "fee", new Dictionary<string, object>() {});
             tradeFee = this.extend(new Dictionary<string, object>() {}, tradeFee);
-            string? symbol = this.safeString(trade, "symbol");
+            string? symbol = trade.symbol;
             if ((orderId != null) && (tradeFee != null) && (symbol != null))
             {
                 ccxt.pro.ArrayCache cachedOrders = this.orders;
@@ -6345,7 +6345,7 @@ public partial class binance : ccxt.binance
                         }
                         // save this trade in the order
                         List<object> orderTrades = this.safeList(order, "trades", new List<object>() {});
-                        orderTrades.Add(trade);
+                        orderTrades.Add(ccxt.BaseExchange.FromTrade(trade));
                         order["trades"] = orderTrades;
                         // write the updated order back into the cache: php
                         // arrays are value types, so the fee/trades mutations
@@ -6363,7 +6363,7 @@ public partial class binance : ccxt.binance
                 this.myTrades = new ArrayCacheBySymbolById(limit);
             }
             ccxt.pro.ArrayCache myTrades = this.myTrades;
-            myTrades.append(trade);
+            myTrades.append(ccxt.BaseExchange.FromTrade(trade));
             client.resolve(this.myTrades, messageHash);
             string messageHashSymbol = ((messageHash + ":") + symbol);
             client.resolve(this.myTrades, messageHashSymbol);
@@ -6372,7 +6372,7 @@ public partial class binance : ccxt.binance
 
     public virtual void handleOrder(WebSocketClient client, object message)
     {
-        Dictionary<string, object> parsed = this.parseWsOrder(message);
+        Dictionary<string, object> parsed = ccxt.BaseExchange.FromOrder(this.parseWsOrder(message));
         string? symbol = this.safeString(parsed, "symbol");
         string? orderId = this.safeString(parsed, "id");
         if ((symbol != null))

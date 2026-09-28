@@ -323,8 +323,8 @@ public partial class hashkey : ccxt.hashkey
             for (int i = 0; i < (data?.Count ?? 0); i++)
             {
                 IDictionary<string, object> trade = this.safeDict(data, i);
-                Dictionary<string, object> parsed = this.parseWsTrade(trade, market);
-                stored.append(parsed);
+                ccxt.Trade parsed = this.parseWsTrade(trade, market);
+                stored.append(ccxt.BaseExchange.FromTrade(parsed));
             }
         }
         string messageHash = (("trades" + ":") + symbol);
@@ -398,8 +398,8 @@ public partial class hashkey : ccxt.hashkey
         List<object> data = this.safeList(message, "data", new List<object>() {});
         IDictionary<string, object> dataEntry = this.safeDict(data, 0);
         Int64? timestamp = this.safeInteger(dataEntry, "t");
-        Dictionary<string, object> snapshot = this.parseOrderBook(dataEntry, symbol, timestamp, "b", "a");
-        (orderbook as IOrderBook).reset(snapshot);
+        ccxt.OrderBook snapshot = this.parseOrderBook(dataEntry, symbol, timestamp, "b", "a");
+        (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         orderbook["nonce"] = this.safeInteger(message, "id");
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         client.resolve(orderbook, messageHash);
@@ -480,17 +480,17 @@ public partial class hashkey : ccxt.hashkey
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
-        Dictionary<string, object> parsed = this.parseWsOrder(message);
+        ccxt.Order parsed = this.parseWsOrder(message);
         ccxt.pro.ArrayCache orders = this.orders;
-        orders.append(parsed);
+        orders.append(ccxt.BaseExchange.FromOrder(parsed));
         string messageHash = "orders";
         client.resolve(orders, messageHash);
-        string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+        string? symbol = parsed.symbol;
         string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(orders, symbolSpecificMessageHash);
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(order, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -602,17 +602,17 @@ public partial class hashkey : ccxt.hashkey
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache tradesArray = this.myTrades;
-        Dictionary<string, object> parsed = this.parseWsTrade(message);
-        tradesArray.append(parsed);
+        ccxt.Trade parsed = this.parseWsTrade(message);
+        tradesArray.append(ccxt.BaseExchange.FromTrade(parsed));
         this.myTrades = tradesArray;
         string messageHash = "myTrades";
         client.resolve(tradesArray, messageHash);
-        string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+        string? symbol = parsed.symbol;
         string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(tradesArray, symbolSpecificMessageHash);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         // watchTrades

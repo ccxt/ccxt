@@ -270,7 +270,7 @@ public partial class paymium : Exchange
             { "currency", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetDataCurrencyDepth(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "amount"));
+        return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "amount");
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -365,7 +365,7 @@ public partial class paymium : Exchange
         return this.parseTicker(ticker, market);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         Int64? timestamp = this.safeTimestamp(trade, "created_at_int");
         string? id = this.safeString(trade, "uuid");
@@ -414,7 +414,7 @@ public partial class paymium : Exchange
             { "currency", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> response = await this.publicGetDataCurrencyTrades(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**
@@ -559,7 +559,7 @@ public partial class paymium : Exchange
             request["price"] = price;
         }
         Dictionary<string, object> response = await this.privatePostUserOrders(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", this.safeString(response, "uuid") },         }, market));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", this.safeString(response, "uuid") },         }, market);
     }
 
     /**
@@ -579,7 +579,7 @@ public partial class paymium : Exchange
             { "uuid", id },
         };
         Dictionary<string, object> response = await this.privateDeleteUserOrdersUuidCancel(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },         });
     }
 
     /**

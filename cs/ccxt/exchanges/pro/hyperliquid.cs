@@ -90,7 +90,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         IDictionary<string, object> responseOjb = this.safeDict(response, "response", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(responseOjb, "data", new Dictionary<string, object>() {});
         List<object> statuses = this.safeList(data, "statuses", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(statuses, null));
+        return this.parseOrders(statuses, null);
     }
 
     /**
@@ -128,7 +128,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         if ((ordersLength == 0))
         {
             // not sure why but it is happening sometimes
-            return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {}));
+            return this.safeOrder(new Dictionary<string, object>() {});
         }
         object parsedOrder = (orders != null && 0 < orders.Count ? orders[0] : null);
         return ccxt.BaseExchange.ToOrder(parsedOrder);
@@ -176,8 +176,8 @@ public partial class hyperliquid : ccxt.hyperliquid
         IDictionary<string, object> dataObject = this.safeDict(responseObject, "data", new Dictionary<string, object>() {});
         List<object> statuses = this.safeList(dataObject, "statuses", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(statuses, 0, new Dictionary<string, object>() {});
-        Dictionary<string, object> parsedOrder = this.parseOrder(first, market);
-        return ccxt.BaseExchange.ToOrder(parsedOrder);
+        ccxt.Order parsedOrder = this.parseOrder(first, market);
+        return parsedOrder;
     }
 
     /**
@@ -213,10 +213,10 @@ public partial class hyperliquid : ccxt.hyperliquid
         for (int i = 0; i < statuses.Count; i++)
         {
             object status = statuses[i];
-            orders.Add(this.safeOrder(new Dictionary<string, object>() {
+            orders.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", status },
                 { "status", status },
-            }));
+            })));
         }
         return ccxt.BaseExchange.ToOrderList(orders);
     }
@@ -346,14 +346,14 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "asks", this.safeList(rawData, 1, new List<object>() {}) },
         };
         Int64? timestamp = this.safeInteger(entry, "time");
-        Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "px", "sz");
+        ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "px", "sz");
         if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
-            ccxt.pro.OrderBook ob = this.orderBook(snapshot);
+            ccxt.pro.OrderBook ob = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot));
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        (orderbook as IOrderBook).reset(snapshot);
+        (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         string messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
     }
@@ -732,10 +732,10 @@ public partial class hyperliquid : ccxt.hyperliquid
         for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> rawTrade = ((IDictionary<string, object>)data[i]);
-            Dictionary<string, object> parsed = this.parseWsTrade(rawTrade);
-            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+            ccxt.Trade parsed = this.parseWsTrade(rawTrade);
+            string? symbol = parsed.symbol;
             symbols[(string)symbol] = true;
-            trades.append(parsed);
+            trades.append(ccxt.BaseExchange.FromTrade(parsed));
         }
         List<object> keys = new List<object>(symbols.Keys);
         for (int i = 0; i < keys.Count; i++)
@@ -859,14 +859,14 @@ public partial class hyperliquid : ccxt.hyperliquid
         for (int i = 0; i < entry.Count; i++)
         {
             IDictionary<string, object> data = this.safeDict(entry, i, new Dictionary<string, object>() {});
-            Dictionary<string, object> trade = this.parseWsTrade(data);
-            trades.append(trade);
+            ccxt.Trade trade = this.parseWsTrade(data);
+            trades.append(ccxt.BaseExchange.FromTrade(trade));
         }
         string messageHash = ("trade:" + symbol);
         client.resolve(trades, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         // fetchMyTrades
@@ -1639,9 +1639,9 @@ public partial class hyperliquid : ccxt.hyperliquid
         for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> rawOrder = ((IDictionary<string, object>)data[i]);
-            Dictionary<string, object> order = this.parseOrder(rawOrder);
-            stored.append(order);
-            string? symbol = this.safeString(order, "symbol");
+            ccxt.Order order = this.parseOrder(rawOrder);
+            stored.append(ccxt.BaseExchange.FromOrder(order));
+            string? symbol = order.symbol;
             marketSymbols[(string)symbol] = true;
         }
         List<object> keys = new List<object>(marketSymbols.Keys);

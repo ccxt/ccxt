@@ -147,8 +147,8 @@ public partial class blofin : ccxt.blofin
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
             object rawTrade = data[i];
-            Dictionary<string, object> trade = this.parseWsTrade(rawTrade);
-            string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
+            ccxt.Trade trade = this.parseWsTrade(rawTrade);
+            string? symbol = trade.symbol;
             ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
             if ((stored == null))
             {
@@ -156,7 +156,7 @@ public partial class blofin : ccxt.blofin
                 stored = new ArrayCache(limit);
                 this.trades[(string)symbol] = stored;
             }
-            stored.append(trade);
+            stored.append(ccxt.BaseExchange.FromTrade(trade));
             if ((channelName != null))
             {
                 string messageHash = ((channelName + ":") + symbol);
@@ -165,7 +165,7 @@ public partial class blofin : ccxt.blofin
         }
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         return this.parseTrade(trade, market);
     }
@@ -253,9 +253,9 @@ public partial class blofin : ccxt.blofin
         string? action = this.safeString(message, "action");
         if (action == "snapshot")
         {
-            Dictionary<string, object> orderBookSnapshot = this.parseOrderBook(data, symbol, timestamp);
-            orderBookSnapshot["nonce"] = this.safeInteger(data, "seqId");
-            (orderbook as IOrderBook).reset(orderBookSnapshot);
+            ccxt.OrderBook orderBookSnapshot = this.parseOrderBook(data, symbol, timestamp);
+            orderBookSnapshot.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(data, "seqId"));
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(orderBookSnapshot));
         } else
         {
             List<object> asks = this.safeList(data, "asks", new List<object>() {});
@@ -678,9 +678,9 @@ public partial class blofin : ccxt.blofin
         List<object> data = this.safeList(message, "data");
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            Dictionary<string, object> order = this.parseWsOrder(data[i]);
-            string? symbol = ((string)(order != null && order.ContainsKey("symbol") ? order["symbol"] : null));
-            orders.append(order);
+            ccxt.Order order = this.parseWsOrder(data[i]);
+            string? symbol = order.symbol;
+            orders.append(ccxt.BaseExchange.FromOrder(order));
             if ((channelName != null))
             {
                 string messageHash = ((channelName + ":") + symbol);
@@ -690,7 +690,7 @@ public partial class blofin : ccxt.blofin
         }
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         return this.parseOrder(order, market);
     }

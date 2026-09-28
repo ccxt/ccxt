@@ -1588,7 +1588,7 @@ public partial class poloniex : Exchange
         return this.parseTicker(response, market);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -1766,7 +1766,7 @@ public partial class poloniex : Exchange
             //         },
             //
             List<object> tradesList = this.safeList(response, "data", new List<object>() {});
-            return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradesList, market, since, limit));
+            return this.parseTrades(tradesList, market, since, limit);
         }
         List<object> trades = await this.publicGetMarketsSymbolTrades(this.extend(request, parameters));
         //
@@ -1782,7 +1782,7 @@ public partial class poloniex : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
+        return this.parseTrades(trades, market, since, limit);
     }
 
     /**
@@ -1880,7 +1880,7 @@ public partial class poloniex : Exchange
             //            },
             //
             List<object> data = this.safeList(raw, "data", new List<object>() {});
-            return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
+            return this.parseTrades(data, market, since, limit);
         }
         List<object> response = await this.privateGetTrades(this.extend(requestUntil, paramsUntil));
         //
@@ -1904,7 +1904,7 @@ public partial class poloniex : Exchange
         //         }
         //     ]
         //
-        IList<object> result = this.parseTrades(response, market, since, limit);
+        IList<object> result = ccxt.BaseExchange.FromTradeList(this.parseTrades(response, market, since, limit));
         return ccxt.BaseExchange.ToTradeList(result);
     }
 
@@ -1922,7 +1922,7 @@ public partial class poloniex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // fetchOpenOrder
@@ -2125,7 +2125,7 @@ public partial class poloniex : Exchange
                 { "side", (order != null && order.ContainsKey("type") ? order["type"] : null) },
                 { "price", (order != null && order.ContainsKey("rate") ? order["rate"] : null) },
             });
-            ((IList<object>)result).Add(this.parseOrder(extended, market));
+            ((IList<object>)result).Add(ccxt.BaseExchange.FromOrder(this.parseOrder(extended, market)));
         }
         return result;
     }
@@ -2242,7 +2242,7 @@ public partial class poloniex : Exchange
         Dictionary<string, object> extension = new Dictionary<string, object>() {
             { "status", "open" },
         };
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit, extension));
+        return this.parseOrders(response, market, since, limit, extension);
     }
 
     /**
@@ -2328,7 +2328,7 @@ public partial class poloniex : Exchange
         //            },
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+        return this.parseOrders(data, market, since, limit);
     }
 
     /**
@@ -2382,7 +2382,7 @@ public partial class poloniex : Exchange
         //         "clientOrderId" : ""
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public virtual List<object> orderRequest(string? symbol, string? type, string? side, object amount, IDictionary<string, object> request, object price = null, object parameters = null)
@@ -2566,7 +2566,7 @@ public partial class poloniex : Exchange
             { "side", side },
             { "type", type },
         });
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
@@ -2607,7 +2607,7 @@ public partial class poloniex : Exchange
             //        }
             //    }
             //
-            return ccxt.BaseExchange.ToOrder(this.parseOrder(this.safeDict(raw, "data", new Dictionary<string, object>() {})));
+            return this.parseOrder(this.safeDict(raw, "data", new Dictionary<string, object>() {}));
         }
         object clientOrderId = this.safeValue(parameters, "clientOrderId");
         object idValue = ((clientOrderId != null)) ? clientOrderId : idVar;
@@ -2631,7 +2631,7 @@ public partial class poloniex : Exchange
         //       "message":""
         //   }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -2681,7 +2681,7 @@ public partial class poloniex : Exchange
             //    }
             //
             response = this.safeList(raw, "data", new List<object>() {});
-            return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market));
+            return this.parseOrders(response, market);
         }
         bool? isTrigger = this.safeBool2(paramsMarketType, "trigger", "stop");
         Dictionary<string, object> paramsOmitted = this.omit(paramsMarketType, new List<object>() {"trigger", "stop"});
@@ -2709,7 +2709,7 @@ public partial class poloniex : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market));
+        return this.parseOrders(response, market);
     }
 
     /**
@@ -2777,9 +2777,9 @@ public partial class poloniex : Exchange
         //         "updateTime": 1646196019020
         //     }
         //
-        Dictionary<string, object> order = this.parseOrder(response);
-        order["id"] = idValue;
-        return ccxt.BaseExchange.ToOrder(order);
+        ccxt.Order order = this.parseOrder(response);
+        order.id = ccxt.BaseExchange.StructString(idValue);
+        return order;
     }
 
     public async override Task<string> FetchOrderStatus(string id, string symbol = null, object parameters = null)
@@ -2832,7 +2832,7 @@ public partial class poloniex : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades));
+        return this.parseTrades(trades);
     }
 
     public override Dictionary<string, object> parseBalance(object response)
@@ -3050,7 +3050,7 @@ public partial class poloniex : Exchange
             //
             IDictionary<string, object> data = this.safeDict(responseRaw, "data", new Dictionary<string, object>() {});
             Int64? ts = this.safeInteger(data, "ts");
-            return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, symbol, ts));
+            return this.parseOrderBook(data, symbol, ts);
         }
         Dictionary<string, object> response = await this.publicGetMarketsSymbolOrderBook(this.extend(request, parameters));
         //

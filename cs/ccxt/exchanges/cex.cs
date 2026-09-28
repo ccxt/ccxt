@@ -764,10 +764,10 @@ public partial class cex : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> trades = this.safeList(data, "trades", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
+        return this.parseTrades(trades, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // public fetchTrades
@@ -842,7 +842,7 @@ public partial class cex : Exchange
         //
         IDictionary<string, object> orderBook = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(orderBook, "timestamp");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderBook, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp));
+        return this.parseOrderBook(orderBook, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp);
     }
 
     /**
@@ -1228,7 +1228,7 @@ public partial class cex : Exchange
         //            ...
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+        return this.parseOrders(data, market, since, limit);
     }
 
     /**
@@ -1328,7 +1328,7 @@ public partial class cex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //                "orderId": "1313003",
@@ -1519,7 +1519,7 @@ public partial class cex : Exchange
         //             "rejectReason": "Either AmountCcy1 (OrderQty) or AmountCcy2 (CashOrderQty) should be specified for market order not both",
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -1549,7 +1549,7 @@ public partial class cex : Exchange
         //      {"ok":"ok","data":{}}
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data));
+        return this.parseOrder(data);
     }
 
     /**
@@ -1589,7 +1589,7 @@ public partial class cex : Exchange
                 { "clientOrderId", id },
             });
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders));
+        return this.parseOrders(orders);
     }
 
     /**

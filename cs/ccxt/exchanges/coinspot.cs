@@ -689,7 +689,7 @@ public partial class coinspot : Exchange
             { "cointype", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> orderbook = await this.privatePostOrders(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "buyorders", "sellorders", "rate", "amount"));
+        return this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "buyorders", "sellorders", "rate", "amount");
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -849,7 +849,7 @@ public partial class coinspot : Exchange
         //     }
         //
         List<object> trades = this.safeList(response, "orders", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
+        return this.parseTrades(trades, market, since, limit);
     }
 
     /**
@@ -918,10 +918,10 @@ public partial class coinspot : Exchange
             ((IDictionary<string,object>)sellTrades[i])["side"] = "sell";
         }
         List<object> trades = this.arrayConcat(buyTrades, sellTrades);
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
+        return this.parseTrades(trades, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // public fetchTrades
@@ -1040,7 +1040,7 @@ public partial class coinspot : Exchange
         //
         // status - ok, error
         //
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },         });
     }
 
     /**
@@ -1077,7 +1077,7 @@ public partial class coinspot : Exchange
         //
         // status - ok, error
         //
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },         });
     }
 
     public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)

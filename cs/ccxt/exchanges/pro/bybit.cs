@@ -1145,8 +1145,8 @@ public partial class bybit : ccxt.bybit
         orderbook["symbol"] = symbol;
         if (isSnapshot)
         {
-            Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a");
-            (orderbook as IOrderBook).reset(snapshot);
+            ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a");
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         } else
         {
             List<object> asks = this.safeList(data, "a", new List<object>() {});
@@ -1340,14 +1340,14 @@ public partial class bybit : ccxt.bybit
         }
         for (int j = 0; j < getArrayLength(trades); j++)
         {
-            Dictionary<string, object> parsed = this.parseWsTrade(getValue(trades, j), market);
-            stored.append(parsed);
+            ccxt.Trade parsed = this.parseWsTrade(getValue(trades, j), market);
+            stored.append(ccxt.BaseExchange.FromTrade(parsed));
         }
         string messageHash = (("trade" + ":") + symbol);
         client.resolve(stored, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         // public
@@ -1662,7 +1662,7 @@ public partial class bybit : ccxt.bybit
             Dictionary<string, object> parsed = null;
             if (spot && !executionFast)
             {
-                parsed = this.parseWsTrade(rawTrade);
+                parsed = ccxt.BaseExchange.FromTrade(this.parseWsTrade(rawTrade));
             } else
             {
                 // filter unified trades
@@ -1675,7 +1675,7 @@ public partial class bybit : ccxt.bybit
                 {
                     continue;
                 }
-                parsed = this.parseTrade(rawTrade);
+                parsed = ccxt.BaseExchange.FromTrade(this.parseTrade(rawTrade));
             }
             string? symbol = ((string)GetValue(parsed, "symbol"));
             if ((symbol == null))
@@ -2158,8 +2158,8 @@ public partial class bybit : ccxt.bybit
         //
         string? messageHash = this.safeString(message, "reqId");
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        Dictionary<string, object> order = this.parseOrder(data);
-        client.resolve(order, messageHash);
+        ccxt.Order order = this.parseOrder(data);
+        client.resolve(ccxt.BaseExchange.FromOrder(order), messageHash);
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
@@ -2264,19 +2264,19 @@ public partial class bybit : ccxt.bybit
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(rawOrders); i++)
         {
-            Dictionary<string, object> parsed = this.parseOrder(getValue(rawOrders, i));
+            ccxt.Order parsed = this.parseOrder(getValue(rawOrders, i));
             // if (isSpot) {
             //     parsed = this.parseWsSpotOrder (rawOrders[i]);
             // } else {
             //     parsed = this.parseOrder (rawOrders[i]);
             // }
-            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+            string? symbol = parsed.symbol;
             if ((symbol == null))
             {
                 continue;
             }
             symbols[(string)symbol] = true;
-            orders.append(parsed);
+            orders.append(ccxt.BaseExchange.FromOrder(parsed));
         }
         List<object> symbolsArray = new List<object>(symbols.Keys);
         for (int i = 0; i < symbolsArray.Count; i++)

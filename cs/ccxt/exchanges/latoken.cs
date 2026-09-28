@@ -837,7 +837,7 @@ public partial class latoken : Exchange
             { "ask", asks },
             { "bid", bids },
         };
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(filtered, symbol, null, "bid", "ask", "price", "quantity"));
+        return this.parseOrderBook(filtered, symbol, null, "bid", "ask", "price", "quantity");
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -976,7 +976,7 @@ public partial class latoken : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1110,7 +1110,7 @@ public partial class latoken : Exchange
         //         {"id":"f43d3ec8-db94-49f3-b534-91dbc2779296","isMakerBuyer":true,"baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f","quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5","price":"4435.00","quantity":"0.41738","cost":"1851.0803","timestamp":1635854640323,"makerBuyer":true},
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**
@@ -1244,7 +1244,7 @@ public partial class latoken : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -1276,7 +1276,7 @@ public partial class latoken : Exchange
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -1452,7 +1452,7 @@ public partial class latoken : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -1530,7 +1530,7 @@ public partial class latoken : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -1585,7 +1585,7 @@ public partial class latoken : Exchange
         //         "timestamp":1635920767648
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -1654,7 +1654,7 @@ public partial class latoken : Exchange
         //        "timestamp": 1568185507
         //    }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -1698,7 +1698,7 @@ public partial class latoken : Exchange
         //         "errors": { }
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -1752,7 +1752,7 @@ public partial class latoken : Exchange
         //         "status":"SUCCESS"
         //     }
         //
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
     }
 
     /**

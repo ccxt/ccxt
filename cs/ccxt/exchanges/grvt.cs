@@ -1271,7 +1271,7 @@ public partial class grvt : Exchange
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         Int64? timestamp = this.parse8601(this.safeString(result, "event_time"));
         string? marketId = this.safeString(result, "instrument");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(result, this.safeSymbol(marketId), timestamp, "bids", "asks", "price", "size"));
+        return this.parseOrderBook(result, this.safeSymbol(marketId), timestamp, "bids", "asks", "price", "size");
     }
 
     /**
@@ -1330,10 +1330,10 @@ public partial class grvt : Exchange
         //            ...
         //
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(result, market, since, limit));
+        return this.parseTrades(result, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -2595,7 +2595,7 @@ public partial class grvt : Exchange
         //    }
         //
         IDictionary<string, object> data = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     public virtual Int64? convertToBigIntCustom(object x)
@@ -2742,7 +2742,7 @@ public partial class grvt : Exchange
         //    }
         //
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(result, null, since, limit));
+        return this.parseTrades(result, null, since, limit);
     }
 
     /**
@@ -3218,7 +3218,7 @@ public partial class grvt : Exchange
         //    }
         //
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, market, since, limit));
+        return this.parseOrders(result, market, since, limit);
     }
 
     /**
@@ -3301,7 +3301,7 @@ public partial class grvt : Exchange
         //    }
         //
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, null, since, limit));
+        return this.parseOrders(result, null, since, limit);
     }
 
     /**
@@ -3392,10 +3392,10 @@ public partial class grvt : Exchange
         //    }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(result));
+        return this.parseOrder(result);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // fetchOrders, fetchOpenOrders, fetchOrder, createOrder
@@ -3603,7 +3603,7 @@ public partial class grvt : Exchange
         //    }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(new List<object>() {result}));
+        return this.parseOrders(new List<object>() {result});
     }
 
     /**
@@ -3643,7 +3643,7 @@ public partial class grvt : Exchange
         //    }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(result));
+        return this.parseOrder(result);
     }
 
     public virtual Dictionary<string, object> eipDomainData()

@@ -155,8 +155,8 @@ public partial class woofipro : ccxt.woofipro
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         Int64? timestamp = this.safeInteger(message, "ts");
-        Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
-        (orderbook as IOrderBook).reset(snapshot);
+        ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
+        (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         client.resolve(orderbook, topic);
     }
 
@@ -544,7 +544,7 @@ public partial class woofipro : ccxt.woofipro
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        Dictionary<string, object> trade = this.parseWsTrade(this.extend(data, new Dictionary<string, object>() {
+        ccxt.Trade trade = this.parseWsTrade(this.extend(data, new Dictionary<string, object>() {
             { "timestamp", timestamp },
         }), market);
         if (!((this.trades != null && symbol != null && this.trades.ContainsKey(symbol))))
@@ -554,12 +554,12 @@ public partial class woofipro : ccxt.woofipro
             this.trades[(string)symbol] = stored;
         }
         ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
-        trades.append(trade);
+        trades.append(ccxt.BaseExchange.FromTrade(trade));
         this.trades[(string)symbol] = trades;
         client.resolve(trades, topic);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         //     {
@@ -830,7 +830,7 @@ public partial class woofipro : ccxt.woofipro
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1013,7 +1013,7 @@ public partial class woofipro : ccxt.woofipro
 
     public virtual void handleOrder(WebSocketClient client, object message, object topic)
     {
-        Dictionary<string, object> parsed = this.parseWsOrder(message);
+        Dictionary<string, object> parsed = ccxt.BaseExchange.FromOrder(this.parseWsOrder(message));
         string? symbol = this.safeString(parsed, "symbol");
         string? orderId = this.safeString(parsed, "id");
         if ((symbol != null))
@@ -1083,7 +1083,7 @@ public partial class woofipro : ccxt.woofipro
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        Dictionary<string, object> trade = this.parseWsTrade(message, market);
+        ccxt.Trade trade = this.parseWsTrade(message, market);
         ccxt.pro.ArrayCache trades = this.myTrades;
         if ((trades == null))
         {
@@ -1091,7 +1091,7 @@ public partial class woofipro : ccxt.woofipro
             trades = new ArrayCacheBySymbolById(limit);
             this.myTrades = trades;
         }
-        trades.append(trade);
+        trades.append(ccxt.BaseExchange.FromTrade(trade));
         client.resolve(trades, messageHash);
         string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(trades, symbolSpecificMessageHash);

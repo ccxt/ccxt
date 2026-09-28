@@ -194,7 +194,7 @@ public partial class bullish : ccxt.bullish
         string? symbol = this.safeSymbol(marketId);
         Dictionary<string, object> market = this.market(symbol);
         List<object> rawTrades = this.safeList(data, "trades", new List<object>() {});
-        IList<object> trades = this.parseTrades(rawTrades, market);
+        IList<object> trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(rawTrades, market));
         if (!((this.trades != null && symbol != null && this.trades.ContainsKey(symbol))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -371,14 +371,14 @@ public partial class bullish : ccxt.bullish
             { "bids", bids },
             { "asks", asks },
         };
-        Dictionary<string, object> parsed = this.parseOrderBook(snapshot, symbol, timestamp);
+        ccxt.OrderBook parsed = this.parseOrderBook(snapshot, symbol, timestamp);
         List<object> sequenceNumberRange = this.safeList(data, "sequenceNumberRange", new List<object>() {});
         if (sequenceNumberRange.Count > 0)
         {
             int lastIndex = (sequenceNumberRange.Count - 1);
-            parsed["nonce"] = this.safeInteger(sequenceNumberRange, lastIndex);
+            parsed.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(sequenceNumberRange, lastIndex));
         }
-        (orderbook as IOrderBook).reset(parsed);
+        (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(parsed));
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         client.resolve(orderbook, messageHash);
     }
@@ -516,9 +516,9 @@ public partial class bullish : ccxt.bullish
             for (int i = 0; i < (rawOrders?.Count ?? 0); i++)
             {
                 IDictionary<string, object> rawOrder = ((IDictionary<string, object>)rawOrders[i]);
-                Dictionary<string, object> parsedOrder = this.parseOrder(rawOrder);
-                orders.append(parsedOrder);
-                string? symbol = this.safeString(parsedOrder, "symbol");
+                ccxt.Order parsedOrder = this.parseOrder(rawOrder);
+                orders.append(ccxt.BaseExchange.FromOrder(parsedOrder));
+                string? symbol = parsedOrder.symbol;
                 if ((symbol != null))
                 {
                     symbols[(string)symbol] = true;
@@ -643,9 +643,9 @@ public partial class bullish : ccxt.bullish
             for (int i = 0; i < (rawTrades?.Count ?? 0); i++)
             {
                 IDictionary<string, object> rawTrade = ((IDictionary<string, object>)rawTrades[i]);
-                Dictionary<string, object> parsedTrade = this.parseTrade(rawTrade);
-                trades.append(parsedTrade);
-                string? symbol = this.safeString(parsedTrade, "symbol");
+                ccxt.Trade parsedTrade = this.parseTrade(rawTrade);
+                trades.append(ccxt.BaseExchange.FromTrade(parsedTrade));
+                string? symbol = parsedTrade.symbol;
                 if ((symbol != null))
                 {
                     symbols[(string)symbol] = true;

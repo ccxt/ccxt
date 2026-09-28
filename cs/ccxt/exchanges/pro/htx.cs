@@ -362,8 +362,8 @@ public partial class htx : ccxt.htx
         }
         for (int i = 0; i < data.Count; i++)
         {
-            Dictionary<string, object> trade = this.parseTrade(data[i], market);
-            tradesCache.append(trade);
+            ccxt.Trade trade = this.parseTrade(data[i], market);
+            tradesCache.append(ccxt.BaseExchange.FromTrade(trade));
         }
         client.resolve(tradesCache, ch);
         return message;
@@ -614,7 +614,7 @@ public partial class htx : ccxt.htx
             IDictionary<string, object> data = this.safeDict(message, "data");
             IList<object> messages = (orderbook as ccxt.pro.OrderBook).cache;
             IDictionary<string, object> firstMessage = this.safeDict(messages, 0, new Dictionary<string, object>() {});
-            Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol);
+            ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol);
             IDictionary<string, object> tick = this.safeDict(firstMessage, "tick");
             Int64? sequence = this.safeInteger(tick, "prevSeqNum");
             Int64? nonce = this.safeInteger(data, "seqNum");
@@ -622,11 +622,11 @@ public partial class htx : ccxt.htx
             {
                 return;
             }
-            snapshot["nonce"] = nonce;
+            snapshot.nonce = ccxt.BaseExchange.StructInt64(nonce);
             Int64? snapshotTimestamp = this.safeInteger(message, "ts");
             ((IDictionary<string,object>)subscription)["lastTimestamp"] = snapshotTimestamp;
             Int64? snapshotLimit = this.safeInteger(subscription, "limit");
-            ccxt.pro.OrderBook snapshotOrderBook = this.orderBook(snapshot, snapshotLimit);
+            ccxt.pro.OrderBook snapshotOrderBook = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot), snapshotLimit);
             client.resolve(snapshotOrderBook, id);
             if (((sequence == null)) || ((nonce < sequence)))
             {
@@ -654,7 +654,7 @@ public partial class htx : ccxt.htx
                 }
             } else
             {
-                (orderbook as IOrderBook).reset(snapshot);
+                (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
                 // unroll the accumulated deltas
                 for (int i = 0; i < (messages?.Count ?? 0); i++)
                 {
@@ -820,8 +820,8 @@ public partial class htx : ccxt.htx
         Int64? timestamp = this.safeInteger(message, "ts");
         if (eventVar == "snapshot")
         {
-            Dictionary<string, object> snapshot = this.parseOrderBook(tick, symbol, timestamp);
-            (orderbook as IOrderBook).reset(snapshot);
+            ccxt.OrderBook snapshot = this.parseOrderBook(tick, symbol, timestamp);
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
             orderbook["nonce"] = version;
         }
         if (((prevSeqNum != null)) && isGreaterThan(prevSeqNum, this.safeInteger(orderbook, "nonce", 0)))
@@ -1402,12 +1402,12 @@ public partial class htx : ccxt.htx
                 parsedOrder = order;
             } else
             {
-                parsedOrder = this.parseWsOrder(data, market);
+                parsedOrder = ccxt.BaseExchange.FromOrder(this.parseWsOrder(data, market));
             }
         } else
         {
             // contract branch
-            parsedOrder = this.parseWsOrder(message, market);
+            parsedOrder = ccxt.BaseExchange.FromOrder(this.parseWsOrder(message, market));
             List<object> rawTrades = this.safeList(message, "trade", new List<object>() {});
             int tradesLength = rawTrades.Count;
             if (tradesLength > 0)
@@ -1457,7 +1457,7 @@ public partial class htx : ccxt.htx
         client.resolve(this.orders, genericMessageHash);
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // spot
@@ -1734,7 +1734,7 @@ public partial class htx : ccxt.htx
         {
             takerOrMaker = ((aggressor == true)) ? "taker" : "maker";
         }
-        return this.safeTrade(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -1748,7 +1748,7 @@ public partial class htx : ccxt.htx
             { "amount", amount },
             { "cost", null },
             { "fee", null },
-        }, marketValue);
+        }, marketValue));
     }
 
     /**
@@ -3005,16 +3005,16 @@ public partial class htx : ccxt.htx
                 {
                     for (int i = 0; i < getArrayLength(data); i++)
                     {
-                        Dictionary<string, object> parsed = this.parseWsTrade(getValue(data, i), market);
-                        string? symbol = this.safeString(parsed, "symbol");
+                        ccxt.Trade parsed = this.parseWsTrade(getValue(data, i), market);
+                        string? symbol = parsed.symbol;
                         if ((symbol != null))
                         {
-                            cachedTrades.append(parsed);
+                            cachedTrades.append(ccxt.BaseExchange.FromTrade(parsed));
                         }
                     }
                 } else
                 {
-                    Dictionary<string, object> parsed = this.parseWsTrade(data, market);
+                    Dictionary<string, object> parsed = ccxt.BaseExchange.FromTrade(this.parseWsTrade(data, market));
                     string? symbol = this.safeString(parsed, "symbol");
                     if ((symbol != null))
                     {
@@ -3037,7 +3037,7 @@ public partial class htx : ccxt.htx
                 for (int i = 0; i < rawTrades.Count; i++)
                 {
                     IDictionary<string, object> trade = ((IDictionary<string, object>)rawTrades[i]);
-                    Dictionary<string, object> parsedTrade = this.parseTrade(trade, market);
+                    Dictionary<string, object> parsedTrade = ccxt.BaseExchange.FromTrade(this.parseTrade(trade, market));
                     // add extra params (side, type, ...) coming from the order
                     parsedTrade = this.extend(parsedTrade, extendParams);
                     cachedTrades.append(parsedTrade);
@@ -3060,7 +3060,7 @@ public partial class htx : ccxt.htx
         }
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         // spot private
         //

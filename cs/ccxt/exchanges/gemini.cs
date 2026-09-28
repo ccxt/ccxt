@@ -1225,7 +1225,7 @@ public partial class gemini : Exchange
             request["limit_asks"] = limit;
         }
         Dictionary<string, object> response = await this.publicGetV1BookSymbol(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "amount"));
+        return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "amount");
     }
 
     public async virtual Task<ccxt.Ticker> FetchTickerV1(string symbol, object parameters = null)
@@ -1458,7 +1458,7 @@ public partial class gemini : Exchange
         return ccxt.BaseExchange.ToTickers(this.removeKeysFromDict(result, brokenPairs));
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // public fetchTrades
@@ -1567,7 +1567,7 @@ public partial class gemini : Exchange
         //         },
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     public override Dictionary<string, object> parseBalance(object response)
@@ -1677,7 +1677,7 @@ public partial class gemini : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder (private)
@@ -1896,7 +1896,7 @@ public partial class gemini : Exchange
         //          "remaining_amount":"0.01"
         //      }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -1948,7 +1948,7 @@ public partial class gemini : Exchange
         {
             market = this.market(symbol); // throws on non-existent symbol
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -2058,7 +2058,7 @@ public partial class gemini : Exchange
         //          "remaining_amount":"0"
         //      }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -2106,7 +2106,7 @@ public partial class gemini : Exchange
         //          "remaining_amount":"0.01"
         //      }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -2144,7 +2144,7 @@ public partial class gemini : Exchange
             request["timestamp"] = this.parseToInt(((double?)since / 1000));
         }
         List<object> response = await this.privatePostV1Mytrades(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**

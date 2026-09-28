@@ -1348,7 +1348,7 @@ public partial class pacifica : Exchange
             { "asks", this.safeList(levels, 1, new List<object>() {}) },
         };
         Int64? timestamp = this.safeInteger(data, "t");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(result, this.safeSymbol(null, market), timestamp, "bids", "asks", "p", "a"));
+        return this.parseOrderBook(result, this.safeSymbol(null, market), timestamp, "bids", "asks", "p", "a");
     }
 
     /**
@@ -1590,7 +1590,7 @@ public partial class pacifica : Exchange
         // }
         //
         List<object> recentTrades = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(recentTrades, market, since, limit));
+        return this.parseTrades(recentTrades, market, since, limit);
     }
 
     /**
@@ -1675,10 +1675,10 @@ public partial class pacifica : Exchange
         // }
         //
         List<object> data = this.addPaginationCursorToResult(response);
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
+        return this.parseTrades(data, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // user trades:
@@ -1831,7 +1831,7 @@ public partial class pacifica : Exchange
         }
         IDictionary<string, object> order = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? orderId = this.safeString(order, "order_id");
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", orderId },             { "status", status },             { "info", response },             { "symbol", symbol },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "id", orderId },             { "status", status },             { "info", response },             { "symbol", symbol },         });
     }
 
     public virtual List<object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
@@ -2096,11 +2096,11 @@ public partial class pacifica : Exchange
                 status = "open";
             }
             string? orderId = this.safeString(order, "order_id");
-            ordersToReturn.Add(this.safeOrder(new Dictionary<string, object>() {
+            ordersToReturn.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", orderId },
                 { "status", status },
-            }));
+            })));
         }
         return ccxt.BaseExchange.ToOrderList(ordersToReturn);
     }
@@ -2167,11 +2167,11 @@ public partial class pacifica : Exchange
             {
                 status = "canceled";
             }
-            ordersToReturn.Add(this.safeOrder(new Dictionary<string, object>() {
+            ordersToReturn.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "status", status },
                 { "symbol", symbol },
-            }));
+            })));
         }
         return ccxt.BaseExchange.ToOrderList(ordersToReturn);
     }
@@ -2240,7 +2240,7 @@ public partial class pacifica : Exchange
         //   error: null
         // }
         //
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
     }
 
     public virtual Dictionary<string, object> cancelAllOrdersRequest(string? symbol, object parameters = null)
@@ -2313,7 +2313,7 @@ public partial class pacifica : Exchange
         {
             status = "canceled";
         }
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", id },             { "status", status },             { "info", response },             { "symbol", symbol },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "id", id },             { "status", status },             { "info", response },             { "symbol", symbol },         });
     }
 
     public virtual Dictionary<string, object> cancelOrderRequest(object id, object symbol = null, object parameters = null)
@@ -2381,7 +2381,7 @@ public partial class pacifica : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? orderId = this.safeString(data, "order_id");
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", orderId },             { "info", response },             { "symbol", symbol },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "id", orderId },             { "info", response },             { "symbol", symbol },         });
     }
 
     public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, string? type, string? side, object amount, object price, IDictionary<string, object> market, object parameters = null)
@@ -2717,7 +2717,7 @@ public partial class pacifica : Exchange
         // }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+        return this.parseOrders(data, market, since, limit);
     }
 
     /**
@@ -2794,7 +2794,7 @@ public partial class pacifica : Exchange
         // }
         //
         List<object> data = this.addPaginationCursorToResult(response);
-        IList<object> orders = this.parseOrders(data, market, since, limit);
+        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(data, market, since, limit));
         return ccxt.BaseExchange.ToOrderList(orders);
     }
 
@@ -2897,7 +2897,7 @@ public partial class pacifica : Exchange
         {
             lastInfo = (sorted != null && 0 < sorted.Count ? sorted[0] : null);
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(lastInfo, market));
+        return this.parseOrder(lastInfo, market);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -2953,7 +2953,7 @@ public partial class pacifica : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // fetchOpenOrders

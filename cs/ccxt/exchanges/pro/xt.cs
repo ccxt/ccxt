@@ -1257,7 +1257,7 @@ public partial class xt : ccxt.xt
         string? marketId = this.safeStringLower(data, "s");
         if ((marketId != null))
         {
-            Dictionary<string, object> trade = this.parseTrade(data);
+            ccxt.Trade trade = this.parseTrade(data);
             string? i = this.safeString(data, "i");
             string tradeType = "contract";
             if ((i != null))
@@ -1274,7 +1274,7 @@ public partial class xt : ccxt.xt
                 tradesArray = new ArrayCache(tradesLimit);
                 this.trades[(string)symbol] = tradesArray;
             }
-            tradesArray.append(trade);
+            tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
             if ((eventVar != null))
             {
                 string messageHash = ((eventVar + "::") + tradeType);
@@ -1454,7 +1454,7 @@ public partial class xt : ccxt.xt
         }
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, tradeType);
         string? timestamp = this.safeString(trade, "t");
-        return this.safeTrade(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", null },
             { "timestamp", timestamp },
@@ -1472,10 +1472,10 @@ public partial class xt : ccxt.xt
                 { "cost", this.safeNumber(trade, "f") },
                 { "rate", null },
             } },
-        }, marketResolved);
+        }, marketResolved));
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // spot
@@ -1618,8 +1618,8 @@ public partial class xt : ccxt.xt
                 tradeType = "contract";
             }
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, tradeType);
-            Dictionary<string, object> parsed = this.parseWsOrder(order, market);
-            orders.append(parsed);
+            ccxt.Order parsed = this.parseWsOrder(order, market);
+            orders.append(ccxt.BaseExchange.FromOrder(parsed));
             client.resolve(orders, ("order::" + tradeType));
         }
         return message;
@@ -1725,14 +1725,14 @@ public partial class xt : ccxt.xt
             stored = new ArrayCacheBySymbolById(limit);
             this.myTrades = stored;
         }
-        Dictionary<string, object> parsedTrade = this.parseTrade(data);
-        string? tradeSymbol = ((string)(parsedTrade != null && parsedTrade.ContainsKey("symbol") ? parsedTrade["symbol"] : null));
+        ccxt.Trade parsedTrade = this.parseTrade(data);
+        string? tradeSymbol = parsedTrade.symbol;
         if ((tradeSymbol == null))
         {
             return;
         }
         Dictionary<string, object> market = this.market(tradeSymbol);
-        stored.append(parsedTrade);
+        stored.append(ccxt.BaseExchange.FromTrade(parsedTrade));
         string tradeType = "spot";
         if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
         {

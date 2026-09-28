@@ -661,7 +661,7 @@ public partial class cryptomus : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeTimestamp(data, "timestamp");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"));
+        return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
     }
 
     /**
@@ -707,10 +707,10 @@ public partial class cryptomus : Exchange
         {
             dataList = data;
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(dataList, market, since, limit));
+        return this.parseTrades(dataList, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         //     {
@@ -894,7 +894,7 @@ public partial class cryptomus : Exchange
         //         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBMG"
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -922,7 +922,7 @@ public partial class cryptomus : Exchange
         //         "success": true
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },         });
     }
 
     /**
@@ -1004,7 +1004,7 @@ public partial class cryptomus : Exchange
         for (int i = 0; i < result.Count; i++)
         {
             IDictionary<string, object> order = ((IDictionary<string, object>)result[i]);
-            orders.Add(this.parseOrder(order, market));
+            orders.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(order, market)));
         }
         return ccxt.BaseExchange.ToOrderList(orders);
     }
@@ -1063,10 +1063,10 @@ public partial class cryptomus : Exchange
         //         ]
         //     }
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, market, null, null));
+        return this.parseOrders(result, market, null, null);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder

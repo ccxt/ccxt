@@ -3857,9 +3857,9 @@ public partial class gate : Exchange
         object priceKey = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? 0 : "p";
         object amountKey = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? 1 : "s";
         Int64? nonce = this.safeInteger(response, "id");
-        Dictionary<string, object> result = this.parseOrderBook(response, symbol, timestamp, "bids", "asks", priceKey, amountKey);
-        result["nonce"] = nonce;
-        return ccxt.BaseExchange.ToOrderBook(result);
+        ccxt.OrderBook result = this.parseOrderBook(response, symbol, timestamp, "bids", "asks", priceKey, amountKey);
+        result.nonce = ccxt.BaseExchange.StructInt64(nonce);
+        return result;
     }
 
     /**
@@ -4797,7 +4797,7 @@ public partial class gate : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**
@@ -5010,10 +5010,10 @@ public partial class gate : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // public
@@ -5647,7 +5647,7 @@ public partial class gate : Exchange
         //
         //     {"id": 7615567}
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public virtual object createOrdersRequest(IList<object> orders, object parameters = null)
@@ -5722,7 +5722,7 @@ public partial class gate : Exchange
         {
             response = await this.privateFuturesPostSettleBatchOrders(ordersRequests);
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response));
+        return this.parseOrders(response);
     }
 
     public virtual Dictionary<string, object> createOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
@@ -6182,7 +6182,7 @@ public partial class gate : Exchange
         //         "rebated_fee_currency": "ADA"
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -6203,7 +6203,7 @@ public partial class gate : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // SPOT
@@ -6681,7 +6681,7 @@ public partial class gate : Exchange
         {
             throw new NotSupported ((this.id + " fetchOrder() not support this market type")) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -6776,7 +6776,7 @@ public partial class gate : Exchange
             request["limit"] = limit;
         }
         List<object> response = await this.privateFuturesGetSettleOrdersTimerange(this.extend(request, this.omit(paramsRequest, "until")));
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     public virtual List<object> prepareOrdersByStatusRequest(string? status, object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -7053,7 +7053,7 @@ public partial class gate : Exchange
             }
             result = spotResult;
         }
-        IList<object> orders = this.parseOrders(result, market, since, limit);
+        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(result, market, since, limit));
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limit));
     }
 
@@ -7209,7 +7209,7 @@ public partial class gate : Exchange
         //         "iceberg": "0",
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -7277,7 +7277,7 @@ public partial class gate : Exchange
             finalList.Add((ids != null && i < ids.Count ? ids[i] : null));
         }
         List<object> response = await this.privateFuturesPostSettleBatchCancelOrders(finalList);
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response));
+        return this.parseOrders(response);
     }
 
     /**
@@ -7325,7 +7325,7 @@ public partial class gate : Exchange
         //     }
         // ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response));
+        return this.parseOrders(response);
     }
 
     /**
@@ -7424,7 +7424,7 @@ public partial class gate : Exchange
         //        ...
         //    ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market));
+        return this.parseOrders(response, market);
     }
 
     /**

@@ -391,8 +391,8 @@ public partial class poloniex : ccxt.poloniex
         for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> order = ((IDictionary<string, object>)data[i]);
-            Dictionary<string, object> parsedOrder = this.parseWsOrder(order);
-            orders.Add(parsedOrder);
+            ccxt.Order parsedOrder = this.parseWsOrder(order);
+            orders.Add(ccxt.BaseExchange.FromOrder(parsedOrder));
         }
         client.resolve(orders, messageHash);
     }
@@ -753,8 +753,8 @@ public partial class poloniex : ccxt.poloniex
             string? marketId = this.safeString(item, "symbol");
             if ((marketId != null))
             {
-                Dictionary<string, object> trade = this.parseWsTrade(item);
-                string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
+                ccxt.Trade trade = this.parseWsTrade(item);
+                string? symbol = trade.symbol;
                 string type = "trades";
                 string messageHash = ((type + "::") + symbol);
                 object tradesArray = ((symbol == null)) ? null : this.safeValue(this.trades, symbol);
@@ -767,14 +767,14 @@ public partial class poloniex : ccxt.poloniex
                         this.trades[(string)symbol] = tradesArray;
                     }
                 }
-                ccxt.pro.BaseCache.appendTo(tradesArray, trade);
+                ccxt.pro.BaseCache.appendTo(tradesArray, ccxt.BaseExchange.FromTrade(trade));
                 client.resolve(tradesArray, messageHash);
             }
         }
         return message;
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         // handleTrade
@@ -888,7 +888,7 @@ public partial class poloniex : ccxt.poloniex
         //
         Int64? timestamp = this.safeInteger(trade, "tradeTime");
         string? marketId = this.safeString(trade, "symbol");
-        return this.safeTrade(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString(trade, "tradeId") },
             { "symbol", this.safeSymbol(marketId, market) },
@@ -906,7 +906,7 @@ public partial class poloniex : ccxt.poloniex
                 { "cost", this.safeString(trade, "tradeFee") },
                 { "currency", this.safeString(trade, "feeCurrency") },
             } },
-        }, market);
+        }, market));
     }
 
     public virtual object handleOrder(WebSocketClient client, Dictionary<string, object> message)
@@ -967,19 +967,19 @@ public partial class poloniex : ccxt.poloniex
                 string? clientOrderId = this.safeString(order, "clientOrderId", "");
                 if (eventType == "place" || eventType == "canceled")
                 {
-                    Dictionary<string, object> parsed = this.parseWsOrder(order);
-                    orders.append(parsed);
+                    ccxt.Order parsed = this.parseWsOrder(order);
+                    orders.append(ccxt.BaseExchange.FromOrder(parsed));
                 } else
                 {
                     IDictionary<string, object> previousOrders = this.safeDict((orders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
                     IDictionary<string, object> previousOrder = this.safeDict2(previousOrders, orderId, clientOrderId);
-                    Dictionary<string, object> trade = this.parseWsTrade(order);
-                    this.handleMyTrades(client, trade);
+                    ccxt.Trade trade = this.parseWsTrade(order);
+                    this.handleMyTrades(client, ccxt.BaseExchange.FromTrade(trade));
                     if ((previousOrder == null))
                     {
                         // fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
-                        Dictionary<string, object> parsedOrder = this.parseWsOrder(order);
-                        orders.append(parsedOrder);
+                        ccxt.Order parsedOrder = this.parseWsOrder(order);
+                        orders.append(ccxt.BaseExchange.FromOrder(parsedOrder));
                         marketIds.Add(marketId);
                         continue;
                     }
@@ -987,8 +987,8 @@ public partial class poloniex : ccxt.poloniex
                     {
                         previousOrder["trades"] = new List<object>() {};
                     }
-                    ((IList<object>)GetValue(previousOrder, "trades")).Add(trade);
-                    previousOrder["lastTradeTimestamp"] = (trade != null && trade.ContainsKey("timestamp") ? trade["timestamp"] : null);
+                    ((IList<object>)GetValue(previousOrder, "trades")).Add(ccxt.BaseExchange.FromTrade(trade));
+                    previousOrder["lastTradeTimestamp"] = (((object)trade.timestamp));
                     string? totalCost = "0";
                     string? totalAmount = "0";
                     object previousOrderTrades = GetValue(previousOrder, "trades");
@@ -1007,7 +1007,7 @@ public partial class poloniex : ccxt.poloniex
                     previousOrder["cost"] = this.parseNumber(totalCost);
                     if (!isEqual(GetValue(previousOrder, "filled"), null))
                     {
-                        string? tradeAmount = this.numberToString((trade != null && trade.ContainsKey("amount") ? trade["amount"] : null));
+                        string? tradeAmount = this.numberToString((((object)trade.amount)));
                         string? previousOrderFilled = this.numberToString(GetValue(previousOrder, "filled"));
                         previousOrderFilled = Precise.stringAdd(previousOrderFilled, tradeAmount);
                         previousOrder["filled"] = previousOrderFilled;
@@ -1022,13 +1022,13 @@ public partial class poloniex : ccxt.poloniex
                         previousOrder["fee"] = new Dictionary<string, object>() {
                             { "rate", null },
                             { "cost", 0 },
-                            { "currency", this.safeString((trade != null && trade.ContainsKey("fee") ? trade["fee"] : null), "currency") },
+                            { "currency", this.safeString((ccxt.BaseExchange.FromFee((object)trade.fee)), "currency") },
                         };
                     }
-                    if ((!isEqual(getValue(GetValue(previousOrder, "fee"), "cost"), null)) && (!isEqual(this.safeNumber((trade != null && trade.ContainsKey("fee") ? trade["fee"] : null), "cost"), null)))
+                    if ((!isEqual(getValue(GetValue(previousOrder, "fee"), "cost"), null)) && (!isEqual(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost"), null)))
                     {
                         string? stringOrderCost = this.numberToString(getValue(GetValue(previousOrder, "fee"), "cost"));
-                        string? stringTradeCost = this.numberToString(this.safeNumber((trade != null && trade.ContainsKey("fee") ? trade["fee"] : null), "cost"));
+                        string? stringTradeCost = this.numberToString(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost"));
                         ((IDictionary<string,object>)GetValue(previousOrder, "fee"))["cost"] = Precise.stringAdd(stringOrderCost, stringTradeCost);
                     }
                     string? rawState = this.safeString(order, "state");
@@ -1052,7 +1052,7 @@ public partial class poloniex : ccxt.poloniex
         return message;
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //    {

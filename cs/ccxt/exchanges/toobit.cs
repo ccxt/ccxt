@@ -1284,7 +1284,7 @@ public partial class toobit : Exchange
         //    }
         //
         Int64? timestamp = this.safeInteger(response, "t");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "b", "a"));
+        return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "b", "a");
     }
 
     /**
@@ -1325,10 +1325,10 @@ public partial class toobit : Exchange
         //        },
         //    ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -1982,7 +1982,7 @@ public partial class toobit : Exchange
         //         "priceType": "INPUT"                   // only in contract
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public virtual List<object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
@@ -2135,7 +2135,7 @@ public partial class toobit : Exchange
         return new List<object>() {request, paramsOmitted};
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder, cancelOrder
@@ -2327,7 +2327,7 @@ public partial class toobit : Exchange
         {
             throw new OrderNotFound (((((this.id + " order ") + id) + " can not be canceled, ") + this.json(response))) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -2369,7 +2369,7 @@ public partial class toobit : Exchange
         {
             response = await this.privateDeleteApiV1FuturesBatchOrders(this.extend(request, paramsMarketType));
         }
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
     }
 
     /**
@@ -2415,7 +2415,7 @@ public partial class toobit : Exchange
             response = await this.privateDeleteApiV1FuturesCancelOrderByIds(this.extend(request, paramsMarketType));
         }
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, market));
+        return this.parseOrders(result, market);
     }
 
     /**
@@ -2480,7 +2480,7 @@ public partial class toobit : Exchange
         //        "priceType": "INPUT"                 // only in CONTRACT
         //    }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -2524,7 +2524,7 @@ public partial class toobit : Exchange
         {
             response = await this.privateGetApiV1FuturesOpenOrders(this.extend(request, paramsMarketType));
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -2572,7 +2572,7 @@ public partial class toobit : Exchange
         {
             throw new NotSupported ((((this.id + " fetchOrders() is not supported for ") + marketType) + " markets")) ;
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -2629,7 +2629,7 @@ public partial class toobit : Exchange
                 { "result", responseList[i] },
             });
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(ordersList, market, since, limit));
+        return this.parseOrders(ordersList, market, since, limit);
     }
 
     /**
@@ -2681,7 +2681,7 @@ public partial class toobit : Exchange
         {
             response = await this.privateGetApiV1FuturesUserTrades(requestUntil);
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**

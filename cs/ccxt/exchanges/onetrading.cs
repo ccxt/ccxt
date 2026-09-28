@@ -1087,7 +1087,7 @@ public partial class onetrading : Exchange
         //     }
         //
         Int64? timestamp = this.parse8601(this.safeString(response, "time"));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", "price", "amount"));
+        return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", "price", "amount");
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -1195,7 +1195,7 @@ public partial class onetrading : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcv, market,timeframeVar, since, limitResolved));
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1355,7 +1355,7 @@ public partial class onetrading : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -1552,7 +1552,7 @@ public partial class onetrading : Exchange
         //         "time_in_force": "GOOD_TILL_CANCELLED"
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -1596,7 +1596,7 @@ public partial class onetrading : Exchange
         //
         // responds with an empty body
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -1627,7 +1627,7 @@ public partial class onetrading : Exchange
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
         //     ]
         //
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
     }
 
     /**
@@ -1656,10 +1656,10 @@ public partial class onetrading : Exchange
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
         //     ]
         //
-        Dictionary<string, object> order = this.safeOrder(new Dictionary<string, object>() {
+        ccxt.Order order = this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
         });
-        return ccxt.BaseExchange.ToOrderList(new List<object>() {order});
+        return ccxt.BaseExchange.ToOrderList(new List<object>() {ccxt.BaseExchange.FromOrder(order)});
     }
 
     /**
@@ -1724,7 +1724,7 @@ public partial class onetrading : Exchange
         //         ]
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -1848,7 +1848,7 @@ public partial class onetrading : Exchange
         //     }
         //
         List<object> orderHistory = this.safeList(response, "order_history", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orderHistory, market, since, limit));
+        return this.parseOrders(orderHistory, market, since, limit);
     }
 
     /**
@@ -1935,7 +1935,7 @@ public partial class onetrading : Exchange
         {
             market = this.market(symbol);
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradeHistory, market, since, limit));
+        return this.parseTrades(tradeHistory, market, since, limit);
     }
 
     /**
@@ -2010,7 +2010,7 @@ public partial class onetrading : Exchange
         //     }
         //
         List<object> tradeHistory = this.safeList(response, "trade_history", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradeHistory, market, since, limit));
+        return this.parseTrades(tradeHistory, market, since, limit);
     }
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)

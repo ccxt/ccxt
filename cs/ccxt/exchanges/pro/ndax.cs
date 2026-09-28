@@ -184,15 +184,15 @@ public partial class ndax : ccxt.ndax
         Dictionary<string, object> updates = new Dictionary<string, object>() {};
         for (int i = 0; i < payload.Count; i++)
         {
-            Dictionary<string, object> trade = this.parseTrade(payload[i]);
-            string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
+            ccxt.Trade trade = this.parseTrade(payload[i]);
+            string? symbol = trade.symbol;
             object tradesArray = ((symbol == null)) ? null : this.safeValue(this.trades, symbol);
             if ((tradesArray == null))
             {
                 Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 tradesArray = new ArrayCache(limit);
             }
-            ccxt.pro.BaseCache.appendTo(tradesArray, trade);
+            ccxt.pro.BaseCache.appendTo(tradesArray, ccxt.BaseExchange.FromTrade(trade));
             if ((symbol != null))
             {
                 this.trades[(string)symbol] = tradesArray;
@@ -550,9 +550,9 @@ public partial class ndax : ccxt.ndax
         //     ]
         //
         string? symbol = this.safeString(subscription, "symbol");
-        Dictionary<string, object> snapshot = this.parseOrderBook(payload, symbol);
+        ccxt.OrderBook snapshot = this.parseOrderBook(payload, symbol);
         Int64? limit = this.safeInteger(subscription, "limit");
-        ccxt.pro.OrderBook orderbook = this.orderBook(snapshot, limit);
+        ccxt.pro.OrderBook orderbook = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot), limit);
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;

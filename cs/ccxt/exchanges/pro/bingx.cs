@@ -593,10 +593,10 @@ public partial class bingx : ccxt.bingx
         IList<object> trades = null;
         if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            trades = this.parseTrades(data, market);
+            trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(data, market));
         } else
         {
-            trades = new List<object> {this.parseTrade(data, market)};
+            trades = new List<object> {ccxt.BaseExchange.FromTrade(this.parseTrade(data, market))};
         }
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
@@ -816,10 +816,10 @@ public partial class bingx : ccxt.bingx
         timestamp = this.safeInteger2(data, "timestamp", "ts", timestamp);
         if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
         {
-            snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "p", "a");
+            snapshot = ccxt.BaseExchange.FromOrderBook(this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "p", "a"));
         } else
         {
-            snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1);
+            snapshot = ccxt.BaseExchange.FromOrderBook(this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1));
         }
         Int64? nonce = this.safeInteger(data, "lastUpdateId");
         snapshot["nonce"] = nonce;
@@ -1871,7 +1871,7 @@ public partial class bingx : ccxt.bingx
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache stored = this.orders;
-        Dictionary<string, object> parsedOrder = this.parseOrder(data);
+        Dictionary<string, object> parsedOrder = ccxt.BaseExchange.FromOrder(this.parseOrder(data));
         if (!isSpot)
         {
             // The envelope T is the order update time; o.T is the trade time.
@@ -1987,8 +1987,8 @@ public partial class bingx : ccxt.bingx
         }
         string? marketId = this.safeString(result, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-", type);
-        Dictionary<string, object> parsed = this.parseTrade(result, market);
-        string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+        ccxt.Trade parsed = this.parseTrade(result, market);
+        string? symbol = parsed.symbol;
         string spotHash = "spot:mytrades";
         string swapHash = "swap:mytrades";
         string messageHash = swapHash;
@@ -1996,7 +1996,7 @@ public partial class bingx : ccxt.bingx
         {
             messageHash = spotHash;
         }
-        cachedTrades.append(parsed);
+        cachedTrades.append(ccxt.BaseExchange.FromTrade(parsed));
         client.resolve(cachedTrades, messageHash);
         client.resolve(cachedTrades, ((messageHash + ":") + symbol));
     }

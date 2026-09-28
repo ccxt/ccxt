@@ -183,8 +183,8 @@ public partial class gate : ccxt.gate
         Dictionary<string, object> request = this.createOrderRequest(symbolValue, type, side, amount, price, parameters);
         await this.authenticate(url, messageType);
         object rawOrder = await this.requestPrivate(url, request, channel);
-        Dictionary<string, object> order = this.parseOrder(rawOrder, market);
-        return ccxt.BaseExchange.ToOrder(order);
+        ccxt.Order order = this.parseOrder(rawOrder, market);
+        return order;
     }
 
     /**
@@ -216,7 +216,7 @@ public partial class gate : ccxt.gate
         string? url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         object rawOrders = await this.requestPrivate(url, request, channel);
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(rawOrders, market));
+        return this.parseOrders(rawOrders, market);
     }
 
     /**
@@ -265,7 +265,7 @@ public partial class gate : ccxt.gate
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         await this.authenticate(url, messageType);
         object rawOrders = await this.requestPrivate(url, this.extend(request, requestParams), channelOption);
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(rawOrders, market));
+        return this.parseOrders(rawOrders, market);
     }
 
     /**
@@ -309,7 +309,7 @@ public partial class gate : ccxt.gate
         await this.authenticate(url, messageType);
         ((IDictionary<string,object>)request)["order_id"] = id.ToString();
         object res = await this.requestPrivate(url, this.extend(request, requestParams), channel);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(res, market));
+        return this.parseOrder(res, market);
     }
 
     /**
@@ -341,7 +341,7 @@ public partial class gate : ccxt.gate
         string? url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         object rawOrder = await this.requestPrivate(url, extendedRequest, channel);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(rawOrder, market));
+        return this.parseOrder(rawOrder, market);
     }
 
     /**
@@ -382,7 +382,7 @@ public partial class gate : ccxt.gate
         string? url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         object rawOrder = await this.requestPrivate(url, this.extend(request, requestParams), channel);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(rawOrder, market));
+        return this.parseOrder(rawOrder, market);
     }
 
     /**
@@ -460,7 +460,7 @@ public partial class gate : ccxt.gate
         string? url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         object rawOrders = await this.requestPrivate(url, this.extend(newRequest, requestParams), channel);
-        IList<object> orders = this.parseOrders(rawOrders, market);
+        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(rawOrders, market));
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limit));
     }
 
@@ -666,10 +666,10 @@ public partial class gate : ccxt.gate
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         if ((full == true))
         {
-            Dictionary<string, object> snapshopt = this.parseOrderBook(result, symbol, null, "b", "a");
-            snapshopt["nonce"] = this.safeInteger(result, "u");
-            snapshopt["timestamp"] = this.safeInteger(result, "t");
-            (orderbook as IOrderBook).reset(snapshopt);
+            ccxt.OrderBook snapshopt = this.parseOrderBook(result, symbol, null, "b", "a");
+            snapshopt.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(result, "u"));
+            snapshopt.timestamp = ccxt.BaseExchange.StructInt64(this.safeInteger(result, "t"));
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshopt));
         } else
         {
             Int64? nonce = this.safeInteger(orderbook, "nonce");
@@ -1188,7 +1188,7 @@ public partial class gate : ccxt.gate
         {
             result = new List<object>() {result};
         }
-        IList<object> parsedTrades = this.parseTrades(result);
+        IList<object> parsedTrades = ccxt.BaseExchange.FromTradeList(this.parseTrades(result));
         for (int i = 0; i < (parsedTrades?.Count ?? 0); i++)
         {
             IDictionary<string, object> trade = ((IDictionary<string, object>)parsedTrades[i]);
@@ -1416,7 +1416,7 @@ public partial class gate : ccxt.gate
             cachedTrades = new ArrayCacheBySymbolById(limit);
             this.myTrades = cachedTrades;
         }
-        IList<object> parsed = this.parseTrades(result);
+        IList<object> parsed = ccxt.BaseExchange.FromTradeList(this.parseTrades(result));
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         for (int i = 0; i < (parsed?.Count ?? 0); i++)
         {
@@ -1943,7 +1943,7 @@ public partial class gate : ccxt.gate
         }
         object stored = isTrigger ? this.triggerOrders : this.orders;
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
-        IList<object> parsedOrders = this.parseOrders(orders);
+        IList<object> parsedOrders = ccxt.BaseExchange.FromOrderList(this.parseOrders(orders));
         for (int i = 0; i < (parsedOrders?.Count ?? 0); i++)
         {
             object parsed = parsedOrders[i];

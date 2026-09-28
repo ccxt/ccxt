@@ -1705,9 +1705,9 @@ public partial class weex : Exchange
         //         "lastUpdateId": 14138610208
         //     }
         //
-        Dictionary<string, object> orderbook = this.parseOrderBook(response, symbol);
-        orderbook["nonce"] = this.safeInteger(response, "lastUpdateId");
-        return ccxt.BaseExchange.ToOrderBook(orderbook);
+        ccxt.OrderBook orderbook = this.parseOrderBook(response, symbol);
+        orderbook.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(response, "lastUpdateId"));
+        return orderbook;
     }
 
     /**
@@ -1947,10 +1947,10 @@ public partial class weex : Exchange
         {
             responseList = this.toArray(response);
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(responseList, market, since, limit));
+        return this.parseTrades(responseList, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -2539,7 +2539,7 @@ public partial class weex : Exchange
         {
             throw new NullResponse ((this.id + " parseOrder() returned empty response")) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public virtual Dictionary<string, object> createSpotOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
@@ -2641,7 +2641,7 @@ public partial class weex : Exchange
         {
             throw new NullResponse ((this.id + " createOrder() returned empty response")) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public virtual Dictionary<string, object> createContractOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
@@ -2930,9 +2930,9 @@ public partial class weex : Exchange
         {
             throw new NullResponse ((this.id + " parseOrder() returned empty response")) ;
         }
-        Dictionary<string, object> order = this.parseOrder(response, market);
-        order["status"] = "canceled";
-        return ccxt.BaseExchange.ToOrder(order);
+        ccxt.Order order = this.parseOrder(response, market);
+        order.status = ccxt.BaseExchange.StructString("canceled");
+        return order;
     }
 
     /**
@@ -2985,7 +2985,7 @@ public partial class weex : Exchange
         Dictionary<string, object> extendedParams = new Dictionary<string, object>() {
             { "status", "canceled" },
         };
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, null, null, extendedParams));
+        return this.parseOrders(response, market, null, null, extendedParams);
     }
 
     /**
@@ -3054,7 +3054,7 @@ public partial class weex : Exchange
         Dictionary<string, object> extendedParams = new Dictionary<string, object>() {
             { "status", "canceled" },
         };
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(ordersResponse, market, null, null, extendedParams));
+        return this.parseOrders(ordersResponse, market, null, null, extendedParams);
     }
 
     /**
@@ -3133,7 +3133,7 @@ public partial class weex : Exchange
         {
             throw new NullResponse ((this.id + " parseOrder() returned empty response")) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -3289,7 +3289,7 @@ public partial class weex : Exchange
         Dictionary<string, object> extendedParams = new Dictionary<string, object>() {
             { "status", "open" },
         };
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit, extendedParams));
+        return this.parseOrders(response, market, since, limit, extendedParams);
     }
 
     /**
@@ -3454,7 +3454,7 @@ public partial class weex : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -3548,10 +3548,10 @@ public partial class weex : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder (spot)
@@ -3902,7 +3902,7 @@ public partial class weex : Exchange
         {
             responseList = this.toArray(response);
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(responseList, market, since, limit));
+        return this.parseTrades(responseList, market, since, limit);
     }
 
     /**
@@ -4477,7 +4477,7 @@ public partial class weex : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> response = await this.contractPrivatePostCapiV3ClosePositions(this.extend(request, parameters));
-        IList<object> orders = this.parseOrders(response, market);
+        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market));
         return ((IDictionary<string, object>)((object)(this.safeDict(orders, 0))));
     }
 

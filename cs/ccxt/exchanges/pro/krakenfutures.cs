@@ -655,19 +655,19 @@ public partial class krakenfutures : ccxt.krakenfutures
                 {
                     Int64 index = ((length - 1) - i); // need reverse to correct chronology
                     object item = getValue(trades, index);
-                    Dictionary<string, object> trade = this.parseWsTrade(item);
-                    tradesArray.append(trade);
+                    ccxt.Trade trade = this.parseWsTrade(item);
+                    tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
                 }
             } else
             {
-                Dictionary<string, object> trade = this.parseWsTrade(message);
+                Dictionary<string, object> trade = ccxt.BaseExchange.FromTrade(this.parseWsTrade(message));
                 tradesArray.append(trade);
             }
             client.resolve(tradesArray, messageHash);
         }
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         //    {
@@ -753,7 +753,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         //
         Int64? timestamp = this.safeInteger(trade, "tradeTime");
         string? marketId = this.safeString(trade, "symbol");
-        return this.safeTrade(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString(trade, "tradeId") },
             { "symbol", this.safeSymbol(marketId, market) },
@@ -771,7 +771,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 { "cost", this.safeString(trade, "tradeFee") },
                 { "currency", this.safeString(trade, "feeCurrency") },
             } },
-        }, market);
+        }, market));
     }
 
     public virtual object handleOrder(WebSocketClient client, Dictionary<string, object> message)
@@ -868,19 +868,19 @@ public partial class krakenfutures : ccxt.krakenfutures
             string? reason = this.safeString(message, "reason");
             if (((previousOrder == null)) || ((reason == "edited_by_user")))
             {
-                Dictionary<string, object> parsed = this.parseWsOrder(order);
-                orders.append(parsed);
+                ccxt.Order parsed = this.parseWsOrder(order);
+                orders.append(ccxt.BaseExchange.FromOrder(parsed));
                 client.resolve(orders, messageHash);
                 client.resolve(orders, ((messageHash + ":") + symbol));
             } else
             {
-                Dictionary<string, object> trade = this.parseWsTrade(order);
+                ccxt.Trade trade = this.parseWsTrade(order);
                 if (isEqual(GetValue(previousOrder, "trades"), null))
                 {
                     previousOrder["trades"] = new List<object>() {};
                 }
-                ((IList<object>)GetValue(previousOrder, "trades")).Add(trade);
-                previousOrder["lastTradeTimestamp"] = (trade != null && trade.ContainsKey("timestamp") ? trade["timestamp"] : null);
+                ((IList<object>)GetValue(previousOrder, "trades")).Add(ccxt.BaseExchange.FromTrade(trade));
+                previousOrder["lastTradeTimestamp"] = (((object)trade.timestamp));
                 string? totalCost = "0";
                 string? totalAmount = "0";
                 object trades = GetValue(previousOrder, "trades");
@@ -895,7 +895,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                     previousOrder["average"] = Precise.stringDiv(totalCost, totalAmount);
                 }
                 previousOrder["cost"] = totalCost;
-                string? filledString = this.numberToString((trade != null && trade.ContainsKey("amount") ? trade["amount"] : null));
+                string? filledString = this.numberToString((((object)trade.amount)));
                 string? stringOrderFilled = this.safeString(previousOrder, "filled", "0");
                 string? totalFilled = Precise.stringAdd(stringOrderFilled, filledString);
                 previousOrder["filled"] = totalFilled;
@@ -907,17 +907,17 @@ public partial class krakenfutures : ccxt.krakenfutures
                     previousOrder["fee"] = new Dictionary<string, object>() {
                         { "rate", null },
                         { "cost", "0" },
-                        { "currency", this.numberToString(this.safeString((trade != null && trade.ContainsKey("fee") ? trade["fee"] : null), "currency")) },
+                        { "currency", this.numberToString(this.safeString((ccxt.BaseExchange.FromFee((object)trade.fee)), "currency")) },
                     };
                 }
-                if ((!isEqual(getValue(GetValue(previousOrder, "fee"), "cost"), null)) && (!isEqual(this.safeNumber((trade != null && trade.ContainsKey("fee") ? trade["fee"] : null), "cost"), null)))
+                if ((!isEqual(getValue(GetValue(previousOrder, "fee"), "cost"), null)) && (!isEqual(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost"), null)))
                 {
                     string? stringOrderCost = this.numberToString(getValue(GetValue(previousOrder, "fee"), "cost"));
-                    string? stringTradeCost = this.numberToString(this.safeNumber((trade != null && trade.ContainsKey("fee") ? trade["fee"] : null), "cost"));
+                    string? stringTradeCost = this.numberToString(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost"));
                     ((IDictionary<string,object>)GetValue(previousOrder, "fee"))["cost"] = Precise.stringAdd(stringOrderCost, stringTradeCost);
                 }
                 // update the newUpdates count
-                orders.append(this.safeOrder(previousOrder));
+                orders.append(ccxt.BaseExchange.FromOrder(this.safeOrder(previousOrder)));
                 client.resolve(orders, ((messageHash + ":") + symbol));
                 client.resolve(orders, messageHash);
             }
@@ -1028,13 +1028,13 @@ public partial class krakenfutures : ccxt.krakenfutures
         for (int i = 0; i < orders.Count; i++)
         {
             object order = orders[i];
-            Dictionary<string, object> parsed = this.parseWsOrder(order);
-            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+            ccxt.Order parsed = this.parseWsOrder(order);
+            string? symbol = parsed.symbol;
             if ((symbol != null))
             {
                 symbols[(string)symbol] = true;
             }
-            cachedOrders.append(parsed);
+            cachedOrders.append(ccxt.BaseExchange.FromOrder(parsed));
         }
         int length = getArrayLength(this.orders);
         if (length > 0)
@@ -1050,7 +1050,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // update
@@ -1717,7 +1717,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         bool? isBuy = this.safeBool(trade, "buy");
         string? feeCurrencyId = this.safeString(trade, "fee_currency");
-        return this.safeTrade(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString(trade, "fill_id") },
             { "timestamp", timestamp },
@@ -1735,7 +1735,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 { "cost", this.safeString(trade, "fee_paid") },
                 { "rate", null },
             } },
-        });
+        }));
     }
 
     public async virtual Task<object> watchMultiHelper(string unifiedName, object channelName, object symbols = null, object subscriptionArgs = null, object parameters = null)

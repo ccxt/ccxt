@@ -1240,7 +1240,7 @@ public partial class digifinex : Exchange
             orderBook = response;
             timestamp = this.safeTimestamp(response, "date");
         }
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderBook, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp));
+        return this.parseOrderBook(orderBook, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp);
     }
 
     /**
@@ -1528,7 +1528,7 @@ public partial class digifinex : Exchange
         }, marketResolved);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // spot: fetchTrades
@@ -1809,7 +1809,7 @@ public partial class digifinex : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
+        return this.parseTrades(data, market, since, limit);
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -2016,13 +2016,13 @@ public partial class digifinex : Exchange
         {
             throw new NullResponse ((this.id + " createOrder() returned empty response")) ;
         }
-        Dictionary<string, object> order = this.parseOrder(response, market);
-        order["symbol"] = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        order["type"] = type;
-        order["side"] = side;
-        order["amount"] = amount;
-        order["price"] = price;
-        return ccxt.BaseExchange.ToOrder(order);
+        ccxt.Order order = this.parseOrder(response, market);
+        order.symbol = ccxt.BaseExchange.StructString((market.ContainsKey("symbol") ? market["symbol"] : null));
+        order.type = ccxt.BaseExchange.StructString(type);
+        order.side = ccxt.BaseExchange.StructString(side);
+        order.amount = ccxt.BaseExchange.StructDouble(amount);
+        order.price = ccxt.BaseExchange.StructDouble(price);
+        return order;
     }
 
     /**
@@ -2135,7 +2135,7 @@ public partial class digifinex : Exchange
             individualOrder["price"] = this.safeNumber(rawOrder, "price");
             result.Add(individualOrder);
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, market));
+        return this.parseOrders(result, market);
     }
 
     public virtual Dictionary<string, object> createOrderRequest(object symbol, string? type, object side, object amount, object price = null, object parameters = null)
@@ -2410,7 +2410,7 @@ public partial class digifinex : Exchange
             return ccxt.BaseExchange.ToOrder(this.safeDict(orders, 0));
         } else
         {
-            return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {                 { "info", response },                 { "orderId", this.safeString(response, "data") },             }));
+            return this.safeOrder(new Dictionary<string, object>() {                 { "info", response },                 { "orderId", this.safeString(response, "data") },             });
         }
     }
 
@@ -2422,21 +2422,21 @@ public partial class digifinex : Exchange
         for (int i = 0; i < success.Count; i++)
         {
             IDictionary<string, object> order = ((IDictionary<string, object>)success[i]);
-            result.Add(this.safeOrder(new Dictionary<string, object>() {
+            result.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", order },
                 { "status", "canceled" },
-            }));
+            })));
         }
         for (int i = 0; i < error.Count; i++)
         {
             IDictionary<string, object> order = ((IDictionary<string, object>)error[i]);
-            result.Add(this.safeOrder(new Dictionary<string, object>() {
+            result.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", this.safeString2(order, "order-id", "order_id") },
                 { "status", "failed" },
                 { "clientOrderId", this.safeString(order, "client-order-id") },
-            }));
+            })));
         }
         return result;
     }
@@ -2493,7 +2493,7 @@ public partial class digifinex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // spot: createOrder
@@ -2773,7 +2773,7 @@ public partial class digifinex : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+        return this.parseOrders(data, market, since, limit);
     }
 
     /**
@@ -2903,7 +2903,7 @@ public partial class digifinex : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+        return this.parseOrders(data, market, since, limit);
     }
 
     /**
@@ -3019,7 +3019,7 @@ public partial class digifinex : Exchange
         {
             throw new OrderNotFound ((((this.id + " fetchOrder() order ") + id.ToString()) + " not found")) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
+        return this.parseOrder(order, market);
     }
 
     /**
@@ -3148,7 +3148,7 @@ public partial class digifinex : Exchange
             responseRequest = "data";
         }
         List<object> data = this.safeList(response, responseRequest, new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
+        return this.parseTrades(data, market, since, limit);
     }
 
     public virtual string? parseLedgerEntryType(string? type)

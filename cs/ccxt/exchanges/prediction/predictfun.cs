@@ -1379,8 +1379,8 @@ public partial class predictfun : PredictionExchange
         // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
         if (isYesOutcome)
         {
-            Dictionary<string, object> yesOrderbook = this.parseOrderBook(data, outcomeSymbol, timestamp, "bids", "asks", 0, 1);
-            return ccxt.BaseExchange.ToPredictionOrderBook(this.safePredictionOrderBook(yesOrderbook, outcomeObj));
+            ccxt.OrderBook yesOrderbook = this.parseOrderBook(data, outcomeSymbol, timestamp, "bids", "asks", 0, 1);
+            return ccxt.BaseExchange.ToPredictionOrderBook(this.safePredictionOrderBook(ccxt.BaseExchange.FromOrderBook(yesOrderbook), outcomeObj));
         } else
         {
             List<object> bids = this.safeList(data, "bids", new List<object>() {});

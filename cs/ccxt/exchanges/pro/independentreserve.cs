@@ -98,13 +98,13 @@ public partial class independentreserve : ccxt.independentreserve
             stored = new ArrayCache(limit);
             this.trades[(string)symbol] = stored;
         }
-        Dictionary<string, object> trade = this.parseWsTrade(data);
-        stored.append(trade);
+        ccxt.Trade trade = this.parseWsTrade(data);
+        stored.append(ccxt.BaseExchange.FromTrade(trade));
         this.trades[(string)symbol] = stored;
         client.resolve((this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null), messageHash);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         //    {
@@ -225,8 +225,8 @@ public partial class independentreserve : ccxt.independentreserve
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         if (eventVar == "OrderBookSnapshot")
         {
-            Dictionary<string, object> snapshot = this.parseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume");
-            (orderbook as IOrderBook).reset(snapshot);
+            ccxt.OrderBook snapshot = this.parseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume");
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
             // write through the parent index: php copies arrays by value, so
             // mutating the local bind would not persist the flag
             ((IDictionary<string,object>)client.subscriptions)[messageHash] = this.extend(subscription, new Dictionary<string, object>() {

@@ -512,9 +512,9 @@ public partial class lbank : ccxt.lbank
         List<object> rawTrades = this.safeList(message, "trades", new List<object>() {rawTrade});
         for (int i = 0; i < rawTrades.Count; i++)
         {
-            Dictionary<string, object> trade = this.parseWsTrade(rawTrades[i], market);
-            trade["symbol"] = symbol;
-            stored.append(trade);
+            ccxt.Trade trade = this.parseWsTrade(rawTrades[i], market);
+            trade.symbol = ccxt.BaseExchange.StructString(symbol);
+            stored.append(ccxt.BaseExchange.FromTrade(trade));
         }
         this.trades[(string)symbol] = stored;
         string messageHash = ("trades:" + symbol);
@@ -523,7 +523,7 @@ public partial class lbank : ccxt.lbank
         client.resolve((this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null), messageHash);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         // request
@@ -648,19 +648,19 @@ public partial class lbank : ccxt.lbank
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             myOrders = new ArrayCacheBySymbolById(limit);
         }
-        Dictionary<string, object> order = this.parseWsOrder(message);
+        ccxt.Order order = this.parseWsOrder(message);
         if ((myOrders == null))
         {
             return;
         }
-        myOrders.append(order);
+        myOrders.append(ccxt.BaseExchange.FromOrder(order));
         this.orders = myOrders;
         client.resolve(myOrders, "orders");
         string messageHash = ("orders:" + symbol);
         client.resolve(myOrders, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -959,8 +959,8 @@ public partial class lbank : ccxt.lbank
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        Dictionary<string, object> snapshot = this.parseOrderBook(orderBook, symbol, timestamp, "bids", "asks");
-        (orderbook as IOrderBook).reset(snapshot);
+        ccxt.OrderBook snapshot = this.parseOrderBook(orderBook, symbol, timestamp, "bids", "asks");
+        (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         string messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
         messageHash = ("fetchOrderbook:" + symbol);

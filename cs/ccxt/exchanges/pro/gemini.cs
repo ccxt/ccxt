@@ -108,7 +108,7 @@ public partial class gemini : ccxt.gemini
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         // regular v2 trade
@@ -182,8 +182,8 @@ public partial class gemini : ccxt.gemini
         //         "side": "buy"
         //     }
         //
-        Dictionary<string, object> trade = this.parseWsTrade(message);
-        string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
+        ccxt.Trade trade = this.parseWsTrade(message);
+        string? symbol = trade.symbol;
         Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
@@ -194,7 +194,7 @@ public partial class gemini : ccxt.gemini
                 this.trades[(string)symbol] = stored;
             }
         }
-        stored.append(trade);
+        stored.append(ccxt.BaseExchange.FromTrade(trade));
         string messageHash = ("trades:" + symbol);
         client.resolve(stored, messageHash);
     }
@@ -253,8 +253,8 @@ public partial class gemini : ccxt.gemini
             }
             for (int i = 0; i < trades.Count; i++)
             {
-                Dictionary<string, object> trade = this.parseWsTrade(trades[i], market);
-                stored.append(trade);
+                ccxt.Trade trade = this.parseWsTrade(trades[i], market);
+                stored.append(ccxt.BaseExchange.FromTrade(trade));
             }
             string messageHash = ("trades:" + symbol);
             client.resolve(stored, messageHash);
@@ -272,16 +272,16 @@ public partial class gemini : ccxt.gemini
                 object marketId = getValue((trades != null && i < trades.Count ? trades[i] : null), "symbol");
                 Dictionary<string, object> market = this.safeMarket(((string)marketId).ToLower());
                 string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-                Dictionary<string, object> trade = this.parseWsTrade((trades != null && i < trades.Count ? trades[i] : null), market);
-                trade["timestamp"] = timestamp;
-                trade["datetime"] = this.iso8601(timestamp);
+                ccxt.Trade trade = this.parseWsTrade((trades != null && i < trades.Count ? trades[i] : null), market);
+                trade.timestamp = ccxt.BaseExchange.StructInt64(timestamp);
+                trade.datetime = ccxt.BaseExchange.StructString(this.iso8601(timestamp));
                 ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
                 if ((stored == null))
                 {
                     stored = new ArrayCache(tradesLimit);
                     this.trades[(string)symbol] = stored;
                 }
-                stored.append(trade);
+                stored.append(ccxt.BaseExchange.FromTrade(trade));
                 storesForSymbols[(string)symbol] = stored;
             }
             List<object> symbols = new List<object>(storesForSymbols.Keys);
@@ -837,13 +837,13 @@ public partial class gemini : ccxt.gemini
         ccxt.pro.ArrayCache orders = this.orders;
         for (int i = 0; i < getArrayLength(message); i++)
         {
-            Dictionary<string, object> order = this.parseWsOrder(getValue(message, i));
-            orders.append(order);
+            ccxt.Order order = this.parseWsOrder(getValue(message, i));
+            orders.append(ccxt.BaseExchange.FromOrder(order));
         }
         client.resolve(this.orders, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {

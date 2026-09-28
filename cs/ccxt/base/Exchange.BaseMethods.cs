@@ -1231,7 +1231,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " parseDepositAddress() is not supported yet")) ;
     }
 
-    public virtual Dictionary<string, object> parseTrade(object trade, object market = null)
+    public virtual ccxt.Trade parseTrade(object trade, object market = null)
     {
         throw new NotSupported ((this.id + " parseTrade() is not supported yet")) ;
     }
@@ -1260,7 +1260,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " parseLedgerEntry() is not supported yet")) ;
     }
 
-    public virtual Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public virtual ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         throw new NotSupported ((this.id + " parseOrder() is not supported yet")) ;
     }
@@ -1308,12 +1308,12 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " parseIsolatedBorrowRate() is not supported yet")) ;
     }
 
-    public virtual Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public virtual ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         throw new NotSupported ((this.id + " parseWsTrade() is not supported yet")) ;
     }
 
-    public virtual Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public virtual ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         throw new NotSupported ((this.id + " parseWsOrder() is not supported yet")) ;
     }
@@ -2362,7 +2362,7 @@ public partial class BaseExchange
         return ((Dictionary<string, object>)((object)(((object)balance))));
     }
 
-    public virtual Dictionary<string, object> safeOrder(object order, object market = null)
+    public virtual ccxt.Order safeOrder(object order, object market = null)
     {
         // parses numbers as strings
         // * it is important pass the trades as unparsed rawTrades
@@ -2405,7 +2405,7 @@ public partial class BaseExchange
             bool tradesAreParsed = (((firstTrade != null)) && (inOp(firstTrade, "info")) && (inOp(firstTrade, "id")));
             if (!tradesAreParsed)
             {
-                trades = this.parseTrades(rawTrades, market);
+                trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(rawTrades, market));
             } else
             {
                 trades = rawTrades;
@@ -2672,7 +2672,7 @@ public partial class BaseExchange
         double? triggerPrice = this.parseNumber(this.safeString2(orderDict, "triggerPrice", "stopPrice"));
         double? takeProfitPrice = this.parseNumber(this.safeString(orderDict, "takeProfitPrice"));
         double? stopLossPrice = this.parseNumber(this.safeString(orderDict, "stopLossPrice"));
-        return this.extend(orderDict, new Dictionary<string, object>() {
+        return new ccxt.Order(this.extend(orderDict, new Dictionary<string, object>() {
             { "id", this.safeString(orderDict, "id") },
             { "clientOrderId", this.safeString(orderDict, "clientOrderId") },
             { "timestamp", timestamp },
@@ -2698,10 +2698,10 @@ public partial class BaseExchange
             { "stopLossPrice", stopLossPrice },
             { "status", status },
             { "fee", this.safeValue(orderDict, "fee") },
-        });
+        }));
     }
 
-    public virtual IList<object> parseOrders(object orders, IDictionary<string, object> market = null, object since = null, object limit = null, object parameters = null)
+    public virtual List<ccxt.Order> parseOrders(object orders, IDictionary<string, object> market = null, object since = null, object limit = null, object parameters = null)
     {
         //
         // the value of orders is either a dict or a list
@@ -2727,15 +2727,15 @@ public partial class BaseExchange
         parameters ??= new Dictionary<string, object>();
         if ((orders == null))
         {
-            return new List<object>() {};
+            return ccxt.BaseExchange.ToOrderList(new List<object>() {});
         }
         List<object> results = new List<object>() {};
         if (((orders is IList<object>) || (orders.GetType().IsGenericType && orders.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             for (int i = 0; i < getArrayLength(orders); i++)
             {
-                Dictionary<string, object> parsed = this.parseOrder(getValue(orders, i), market); // don't inline this call
-                Dictionary<string, object> order = this.extend(parsed, parameters);
+                ccxt.Order parsed = this.parseOrder(getValue(orders, i), market); // don't inline this call
+                Dictionary<string, object> order = this.extend(ccxt.BaseExchange.FromOrder(parsed), parameters);
                 results.Add(order);
             }
         } else
@@ -2747,14 +2747,14 @@ public partial class BaseExchange
                 Dictionary<string, object> idExtended = this.extend(new Dictionary<string, object>() {
                     { "id", id },
                 }, getValue(orders, id));
-                Dictionary<string, object> parsedOrder = this.parseOrder(idExtended, market); // don't  inline these calls
-                Dictionary<string, object> order = this.extend(parsedOrder, parameters);
+                ccxt.Order parsedOrder = this.parseOrder(idExtended, market); // don't  inline these calls
+                Dictionary<string, object> order = this.extend(ccxt.BaseExchange.FromOrder(parsedOrder), parameters);
                 results.Add(order);
             }
         }
         results = this.sortBy(results, "timestamp");
         string? symbol = this.safeString(market, "symbol");
-        return this.filterBySymbolSinceLimit(results, symbol, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(results, symbol, since, limit));
     }
 
     public virtual Dictionary<string, object> calculateFeeWithRate(string? symbol, string? type, string? side, object amount, object price, object takerOrMaker = null, object feeRate = null, object parameters = null)
@@ -2856,7 +2856,7 @@ public partial class BaseExchange
         return ((Dictionary<string, object>)((object)(liquidation)));
     }
 
-    public virtual Dictionary<string, object> safeTrade(object trade, object market = null)
+    public virtual ccxt.Trade safeTrade(object trade, object market = null)
     {
         string? amount = this.safeString(trade, "amount");
         string? price = this.safeString(trade, "price");
@@ -2885,7 +2885,7 @@ public partial class BaseExchange
         ((IDictionary<string,object>)trade)["amount"] = this.parseNumber(amount);
         ((IDictionary<string,object>)trade)["price"] = this.parseNumber(price);
         ((IDictionary<string,object>)trade)["cost"] = this.parseNumber(cost);
-        return ((Dictionary<string, object>)((object)(trade)));
+        return new ccxt.Trade(trade);
     }
 
     public virtual string? createCcxtTradeId(object timestamp = null, string? side = null, string? amount = null, string? price = null, string? takerOrMaker = null)
@@ -3935,7 +3935,7 @@ public partial class BaseExchange
         return ((double?)((object)(this.parseNumber(value, d))));
     }
 
-    public virtual Dictionary<string, object> parseOrderBook(object orderbook, object symbol, object timestamp = null, object bidsKey = null, object asksKey = null, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    public virtual ccxt.OrderBook parseOrderBook(object orderbook, object symbol, object timestamp = null, object bidsKey = null, object asksKey = null, object priceKey = null, object amountKey = null, object countOrIdKey = null)
     {
         bidsKey ??= "bids";
         asksKey ??= "asks";
@@ -3944,14 +3944,14 @@ public partial class BaseExchange
         countOrIdKey ??= 2;
         List<object> bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
         List<object> asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
-        return ((Dictionary<string, object>)((object)(((object)new Dictionary<string, object>() {
+        return new ccxt.OrderBook(((object)new Dictionary<string, object>() {
             { "symbol", symbol },
             { "bids", this.sortBy(bids, 0, true) },
             { "asks", this.sortBy(asks, 0) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "nonce", null },
-        }))));
+        }));
     }
 
     public virtual IList<object> parseOHLCVs(object ohlcvs, object market = null, string timeframe = null, object since = null, object limit = null, bool? tail = null)
@@ -4133,10 +4133,10 @@ public partial class BaseExchange
             Dictionary<string, object> parsed = null;
             if (isWs)
             {
-                parsed = this.parseWsTrade(tradesArray[i], market);
+                parsed = ccxt.BaseExchange.FromTrade(this.parseWsTrade(tradesArray[i], market));
             } else
             {
-                parsed = this.parseTrade(tradesArray[i], market);
+                parsed = ccxt.BaseExchange.FromTrade(this.parseTrade(tradesArray[i], market));
             }
             Dictionary<string, object> trade = this.extend(parsed, parameters);
             result.Add(trade);
@@ -4146,10 +4146,10 @@ public partial class BaseExchange
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
 
-    public virtual IList<object> parseTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
+    public virtual List<ccxt.Trade> parseTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return this.parseTradesHelper(false, trades, market, since, limit, parameters);
+        return ccxt.BaseExchange.ToTradeList(this.parseTradesHelper(false, trades, market, since, limit, parameters));
     }
 
     public virtual IList<object> parseWsTrades(object trades, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null, object parameters = null)

@@ -1037,9 +1037,9 @@ public partial class coinbaseexchange : Exchange
         //         ]
         //     }
         //
-        Dictionary<string, object> orderbook = this.parseOrderBook(response, symbol);
-        orderbook["nonce"] = this.safeInteger(response, "sequence");
-        return ccxt.BaseExchange.ToOrderBook(orderbook);
+        ccxt.OrderBook orderbook = this.parseOrderBook(response, symbol);
+        orderbook.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(response, "sequence"));
+        return orderbook;
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -1234,7 +1234,7 @@ public partial class coinbaseexchange : Exchange
         return this.parseTicker(response, market);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         //     {
@@ -1367,7 +1367,7 @@ public partial class coinbaseexchange : Exchange
         }
         object paramsUntil = ((until != null)) ? this.omit(paramsPaginate, new List<object>() {"until"}) : paramsPaginate;
         List<object> response = await this.privateGetFills(this.extend(request, paramsUntil));
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**
@@ -1408,7 +1408,7 @@ public partial class coinbaseexchange : Exchange
         //        },
         //    ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**
@@ -1576,7 +1576,7 @@ public partial class coinbaseexchange : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -1684,7 +1684,7 @@ public partial class coinbaseexchange : Exchange
             object paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "client_oid"});
             response = await this.privateGetOrdersClientClientOid(this.extend(request, paramsOmitted));
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -1714,7 +1714,7 @@ public partial class coinbaseexchange : Exchange
             { "order_id", id },
         };
         List<object> response = await this.privateGetFills(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**
@@ -1787,7 +1787,7 @@ public partial class coinbaseexchange : Exchange
         }
         object paramsUntil = ((until != null)) ? this.omit(paramsPaginate, new List<object>() {"until"}) : paramsPaginate;
         List<object> response = await this.privateGetOrders(this.extend(request, paramsUntil));
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -1907,7 +1907,7 @@ public partial class coinbaseexchange : Exchange
         //         "settled": false
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -1951,7 +1951,7 @@ public partial class coinbaseexchange : Exchange
         {
             response = await this.privateDeleteOrdersClientClientOid(this.extend(request, paramsOmitted));
         }
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },         });
     }
 
     /**
@@ -1978,7 +1978,7 @@ public partial class coinbaseexchange : Exchange
             request["product_id"] = (market.ContainsKey("symbol") ? market["symbol"] : null); // the request will be more performant if you include it
         }
         List<object> response = await this.privateDeleteOrders(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
     }
 
     public async override Task<List<Dictionary<string, object>>> FetchPaymentMethods(object parameters = null)

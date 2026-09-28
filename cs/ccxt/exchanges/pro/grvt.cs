@@ -409,13 +409,13 @@ public partial class grvt : ccxt.grvt
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.trades[(string)symbol] = new ArrayCache(limit);
         }
-        Dictionary<string, object> parsed = this.parseWsTrade(data);
+        ccxt.Trade parsed = this.parseWsTrade(data);
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
-        stored.append(parsed);
+        stored.append(ccxt.BaseExchange.FromTrade(parsed));
         client.resolve(stored, ("trade::" + symbol));
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         // same as REST api
         return this.parseTrade(trade, market);
@@ -682,8 +682,8 @@ public partial class grvt : ccxt.grvt
         bool isSnapshotMessage = (sequenceNumber == null || sequenceNumber <= 0);
         if (isSnapshotChannel || isSnapshotMessage)
         {
-            Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
-            (orderbook as IOrderBook).reset(snapshot);
+            ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         } else
         {
             List<object> asks = this.safeList(data, "asks", new List<object>() {});
@@ -834,7 +834,7 @@ public partial class grvt : ccxt.grvt
 
     public virtual Dictionary<string, object> parseWsMyTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
-        return this.parseTrade(trade, market);
+        return ccxt.BaseExchange.FromTrade(this.parseTrade(trade, market));
     }
 
     /**
@@ -1053,13 +1053,13 @@ public partial class grvt : ccxt.grvt
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
-        Dictionary<string, object> order = this.parseWsOrder(data);
-        this.orders.append(order);
+        ccxt.Order order = this.parseWsOrder(data);
+        this.orders.append(ccxt.BaseExchange.FromOrder(order));
         client.resolve(this.orders, "orders");
-        client.resolve(this.orders, ("order::" + ((order != null && order.ContainsKey("symbol") ? order["symbol"] : null))));
+        client.resolve(this.orders, ("order::" + ((((object)order.symbol)))));
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         // same as REST api
         return this.parseOrder(order, market);

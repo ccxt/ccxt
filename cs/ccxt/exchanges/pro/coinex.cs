@@ -551,8 +551,8 @@ public partial class coinex : ccxt.coinex
             stored = new ArrayCache(limit);
             this.trades[(string)symbol] = stored;
         }
-        Dictionary<string, object> parsed = this.parseWsTrade(data, market);
-        stored.append(parsed);
+        ccxt.Trade parsed = this.parseWsTrade(data, market);
+        stored.append(ccxt.BaseExchange.FromTrade(parsed));
         this.trades[(string)symbol] = stored;
         client.resolve((this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null), messageWithType);
         client.resolve((this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null), messageHash);
@@ -621,14 +621,14 @@ public partial class coinex : ccxt.coinex
         for (int i = 0; i < trades.Count; i++)
         {
             IDictionary<string, object> trade = ((IDictionary<string, object>)trades[i]);
-            Dictionary<string, object> parsed = this.parseWsTrade(trade, market);
-            stored.append(parsed);
+            ccxt.Trade parsed = this.parseWsTrade(trade, market);
+            stored.append(ccxt.BaseExchange.FromTrade(parsed));
         }
         this.trades[(string)symbol] = stored;
         client.resolve((this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null), messageHash);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         // spot watchTrades
@@ -1020,14 +1020,14 @@ public partial class coinex : ccxt.coinex
         bool? fullOrderBook = this.safeBool(data, "is_full", false);
         if ((fullOrderBook == true))
         {
-            Dictionary<string, object> snapshot = this.parseOrderBook(depth, symbol, timestamp);
+            ccxt.OrderBook snapshot = this.parseOrderBook(depth, symbol, timestamp);
             if ((currentOrderBook == null))
             {
-                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(snapshot);
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot));
             } else
             {
                 ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-                (orderbook as IOrderBook).reset(snapshot);
+                (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
             }
         } else
         {
@@ -1246,8 +1246,8 @@ public partial class coinex : ccxt.coinex
         Dictionary<string, object> order = this.extend(new Dictionary<string, object>() {
             { "status", this.safeString(data, "event") },
         }, this.safeDict2(data, "order", "stop", new Dictionary<string, object>() {}));
-        Dictionary<string, object> parsedOrder = this.parseWsOrder(order);
-        string? symbol = ((string)(parsedOrder != null && parsedOrder.ContainsKey("symbol") ? parsedOrder["symbol"] : null));
+        ccxt.Order parsedOrder = this.parseWsOrder(order);
+        string? symbol = parsedOrder.symbol;
         Dictionary<string, object> market = this.market(symbol);
         if ((this.orders == null))
         {
@@ -1255,7 +1255,7 @@ public partial class coinex : ccxt.coinex
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache orders = this.orders;
-        orders.append(parsedOrder);
+        orders.append(ccxt.BaseExchange.FromOrder(parsedOrder));
         string messageHash = "orders";
         string messageWithType = ((messageHash + ":") + ((market.ContainsKey("type") ? market["type"] : null)));
         client.resolve(this.orders, messageWithType);
@@ -1263,7 +1263,7 @@ public partial class coinex : ccxt.coinex
         client.resolve(this.orders, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // spot

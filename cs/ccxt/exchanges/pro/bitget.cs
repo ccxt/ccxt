@@ -1130,8 +1130,8 @@ public partial class bitget : ccxt.bitget
                     bidsKey = "b";
                 }
             }
-            Dictionary<string, object> parsedOrderbook = this.parseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey);
-            (orderbook as IOrderBook).reset(parsedOrderbook);
+            ccxt.OrderBook parsedOrderbook = this.parseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey);
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(parsedOrderbook));
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         }
         client.resolve(this.getOrderBook(this.orderbooks, symbol), messageHash);
@@ -1350,14 +1350,14 @@ public partial class bitget : ccxt.bitget
         {
             Int64 index = ((length - i) - 1);
             IDictionary<string, object> rawTrade = ((IDictionary<string, object>)getValue(data, index));
-            Dictionary<string, object> parsed = this.parseWsTrade(rawTrade, market);
-            stored.append(parsed);
+            ccxt.Trade parsed = this.parseWsTrade(rawTrade, market);
+            stored.append(ccxt.BaseExchange.FromTrade(parsed));
         }
         string messageHash = ("trade:" + symbol);
         client.resolve(stored, messageHash);
     }
 
-    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, object market = null)
     {
         //
         //     {
@@ -2084,9 +2084,9 @@ public partial class bitget : ccxt.bitget
             object order = data[i];
             string? marketId = this.safeString2(order, "instId", "symbol", argInstId);
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-            Dictionary<string, object> parsed = this.parseWsOrder(order, market);
-            ccxt.pro.BaseCache.appendTo(stored, parsed);
-            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+            ccxt.Order parsed = this.parseWsOrder(order, market);
+            ccxt.pro.BaseCache.appendTo(stored, ccxt.BaseExchange.FromOrder(parsed));
+            string? symbol = parsed.symbol;
             if ((symbol != null))
             {
                 marketSymbols[(string)symbol] = true;
@@ -2121,7 +2121,7 @@ public partial class bitget : ccxt.bitget
         }
     }
 
-    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // spot
@@ -2625,9 +2625,9 @@ public partial class bitget : ccxt.bitget
                 string? marketId = this.safeString2(trade, "instId", "symbol");
                 market = this.safeMarket(marketId, null, null, marketType);
             }
-            Dictionary<string, object> parsed = this.parseWsTrade(trade, market);
-            stored.append(parsed);
-            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+            ccxt.Trade parsed = this.parseWsTrade(trade, market);
+            stored.append(ccxt.BaseExchange.FromTrade(parsed));
+            string? symbol = parsed.symbol;
             string symbolSpecificMessageHash = ("myTrades:" + symbol);
             client.resolve(stored, symbolSpecificMessageHash);
         }

@@ -944,7 +944,7 @@ public partial class bithumb : Exchange
             data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             timestamp = this.safeInteger(data, "timestamp");
         }
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"));
+        return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -1561,7 +1561,7 @@ public partial class bithumb : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,timeframeVar, since, limit));
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // generation 1: fetchTrades (public)
@@ -1768,7 +1768,7 @@ public partial class bithumb : Exchange
             //
             data = this.safeList(response, "data", new List<object>() {});
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
+        return this.parseTrades(data, market, since, limit);
     }
 
     /**
@@ -1851,7 +1851,7 @@ public partial class bithumb : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "batch_orders_response", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market));
+        return this.parseOrders(data, market);
     }
 
     public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
@@ -2027,7 +2027,7 @@ public partial class bithumb : Exchange
         {
             throw new InvalidOrder ((this.id + " createOrder() did not return an order id")) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.extend(this.parseOrder(response, market), new Dictionary<string, object>() {             { "info", response },             { "symbol", symbol },             { "type", type },             { "side", side },             { "id", id },         }));
+        return ccxt.BaseExchange.ToOrder(this.extend(ccxt.BaseExchange.FromOrder(this.parseOrder(response, market)), new Dictionary<string, object>() {             { "info", response },             { "symbol", symbol },             { "type", type },             { "side", side },             { "id", id },         }));
     }
 
     /**
@@ -2114,7 +2114,7 @@ public partial class bithumb : Exchange
         //         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -2275,7 +2275,7 @@ public partial class bithumb : Exchange
             { "order_id", id },
         };
         Dictionary<string, object> parsedOrder = this.extend(data, orderData);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(parsedOrder, market));
+        return this.parseOrder(parsedOrder, market);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -2293,7 +2293,7 @@ public partial class bithumb : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //
@@ -2593,7 +2593,7 @@ public partial class bithumb : Exchange
             response = await this.privatePostInfoOrders(this.extend(request, paramsGeneration));
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limitResolved));
+        return this.parseOrders(data, market, since, limitResolved);
     }
 
     /**
@@ -2710,7 +2710,7 @@ public partial class bithumb : Exchange
             //
             data = response;
         }
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+        return this.parseOrders(data, market, since, limit);
     }
 
     /**
@@ -2855,7 +2855,7 @@ public partial class bithumb : Exchange
             request["payment_currency"] = quote;
             response = await this.privatePostTradeCancel(this.extend(request, paramsSide));
         }
-        return ccxt.BaseExchange.ToOrder(this.extend(this.parseOrder(response, market), new Dictionary<string, object>() {             { "id", id },         }));
+        return ccxt.BaseExchange.ToOrder(this.extend(ccxt.BaseExchange.FromOrder(this.parseOrder(response, market)), new Dictionary<string, object>() {             { "id", id },         }));
     }
 
     /**
@@ -2912,7 +2912,7 @@ public partial class bithumb : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "success", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market));
+        return this.parseOrders(data, market);
     }
 
     public async override Task<ccxt.Order> CancelUnifiedOrder(object order, object parameters = null)

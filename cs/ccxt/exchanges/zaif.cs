@@ -469,7 +469,7 @@ public partial class zaif : Exchange
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetDepthPair(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null)));
+        return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null));
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -549,7 +549,7 @@ public partial class zaif : Exchange
         return this.parseTicker(ticker, market);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -633,7 +633,7 @@ public partial class zaif : Exchange
                 trades = new List<object>() {};
             }
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
+        return this.parseTrades(trades, market, since, limit);
     }
 
     /**
@@ -669,7 +669,7 @@ public partial class zaif : Exchange
         };
         Dictionary<string, object> response = await this.privatePostTrade(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", ((object)(data != null && data.ContainsKey("order_id") ? data["order_id"] : null)).ToString() },         }, market));
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", ((object)(data != null && data.ContainsKey("order_id") ? data["order_id"] : null)).ToString() },         }, market);
     }
 
     /**
@@ -704,10 +704,10 @@ public partial class zaif : Exchange
         //    }
         //
         IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data));
+        return this.parseOrder(data);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -791,7 +791,7 @@ public partial class zaif : Exchange
         }
         Dictionary<string, object> response = await this.privatePostActiveOrders(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+        return this.parseOrders(data, market, since, limit);
     }
 
     /**
@@ -829,7 +829,7 @@ public partial class zaif : Exchange
         }
         Dictionary<string, object> response = await this.privatePostTradeHistory(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+        return this.parseOrders(data, market, since, limit);
     }
 
     /**

@@ -1827,10 +1827,10 @@ public partial class coinex : Exchange
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> depth = this.safeDict(data, "depth", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(depth, "updated_at");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(depth, symbol, timestamp));
+        return this.parseOrderBook(depth, symbol, timestamp);
     }
 
-    public override Dictionary<string, object> parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, object market = null)
     {
         //
         // Spot and Swap fetchTrades (public)
@@ -1959,7 +1959,7 @@ public partial class coinex : Exchange
         //         "message": "OK"
         //     }
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(GetValue(response, "data"), market, since, limit));
+        return this.parseTrades(GetValue(response, "data"), market, since, limit);
     }
 
     /**
@@ -2372,7 +2372,7 @@ public partial class coinex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // Spot and Margin createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders
@@ -2902,7 +2902,7 @@ public partial class coinex : Exchange
             }
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -3019,11 +3019,11 @@ public partial class coinex : Exchange
             if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && !isTriggerOrder)
             {
                 ((IDictionary<string,object>)entry)["status"] = status;
-                order = this.parseOrder(entry, market);
+                order = ccxt.BaseExchange.FromOrder(this.parseOrder(entry, market));
             } else
             {
                 innerData["status"] = status;
-                order = this.parseOrder(innerData, market);
+                order = ccxt.BaseExchange.FromOrder(this.parseOrder(innerData, market));
             }
             results.Add(order);
         }
@@ -3100,8 +3100,8 @@ public partial class coinex : Exchange
         {
             IDictionary<string, object> entry = this.safeDict(data, i);
             IDictionary<string, object> item = this.safeDict(entry, "data", new Dictionary<string, object>() {});
-            Dictionary<string, object> order = this.parseOrder(item, market);
-            results.Add(order);
+            ccxt.Order order = this.parseOrder(item, market);
+            results.Add(ccxt.BaseExchange.FromOrder(order));
         }
         return ccxt.BaseExchange.ToOrderList(results);
     }
@@ -3187,7 +3187,7 @@ public partial class coinex : Exchange
             }
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -3278,8 +3278,8 @@ public partial class coinex : Exchange
                 throw new ExchangeError (feedback) ;
             }
             IDictionary<string, object> item = this.safeDict(entry, "data", new Dictionary<string, object>() {});
-            Dictionary<string, object> order = this.parseOrder(item);
-            result.Add(order);
+            ccxt.Order order = this.parseOrder(item);
+            result.Add(ccxt.BaseExchange.FromOrder(order));
         }
         return ccxt.BaseExchange.ToOrderList(result);
     }
@@ -3394,7 +3394,7 @@ public partial class coinex : Exchange
         {
             data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -3442,7 +3442,7 @@ public partial class coinex : Exchange
             }
             response = await this.v2PrivatePostSpotCancelAllOrder(this.extend(request, paramsMarginMode));
         }
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
     }
 
     /**
@@ -3481,7 +3481,7 @@ public partial class coinex : Exchange
             response = await this.v2PrivateGetSpotOrderStatus(this.extend(request, parameters));
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -3582,7 +3582,7 @@ public partial class coinex : Exchange
             }
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
+        return this.parseOrders(data, market, since, limit);
     }
 
     /**
@@ -3811,7 +3811,7 @@ public partial class coinex : Exchange
             response = await this.v2PrivateGetSpotUserDeals(this.extend(requestUntil, paramsMarginMode));
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
+        return this.parseTrades(data, market, since, limit);
     }
 
     /**
@@ -5989,7 +5989,7 @@ public partial class coinex : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ((IDictionary<string, object>)((object)(this.parseOrder(data, market))));
+        return ((IDictionary<string, object>)((object)(ccxt.BaseExchange.FromOrder(this.parseOrder(data, market)))));
     }
 
     public override (string?, object) handleMarginModeAndParams(object methodName, object parameters = null, object defaultValue = null)
