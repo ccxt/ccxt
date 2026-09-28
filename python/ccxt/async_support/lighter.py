@@ -143,7 +143,6 @@ class lighter(Exchange, ImplicitAPI):
                 '4h': '4h',
                 '12h': '12h',
                 '1d': '1d',
-                '1w': '1w',
             },
             'hostname': 'zklighter.elliot.ai',
             'urls': {
@@ -374,6 +373,7 @@ class lighter(Exchange, ImplicitAPI):
                 'integratorTakerFee': 1000,
                 'authDeadlineExpiry': 28800,  # 8h validity for auth tokens
                 'authDeadlineMinimumRemaining': 60,
+                'tiersForAccountIndexes': {},  # being filled on the fly
             },
             'features': {
                 'default': {
@@ -610,15 +610,51 @@ class lighter(Exchange, ImplicitAPI):
         approvedBuilderFee = self.safe_bool(self.options, 'approvedBuilderFee', False)
         if approvedBuilderFee is True:
             return True
+        standardTier = False
         try:
-            builder = self.safe_integer(self.options, 'integratorAccountIndex', 718718)
-            takerFeeRate = self.safe_integer(self.options, 'integratorTakerFee', 1000)
-            makerFeeRate = self.safe_integer(self.options, 'integratorMakerFee', 1000)
-            await self.approve_builder_fee(builder, takerFeeRate, makerFeeRate, accountIndex, apiKeyIndex)
-            self.options['approvedBuilderFee'] = True
+            isStandardTier = await self.check_if_standard_tier(self.parse_to_int(accountIndex))
+            if isStandardTier:
+                standardTier = True
+                self.options['builderFee'] = False
+            else:
+                builder = self.safe_integer(self.options, 'integratorAccountIndex', 718718)
+                takerFeeRate = self.safe_integer(self.options, 'integratorTakerFee', 1000)
+                makerFeeRate = self.safe_integer(self.options, 'integratorMakerFee', 1000)
+                await self.approve_builder_fee(builder, takerFeeRate, makerFeeRate, accountIndex, apiKeyIndex)
+                self.options['approvedBuilderFee'] = True
         except Exception as e:
             self.options['builderFee'] = False
+        if standardTier:
+            return False
         return True
+
+    async def check_if_standard_tier(self, accountIndex: float):
+        tiersForAccountIndexes = self.safe_dict(self.options, 'tiersForAccountIndexes', {})
+        accountIndexStr = str(accountIndex)
+        isStandardTier = self.safe_bool(tiersForAccountIndexes, accountIndexStr)
+        if isStandardTier is not None:
+            return isStandardTier
+        accountLimits = await self.privateGetAccountLimits({'account_index': accountIndex})
+        #
+        #    {
+        #        "code": 200,
+        #        "max_llp_percentage": 100,
+        #        "max_llp_amount": "0.000000",
+        #        "user_tier": "standard",
+        #        "can_create_public_pool": false,
+        #        "user_tier_name": "standard",
+        #        "current_maker_fee_tick": 0,
+        #        "current_taker_fee_tick": 0,
+        #        "leased_lit": "0.00000000",
+        #        "effective_lit_stakes": "0.00000000",
+        #        "user_tier_last_update": 0
+        #    }
+        #
+        tier = self.safe_string(accountLimits, 'user_tier')
+        isStandard = (tier == 'standard')
+        tiersForAccountIndexes[accountIndexStr] = isStandard
+        self.options['tiersForAccountIndexes'] = tiersForAccountIndexes
+        return isStandard
 
     async def approve_builder_fee(self, builder: float, takerFeeRate: float, makerFeeRate: float, accountIndex: float, apiKeyIndex: float, params: dict = {}) -> dict:
         strAccountIndex = self.number_to_string(accountIndex)
@@ -837,19 +873,27 @@ class lighter(Exchange, ImplicitAPI):
     async def sign_and_create_order(self, method: str, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params: dict = {}) -> list[object]:
         if self.markets is None:
             await self.load_markets()
-        accountIndex, paramsAccountIndex = await self.handle_account_index(params, method, 'accountIndex', 'account_index')
-        paramsAccountIndex['accountIndex'] = accountIndex
-        groupingType, paramsGroupingType = self.handle_option_integer_and_params(paramsAccountIndex, method, 'groupingType', 3)  # default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
+        # non-destructively get values from opts/params
+        accIndexAndParams = await self.handle_account_index(params, method, 'accountIndex', 'account_index')
+        accountIndex = accIndexAndParams[0]
+        apiKeyIndexAndParams = self.handle_api_key_index(params, method, 'apiKeyIndex', 'api_key_index')
+        apiKeyIndex = apiKeyIndexAndParams[0]
+        # before order-req creation, we need to know account status
+        strAccountIndex = self.number_to_string(accountIndex)
+        strApiKeyIndex = self.number_to_string(apiKeyIndex)
+        signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
+        try:
+            isStandardTier = await self.check_if_standard_tier(accountIndex)
+            if isStandardTier:
+                self.options['builderFee'] = False
+        except Exception as e:
+            self.options['builderFee'] = False
+        groupingType, paramsGroupingType = self.handle_option_integer_and_params(params, method, 'groupingType', 3)  # default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         orderRequests = self.create_order_request(symbol, type, side, amount, price, paramsGroupingType)
         totalOrderRequests = len(orderRequests)
-        apiKeyIndex = None
         order = None
         if totalOrderRequests > 0:
             order = orderRequests[0]
-            apiKeyIndex = order['api_key_index']
-        strAccountIndex = self.number_to_string(accountIndex)
-        strApiKeyIndex = self.number_to_string(apiKeyIndex)
-        signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsGroupingType)
         # the nonce could be updated
         if self.safe_integer(order, 'nonce') is None:
             order['nonce'] = await self.fetch_nonce(accountIndex, apiKeyIndex)

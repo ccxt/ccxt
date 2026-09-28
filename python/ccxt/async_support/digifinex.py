@@ -8,7 +8,7 @@ from ccxt.abstract.digifinex import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -50,6 +50,7 @@ class digifinex(Exchange, ImplicitAPI):
                 'addMargin': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'cancelOrdersForSymbols': True,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrderWithCost': False,
                 'createMarketSellOrderWithCost': False,
@@ -1963,10 +1964,10 @@ class digifinex(Exchange, ImplicitAPI):
         else:
             return self.safe_order({
                 'info': response,
-                'orderId': self.safe_string(response, 'data'),
+                'id': self.safe_string(response, 'data'),
             })
 
-    def parse_cancel_orders(self, response: dict) -> list[Order]:
+    def parse_cancel_orders(self, response: dict, symbolsById: dict = {}) -> list[Order]:
         success = self.safe_list(response, 'success', [])
         error = self.safe_list(response, 'error', [])
         result = []
@@ -1975,15 +1976,16 @@ class digifinex(Exchange, ImplicitAPI):
             result.append(self.safe_order({
                 'info': order,
                 'id': order,
+                'symbol': self.safe_string(symbolsById, order),
                 'status': 'canceled',
             }))
         for i in range(0, len(error)):
             order = error[i]
             result.append(self.safe_order({
                 'info': order,
-                'id': self.safe_string_2(order, 'order-id', 'order_id'),
+                'id': order,
+                'symbol': self.safe_string(symbolsById, order),
                 'status': 'failed',
-                'clientOrderId': self.safe_string(order, 'client-order-id'),
             }))
         return result
 
@@ -1992,19 +1994,35 @@ class digifinex(Exchange, ImplicitAPI):
         cancel multiple orders
 
         https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+        https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
 
         :param str[] ids: order ids
-        :param str symbol: not used by cancelOrders()
-        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [symbol]: unified market symbol, required for swap markets
+        :param dict [params]: extra parameters specific to the exchange API endpoint, not forwarded for swap markets(the request body is an array)
+        :param str [params.type]: 'spot', 'margin' or 'swap', defaults to the type of the symbol's market or options.defaultType
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
             await self.load_markets()
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        orderType = self.safe_string(params, 'type', defaultType)
-        paramsOmitted = self.omit(params, 'type')
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        marketType, paramsOmitted = self.handle_market_type_and_params('cancelOrders', market, params)
+        if marketType == 'swap':
+            if market is None:
+                raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument for swap markets')
+            marketSymbol = market['symbol']
+            orders = []
+            for i in range(0, len(ids)):
+                orderId = ids[i]
+                orderItem = {
+                    'id': orderId,
+                    'symbol': marketSymbol,
+                }
+                orders.append(orderItem)
+            return await self.cancel_orders_for_symbols(orders, paramsOmitted)
         request = {
-            'market': orderType,
+            'market': marketType,
             'order_id': ','.join(ids),
         }
         response = await self.privateSpotPostSpotOrderCancel(self.extend(request, paramsOmitted))
@@ -2022,8 +2040,101 @@ class digifinex(Exchange, ImplicitAPI):
         #
         return self.parse_cancel_orders(response)
 
+    async def cancel_orders_for_symbols(self, orders: list[CancellationRequest], params: dict = {}) -> list[Order]:
+        """
+        cancel multiple orders for multiple symbols
+
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+        https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
+
+        :param CancellationRequest[] orders: each order should contain the parameters required by cancelOrder namely id and symbol, all orders must be of the same market type(spot or swap), example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+        :param dict [params]: extra parameters specific to the exchange API endpoint, not forwarded for swap markets(the request body is an array)
+        :param str [params.type]: 'spot' or 'margin' for spot markets, defaults to 'spot'
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        ids = []
+        symbols = []
+        symbolsById = {}
+        marketType = None
+        for i in range(0, len(orders)):
+            order = orders[i]
+            id = self.safe_string(order, 'id')
+            if id is None:
+                raise ArgumentsRequired(self.id + ' cancelOrdersForSymbols() requires an id for each order')
+            symbol = self.safe_string(order, 'symbol')
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' cancelOrdersForSymbols() requires a symbol for each order')
+            market = self.market(symbol)
+            orderMarketType = market['type']
+            if marketType is None:
+                marketType = orderMarketType
+            elif marketType != orderMarketType:
+                raise BadRequest(self.id + ' cancelOrdersForSymbols() requires all orders to be of the same market type (spot or swap)')
+            ids.append(id)
+            symbols.append(market['symbol'])
+            symbolsById[id] = market['symbol']
+        if marketType == 'swap':
+            numIds = len(ids)
+            if numIds > 20:
+                raise BadRequest(self.id + ' cancelOrdersForSymbols() accepts up to 20 orders for swap markets')
+            ordersRequests = []
+            for i in range(0, len(ids)):
+                market = self.market(symbols[i])
+                marketId = market['id']
+                orderId = ids[i]
+                ordersRequests.append({
+                    'instrument_id': marketId,
+                    'order_id': orderId,
+                })
+            swapResponse = await self.privateSwapPostTradeBatchCancelOrder(ordersRequests)  # don't extend with params, otherwise the array body is turned into an object
+            #
+            #     {
+            #         "code": 0,
+            #         "data": [
+            #             "1546771720487047168",
+            #             "1546771720487047169"
+            #         ]
+            #     }
+            #
+            # ids that were not canceled are absent from data
+            data = self.safe_list(swapResponse, 'data', [])
+            result = []
+            for i in range(0, len(ids)):
+                orderId = ids[i]
+                isCanceled = self.in_array(orderId, data)
+                status = 'canceled' if (isCanceled) else 'failed'
+                result.append(self.safe_order({
+                    'info': orderId,
+                    'id': orderId,
+                    'symbol': symbols[i],
+                    'status': status,
+                }))
+            return result
+        requestType, paramsRequest = self.handle_market_type_and_params('cancelOrdersForSymbols', None, params, 'spot')
+        request = {
+            'market': requestType,
+            'order_id': ','.join(ids),
+        }
+        response = await self.privateSpotPostSpotOrderCancel(self.extend(request, paramsRequest))
+        #
+        #     {
+        #         "code": 0,
+        #         "success": [
+        #             "198361cecdc65f9c8c9bb2fa68faec40",
+        #             "3fb0d98e51c18954f10d439a9cf57de0"
+        #         ],
+        #         "error": [
+        #             "78a7104e3c65cc0c5a212a53e76d0205"
+        #         ]
+        #     }
+        #
+        return self.parse_cancel_orders(response, symbolsById)
+
     def parse_order_status(self, status: Str):
         statuses = {
+            '-1': 'canceled',  # swap
             '0': 'open',
             '1': 'open',  # partially filled
             '2': 'closed',
@@ -2100,6 +2211,7 @@ class digifinex(Exchange, ImplicitAPI):
         lastTradeTimestamp = None
         timeInForce = None
         type = None
+        reduceOnly = None
         side = self.safe_string(order, 'type')
         marketId = self.safe_string_2(order, 'symbol', 'instrument_id')
         symbol = self.safe_symbol(marketId, market)
@@ -2117,14 +2229,19 @@ class digifinex(Exchange, ImplicitAPI):
                     type = 'limit'
                 else:
                     type = 'market'
+            # 1 open long, 2 open short, 3 close long, 4 close short
             if side == '1':
-                side = 'open long'
+                side = 'buy'
+                reduceOnly = False
             elif side == '2':
-                side = 'open short'
+                side = 'sell'
+                reduceOnly = False
             elif side == '3':
-                side = 'close long'
+                side = 'sell'
+                reduceOnly = True
             elif side == '4':
-                side = 'close short'
+                side = 'buy'
+                reduceOnly = True
             timestamp = self.safe_integer(order, 'insert_time')
             lastTradeTimestamp = self.safe_integer(order, 'time_stamp')
         else:
@@ -2152,6 +2269,7 @@ class digifinex(Exchange, ImplicitAPI):
             'side': side,
             'price': self.safe_number(order, 'price'),
             'triggerPrice': None,
+            'reduceOnly': reduceOnly,
             'amount': self.safe_number_2(order, 'amount', 'size'),
             'filled': self.safe_number_2(order, 'executed_amount', 'filled_qty'),
             'remaining': None,

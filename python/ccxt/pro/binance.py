@@ -3399,22 +3399,16 @@ class binance(ccxt.async_support.binance):
         messageHash = str(requestId)
         sor = self.safe_bool_2(params, 'sor', 'SOR', False)
         paramsOmitted = self.omit(params, 'sor', 'SOR')
-        triggerPrice = self.safe_string_2(paramsOmitted, 'triggerPrice', 'stopPrice')
-        stopLossPrice = self.safe_string(paramsOmitted, 'stopLossPrice', triggerPrice)
-        takeProfitPrice = self.safe_string(paramsOmitted, 'takeProfitPrice')
-        trailingDelta = self.safe_string(paramsOmitted, 'trailingDelta')
-        trailingPercent = self.safe_string_n(paramsOmitted, ['trailingPercent', 'callbackRate', 'trailingDelta'])
-        isTrailingPercentOrder = trailingPercent is not None
-        isStopLoss = stopLossPrice is not None or trailingDelta is not None
-        isTakeProfit = takeProfitPrice is not None
-        isTriggerOrder = triggerPrice is not None
-        isConditional = isTriggerOrder or isTrailingPercentOrder or isStopLoss or isTakeProfit
-        payload = self.create_order_request(symbol, type, side, amount, price, paramsOmitted)
+        isConditional = self.isConditionalOrder(paramsOmitted)
+        if (market['inverse'] is True) and isConditional:
+            raise NotSupported(self.id + ' createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead')
+        isAlgoOrder = (market['linear'] is True) and ((market['swap'] is True) or (market['future'] is True)) and isConditional
+        payload = self.create_order_request(symbol, type, side, amount, price, self.extend(paramsOmitted, {'isAlgoOrder': isAlgoOrder}))
         returnRateLimits, paramsReturnRateLimits = self.handle_option_bool_and_params(paramsOmitted, 'createOrderWs', 'returnRateLimits', False)
         payload['returnRateLimits'] = returnRateLimits
         test = self.safe_bool(paramsReturnRateLimits, 'test', False)
         paramsOmitted2 = self.omit(paramsReturnRateLimits, 'test')
-        if (market['linear'] is True) and (market['swap'] is True) and isConditional:
+        if isAlgoOrder:
             payload['algoType'] = 'CONDITIONAL'
         message = {
             'id': messageHash,
@@ -3426,7 +3420,7 @@ class binance(ccxt.async_support.binance):
                 message['method'] = 'sor.order.test'
             else:
                 message['method'] = 'order.test'
-        if (market['linear'] is True) and (market['swap'] is True) and isConditional:
+        if isAlgoOrder:
             message['method'] = 'algoOrder.place'
         subscription = {
             'method': self.handle_order_ws,
@@ -4233,6 +4227,10 @@ class binance(ccxt.async_support.binance):
         if (clientOrderId is None) or (len(clientOrderId) == 0):
             clientOrderId = self.safe_string(order, 'c')
         stopPrice = self.safe_string_n(order, ['P', 'sp', 'tp'])
+        orderType = self.safe_string_lower(order, 'o')
+        # stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
+        isTakeProfitType = self.in_array(orderType, ['take_profit', 'take_profit_market', 'take_profit_limit'])
+        takeProfitPrice = self.omit_zero(stopPrice) if isTakeProfitType else None
         timeInForce = self.safe_string(order, 'f')
         if timeInForce == 'GTX':
             # GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
@@ -4246,7 +4244,7 @@ class binance(ccxt.async_support.binance):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
-            'type': self.parseOrderTypeByMarket(self.safe_string_lower(order, 'o'), marketType),
+            'type': self.parseOrderTypeByMarket(orderType, marketType),
             'timeInForce': timeInForce,
             'postOnly': None,
             'reduceOnly': self.safe_bool(order, 'R'),
@@ -4254,6 +4252,7 @@ class binance(ccxt.async_support.binance):
             'price': self.safe_string(order, 'p'),
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'takeProfitPrice': takeProfitPrice,
             'amount': self.safe_string(order, 'q'),
             'cost': self.safe_string(order, 'Z'),
             'average': self.safe_string(order, 'ap'),
