@@ -1244,8 +1244,9 @@ func (this *BaseExchange) fetchMarginModeBody(ch chan AsyncResult[any], symbol a
 			panic(r.Err)
 		}
 		marginModes := r.Value
+		var marginMode map[string]any = SafeMapTyped(marginModes, symbol)
 
-		ch <- AsyncResult[any]{Value: this.SafeDict(marginModes, symbol)}
+		ch <- AsyncResult[any]{Value: marginMode}
 		return nil
 	} else {
 		panic(NotSupported(this.Id + " fetchMarginMode() is not supported yet"))
@@ -1604,12 +1605,12 @@ func (this *BaseExchange) setLeverageBody(ch chan AsyncResult[any], leverage int
 	_ = params
 	panic(NotSupported(this.Id + " setLeverage() is not supported yet"))
 }
-func (this *BaseExchange) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *BaseExchange) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) fetchLeverageBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *BaseExchange) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1621,8 +1622,9 @@ func (this *BaseExchange) fetchLeverageBody(ch chan AsyncResult[any], symbol any
 			panic(r.Err)
 		}
 		leverages := r.Value
+		var leverage map[string]any = SafeMapTyped(leverages, symbol)
 
-		ch <- AsyncResult[any]{Value: this.SafeDict(leverages, symbol)}
+		ch <- AsyncResult[map[string]any]{Value: leverage}
 		return nil
 	} else {
 		panic(NotSupported(this.Id + " fetchLeverage() is not supported yet"))
@@ -5541,11 +5543,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan EndpointResult[map[str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes678215 map[string]any = MapTyped(r.Value)
-	if retRes678215 == nil {
+	var retRes678415 map[string]any = MapTyped(r.Value)
+	if retRes678415 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes678215, Raw: retRes678215}
+		ch <- EndpointResult[map[string]any]{Value: retRes678415, Raw: retRes678415}
 	}
 	return nil
 }
@@ -5619,12 +5621,12 @@ func (this *BaseExchange) GetSupportedMapping(key any, optionalArgs ...any) any 
 		panic(NotSupported(Add(Add(Add(Add(this.Id+" ", key), " does not have a value in mapping"), ", must be one of "), Join(keys, ", "))))
 	}
 }
-func (this *BaseExchange) FetchCrossBorrowRateAsync(code string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *BaseExchange) FetchCrossBorrowRateAsync(code string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchCrossBorrowRateBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) fetchCrossBorrowRateBody(ch chan AsyncResult[any], code string, optionalArgs ...any) any {
+func (this *BaseExchange) fetchCrossBorrowRateBody(ch chan AsyncResult[map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5643,20 +5645,20 @@ func (this *BaseExchange) fetchCrossBorrowRateBody(ch chan AsyncResult[any], cod
 		panic(r1.Err)
 	}
 	var borrowRates map[string]any = r1.Value
-	var rate any = this.SafeValue(borrowRates, code)
+	var rate map[string]any = SafeMapTyped(borrowRates, code)
 	if IsEqual(rate, nil) {
 		panic(ExchangeError(this.Id + " fetchCrossBorrowRate() could not find the borrow rate for currency code " + code))
 	}
 
-	ch <- AsyncResult[any]{Value: rate}
+	ch <- AsyncResult[map[string]any]{Value: rate}
 	return nil
 }
-func (this *BaseExchange) FetchIsolatedBorrowRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *BaseExchange) FetchIsolatedBorrowRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchIsolatedBorrowRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) fetchIsolatedBorrowRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *BaseExchange) fetchIsolatedBorrowRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5675,12 +5677,12 @@ func (this *BaseExchange) fetchIsolatedBorrowRateBody(ch chan AsyncResult[any], 
 		panic(r1.Err)
 	}
 	borrowRates := r1.Value
-	var rate any = this.SafeDict(borrowRates, symbol)
-	if rate == nil {
+	var rate map[string]any = SafeMapTyped(borrowRates, symbol)
+	if IsEqual(rate, nil) {
 		panic(ExchangeError(this.Id + " fetchIsolatedBorrowRate() could not find the borrow rate for market symbol " + symbol))
 	}
 
-	ch <- AsyncResult[any]{Value: rate}
+	ch <- AsyncResult[map[string]any]{Value: rate}
 	return nil
 }
 
@@ -7346,12 +7348,12 @@ func (this *BaseExchange) ParseOpenInterestsHistory(response any, optionalArgs .
 	var symbol *string = this.SafeString(market, "symbol")
 	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
-func (this *BaseExchange) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *BaseExchange) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) fetchFundingRateBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *BaseExchange) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -7379,7 +7381,7 @@ func (this *BaseExchange) fetchFundingRateBody(ch chan AsyncResult[any], symbol 
 			panic(NullResponse(this.Id + " fetchFundingRate () returned no data for " + *symbolResolved))
 		} else {
 
-			ch <- AsyncResult[any]{Value: rate}
+			ch <- AsyncResult[map[string]any]{Value: rate}
 			return nil
 		}
 	} else {
@@ -11450,12 +11452,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan EndpointResult[
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11120, _ := r.Value.([]any)
-	var retRes1022315 []any = listRecv11120
-	if retRes1022315 == nil {
+	listRecv11122, _ := r.Value.([]any)
+	var retRes1022515 []any = listRecv11122
+	if retRes1022515 == nil {
 		ch <- EndpointResult[[]any]{}
 	} else {
-		ch <- EndpointResult[[]any]{Value: retRes1022315, Raw: retRes1022315}
+		ch <- EndpointResult[[]any]{Value: retRes1022515, Raw: retRes1022515}
 	}
 	return nil
 }
@@ -11917,7 +11919,8 @@ func (this *Exchange) fetchTradingFeeBody(ch chan AsyncResult[any], symbol strin
 		panic(r.Err)
 	}
 	fees := r.Value
+	var fee map[string]any = SafeMapTyped(fees, symbol)
 
-	ch <- AsyncResult[any]{Value: this.SafeDict(fees, symbol)}
+	ch <- AsyncResult[any]{Value: fee}
 	return nil
 }
