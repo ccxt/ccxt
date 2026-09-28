@@ -1707,14 +1707,14 @@ function ccxtGoPredictionStructureList (checker, node) {
 }
 
 // `await this.fetchX (..)` (never watch*) typed as a by-symbol dictionary of parsed structures
-// (Tickers/OpenInterests/FundingRates): Go holds a map[string]any of parsed maps
+// (Tickers/FundingRates/Leverages/...): Go holds a map[string]any of parsed maps
 function ccxtGoStructureDictionaryFetch (checker, node) {
     const call = node.expression;
     if ((call?.kind !== ts.SyntaxKind.CallExpression) || (call.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression)
         || (call.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword) || !/^fetch[A-Z]/.test (call.expression.name?.text ?? '')) {
         return false;
     }
-    return /^(?:Tickers|OpenInterests|FundingRates)$/.test (checker.typeToString (checker.getTypeAtLocation (node)));
+    return /^(?:Tickers|OpenInterests|FundingRates|MarginModes|Leverages|TradingFees|IsolatedBorrowRates|CrossBorrowRates)$/.test (checker.typeToString (checker.getTypeAtLocation (node)));
 }
 
 // `this.<endpoint> (...)` declared in ts/src/abstract: the awaited value is the decoded HTTP body
