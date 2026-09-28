@@ -960,7 +960,6 @@
                     "quoteVolume": 1671431095.263844,
                     "markPrice": null,
                     "indexPrice": null,
-                    "openInterest": "39559.3278",
                     "info": {
                         "symbol": "ETH",
                         "market_id": 0,
@@ -1071,7 +1070,6 @@
                         "quoteVolume": 1671431095.263844,
                         "markPrice": null,
                         "indexPrice": null,
-                        "openInterest": "39559.3278",
                         "info": {
                             "symbol": "ETH",
                             "market_id": 0,
