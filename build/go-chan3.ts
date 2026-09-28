@@ -22,7 +22,46 @@ const GO_CHAN3_DIR = path.join (path.dirname (fileURLToPath (import.meta.url)), 
 let GO_CHAN3_TABLE: Map<string, string> | undefined = undefined;
 
 export function goChan3Nilable (type: string): boolean {
-    return /^(?:map\[|\[\]|\*)/.test (type);
+    return /^(?:map\[|\[\]|\*)/.test (type) || goChan3WsInterface (type);
+}
+
+// ===== GO-CHAN3 WS: ws cache objects travel as a Go interface element (never MapTyped: that nils them) =====
+// OrderBookInterface: every watchOrderBook* core sends the live book (`ob.(OrderBookInterface).Limit()`, now typed)
+// or forwards an untabled Watch/WatchMultiple receive, unboxed at the send with OrderBookTyped.
+export function goChan3WsInterface (type: string): boolean {
+    return /^(?:ccxt\.)?OrderBookInterface$/.test (type);
+}
+
+// T as spelled in a file of package ccxt (q === '') or an importer (q === 'ccxt.')
+export function goChan3QualType (type: string, q: string): string {
+    return goChan3WsInterface (type) ? (q + type.replace (/^ccxt\./, '')) : type;
+}
+
+// the WS send proof: `ob.(OrderBookInterface).Limit()`, or an untabled receive `rN.Value` / its `x := rN.Value`
+// local asserted to the interface element. Returns the Value text to emit, or undefined.
+function goChan3WsSend (expr: string, fnMasked: string, want: string | undefined, q: string): string | undefined {
+    if ((want === undefined) || !goChan3WsInterface (want)) {
+        return undefined;
+    }
+    const t = goChan3QualType (want, q);
+    if (new RegExp ('^\\w+\\.\\(' + t.replace ('.', '\\.') + '\\)\\.Limit\\(\\)$').test (expr)) {
+        return expr; // Limit() returns OrderBookInterface
+    }
+    let name = expr;
+    const local = /^[a-z]\w*$/.exec (expr);
+    if ((local !== null) && !/^r\d*$/.test (expr)) {
+        const binds = fnMasked.match (new RegExp ('(?<![\\w.])' + expr + '(?:\\s*,\\s*\\w+)*\\s*(?::?=(?!=)|\\+=)|var ' + expr + ' ', 'g')) || [];
+        const bind = new RegExp ('\\n\\t*' + expr + ' := (r\\d*)\\.Value\\n').exec (fnMasked);
+        if ((bind === null) || (binds.length !== 1)) {
+            return undefined;
+        }
+        name = bind[1] + '.Value';
+    }
+    const recv = /^(r\d*)\.Value$/.exec (name);
+    if ((recv === null) || (new RegExp ('\\n\\t*' + recv[1] + ' := <-this\\.\\w+\\(').exec (fnMasked) === null)) {
+        return undefined;
+    }
+    return q + 'OrderBookTyped(' + expr + ')'; // untyped nil stays nil, a book keeps its pointer
 }
 
 // method -> T merged from chan3-*.json; a method tabled twice differently or also in a gochan table throws
@@ -185,7 +224,7 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                         if (/^\s*$/.test (inner)) {
                             types.add ('nil');
                         }
-                        edits.push ({ 'start': bodyStart + at, 'end': bodyStart + open, 'text': q + 'AsyncResult[' + (want || 'any') + ']' });
+                        edits.push ({ 'start': bodyStart + at, 'end': bodyStart + open, 'text': q + 'AsyncResult[' + goChan3QualType (want || 'any', q) + ']' });
                         continue;
                     }
                     fail ('send-shape');
@@ -198,6 +237,11 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                     const bind = new RegExp ('\\n\\t*' + fwdVal[1] + ' := (<-)').exec (fnMasked);
                     const fm = (bind === null) ? undefined : goChan3ReceiveMethod (fnMasked, bind.index + bind[0].length - 2, table);
                     type = (fm === undefined) ? undefined : table.get (fm);
+                    const ws = (type === undefined) ? goChan3WsSend (expr, fnMasked, want, q) : undefined;
+                    if (ws !== undefined) {
+                        edits.push ({ 'start': bodyStart + open + 1, 'end': bodyStart + close - 1, 'text': 'Value: ' + ws });
+                        type = want as string;
+                    }
                     if (type === undefined) {
                         const name = (bind === null) ? '?' : ((/^<-\s*[\w.()]*?\.?(\w+)\(/.exec (fnMasked.substring (bind.index + bind[0].length - 2, bind.index + bind[0].length + 200)) || [ '', '?' ])[1]);
                         fail ('forward-untabled:' + name);
@@ -205,18 +249,24 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                     }
                 } else {
                     const proof = goChanSendType (expr.replace (/^ccxt\./, ''), fnMasked, signature, (name) => goChanMethodReturn (masked, receiver, name));
-                    if (proof.nil) {
+                    const ws = (proof.reason !== undefined) ? goChan3WsSend (expr, fnMasked, want, q) : undefined;
+                    if (ws !== undefined) {
+                        if (ws !== expr) {
+                            edits.push ({ 'start': bodyStart + open + 1, 'end': bodyStart + close - 1, 'text': 'Value: ' + ws });
+                        }
+                        type = want as string;
+                    } else if (proof.nil) {
                         type = 'nil';
                     } else if (proof.reason !== undefined) {
                         const callee = /^(?:ccxt\.)?(?:this\.)?(\w+)\(/.exec (expr);
                         fail (proof.reason + ((callee !== null) ? (':' + callee[1]) : ((proof.reason.startsWith ('local')) ? (':' + expr) : '')));
                         continue;
                     } else {
-                        type = proof.type as string;
+                        type = (proof.type as string).replace (/^ccxt\./, '');
                     }
                 }
                 types.add (type);
-                edits.push ({ 'start': bodyStart + at, 'end': bodyStart + open, 'text': q + 'AsyncResult[' + (want || 'any') + ']' });
+                edits.push ({ 'start': bodyStart + at, 'end': bodyStart + open, 'text': q + 'AsyncResult[' + goChan3QualType (want || 'any', q) + ']' });
             }
         }
         const list = [ ...types ];
@@ -238,7 +288,7 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
         if (reasons.length) {
             throw new Error ('GOCHAN3: ' + receiver + '.' + method + 'Async cannot carry AsyncResult[' + want + ']: ' + [ ...new Set (reasons) ].join (', '));
         }
-        const carrier = q + 'AsyncResult[' + want + ']';
+        const carrier = q + 'AsyncResult[' + goChan3QualType (want, q) + ']';
         const asyncText = content.substring (m.index, m.index + whole.length).replace (/\) <-chan (?:ccxt\.)?AsyncResult\[any\] \{/, ') <-chan ' + carrier + ' {').replace (/make\(chan (?:ccxt\.)?AsyncResult\[any\], 1\)/, 'make(chan ' + carrier + ', 1)');
         edits.push ({ 'start': m.index, 'end': m.index + whole.length, 'text': asyncText });
         const headEnd = content.indexOf ('\n', bodyStart);
@@ -321,7 +371,7 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
             const after = masked.substring (end, le);
             const assert = /^\.\(([^()]+)\)/.exec (after);
             if (assert !== null) {
-                if (assert[1] !== type) {
+                if (assert[1] !== goChan3QualType (type, q)) {
                     throw new Error ('GOCHAN3: ' + name + '.Value of ' + m[1] + ' asserted to ' + assert[1] + ', table says ' + type);
                 }
                 edits.push ({ 'start': end, 'end': end + assert[0].length, 'text': '' });
@@ -334,7 +384,7 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
             }
             if (/^\t+var \w+ [^=]+ = $/.test (before) && /^\s*$/.test (after)) {
                 const declared = (/^\t+var \w+ ([^=]+) = $/.exec (before) as RegExpExecArray)[1].trim ();
-                if ((declared === type) || !/^(?:any|interface\{\})$/.test (declared)) {
+                if ((declared === goChan3QualType (type, q)) || !/^(?:any|interface\{\})$/.test (declared)) {
                     continue; // `var x T = r.Value` (or a mismatched declaration the compiler reports)
                 }
             }
@@ -405,7 +455,7 @@ export function goChan3Pass (content: string, table: Map<string, string> = goCha
     };
     const iface = new RegExp ('^(\\t(' + [ ...table.keys () ].join ('|') + ')Async\\([^\\n]*\\)) <-chan ((?:ccxt\\.)?)AsyncResult\\[any\\]$', 'gm');
     for (let m = iface.exec (masked); m !== null; m = iface.exec (masked)) {
-        edits.push ({ 'start': m.index, 'end': m.index + m[0].length, 'text': m[1] + ' <-chan ' + m[3] + 'AsyncResult[' + table.get (m[2]) + ']' });
+        edits.push ({ 'start': m.index, 'end': m.index + m[0].length, 'text': m[1] + ' <-chan ' + m[3] + 'AsyncResult[' + goChan3QualType (table.get (m[2]) as string, m[3]) + ']' });
     }
     edits.push (...goChan3ConsumerEdits (content, masked, table, cores, coreSendAt));
     return edits.length ? goChan3Splice (content, edits) : content;

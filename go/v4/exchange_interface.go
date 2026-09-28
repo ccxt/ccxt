@@ -72,7 +72,7 @@ type IWatchBidsAsks interface {
 	WatchBidsAsksAsync(optionalArgs ...any) <-chan AsyncResult[any]
 }
 type IWatchOrderBookForSymbols interface {
-	WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[any]
+	WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[OrderBookInterface]
 }
 type IWatchPosition interface {
 	WatchPositionAsync(optionalArgs ...any) <-chan AsyncResult[any]
@@ -364,7 +364,7 @@ type ICoreExchange interface {
 	WatchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
 	WatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan AsyncResult[any]
-	WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
+	WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBookInterface]
 	WatchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	WatchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	WatchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
