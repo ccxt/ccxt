@@ -2672,7 +2672,6 @@ func (this *Zebpay) ParseTicker(ticker any, optionalArgs ...any) map[string]any 
 	var bidVolume *string = this.SafeString(ticker, "bidVolume")
 	var askVolume *string = this.SafeString(ticker, "askVolume")
 	return this.SafeTicker(map[string]any{
-		"id":            marketId,
 		"symbol":        marketResolved["symbol"],
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
