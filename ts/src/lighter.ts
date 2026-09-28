@@ -652,21 +652,23 @@ export default class lighter extends Exchange {
         if (approvedBuilderFee === true) {
             return true;
         }
+        let standardTier = false;
         try {
             const isStandardTier = await this.checkIfStandardTier (this.parseToInt (accountIndex));
             if (isStandardTier) {
+                standardTier = true;
                 this.options['builderFee'] = false;
-                return false;
+            } else {
+                const builder = this.safeInteger (this.options, 'integratorAccountIndex', 718718);
+                const takerFeeRate = this.safeInteger (this.options, 'integratorTakerFee', 1000);
+                const makerFeeRate = this.safeInteger (this.options, 'integratorMakerFee', 1000);
+                await this.approveBuilderFee (builder, takerFeeRate, makerFeeRate, accountIndex, apiKeyIndex);
+                this.options['approvedBuilderFee'] = true;
             }
-            const builder = this.safeInteger (this.options, 'integratorAccountIndex', 718718);
-            const takerFeeRate = this.safeInteger (this.options, 'integratorTakerFee', 1000);
-            const makerFeeRate = this.safeInteger (this.options, 'integratorMakerFee', 1000);
-            await this.approveBuilderFee (builder, takerFeeRate, makerFeeRate, accountIndex, apiKeyIndex);
-            this.options['approvedBuilderFee'] = true;
         } catch (e) {
             this.options['builderFee'] = false;
         }
-        return true;
+        return !standardTier;
     }
 
     async checkIfStandardTier (accountIndex: number) {
