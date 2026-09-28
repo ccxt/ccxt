@@ -1250,7 +1250,7 @@ public partial class mudrex : Exchange
             Dictionary<string, object> pos = this.parsePosition(p, m);
             outPos.Add(pos);
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(outPos, "symbol", symbols, false));
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(outPos, "symbol", symbols));
     }
 
     /**
@@ -1470,7 +1470,7 @@ public partial class mudrex : Exchange
         };
         object paramsOmitted = this.omit(parameters, new List<object>() {"position_id"});
         Dictionary<string, object> response = await this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, paramsOmitted));
-        return ((Dictionary<string, object>)((object)(response)));
+        return ((Dictionary<string, object>)((object)(this.extend(response, new Dictionary<string, object>() {}))));
     }
 
     /**

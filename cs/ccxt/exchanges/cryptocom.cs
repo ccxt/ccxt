@@ -1215,7 +1215,8 @@ public partial class cryptocom : Exchange
         }
         string? symbolValue = this.symbol(symbol);
         Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolValue}, parameters));
-        return ccxt.BaseExchange.ToTicker(this.safeValue(tickers, symbolValue));
+        IDictionary<string, object> ticker = this.safeDict(tickers, symbolValue);
+        return ccxt.BaseExchange.ToTicker(ticker);
     }
 
     /**
@@ -3931,7 +3932,7 @@ public partial class cryptocom : Exchange
             Dictionary<string, object> marketInner = this.safeMarket(marketId, null, null, "contract");
             result.Add(this.parsePosition(entry, marketInner));
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", null, false));
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", null));
     }
 
     public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)

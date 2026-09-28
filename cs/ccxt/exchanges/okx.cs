@@ -4977,7 +4977,8 @@ public partial class okx : Exchange
         if (isTrigger || ((trailing == true)))
         {
             List<object> orderInner = ccxt.BaseExchange.FromOrderList(await this.CancelOrders(new List<object>() {id}, symbol, parameters));
-            return ccxt.BaseExchange.ToOrder(this.safeDict(orderInner, 0));
+            IDictionary<string, object> canceledInner = this.safeDict(orderInner, 0);
+            return ccxt.BaseExchange.ToOrder(canceledInner);
         }
         if ((this.markets == null))
         {
@@ -7603,7 +7604,7 @@ public partial class okx : Exchange
         {
             result.Add(this.parsePosition(positions[i]));
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", this.marketSymbols(symbols), false));
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", this.marketSymbols(symbols)));
     }
 
     /**

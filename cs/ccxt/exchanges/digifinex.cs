@@ -2407,7 +2407,8 @@ public partial class digifinex : Exchange
                 throw new OrderNotFound ((((this.id + " cancelOrder() ") + idValue) + " not found")) ;
             }
             List<object> orders = this.parseCancelOrders(response);
-            return ccxt.BaseExchange.ToOrder(this.safeDict(orders, 0));
+            IDictionary<string, object> canceled = this.safeDict(orders, 0);
+            return ccxt.BaseExchange.ToOrder(canceled);
         } else
         {
             return this.safeOrder(new Dictionary<string, object>() {                 { "info", response },                 { "orderId", this.safeString(response, "data") },             });
@@ -4320,7 +4321,7 @@ public partial class digifinex : Exchange
         {
             result.Add(this.parsePosition(positions[i], market));
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized, false));
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 
     /**

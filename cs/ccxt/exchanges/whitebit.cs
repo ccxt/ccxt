@@ -4041,7 +4041,8 @@ public partial class whitebit : Exchange
         }
         string? symbolValue = this.symbol(symbol);
         Dictionary<string, object> response = ccxt.BaseExchange.FromFundingRates(await this.FetchFundingRates(new List<object>() {symbolValue}, parameters));
-        return ccxt.BaseExchange.ToFundingRate(this.safeValue(response, symbolValue));
+        IDictionary<string, object> fundingRate = this.safeDict(response, symbolValue);
+        return ccxt.BaseExchange.ToFundingRate(fundingRate);
     }
 
     /**

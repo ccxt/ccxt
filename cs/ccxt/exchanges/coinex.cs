@@ -3915,7 +3915,7 @@ public partial class coinex : Exchange
         {
             result.Add(this.parsePosition(position[i], market));
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized, false));
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 
     /**

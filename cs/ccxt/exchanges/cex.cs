@@ -626,7 +626,8 @@ public partial class cex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> response = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
-        return ccxt.BaseExchange.ToTicker(this.safeDict(response, symbol, new Dictionary<string, object>() {}));
+        IDictionary<string, object> ticker = this.safeDict(response, symbol, new Dictionary<string, object>() {});
+        return ccxt.BaseExchange.ToTicker(ticker);
     }
 
     /**
@@ -1835,12 +1836,13 @@ public partial class cex : Exchange
             transfer = ccxt.BaseExchange.FromTransferEntry(await this.TransferBetweenMainAndSubAccount(code, amount,fromAccount,toAccount, parameters));
         }
         bool fillResponseFromRequest = ((bool)this.handleOption("transfer", "fillResponseFromRequest", true));
+        Dictionary<string, object> filled = new Dictionary<string, object>() {};
         if ((fillResponseFromRequest == true))
         {
-            ((IDictionary<string,object>)transfer)["fromAccount"] = fromAccount;
-            ((IDictionary<string,object>)transfer)["toAccount"] = toAccount;
+            filled["fromAccount"] = fromAccount;
+            filled["toAccount"] = toAccount;
         }
-        return ccxt.BaseExchange.ToTransferEntry(transfer);
+        return ccxt.BaseExchange.ToTransferEntry(this.extend(transfer, filled));
     }
 
     public async virtual Task<ccxt.TransferEntry> TransferBetweenMainAndSubAccount(string code, object amount, string fromAccount, string toAccount, object parameters = null)

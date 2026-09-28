@@ -819,7 +819,8 @@ public partial class upbit : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> orderbooks = ccxt.BaseExchange.FromOrderBooks(await this.FetchOrderBooks(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(limit), parameters));
-        return ccxt.BaseExchange.ToOrderBook(this.safeDict(orderbooks, symbol));
+        IDictionary<string, object> orderbook = this.safeDict(orderbooks, symbol);
+        return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -1019,7 +1020,8 @@ public partial class upbit : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
-        return ccxt.BaseExchange.ToTicker(this.safeDict(tickers, symbol));
+        IDictionary<string, object> ticker = this.safeDict(tickers, symbol);
+        return ccxt.BaseExchange.ToTicker(ticker);
     }
 
     public override ccxt.Trade parseTrade(object trade, object market = null)

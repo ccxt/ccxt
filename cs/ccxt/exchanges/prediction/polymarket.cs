@@ -1783,7 +1783,10 @@ public partial class polymarket : PredictionExchange
         //
         //     1781273248
         //
-        return ccxt.BaseExchange.ToInt64Value((this.parseToInt(response) * 1000));
+        Dictionary<string, object> result = new Dictionary<string, object>() {
+            { "serverTime", response },
+        };
+        return ccxt.BaseExchange.ToInt64Value(this.safeTimestamp(result, "serverTime"));
     }
 
     /**

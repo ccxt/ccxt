@@ -1268,7 +1268,8 @@ public partial class sxbet : PredictionExchange
         };
         Dictionary<string, object> response = await this.sxbetPrivateDeleteOrdersV3(this.extend(request, parameters));
         List<object> orders = ((List<object>)this.parseSxbetCancelResponse(response));
-        return ccxt.BaseExchange.ToPredictionOrder(this.safeDict(orders, 0));
+        IDictionary<string, object> first = this.safeDict(orders, 0);
+        return ccxt.BaseExchange.ToPredictionOrder(first);
     }
 
     /**

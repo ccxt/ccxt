@@ -2326,7 +2326,8 @@ public partial class hyperliquid : Exchange
         var order = orderglobalParamsVariable[0];
         IDictionary<string, object> globalParams = ((IDictionary<string, object>)orderglobalParamsVariable[1]);
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.CreateOrders(new List<object>() {order}, globalParams));
-        return ccxt.BaseExchange.ToOrder((orders != null && 0 < orders.Count ? orders[0] : null));
+        IDictionary<string, object> created = this.safeDict(orders, 0);
+        return ccxt.BaseExchange.ToOrder(created);
     }
 
     /**
@@ -2734,7 +2735,8 @@ public partial class hyperliquid : Exchange
             return await this.CancelTwapOrder(id, symbol, this.omit(parameters, "twap"));
         }
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.CancelOrders(new List<object>() {id}, symbol, parameters));
-        return ccxt.BaseExchange.ToOrder(this.safeDict(orders, 0));
+        IDictionary<string, object> canceled = this.safeDict(orders, 0);
+        return ccxt.BaseExchange.ToOrder(canceled);
     }
 
     /**
@@ -3255,7 +3257,8 @@ public partial class hyperliquid : Exchange
         var order = orderglobalParamsVariable[0];
         IDictionary<string, object> globalParams = ((IDictionary<string, object>)orderglobalParamsVariable[1]);
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.EditOrders(new List<object>() {order}, globalParams));
-        return ccxt.BaseExchange.ToOrder((orders != null && 0 < orders.Count ? orders[0] : null));
+        IDictionary<string, object> edited = this.safeDict(orders, 0);
+        return ccxt.BaseExchange.ToOrder(edited);
     }
 
     /**
@@ -4263,7 +4266,7 @@ public partial class hyperliquid : Exchange
         {
             result.Add(this.parsePosition(data[i]));
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized, false));
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 
     public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
@@ -5307,7 +5310,8 @@ public partial class hyperliquid : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> ois = ccxt.BaseExchange.FromOpenInterests(await this.FetchOpenInterests(new List<object>() {symbolValue}, parameters));
-        return ccxt.BaseExchange.ToOpenInterest((ois != null && symbolValue != null && ois.ContainsKey(symbolValue) ? ois[symbolValue] : null));
+        IDictionary<string, object> openInterest = this.safeDict(ois, symbolValue);
+        return ccxt.BaseExchange.ToOpenInterest(openInterest);
     }
 
     public override Dictionary<string, object> parseOpenInterest(object interest, IDictionary<string, object> market = null)

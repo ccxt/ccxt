@@ -1850,7 +1850,6 @@ public partial class mexc : Exchange
         {
             request["limit"] = limit;
         }
-        Dictionary<string, object> orderbook = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             Dictionary<string, object> response = await this.spotPublicGetDepth(this.extend(request, parameters));
@@ -1868,8 +1867,9 @@ public partial class mexc : Exchange
             //     }
             //
             Int64? spotTimestamp = this.safeInteger(response, "timestamp");
-            orderbook = ccxt.BaseExchange.FromOrderBook(this.parseOrderBook(response, symbol, spotTimestamp));
-            orderbook["nonce"] = this.safeInteger(response, "lastUpdateId");
+            ccxt.OrderBook spotOrderbook = this.parseOrderBook(response, symbol, spotTimestamp);
+            spotOrderbook.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(response, "lastUpdateId"));
+            return spotOrderbook;
         } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
         {
             Dictionary<string, object> response = await this.contractPublicGetDepthSymbol(this.extend(request, parameters));
@@ -1893,10 +1893,11 @@ public partial class mexc : Exchange
             //
             IDictionary<string, object> data = this.safeDict(response, "data");
             Int64? timestamp = this.safeInteger(data, "timestamp");
-            orderbook = ccxt.BaseExchange.FromOrderBook(this.parseOrderBook(data, symbol, timestamp));
-            orderbook["nonce"] = this.safeInteger(data, "version");
+            ccxt.OrderBook swapOrderbook = this.parseOrderBook(data, symbol, timestamp);
+            swapOrderbook.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(data, "version"));
+            return swapOrderbook;
         }
-        return ccxt.BaseExchange.ToOrderBook(orderbook);
+        throw new NotSupported ((((this.id + " fetchOrderBook() does not support ") + ((market.ContainsKey("type") ? market["type"] : null))) + " markets")) ;
     }
 
     public override List<object> parseOrderBookBidAsk(object bidask, object priceKey = null, object amountKey = null, object countOrIdKey = null)

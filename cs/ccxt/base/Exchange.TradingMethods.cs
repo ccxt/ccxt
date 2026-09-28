@@ -662,7 +662,8 @@ public partial class Exchange
         if (!isEqual((this.has.ContainsKey("fetchOpenInterests") ? this.has["fetchOpenInterests"] : null), null) && (((this.has.ContainsKey("fetchOpenInterests") ? this.has["fetchOpenInterests"] : null) as bool?) != false))
         {
             Dictionary<string, object> openInterests = ccxt.BaseExchange.FromOpenInterests(await this.FetchOpenInterests(new List<object>() {symbol}, parameters));
-            return ccxt.BaseExchange.ToOpenInterest(this.safeDict(openInterests, symbol));
+            IDictionary<string, object> openInterest = this.safeDict(openInterests, symbol);
+            return ccxt.BaseExchange.ToOpenInterest(openInterest);
         } else
         {
             throw new NotSupported ((this.id + " fetchOpenInterest() is not supported yet")) ;
@@ -1308,7 +1309,8 @@ public partial class Exchange
             throw new NotSupported ((this.id + " fetchTradingFee() is not supported yet")) ;
         }
         Dictionary<string, object> fees = ccxt.BaseExchange.FromTradingFees(await this.FetchTradingFees(parameters));
-        return ccxt.BaseExchange.ToTradingFeeInterface(this.safeDict(fees, symbol));
+        IDictionary<string, object> fee = this.safeDict(fees, symbol);
+        return ccxt.BaseExchange.ToTradingFeeInterface(fee);
     }
 
 }

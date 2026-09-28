@@ -1774,11 +1774,13 @@ public partial class PredictionExchange : BaseExchange
         // `symbol` with the `outcome` handle and attach the outcome identity fields
         // outcomeId and market - so books match the PredictionOrderBook structure.
         string? fallback = this.safeString2(orderbook, "outcome", "symbol");
-        ((IDictionary<string,object>)orderbook)["outcome"] = ((outcomeObj == null)) ? fallback : this.safeString(outcomeObj, "outcome", fallback);
-        ((IDictionary<string,object>)orderbook)["outcomeId"] = ((outcomeObj == null)) ? this.safeString(orderbook, "outcomeId") : this.safeString(outcomeObj, "outcomeId");
-        ((IDictionary<string,object>)orderbook)["market"] = ((outcomeObj == null)) ? this.safeString(orderbook, "market") : this.safeString(outcomeObj, "market");
+        Dictionary<string, object> identity = new Dictionary<string, object>() {
+            { "outcome", ((outcomeObj == null)) ? fallback : this.safeString(outcomeObj, "outcome", fallback) },
+            { "outcomeId", ((outcomeObj == null)) ? this.safeString(orderbook, "outcomeId") : this.safeString(outcomeObj, "outcomeId") },
+            { "market", ((outcomeObj == null)) ? this.safeString(orderbook, "market") : this.safeString(outcomeObj, "market") },
+        };
         // omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
-        return this.omit(orderbook, "symbol");
+        return this.extend(this.omit(orderbook, "symbol"), identity);
     }
 
     public virtual Dictionary<string, object> parsePredictionTicker(object ticker, object market = null)

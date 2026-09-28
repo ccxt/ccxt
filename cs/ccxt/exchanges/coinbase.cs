@@ -3901,7 +3901,8 @@ public partial class coinbase : Exchange
             await this.loadMarkets();
         }
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.CancelOrders(new List<object>() {id}, symbol, parameters));
-        return ccxt.BaseExchange.ToOrder(this.safeDict(orders, 0, new Dictionary<string, object>() {}));
+        IDictionary<string, object> order = this.safeDict(orders, 0, new Dictionary<string, object>() {});
+        return ccxt.BaseExchange.ToOrder(order);
     }
 
     /**

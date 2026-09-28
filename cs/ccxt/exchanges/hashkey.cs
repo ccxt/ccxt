@@ -4538,7 +4538,8 @@ public partial class hashkey : Exchange
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             response = ccxt.BaseExchange.FromTradingFees(await this.FetchTradingFees(parameters));
-            return ccxt.BaseExchange.ToTradingFeeInterface(this.safeDict(response, symbol));
+            IDictionary<string, object> fee = this.safeDict(response, symbol);
+            return ccxt.BaseExchange.ToTradingFeeInterface(fee);
         } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
         {
             response = await this.privateGetApiV1FuturesCommissionRate(this.extend(new Dictionary<string, object>() {

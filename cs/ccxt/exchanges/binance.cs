@@ -14249,7 +14249,7 @@ public partial class binance : Exchange
         {
             result.Add(this.parseOptionPosition(positions[i], market));
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized, false));
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 
     public virtual object parseOptionPosition(object position, IDictionary<string, object> market = null)
@@ -14442,7 +14442,7 @@ public partial class binance : Exchange
         bool? filterClosed = this.handleOptionBoolAndParams(paramsPapi, "fetchAccountPositions", "filterClosed", false).Item1;
         List<object> result = this.parseAccountPositions(response, filterClosed);
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized, false));
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 
     /**
@@ -14622,7 +14622,7 @@ public partial class binance : Exchange
             }
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized, false));
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 
     /**
@@ -16129,7 +16129,8 @@ public partial class binance : Exchange
             { "symbol", symbol },
         };
         Dictionary<string, object> borrowRates = ccxt.BaseExchange.FromIsolatedBorrowRates(await this.FetchIsolatedBorrowRates(this.extend(request, parameters)));
-        return ccxt.BaseExchange.ToIsolatedBorrowRate(this.safeDict(borrowRates, symbol));
+        IDictionary<string, object> rate = this.safeDict(borrowRates, symbol);
+        return ccxt.BaseExchange.ToIsolatedBorrowRate(rate);
     }
 
     /**
@@ -16884,8 +16885,8 @@ public partial class binance : Exchange
             List<object> result = ((List<object>)this.parseOpenInterestsHistory(response, market));
             for (int i = 0; i < (result?.Count ?? 0); i++)
             {
-                object item = result[i];
-                if (isEqual(getValue(item, "symbol"), symbolValue))
+                IDictionary<string, object> item = this.safeDict(result, i);
+                if ((this.safeString(item, "symbol") == symbolValue))
                 {
                     return ccxt.BaseExchange.ToOpenInterest(item);
                 }
@@ -17486,7 +17487,8 @@ public partial class binance : Exchange
         } else if ((subType == "inverse"))
         {
             Dictionary<string, object> fetchMarginModesResponse = ccxt.BaseExchange.FromMarginModes(await this.FetchMarginModes(new List<object>() {symbol}, paramsSubType));
-            return ccxt.BaseExchange.ToMarginMode((fetchMarginModesResponse != null && fetchMarginModesResponse.ContainsKey(symbol) ? fetchMarginModesResponse[symbol] : null));
+            IDictionary<string, object> marginMode = this.safeDict(fetchMarginModesResponse, symbol);
+            return ccxt.BaseExchange.ToMarginMode(marginMode);
         } else
         {
             throw new BadRequest ((this.id + " fetchMarginMode () supports linear and inverse subTypes only")) ;

@@ -1531,7 +1531,8 @@ public partial class hyperliquid : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> orders = ccxt.BaseExchange.FromPredictionOrderList(await this.CancelOrders(new List<object>() {id},outcome, parameters));
-        return ccxt.BaseExchange.ToPredictionOrder(this.safeDict(orders, 0));
+        IDictionary<string, object> first = this.safeDict(orders, 0);
+        return ccxt.BaseExchange.ToPredictionOrder(first);
     }
 
     /**

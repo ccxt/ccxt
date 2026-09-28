@@ -1567,7 +1567,8 @@ public partial class kraken : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> items = ccxt.BaseExchange.FromLedgerEntryList(await this.FetchLedgerEntriesByIds(new List<object>() {id},code, parameters));
-        return ccxt.BaseExchange.ToLedgerEntry((items != null && 0 < items.Count ? items[0] : null));
+        IDictionary<string, object> entry = this.safeDict(items, 0);
+        return ccxt.BaseExchange.ToLedgerEntry(entry);
     }
 
     public override ccxt.Trade parseTrade(object trade, object market = null)
@@ -3924,7 +3925,7 @@ public partial class kraken : Exchange
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> result = this.safeList(response, "result");
         IList<object> results = this.parsePositions(result, symbolsNormalized);
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(results, "symbol", symbolsNormalized, false));
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(results, "symbol", symbolsNormalized));
     }
 
     public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)

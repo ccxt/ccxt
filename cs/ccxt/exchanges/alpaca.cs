@@ -638,29 +638,12 @@ public partial class alpaca : Exchange
         //         next_close: '2023-11-22T16:00:00-05:00'
         //     }
         //
-        string? timestamp = this.safeString(response, "timestamp");
+        Int64? timestamp = this.parse8601(this.safeString(response, "timestamp"));
         if ((timestamp == null))
         {
             throw new ExchangeError ((this.id + " fetchTime() missing timestamp")) ;
         }
-        string? localTime = ((timestamp == null) ? null : timestamp.Substring(0, Math.Min(23, timestamp.Length)));
-        if ((timestamp == null))
-        {
-            throw new ExchangeError ((this.id + " fetchTime() missing timestamp")) ;
-        }
-        int jetlagStrStart = (timestamp.Length - 6);
-        if ((timestamp == null))
-        {
-            throw new ExchangeError ((this.id + " fetchTime() missing timestamp")) ;
-        }
-        int jetlagStrEnd = (timestamp.Length - 3);
-        if ((timestamp == null))
-        {
-            throw new ExchangeError ((this.id + " fetchTime() missing timestamp")) ;
-        }
-        string? jetlag = slice(timestamp, jetlagStrStart, jetlagStrEnd);
-        object iso = subtract(this.parseToInt(this.parse8601(localTime)), multiply(multiply(this.parseToNumeric(jetlag), 3600), 1000));
-        return ccxt.BaseExchange.ToInt64Value(iso);
+        return ccxt.BaseExchange.ToInt64Value(timestamp);
     }
 
     /**
@@ -1157,7 +1140,8 @@ public partial class alpaca : Exchange
         }
         string? symbolValue = this.symbol(symbol);
         Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolValue}, parameters));
-        return ccxt.BaseExchange.ToTicker(this.safeDict(tickers, symbolValue));
+        IDictionary<string, object> ticker = this.safeDict(tickers, symbolValue);
+        return ccxt.BaseExchange.ToTicker(ticker);
     }
 
     /**

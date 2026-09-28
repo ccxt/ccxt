@@ -6279,7 +6279,7 @@ public partial class xt : Exchange
             object merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
             result.Add(this.parsePosition(merged, marketInner));
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols));
     }
 
     /**

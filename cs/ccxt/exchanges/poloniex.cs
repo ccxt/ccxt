@@ -1560,7 +1560,8 @@ public partial class poloniex : Exchange
         if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
         {
             Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null)}, parameters));
-            return ccxt.BaseExchange.ToTicker(this.safeDict(tickers, symbol));
+            IDictionary<string, object> contractTicker = this.safeDict(tickers, symbol);
+            return ccxt.BaseExchange.ToTicker(contractTicker);
         }
         Dictionary<string, object> response = await this.publicGetMarketsSymbolTicker24h(this.extend(request, parameters));
         //

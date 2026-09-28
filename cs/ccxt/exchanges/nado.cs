@@ -720,7 +720,8 @@ public partial class nado : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.CancelOrders(new List<object>() {id}, symbol, parameters));
-        return ccxt.BaseExchange.ToOrder(this.safeDict(orders, 0));
+        IDictionary<string, object> canceled = this.safeDict(orders, 0);
+        return ccxt.BaseExchange.ToOrder(canceled);
     }
 
     /**
@@ -1632,7 +1633,7 @@ public partial class nado : Exchange
                 { "product", product },
             }, position)));
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized, false));
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 
     /**

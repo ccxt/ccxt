@@ -4763,7 +4763,8 @@ public partial class bitget : Exchange
             { "orderId", id },
         };
         List<object> deposits = ccxt.BaseExchange.FromTransactionList(await this.FetchDeposits(code,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters)));
-        return ccxt.BaseExchange.ToTransaction(this.safeDict(deposits, 0, new Dictionary<string, object>() {}));
+        IDictionary<string, object> deposit = this.safeDict(deposits, 0, new Dictionary<string, object>() {});
+        return ccxt.BaseExchange.ToTransaction(deposit);
     }
 
     /**
@@ -4990,7 +4991,8 @@ public partial class bitget : Exchange
             { "orderId", id },
         };
         List<object> withdrawals = ccxt.BaseExchange.FromTransactionList(await this.FetchWithdrawals(code,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters)));
-        return ccxt.BaseExchange.ToTransaction(this.safeDict(withdrawals, 0, new Dictionary<string, object>() {}));
+        IDictionary<string, object> withdrawal = this.safeDict(withdrawals, 0, new Dictionary<string, object>() {});
+        return ccxt.BaseExchange.ToTransaction(withdrawal);
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
@@ -11354,7 +11356,7 @@ public partial class bitget : Exchange
             result.Add(this.parsePosition(position[i], market));
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized, false));
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 
     public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)

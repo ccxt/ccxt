@@ -2912,7 +2912,7 @@ public partial class bullish : Exchange
         //     ]
         //
         IList<object> results = this.parsePositions(response, symbols);
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(results, "symbol", symbols, false));
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(results, "symbol", symbols));
     }
 
     public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)

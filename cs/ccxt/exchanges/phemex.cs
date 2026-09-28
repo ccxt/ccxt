@@ -1561,8 +1561,8 @@ public partial class phemex : Exchange
         IDictionary<string, object> book = this.safeDict2(result, "book", "orderbook_p", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeIntegerProduct(result, "timestamp", 0.000001);
         Dictionary<string, object> orderbook = this.customParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market);
-        orderbook["nonce"] = this.safeInteger(result, "sequence");
-        return ccxt.BaseExchange.ToOrderBook(orderbook);
+        Int64? nonce = this.safeInteger(result, "sequence");
+        return ccxt.BaseExchange.ToOrderBook(this.extend(orderbook, new Dictionary<string, object>() {             { "nonce", nonce },         }));
     }
 
     public virtual object toEn(object n, object scale)
@@ -4516,7 +4516,7 @@ public partial class phemex : Exchange
             IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
             result.Add(this.parsePosition(position));
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized, false));
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 
     /**

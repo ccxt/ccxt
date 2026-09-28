@@ -1148,7 +1148,8 @@ public partial class BaseExchange
         if (!isEqual((this.has.ContainsKey("fetchMarginModes") ? this.has["fetchMarginModes"] : null), null) && (((this.has.ContainsKey("fetchMarginModes") ? this.has["fetchMarginModes"] : null) as bool?) != false))
         {
             Dictionary<string, object> marginModes = ccxt.BaseExchange.FromMarginModes(await this.FetchMarginModes(new List<object>() {symbol}, parameters));
-            return ccxt.BaseExchange.ToMarginMode(this.safeDict(marginModes, symbol));
+            IDictionary<string, object> marginMode = this.safeDict(marginModes, symbol);
+            return ccxt.BaseExchange.ToMarginMode(marginMode);
         } else
         {
             throw new NotSupported ((this.id + " fetchMarginMode() is not supported yet")) ;
@@ -1394,7 +1395,8 @@ public partial class BaseExchange
         if (!isEqual((this.has.ContainsKey("fetchLeverages") ? this.has["fetchLeverages"] : null), null) && (((this.has.ContainsKey("fetchLeverages") ? this.has["fetchLeverages"] : null) as bool?) != false))
         {
             Dictionary<string, object> leverages = ccxt.BaseExchange.FromLeverages(await this.FetchLeverages(new List<object>() {symbol}, parameters));
-            return ccxt.BaseExchange.ToLeverage(this.safeDict(leverages, symbol));
+            IDictionary<string, object> leverage = this.safeDict(leverages, symbol);
+            return ccxt.BaseExchange.ToLeverage(leverage);
         } else
         {
             throw new NotSupported ((this.id + " fetchLeverage() is not supported yet")) ;
@@ -4084,7 +4086,7 @@ public partial class BaseExchange
             Dictionary<string, object> position = this.extend(this.parsePosition(positionsArray[i]), parameters);
             result.Add(position);
         }
-        return ((IList<object>)((object)(this.filterByArrayPositions(result, "symbol", symbolsNormalized, false))));
+        return ((IList<object>)((object)(this.filterByArrayPositions(result, "symbol", symbolsNormalized))));
     }
 
     public virtual object parseADLRank(object info, IDictionary<string, object> market = null)
@@ -4107,7 +4109,7 @@ public partial class BaseExchange
             Dictionary<string, object> rank = this.extend(this.parseADLRank(ranksArray[i]), parameters);
             result.Add(rank);
         }
-        return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
+        return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
     }
 
     public virtual List<object> parseAccounts(object accounts, object parameters = null)
@@ -4961,7 +4963,7 @@ public partial class BaseExchange
             throw new NotSupported ((this.id + " fetchCrossBorrowRate() is not supported yet")) ;
         }
         Dictionary<string, object> borrowRates = ccxt.BaseExchange.FromCrossBorrowRates(await this.FetchCrossBorrowRates(parameters));
-        object rate = this.safeValue(borrowRates, code);
+        IDictionary<string, object> rate = this.safeDict(borrowRates, code);
         if ((rate == null))
         {
             throw new ExchangeError (((this.id + " fetchCrossBorrowRate() could not find the borrow rate for currency code ") + code)) ;
@@ -6122,7 +6124,7 @@ public partial class BaseExchange
             }
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        return new ccxt.Tickers(this.filterByArray(results, "symbol", symbolsNormalized)).tickers;
+        return new ccxt.Tickers(this.filterByArrayTickers(results, "symbol", symbolsNormalized)).tickers;
     }
 
     public virtual object parseDepositAddresses(object addresses, object codes = null, bool? indexed = null, object parameters = null)
@@ -6224,7 +6226,7 @@ public partial class BaseExchange
                 fundingRates[(string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null)] = parsed;
             }
         }
-        return this.filterByArray(fundingRates, "symbol", symbols);
+        return this.indexBy(this.filterByArray(fundingRates, "symbol", symbols, false), "symbol");
     }
 
     public virtual object parseLongShortRatio(object info, IDictionary<string, object> market = null)
@@ -6492,7 +6494,7 @@ public partial class BaseExchange
                 throw new BadSymbol ((this.id + " fetchFundingRate() supports contract markets only")) ;
             }
             Dictionary<string, object> rates = ccxt.BaseExchange.FromFundingRates(await this.FetchFundingRates(new List<object>() {symbolResolved}, parameters));
-            object rate = this.safeValue(rates, symbolResolved);
+            IDictionary<string, object> rate = this.safeDict(rates, symbolResolved);
             if ((rate == null))
             {
                 throw new NullResponse (((this.id + " fetchFundingRate () returned no data for ") + symbolResolved)) ;
@@ -6519,7 +6521,7 @@ public partial class BaseExchange
                 throw new BadSymbol ((this.id + " fetchFundingInterval() supports contract markets only")) ;
             }
             Dictionary<string, object> rates = ccxt.BaseExchange.FromFundingRates(await this.FetchFundingIntervals(new List<object>() {symbolResolved}, parameters));
-            object rate = this.safeValue(rates, symbolResolved);
+            IDictionary<string, object> rate = this.safeDict(rates, symbolResolved);
             if ((rate == null))
             {
                 throw new NullResponse (((this.id + " fetchFundingInterval() returned no data for ") + symbolResolved)) ;
@@ -6883,26 +6885,24 @@ public partial class BaseExchange
         }
     }
 
-    public virtual object filterByArrayPositions(object objects, object key, object values = null, bool? indexed = null)
+    public virtual object filterByArrayPositions(object objects, object key, object values = null)
     {
         /**
-        * @ignore
-        * @method
-        * @description Typed wrapper for filterByArray that returns a list of positions
-        */
-        indexed ??= true;
-        return this.filterByArray(objects, key, values, indexed);
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a list of positions
+         */
+        return this.toArray(this.filterByArray(objects, key, values, false));
     }
 
-    public virtual object filterByArrayTickers(object objects, object key, object values = null, bool? indexed = null)
+    public virtual object filterByArrayTickers(object objects, object key, object values = null)
     {
         /**
-        * @ignore
-        * @method
-        * @description Typed wrapper for filterByArray that returns a dictionary of tickers
-        */
-        indexed ??= true;
-        return this.filterByArray(objects, key, values, indexed);
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a dictionary of tickers
+         */
+        return this.indexBy(this.filterByArray(objects, key, values, false), key);
     }
 
     public virtual object filterByArrayADLRanks(object objects, object key, object values = null, bool? indexed = null)

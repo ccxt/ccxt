@@ -925,7 +925,8 @@ public partial class lbank : Exchange
         if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
         {
             Dictionary<string, object> responseForSwap = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null)}, parameters));
-            return ccxt.BaseExchange.ToTicker(this.safeDict(responseForSwap, (market.ContainsKey("symbol") ? market["symbol"] : null)));
+            IDictionary<string, object> swapTicker = this.safeDict(responseForSwap, (market.ContainsKey("symbol") ? market["symbol"] : null));
+            return ccxt.BaseExchange.ToTicker(swapTicker);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -1612,7 +1613,8 @@ public partial class lbank : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> responseForSwap = ccxt.BaseExchange.FromFundingRates(await this.FetchFundingRates(new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null)}, parameters));
-        return ccxt.BaseExchange.ToFundingRate(this.safeDict(responseForSwap, (market.ContainsKey("symbol") ? market["symbol"] : null)));
+        IDictionary<string, object> fundingRate = this.safeDict(responseForSwap, (market.ContainsKey("symbol") ? market["symbol"] : null));
+        return ccxt.BaseExchange.ToFundingRate(fundingRate);
     }
 
     /**
@@ -1768,7 +1770,8 @@ public partial class lbank : Exchange
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> result = ccxt.BaseExchange.FromTradingFees(await this.FetchTradingFees(this.extend(parameters, new Dictionary<string, object>() { { "category", (market.ContainsKey("id") ? market["id"] : null) }, })));
-        return ccxt.BaseExchange.ToTradingFeeInterface(this.safeDict(result, symbol));
+        IDictionary<string, object> fee = this.safeDict(result, symbol);
+        return ccxt.BaseExchange.ToTradingFeeInterface(fee);
     }
 
     /**

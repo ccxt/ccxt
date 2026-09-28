@@ -990,7 +990,8 @@ public partial class bigone : Exchange
         } else
         {
             Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, paramsMarketType));
-            return ccxt.BaseExchange.ToTicker(this.safeValue(tickers, symbol));
+            IDictionary<string, object> spotTicker = this.safeDict(tickers, symbol);
+            return ccxt.BaseExchange.ToTicker(spotTicker);
         }
     }
 
@@ -1088,12 +1089,12 @@ public partial class bigone : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        Int64? timestamp = this.safeInteger(data, "Timestamp");
+        Int64? timestamp = this.safeIntegerProduct(data, "Timestamp", 0.000001);
         if ((timestamp == null))
         {
             throw new ExchangeError ((this.id + " fetchTime() missing timestamp")) ;
         }
-        return ccxt.BaseExchange.ToInt64Value(this.parseToInt(((double?)timestamp / 1000000)));
+        return ccxt.BaseExchange.ToInt64Value(timestamp);
     }
 
     /**

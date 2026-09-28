@@ -631,7 +631,8 @@ public partial class btcturk : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
-        return ccxt.BaseExchange.ToTicker(this.safeDict(tickers, symbol));
+        IDictionary<string, object> ticker = this.safeDict(tickers, symbol);
+        return ccxt.BaseExchange.ToTicker(ticker);
     }
 
     public override ccxt.Trade parseTrade(object trade, object market = null)
