@@ -360,7 +360,7 @@ export default class hitbtc extends hitbtcRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
-        const ticker = await this.watchTickers ([ symbol ], params);
+        const ticker = await this.watchTickers ([ symbol ], this.extend (params, { 'callerMethodName': 'watchTicker' }));
         return this.safeValue (ticker, symbol);
     }
 
@@ -383,7 +383,9 @@ export default class hitbtc extends hitbtcRest {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols);
-        const options = this.safeDict (this.options, 'watchTickers');
+        let methodName: Str = undefined;
+        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchTickers'); // watchTicker passes its own name, so options.watchTicker still applies to it
+        const options = this.safeDict (this.options, methodName);
         const defaultMethod = this.safeString (options, 'method', 'ticker/{speed}/batch');
         const method = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
         const speedValue = this.safeString (params, 'speed', '1s'); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'

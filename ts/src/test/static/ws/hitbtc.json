@@ -396,6 +396,94 @@
                 ]
             }
         ],
+        "watchTicker": [
+            {
+                "description": "ticker/price channel from options.watchTicker.method",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "options": {
+                    "watchTicker": {
+                        "method": "ticker/price/{speed}"
+                    }
+                },
+                "url": "wss://api.hitbtc.com/api/3/ws/public",
+                "messages": [
+                    {
+                        "result": {
+                            "ch": "ticker/price/1s",
+                            "subscriptions": [
+                                "BTCUSDT"
+                            ]
+                        },
+                        "id": 1790512903454
+                    },
+                    {
+                        "ch": "ticker/price/1s",
+                        "data": {
+                            "BTCUSDT": {
+                                "t": 1790512903472,
+                                "o": "84099.79",
+                                "c": "85015.31",
+                                "h": "85080.31",
+                                "l": "83855.37",
+                                "v": "315.51166",
+                                "q": "26638810.4490897"
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "id": 1790512903454,
+                        "ch": "ticker/price/1s",
+                        "params": {
+                            "symbols": [
+                                "BTCUSDT"
+                            ]
+                        }
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1790512903472,
+                        "datetime": "2026-09-27T12:41:43.472Z",
+                        "high": 85080.31,
+                        "low": 83855.37,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 84430.51026732166,
+                        "open": 84099.79,
+                        "close": 85015.31,
+                        "last": 85015.31,
+                        "previousClose": null,
+                        "change": 915.52,
+                        "percentage": 1.088611517341482,
+                        "average": 84557.55,
+                        "baseVolume": 315.51166,
+                        "quoteVolume": 26638810.4490897,
+                        "info": {
+                            "t": 1790512903472,
+                            "o": "84099.79",
+                            "c": "85015.31",
+                            "h": "85080.31",
+                            "l": "83855.37",
+                            "v": "315.51166",
+                            "q": "26638810.4490897"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            }
+        ],
         "watchTickers": [
             {
                 "description": "ticker/price channel from options.watchTickers.method",
