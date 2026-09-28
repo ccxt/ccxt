@@ -13561,7 +13561,8 @@ export default class binance extends Exchange {
             'symbol': symbol,
         };
         const borrowRates = await this.fetchIsolatedBorrowRates (this.extend (request, params));
-        return this.safeDict (borrowRates, symbol) as IsolatedBorrowRate;
+        const rate = this.safeDict (borrowRates, symbol);
+        return rate as IsolatedBorrowRate;
     }
 
     /**
@@ -14855,7 +14856,8 @@ export default class binance extends Exchange {
             //
         } else if (subType === 'inverse') {
             const fetchMarginModesResponse = await this.fetchMarginModes ([ symbol ], paramsSubType);
-            return fetchMarginModesResponse[symbol];
+            const marginMode = this.safeDict (fetchMarginModesResponse, symbol);
+            return marginMode as MarginMode;
         } else {
             throw new BadRequest (this.id + ' fetchMarginMode () supports linear and inverse subTypes only');
         }
