@@ -5,7 +5,8 @@
         "timestamp",
         "recvWindow",
         "newClientOrderId",
-        "newClientStrategyId"
+        "newClientStrategyId",
+        "clientAlgoId"
     ],
     "outputType": "urlencoded",
     "options": {
@@ -66,6 +67,22 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "algo order for inverse swap market without client id in params",
+                "method": "createOrder",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
+                "input": [
+                    "ETH/USD:ETH",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "stopLossPrice": 3000
+                    }
+                ],
+                "output": "timestamp=1790581474927&symbol=ETHUSD_PERP&side=BUY&clientAlgoId=x-xcKtGhcudc617b05cb6a4c0a865f98&newOrderRespType=RESULT&type=STOP_MARKET&quantity=1&triggerPrice=3000&algoType=CONDITIONAL&recvWindow=10000&signature=13218d651e5a89185e5119f6071316c8b6b1138ed8973ffe0af80e759e33033d"
+            },
             {
                 "description": "Swap inverse market sell with stopLossPrice",
                 "method": "createOrder",
