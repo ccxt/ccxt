@@ -9706,7 +9706,7 @@ impl BybitCore {
             append_to_array(&mut results, self.parse_position(rawPosition, &[]));
         }
         }
-        return self.filter_by_array_positions(results, Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(false)]);
+        return self.filter_by_array_positions(results, Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }

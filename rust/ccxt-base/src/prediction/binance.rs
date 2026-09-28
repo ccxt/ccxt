@@ -2100,7 +2100,6 @@ impl BinanceCore {
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("lastTradeTimestamp".to_string(), self.safe_integer_k(trade.clone(), "modifyTime", &[]));
         m.insert("outcome".to_string(), self.safe_string_k(outcomeObjResolved.clone(), "outcome", &[]));
         m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObjResolved.clone(), "id", &[]));
         m.insert("label".to_string(), self.safe_string_k(outcomeObjResolved.clone(), "label", &[]));
@@ -2111,7 +2110,6 @@ impl BinanceCore {
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), price);
         m.insert("amount".to_string(), self.safe_string_k(trade, "makerShareQty", &[]));
-        m.insert("filled".to_string(), filled);
         m.insert("cost".to_string(), cost);
         m.insert("fee".to_string(), fee);
     m
@@ -2405,10 +2403,11 @@ impl BinanceCore {
     m
 }));
         let mut orders: Value = self.cancel_orders(Value::from(vec![id]), &[outcome, params]).await;
-        return self.safe_dict(orders, Value::Int(0), &[Value::Map({
+        let mut first: Value = self.safe_dict(orders, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
+        return first;
 
     Value::Null
 }

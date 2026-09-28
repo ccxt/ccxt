@@ -885,7 +885,8 @@ impl BtcturkCore {
             self.load_markets(&[]).await;
         }
         let mut tickers: Value = self.fetch_tickers(&[Value::from(vec![symbol.clone()]), params]).await;
-        return self.safe_dict(tickers, symbol, &[]);
+        let mut ticker: Value = self.safe_dict(tickers, symbol, &[]);
+        return ticker;
 
     Value::Null
 }

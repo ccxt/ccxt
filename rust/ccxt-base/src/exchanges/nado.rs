@@ -1029,7 +1029,8 @@ impl NadoCore {
     m
 }));
         let mut orders: Value = self.cancel_orders(Value::from(vec![id]), &[symbol, params]).await;
-        return self.safe_dict(orders, Value::Int(0), &[]);
+        let mut canceled: Value = self.safe_dict(orders, Value::Int(0), &[]);
+        return canceled;
 
     Value::Null
 }
@@ -2133,7 +2134,7 @@ impl NadoCore {
             append_to_array(&mut result, self.parse_position(__ws_arg_13, &[]));
         }
         }
-        return self.filter_by_array_positions(result, Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(false)]);
+        return self.filter_by_array_positions(result, Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }

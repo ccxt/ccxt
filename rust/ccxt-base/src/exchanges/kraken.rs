@@ -2097,7 +2097,8 @@ impl KrakenCore {
     m
 }));
         let mut items: Value = self.fetch_ledger_entries_by_ids(Value::from(vec![id]), &[code, params]).await;
-        return items.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut entry: Value = self.safe_dict(items, Value::Int(0), &[]);
+        return entry;
 
     Value::Null
 }
@@ -4618,7 +4619,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut result: Value = self.safe_list_k(response, "result", &[]);
         let mut results: Value = self.parse_positions(result, &[symbolsNormalized.clone()]);
-        return self.filter_by_array_positions(results, Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(false)]);
+        return self.filter_by_array_positions(results, Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }

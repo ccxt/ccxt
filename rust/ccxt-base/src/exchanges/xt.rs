@@ -7294,7 +7294,7 @@ impl XtCore {
             append_to_array(&mut result, self.parse_position(merged, &[marketInner]));
         }
         }
-        return self.filter_by_array_positions(result, Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
+        return self.filter_by_array_positions(result, Value::Str("symbol".into()), &[symbols]);
 
     Value::Null
 }

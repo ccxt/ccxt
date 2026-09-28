@@ -2740,7 +2740,6 @@ impl MexcCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit); }
         }
-        let mut orderbook: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
             let mut response: Value = self.spot_public_get_depth(&[__ws_arg_0]).await;
@@ -2758,8 +2757,9 @@ impl MexcCore {
             //     }
             //
             let mut spotTimestamp: Value = self.safe_integer_k(response.clone(), "timestamp", &[]);
-            orderbook = self.parse_order_book(response.clone(), symbol.clone(), &[spotTimestamp]);
-            add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(response.clone(), "lastUpdateId", &[]));
+            let mut spotOrderbook: Value = self.parse_order_book(response.clone(), symbol.clone(), &[spotTimestamp]);
+            add_element_to_object(&mut spotOrderbook, &Value::Str("nonce".into()), self.safe_integer_k(response.clone(), "lastUpdateId", &[]));
+            return spotOrderbook;
         }  else if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             let __ws_arg_1 = self.extend(request, &[params]);
             let mut response: Value = self.contract_public_get_depth_symbol(&[__ws_arg_1]).await;
@@ -2783,10 +2783,11 @@ impl MexcCore {
             //
             let mut data: Value = self.safe_dict_k(response, "data", &[]);
             let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
-            orderbook = self.parse_order_book(data.clone(), symbol, &[timestamp]);
-            add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(data, "version", &[]));
+            let mut swapOrderbook: Value = self.parse_order_book(data.clone(), symbol, &[timestamp]);
+            add_element_to_object(&mut swapOrderbook, &Value::Str("nonce".into()), self.safe_integer_k(data, "version", &[]));
+            return swapOrderbook;
         }
-        return orderbook;
+        panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() does not support ".into())).into()), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)).into()), Value::Str(" markets".into()))));
 
     Value::Null
 }

@@ -1827,7 +1827,7 @@ impl CoinbaseinternationalCore {
             return positions;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        return self.filter_by_array_positions(positions, Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(false)]);
+        return self.filter_by_array_positions(positions, Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }

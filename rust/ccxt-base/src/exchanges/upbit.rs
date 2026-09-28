@@ -1279,7 +1279,8 @@ impl UpbitCore {
     m
 }));
         let mut orderbooks: Value = self.fetch_order_books(&[Value::from(vec![symbol.clone()]), limit, params]).await;
-        return self.safe_dict(orderbooks, symbol, &[]);
+        let mut orderbook: Value = self.safe_dict(orderbooks, symbol, &[]);
+        return orderbook;
 
     Value::Null
 }
@@ -1474,7 +1475,8 @@ impl UpbitCore {
     m
 }));
         let mut tickers: Value = self.fetch_tickers(&[Value::from(vec![symbol.clone()]), params]).await;
-        return self.safe_dict(tickers, symbol, &[]);
+        let mut ticker: Value = self.safe_dict(tickers, symbol, &[]);
+        return ticker;
 
     Value::Null
 }

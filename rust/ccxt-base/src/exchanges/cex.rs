@@ -954,10 +954,11 @@ impl CexCore {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.fetch_tickers(&[Value::from(vec![symbol.clone()]), params]).await;
-        return self.safe_dict(response, symbol, &[Value::Map({
+        let mut ticker: Value = self.safe_dict(response, symbol, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
+        return ticker;
 
     Value::Null
 }
@@ -2354,11 +2355,15 @@ impl CexCore {
             transfer = self.transfer_between_main_and_sub_account(code, amount, fromAccount.clone(), toAccount.clone(), &[params]).await;
         }
         let mut fillResponseFromRequest: Value = self.handle_option(Value::Str("transfer".into()), Value::Str("fillResponseFromRequest".into()), &[Value::Bool(true)]);
+        let mut filled: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         if is_equal(&fillResponseFromRequest, &Value::Bool(true)) {
-            add_element_to_object(&mut transfer, &Value::Str("fromAccount".into()), fromAccount);
-            add_element_to_object(&mut transfer, &Value::Str("toAccount".into()), toAccount);
+            if let Value::Dict(__d) = &mut filled { std::sync::Arc::make_mut(__d).insert("fromAccount".into(), fromAccount); }
+            if let Value::Dict(__d) = &mut filled { std::sync::Arc::make_mut(__d).insert("toAccount".into(), toAccount); }
         }
-        return transfer;
+        return self.extend(transfer, &[filled]);
 
     Value::Null
 }

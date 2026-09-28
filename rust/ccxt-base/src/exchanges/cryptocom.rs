@@ -1848,7 +1848,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut symbolValue: Value = self.symbol(symbol.clone());
         let mut tickers: Value = self.fetch_tickers(&[Value::from(vec![symbolValue.clone()]), params]).await;
-        return self.safe_value(tickers, symbolValue, &[]);
+        let mut ticker: Value = self.safe_dict(tickers, symbolValue, &[]);
+        return ticker;
 
     Value::Null
 }
@@ -4746,7 +4747,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             append_to_array(&mut result, self.parse_position(entry, &[marketInner]));
         }
         }
-        return self.filter_by_array_positions(result, Value::Str("symbol".into()), &[Value::Null, Value::Bool(false)]);
+        return self.filter_by_array_positions(result, Value::Str("symbol".into()), &[Value::Null]);
 
     Value::Null
 }

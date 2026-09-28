@@ -2195,8 +2195,12 @@ impl PhemexCore {
 })]);
         let mut timestamp: Value = self.safe_integer_product_k(result.clone(), "timestamp", Value::Float(0.000001), &[]);
         let mut orderbook: Value = self.custom_parse_order_book(book, symbol, &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1), market]);
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(result, "sequence", &[]));
-        return orderbook;
+        let mut nonce: Value = self.safe_integer_k(result, "sequence", &[]);
+        return self.extend(orderbook, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("nonce".to_string(), nonce);
+    m
+})]);
 
     Value::Null
 }
@@ -5223,7 +5227,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             append_to_array(&mut result, self.parse_position(position, &[]));
         }
         }
-        return self.filter_by_array_positions(result, Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(false)]);
+        return self.filter_by_array_positions(result, Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }

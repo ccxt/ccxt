@@ -4832,7 +4832,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut symbolValue: Value = self.symbol(symbol.clone());
         let mut response: Value = self.fetch_funding_rates(&[Value::from(vec![symbolValue.clone()]), params]).await;
-        return self.safe_value(response, symbolValue, &[]);
+        let mut fundingRate: Value = self.safe_dict(response, symbolValue, &[]);
+        return fundingRate;
 
     Value::Null
 }

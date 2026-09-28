@@ -2176,7 +2176,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "daily_base_token_volume", &[]);
         let mut quoteVolume: Value = self.safe_string_k(ticker.clone(), "daily_quote_token_volume", &[]);
         let mut change: Value = self.safe_string_k(ticker.clone(), "daily_price_change", &[]);
-        let mut openInterest: Value = self.safe_string_k(ticker.clone(), "open_interest", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
@@ -2200,7 +2199,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("quoteVolume".to_string(), quoteVolume);
         m.insert("markPrice".to_string(), self.safe_string_k(ticker.clone(), "mark_price", &[]));
         m.insert("indexPrice".to_string(), self.safe_string_k(ticker.clone(), "index_price", &[]));
-        m.insert("openInterest".to_string(), openInterest);
         m.insert("info".to_string(), ticker);
     m
 }), &[marketResolved]);

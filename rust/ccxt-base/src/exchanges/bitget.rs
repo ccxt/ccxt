@@ -6922,10 +6922,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let __ws_arg_7 = self.extend(request, &[params]);
         let mut deposits: Value = self.fetch_deposits(&[code, Value::Null, Value::Null, __ws_arg_7]).await;
-        return self.safe_dict(deposits, Value::Int(0), &[Value::Map({
+        let mut deposit: Value = self.safe_dict(deposits, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
+        return deposit;
 
     Value::Null
 }
@@ -7172,10 +7173,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let __ws_arg_12 = self.extend(request, &[params]);
         let mut withdrawals: Value = self.fetch_withdrawals(&[code, Value::Null, Value::Null, __ws_arg_12]).await;
-        return self.safe_dict(withdrawals, Value::Int(0), &[Value::Map({
+        let mut withdrawal: Value = self.safe_dict(withdrawals, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
+        return withdrawal;
 
     Value::Null
 }
@@ -13319,7 +13321,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        return self.filter_by_array_positions(result, Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(false)]);
+        return self.filter_by_array_positions(result, Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }

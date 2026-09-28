@@ -1336,7 +1336,8 @@ pub trait ExchangeBase:
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchMarginModes")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchMarginModes")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             let mut marginModes: Value = self.fetch_margin_modes(&[Value::from(vec![symbol.clone()]), params]).await;
-            return self.safe_dict(marginModes, symbol, &[]);
+            let mut marginMode: Value = self.safe_dict(marginModes, symbol, &[]);
+            return marginMode;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchMarginMode() is not supported yet".into()))));
         }
@@ -1791,7 +1792,8 @@ pub trait ExchangeBase:
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchLeverages")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchLeverages")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             let mut leverages: Value = self.fetch_leverages(&[Value::from(vec![symbol.clone()]), params]).await;
-            return self.safe_dict(leverages, symbol, &[]);
+            let mut leverage: Value = self.safe_dict(leverages, symbol, &[]);
+            return leverage;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() is not supported yet".into()))));
         }
@@ -4811,7 +4813,7 @@ pub trait ExchangeBase:
             append_to_array(&mut result, position);
         }
         }
-        return self.filter_by_array_positions(result, Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(false)]);
+        return self.filter_by_array_positions(result, Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }
@@ -4846,7 +4848,7 @@ pub trait ExchangeBase:
             append_to_array(&mut result, rank);
         }
         }
-        return self.filter_by_array_positions(result, Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(false)]);
+        return self.filter_by_array_positions(result, Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }
@@ -5893,7 +5895,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchCrossBorrowRate() is not supported yet".into()))));
         }
         let mut borrowRates: Value = self.fetch_cross_borrow_rates(&[params]).await;
-        let mut rate: Value = self.safe_value(borrowRates, code.clone(), &[]);
+        let mut rate: Value = self.safe_dict(borrowRates, code.clone(), &[]);
         if (rate == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchCrossBorrowRate() could not find the borrow rate for currency code ".into())).into()), code)));
         }
@@ -7363,7 +7365,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        return self.filter_by_array(results, Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(results, Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }
@@ -7520,7 +7522,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         }
-        return self.filter_by_array(fundingRates, Value::Str("symbol".into()), &[symbols]);
+        return self.index_by(self.filter_by_array(fundingRates, Value::Str("symbol".into()), &[symbols, Value::Bool(false)]), Value::Str("symbol".into()));
 
     Value::Null
 }
@@ -7836,7 +7838,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() supports contract markets only".into()))));
             }
             let mut rates: Value = self.fetch_funding_rates(&[Value::from(vec![symbolResolved.clone()]), params]).await;
-            let mut rate: Value = self.safe_value(rates, symbolResolved.clone(), &[]);
+            let mut rate: Value = self.safe_dict(rates, symbolResolved.clone(), &[]);
             if (rate == Value::Null) {
                 panic!("{}", crate::exchange_errors::null_response(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate () returned no data for ".into())).into()), symbolResolved)));
             }  else {
@@ -7867,7 +7869,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingInterval() supports contract markets only".into()))));
             }
             let mut rates: Value = self.fetch_funding_intervals(&[Value::from(vec![symbolResolved.clone()]), params]).await;
-            let mut rate: Value = self.safe_value(rates, symbolResolved.clone(), &[]);
+            let mut rate: Value = self.safe_dict(rates, symbolResolved.clone(), &[]);
             if (rate == Value::Null) {
                 panic!("{}", crate::exchange_errors::null_response(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingInterval() returned no data for ".into())).into()), symbolResolved)));
             }  else {
@@ -8290,16 +8292,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn filter_by_array_positions(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut values = get_arg(optional_args, 0, Value::Null);
-        let mut indexed = get_arg(optional_args, 1, Value::Bool(true));
-        return self.filter_by_array(objects, key, &[values, indexed]);
+        return self.to_array(self.filter_by_array(objects, key, &[values, Value::Bool(false)]));
 
     Value::Null
 }
 
     fn filter_by_array_tickers(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut values = get_arg(optional_args, 0, Value::Null);
-        let mut indexed = get_arg(optional_args, 1, Value::Bool(true));
-        return self.filter_by_array(objects, key, &[values, indexed]);
+        return self.index_by(self.filter_by_array(objects, key.clone(), &[values, Value::Bool(false)]), key);
 
     Value::Null
 }
@@ -10516,7 +10516,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchOpenInterests")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchOpenInterests")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             let mut openInterests: Value = self.fetch_open_interests(&[Value::from(vec![symbol.clone()]), params]).await;
-            return self.safe_dict(openInterests, symbol, &[]);
+            let mut openInterest: Value = self.safe_dict(openInterests, symbol, &[]);
+            return openInterest;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest() is not supported yet".into()))));
         }
@@ -11530,7 +11531,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFee() is not supported yet".into()))));
         }
         let mut fees: Value = self.fetch_trading_fees(&[params]).await;
-        return self.safe_dict(fees, symbol, &[]);
+        let mut fee: Value = self.safe_dict(fees, symbol, &[]);
+        return fee;
 
     Value::Null
 } }

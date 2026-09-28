@@ -6374,7 +6374,8 @@ impl OkxCore {
         let mut isTrigger: bool = trigger.as_bool() == Some(true);
         if isTrigger || (trailing.as_bool() == Some(true)) {
             let mut orderInner: Value = self.cancel_orders(Value::from(vec![id.clone()]), &[symbol.clone(), params.clone()]).await;
-            return self.safe_dict(orderInner, Value::Int(0), &[]);
+            let mut canceledInner: Value = self.safe_dict(orderInner, Value::Int(0), &[]);
+            return canceledInner;
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -9139,7 +9140,7 @@ impl OkxCore {
             append_to_array(&mut result, self.parse_position(positions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]));
         }
         }
-        return self.filter_by_array_positions(result, Value::Str("symbol".into()), &[self.market_symbols(&[symbols]), Value::Bool(false)]);
+        return self.filter_by_array_positions(result, Value::Str("symbol".into()), &[self.market_symbols(&[symbols])]);
 
     Value::Null
 }

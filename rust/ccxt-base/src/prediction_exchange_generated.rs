@@ -2104,10 +2104,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // `symbol` with the `outcome` handle and attach the outcome identity fields
         // outcomeId and market - so books match the PredictionOrderBook structure.
         let mut fallback: Value = self.safe_string2(orderbook.clone(), Value::Str("outcome".into()), Value::Str("symbol".into()), &[]);
-        if let Value::Dict(__d) = &mut orderbook { std::sync::Arc::make_mut(__d).insert("outcome".into(), (if (outcomeObj == Value::Null) { fallback.clone() } else { self.safe_string_k(outcomeObj.clone(), "outcome", &[fallback]) })); }
-        { let __be_tmp = (if (outcomeObj == Value::Null) { self.safe_string_k(orderbook.clone(), "outcomeId", &[]) } else { self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]) }); if let Value::Dict(__d) = &mut orderbook { std::sync::Arc::make_mut(__d).insert("outcomeId".into(), __be_tmp); } }
-        { let __be_tmp = (if (outcomeObj == Value::Null) { self.safe_string_k(orderbook.clone(), "market", &[]) } else { self.safe_string_k(outcomeObj, "market", &[]) }); if let Value::Dict(__d) = &mut orderbook { std::sync::Arc::make_mut(__d).insert("market".into(), __be_tmp); } }
-        return self.omit(orderbook, Value::Str("symbol".into()), &[]);
+        let mut identity: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("outcome".to_string(), (if (outcomeObj == Value::Null) { fallback.clone() } else { self.safe_string_k(outcomeObj.clone(), "outcome", &[fallback]) }));
+                m.insert("outcomeId".to_string(), (if (outcomeObj == Value::Null) { self.safe_string_k(orderbook.clone(), "outcomeId", &[]) } else { self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]) }));
+                m.insert("market".to_string(), (if (outcomeObj == Value::Null) { self.safe_string_k(orderbook.clone(), "market", &[]) } else { self.safe_string_k(outcomeObj, "market", &[]) }));
+            m
+        });
+        let __ws_arg_0 = self.omit(orderbook, Value::Str("symbol".into()), &[]);
+        return self.extend(__ws_arg_0, &[identity]);
 
     Value::Null
 }

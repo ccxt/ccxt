@@ -2309,7 +2309,15 @@ impl PolymarketCore {
     m
 }));
         let mut response: Value = self.clob_public_get_time(&[params]).await;
-        return (match (&(self.parse_to_int(response)), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        //
+        //     1781273248
+        //
+        let mut result: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("serverTime".to_string(), response);
+            m
+        });
+        return self.safe_timestamp_k(result, "serverTime", &[]);
 
     Value::Null
 }

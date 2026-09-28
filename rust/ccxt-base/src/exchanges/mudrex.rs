@@ -1630,7 +1630,7 @@ impl MudrexCore {
             append_to_array(&mut outPos, pos);
         }
         }
-        return self.filter_by_array_positions(outPos, Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
+        return self.filter_by_array_positions(outPos, Value::Str("symbol".into()), &[symbols]);
 
     Value::Null
 }
@@ -1870,7 +1870,10 @@ impl MudrexCore {
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("position_id".into())]), &[]);
         let __ws_arg_18 = self.extend(request, &[paramsOmitted]);
         let mut response: Value = self.private_post_futures_positions_position_id_add_margin(&[__ws_arg_18]).await;
-        return response;
+        return self.extend(response, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
 
     Value::Null
 }

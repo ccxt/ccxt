@@ -2205,7 +2205,7 @@ impl ZebpayCore {
         //
         let mut positions: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         let mut result: Value = self.parse_positions(positions, &[]);
-        return self.filter_by_array_positions(result, Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
+        return self.filter_by_array_positions(result, Value::Str("symbol".into()), &[symbols]);
 
     Value::Null
 }
@@ -2663,7 +2663,7 @@ impl ZebpayCore {
         //
         let mut timestamp: Value = self.safe_integer2(ticker.clone(), Value::Str("timestamp".into()), Value::Str("ts".into()), &[]);
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone()]);
+        let mut marketResolved: Value = self.safe_market(&[marketId]);
         let mut close: Value = self.safe_string_k(ticker.clone(), "close", &[]);
         let mut last: Value = self.safe_string_k(ticker.clone(), "last", &[]);
         let mut percentage: Value = self.safe_string_k(ticker.clone(), "percentage", &[]);
@@ -2671,7 +2671,6 @@ impl ZebpayCore {
         let mut askVolume: Value = self.safe_string_k(ticker.clone(), "askVolume", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), marketId);
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));

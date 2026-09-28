@@ -1408,7 +1408,8 @@ impl BigoneCore {
             return self.parse_ticker(ticker, &[market]);
         }  else {
             let mut tickers: Value = self.fetch_tickers(&[Value::from(vec![symbol.clone()]), paramsMarketType]).await;
-            return self.safe_value(tickers, symbol, &[]);
+            let mut spotTicker: Value = self.safe_dict(tickers, symbol, &[]);
+            return spotTicker;
         }
 
     Value::Null
@@ -1517,11 +1518,11 @@ impl BigoneCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut timestamp: Value = self.safe_integer_k(data, "Timestamp", &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(data, "Timestamp", Value::Float(0.000001), &[]);
         if (timestamp == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchTime() missing timestamp".into()))));
         }
-        return self.parse_to_int((match ((timestamp).as_f64(), (Value::Int(1000000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        return timestamp;
 
     Value::Null
 }

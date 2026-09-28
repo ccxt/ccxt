@@ -768,19 +768,11 @@ impl P2bCore {
         //        current_time: '1699252958.859391'
         //    }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut timestamp: Value = self.safe_integer_product_k(response, "cache_time", Value::Int(1000), &[]);
-        let __ws_arg_1 = self.iso8601(timestamp.clone());
-        let __ws_arg_2 = self.parse_ticker(result, &[market]);
-        return self.extend(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("timestamp".to_string(), timestamp);
-        m.insert("datetime".to_string(), __ws_arg_1);
-    m
-}), &[__ws_arg_2]);
+        return self.parse_ticker(result, &[market]);
 
     Value::Null
 }
@@ -883,8 +875,8 @@ impl P2bCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit); }
         }
-        let __ws_arg_3 = self.extend(request, &[params]);
-        let mut response: Value = self.public_get_depth_result(&[__ws_arg_3]).await;
+        let __ws_arg_1 = self.extend(request, &[params]);
+        let mut response: Value = self.public_get_depth_result(&[__ws_arg_1]).await;
         //
         //    {
         //        "success": true,
@@ -956,8 +948,8 @@ impl P2bCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
-        let __ws_arg_4 = self.extend(request, &[params]);
-        let mut response: Value = self.public_get_history(&[__ws_arg_4]).await;
+        let __ws_arg_2 = self.extend(request, &[params]);
+        let mut response: Value = self.public_get_history(&[__ws_arg_2]).await;
         //
         //    {
         //        success: true,
@@ -1092,8 +1084,8 @@ impl P2bCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
-        let __ws_arg_5 = self.extend(request, &[params]);
-        let mut response: Value = self.public_get_market_kline(&[__ws_arg_5]).await;
+        let __ws_arg_3 = self.extend(request, &[params]);
+        let mut response: Value = self.public_get_market_kline(&[__ws_arg_3]).await;
         //
         //    {
         //        success: true,
@@ -1248,8 +1240,8 @@ impl P2bCore {
                 m.insert("price".to_string(), self.price_to_precision(symbol, price));
             m
         });
-        let __ws_arg_6 = self.extend(request, &[params]);
-        let mut response: Value = self.private_post_order_new(&[__ws_arg_6]).await;
+        let __ws_arg_4 = self.extend(request, &[params]);
+        let mut response: Value = self.private_post_order_new(&[__ws_arg_4]).await;
         //
         //    {
         //        "success": true,
@@ -1307,8 +1299,8 @@ impl P2bCore {
                 m.insert("orderId".to_string(), id);
             m
         });
-        let __ws_arg_7 = self.extend(request, &[params]);
-        let mut response: Value = self.private_post_order_cancel(&[__ws_arg_7]).await;
+        let __ws_arg_5 = self.extend(request, &[params]);
+        let mut response: Value = self.private_post_order_cancel(&[__ws_arg_5]).await;
         //
         //    {
         //        "success": true,
@@ -1374,8 +1366,8 @@ impl P2bCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
-        let __ws_arg_8 = self.extend(request, &[params]);
-        let mut response: Value = self.private_post_orders(&[__ws_arg_8]).await;
+        let __ws_arg_6 = self.extend(request, &[params]);
+        let mut response: Value = self.private_post_orders(&[__ws_arg_6]).await;
         //
         //    {
         //        "success": true,
@@ -1442,8 +1434,8 @@ impl P2bCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
-        let __ws_arg_9 = self.extend(request, &[params]);
-        let mut response: Value = self.private_post_account_order(&[__ws_arg_9]).await;
+        let __ws_arg_7 = self.extend(request, &[params]);
+        let mut response: Value = self.private_post_account_order(&[__ws_arg_7]).await;
         //
         //    {
         //        "success": true,
@@ -1532,8 +1524,8 @@ impl P2bCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
-        let __ws_arg_10 = self.extend(request, &[paramsOmitted]);
-        let mut response: Value = self.private_post_account_market_deal_history(&[__ws_arg_10]).await;
+        let __ws_arg_8 = self.extend(request, &[paramsOmitted]);
+        let mut response: Value = self.private_post_account_market_deal_history(&[__ws_arg_8]).await;
         //
         //    {
         //        "success": true,
@@ -1627,8 +1619,8 @@ impl P2bCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
-        let __ws_arg_11 = self.extend(request, &[paramsOmitted]);
-        let mut response: Value = self.private_post_account_order_history(&[__ws_arg_11]).await;
+        let __ws_arg_9 = self.extend(request, &[paramsOmitted]);
+        let mut response: Value = self.private_post_account_order_history(&[__ws_arg_9]).await;
         //
         //    {
         //        "success": true,

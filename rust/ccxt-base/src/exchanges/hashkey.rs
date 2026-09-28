@@ -5100,7 +5100,8 @@ impl HashkeyCore {
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             response = self.fetch_trading_fees(&[params.clone()]).await;
-            return self.safe_dict(response.clone(), symbol, &[]);
+            let mut fee: Value = self.safe_dict(response.clone(), symbol, &[]);
+            return fee;
         }  else if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             let __ws_arg_43 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();

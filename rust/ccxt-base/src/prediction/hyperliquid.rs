@@ -1938,7 +1938,8 @@ impl HyperliquidCore {
     m
 }));
         let mut orders: Value = self.cancel_orders(Value::from(vec![id]), &[outcome, params]).await;
-        return self.safe_dict(orders, Value::Int(0), &[]);
+        let mut first: Value = self.safe_dict(orders, Value::Int(0), &[]);
+        return first;
 
     Value::Null
 }

@@ -1685,7 +1685,8 @@ impl SxbetCore {
         let __ws_arg_7 = self.extend(request, &[params]);
         let mut response: Value = self.sxbet_private_delete_orders_v3(&[__ws_arg_7]).await;
         let mut orders: Value = self.parse_sxbet_cancel_response(response);
-        return self.safe_dict(orders, Value::Int(0), &[]);
+        let mut first: Value = self.safe_dict(orders, Value::Int(0), &[]);
+        return first;
 
     Value::Null
 }
