@@ -2139,7 +2139,8 @@ export default class hyperliquid extends Exchange {
         }
         const [ order, globalParams ] = this.parseCreateEditOrderArgs (undefined, symbol, type, side, amount, price, params);
         const orders = await this.createOrders ([ order as OrderRequest ], globalParams);
-        return orders[0];
+        const created = this.safeDict (orders, 0);
+        return created as Order;
     }
 
     /**
@@ -2492,7 +2493,8 @@ export default class hyperliquid extends Exchange {
             return await this.cancelTwapOrder (id, symbol, this.omit (params, 'twap'));
         }
         const orders = await this.cancelOrders ([ id ], symbol, params);
-        return this.safeDict (orders, 0) as Order;
+        const canceled = this.safeDict (orders, 0);
+        return canceled as Order;
     }
 
     /**
@@ -2954,7 +2956,8 @@ export default class hyperliquid extends Exchange {
         }
         const [ order, globalParams ] = this.parseCreateEditOrderArgs (id, symbol, type, side, (amount as number), price, params);
         const orders = await this.editOrders ([ order as OrderRequest ], globalParams);
-        return orders[0];
+        const edited = this.safeDict (orders, 0);
+        return edited as Order;
     }
 
     /**
@@ -4798,7 +4801,8 @@ export default class hyperliquid extends Exchange {
             await this.loadMarkets ();
         }
         const ois = await this.fetchOpenInterests ([ symbolValue ], params);
-        return ois[symbolValue];
+        const openInterest = this.safeDict (ois, symbolValue);
+        return openInterest as OpenInterest;
     }
 
     override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
