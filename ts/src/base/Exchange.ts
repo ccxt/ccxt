@@ -3780,7 +3780,8 @@ export class BaseExchange {
     async fetchMarginMode (symbol: string, params: Dict = {}): Promise<MarginMode> {
         if (this.has['fetchMarginModes'] !== undefined && this.has['fetchMarginModes'] !== false) {
             const marginModes = await this.fetchMarginModes ([ symbol ], params);
-            return this.safeDict (marginModes, symbol) as MarginMode;
+            const marginMode = this.safeDict (marginModes, symbol);
+            return marginMode as MarginMode;
         } else {
             throw new NotSupported (this.id + ' fetchMarginMode() is not supported yet');
         }
@@ -3962,7 +3963,8 @@ export class BaseExchange {
     async fetchLeverage (symbol: string, params: Dict = {}): Promise<Leverage> {
         if (this.has['fetchLeverages'] !== undefined && this.has['fetchLeverages'] !== false) {
             const leverages = await this.fetchLeverages ([ symbol ], params);
-            return this.safeDict (leverages, symbol) as Leverage;
+            const leverage = this.safeDict (leverages, symbol);
+            return leverage as Leverage;
         } else {
             throw new NotSupported (this.id + ' fetchLeverage() is not supported yet');
         }
@@ -6849,11 +6851,11 @@ export class BaseExchange {
             throw new NotSupported (this.id + ' fetchCrossBorrowRate() is not supported yet');
         }
         const borrowRates = await this.fetchCrossBorrowRates (params);
-        const rate = this.safeValue (borrowRates, code);
+        const rate = this.safeDict (borrowRates, code);
         if (rate === undefined) {
             throw new ExchangeError (this.id + ' fetchCrossBorrowRate() could not find the borrow rate for currency code ' + code);
         }
-        return rate;
+        return rate as CrossBorrowRate;
     }
 
     async fetchIsolatedBorrowRate (symbol: string, params: Dict = {}): Promise<IsolatedBorrowRate> {
@@ -6862,11 +6864,11 @@ export class BaseExchange {
             throw new NotSupported (this.id + ' fetchIsolatedBorrowRate() is not supported yet');
         }
         const borrowRates = await this.fetchIsolatedBorrowRates (params);
-        const rate = this.safeDict (borrowRates, symbol) as IsolatedBorrowRate;
+        const rate = this.safeDict (borrowRates, symbol);
         if (rate === undefined) {
             throw new ExchangeError (this.id + ' fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ' + symbol);
         }
-        return rate;
+        return rate as IsolatedBorrowRate;
     }
 
     /* eslint-disable no-unused-vars */
@@ -10395,7 +10397,8 @@ export default class Exchange extends BaseExchange {
             throw new NotSupported (this.id + ' fetchTradingFee() is not supported yet');
         }
         const fees = await this.fetchTradingFees (params);
-        return this.safeDict (fees, symbol) as TradingFeeInterface;
+        const fee = this.safeDict (fees, symbol);
+        return fee as TradingFeeInterface;
     }
 }
 
