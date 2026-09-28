@@ -2812,7 +2812,6 @@ class binance(Exchange, ImplicitAPI):
                     'Too many requests. Please try again later.': RateLimitExceeded,  # {"msg":"Too many requests. Please try again later.","success":false}
                     'This action is disabled on self account.': AccountSuspended,  # {"code":-2011,"msg":"This action is disabled on this account."}
                     'Limit orders require GTC for self phase.': BadRequest,
-                    'This order type is not hasattr(self, possible) trading phase.': BadRequest,
                     'This type of sub-account exceeds the maximum number limit': OperationRejected,  # {"code":-9000,"msg":"This type of sub-account exceeds the maximum number limit"}
                     'This symbol is restricted for self account.': PermissionDenied,
                     'This symbol is not permitted for self account.': PermissionDenied,  # {"code":-2010,"msg":"This symbol is not permitted for this account."}
@@ -2821,6 +2820,7 @@ class binance(Exchange, ImplicitAPI):
                     'has no operation privilege': PermissionDenied,
                     'MAX_POSITION': BadRequest,  # {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                     'PERCENT_PRICE_BY_SIDE': InvalidOrder,  # {"code":-1013,"msg":"Filter failure: PERCENT_PRICE_BY_SIDE"}
+                    'This order type is not possible': BadRequest,  # matched broadly: the php transpiler mangles the full message as an exact key
                 },
             },
             'rollingWindowSize': 60000.0,
@@ -6581,6 +6581,9 @@ class binance(Exchange, ImplicitAPI):
         postOnly = (type == 'limit_maker') or (timeInForce == 'PO')
         stopPriceString = self.safe_string_2(order, 'stopPrice', 'triggerPrice')
         triggerPrice = self.parse_number(self.omit_zero(stopPriceString))
+        # stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
+        isTakeProfitType = self.in_array(type, ['take_profit', 'take_profit_market', 'take_profit_limit'])
+        takeProfitPrice = triggerPrice if isTakeProfitType else None
         feeCost = self.safe_number(order, 'fee')
         fee = None
         if feeCost is not None:
@@ -6605,6 +6608,7 @@ class binance(Exchange, ImplicitAPI):
             'side': side,
             'price': price,
             'triggerPrice': triggerPrice,
+            'takeProfitPrice': takeProfitPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -6640,7 +6644,15 @@ class binance(Exchange, ImplicitAPI):
             amount = self.safe_value(rawOrder, 'amount')
             price = self.safe_value(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
-            orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
+            orderMarket = self.market(marketId)
+            if (orderMarket['linear'] is True) and (orderMarket['option'] is not True) and self.is_conditional_order(orderParams):
+                # linear conditional order types are only accepted by the algo order endpoints, which have no batch variant
+                # https://developers.binance.com/docs/derivatives/change-log (2025-11-06)
+                raise NotSupported(self.id + ' createOrders() does not support conditional order types for linear markets, use createOrder() instead')
+            # the inverse batch endpoint still accepts conditional order types in the regular (non-algo) format,
+            # but the exchange announced it will reject them after the coin-m migration
+            # https://developers.binance.com/docs/derivatives/coin-margined-futures/Important-CM-UM-Integration-Notice
+            orderRequest = self.create_order_request(marketId, type, side, amount, price, self.extend(orderParams, {'isAlgoOrder': False}))
             ordersRequests.append(orderRequest)
         orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
         market = self.market(orderSymbols[0])
@@ -6745,14 +6757,8 @@ class binance(Exchange, ImplicitAPI):
         marginMode = self.safe_string(params, 'marginMode')
         porfolioOptionsValue = self.safe_bool_2(self.options, 'papi', 'portfolioMargin', False)
         isPortfolioMargin = self.safe_bool_2(params, 'papi', 'portfolioMargin', porfolioOptionsValue)
-        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
-        stopLossPrice = self.safe_string(params, 'stopLossPrice')
-        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
-        trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRate')
-        isTrailingPercentOrder = trailingPercent is not None
-        isStopLoss = stopLossPrice is not None
-        isTakeProfit = takeProfitPrice is not None
-        isConditional = (triggerPrice is not None) or isTrailingPercentOrder or isStopLoss or isTakeProfit
+        isConditional = self.is_conditional_order(params)
+        isAlgoOrder = ((market['swap'] is True) or (market['future'] is True)) and isConditional and not isPortfolioMargin
         sor = self.safe_bool_2(params, 'sor', 'SOR', False)
         test = self.safe_bool(params, 'test', False)
         stock = self.safe_bool(market, 'stock', False)
@@ -6760,7 +6766,7 @@ class binance(Exchange, ImplicitAPI):
         # if (isPortfolioMargin) {
         #     params['portfolioMargin'] = isPortfolioMargin;
         # }
-        request = self.create_order_request(symbol, type, side, amount, price, params)
+        request = self.create_order_request(symbol, type, side, amount, price, self.extend(params, {'isAlgoOrder': isAlgoOrder}))
         response = None
         if market['option'] is True:
             response = await self.eapiPrivatePostOrder(request)
@@ -6809,6 +6815,16 @@ class binance(Exchange, ImplicitAPI):
             raise NullResponse(self.id + ' parseOrder() returned empty response')
         return self.parse_order(response, market)
 
+    def is_conditional_order(self, params: dict = {}) -> bool:
+        """
+ @ignore
+        checks whether the order params describe a conditional(trigger, stop loss, take profit or trailing) order
+        :param dict [params]: the params passed to createOrder
+        :returns boolean: True if the order is conditional
+        """
+        conditionalKeys = ['triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingPercent', 'callbackRate', 'trailingDelta']
+        return(self.safe_string_n(params, conditionalKeys) is not None)
+
     def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         """
  @ignore
@@ -6828,6 +6844,9 @@ class binance(Exchange, ImplicitAPI):
         market = self.market(symbol)
         marketType = self.safe_string(params, 'type', market['type'])
         stock = self.safe_bool(market, 'stock', False)
+        # set by the caller: the algo order endpoints name the client id, trigger and activation fields differently
+        isAlgoOrder = self.safe_bool(params, 'isAlgoOrder', False)
+        params = self.omit(params, 'isAlgoOrder')
         clientOrderId = self.safe_string_n(params, ['clientAlgoId', 'newClientOrderId', 'clientOrderId'])
         initialUppercaseType = type.upper()
         isMarketOrder = initialUppercaseType == 'MARKET'
@@ -6868,7 +6887,8 @@ class binance(Exchange, ImplicitAPI):
                 uppercaseType = 'TRAILING_STOP_MARKET'
                 request['callbackRate'] = trailingPercent
                 if trailingTriggerPrice is not None:
-                    request['activationPrice'] = self.price_to_precision(symbol, trailingTriggerPrice)
+                    activationPriceKey = 'activatePrice' if isAlgoOrder else 'activationPrice'
+                    request[activationPriceKey] = self.price_to_precision(symbol, trailingTriggerPrice)
             else:
                 if (uppercaseType != 'STOP_LOSS') and (uppercaseType != 'TAKE_PROFIT') and (uppercaseType != 'STOP_LOSS_LIMIT') and (uppercaseType != 'TAKE_PROFIT_LIMIT'):
                     stopLossOrTakeProfit = self.safe_string(params, 'stopLossOrTakeProfit')
@@ -6918,7 +6938,7 @@ class binance(Exchange, ImplicitAPI):
                 else:
                     raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
         clientOrderIdRequest = 'newClientStrategyId' if isPortfolioMarginConditional else 'newClientOrderId'
-        if (market['linear'] is True) and (market['swap'] is True) and isConditional and not isPortfolioMargin:
+        if isAlgoOrder:
             clientOrderIdRequest = 'clientAlgoId'
         elif stock is True:
             clientOrderIdRequest = 'clientOrderId'
@@ -7088,7 +7108,7 @@ class binance(Exchange, ImplicitAPI):
                 if trailingDelta is None and stopPrice is None and trailingPercent is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a triggerPrice, trailingDelta or trailingPercent param for a ' + type + ' order')
             if stopPrice is not None:
-                if (market['swap'] is True) and not isPortfolioMargin:
+                if isAlgoOrder:
                     request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
                 else:
                     request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
@@ -7118,7 +7138,7 @@ class binance(Exchange, ImplicitAPI):
         if icebergAmount is not None:
             if market['spot'] is True:
                 request['icebergQty'] = self.amount_to_precision(symbol, icebergAmount)
-        requestParams = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'icebergAmount'])
+        requestParams = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'activationPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'icebergAmount'])
         return self.extend(request, requestParams)
 
     async def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params: dict = {}) -> Order:
