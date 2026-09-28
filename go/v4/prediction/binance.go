@@ -2085,24 +2085,22 @@ func (this *Binance) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	return this.SafePredictionTrade(map[string]any{
-		"id":                 nil,
-		"info":               trade,
-		"timestamp":          timestamp,
-		"datetime":           this.Iso8601(timestamp),
-		"lastTradeTimestamp": this.SafeInteger(trade, "modifyTime"),
-		"outcome":            this.SafeString(outcomeObjResolved, "outcome"),
-		"outcomeId":          this.SafeString(outcomeObjResolved, "id"),
-		"label":              this.SafeString(outcomeObjResolved, "label"),
-		"market":             this.SafeString(outcomeObjResolved, "market"),
-		"order":              this.SafeString(trade, "orderId"),
-		"type":               orderType,
-		"side":               this.SafeStringLower(trade, "side"),
-		"takerOrMaker":       nil,
-		"price":              price,
-		"amount":             this.SafeString(trade, "makerShareQty"),
-		"filled":             filled,
-		"cost":               cost,
-		"fee":                fee,
+		"id":           nil,
+		"info":         trade,
+		"timestamp":    timestamp,
+		"datetime":     this.Iso8601(timestamp),
+		"outcome":      this.SafeString(outcomeObjResolved, "outcome"),
+		"outcomeId":    this.SafeString(outcomeObjResolved, "id"),
+		"label":        this.SafeString(outcomeObjResolved, "label"),
+		"market":       this.SafeString(outcomeObjResolved, "market"),
+		"order":        this.SafeString(trade, "orderId"),
+		"type":         orderType,
+		"side":         this.SafeStringLower(trade, "side"),
+		"takerOrMaker": nil,
+		"price":        price,
+		"amount":       this.SafeString(trade, "makerShareQty"),
+		"cost":         cost,
+		"fee":          fee,
 	}, outcomeObjResolved)
 }
 
@@ -2438,11 +2436,11 @@ func (this *Binance) createMarketOrderWithCostBody(ch chan ccxt.AsyncResult[map[
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes181415 map[string]any = r.Value
-	if retRes181415 == nil {
+	var retRes181215 map[string]any = r.Value
+	if retRes181215 == nil {
 		ch <- ccxt.AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[map[string]any]{Value: retRes181415}
+		ch <- ccxt.AsyncResult[map[string]any]{Value: retRes181215}
 	}
 	return nil
 }

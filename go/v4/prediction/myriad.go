@@ -1231,11 +1231,7 @@ func (this *Myriad) createOrderBody(ch chan ccxt.AsyncResult[map[string]any], ou
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var r1ValueBox any = nil
-		if r1.Value != nil {
-			r1ValueBox = r1.Value
-		}
-		ch <- ccxt.AsyncResult[map[string]any]{Value: r1ValueBox}
+		ch <- ccxt.AsyncResult[map[string]any]{Value: r1.Value}
 		return nil
 	}
 	// the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
@@ -1249,11 +1245,7 @@ func (this *Myriad) createOrderBody(ch chan ccxt.AsyncResult[map[string]any], ou
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var r2ValueBox any = nil
-	if r2.Value != nil {
-		r2ValueBox = r2.Value
-	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: r2ValueBox}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: r2.Value}
 	return nil
 }
 
@@ -1548,11 +1540,7 @@ func (this *Myriad) editOrderBody(ch chan ccxt.AsyncResult[map[string]any], id s
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var r2ValueBox1 any = nil
-	if r2.Value != nil {
-		r2ValueBox1 = r2.Value
-	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: r2ValueBox1}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: r2.Value}
 	return nil
 }
 

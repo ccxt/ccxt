@@ -586,12 +586,8 @@ func (this *P2b) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol str
 	//    }
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
-	var timestamp *int64 = this.SafeIntegerProduct(response, "cache_time", 1000)
 
-	ch <- AsyncResult[map[string]any]{Value: this.Extend(map[string]any{
-		"timestamp": timestamp,
-		"datetime":  this.Iso8601(timestamp),
-	}, this.ParseTicker(result, market))}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(result, market)}
 	return nil
 }
 func (this *P2b) ParseTicker(ticker any, optionalArgs ...any) map[string]any {

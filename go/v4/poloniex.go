@@ -1414,7 +1414,6 @@ func (this *Poloniex) ParseTicker(ticker any, optionalArgs ...any) map[string]an
 	var relativeChange *string = this.SafeString2(ticker, "dailyChange", "dc")
 	var percentage *string = Precise.StringMul(relativeChange, "100")
 	return this.SafeTicker(map[string]any{
-		"id":            marketId,
 		"symbol":        marketResolved["symbol"],
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -1523,11 +1522,11 @@ func (this *Poloniex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 		return nil
 	}
 
-	listEp1487 := <-this.PublicGetMarketsTicker24h(paramsMarketType)
-	if listEp1487.Err != nil {
-		panic(listEp1487.Err)
+	listEp1486 := <-this.PublicGetMarketsTicker24h(paramsMarketType)
+	if listEp1486.Err != nil {
+		panic(listEp1486.Err)
 	}
-	var response []any = listEp1487.Value
+	var response []any = listEp1486.Value
 
 	//
 	//     [
@@ -1576,11 +1575,11 @@ func (this *Poloniex) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp1536 := <-this.PublicGetV2Currencies(params)
-	if listEp1536.Err != nil {
-		panic(listEp1536.Err)
+	listEp1535 := <-this.PublicGetV2Currencies(params)
+	if listEp1535.Err != nil {
+		panic(listEp1535.Err)
 	}
-	var response []any = listEp1536.Value
+	var response []any = listEp1535.Value
 
 	//
 	//    [
@@ -1940,11 +1939,11 @@ func (this *Poloniex) fetchTradesBody(ch chan AsyncResult[any], symbol any, opti
 		return nil
 	}
 
-	listEp1879 := <-this.PublicGetMarketsSymbolTrades(this.Extend(request, params))
-	if listEp1879.Err != nil {
-		panic(listEp1879.Err)
+	listEp1878 := <-this.PublicGetMarketsSymbolTrades(this.Extend(request, params))
+	if listEp1878.Err != nil {
+		panic(listEp1878.Err)
 	}
-	var trades []any = listEp1879.Value
+	var trades []any = listEp1878.Value
 
 	//
 	//     [
@@ -2005,11 +2004,11 @@ func (this *Poloniex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes157719 []any = ListTyped(r1.Value)
-		if retRes157719 == nil {
+		var retRes157619 []any = ListTyped(r1.Value)
+		if retRes157619 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes157719}
+			ch <- AsyncResult[any]{Value: retRes157619}
 		}
 		return nil
 	}
@@ -2082,11 +2081,11 @@ func (this *Poloniex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 		return nil
 	}
 
-	listEp2006 := <-this.PrivateGetTrades(this.Extend(requestUntil, paramsUntil))
-	if listEp2006.Err != nil {
-		panic(listEp2006.Err)
+	listEp2005 := <-this.PrivateGetTrades(this.Extend(requestUntil, paramsUntil))
+	if listEp2005.Err != nil {
+		panic(listEp2005.Err)
 	}
-	var response []any = listEp2006.Value
+	var response []any = listEp2005.Value
 	//
 	//     [
 	//         {
@@ -3209,11 +3208,11 @@ func (this *Poloniex) fetchOrderTradesBody(ch chan AsyncResult[any], id string, 
 		"id": id,
 	}
 
-	listEp3039 := <-this.PrivateGetOrdersIdTrades(this.Extend(request, params))
-	if listEp3039.Err != nil {
-		panic(listEp3039.Err)
+	listEp3038 := <-this.PrivateGetOrdersIdTrades(this.Extend(request, params))
+	if listEp3038.Err != nil {
+		panic(listEp3038.Err)
 	}
-	var trades []any = listEp3039.Value
+	var trades []any = listEp3038.Value
 
 	//
 	//     [
@@ -4908,11 +4907,11 @@ func (this *Poloniex) reduceMarginBody(ch chan EndpointResult[map[string]any], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes369215 map[string]any = MapTyped(r.Value)
-	if retRes369215 == nil {
+	var retRes369115 map[string]any = MapTyped(r.Value)
+	if retRes369115 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes369215, Raw: retRes369215}
+		ch <- EndpointResult[map[string]any]{Value: retRes369115, Raw: retRes369115}
 	}
 	return nil
 }
@@ -4941,11 +4940,11 @@ func (this *Poloniex) addMarginBody(ch chan AsyncResult[map[string]any], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes370515 map[string]any = MapTyped(r.Value)
-	if retRes370515 == nil {
+	var retRes370415 map[string]any = MapTyped(r.Value)
+	if retRes370415 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes370515}
+		ch <- AsyncResult[map[string]any]{Value: retRes370415}
 	}
 	return nil
 }

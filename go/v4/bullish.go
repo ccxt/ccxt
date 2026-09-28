@@ -1746,10 +1746,11 @@ func (this *Bullish) safeDeterministicCallBody(ch chan AsyncResult[any], method 
 					var retRes132727 []any = ListTyped(r.Value)
 					if retRes132727 == nil {
 						ch <- AsyncResult[any]{Value: nil}
+						chSent = true
 					} else {
 						ch <- AsyncResult[any]{Value: retRes132727}
+						chSent = true
 					}
-					chSent = true
 					return nil
 				} else if IsEqual(method, "fetchFundingRateHistory") {
 
@@ -1760,10 +1761,11 @@ func (this *Bullish) safeDeterministicCallBody(ch chan AsyncResult[any], method 
 					var retRes132927 []any = ListTyped(r1.Value)
 					if retRes132927 == nil {
 						ch <- AsyncResult[any]{Value: nil}
+						chSent = true
 					} else {
 						ch <- AsyncResult[any]{Value: retRes132927}
+						chSent = true
 					}
-					chSent = true
 					return nil
 				} else {
 
@@ -1774,10 +1776,11 @@ func (this *Bullish) safeDeterministicCallBody(ch chan AsyncResult[any], method 
 					var retRes133127 []any = ListTyped(r2.Value)
 					if retRes133127 == nil {
 						ch <- AsyncResult[any]{Value: nil}
+						chSent = true
 					} else {
 						ch <- AsyncResult[any]{Value: retRes133127}
+						chSent = true
 					}
-					chSent = true
 					return nil
 				}
 
@@ -1872,11 +1875,11 @@ func (this *Bullish) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 	AddElementToObject(requestUntil, "createdAtDatetime[gte]", this.Iso8601(startTime))
 	AddElementToObject(requestUntil, "createdAtDatetime[lte]", this.Iso8601(until))
 
-	listEp1782 := <-this.PublicGetV1MarketsSymbolCandle(this.Extend(requestUntil, paramsUntil))
-	if listEp1782.Err != nil {
-		panic(listEp1782.Err)
+	listEp1785 := <-this.PublicGetV1MarketsSymbolCandle(this.Extend(requestUntil, paramsUntil))
+	if listEp1785.Err != nil {
+		panic(listEp1785.Err)
 	}
-	var response []any = listEp1782.Value
+	var response []any = listEp1785.Value
 	//
 	//     [
 	//         {
@@ -1968,11 +1971,11 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optio
 	}
 	var paramsSinceAndUntil any = this.HandleSinceAndUntil(since, paramsPaginate, "updatedAtDatetime[gte]", "updatedAtDatetime[lte]")
 
-	listEp1867 := <-this.PublicGetV1HistoryMarketsSymbolFundingRate(this.Extend(request, paramsSinceAndUntil))
-	if listEp1867.Err != nil {
-		panic(listEp1867.Err)
+	listEp1870 := <-this.PublicGetV1HistoryMarketsSymbolFundingRate(this.Extend(request, paramsSinceAndUntil))
+	if listEp1870.Err != nil {
+		panic(listEp1870.Err)
 	}
-	var response []any = listEp1867.Value
+	var response []any = listEp1870.Value
 	//
 	//     [
 	//         {
@@ -3173,11 +3176,11 @@ func (this *Bullish) loadAccountBody(ch chan AsyncResult[any], optionalArgs ...a
 	paramsTradingAccountId = GetValue(tradingAccountIdparamsTradingAccountIdVariable, 1)
 	if IsEqual(tradingAccountId, nil) {
 
-		listEp2966 := <-this.PrivateGetV1AccountsTradingAccounts(paramsTradingAccountId)
-		if listEp2966.Err != nil {
-			panic(listEp2966.Err)
+		listEp2969 := <-this.PrivateGetV1AccountsTradingAccounts(paramsTradingAccountId)
+		if listEp2969.Err != nil {
+			panic(listEp2969.Err)
 		}
-		var response []any = listEp2966.Value
+		var response []any = listEp2969.Value
 		var accounts []any = this.ToArray(response)
 		for i := 0; i < len(accounts); i++ {
 			var account map[string]any = SafeMapTyped(accounts, i)
@@ -3221,11 +3224,11 @@ func (this *Bullish) fetchAccountsBody(ch chan AsyncResult[any], optionalArgs ..
 		panic(r.Err)
 	}
 
-	listEp3007 := <-this.PrivateGetV1AccountsTradingAccounts(params)
-	if listEp3007.Err != nil {
-		panic(listEp3007.Err)
+	listEp3010 := <-this.PrivateGetV1AccountsTradingAccounts(params)
+	if listEp3010.Err != nil {
+		panic(listEp3010.Err)
 	}
-	var response []any = listEp3007.Value
+	var response []any = listEp3010.Value
 
 	//
 	//     [
@@ -3348,11 +3351,11 @@ func (this *Bullish) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
 		"symbol": currency["id"],
 	}
 
-	listEp3127 := <-this.PrivateGetV1WalletsDepositInstructionsCryptoSymbol(this.Extend(request, params))
-	if listEp3127.Err != nil {
-		panic(listEp3127.Err)
+	listEp3130 := <-this.PrivateGetV1WalletsDepositInstructionsCryptoSymbol(this.Extend(request, params))
+	if listEp3130.Err != nil {
+		panic(listEp3130.Err)
 	}
-	var response []any = listEp3127.Value
+	var response []any = listEp3130.Value
 	//
 	//     [
 	//         {
@@ -3552,11 +3555,11 @@ func (this *Bullish) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs .
 		"tradingAccountId": tradingAccountId,
 	}
 
-	listEp3307 := <-this.PrivateGetV1DerivativesPositions(this.Extend(request, params))
-	if listEp3307.Err != nil {
-		panic(listEp3307.Err)
+	listEp3310 := <-this.PrivateGetV1DerivativesPositions(this.Extend(request, params))
+	if listEp3310.Err != nil {
+		panic(listEp3310.Err)
 	}
-	var response []any = listEp3307.Value
+	var response []any = listEp3310.Value
 	//
 	//     [
 	//         {
@@ -3728,11 +3731,11 @@ func (this *Bullish) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs .
 		request["_pageSize"] = this.GetClosestLimit(limit)
 	}
 
-	listEp3468 := <-this.PrivateGetV1HistoryTransfer(this.Extend(request, paramsSinceAndUntil))
-	if listEp3468.Err != nil {
-		panic(listEp3468.Err)
+	listEp3471 := <-this.PrivateGetV1HistoryTransfer(this.Extend(request, paramsSinceAndUntil))
+	if listEp3471.Err != nil {
+		panic(listEp3471.Err)
 	}
-	var response []any = listEp3468.Value
+	var response []any = listEp3471.Value
 
 	//
 	//     [
@@ -3927,11 +3930,11 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan AsyncResult[any], code a
 	AddElementToObject(requestUntil, "createdAtDatetime[gte]", this.Iso8601(startTimestamp))
 	AddElementToObject(requestUntil, "createdAtDatetime[lte]", this.Iso8601(until))
 
-	listEp3646 := <-this.PrivateGetV1HistoryBorrowInterest(this.Extend(requestUntil, paramsUntil))
-	if listEp3646.Err != nil {
-		panic(listEp3646.Err)
+	listEp3649 := <-this.PrivateGetV1HistoryBorrowInterest(this.Extend(requestUntil, paramsUntil))
+	if listEp3649.Err != nil {
+		panic(listEp3649.Err)
 	}
-	var response []any = listEp3646.Value
+	var response []any = listEp3649.Value
 
 	//
 	//     [

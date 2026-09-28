@@ -10722,11 +10722,7 @@ func (this *Exchange) editOrderBody(ch chan AsyncResult[map[string]any], id stri
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var r1ValueBox any = nil
-	if r1.Value != nil {
-		r1ValueBox = r1.Value
-	}
-	ch <- AsyncResult[map[string]any]{Value: r1ValueBox}
+	ch <- AsyncResult[map[string]any]{Value: r1.Value}
 	return nil
 }
 func (this *Exchange) EditOrderWithClientOrderIdAsync(clientOrderId string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -11147,11 +11143,7 @@ func (this *Exchange) createMarketOrderWithCostBody(ch chan AsyncResult[map[stri
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var rValueBox any = nil
-		if r.Value != nil {
-			rValueBox = r.Value
-		}
-		ch <- AsyncResult[map[string]any]{Value: rValueBox}
+		ch <- AsyncResult[map[string]any]{Value: r.Value}
 		return nil
 	}
 	panic(NotSupported(this.Id + " createMarketOrderWithCost() is not supported yet"))

@@ -4135,11 +4135,7 @@ func (this *Mexc) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var rValueBox any = nil
-	if r.Value != nil {
-		rValueBox = r.Value
-	}
-	listRecv3918, _ := rValueBox, r.Value != nil
+	listRecv3918, _ := r.Value, r.Value != nil
 	var retRes321315 []any = listRecv3918
 	if retRes321315 == nil {
 		ch <- AsyncResult[any]{Value: nil}
@@ -4183,11 +4179,7 @@ func (this *Mexc) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var rValueBox1 any = nil
-	if r.Value != nil {
-		rValueBox1 = r.Value
-	}
-	listRecv3957, _ := rValueBox1, r.Value != nil
+	listRecv3957, _ := r.Value, r.Value != nil
 	var retRes323015 []any = listRecv3957
 	if retRes323015 == nil {
 		ch <- AsyncResult[[]any]{Value: nil}
