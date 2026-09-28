@@ -806,7 +806,7 @@ func (this *Zebpay) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
  * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-order-book
  * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-order-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
- * @param {int} [limit] the maximum amount of order book entries to return
+ * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
@@ -831,11 +831,11 @@ func (this *Zebpay) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
+	if limit != nil {
+		request["limit"] = limit
+	}
 	var response any = nil
 	if GetValue(market, "spot") == true {
-		if limit != nil {
-			request["limit"] = limit
-		}
 		//
 		//       {
 		//         "asks": [
@@ -979,9 +979,11 @@ func (this *Zebpay) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
- * @param {int} [limit] the maximum amount of candles to fetch
+ * @param {int} [limit] the maximum amount of candles to fetch. Swap: 1–1000, omit for 1000
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch (inclusive). Swap: requires since
  * @param {int} [params.endtime] the latest time in ms to fetch orders for
+ * @param {string} [params.priceType] *swap only* LTP (default) or MARK_PRICE
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Zebpay) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
@@ -1002,45 +1004,48 @@ func (this *Zebpay) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = params
 	if this.Markets == nil {
 
-		retRes72212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes72212)
+		retRes72412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes72412)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	if limit == nil {
-		limit = 100 // default is 200
-	}
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	if GetValue(market, "spot") == true {
-		request["interval"] = this.SafeString(this.Timeframes, timeframe, timeframe)
-	} else {
-		request["interval"] = timeframe
-	}
-	if (GetValue(market, "contract") == true) && (limit != nil) {
-		request["limit"] = limit
-	}
-	if since != nil {
-		if GetValue(market, "spot") == true {
-			request["startTime"] = since
-		} else {
-			request["since"] = since
-		}
-	}
 	var until *int64 = this.SafeInteger2(params, "until", "endtime")
-	if until != nil {
-		request["endTime"] = until
-		params = this.Omit(params, []any{"endtime", "until"})
-	}
+	params = this.Omit(params, []any{"until", "endtime", "endTime", "interval", "startTime"})
 	var response any = nil
 	if GetValue(market, "spot") == true {
+		if limit == nil {
+			limit = 100
+		}
+		request["interval"] = this.SafeString(this.Timeframes, timeframe, timeframe)
+		if since != nil {
+			request["startTime"] = since
+		}
+		if until != nil {
+			request["endTime"] = until
+		}
 		if (until == nil) || (since == nil) {
 			panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a both a since and until/endtime parameter for spot markets"))
 		}
+		params = this.Omit(params, "priceType")
 
 		response = (<-this.PublicSpotGetV2MarketKlines(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
+		request["timeframe"] = timeframe
+		if limit != nil {
+			request["limit"] = limit
+		}
+		if since != nil {
+			request["since"] = since
+		}
+		if until != nil {
+			if since == nil {
+				panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a since argument when params[\"until\"] is used"))
+			}
+			request["until"] = until
+		}
 
 		response = (<-this.PublicSwapPostV1MarketKlines(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1110,8 +1115,8 @@ func (this *Zebpay) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	_ = params
 	if this.Markets == nil {
 
-		retRes80912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes80912)
+		retRes81412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes81412)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1177,8 +1182,8 @@ func (this *Zebpay) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes85312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes85312)
+		retRes85812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes85812)
 	}
 	var market any = nil
 	if symbol != nil {
@@ -1240,8 +1245,8 @@ func (this *Zebpay) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 	}
 	if this.Markets == nil {
 
-		retRes89112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes89112)
+		retRes89612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes89612)
 	}
 	var request map[string]any = map[string]any{
 		"orderId": id,
@@ -1354,8 +1359,8 @@ func (this *Zebpay) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes98912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes98912)
+		retRes99412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes99412)
 	}
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
@@ -1428,8 +1433,8 @@ func (this *Zebpay) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	_ = params
 	if this.Markets == nil {
 
-		retRes104212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes104212)
+		retRes104712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes104712)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var upperCaseType string = ToUpper(typeVar)
@@ -1549,8 +1554,8 @@ func (this *Zebpay) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	_ = params
 	if this.Markets == nil {
 
-		retRes113712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes113712)
+		retRes114212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes114212)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var response any = nil
@@ -1615,8 +1620,8 @@ func (this *Zebpay) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if this.Markets == nil {
 
-		retRes118212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes118212)
+		retRes118712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes118712)
 	}
 
 	response := (<-this.PrivateSpotDeleteV2ExOrdersCancelAll(params))
@@ -1666,8 +1671,8 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes121212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes121212)
+		retRes121712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes121712)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1755,8 +1760,8 @@ func (this *Zebpay) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	_ = params
 	if this.Markets == nil {
 
-		retRes128212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes128212)
+		retRes128712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes128712)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{}
@@ -1888,8 +1893,8 @@ func (this *Zebpay) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		retRes139512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes139512)
+		retRes140012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes140012)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1927,8 +1932,8 @@ func (this *Zebpay) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes141712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes141712)
+		retRes142212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes142212)
 	}
 
 	response := (<-this.PrivateSwapGetV1TradeUserLeverages(params))
@@ -1972,8 +1977,8 @@ func (this *Zebpay) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		retRes144712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes144712)
+		retRes145212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes145212)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -2020,8 +2025,8 @@ func (this *Zebpay) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	}
 	if this.Markets == nil {
 
-		retRes147812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes147812)
+		retRes148312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes148312)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -2062,8 +2067,8 @@ func (this *Zebpay) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes150312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes150312)
+		retRes150812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes150812)
 	}
 	var request map[string]any = map[string]any{}
 	if symbols != nil {
@@ -2116,8 +2121,8 @@ func (this *Zebpay) addMarginBody(ch chan any, symbol any, amount any, optionalA
 	_ = params
 	if this.Markets == nil {
 
-		retRes154212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes154212)
+		retRes154712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes154712)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -2178,8 +2183,8 @@ func (this *Zebpay) reduceMarginBody(ch chan any, symbol any, amount any, option
 	_ = params
 	if this.Markets == nil {
 
-		retRes158912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes158912)
+		retRes159412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes159412)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -2600,6 +2605,13 @@ func (this *Zebpay) Sign(path any, optionalArgs ...any) any {
 				url = Add(url, "?"+this.Urlencode(query))
 			}
 		} else {
+			var priceType *string = this.SafeString(params, "priceType")
+			params = this.Omit(params, "priceType")
+			if priceType != nil {
+				url = Add(url, "?"+this.Urlencode(map[string]any{
+					"priceType": priceType,
+				}))
+			}
 			body = JsonStringify(params)
 			headers = map[string]any{
 				"Referrer":     "ccxt",
@@ -2785,7 +2797,7 @@ func (this *Zebpay) FetchTradingFees(params ...any) (TradingFees, error) {
  * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-order-book
  * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-order-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
- * @param {int} [limit] the maximum amount of order book entries to return
+ * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
@@ -2859,9 +2871,11 @@ func (this *Zebpay) FetchTickers(options ...FetchTickersOptions) (Tickers, error
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
- * @param {int} [limit] the maximum amount of candles to fetch
+ * @param {int} [limit] the maximum amount of candles to fetch. Swap: 1–1000, omit for 1000
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch (inclusive). Swap: requires since
  * @param {int} [params.endtime] the latest time in ms to fetch orders for
+ * @param {string} [params.priceType] *swap only* LTP (default) or MARK_PRICE
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Zebpay) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {

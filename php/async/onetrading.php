@@ -1461,7 +1461,7 @@ class onetrading extends Exchange {
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a side argument');
         }
         $request = array(
             'instrument_code' => $market['id'],
@@ -1482,13 +1482,13 @@ class onetrading extends Exchange {
         $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'trigger_price', 'stopPrice' ));
         if ($triggerPrice !== null) {
             if ($uppercaseType === 'MARKET') {
-                throw new BadRequest($this->id . ' createOrder() cannot place stop $market orders, only stop limit');
+                throw new BadRequest($this->id . ' createOrder() cannot place stop market orders, only stop limit');
             }
             $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['type'] = 'STOP';
             $params = $this->omit($params, array( 'triggerPrice', 'trigger_price', 'stopPrice' ));
         } elseif ($uppercaseType === 'STOP') {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice param for ' . $type . ' orders');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a triggerPrice param for ' . $type . ' orders');
         }
         if ($priceIsRequired) {
             $request['price'] = $this->price_to_precision($symbol, $price);

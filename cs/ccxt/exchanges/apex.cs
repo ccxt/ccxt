@@ -927,6 +927,7 @@ public partial class apex : Exchange
         {
             limitVar = 200; // default is 200 when requested with `since`
         }
+        limitVar = mathMin(limitVar, 200); // fix maxcap
         ((IDictionary<string,object>)request)["limit"] = limitVar; // max 200, default 200
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end", request, parameters, 0.001);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];

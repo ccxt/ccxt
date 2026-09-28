@@ -5179,9 +5179,9 @@ public class Okx extends OkxApi
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
-            Object trigger = this.safeValue2(parameters, "stop", "trigger");
+            Object trigger = this.safeBool2(parameters, "stop", "trigger");
             Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
-            Boolean isTrigger = (!java.util.Objects.equals(trigger, null)) && (!java.util.Objects.equals(trigger, false));
+            Boolean isTrigger = (java.util.Objects.equals(trigger, true));
             if (Boolean.TRUE.equals(isTrigger) || (java.util.Objects.equals(trailing, true)))
             {
                 Object orderInner = (this.cancelOrders((Object)(new ArrayList<Object>(Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
@@ -5249,7 +5249,6 @@ public class Okx extends OkxApi
         final Object ids3 = ids2;
         return BaseExchange.supplyAsync(() -> {
             Object ids = ids3;
-            // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
             Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(symbol, null))
@@ -5267,9 +5266,9 @@ public class Okx extends OkxApi
             String method = this.safeString(parameters, "method", defaultMethod);
             Object clientOrderIds = this.parseIds(this.safeValue2(parameters, "clOrdId", "clientOrderId"));
             Object algoIds = this.parseIds(this.safeValue(parameters, "algoId"));
-            Object trigger = this.safeValue2(parameters, "stop", "trigger");
+            Object trigger = this.safeBool2(parameters, "stop", "trigger");
             Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
-            Boolean isTrigger = (!java.util.Objects.equals(trigger, null)) && (!java.util.Objects.equals(trigger, false));
+            Boolean isTrigger = (java.util.Objects.equals(trigger, true));
             if (Boolean.TRUE.equals(isTrigger) || (java.util.Objects.equals(trailing, true)))
             {
                 method = "privatePostTradeCancelAlgos";
@@ -5291,7 +5290,7 @@ public class Okx extends OkxApi
                 }
                 for (var i = 0; i < ((List<?>)ids).size(); i++)
                 {
-                    if ((java.util.Objects.equals(trailing, true)) || (!java.util.Objects.equals(trigger, null)))
+                    if ((java.util.Objects.equals(trailing, true)) || Boolean.TRUE.equals(isTrigger))
                     {
     final Object finalIds = ids;
                         final Object finalI = i;
@@ -5313,7 +5312,7 @@ public class Okx extends OkxApi
             {
                 for (var i = 0; i < Helpers.getArrayLength(clientOrderIds); i++)
                 {
-                    if ((java.util.Objects.equals(trailing, true)) || (!java.util.Objects.equals(trigger, null)))
+                    if ((java.util.Objects.equals(trailing, true)) || Boolean.TRUE.equals(isTrigger))
                     {
     final Object finalClientOrderIds = clientOrderIds;
                         final Object finalI = i;
@@ -5887,8 +5886,8 @@ public class Okx extends OkxApi
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOrder", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "privateGetTradeOrder");
             String method = this.safeString(parameters, "method", defaultMethod);
-            Object trigger = this.safeValue2(parameters, "stop", "trigger");
-            Boolean isTrigger = (!java.util.Objects.equals(trigger, null)) && (!java.util.Objects.equals(trigger, false));
+            Object trigger = this.safeBool2(parameters, "stop", "trigger");
+            Boolean isTrigger = (java.util.Objects.equals(trigger, true));
             if (Boolean.TRUE.equals(isTrigger))
             {
                 method = "privateGetTradeOrderAlgo";
@@ -6076,9 +6075,9 @@ public class Okx extends OkxApi
             String defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersPending");
             String method = this.safeString(parameters, "method", defaultMethod);
             String ordType = this.safeString(parameters, "ordType");
-            Object trigger = this.safeValue2(parameters, "stop", "trigger");
+            Object trigger = this.safeBool2(parameters, "stop", "trigger");
             Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
-            Boolean isTrigger = (!java.util.Objects.equals(trigger, null)) && (!java.util.Objects.equals(trigger, false));
+            Boolean isTrigger = (java.util.Objects.equals(trigger, true));
             if ((java.util.Objects.equals(trailing, true)) || Boolean.TRUE.equals(isTrigger) || ((!java.util.Objects.equals(ordType, null)) && (algoOrderTypes.containsKey(ordType))))
             {
                 method = "privateGetTradeOrdersAlgoPending";
@@ -6086,7 +6085,7 @@ public class Okx extends OkxApi
             if (java.util.Objects.equals(trailing, true))
             {
                 ((Map<String, Object>)request).put("ordType", "move_order_stop");
-            } else if ((!java.util.Objects.equals(trigger, null)) && (java.util.Objects.equals(ordType, null)))
+            } else if (Boolean.TRUE.equals(isTrigger) && (java.util.Objects.equals(ordType, null)))
             {
                 ((Map<String, Object>)request).put("ordType", "trigger");
             }
@@ -6253,9 +6252,9 @@ public class Okx extends OkxApi
             String defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersHistory");
             String method = this.safeString(parameters, "method", defaultMethod);
             String ordType = this.safeString(parameters, "ordType");
-            Object trigger = this.safeValue2(parameters, "stop", "trigger");
+            Object trigger = this.safeBool2(parameters, "stop", "trigger");
             Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
-            Boolean isTrigger = (!java.util.Objects.equals(trigger, null)) && (!java.util.Objects.equals(trigger, false));
+            Boolean isTrigger = (java.util.Objects.equals(trigger, true));
             if (java.util.Objects.equals(trailing, true))
             {
                 method = "privateGetTradeOrdersAlgoHistory";

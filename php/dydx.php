@@ -805,7 +805,7 @@ class dydx extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -864,7 +864,7 @@ class dydx extends Exchange {
         if (($this->walletAddress !== null) && ($this->walletAddress !== '')) {
             return array( $this->walletAddress, $params );
         }
-        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $user parameter inside \'params\' or the walletAddress set');
+        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a user parameter inside \'params\' or the walletAddress set');
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1318,16 +1318,16 @@ class dydx extends Exchange {
 
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only', false);
         $orderType = strtoupper($type);
         $market = $this->market($symbol);
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrderRequest() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createOrderRequest() requires a side argument');
         }
         $orderSide = strtoupper($side);
         $subaccountId = 0;
@@ -1354,7 +1354,7 @@ class dydx extends Exchange {
         $orderFlag = null;
         $timeInForceNumber = null;
         if ($timeInForce === 'FOK') {
-            throw new InvalidOrder($this->id . ' $timeInForce fok has been deprecated');
+            throw new InvalidOrder($this->id . ' timeInForce fok has been deprecated');
         }
         if ($orderType === 'MARKET') {
             // short-term
@@ -1570,7 +1570,7 @@ class dydx extends Exchange {
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $params = $this->omit($params, array( 'trigger', 'stop' ));
         if (($isTrigger !== true) && ($symbol === null)) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1578,11 +1578,11 @@ class dydx extends Exchange {
         $market = $this->market($symbol);
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientId', $id);
         if ($clientOrderId === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $clientOrderId parameter, cancelling using $id is not currently supported.');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.');
         }
         $idString = (string) $id;
         if ($id !== null && mb_strpos($idString, '-') > -1) {
-            throw new NotSupported($this->id . ' cancelOrder() cancelling using $id is not currently supported, please use provide the $clientOrderId parameter.');
+            throw new NotSupported($this->id . ' cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.');
         }
         $goodTillBlock = $this->safe_integer($params, 'goodTillBlock');
         $goodTillBlockTimeInSeconds = 2592000;
@@ -1594,14 +1594,14 @@ class dydx extends Exchange {
         list($subAccountId, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'subAccountId', $subAccountId);
         $params = $this->omit($params, array( 'clientOrderId', 'orderFlags', 'goodTillBlock', 'goodTillBlockTime', 'goodTillBlockTimeInSeconds', 'subaccountId', 'clientId' ));
         if ($orderFlags !== 0 && $orderFlags !== 64 && $orderFlags !== 32) {
-            throw new InvalidOrder($this->id . ' invalid $orderFlags, allowed values are (0, 64, 32).');
+            throw new InvalidOrder($this->id . ' invalid orderFlags, allowed values are (0, 64, 32).');
         }
         if ($orderFlags > 0) {
             if ($goodTillBlockTimeInSeconds === null) {
-                throw new ArgumentsRequired($this->id . ' $goodTillBlockTimeInSeconds is required in $params for long term or conditional order.');
+                throw new ArgumentsRequired($this->id . ' goodTillBlockTimeInSeconds is required in params for long term or conditional order.');
             }
             if ($goodTillBlock !== null && $goodTillBlock > 0) {
-                throw new InvalidOrder($this->id . ' $goodTillBlock should be 0 for long term or conditional order.');
+                throw new InvalidOrder($this->id . ' goodTillBlock should be 0 for long term or conditional order.');
             }
             $goodTillBlockTime = $this->seconds() . $goodTillBlockTimeInSeconds;
         } else {
@@ -1671,7 +1671,7 @@ class dydx extends Exchange {
         $market = $this->market($symbol);
         $clientOrderIds = $this->safe_list($params, 'clientOrderIds');
         if ($clientOrderIds === null) {
-            throw new NotSupported($this->id . ' $cancelOrders only support $clientOrderIds->');
+            throw new NotSupported($this->id . ' cancelOrders only support clientOrderIds.');
         }
         $subAccountId = 0;
         list($subAccountId, $params) = $this->handle_option_and_params($params, 'cancelOrders', 'subAccountId', $subAccountId);
@@ -1930,7 +1930,7 @@ class dydx extends Exchange {
                 throw new NotSupported($this->id . ' transfer only support main > subaccount and subaccount <> subaccount.');
             }
             if ($fromSubaccountId === null || $toSubaccountId === null) {
-                throw new ArgumentsRequired($this->id . ' transfer requires $fromSubaccountId and $toSubaccountId->');
+                throw new ArgumentsRequired($this->id . ' transfer requires fromSubaccountId and toSubaccountId.');
             }
         }
         $params = $this->omit($params, array( 'fromSubaccountId', 'toSubaccountId' ));
@@ -2144,7 +2144,7 @@ class dydx extends Exchange {
         $this->check_address($address);
         $subaccountId = $this->safe_integer($params, 'subaccountId');
         if ($subaccountId === null) {
-            throw new ArgumentsRequired($this->id . ' withdraw requires $subaccountId->');
+            throw new ArgumentsRequired($this->id . ' withdraw requires subaccountId.');
         }
         $params = $this->omit($params, array( 'subaccountId' ));
         $currency = $this->currency($code);
@@ -2494,7 +2494,7 @@ class dydx extends Exchange {
                 return $wallet;
             }
         }
-        throw new ArgumentsRequired($this->id . ' getWalletAddress() requires a $wallet address. Set `walletAddress` or `$dydxAccount` in exchange options.');
+        throw new ArgumentsRequired($this->id . ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.');
     }
 
     public function sign(mixed $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {

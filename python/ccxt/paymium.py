@@ -599,6 +599,10 @@ class paymium(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
+    def nonce(self) -> float:
+        # the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return self.milliseconds()
+
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -607,7 +611,8 @@ class paymium(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            nonce = str(self.nonce())
+            # paymium requires an increasing nonce
+            nonce = str(self.incrementing_nonce())
             auth = nonce + url
             headers = {
                 'Api-Key': self.apiKey,

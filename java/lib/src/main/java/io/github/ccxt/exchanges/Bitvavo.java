@@ -1329,7 +1329,7 @@ final Object finalBase = base;
         parameters = ((List<Object>) requestparametersVariable).get(1);
         if (!java.util.Objects.equals(limit, null))
         {
-            ((Map<String, Object>)request).put("limit", limit); // default 1440, max 1440
+            ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1440)); // default 1440, max 1440
         }
         return this.extend(request, parameters);
     }

@@ -4859,6 +4859,12 @@ class bingx(Exchange, ImplicitAPI):
         if standard:
             response = await self.contractV1PrivateGetAllOrders(self.extend(request, params))
         elif type == 'spot':
+            if since is not None:
+                request['startTime'] = since
+            until = self.safe_integer_2(params, 'until', 'till')
+            if until is not None:
+                request['endTime'] = until
+            params = self.omit(params, ['until', 'till'])
             if limit is not None:
                 request['pageSize'] = limit
             response = await self.spotV1PrivateGetTradeHistoryOrders(self.extend(request, params))

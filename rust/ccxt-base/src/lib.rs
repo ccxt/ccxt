@@ -68,22 +68,22 @@ pub mod exchange_generated;
 // surface. The prediction tier is a second inheritance layer (Core →
 // PredictionExchange → Exchange) wired with its own static ExchangeBase dispatch
 // (review #1 pointer removal).
-#[cfg(feature = "transpiled-base")]
+#[cfg(feature = "engine")]
 pub mod prediction_exchange;
 
-#[cfg(feature = "transpiled-base")]
+#[cfg(feature = "engine")]
 pub mod prediction_exchange_generated;
 
 // Transpiled prediction-market venue Cores (ts/src/prediction/*.ts). Kept in
 // their own module so an id that also exists as a regular exchange (hyperliquid)
 // doesn't collide under `exchanges`.
-#[cfg(feature = "transpiled-base")]
+#[cfg(feature = "engine")]
 pub mod prediction;
 
-#[cfg(feature = "transpiled-base")]
+#[cfg(feature = "engine")]
 pub mod exchanges;
 
-#[cfg(not(feature = "transpiled-base"))]
+#[cfg(not(feature = "engine"))]
 pub mod exchanges {
     // empty until transpiled-base feature is enabled
 }

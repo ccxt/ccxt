@@ -263,10 +263,16 @@ class extended extends \ccxt\async\extended {
         //         "seq": 1
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
         $data = $this->safe_dict($message, 'data', array());
-        $result = array(
-            'info' => $data,
-        );
+        $this->balance['info'] = $data;
         $balance = $this->safe_dict($data, 'balance');
         if ($balance !== null) {
             $currencyId = $this->safe_string($balance, 'collateralName');
@@ -275,7 +281,7 @@ class extended extends \ccxt\async\extended {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($balance, 'availableForWithdrawal');
                 $account['total'] = $this->safe_string($balance, 'balance');
-                $result[$code] = $account;
+                $this->balance[$code] = $account;
             }
         }
         $spotBalances = $this->safe_list($data, 'spotBalances', array());
@@ -287,13 +293,13 @@ class extended extends \ccxt\async\extended {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($spotBalance, 'availableToWithdraw');
                 $account['total'] = $this->safe_string($spotBalance, 'balance');
-                $result[$code] = $account;
+                $this->balance[$code] = $account;
             }
         }
         $timestamp = $this->safe_integer($message, 'ts');
-        $result['timestamp'] = $timestamp;
-        $result['datetime'] = $this->iso8601($timestamp);
-        $this->balance = $this->safe_balance($this->deep_extend($this->balance, $result));
+        $this->balance['timestamp'] = $timestamp;
+        $this->balance['datetime'] = $this->iso8601($timestamp);
+        $this->balance = $this->safe_balance($this->balance);
         $client->resolve($this->balance, 'balance');
     }
 

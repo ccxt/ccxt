@@ -1356,7 +1356,7 @@ func (this *Bitvavo) FetchOHLCVRequest(symbol any, optionalArgs ...any) any {
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	if limit != nil {
-		AddElementToObject(request, "limit", limit) // default 1440, max 1440
+		AddElementToObject(request, "limit", mathMin(limit, 1440)) // default 1440, max 1440
 	}
 	return this.Extend(request, params)
 }

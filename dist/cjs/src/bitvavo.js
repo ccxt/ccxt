@@ -1118,7 +1118,7 @@ class bitvavo extends bitvavo$1["default"] {
         }
         [request, params] = this.handleUntilOption('end', request, params);
         if (limit !== undefined) {
-            request['limit'] = limit; // default 1440, max 1440
+            request['limit'] = Math.min(limit, 1440); // default 1440, max 1440
         }
         return this.extend(request, params);
     }

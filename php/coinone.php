@@ -868,7 +868,7 @@ class coinone extends Exchange {
             throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for the limit orders');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for the limit orders');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -905,7 +905,7 @@ class coinone extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1126,7 +1126,7 @@ class coinone extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1169,13 +1169,13 @@ class coinone extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . " cancelOrder() requires a $symbol argument. To cancel the order, pass a $symbol argument and array('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument of cancelOrder.");
+            throw new ArgumentsRequired($this->id . " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and array('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the params argument of cancelOrder.");
         }
         $price = $this->safe_number($params, 'price');
         $qty = $this->safe_number($params, 'qty');
         $isAsk = $this->safe_integer($params, 'is_ask');
         if (($price === null) || ($qty === null) || ($isAsk === null)) {
-            throw new ArgumentsRequired($this->id . " cancelOrder() requires array('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument.");
+            throw new ArgumentsRequired($this->id . " cancelOrder() requires array('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the params argument.");
         }
         if ($this->markets === null) {
             $this->load_markets();

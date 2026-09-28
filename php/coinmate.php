@@ -1035,7 +1035,7 @@ class coinmate extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1206,7 +1206,7 @@ class coinmate extends Exchange {
         } elseif ($method === 'privatePostSellLimit') {
             $response = $this->privatePostSellLimit($requestParams);
         } else {
-            throw new InvalidOrder($this->id . ' createOrder() does not support order $type ' . $type);
+            throw new InvalidOrder($this->id . ' createOrder() does not support order type ' . $type);
         }
         $id = $this->safe_string($response, 'data');
         return $this->safe_order(array(
@@ -1282,7 +1282,8 @@ class coinmate extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce();
+            // coinmate requires each nonce to be greater than the previous one for the key
+            $nonce = (string) $this->incrementing_nonce();
             $auth = $nonce . $this->uid . $this->apiKey;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $body = $this->urlencode($this->extend(array(

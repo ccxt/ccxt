@@ -307,7 +307,7 @@ class bittrade extends \ccxt\async\bittrade {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if (($limit !== null) && ($limit !== 150)) {
-            throw new ExchangeError($this->id . ' watchOrderBook accepts $limit = 150 only');
+            throw new ExchangeError($this->id . ' watchOrderBook accepts limit = 150 only');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());

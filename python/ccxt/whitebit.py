@@ -4020,7 +4020,8 @@ class whitebit(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(query)
         if accessibility == 'private':
             self.check_required_credentials()
-            nonce = str(self.nonce())
+            # whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
+            nonce = str(self.incrementing_nonce())
             secret = self.encode(self.secret)
             request = '/' + 'api' + '/' + version + pathWithParams
             nonceWindow, requestParams = self.handle_option_and_params(params, 'sign', 'nonceWindow', False)

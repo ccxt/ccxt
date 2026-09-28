@@ -376,7 +376,7 @@ class bybit extends \ccxt\async\bybit {
             Async\await($this->load_markets());
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrderWs() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrderWs() requires a symbol argument');
         }
         $orderRequest = $this->cancel_order_request($id, $symbol, $params);
         $url = $this->implode_hostname($this->urls['api']['ws']['private']['trade']);
@@ -987,7 +987,7 @@ class bybit extends \ccxt\async\bybit {
             );
             $selectedLimits = $this->safe_list_2($limits, $market['type'], 'default', array());
             if (!$this->in_array($limit, $selectedLimits)) {
-                throw new BadRequest($this->id . ' watchOrderBookForSymbols() => for ' . $market['type'] . ' markets $limit can be one of => ' . $this->json($selectedLimits));
+                throw new BadRequest($this->id . ' watchOrderBookForSymbols() => for ' . $market['type'] . ' markets limit can be one of => ' . $this->json($selectedLimits));
             }
         }
         $topics = array();
@@ -1449,7 +1449,7 @@ class bybit extends \ccxt\async\bybit {
             Async\await($this->load_markets());
         }
         if ($symbol !== null) {
-            throw new NotSupported($this->id . ' unWatchMyTrades() does not support a $symbol parameter, you must unwatch all my trades');
+            throw new NotSupported($this->id . ' unWatchMyTrades() does not support a symbol parameter, you must unwatch all my trades');
         }
         $url = Async\await($this->get_url_by_market_type($symbol, true, $method, $params));
         Async\await($this->authenticate($url));
@@ -2009,7 +2009,7 @@ class bybit extends \ccxt\async\bybit {
         $messageHash = 'unsubscribe:orders';
         $subHash = 'orders';
         if ($symbol !== null) {
-            throw new NotSupported($this->id . ' unWatchOrders() does not support a $symbol parameter, you must unwatch all orders');
+            throw new NotSupported($this->id . ' unWatchOrders() does not support a symbol parameter, you must unwatch all orders');
         }
         $url = Async\await($this->get_url_by_market_type($symbol, true, $method, $params));
         Async\await($this->authenticate($url));

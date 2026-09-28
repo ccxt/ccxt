@@ -3633,9 +3633,9 @@ class okx(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        trigger = self.safe_value_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         trailing = self.safe_bool(params, 'trailing', False)
-        isTrigger = (trigger is not None) and (trigger is not False)
+        isTrigger = (trigger is True)
         if isTrigger or (trailing is True):
             orderInner = self.cancel_orders([id], symbol, params)
             return self.safe_dict(orderInner, 0)
@@ -3684,7 +3684,6 @@ class okx(Exchange, ImplicitAPI):
         :param boolean [params.trailing]: set to True if you want to cancel trailing orders
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        # TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         if self.markets is None:
@@ -3696,9 +3695,9 @@ class okx(Exchange, ImplicitAPI):
         method = self.safe_string(params, 'method', defaultMethod)
         clientOrderIds = self.parse_ids(self.safe_value_2(params, 'clOrdId', 'clientOrderId'))
         algoIds = self.parse_ids(self.safe_value(params, 'algoId'))
-        trigger = self.safe_value_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         trailing = self.safe_bool(params, 'trailing', False)
-        isTrigger = (trigger is not None) and (trigger is not False)
+        isTrigger = (trigger is True)
         if isTrigger or (trailing is True):
             method = 'privatePostTradeCancelAlgos'
         if clientOrderIds is None:
@@ -3710,7 +3709,7 @@ class okx(Exchange, ImplicitAPI):
                         'instId': market['id'],
                     })
             for i in range(0, len(ids)):
-                if (trailing is True) or (trigger is not None):
+                if (trailing is True) or isTrigger:
                     request.append({
                         'algoId': ids[i],
                         'instId': market['id'],
@@ -3722,7 +3721,7 @@ class okx(Exchange, ImplicitAPI):
                     })
         else:
             for i in range(0, len(clientOrderIds)):
-                if (trailing is True) or (trigger is not None):
+                if (trailing is True) or isTrigger:
                     request.append({
                         'instId': market['id'],
                         'algoClOrdId': clientOrderIds[i],
@@ -4207,8 +4206,8 @@ class okx(Exchange, ImplicitAPI):
         options = self.safe_dict(self.options, 'fetchOrder', {})
         defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrder')
         method = self.safe_string(params, 'method', defaultMethod)
-        trigger = self.safe_value_2(params, 'stop', 'trigger')
-        isTrigger = (trigger is not None) and (trigger is not False)
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
+        isTrigger = (trigger is True)
         if isTrigger:
             method = 'privateGetTradeOrderAlgo'
             if clientOrderId is not None:
@@ -4372,14 +4371,14 @@ class okx(Exchange, ImplicitAPI):
         defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrdersPending')
         method = self.safe_string(params, 'method', defaultMethod)
         ordType = self.safe_string(params, 'ordType')
-        trigger = self.safe_value_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         trailing = self.safe_bool(params, 'trailing', False)
-        isTrigger = (trigger is not None) and (trigger is not False)
+        isTrigger = (trigger is True)
         if (trailing is True) or isTrigger or ((ordType is not None) and (ordType in algoOrderTypes)):
             method = 'privateGetTradeOrdersAlgoPending'
         if trailing is True:
             request['ordType'] = 'move_order_stop'
-        elif (trigger is not None) and (ordType is None):
+        elif isTrigger and (ordType is None):
             request['ordType'] = 'trigger'
         query = self.omit(params, ['method', 'stop', 'trigger', 'trailing'])
         response = None
@@ -4532,9 +4531,9 @@ class okx(Exchange, ImplicitAPI):
         defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrdersHistory')
         method = self.safe_string(params, 'method', defaultMethod)
         ordType = self.safe_string(params, 'ordType')
-        trigger = self.safe_value_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         trailing = self.safe_bool(params, 'trailing', False)
-        isTrigger = (trigger is not None) and (trigger is not False)
+        isTrigger = (trigger is True)
         if trailing is True:
             method = 'privateGetTradeOrdersAlgoHistory'
             request['ordType'] = 'move_order_stop'

@@ -3740,6 +3740,7 @@ class binance(Exchange, ImplicitAPI):
         fees = self.fees
         linear = None
         inverse = None
+        subType = None
         symbol = base + '/' + quote
         strike = None
         if contract:
@@ -3753,6 +3754,10 @@ class binance(Exchange, ImplicitAPI):
             contractSize = self.safe_number_2(market, 'contractSize', 'unit', self.parse_number('1'))
             linear = settle == quote
             inverse = settle == base
+            if linear is True:
+                subType = 'linear'
+            elif inverse is True:
+                subType = 'inverse'
             feesType = 'linear' if linear else 'inverse'
             fees = self.safe_dict(self.fees, feesType, {})
         active = (status == 'TRADING')
@@ -3815,6 +3820,7 @@ class binance(Exchange, ImplicitAPI):
             'contract': contract,
             'linear': linear,
             'inverse': inverse,
+            'subType': subType,
             'taker': fees['trading']['taker'],
             'maker': fees['trading']['maker'],
             'contractSize': contractSize,
@@ -4348,7 +4354,7 @@ class binance(Exchange, ImplicitAPI):
         #
         #     {
         #         "symbol": "BTCUSDT",
-        #         "markPrice": "11793.63104563", // mark price
+        #         "markPrice": "11793.63104565", // mark price
         #         "indexPrice": "11781.80495970", // index price
         #         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts
         #         "lastFundingRate": "0.00038246",  // This is the lastest estimated funding rate
@@ -4936,7 +4942,7 @@ class binance(Exchange, ImplicitAPI):
         #         "open": "32.2",
         #         "high": "32.2",
         #         "low": "32.2",
-        #         "close": "32.2",
+        #         "close": "32.3",
         #         "volume": "0",
         #         "interval": "5m",
         #         "tradeCount": 0,

@@ -653,7 +653,13 @@ class bullish extends bullish$1["default"] {
         const messageType = this.safeString(message, 'type');
         if (messageType === 'snapshot') {
             const data = this.safeList(message, 'data', []);
-            this.balance[tradingAccountId] = this.parseBalance(data);
+            const parsed = this.parseBalance(data);
+            const parsedKeys = Object.keys(parsed);
+            for (let i = 0; i < parsedKeys.length; i++) {
+                const parsedKey = parsedKeys[i];
+                this.balance[tradingAccountId][parsedKey] = parsed[parsedKey];
+            }
+            this.balance[tradingAccountId] = this.safeBalance(this.balance[tradingAccountId]);
         }
         else {
             const data = this.safeDict(message, 'data', {});

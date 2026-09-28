@@ -614,6 +614,10 @@ class paymium extends paymium$1["default"] {
         };
         return this.safeString(statuses, status, status);
     }
+    nonce() {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return this.milliseconds();
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
@@ -624,7 +628,8 @@ class paymium extends paymium$1["default"] {
         }
         else {
             this.checkRequiredCredentials();
-            const nonce = this.nonce().toString();
+            // paymium requires an increasing nonce
+            const nonce = this.incrementingNonce().toString();
             let auth = nonce + url;
             headers = {
                 'Api-Key': this.apiKey,

@@ -1278,7 +1278,8 @@ class coinmate extends coinmate$1["default"] {
         }
         else {
             this.checkRequiredCredentials();
-            const nonce = this.nonce().toString();
+            // coinmate requires each nonce to be greater than the previous one for the key
+            const nonce = this.incrementingNonce().toString();
             const auth = nonce + this.uid + this.apiKey;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
             body = this.urlencode(this.extend({

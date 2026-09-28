@@ -1181,7 +1181,7 @@ class bitso extends Exchange {
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if (($since !== null) && !$markerInParams) {
-            throw new ExchangeError($this->id . ' fetchMyTrades() does not support fetching trades starting from a timestamp with the `$since` argument, use the `$marker` extra param to filter starting from an integer trade id');
+            throw new ExchangeError($this->id . ' fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
         }
         // convert it to an integer unconditionally
         if ($markerInParams) {
@@ -1293,7 +1293,7 @@ class bitso extends Exchange {
          * @return {array} an list of ~@link https://docs.ccxt.com/?$id=order-structure order structures~
          */
         if ((gettype($ids) !== 'array' || array_keys($ids) !== array_keys(array_keys($ids)))) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() $ids argument should be an array');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() ids argument should be an array');
         }
         $market = null;
         if ($symbol !== null) {
@@ -1334,7 +1334,7 @@ class bitso extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
          */
         if ($symbol !== null) {
-            throw new NotSupported($this->id . ' cancelAllOrders() deletes all orders for user, it does not support filtering by $symbol->');
+            throw new NotSupported($this->id . ' cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.');
         }
         $response = Async\await($this->privateDeleteOrdersAll($params));
         //
@@ -1436,7 +1436,7 @@ class bitso extends Exchange {
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if (($since !== null) && !$markerInParams) {
-            throw new ExchangeError($this->id . ' fetchOpenOrders() does not support fetching $orders starting from a timestamp with the `$since` argument, use the `$marker` extra param to filter starting from an integer trade id');
+            throw new ExchangeError($this->id . ' fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
         }
         // convert it to an integer unconditionally
         if ($markerInParams) {
@@ -2066,7 +2066,8 @@ class bitso extends Exchange {
         $url = $this->urls['api']['rest'] . $endpoint;
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce();
+            // bitso rejects a nonce that is not higher than the previous one (error 104)
+            $nonce = (string) $this->incrementing_nonce();
             $endpoint = '/api' . $endpoint;
             $content = array( $nonce, $method, $endpoint );
             $request = implode('', $content);

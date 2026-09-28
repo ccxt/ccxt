@@ -14,7 +14,7 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
-use const ccxt\DECIMAL_PLACES;
+use const ccxt\TICK_SIZE;
 
 class foxbit extends Exchange {
     public function describe(): mixed {
@@ -101,7 +101,7 @@ class foxbit extends Exchange {
                     'https://docs.foxbit.com.br',
                 ),
             ),
-            'precisionMode' => DECIMAL_PLACES,
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     // https://docs.foxbit.com.br/rest/v3/#tag/API-Codes/Errors
@@ -386,7 +386,6 @@ class foxbit extends Exchange {
     }
 
     public function parse_currency(array $rawCurrency): array {
-        $precision = $this->safe_integer($rawCurrency, 'precision');
         $currencyId = $this->safe_string($rawCurrency, 'symbol');
         $name = $this->safe_string($rawCurrency, 'name');
         $code = $this->safe_currency_code($currencyId);
@@ -412,7 +411,7 @@ class foxbit extends Exchange {
                     'deposit' => $isDepositEnabled,
                     'withdraw' => $isWithdrawEnabled,
                     'active' => true,
-                    'precision' => $precision,
+                    'precision' => null,
                     'fee' => $this->safe_number($networkWithdrawInfo, 'fee'),
                     'limits' => array(
                         'amount' => array(
@@ -441,7 +440,7 @@ class foxbit extends Exchange {
             'deposit' => $this->safe_bool($depositInfo, 'enabled', false),
             'withdraw' => $this->safe_bool($withdrawInfo, 'enabled', false),
             'fee' => $this->safe_number($withdrawInfo, 'fee'),
-            'precision' => $precision,
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'precision'))),
             'limits' => array(
                 'amount' => array(
                     'min' => null,
@@ -1014,13 +1013,13 @@ class foxbit extends Exchange {
         $market = $this->market($symbol);
         $type = strtoupper($type);
         if ($type !== 'LIMIT' && $type !== 'MARKET' && $type !== 'STOP_MARKET' && $type !== 'STOP_LIMIT' && $type !== 'INSTANT') {
-            throw new InvalidOrder('Invalid order $type => ' . $type . '. Must be one of => limit, $market, stop_market, stop_limit, instant.');
+            throw new InvalidOrder('Invalid order type => ' . $type . '. Must be one of => limit, market, stop_market, stop_limit, instant.');
         }
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $postOnly = $this->safe_bool($params, 'postOnly', false);
         $triggerPrice = $this->safe_number($params, 'triggerPrice');
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a side argument');
         }
         $request = array(
             'market_symbol' => $market['id'],
@@ -1029,7 +1028,7 @@ class foxbit extends Exchange {
         );
         if ($type === 'STOP_MARKET' || $type === 'STOP_LIMIT') {
             if ($triggerPrice === null) {
-                throw new InvalidOrder('Invalid order $type => ' . $type . '. Must have $triggerPrice->');
+                throw new InvalidOrder('Invalid order type => ' . $type . '. Must have triggerPrice.');
             }
         }
         if ($timeInForce !== null) {
@@ -1092,7 +1091,7 @@ class foxbit extends Exchange {
             $type = $this->safe_string_upper($order, 'type');
             $orderParams = $this->safe_dict($order, 'params', array());
             if ($type !== 'LIMIT' && $type !== 'MARKET' && $type !== 'STOP_MARKET' && $type !== 'STOP_LIMIT' && $type !== 'INSTANT') {
-                throw new InvalidOrder('Invalid $order $type => ' . $type . '. Must be one of => limit, $market, stop_market, stop_limit, instant.');
+                throw new InvalidOrder('Invalid order type => ' . $type . '. Must be one of => limit, market, stop_market, stop_limit, instant.');
             }
             $timeInForce = $this->safe_string_upper($orderParams, 'timeInForce');
             $postOnly = $this->safe_bool($orderParams, 'postOnly', false);
@@ -1104,7 +1103,7 @@ class foxbit extends Exchange {
             );
             if ($type === 'STOP_MARKET' || $type === 'STOP_LIMIT') {
                 if ($triggerPrice === null) {
-                    throw new InvalidOrder('Invalid $order $type => ' . $type . '. Must have $triggerPrice->');
+                    throw new InvalidOrder('Invalid order type => ' . $type . '. Must have triggerPrice.');
                 }
             }
             if ($timeInForce !== null) {
@@ -1354,7 +1353,7 @@ class foxbit extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1642,18 +1641,18 @@ class foxbit extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a symbol argument');
         }
         $type = strtoupper($type);
         if ($type !== 'LIMIT' && $type !== 'MARKET' && $type !== 'STOP_MARKET' && $type !== 'INSTANT') {
-            throw new InvalidOrder('Invalid order $type => ' . $type . '. Must be one of => LIMIT, MARKET, STOP_MARKET, INSTANT.');
+            throw new InvalidOrder('Invalid order type => ' . $type . '. Must be one of => LIMIT, MARKET, STOP_MARKET, INSTANT.');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a side argument');
         }
         $request = array(
             'mode' => 'ALLOW_FAILURE',
@@ -1761,7 +1760,7 @@ class foxbit extends Exchange {
         }
         $request = array();
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchLedger() requires a code argument');
         }
         if ($limit !== null) {
             $request['page_size'] = $limit;
@@ -1819,9 +1818,8 @@ class foxbit extends Exchange {
             'tierBased' => false,
             'feeSide' => 'get',
             'precision' => array(
-                'price' => $this->safe_integer($quoteAssets, 'precision'),
-                'amount' => $this->safe_integer($baseAssets, 'precision'),
-                'cost' => $this->safe_integer($quoteAssets, 'precision'),
+                'price' => $this->safe_number($market, 'price_increment'),
+                'amount' => $this->safe_number($market, 'quantity_increment'),
             ),
             'limits' => array(
                 'amount' => array(
@@ -2125,12 +2123,12 @@ class foxbit extends Exchange {
             'currency' => $currencySymbol,
         );
         if ($amount === null) {
-            throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a $amount argument');
+            throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a amount argument');
         }
         if ($amount < 0) {
             $direction = 'out';
             if ($amount === null) {
-                throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a $amount argument');
+                throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a amount argument');
             }
             $realAmount = $amount * -1;
         }
@@ -2138,7 +2136,7 @@ class foxbit extends Exchange {
             throw new ExchangeError($this->id . ' parseLedgerEntry() missing balance');
         }
         if ($amount === null) {
-            throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a $amount argument');
+            throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a amount argument');
         }
         return array(
             'id' => $id,
@@ -2228,7 +2226,7 @@ class foxbit extends Exchange {
             }
         }
         if ($error !== null) {
-            $feedback = $this->id . ' ' . $message . ' $details => ' . $detailsString;
+            $feedback = $this->id . ' ' . $message . ' details => ' . $detailsString;
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $detailsString, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);

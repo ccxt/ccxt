@@ -1238,7 +1238,7 @@ class luno extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1338,7 +1338,7 @@ class luno extends Exchange {
         );
         $response = null;
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a side argument');
         }
         if ($type === 'market') {
             $request['type'] = strtoupper($side);
@@ -1430,13 +1430,13 @@ class luno extends Exchange {
         $max_row = $this->safe_value($params, 'max_row');
         if ($id === null) {
             if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $currency $code argument if no $account $id specified in params');
+                throw new ArgumentsRequired($this->id . ' fetchLedger() requires a currency code argument if no account id specified in params');
             }
             $currency = $this->currency($code);
             $accountsByCurrencyCode = $this->index_by($this->accounts, 'currency');
             $account = $this->safe_dict($accountsByCurrencyCode, $code);
             if ($account === null) {
-                throw new ExchangeError($this->id . ' fetchLedger() could not find $account $id for ' . $code);
+                throw new ExchangeError($this->id . ' fetchLedger() could not find account id for ' . $code);
             }
             $id = $account['id'];
         }
@@ -1444,7 +1444,7 @@ class luno extends Exchange {
             $max_row = 0; // Default to most recent transactions
             $min_row = -1000; // Maximum number of records supported
         } elseif ($min_row === null || $max_row === null) {
-            throw new ExchangeError($this->id . " fetchLedger() require both $params 'max_row' and 'min_row' or neither to be defined");
+            throw new ExchangeError($this->id . " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined");
         }
         if ($limit !== null && $max_row - $min_row > $limit) {
             if ($max_row <= 0) {
@@ -1454,7 +1454,7 @@ class luno extends Exchange {
             }
         }
         if ($max_row - $min_row > 1000) {
-            throw new ExchangeError($this->id . " fetchLedger() requires the $params 'max_row' - 'min_row' <= 1000");
+            throw new ExchangeError($this->id . " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000");
         }
         $request = array(
             'id' => $id,

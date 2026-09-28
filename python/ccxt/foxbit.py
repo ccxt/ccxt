@@ -19,7 +19,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -109,7 +109,7 @@ class foxbit(Exchange, ImplicitAPI):
                     'https://docs.foxbit.com.br',
                 ],
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     # https://docs.foxbit.com.br/rest/v3/#tag/API-Codes/Errors
@@ -388,7 +388,6 @@ class foxbit(Exchange, ImplicitAPI):
         return self.parse_currencies(data)
 
     def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
-        precision = self.safe_integer(rawCurrency, 'precision')
         currencyId = self.safe_string(rawCurrency, 'symbol')
         name = self.safe_string(rawCurrency, 'name')
         code = self.safe_currency_code(currencyId)
@@ -414,7 +413,7 @@ class foxbit(Exchange, ImplicitAPI):
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'active': True,
-                    'precision': precision,
+                    'precision': None,
                     'fee': self.safe_number(networkWithdrawInfo, 'fee'),
                     'limits': {
                         'amount': {
@@ -441,7 +440,7 @@ class foxbit(Exchange, ImplicitAPI):
             'deposit': self.safe_bool(depositInfo, 'enabled', False),
             'withdraw': self.safe_bool(withdrawInfo, 'enabled', False),
             'fee': self.safe_number(withdrawInfo, 'fee'),
-            'precision': precision,
+            'precision': self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'precision'))),
             'limits': {
                 'amount': {
                     'min': None,
@@ -1598,9 +1597,8 @@ class foxbit(Exchange, ImplicitAPI):
             'tierBased': False,
             'feeSide': 'get',
             'precision': {
-                'price': self.safe_integer(quoteAssets, 'precision'),
-                'amount': self.safe_integer(baseAssets, 'precision'),
-                'cost': self.safe_integer(quoteAssets, 'precision'),
+                'price': self.safe_number(market, 'price_increment'),
+                'amount': self.safe_number(market, 'quantity_increment'),
             },
             'limits': {
                 'amount': {

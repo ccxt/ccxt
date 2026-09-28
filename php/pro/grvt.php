@@ -178,7 +178,7 @@ class grvt extends \ccxt\async\grvt {
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         if ($symbols === null) {
-            throw new ArgumentsRequired($this->id . ' watchTickers requires a $symbols argument');
+            throw new ArgumentsRequired($this->id . ' watchTickers requires a symbols argument');
         }
         $channel = null;
         list($channel, $params) = $this->handle_option_and_params($params, 'watchTickers', 'channel', 'v1.ticker.s');

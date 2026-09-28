@@ -877,6 +877,7 @@ class apex extends Exchange {
         if ($limit === null) {
             $limit = 200; // default is 200 when requested with `since`
         }
+        $limit = min($limit, 200); // fix maxcap
         $request['limit'] = $limit; // max 200, default 200
         list($request, $params) = $this->handle_until_option('end', $request, $params, 0.001);
         if ($since !== null) {
@@ -1143,7 +1144,7 @@ class apex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1429,7 +1430,7 @@ class apex extends Exchange {
         $market = $this->market($symbol);
         $orderType = strtoupper($type);
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a side argument');
         }
         $orderSide = strtoupper($side);
         $orderSize = $this->amount_to_precision($symbol, $amount);
@@ -1454,7 +1455,7 @@ class apex extends Exchange {
         }
         $isMarket = $orderType === 'MARKET';
         if ($isMarket && ($price === null)) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for $market orders');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for market orders');
         }
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarket, null, $params);
@@ -2015,7 +2016,7 @@ class apex extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());

@@ -494,6 +494,16 @@ class btcturk(Exchange, ImplicitAPI):
         symbol = market['symbol']
         timestamp = self.safe_integer(ticker, 'timestamp')
         last = self.safe_string(ticker, 'last')
+        open = self.safe_string(ticker, 'open')
+        change = self.safe_string(ticker, 'daily')
+        percentage = self.safe_string(ticker, 'dailyPercent')
+        average = self.safe_string(ticker, 'average')
+        if (open is not None) and (last is not None) and not Precise.string_eq(open, '0'):
+            # The reported daily fields can disagree with last - open.
+            # Let safeTicker derive the unified change, percentage and average from these prices.
+            change = None
+            percentage = None
+            average = None
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -505,13 +515,13 @@ class btcturk(Exchange, ImplicitAPI):
             'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_string(ticker, 'open'),
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_string(ticker, 'daily'),
-            'percentage': self.safe_string(ticker, 'dailyPercent'),
-            'average': self.safe_string(ticker, 'average'),
+            'change': change,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,

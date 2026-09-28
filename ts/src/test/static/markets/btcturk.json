@@ -1,0 +1,190 @@
+{
+    "BTC/TRY": {
+        "id": "BTCTRY",
+        "lowercaseId": null,
+        "symbol": "BTC/TRY",
+        "base": "BTC",
+        "quote": "TRY",
+        "settle": null,
+        "baseId": "BTC",
+        "quoteId": "TRY",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-8,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": 1e-13,
+                "max": 10000000
+            },
+            "cost": {
+                "min": 99.91,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "id": 1,
+            "name": "BTCTRY",
+            "nameNormalized": "BTC_TRY",
+            "status": "TRADING",
+            "numerator": "BTC",
+            "denominator": "TRY",
+            "numeratorScale": 8,
+            "denominatorScale": 0,
+            "hasFraction": false,
+            "filters": [
+                {
+                    "filterType": "PRICE_FILTER",
+                    "minPrice": "0.0000000000001",
+                    "maxPrice": "10000000",
+                    "tickSize": "10",
+                    "minExchangeValue": "99.91",
+                    "minAmount": null,
+                    "maxAmount": null
+                }
+            ],
+            "orderMethods": [
+                "MARKET",
+                "LIMIT",
+                "STOP_MARKET",
+                "STOP_LIMIT"
+            ],
+            "displayFormat": "#,###",
+            "commissionFromNumerator": false,
+            "order": 1000,
+            "priceRounding": false,
+            "isNew": false,
+            "marketPriceWarningThresholdPercentage": 0.25,
+            "maximumOrderAmount": null,
+            "maximumLimitOrderPrice": 37541350,
+            "minimumLimitOrderPrice": 375413.5
+        }
+    },
+    "BTC/USDT": {
+        "id": "BTCUSDT",
+        "lowercaseId": null,
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-8,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": 1e-13,
+                "max": 10000000
+            },
+            "cost": {
+                "min": 9.91,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "id": 19,
+            "name": "BTCUSDT",
+            "nameNormalized": "BTC_USDT",
+            "status": "TRADING",
+            "numerator": "BTC",
+            "denominator": "USDT",
+            "numeratorScale": 8,
+            "denominatorScale": 0,
+            "hasFraction": false,
+            "filters": [
+                {
+                    "filterType": "PRICE_FILTER",
+                    "minPrice": "0.0000000000001",
+                    "maxPrice": "10000000",
+                    "tickSize": "1",
+                    "minExchangeValue": "9.91",
+                    "minAmount": null,
+                    "maxAmount": null
+                }
+            ],
+            "orderMethods": [
+                "MARKET",
+                "LIMIT",
+                "STOP_MARKET",
+                "STOP_LIMIT"
+            ],
+            "displayFormat": "#,###",
+            "commissionFromNumerator": false,
+            "order": 2000,
+            "priceRounding": false,
+            "isNew": false,
+            "marketPriceWarningThresholdPercentage": 0.25,
+            "maximumOrderAmount": null,
+            "maximumLimitOrderPrice": 772950,
+            "minimumLimitOrderPrice": 7729.5
+        }
+    }
+}

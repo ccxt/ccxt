@@ -74,6 +74,12 @@ const EXCHANGES_WS_FOLDER    = `${RUST_PRO_BASE}/pro`;
 // Prediction venues live in their own module so ids that also exist as a
 // regular exchange (e.g. `hyperliquid`) don't clobber each other.
 const PREDICTION_EXCHANGES_FOLDER = `${RUST_BASE}/prediction`;
+
+// Cargo feature that gates a transpiled Core in ccxt-base. Shared with
+// build/generateRustWrappers.ts, which emits the matching [features] entries.
+export function rustFeatureName (id: string, prediction = false): string {
+    return prediction ? `prediction-${id}` : id;
+}
 const BASE_TESTS_FOLDER      = './rust/tests/base';
 const BASE_TESTS_WS_FOLDER   = './rust/tests/base_ws';
 const GENERATED_TESTS_FOLDER = './rust/tests/exchange';
@@ -9144,10 +9150,11 @@ impl std::ops::DerefMut for ${coreName} {
                 '// Re-export the hand-written pro infra (cache / order_book /',
                 '// ws_client and their public items) from the base crate so the',
                 "// venue files' `crate::pro::*` paths resolve. The venue modules",
-                '// themselves live in this crate.',
+                '// themselves live in this crate, one per `<id>` cargo feature',
+                '// (see the generated [features] block in ccxt-pro/Cargo.toml).',
                 'pub use ccxt_base::pro::*;',
                 '',
-                ...venues.map(n => `pub mod ${n};`),
+                ...venues.map(n => `#[cfg(feature = "${n}")]\npub mod ${n};`),
             ];
             const wsContent = [
                 ...this.createGeneratedHeader(),
@@ -9185,12 +9192,16 @@ impl std::ops::DerefMut for ${coreName} {
                 lines.push(`pub mod ${sibling};`);
             }
         }
-        // WS per-exchange files are still WIP — gate them behind the
-        // `transpiled-ws` feature so the default build (REST + hand-
-        // written pro::cache / order_book) keeps compiling.
-        const isProFolder = folder.endsWith('/pro');
-        const gate = isProFolder ? '#[cfg(feature = "transpiled-ws")]\n' : '';
+        // Every Core sits behind its own cargo feature so a consumer that
+        // asks for `features = ["binance"]` compiles one venue, not 200+.
+        // REST features are the bare id; prediction Cores share ids with REST
+        // venues (binance, hyperliquid, …) so theirs carry a `prediction-`
+        // prefix. The feature lists themselves are emitted into each crate's
+        // Cargo.toml by build/generateRustWrappers.ts (rustFeatureName is the
+        // shared naming rule).
+        const isPredictionFolder = folder === PREDICTION_EXCHANGES_FOLDER;
         for (const n of baseNames) {
+            const gate = `#[cfg(feature = "${rustFeatureName(n, isPredictionFolder)}")]\n`;
             lines.push(`${gate}pub mod ${n};`);
             if (fs.existsSync(`${folder}/${n}_api.rs`)) {
                 lines.push(`${gate}pub mod ${n}_api;`);
@@ -9780,12 +9791,6 @@ impl std::ops::DerefMut for ${coreName} {
             // hand-transpiled per-language, cf. Go's transpileCryptoTests)
             // but the Rust base-test pipeline handles it fine — include it.
             if (tsContent.includes('// NO_AUTO_TRANSPILE') && testName !== 'test.cryptography') continue;
-            // the Rust base has no handleHttpStatusCode yet — its HTTP layer
-            // classifies statuses inline (ccxt-base/src/exchange.rs), so the
-            // contract that test pins does not exist on the Rust side; skip it
-            // here (the tests.init call is dropped automatically) until the
-            // method lands on BaseCore
-            if (testName === 'test.handleHttpStatusCode') continue;
 
             const outFile = `${outDir}/${testName}.rs`;
             log.magenta('Transpiling from', (tsFile as any).yellow);
@@ -9807,8 +9812,8 @@ impl std::ops::DerefMut for ${coreName} {
                 content = this.rewriteDynamicThrows(content);
                 content = this.normalizeJwtCalls(content);
                 content = this.wrapBoolValueArgs(content);
-                content = this.stripCatchBlocks(content);
-                content = this.unwrapCatchUnwind(content);
+                // catch_unwind keeps the catch body, so a test can assert that a call throws
+                content = this.rewriteTryCatchAsync(content);
                 content = this.rewriteNamespaceCalls(content, 'Math',    'crate::runtime::Math',    true);
                 content = this.rewriteNamespaceCalls(content, 'Precise', 'crate::precise::Precise', true);
                 // `Precise::stringDiv(a, b, precision)` (3 args) →
@@ -11579,12 +11584,17 @@ impl std::ops::DerefMut for ${coreName} {
         });
 
         if (!baseOnly) {
-            await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force, false);
-            // Prediction-market exchanges (ts/src/prediction/*.ts → prediction Cores).
-            await this.transpileDerivedExchangeFiles('./ts/src/prediction', options, '.ts', force, false, true);
+            const predictionOnly = process.argv.includes('--prediction');
+            if (!predictionOnly) {
+                await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force, false);
+            }
+            if (predictionOnly || exchanges.length === 0) {
+                // Prediction-market exchanges (ts/src/prediction/*.ts → prediction Cores).
+                await this.transpileDerivedExchangeFiles('./ts/src/prediction', options, '.ts', force, false, true);
+            }
         }
 
-        if (child || transpilingSingle || baseOnly) return;
+        if (child || exchanges.length > 0 || baseOnly) return;
 
         this.transpileErrorHierarchy();
         this.transpileTests();
@@ -11634,10 +11644,20 @@ if (isMainEntry(import.meta.url)) {
     const baseOnly  = process.argv.includes('--baseClass') || process.argv.includes('--baseOnly');
     const testsOnly = process.argv.includes('--tests') || process.argv.includes('--test');
     const testsMain = process.argv.includes('--testsMain') || process.argv.includes('--testMain');
+    const modFiles  = process.argv.includes('--modFiles');
 
     const t = new RustTranspilerBuilder();
 
-    if (baseOnly) {
+    if (modFiles) {
+        for (const folder of [ EXCHANGES_FOLDER, EXCHANGES_WS_FOLDER, PREDICTION_EXCHANGES_FOLDER ]) {
+            if (!fs.existsSync(folder)) continue;
+            const onDisk = fs.readdirSync(folder)
+                .filter(f => f.endsWith('.rs') && f !== 'mod.rs')
+                .map(f => basename(f, '.rs'))
+                .sort();
+            t.writeModFile(folder, onDisk);
+        }
+    } else if (baseOnly) {
         t.transpileBaseMethods('./ts/src/base/Exchange.ts');
         t.transpileErrorHierarchy();
     } else if (ws) {

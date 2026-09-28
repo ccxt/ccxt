@@ -1637,7 +1637,8 @@ public class Coinmate extends CoinmateApi
         } else
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            // coinmate requires each nonce to be greater than the previous one for the key
+            Object nonce = String.valueOf(this.incrementingNonce());
             Object auth = Helpers.add(Helpers.add(nonce, this.uid), this.apiKey);
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             final Object finalNonce = nonce;

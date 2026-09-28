@@ -26,7 +26,6 @@
 	- [bitflyer](exchanges/bitflyer.md)
 	- [bitget](exchanges/bitget.md)
 	- [bithumb](exchanges/bithumb.md)
-	- [bitmex](exchanges/bitmex.md)
 	- [bitopro](exchanges/bitopro.md)
 	- [bitrue](exchanges/bitrue.md)
 	- [bitso](exchanges/bitso.md)
@@ -116,3 +115,4 @@
 	- [opinion](exchanges/prediction/opinion.md)
 	- [polymarket](exchanges/prediction/polymarket.md)
 	- [predictfun](exchanges/prediction/predictfun.md)
+	- [sxbet](exchanges/prediction/sxbet.md)

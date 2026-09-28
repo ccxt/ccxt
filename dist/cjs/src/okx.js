@@ -3823,9 +3823,9 @@ class okx extends okx$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        const trigger = this.safeValue2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
-        const isTrigger = (trigger !== undefined) && (trigger !== false);
+        const isTrigger = (trigger === true);
         if (isTrigger || (trailing === true)) {
             const orderInner = await this.cancelOrders([id], symbol, params);
             return this.safeDict(orderInner, 0);
@@ -3882,7 +3882,6 @@ class okx extends okx$1["default"] {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
         }
@@ -3896,9 +3895,9 @@ class okx extends okx$1["default"] {
         let method = this.safeString(params, 'method', defaultMethod);
         const clientOrderIds = this.parseIds(this.safeValue2(params, 'clOrdId', 'clientOrderId'));
         const algoIds = this.parseIds(this.safeValue(params, 'algoId'));
-        const trigger = this.safeValue2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
-        const isTrigger = (trigger !== undefined) && (trigger !== false);
+        const isTrigger = (trigger === true);
         if (isTrigger || (trailing === true)) {
             method = 'privatePostTradeCancelAlgos';
         }
@@ -3913,7 +3912,7 @@ class okx extends okx$1["default"] {
                 }
             }
             for (let i = 0; i < ids.length; i++) {
-                if ((trailing === true) || (trigger !== undefined)) {
+                if ((trailing === true) || isTrigger) {
                     request.push({
                         'algoId': ids[i],
                         'instId': market['id'],
@@ -3929,7 +3928,7 @@ class okx extends okx$1["default"] {
         }
         else {
             for (let i = 0; i < clientOrderIds.length; i++) {
-                if ((trailing === true) || (trigger !== undefined)) {
+                if ((trailing === true) || isTrigger) {
                     request.push({
                         'instId': market['id'],
                         'algoClOrdId': clientOrderIds[i],
@@ -4443,8 +4442,8 @@ class okx extends okx$1["default"] {
         const options = this.safeDict(this.options, 'fetchOrder', {});
         const defaultMethod = this.safeString(options, 'method', 'privateGetTradeOrder');
         let method = this.safeString(params, 'method', defaultMethod);
-        const trigger = this.safeValue2(params, 'stop', 'trigger');
-        const isTrigger = (trigger !== undefined) && (trigger !== false);
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
+        const isTrigger = (trigger === true);
         if (isTrigger) {
             method = 'privateGetTradeOrderAlgo';
             if (clientOrderId !== undefined) {
@@ -4620,16 +4619,16 @@ class okx extends okx$1["default"] {
         const defaultMethod = this.safeString(options, 'method', 'privateGetTradeOrdersPending');
         let method = this.safeString(params, 'method', defaultMethod);
         const ordType = this.safeString(params, 'ordType');
-        const trigger = this.safeValue2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
-        const isTrigger = (trigger !== undefined) && (trigger !== false);
+        const isTrigger = (trigger === true);
         if ((trailing === true) || isTrigger || ((ordType !== undefined) && (ordType in algoOrderTypes))) {
             method = 'privateGetTradeOrdersAlgoPending';
         }
         if (trailing === true) {
             request['ordType'] = 'move_order_stop';
         }
-        else if ((trigger !== undefined) && (ordType === undefined)) {
+        else if (isTrigger && (ordType === undefined)) {
             request['ordType'] = 'trigger';
         }
         const query = this.omit(params, ['method', 'stop', 'trigger', 'trailing']);
@@ -4788,9 +4787,9 @@ class okx extends okx$1["default"] {
         const defaultMethod = this.safeString(options, 'method', 'privateGetTradeOrdersHistory');
         let method = this.safeString(params, 'method', defaultMethod);
         const ordType = this.safeString(params, 'ordType');
-        const trigger = this.safeValue2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
-        const isTrigger = (trigger !== undefined) && (trigger !== false);
+        const isTrigger = (trigger === true);
         if (trailing === true) {
             method = 'privateGetTradeOrdersAlgoHistory';
             request['ordType'] = 'move_order_stop';

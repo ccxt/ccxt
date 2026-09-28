@@ -1335,7 +1335,8 @@ func (this *Bit2c) Sign(path any, optionalArgs ...any) any {
 		url = Add(url, ".json")
 	} else {
 		this.CheckRequiredCredentials()
-		var nonce any = this.Nonce()
+		// bit2c requires an increasing nonce per key
+		var nonce any = this.IncrementingNonce()
 		var query map[string]any = this.Extend(map[string]any{
 			"nonce": nonce,
 		}, params)

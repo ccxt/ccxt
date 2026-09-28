@@ -17,7 +17,6 @@ public class  Bingx: bingx { public Bingx(object args = null) : base(args) { } }
 public class  Bitfinex: bitfinex { public Bitfinex(object args = null) : base(args) { } }
 public class  Bitget: bitget { public Bitget(object args = null) : base(args) { } }
 public class  Bithumb: bithumb { public Bithumb(object args = null) : base(args) { } }
-public class  Bitmex: bitmex { public Bitmex(object args = null) : base(args) { } }
 public class  Bitopro: bitopro { public Bitopro(object args = null) : base(args) { } }
 public class  Bitrue: bitrue { public Bitrue(object args = null) : base(args) { } }
 public class  Bitstamp: bitstamp { public Bitstamp(object args = null) : base(args) { } }
