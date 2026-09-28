@@ -20,6 +20,8 @@ import { fileURLToPath } from 'node:url';
 export const CSHARP_STRUCT_RETURN_TYPES = {
     'Ticker': { 'kind': 'one', 'names': [ 'parseTicker', 'parseWSTicker', 'parseWsTicker', 'safeTicker' ] },
     'Tickers': { 'kind': 'map', 'row': 'Ticker', 'names': [ 'parseTickers' ] },
+    // REST books only; ws books (ccxt.pro.OrderBook classes in this.orderbooks) are boxed at the boundary
+    'OrderBook': { 'kind': 'one', 'names': [ 'parseOrderBook' ] },
 };
 
 const TYPES_FILE = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'cs', 'ccxt', 'base', 'Exchange.Types.cs');
