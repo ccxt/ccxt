@@ -6,7 +6,7 @@ import Exchange from './abstract/digifinex.js';
 import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, NotSupported, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol, ArgumentsRequired, NullResponse } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, List, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, NullableDict, CurrencyInterface, NullableList, DepositWithdrawFees, Status, Endpoint, FundingHistory } from './base/types.js';
+import type { Balances, Bool, BorrowInterest, CancellationRequest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, List, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, NullableDict, CurrencyInterface, NullableList, DepositWithdrawFees, Status, Endpoint, FundingHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -32,6 +32,7 @@ export default class digifinex extends Exchange {
                 'addMargin': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'cancelOrdersForSymbols': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
@@ -2041,12 +2042,12 @@ export default class digifinex extends Exchange {
         } else {
             return this.safeOrder ({
                 'info': response,
-                'orderId': this.safeString (response, 'data'),
+                'id': this.safeString (response, 'data'),
             });
         }
     }
 
-    parseCancelOrders (response: Dict): Order[] {
+    parseCancelOrders (response: Dict, symbolsById: Dict = {}): Order[] {
         const success = this.safeList (response, 'success', []);
         const error = this.safeList (response, 'error', []);
         const result: Order[] = [];
@@ -2055,6 +2056,7 @@ export default class digifinex extends Exchange {
             result.push (this.safeOrder ({
                 'info': order,
                 'id': order,
+                'symbol': this.safeString (symbolsById, order),
                 'status': 'canceled',
             }));
         }
@@ -2062,9 +2064,9 @@ export default class digifinex extends Exchange {
             const order = error[i];
             result.push (this.safeOrder ({
                 'info': order,
-                'id': this.safeString2 (order, 'order-id', 'order_id'),
+                'id': order,
+                'symbol': this.safeString (symbolsById, order),
                 'status': 'failed',
-                'clientOrderId': this.safeString (order, 'client-order-id'),
             }));
         }
         return result;
@@ -2075,20 +2077,41 @@ export default class digifinex extends Exchange {
      * @name digifinex#cancelOrders
      * @description cancel multiple orders
      * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+     * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by cancelOrders ()
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [symbol] unified market symbol, required for swap markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the request body is an array)
+     * @param {string} [params.type] 'spot', 'margin' or 'swap', defaults to the type of the symbol's market or options.defaultType
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelOrders (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const orderType = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType: Str = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
+        if (marketType === 'swap') {
+            if (market === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument for swap markets');
+            }
+            const marketSymbol = market['symbol'];
+            const orders: CancellationRequest[] = [];
+            for (let i = 0; i < ids.length; i++) {
+                const orderId = ids[i];
+                const orderItem: CancellationRequest = {
+                    'id': orderId,
+                    'symbol': marketSymbol,
+                };
+                orders.push (orderItem);
+            }
+            return await this.cancelOrdersForSymbols (orders, params);
+        }
         const request: Dict = {
-            'market': orderType,
+            'market': marketType,
             'order_id': ids.join (','),
         };
         const response = await this.privateSpotPostSpotOrderCancel (this.extend (request, params));
@@ -2107,8 +2130,112 @@ export default class digifinex extends Exchange {
         return this.parseCancelOrders (response) as Order[];
     }
 
+    /**
+     * @method
+     * @name digifinex#cancelOrdersForSymbols
+     * @description cancel multiple orders for multiple symbols
+     * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+     * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
+     * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, all orders must be of the same market type (spot or swap), example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the request body is an array)
+     * @param {string} [params.type] 'spot' or 'margin' for spot markets, defaults to 'spot'
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async cancelOrdersForSymbols (orders: CancellationRequest[], params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const ids: string[] = [];
+        const symbols: string[] = [];
+        const symbolsById: Dict = {};
+        let marketType: Str = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const id = this.safeString (order, 'id');
+            if (id === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrdersForSymbols() requires an id for each order');
+            }
+            const symbol = this.safeString (order, 'symbol');
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrdersForSymbols() requires a symbol for each order');
+            }
+            const market = this.market (symbol);
+            const orderMarketType = market['type'];
+            if (marketType === undefined) {
+                marketType = orderMarketType;
+            } else if (marketType !== orderMarketType) {
+                throw new BadRequest (this.id + ' cancelOrdersForSymbols() requires all orders to be of the same market type (spot or swap)');
+            }
+            ids.push (id);
+            symbols.push (market['symbol']);
+            symbolsById[id] = market['symbol'];
+        }
+        if (marketType === 'swap') {
+            const numIds = ids.length;
+            if (numIds > 20) {
+                throw new BadRequest (this.id + ' cancelOrdersForSymbols() accepts up to 20 orders for swap markets');
+            }
+            const ordersRequests: Dict[] = [];
+            for (let i = 0; i < ids.length; i++) {
+                const market = this.market (symbols[i]);
+                const marketId = market['id'];
+                const orderId = ids[i];
+                ordersRequests.push ({
+                    'instrument_id': marketId,
+                    'order_id': orderId,
+                });
+            }
+            const swapResponse = await this.privateSwapPostTradeBatchCancelOrder (ordersRequests); // don't extend with params, otherwise the array body is turned into an object
+            //
+            //     {
+            //         "code": 0,
+            //         "data": [
+            //             "1546771720487047168",
+            //             "1546771720487047169"
+            //         ]
+            //     }
+            //
+            // ids that were not canceled are absent from data
+            const data = this.safeList (swapResponse, 'data', []);
+            const result: Order[] = [];
+            for (let i = 0; i < ids.length; i++) {
+                const orderId = ids[i];
+                const isCanceled = this.inArray (orderId, data);
+                const status = (isCanceled) ? 'canceled' : 'failed';
+                result.push (this.safeOrder ({
+                    'info': orderId,
+                    'id': orderId,
+                    'symbol': symbols[i],
+                    'status': status,
+                }));
+            }
+            return result;
+        }
+        let requestType: Str = undefined;
+        [ requestType, params ] = this.handleMarketTypeAndParams ('cancelOrdersForSymbols', undefined, params, 'spot');
+        const request: Dict = {
+            'market': requestType,
+            'order_id': ids.join (','),
+        };
+        const response = await this.privateSpotPostSpotOrderCancel (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "success": [
+        //             "198361cecdc65f9c8c9bb2fa68faec40",
+        //             "3fb0d98e51c18954f10d439a9cf57de0"
+        //         ],
+        //         "error": [
+        //             "78a7104e3c65cc0c5a212a53e76d0205"
+        //         ]
+        //     }
+        //
+        return this.parseCancelOrders (response, symbolsById);
+    }
+
     parseOrderStatus (status: Str) {
         const statuses: Dict = {
+            '-1': 'canceled', // swap
             '0': 'open',
             '1': 'open', // partially filled
             '2': 'closed',
@@ -2186,6 +2313,7 @@ export default class digifinex extends Exchange {
         let lastTradeTimestamp: Int = undefined;
         let timeInForce: Str = undefined;
         let type: Str = undefined;
+        let reduceOnly: Bool = undefined;
         let side = this.safeString (order, 'type');
         const marketId = this.safeString2 (order, 'symbol', 'instrument_id');
         const symbol = this.safeSymbol (marketId, market);
@@ -2206,14 +2334,19 @@ export default class digifinex extends Exchange {
                     type = 'market';
                 }
             }
+            // 1 open long, 2 open short, 3 close long, 4 close short
             if (side === '1') {
-                side = 'open long';
+                side = 'buy';
+                reduceOnly = false;
             } else if (side === '2') {
-                side = 'open short';
+                side = 'sell';
+                reduceOnly = false;
             } else if (side === '3') {
-                side = 'close long';
+                side = 'sell';
+                reduceOnly = true;
             } else if (side === '4') {
-                side = 'close short';
+                side = 'buy';
+                reduceOnly = true;
             }
             timestamp = this.safeInteger (order, 'insert_time');
             lastTradeTimestamp = this.safeInteger (order, 'time_stamp');
@@ -2245,6 +2378,7 @@ export default class digifinex extends Exchange {
             'side': side,
             'price': this.safeNumber (order, 'price'),
             'triggerPrice': undefined,
+            'reduceOnly': reduceOnly,
             'amount': this.safeNumber2 (order, 'amount', 'size'),
             'filled': this.safeNumber2 (order, 'executed_amount', 'filled_qty'),
             'remaining': undefined,
