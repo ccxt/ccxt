@@ -3444,7 +3444,7 @@ export default class pacifica extends Exchange {
         return await this.privatePostAccountBuilderCodesApprove (this.extend (request, params));
     }
 
-    async fetchBuilderApprovals (address: string): Promise<Dict> {
+    async fetchBuilderApprovals (address: string): Promise<Dict[]> {
         const request: Dict = {
             'account': address,
         };

@@ -4031,7 +4031,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' signIn() is not supported yet');
     }
 
-    async fetchPaymentMethods (params: Dict = {}): Promise<{}> {
+    async fetchPaymentMethods (params: Dict = {}): Promise<Dict[]> {
         throw new NotSupported (this.id + ' fetchPaymentMethods() is not supported yet');
     }
 
@@ -8240,7 +8240,7 @@ export class BaseExchange {
         }
     }
 
-    parseDepositWithdrawFees (response: any, codes: Strings = undefined, currencyIdKey: Str = undefined): any {
+    parseDepositWithdrawFees (response: any, codes: Strings = undefined, currencyIdKey: Str = undefined): Dict {
         /**
          * @ignore
          * @method
