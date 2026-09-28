@@ -124,7 +124,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             }
             $extraNames = $extraNames . ', ' . $scopeKey;
         }
-        throw new ArgumentsRequired($this->id . ' fetchEvents() requires at least one of $query, $queries, $tags, $eventId, slug' . $extraNames . ' to scope the search');
+        throw new ArgumentsRequired($this->id . ' fetchEvents() requires at least one of query, queries, tags, eventId, slug' . $extraNames . ' to scope the search');
     }
 
     public function apply_event_fetch_params(array $events, $params = array(), ?array $queries = null) {
@@ -422,7 +422,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
 
     public function outcome(?string $outcomeSymbol) {
         if ($outcomeSymbol === null) {
-            throw new ArgumentsRequired($this->id . ' outcome() requires an $outcomeSymbol argument');
+            throw new ArgumentsRequired($this->id . ' outcome() requires an outcomeSymbol argument');
         }
         if (($this->outcomes === null) || $this->is_empty($this->outcomes)) {
             throw new ExchangeError($this->id . ' outcomes not loaded - call loadOutcomes () or an outcome-addressed method first');
@@ -785,7 +785,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // miss loads the whole (capped) listing once so later lookups are 0-network hits — only
         // sane on venues whose full universe is one cheap request (hyperliquid)
         if ($outcomeSymbol === null) {
-            throw new ArgumentsRequired($this->id . ' loadOutcome() requires an $outcomeSymbol argument');
+            throw new ArgumentsRequired($this->id . ' loadOutcome() requires an outcomeSymbol argument');
         }
         if (!$reload) {
             if ($this->has_outcome($outcomeSymbol)) {
@@ -1682,7 +1682,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
 
     public function int_to_rlp_hex(?int $value) {
         if ($value === null) {
-            throw new ArgumentsRequired($this->id . ' intToRlpHex() requires a $value argument');
+            throw new ArgumentsRequired($this->id . ' intToRlpHex() requires a value argument');
         }
         // an integer as its minimal big-endian byte hex; 0 is the empty byte string
         if ($value === 0) {

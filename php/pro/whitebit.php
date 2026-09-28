@@ -469,7 +469,7 @@ class whitebit extends \ccxt\async\whitebit {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -600,7 +600,7 @@ class whitebit extends \ccxt\async\whitebit {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' watchOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' watchOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());

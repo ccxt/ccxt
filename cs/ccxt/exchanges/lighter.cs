@@ -131,7 +131,6 @@ public partial class lighter : Exchange
                 { "4h", "4h" },
                 { "12h", "12h" },
                 { "1d", "1d" },
-                { "1w", "1w" },
             } },
             { "hostname", "zklighter.elliot.ai" },
             { "urls", new Dictionary<string, object>() {
@@ -458,6 +457,7 @@ public partial class lighter : Exchange
                 { "integratorTakerFee", 1000 },
                 { "authDeadlineExpiry", 28800 },
                 { "authDeadlineMinimumRemaining", 60 },
+                { "tiersForAccountIndexes", new Dictionary<string, object>() {} },
             } },
             { "features", new Dictionary<string, object>() {
                 { "default", new Dictionary<string, object>() {
@@ -810,6 +810,12 @@ public partial class lighter : Exchange
         }
         try
         {
+            object isStandardTier = await this.checkIfStandardTier(this.parseToInt(accountIndex));
+            if (isTrue(isStandardTier))
+            {
+                ((IDictionary<string,object>)this.options)["builderFee"] = false;
+                return false;
+            }
             Int64? builder = this.safeInteger(this.options, "integratorAccountIndex", 718718);
             Int64? takerFeeRate = this.safeInteger(this.options, "integratorTakerFee", 1000);
             Int64? makerFeeRate = this.safeInteger(this.options, "integratorMakerFee", 1000);
@@ -820,6 +826,40 @@ public partial class lighter : Exchange
             ((IDictionary<string,object>)this.options)["builderFee"] = false;
         }
         return true;
+    }
+
+    public async virtual Task<object> checkIfStandardTier(object accountIndex)
+    {
+        IDictionary<string, object> tiersForAccountIndexes = this.safeDict(this.options, "tiersForAccountIndexes", new Dictionary<string, object>() {});
+        string accountIndexStr = ((object)accountIndex).ToString();
+        bool? isStandardTier = this.safeBool(tiersForAccountIndexes, accountIndexStr);
+        if (!isEqual(isStandardTier, null))
+        {
+            return isStandardTier;
+        }
+        Dictionary<string, object> accountLimits = await this.privateGetAccountLimits(new Dictionary<string, object>() {
+            { "account_index", accountIndex },
+        });
+        //
+        //    {
+        //        "code": 200,
+        //        "max_llp_percentage": 100,
+        //        "max_llp_amount": "0.000000",
+        //        "user_tier": "standard",
+        //        "can_create_public_pool": false,
+        //        "user_tier_name": "standard",
+        //        "current_maker_fee_tick": 0,
+        //        "current_taker_fee_tick": 0,
+        //        "leased_lit": "0.00000000",
+        //        "effective_lit_stakes": "0.00000000",
+        //        "user_tier_last_update": 0
+        //    }
+        //
+        string? tier = this.safeString(accountLimits, "user_tier");
+        bool isStandard = ((tier == "standard"));
+        ((IDictionary<string,object>)tiersForAccountIndexes)[(string)accountIndexStr] = isStandard;
+        ((IDictionary<string,object>)this.options)["tiersForAccountIndexes"] = tiersForAccountIndexes;
+        return isStandard;
     }
 
     public async virtual Task<object> approveBuilderFee(object builder, object takerFeeRate, object makerFeeRate, object accountIndex, object apiKeyIndex, object parameters = null)
@@ -1143,11 +1183,26 @@ public partial class lighter : Exchange
         {
             await this.loadMarkets();
         }
-        object accountIndex = null;
-        var accountIndexparametersVariable = await this.handleAccountIndex(parameters, method, "accountIndex", "account_index");
-        accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
-        parameters = ((IList<object>)accountIndexparametersVariable)[1];
-        ((IDictionary<string,object>)parameters)["accountIndex"] = accountIndex;
+        // non-destructively get values from opts/params
+        object accIndexAndParams = await this.handleAccountIndex(parameters, method, "accountIndex", "account_index");
+        object accountIndex = getValue(accIndexAndParams, 0);
+        List<object> apiKeyIndexAndParams = this.handleApiKeyIndex(parameters, method, "apiKeyIndex", "api_key_index");
+        object apiKeyIndex = getValue(apiKeyIndexAndParams, 0);
+        // before order-req creation, we need to know account status
+        string strAccountIndex = ((string)this.numberToString(accountIndex));
+        string strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
+        object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
+        try
+        {
+            object isStandardTier = await this.checkIfStandardTier(accountIndex);
+            if (isTrue(isStandardTier))
+            {
+                ((IDictionary<string,object>)this.options)["builderFee"] = false;
+            }
+        } catch(Exception e)
+        {
+            ((IDictionary<string,object>)this.options)["builderFee"] = false;
+        }
         Dictionary<string, object> market = this.market(symbol);
         object groupingType = null;
         IList<object> groupingTypeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, method, "groupingType", 3);
@@ -1155,16 +1210,11 @@ public partial class lighter : Exchange
         parameters = ((IList<object>)groupingTypeparametersVariable)[1]; // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         object orderRequests = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         int totalOrderRequests = getArrayLength(orderRequests);
-        object apiKeyIndex = null;
         object order = null;
         if (totalOrderRequests > 0)
         {
             order = getValue(orderRequests, 0);
-            apiKeyIndex = getValue(order, "api_key_index");
         }
-        string strAccountIndex = ((string)this.numberToString(accountIndex));
-        string strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
-        object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         // the nonce could be updated
         if (isEqual(this.safeInteger(order, "nonce"), null))
         {

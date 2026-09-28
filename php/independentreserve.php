@@ -1043,7 +1043,7 @@ class independentreserve extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            throw new BadRequest($this->id . ' withdraw () does not accept $params["networkCode"]');
+            throw new BadRequest($this->id . ' withdraw () does not accept params["networkCode"]');
         }
         $response = $this->privatePostWithdrawDigitalCurrency($this->extend($request, $params));
         //

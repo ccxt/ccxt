@@ -142,7 +142,6 @@ class lighter extends lighter$1["default"] {
                 '4h': '4h',
                 '12h': '12h',
                 '1d': '1d',
-                '1w': '1w',
             },
             'hostname': 'zklighter.elliot.ai',
             'urls': {
@@ -371,6 +370,7 @@ class lighter extends lighter$1["default"] {
                 'integratorTakerFee': 1000,
                 'authDeadlineExpiry': 28800, // 8h validity for auth tokens
                 'authDeadlineMinimumRemaining': 60,
+                'tiersForAccountIndexes': {}, // being filled on the fly
             },
             'features': {
                 'default': {
@@ -644,6 +644,11 @@ class lighter extends lighter$1["default"] {
             return true;
         }
         try {
+            const isStandardTier = await this.checkIfStandardTier(this.parseToInt(accountIndex));
+            if (isStandardTier) {
+                this.options['builderFee'] = false;
+                return false;
+            }
             const builder = this.safeInteger(this.options, 'integratorAccountIndex', 718718);
             const takerFeeRate = this.safeInteger(this.options, 'integratorTakerFee', 1000);
             const makerFeeRate = this.safeInteger(this.options, 'integratorMakerFee', 1000);
@@ -654,6 +659,35 @@ class lighter extends lighter$1["default"] {
             this.options['builderFee'] = false;
         }
         return true;
+    }
+    async checkIfStandardTier(accountIndex) {
+        const tiersForAccountIndexes = this.safeDict(this.options, 'tiersForAccountIndexes', {});
+        const accountIndexStr = accountIndex.toString();
+        const isStandardTier = this.safeBool(tiersForAccountIndexes, accountIndexStr);
+        if (isStandardTier !== undefined) {
+            return isStandardTier;
+        }
+        const accountLimits = await this.privateGetAccountLimits({ 'account_index': accountIndex });
+        //
+        //    {
+        //        "code": 200,
+        //        "max_llp_percentage": 100,
+        //        "max_llp_amount": "0.000000",
+        //        "user_tier": "standard",
+        //        "can_create_public_pool": false,
+        //        "user_tier_name": "standard",
+        //        "current_maker_fee_tick": 0,
+        //        "current_taker_fee_tick": 0,
+        //        "leased_lit": "0.00000000",
+        //        "effective_lit_stakes": "0.00000000",
+        //        "user_tier_last_update": 0
+        //    }
+        //
+        const tier = this.safeString(accountLimits, 'user_tier');
+        const isStandard = (tier === 'standard');
+        tiersForAccountIndexes[accountIndexStr] = isStandard;
+        this.options['tiersForAccountIndexes'] = tiersForAccountIndexes;
+        return isStandard;
     }
     async approveBuilderFee(builder, takerFeeRate, makerFeeRate, accountIndex, apiKeyIndex, params = {}) {
         const strAccountIndex = this.numberToString(accountIndex);
@@ -912,23 +946,33 @@ class lighter extends lighter$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let accountIndex = undefined;
-        [accountIndex, params] = await this.handleAccountIndex(params, method, 'accountIndex', 'account_index');
-        params['accountIndex'] = accountIndex;
+        // non-destructively get values from opts/params
+        const accIndexAndParams = await this.handleAccountIndex(params, method, 'accountIndex', 'account_index');
+        const accountIndex = accIndexAndParams[0];
+        const apiKeyIndexAndParams = this.handleApiKeyIndex(params, method, 'apiKeyIndex', 'api_key_index');
+        const apiKeyIndex = apiKeyIndexAndParams[0];
+        // before order-req creation, we need to know account status
+        const strAccountIndex = this.numberToString(accountIndex);
+        const strApiKeyIndex = this.numberToString(apiKeyIndex);
+        const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
+        try {
+            const isStandardTier = await this.checkIfStandardTier(accountIndex);
+            if (isStandardTier) {
+                this.options['builderFee'] = false;
+            }
+        }
+        catch (e) {
+            this.options['builderFee'] = false;
+        }
         const market = this.market(symbol);
         let groupingType = undefined;
         [groupingType, params] = this.handleOptionAndParams(params, method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         const orderRequests = this.createOrderRequest(symbol, type, side, amount, price, params);
         const totalOrderRequests = orderRequests.length;
-        let apiKeyIndex = undefined;
         let order = undefined;
         if (totalOrderRequests > 0) {
             order = orderRequests[0];
-            apiKeyIndex = order['api_key_index'];
         }
-        const strAccountIndex = this.numberToString(accountIndex);
-        const strApiKeyIndex = this.numberToString(apiKeyIndex);
-        const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
         // the nonce could be updated
         if (this.safeInteger(order, 'nonce') === undefined) {
             order['nonce'] = await this.fetchNonce(accountIndex, apiKeyIndex);

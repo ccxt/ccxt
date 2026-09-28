@@ -1317,10 +1317,10 @@ class woo extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($trailingAmount === null) {
-            throw new ArgumentsRequired($this->id . ' createTrailingAmountOrder() requires a $trailingAmount argument');
+            throw new ArgumentsRequired($this->id . ' createTrailingAmountOrder() requires a trailingAmount argument');
         }
         if ($trailingTriggerPrice === null) {
-            throw new ArgumentsRequired($this->id . ' createTrailingAmountOrder() requires a $trailingTriggerPrice argument');
+            throw new ArgumentsRequired($this->id . ' createTrailingAmountOrder() requires a trailingTriggerPrice argument');
         }
         $params['trailingAmount'] = $trailingAmount;
         $params['trailingTriggerPrice'] = $trailingTriggerPrice;
@@ -1344,10 +1344,10 @@ class woo extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($trailingPercent === null) {
-            throw new ArgumentsRequired($this->id . ' createTrailingPercentOrder() requires a $trailingPercent argument');
+            throw new ArgumentsRequired($this->id . ' createTrailingPercentOrder() requires a trailingPercent argument');
         }
         if ($trailingTriggerPrice === null) {
-            throw new ArgumentsRequired($this->id . ' createTrailingPercentOrder() requires a $trailingTriggerPrice argument');
+            throw new ArgumentsRequired($this->id . ' createTrailingPercentOrder() requires a trailingTriggerPrice argument');
         }
         $params['trailingPercent'] = $trailingPercent;
         $params['trailingTriggerPrice'] = $trailingTriggerPrice;
@@ -1459,7 +1459,7 @@ class woo extends Exchange {
         }
         if ($isTrailing) {
             if ($trailingTriggerPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $trailingTriggerPrice parameter for trailing orders');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a trailingTriggerPrice parameter for trailing orders');
             }
             $request['activatedPrice'] = $this->price_to_precision($symbol, $trailingTriggerPrice);
             $request['algoType'] = 'TRAILING_STOP';
@@ -1676,7 +1676,7 @@ class woo extends Exchange {
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $params = $this->omit($params, array( 'trigger', 'stop' ));
         if (($isTrigger !== true) && ($symbol === null)) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2392,7 +2392,7 @@ class woo extends Exchange {
         }
         $market = $this->market($symbol);
         if ($market['swap'] !== true) {
-            throw new NotSupported($this->id . ' fetchTicker() supports swap markets only, there is no spot $ticker endpoint');
+            throw new NotSupported($this->id . ' fetchTicker() supports swap markets only, there is no spot ticker endpoint');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -2427,7 +2427,7 @@ class woo extends Exchange {
         $rows = $this->safe_list($data, 'rows', array());
         $first = $this->safe_dict($rows, 0);
         if ($first === null) {
-            throw new BadSymbol($this->id . ' fetchTicker() could not find $ticker $data for ' . $symbol);
+            throw new BadSymbol($this->id . ' fetchTicker() could not find ticker data for ' . $symbol);
         }
         $ticker = $this->extend(array( 'timestamp' => $this->safe_integer($response, 'timestamp') ), $first);
         return $this->parse_ticker($ticker, $market);
@@ -3395,7 +3395,7 @@ class woo extends Exchange {
         }
         $network = $this->safe_string($params, 'network');
         if ($network === null) {
-            throw new ArgumentsRequired($this->id . ' withdraw() requires a $network parameter for ' . $code);
+            throw new ArgumentsRequired($this->id . ' withdraw() requires a network parameter for ' . $code);
         }
         $params = $this->omit($params, 'network');
         $request['token'] = $currency['id'];
@@ -3850,7 +3850,7 @@ class woo extends Exchange {
             return $this->fetch_paginated_call_incremental('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'page', 25);
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $symbol = $market['symbol'];

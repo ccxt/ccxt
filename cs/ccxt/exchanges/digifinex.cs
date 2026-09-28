@@ -23,6 +23,7 @@ public partial class digifinex : Exchange
                 { "addMargin", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
+                { "cancelOrdersForSymbols", true },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
@@ -2383,12 +2384,13 @@ public partial class digifinex : Exchange
             return ccxt.BaseExchange.ToOrder(this.safeDict(orders, 0));
         } else
         {
-            return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {                 { "info", response },                 { "orderId", this.safeString(response, "data") },             }));
+            return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {                 { "info", response },                 { "id", this.safeString(response, "data") },             }));
         }
     }
 
-    public virtual List<object> parseCancelOrders(object response)
+    public virtual List<object> parseCancelOrders(object response, object symbolsById = null)
     {
+        symbolsById ??= new Dictionary<string, object>();
         List<object> success = this.safeList(response, "success", new List<object>() {});
         List<object> error = this.safeList(response, "error", new List<object>() {});
         List<object> result = new List<object>() {};
@@ -2398,6 +2400,7 @@ public partial class digifinex : Exchange
             ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", order },
+                { "symbol", this.safeString(symbolsById, order) },
                 { "status", "canceled" },
             }));
         }
@@ -2406,9 +2409,9 @@ public partial class digifinex : Exchange
             object order = error[i];
             ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
-                { "id", this.safeString2(order, "order-id", "order_id") },
+                { "id", order },
+                { "symbol", this.safeString(symbolsById, order) },
                 { "status", "failed" },
-                { "clientOrderId", this.safeString(order, "client-order-id") },
             }));
         }
         return ((List<object>)((object)(result)));
@@ -2419,9 +2422,11 @@ public partial class digifinex : Exchange
      * @name digifinex#cancelOrders
      * @description cancel multiple orders
      * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+     * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by cancelOrders ()
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [symbol] unified market symbol, required for swap markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the request body is an array)
+     * @param {string} [params.type] 'spot', 'margin' or 'swap', defaults to the type of the symbol's market or options.defaultType
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
@@ -2431,11 +2436,36 @@ public partial class digifinex : Exchange
         {
             await this.loadMarkets();
         }
-        string? defaultType = this.safeString(this.options, "defaultType", "spot");
-        string? orderType = this.safeString(parameters, "type", defaultType);
-        parameters = this.omit(parameters, "type");
+        IDictionary<string, object> market = null;
+        if ((symbol != null))
+        {
+            market = this.market(symbol);
+        }
+        string? marketType = null;
+        IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrders", market, parameters);
+        marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        if ((marketType == "swap"))
+        {
+            if ((market == null))
+            {
+                throw new ArgumentsRequired ((string)(this.id + " cancelOrders() requires a symbol argument for swap markets")) ;
+            }
+            string? marketSymbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            List<object> orders = new List<object>() {};
+            for (int i = 0; i < getArrayLength(ids); i++)
+            {
+                object orderId = getValue(ids, i);
+                Dictionary<string, object> orderItem = new Dictionary<string, object>() {
+                    { "id", orderId },
+                    { "symbol", marketSymbol },
+                };
+                ((IList<object>)orders).Add(orderItem);
+            }
+            return await this.CancelOrdersForSymbols(orders, parameters);
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", orderType },
+            { "market", marketType },
             { "order_id", String.Join(",", ((IList<object>)ids).ToArray()) },
         };
         Dictionary<string, object> response = await this.privateSpotPostSpotOrderCancel(this.extend(request, parameters));
@@ -2454,9 +2484,127 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseCancelOrders(response));
     }
 
+    /**
+     * @method
+     * @name digifinex#cancelOrdersForSymbols
+     * @description cancel multiple orders for multiple symbols
+     * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+     * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
+     * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, all orders must be of the same market type (spot or swap), example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the request body is an array)
+     * @param {string} [params.type] 'spot' or 'margin' for spot markets, defaults to 'spot'
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<List<ccxt.Order>> CancelOrdersForSymbols(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        List<object> ids = new List<object>() {};
+        List<object> symbols = new List<object>() {};
+        Dictionary<string, object> symbolsById = new Dictionary<string, object>() {};
+        string? marketType = null;
+        for (int i = 0; i < getArrayLength(orders); i++)
+        {
+            object order = getValue(orders, i);
+            string? id = this.safeString(order, "id");
+            if ((id == null))
+            {
+                throw new ArgumentsRequired ((string)(this.id + " cancelOrdersForSymbols() requires an id for each order")) ;
+            }
+            string? symbol = this.safeString(order, "symbol");
+            if ((symbol == null))
+            {
+                throw new ArgumentsRequired ((string)(this.id + " cancelOrdersForSymbols() requires a symbol for each order")) ;
+            }
+            Dictionary<string, object> market = this.market(symbol);
+            string? orderMarketType = ((string)(market.ContainsKey("type") ? market["type"] : null));
+            if ((marketType == null))
+            {
+                marketType = orderMarketType;
+            } else if ((marketType != orderMarketType))
+            {
+                throw new BadRequest ((string)(this.id + " cancelOrdersForSymbols() requires all orders to be of the same market type (spot or swap)")) ;
+            }
+            ((IList<object>)ids).Add(id);
+            ((IList<object>)symbols).Add((market.ContainsKey("symbol") ? market["symbol"] : null));
+            ((IDictionary<string,object>)symbolsById)[(string)id] = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        }
+        if ((marketType == "swap"))
+        {
+            int numIds = (ids?.Count ?? 0);
+            if (numIds > 20)
+            {
+                throw new BadRequest ((string)(this.id + " cancelOrdersForSymbols() accepts up to 20 orders for swap markets")) ;
+            }
+            List<object> ordersRequests = new List<object>() {};
+            for (int i = 0; i < (ids?.Count ?? 0); i++)
+            {
+                Dictionary<string, object> market = this.market(getValue(symbols, i));
+                string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+                string? orderId = ((string)ids[i]);
+                ((IList<object>)ordersRequests).Add(new Dictionary<string, object>() {
+                    { "instrument_id", marketId },
+                    { "order_id", orderId },
+                });
+            }
+            Dictionary<string, object> swapResponse = await this.privateSwapPostTradeBatchCancelOrder(ordersRequests); // don't extend with params, otherwise the array body is turned into an object
+            //
+            //     {
+            //         "code": 0,
+            //         "data": [
+            //             "1546771720487047168",
+            //             "1546771720487047169"
+            //         ]
+            //     }
+            //
+            // ids that were not canceled are absent from data
+            List<object> data = this.safeList(swapResponse, "data", new List<object>() {});
+            List<object> result = new List<object>() {};
+            for (int i = 0; i < (ids?.Count ?? 0); i++)
+            {
+                string? orderId = ((string)ids[i]);
+                bool isCanceled = this.inArray(orderId, data);
+                string status = isCanceled ? "canceled" : "failed";
+                ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+                    { "info", orderId },
+                    { "id", orderId },
+                    { "symbol", getValue(symbols, i) },
+                    { "status", status },
+                }));
+            }
+            return ccxt.BaseExchange.ToOrderList(result);
+        }
+        string? requestType = null;
+        IList<object> requestTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrdersForSymbols", null, parameters, "spot");
+        requestType = (string)((IList<object>)requestTypeparametersVariable)[0];
+        parameters = ((IList<object>)requestTypeparametersVariable)[1];
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "market", requestType },
+            { "order_id", String.Join(",", ((IList<object>)ids).ToArray()) },
+        };
+        Dictionary<string, object> response = await this.privateSpotPostSpotOrderCancel(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": 0,
+        //         "success": [
+        //             "198361cecdc65f9c8c9bb2fa68faec40",
+        //             "3fb0d98e51c18954f10d439a9cf57de0"
+        //         ],
+        //         "error": [
+        //             "78a7104e3c65cc0c5a212a53e76d0205"
+        //         ]
+        //     }
+        //
+        return ccxt.BaseExchange.ToOrderList(this.parseCancelOrders(response, symbolsById));
+    }
+
     public virtual string? parseOrderStatus(object status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
+            { "-1", "canceled" },
             { "0", "open" },
             { "1", "open" },
             { "2", "closed" },
@@ -2535,6 +2683,7 @@ public partial class digifinex : Exchange
         Int64? lastTradeTimestamp = null;
         string? timeInForce = null;
         object type = null;
+        bool? reduceOnly = null;
         object side = this.safeString(order, "type");
         string? marketId = this.safeString2(order, "symbol", "instrument_id");
         string? symbol = this.safeSymbol(marketId, market);
@@ -2562,18 +2711,23 @@ public partial class digifinex : Exchange
                     type = "market";
                 }
             }
+            // 1 open long, 2 open short, 3 close long, 4 close short
             if (isEqual(side, "1"))
             {
-                side = "open long";
+                side = "buy";
+                reduceOnly = false;
             } else if (isEqual(side, "2"))
             {
-                side = "open short";
+                side = "sell";
+                reduceOnly = false;
             } else if (isEqual(side, "3"))
             {
-                side = "close long";
+                side = "sell";
+                reduceOnly = true;
             } else if (isEqual(side, "4"))
             {
-                side = "close short";
+                side = "buy";
+                reduceOnly = true;
             }
             timestamp = this.safeInteger(order, "insert_time");
             lastTradeTimestamp = this.safeInteger(order, "time_stamp");
@@ -2609,6 +2763,7 @@ public partial class digifinex : Exchange
             { "side", side },
             { "price", this.safeNumber(order, "price") },
             { "triggerPrice", null },
+            { "reduceOnly", reduceOnly },
             { "amount", this.safeNumber2(order, "amount", "size") },
             { "filled", this.safeNumber2(order, "executed_amount", "filled_qty") },
             { "remaining", null },

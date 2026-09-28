@@ -1040,7 +1040,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $length = count($usedProxies);
         if ($length > 1) {
             $joinedProxyNames = implode(',', $usedProxies);
-            throw new InvalidProxySettings($this->id . ' you have multiple conflicting proxy settings (' . $joinedProxyNames . '), please use only one from : $proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
+            throw new InvalidProxySettings($this->id . ' you have multiple conflicting proxy settings (' . $joinedProxyNames . '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
         }
         return $proxyUrl;
     }
@@ -1100,7 +1100,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $length = count($usedProxies);
         if ($length > 1) {
             $joinedProxyNames = implode(',', $usedProxies);
-            throw new InvalidProxySettings($this->id . ' you have multiple conflicting proxy settings (' . $joinedProxyNames . '), please use only one from => $httpProxy, $httpsProxy, httpProxyCallback, httpsProxyCallback, $socksProxy, socksProxyCallback');
+            throw new InvalidProxySettings($this->id . ' you have multiple conflicting proxy settings (' . $joinedProxyNames . '), please use only one from => httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback');
         }
         return array( $httpProxy, $httpsProxy, $socksProxy );
     }
@@ -1135,7 +1135,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $length = count($usedProxies);
         if ($length > 1) {
             $joinedProxyNames = implode(',', $usedProxies);
-            throw new InvalidProxySettings($this->id . ' you have multiple conflicting proxy settings (' . $joinedProxyNames . '), please use only one from => $wsProxy, $wssProxy, wsSocksProxy');
+            throw new InvalidProxySettings($this->id . ' you have multiple conflicting proxy settings (' . $joinedProxyNames . '), please use only one from => wsProxy, wssProxy, wsSocksProxy');
         }
         return array( $wsProxy, $wssProxy, $wsSocksProxy );
     }
@@ -1150,13 +1150,13 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function check_address(?string $address = null) {
         if ($address === null) {
-            throw new InvalidAddress($this->id . ' $address is null');
+            throw new InvalidAddress($this->id . ' address is null');
         }
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         $uniqChars = ($this->unique($this->string_to_chars_array($address)));
         $length = count($uniqChars); // py transpiler trick
         if ($length === 1 || strlen($address) < $this->minFundingAddressLength || mb_strpos($address, ' ') > -1) {
-            throw new InvalidAddress($this->id . ' $address is invalid or has less than ' . (string) $this->minFundingAddressLength . ' characters => "' . (string) $address . '"');
+            throw new InvalidAddress($this->id . ' address is invalid or has less than ' . (string) $this->minFundingAddressLength . ' characters => "' . (string) $address . '"');
         }
         return $address;
     }
@@ -2296,7 +2296,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $currenciesSortedByCode = $this->keysort($this->currencies);
         $this->codes = is_array($currenciesSortedByCode) ? array_keys($currenciesSortedByCode) : array();
         if ($this->markets === null) {
-            throw new ExchangeError($this->id . ' setMarkets() $markets not set');
+            throw new ExchangeError($this->id . ' setMarkets() markets not set');
         }
         return $this->markets;
     }
@@ -2704,11 +2704,11 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function calculate_fee_with_rate(string $symbol, string $type, string $side, float $amount, float $price, $takerOrMaker = 'taker', ?float $feeRate = null, $params = array()) {
         if ($type === 'market' && $takerOrMaker === 'maker') {
-            throw new ArgumentsRequired($this->id . ' calculateFee() - you have provided incompatible arguments - "market" $type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
+            throw new ArgumentsRequired($this->id . ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
         }
         $markets = $this->markets;
         if ($markets === null) {
-            throw new ExchangeError($this->id . ' $markets not loaded');
+            throw new ExchangeError($this->id . ' markets not loaded');
         }
         $market = $markets[$symbol];
         $feeSide = $this->safe_string($market, 'feeSide', 'quote');
@@ -3266,7 +3266,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 if (($jsoned !== null) && ($jsoned !== null)) {
                     return $jsoned; // if parsing was not successfull, exception should be thrown
                 } else {
-                    throw new BadResponse('could not parse the $response into json');
+                    throw new BadResponse('could not parse the response into json');
                 }
             } else {
                 return $content;
@@ -3337,14 +3337,14 @@ class BaseExchange extends \ccxt\BaseExchange {
          */
         if ($symbols === null) {
             if (!$allowEmpty) {
-                throw new ArgumentsRequired($this->id . ' empty list of $symbols is not supported');
+                throw new ArgumentsRequired($this->id . ' empty list of symbols is not supported');
             }
             return $symbols;
         }
         $symbolsLength = count($symbols);
         if ($symbolsLength === 0) {
             if (!$allowEmpty) {
-                throw new ArgumentsRequired($this->id . ' empty list of $symbols is not supported');
+                throw new ArgumentsRequired($this->id . ' empty list of symbols is not supported');
             }
             return $symbols;
         }
@@ -3355,16 +3355,16 @@ class BaseExchange extends \ccxt\BaseExchange {
             $market = $this->market($symbols[$i]);
             if ($sameTypeOnly && ($marketType !== null)) {
                 if ($market['type'] !== $marketType) {
-                    throw new BadRequest($this->id . ' $symbols must be of the same $type, either ' . $marketType . ' or ' . $market['type'] . '.');
+                    throw new BadRequest($this->id . ' symbols must be of the same type, either ' . $marketType . ' or ' . $market['type'] . '.');
                 }
             }
             if ($sameSubTypeOnly && ($isLinearSubType !== null)) {
                 if ($market['linear'] !== $isLinearSubType) {
-                    throw new BadRequest($this->id . ' $symbols must be of the same subType, either linear or inverse.');
+                    throw new BadRequest($this->id . ' symbols must be of the same subType, either linear or inverse.');
                 }
             }
             if ($type !== null && $market['type'] !== $type) {
-                throw new BadRequest($this->id . ' $symbols must be of the same $type ' . $type . '. If the $type is incorrect you can change it in options or the params of the request');
+                throw new BadRequest($this->id . ' symbols must be of the same type ' . $type . '. If the type is incorrect you can change it in options or the params of the request');
             }
             $marketType = $market['type'];
             if ($market['spot'] !== true) {
@@ -3725,10 +3725,10 @@ class BaseExchange extends \ccxt\BaseExchange {
         if ($this->has['fetchTradingLimits'] !== null && $this->has['fetchTradingLimits'] !== false) {
             if ($reload || !(is_array($this->options) && array_key_exists('limitsLoaded' ?? '', $this->options))) {
                 $response = Async\await($this->fetch_trading_limits($symbols));
-                $symbolsArray = $this->require_value($symbols, 'loadTradingLimits() requires a $symbols argument');
+                $symbolsArray = $this->require_value($symbols, 'loadTradingLimits() requires a symbols argument');
                 $markets = $this->markets;
                 if ($markets === null) {
-                    throw new ExchangeError($this->id . ' $markets not loaded');
+                    throw new ExchangeError($this->id . ' markets not loaded');
                 }
                 for ($i = 0; $i < count($symbolsArray); $i++) {
                     $symbol = $symbolsArray[$i];
@@ -3921,7 +3921,7 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function symbol(?string $symbol) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' $symbol() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' symbol() requires a symbol argument');
         }
         $market = $this->market($symbol);
         return $this->safe_string($market, 'symbol', $symbol);
@@ -4200,7 +4200,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             $ohlcv_length = count($ohlcvs);
             $candle = $ohlcv_length - 1;
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . ' buildOHLCVC() requires a $price argument');
+                throw new ArgumentsRequired($this->id . ' buildOHLCVC() requires a price argument');
             }
             if (($skipZeroPrices === true) && !($price > 0) && !($price < 0)) {
                 continue;
@@ -4289,7 +4289,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 } else {
                     if ($marketType === null) {
                         if ($market === null) {
-                            throw new ArgumentsRequired($this->id . ' safeMarket() requires a fourth argument for ' . $marketId . ' to disambiguate between different $markets with the same $market id');
+                            throw new ArgumentsRequired($this->id . ' safeMarket() requires a fourth argument for ' . $marketId . ' to disambiguate between different markets with the same market id');
                         } else {
                             $marketType = $market['type'];
                         }
@@ -4309,7 +4309,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                     'marketId' => $marketId,
                 ));
                 if ($result === null) {
-                    throw new ExchangeError($this->id . ' safeMarket() failed to build $market structure');
+                    throw new ExchangeError($this->id . ' safeMarket() failed to build market structure');
                 }
                 if ($partsLength === 2) {
                     $baseId = $this->safe_string($parts, 0);
@@ -4336,7 +4336,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         }
         $emptyMarket = $this->safe_market_structure(array( 'symbol' => $marketId, 'marketId' => $marketId ));
         if ($emptyMarket === null) {
-            throw new ExchangeError($this->id . ' safeMarket() failed to build $market structure');
+            throw new ExchangeError($this->id . ' safeMarket() failed to build market structure');
         }
         return $emptyMarket;
     }
@@ -4486,7 +4486,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $borrowRates = Async\await($this->fetch_cross_borrow_rates($params));
         $rate = $this->safe_value($borrowRates, $code);
         if ($rate === null) {
-            throw new ExchangeError($this->id . ' fetchCrossBorrowRate() could not find the borrow $rate for currency $code ' . $code);
+            throw new ExchangeError($this->id . ' fetchCrossBorrowRate() could not find the borrow rate for currency code ' . $code);
         }
         return $rate;
     }
@@ -4503,7 +4503,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $borrowRates = Async\await($this->fetch_isolated_borrow_rates($params));
         $rate = $this->safe_dict($borrowRates, $symbol);
         if ($rate === null) {
-            throw new ExchangeError($this->id . ' fetchIsolatedBorrowRate() could not find the borrow $rate for market $symbol ' . $symbol);
+            throw new ExchangeError($this->id . ' fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ' . $symbol);
         }
         return $rate;
     }
@@ -4738,7 +4738,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             $ranks = Async\await($this->fetch_positions_adl_rank(array( $symbol ), $params));
             $rank = $this->safe_dict($ranks, 0);
             if ($rank === null) {
-                throw new NullResponse($this->id . ' fetchPositionsADLRank() could not find a $rank for ' . $symbol);
+                throw new NullResponse($this->id . ' fetchPositionsADLRank() could not find a rank for ' . $symbol);
             } else {
                 return $rank;
             }
@@ -4749,7 +4749,7 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function set_take_profit_and_stop_loss_params(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $takeProfit = null, ?float $stopLoss = null, $params = array()) {
         if (($takeProfit === null) && ($stopLoss === null)) {
-            throw new ArgumentsRequired($this->id . ' createOrderWithTakeProfitAndStopLoss() requires either a $takeProfit or $stopLoss argument');
+            throw new ArgumentsRequired($this->id . ' createOrderWithTakeProfitAndStopLoss() requires either a takeProfit or stopLoss argument');
         }
         if ($takeProfit !== null) {
             $params['takeProfit'] = array(
@@ -4974,12 +4974,12 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function currency(?string $code) {
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' currency() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' currency() requires a code argument');
         }
         $keys = is_array($this->currencies) ? array_keys($this->currencies) : array();
         $numCurrencies = count($keys);
         if ($numCurrencies === 0) {
-            throw new ExchangeError($this->id . ' $currencies not loaded');
+            throw new ExchangeError($this->id . ' currencies not loaded');
         }
         if (gettype($code) === 'string') {
             $currencies = $this->currencies;
@@ -4990,16 +4990,16 @@ class BaseExchange extends \ccxt\BaseExchange {
                 return $currenciesById[$code];
             }
         }
-        throw new ExchangeError($this->id . ' does not have currency $code ' . $code);
+        throw new ExchangeError($this->id . ' does not have currency code ' . $code);
     }
 
     public function market(?string $symbol) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' $market() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' market() requires a symbol argument');
         }
         $markets = $this->markets;
         if ($markets === null) {
-            throw new ExchangeError($this->id . ' $markets not loaded');
+            throw new ExchangeError($this->id . ' markets not loaded');
         }
         $marketsById = $this->markets_by_id;
         if (is_array($markets) && array_key_exists($symbol ?? '', $markets)) {
@@ -5017,7 +5017,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         } elseif ((str_ends_with($symbol, '-C')) || (str_ends_with($symbol, '-P')) || (str_starts_with($symbol, 'C-')) || (str_starts_with($symbol, 'P-'))) {
             return $this->create_expired_option_market($symbol);
         }
-        throw new BadSymbol($this->id . ' does not have $market $symbol ' . $symbol);
+        throw new BadSymbol($this->id . ' does not have market symbol ' . $symbol);
     }
 
     public function create_expired_option_market(string $symbol) {
@@ -5077,7 +5077,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $market = $this->market($symbol);
         $result = $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
         if ($result === '0') {
-            throw new InvalidOrder($this->id . ' $price of ' . $market['symbol'] . ' must be greater than minimum $price precision of ' . $this->number_to_string($market['precision']['price']));
+            throw new InvalidOrder($this->id . ' price of ' . $market['symbol'] . ' must be greater than minimum price precision of ' . $this->number_to_string($market['precision']['price']));
         }
         return $result;
     }
@@ -5089,7 +5089,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $market = $this->market($symbol);
         $result = $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
         if ($result === '0') {
-            throw new InvalidOrder($this->id . ' $amount of ' . $market['symbol'] . ' must be greater than minimum $amount precision of ' . $this->number_to_string($market['precision']['amount']));
+            throw new InvalidOrder($this->id . ' amount of ' . $market['symbol'] . ' must be greater than minimum amount precision of ' . $this->number_to_string($market['precision']['amount']));
         }
         return $result;
     }
@@ -5104,7 +5104,7 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function currency_to_precision(?string $code, mixed $fee, ?string $networkCode = null) {
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' currencyToPrecision() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' currencyToPrecision() requires a code argument');
         }
         $currency = $this->currencies[$code];
         $precision = $this->safe_value($currency, 'precision');
@@ -5485,7 +5485,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         // A) if provided value is not unified (support old "up/down" strings too)
         // B) if exchange specific "trigger direction key" (eg. "stopPriceSide") was not provided
         if (!$this->in_array($triggerDirection, array( 'ascending', 'descending', 'up', 'down', 'above', 'below' )) && !$exchangeSpecificDefined && !$allowEmpty) {
-            throw new ArgumentsRequired($this->id . ' createOrder() : trigger orders require $params["triggerDirection"] to be either "ascending" or "descending"');
+            throw new ArgumentsRequired($this->id . ' createOrder() : trigger orders require params["triggerDirection"] to be either "ascending" or "descending"');
         }
         // if old format was provided, overwrite to new
         if ($triggerDirection === 'up' || $triggerDirection === 'above') {
@@ -5531,7 +5531,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         }
         if ($postOnly === true) {
             if ($ioc || $fok) {
-                throw new InvalidOrder($this->id . ' $postOnly orders cannot have $timeInForce equal to ' . $timeInForce);
+                throw new InvalidOrder($this->id . ' postOnly orders cannot have timeInForce equal to ' . $timeInForce);
             } elseif ($isMarketOrder) {
                 throw new InvalidOrder($this->id . ' market orders cannot be postOnly');
             } else {
@@ -5563,7 +5563,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         }
         if ($postOnly === true) {
             if ($ioc || $fok) {
-                throw new InvalidOrder($this->id . ' $postOnly orders cannot have $timeInForce equal to ' . $timeInForce);
+                throw new InvalidOrder($this->id . ' postOnly orders cannot have timeInForce equal to ' . $timeInForce);
             } elseif ($isMarketOrder) {
                 throw new InvalidOrder($this->id . ' market orders cannot be postOnly');
             } else {
@@ -5751,7 +5751,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         if ($timeInForce !== null) {
             $exchangeValue = $this->safe_string($this->options['timeInForce'], $timeInForce);
             if ($exchangeValue === null) {
-                throw new ExchangeError($this->id . ' does not support $timeInForce "' . $timeInForce . '"');
+                throw new ExchangeError($this->id . ' does not support timeInForce "' . $timeInForce . '"');
             }
             return $exchangeValue;
         }
@@ -5808,9 +5808,9 @@ class BaseExchange extends \ccxt\BaseExchange {
          * @param {string} $marginMode is either 'isolated' or 'cross'
          */
         if (($marginMode === 'isolated') && ($symbol === null)) {
-            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $symbol argument for isolated margin');
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a symbol argument for isolated margin');
         } elseif (($marginMode === 'cross') && ($symbol !== null)) {
-            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() cannot have a $symbol argument for cross margin');
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() cannot have a symbol argument for cross margin');
         }
     }
 
@@ -6026,7 +6026,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         list($maxEntriesPerRequest, $params) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $params);
         if (($paginationDirection === 'forward')) {
             if ($since === null) {
-                throw new ArgumentsRequired($this->id . ' pagination requires a $since argument when $paginationDirection set to forward');
+                throw new ArgumentsRequired($this->id . ' pagination requires a since argument when paginationDirection set to forward');
             }
             $paginationTimestamp = $since;
         }
@@ -6042,7 +6042,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                     $response = Async\await($this->$method($symbol, null, $maxEntriesPerRequest, $params));
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $backwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' $method ' . $method . ' $response length ' . $this->number_to_string($responseLength);
+                        $backwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' method ' . $method . ' response length ' . $this->number_to_string($responseLength);
                         if ($paginationTimestamp !== null) {
                             $backwardMessage .= ' timestamp ' . $this->number_to_string($paginationTimestamp);
                         }
@@ -6066,7 +6066,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                     $response = Async\await($this->$method($symbol, $paginationTimestamp, $maxEntriesPerRequest, $params));
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $forwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' $method ' . $method . ' $response length ' . $this->number_to_string($responseLength);
+                        $forwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' method ' . $method . ' response length ' . $this->number_to_string($responseLength);
                         if ($paginationTimestamp !== null) {
                             $forwardMessage .= ' timestamp ' . $this->number_to_string($paginationTimestamp);
                         }
@@ -6147,7 +6147,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $current = $this->milliseconds();
         $tasks = array();
         $time = $this->parse_timeframe($timeframe) * 1000;
-        $maxEntriesPerRequest = $this->require_value($maxEntriesPerRequest, 'fetchPaginatedCallDeterministic() $maxEntriesPerRequest is required');
+        $maxEntriesPerRequest = $this->require_value($maxEntriesPerRequest, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required');
         $step = $time * $maxEntriesPerRequest;
         $until = $this->safe_integer_2($params, 'until', 'till'); // do not omit it here
         $currentSince = $current - ($maxCalls * $step) - 1;
@@ -6166,11 +6166,11 @@ class BaseExchange extends \ccxt\BaseExchange {
         }
         if ($until !== null) {
             if ($since === null) {
-                throw new ArgumentsRequired($this->id . ' fetchPaginatedCallDeterministic() requires a $since argument when $until is set');
+                throw new ArgumentsRequired($this->id . ' fetchPaginatedCallDeterministic() requires a since argument when until is set');
             }
             $requiredCalls = (int) ceil(($until - $since) / $step);
             if ($requiredCalls > $maxCalls) {
-                throw new BadRequest($this->id . ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the $since-$until gap. Current paginationCalls $limit is ' . (string) $maxCalls . ' required calls is ' . (string) $requiredCalls);
+                throw new BadRequest($this->id . ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' . (string) $maxCalls . ' required calls is ' . (string) $requiredCalls);
             }
         }
         for ($i = 0; $i < $maxCalls; $i++) {
@@ -6225,10 +6225,10 @@ class BaseExchange extends \ccxt\BaseExchange {
                 } elseif ($method === 'fetchOpenInterestHistory') {
                     if (gettype($symbol) !== 'string') {
                         // fetchOpenInterestHistory takes a single symbol, never a list
-                        throw new ArgumentsRequired($this->id . ' fetchPaginatedCallCursor() requires a $symbol argument');
+                        throw new ArgumentsRequired($this->id . ' fetchPaginatedCallCursor() requires a symbol argument');
                     }
                     if ($timeframe === null) {
-                        throw new ArgumentsRequired($this->id . ' fetchPaginatedCallCursor() requires a $timeframe argument');
+                        throw new ArgumentsRequired($this->id . ' fetchPaginatedCallCursor() requires a timeframe argument');
                     }
                     $response = Async\await($this->$method($symbol, $timeframe, $since, $maxEntriesPerRequest, $params));
                 } else {
@@ -6242,7 +6242,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 if ($this->verbose) {
                     $cursorString = ($cursorValue === null) ? '' : $cursorValue;
                     $iteration = ($i + 1);
-                    $cursorMessage = 'Cursor pagination call ' . (string) $iteration . ' $method ' . $method . ' $response length ' . (string) $responseLength . ' $cursor ' . $cursorString;
+                    $cursorMessage = 'Cursor pagination call ' . (string) $iteration . ' method ' . $method . ' response length ' . (string) $responseLength . ' cursor ' . $cursorString;
                     $this->log($cursorMessage);
                 }
                 if ($responseLength === 0) {
@@ -6269,7 +6269,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 }
                 $lastTimestamp = $this->safe_integer($last, 'timestamp');
                 if ($since === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchPaginatedCallCursor() requires a $since argument');
+                    throw new ArgumentsRequired($this->id . ' fetchPaginatedCallCursor() requires a since argument');
                 }
                 if ($lastTimestamp !== null && $lastTimestamp < $since) {
                     break;
@@ -6308,7 +6308,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 $responseLength = count($response);
                 if ($this->verbose) {
                     $iteration = ($i . (string) 1);
-                    $incrementalMessage = 'Incremental pagination call ' . $iteration . ' $method ' . $method . ' $response length ' . (string) $responseLength;
+                    $incrementalMessage = 'Incremental pagination call ' . $iteration . ' method ' . $method . ' response length ' . (string) $responseLength;
                     $this->log($incrementalMessage);
                 }
                 if ($responseLength === 0) {
@@ -6810,10 +6810,10 @@ class BaseExchange extends \ccxt\BaseExchange {
                 $symbol = $this->safe_string($symbolAndTimeFrame, 0);
                 $timeframe = $this->safe_string($symbolAndTimeFrame, 1);
                 if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' cleanCache() requires a $symbol argument');
+                    throw new ArgumentsRequired($this->id . ' cleanCache() requires a symbol argument');
                 }
                 if ($timeframe === null) {
-                    throw new ArgumentsRequired($this->id . ' cleanCache() requires a $timeframe argument');
+                    throw new ArgumentsRequired($this->id . ' cleanCache() requires a timeframe argument');
                 }
                 if (($this->ohlcvs !== null) && (is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
                     if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol])) {
@@ -7012,7 +7012,7 @@ class Exchange extends BaseExchange {
             $tickers = Async\await($this->fetchMarkPrices(array( $symbol ), $params));
             $ticker = $this->safe_dict($tickers, $symbol);
             if ($ticker === null) {
-                throw new NullResponse($this->id . ' fetchMarkPrices() could not find a $ticker for ' . $symbol);
+                throw new NullResponse($this->id . ' fetchMarkPrices() could not find a ticker for ' . $symbol);
             } else {
                 return $ticker;
             }
@@ -7239,7 +7239,7 @@ class Exchange extends BaseExchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($stopLossPrice === null) {
-            throw new ArgumentsRequired($this->id . ' createStopLossOrderWs() requires a $stopLossPrice argument');
+            throw new ArgumentsRequired($this->id . ' createStopLossOrderWs() requires a stopLossPrice argument');
         }
         $params = $this->extend($params, array( 'stopLossPrice' => $stopLossPrice ));
         if ($this->has['createStopLossOrderWs'] !== null && $this->has['createStopLossOrderWs'] !== false) {
@@ -7292,7 +7292,7 @@ class Exchange extends BaseExchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($takeProfitPrice === null) {
-            throw new ArgumentsRequired($this->id . ' createTakeProfitOrderWs() requires a $takeProfitPrice argument');
+            throw new ArgumentsRequired($this->id . ' createTakeProfitOrderWs() requires a takeProfitPrice argument');
         }
         $params = $this->extend($params, array( 'takeProfitPrice' => $takeProfitPrice ));
         if ($this->has['createTakeProfitOrderWs'] !== null && $this->has['createTakeProfitOrderWs'] !== false) {
@@ -7319,7 +7319,7 @@ class Exchange extends BaseExchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($trailingAmount === null) {
-            throw new ArgumentsRequired($this->id . ' createTrailingAmountOrderWs() requires a $trailingAmount argument');
+            throw new ArgumentsRequired($this->id . ' createTrailingAmountOrderWs() requires a trailingAmount argument');
         }
         $params['trailingAmount'] = $trailingAmount;
         if ($trailingTriggerPrice !== null) {
@@ -7349,7 +7349,7 @@ class Exchange extends BaseExchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($trailingPercent === null) {
-            throw new ArgumentsRequired($this->id . ' createTrailingPercentOrderWs() requires a $trailingPercent argument');
+            throw new ArgumentsRequired($this->id . ' createTrailingPercentOrderWs() requires a trailingPercent argument');
         }
         $params['trailingPercent'] = $trailingPercent;
         if ($trailingTriggerPrice !== null) {
@@ -7378,7 +7378,7 @@ class Exchange extends BaseExchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($triggerPrice === null) {
-            throw new ArgumentsRequired($this->id . ' createTriggerOrderWs() requires a $triggerPrice argument');
+            throw new ArgumentsRequired($this->id . ' createTriggerOrderWs() requires a triggerPrice argument');
         }
         $params = $this->extend($params, array( 'triggerPrice' => $triggerPrice ));
         if ($this->has['createTriggerOrderWs'] !== null && $this->has['createTriggerOrderWs'] !== false) {
@@ -7456,7 +7456,7 @@ class Exchange extends BaseExchange {
             $tickers = Async\await($this->fetchTickersWs(array( $symbol ), $params));
             $ticker = $this->safe_dict($tickers, $symbol);
             if ($ticker === null) {
-                throw new NullResponse($this->id . ' fetchTickerWs() could not find a $ticker for ' . $symbol);
+                throw new NullResponse($this->id . ' fetchTickerWs() could not find a ticker for ' . $symbol);
             } else {
                 return $ticker;
             }
@@ -7607,7 +7607,7 @@ class Exchange extends BaseExchange {
             $tickers = Async\await($this->fetch_tickers(array( $symbol ), $params));
             $ticker = $this->safe_dict($tickers, $symbol);
             if ($ticker === null) {
-                throw new NullResponse($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
+                throw new NullResponse($this->id . ' fetchTickers() could not find a ticker for ' . $symbol);
             } else {
                 return $ticker;
             }
@@ -7689,7 +7689,7 @@ class Exchange extends BaseExchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($trailingAmount === null) {
-            throw new ArgumentsRequired($this->id . ' createTrailingAmountOrder() requires a $trailingAmount argument');
+            throw new ArgumentsRequired($this->id . ' createTrailingAmountOrder() requires a trailingAmount argument');
         }
         $params['trailingAmount'] = $trailingAmount;
         if ($trailingTriggerPrice !== null) {
@@ -7719,7 +7719,7 @@ class Exchange extends BaseExchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($trailingPercent === null) {
-            throw new ArgumentsRequired($this->id . ' createTrailingPercentOrder() requires a $trailingPercent argument');
+            throw new ArgumentsRequired($this->id . ' createTrailingPercentOrder() requires a trailingPercent argument');
         }
         $params['trailingPercent'] = $trailingPercent;
         if ($trailingTriggerPrice !== null) {
@@ -7803,7 +7803,7 @@ class Exchange extends BaseExchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($triggerPrice === null) {
-            throw new ArgumentsRequired($this->id . ' createTriggerOrder() requires a $triggerPrice argument');
+            throw new ArgumentsRequired($this->id . ' createTriggerOrder() requires a triggerPrice argument');
         }
         $params = $this->extend($params, array( 'triggerPrice' => $triggerPrice ));
         if ($this->has['createTriggerOrder'] !== null && $this->has['createTriggerOrder'] !== false) {
@@ -7829,7 +7829,7 @@ class Exchange extends BaseExchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($stopLossPrice === null) {
-            throw new ArgumentsRequired($this->id . ' createStopLossOrder() requires a $stopLossPrice argument');
+            throw new ArgumentsRequired($this->id . ' createStopLossOrder() requires a stopLossPrice argument');
         }
         $params = $this->extend($params, array( 'stopLossPrice' => $stopLossPrice ));
         if ($this->has['createStopLossOrder'] !== null && $this->has['createStopLossOrder'] !== false) {
@@ -7855,7 +7855,7 @@ class Exchange extends BaseExchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($takeProfitPrice === null) {
-            throw new ArgumentsRequired($this->id . ' createTakeProfitOrder() requires a $takeProfitPrice argument');
+            throw new ArgumentsRequired($this->id . ' createTakeProfitOrder() requires a takeProfitPrice argument');
         }
         $params = $this->extend($params, array( 'takeProfitPrice' => $takeProfitPrice ));
         if ($this->has['createTakeProfitOrder'] !== null && $this->has['createTakeProfitOrder'] !== false) {

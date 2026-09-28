@@ -294,6 +294,17 @@ export default class hyperliquid extends hyperliquidRest {
     unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
     handleOrder(client: Client, message: Dict): void;
     handleErrorMessage(client: Client, message: Dict): Bool;
+    /**
+     * @method
+     * @name hyperliquid#waitForPendingUnsubscribe
+     * @ignore
+     * @description waits for the acknowledgement of a still-pending unsubscribe request for the same subscription before subscribing again — a watch armed inside that window would never send a subscribe (deduplicated against the stale entry) and its future would be rejected by the pending ack, see https://github.com/ccxt/ccxt/issues/30419
+     * @param {string} url the websocket endpoint the subscription lives on
+     * @param {string} subHash the subscription hash the watch call is about to register
+     * @returns {any} resolves once no unsubscribe request is pending for the subscription, or after options.unsubscribeTimeout ms
+     */
+    waitForPendingUnsubscribe(url: string, subHash: string): Promise<any>;
+    expirePendingUnsubscribe(client: Client, subHash: string, unsubHash: string): Promise<void>;
     handleOrderBookUnsubscription(client: Client, subscription: Dict): void;
     handleTradesUnsubscription(client: Client, subscription: Dict): void;
     handleTickersUnsubscription(client: Client, subscription: Dict): void;

@@ -15,6 +15,7 @@ import testLegacyHas from './test.legacyHas.js';
 import testTypes from './test.type.js';
 import testThrottlerPerformance from './test.throttlerPerformance.js';
 import testOnJsonResponse from './test.onJsonResponse.js';
+import testPrecisionFromStringZero from './test.precisionFromString.js';
 import testBingxTestOrder from './test.bingxTestOrder.js';
 import testFetchTradesDiagnostics from './test.fetchTradesDiagnostics.js';
 // todo: import testConfig from './test.config.js';
@@ -29,6 +30,7 @@ async function testLanguageSpecific() {
     testLegacyHas();
     testTypes();
     testOnJsonResponse();
+    testPrecisionFromStringZero();
     await testBingxTestOrder();
     await testFetchTradesDiagnostics();
     await testThrottlerPerformance();

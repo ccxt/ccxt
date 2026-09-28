@@ -1010,8 +1010,8 @@ public class Upbit extends UpbitApi
             put( "close", last );
             put( "last", last );
             put( "previousClose", Upbit.this.safeString(ticker, "prev_closing_price") );
-            put( "change", Upbit.this.safeString(ticker, "signed_change_price") );
-            put( "percentage", Precise.stringMul(Upbit.this.safeString(ticker, "signed_change_rate"), "100") );
+            put( "change", null );
+            put( "percentage", null );
             put( "average", null );
             put( "baseVolume", Upbit.this.safeString(ticker, "acc_trade_volume_24h") );
             put( "quoteVolume", Upbit.this.safeString(ticker, "acc_trade_price_24h") );

@@ -1211,11 +1211,11 @@ class deepcoin extends Exchange {
             Async\await($this->load_markets());
         }
         if ($codes === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDepositAddresses requires a $list with one $currency code');
+            throw new ArgumentsRequired($this->id . ' fetchDepositAddresses requires a list with one currency code');
         }
         $length = count($codes);
         if ($length !== 1) {
-            throw new NotSupported($this->id . ' fetchDepositAddresses requires a $list with one $currency code');
+            throw new NotSupported($this->id . ' fetchDepositAddresses requires a list with one currency code');
         }
         $code = $codes[0];
         $currency = $this->currency($code);
@@ -1473,7 +1473,7 @@ class deepcoin extends Exchange {
         list($userId, $params) = $this->handle_option_and_params($params, 'transfer', 'userId');
         $userId = ($userId !== null && $userId !== '') ? $userId : $this->safe_string($params, 'uid');
         if ($userId === null) {
-            throw new ArgumentsRequired($this->id . ' $transfer() requires a $userId parameter');
+            throw new ArgumentsRequired($this->id . ' transfer() requires a userId parameter');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1609,10 +1609,10 @@ class deepcoin extends Exchange {
          * helper function to build request
          */
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $triggerPrice = $this->safe_string($params, 'triggerPrice');
@@ -1621,7 +1621,7 @@ class deepcoin extends Exchange {
         $cost = $this->safe_string($params, 'cost');
         if ($cost !== null) {
             if (($market['spot'] !== true) || ($triggerPrice !== null)) {
-                throw new BadRequest($this->id . ' createOrder() accepts a $cost parameter for spot non-trigger $market orders only');
+                throw new BadRequest($this->id . ' createOrder() accepts a cost parameter for spot non-trigger market orders only');
             }
         }
         if ($isTriggerOrder) {
@@ -1652,10 +1652,10 @@ class deepcoin extends Exchange {
          * @param {string} [$params->mrgPosition] *swap only* 'merge' or 'split', the default is 'merge'
          */
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $orderType = $type;
@@ -1697,17 +1697,17 @@ class deepcoin extends Exchange {
         $isMarketOrder = ($type === 'market');
         if ($price !== null) {
             if ($isMarketOrder) {
-                throw new BadRequest($this->id . ' createOrder() does not require a $price argument for $market orders');
+                throw new BadRequest($this->id . ' createOrder() does not require a price argument for market orders');
             }
             $request['px'] = $this->price_to_precision($symbol, $price);
         } elseif (!$isMarketOrder) {
-            throw new BadRequest($this->id . ' createOrder() requires a $price argument for limit orders');
+            throw new BadRequest($this->id . ' createOrder() requires a price argument for limit orders');
         }
         if ($market['spot'] === true) {
             $cost = $this->safe_string($params, 'cost');
             if ($cost !== null) {
                 if (!$isMarketOrder) {
-                    throw new BadRequest($this->id . ' createOrder() accepts a $cost parameter for spot $market orders only');
+                    throw new BadRequest($this->id . ' createOrder() accepts a cost parameter for spot market orders only');
                 }
                 $params = $this->omit($params, 'cost');
                 $request['sz'] = $this->cost_to_precision($symbol, $cost);
@@ -1760,10 +1760,10 @@ class deepcoin extends Exchange {
          * @param {string} [$params->marginMode] *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
          */
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -1795,7 +1795,7 @@ class deepcoin extends Exchange {
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         } elseif ($type === 'limit') {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for limit trigger orders');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for limit trigger orders');
         }
         $marginMode = 'cross';
         list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params, $marginMode);
@@ -1910,7 +1910,7 @@ class deepcoin extends Exchange {
             Async\await($this->load_markets());
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchClosedOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrder() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -1988,7 +1988,7 @@ class deepcoin extends Exchange {
             Async\await($this->load_markets());
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchClosedOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrder() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -1999,7 +1999,7 @@ class deepcoin extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $length = count($data);
         if ($length === 0) {
-            throw new OrderNotFound($this->id . ' fetchOpenOrder() could not find order $id ' . $id);
+            throw new OrderNotFound($this->id . ' fetchOpenOrder() could not find order id ' . $id);
         }
         $entry = $this->safe_dict($data, 0, array());
         return $this->parse_order($entry, $market);
@@ -2053,10 +2053,10 @@ class deepcoin extends Exchange {
         $response = null;
         if ($trigger === true) {
             if ($methodName !== 'fetchCanceledAndClosedOrders') {
-                throw new BadRequest($this->id . ' ' . $methodName . '() does not support $trigger orders');
+                throw new BadRequest($this->id . ' ' . $methodName . '() does not support trigger orders');
             }
             if ($market === null) {
-                throw new ArgumentsRequired($this->id . ' fetchCanceledAndClosedOrders() requires a $symbol argument for $trigger orders');
+                throw new ArgumentsRequired($this->id . ' fetchCanceledAndClosedOrders() requires a symbol argument for trigger orders');
             }
             $params = $this->omit($params, 'trigger');
             //
@@ -2211,7 +2211,7 @@ class deepcoin extends Exchange {
             Async\await($this->load_markets());
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $index = $this->safe_integer($params, 'index', 1); // todo add pagination handling
@@ -2332,7 +2332,7 @@ class deepcoin extends Exchange {
             Async\await($this->load_markets());
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -2371,7 +2371,7 @@ class deepcoin extends Exchange {
             Async\await($this->load_markets());
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument');
         }
         $market = $this->market($symbol);
         if ($market['spot'] === true) {
@@ -2442,7 +2442,7 @@ class deepcoin extends Exchange {
         $response = null;
         if ($isTPSL) {
             if (($price !== null) || ($amount !== null)) {
-                throw new BadRequest($this->id . ' editOrder() with $stopLossPrice or $takeProfitPrice cannot have $price or $amount-> Either use stopLossPrice/takeProfitPrice or price/amount to edit order.');
+                throw new BadRequest($this->id . ' editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.');
             }
             if ($stopLossPrice !== null) {
                 $request['slTriggerPx'] = ($symbol !== '') ? $this->price_to_precision($symbol, $stopLossPrice) : $this->number_to_string($stopLossPrice);
@@ -2811,12 +2811,12 @@ class deepcoin extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ($leverage < 1) {
-            throw new BadRequest($this->id . ' setLeverage() $leverage should be minimum 1');
+            throw new BadRequest($this->id . ' setLeverage() leverage should be minimum 1');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2825,12 +2825,12 @@ class deepcoin extends Exchange {
         $marginMode = 'cross';
         list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params, $marginMode);
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' setLeverage() requires a $marginMode parameter that must be either cross or isolated');
+            throw new BadRequest($this->id . ' setLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
         $mrgPosition = 'merge';
         list($mrgPosition, $params) = $this->handle_option_and_params($params, 'setLeverage', 'mrgPosition', $mrgPosition);
         if ($mrgPosition !== 'merge' && $mrgPosition !== 'split') {
-            throw new BadRequest($this->id . ' setLeverage() $mrgPosition parameter must be either merge or split');
+            throw new BadRequest($this->id . ' setLeverage() mrgPosition parameter must be either merge or split');
         }
         $request = array(
             'lever' => $leverage,
@@ -2886,7 +2886,7 @@ class deepcoin extends Exchange {
         if ($subType === 'inverse') {
             $instType = 'Swap';
         } elseif ($subType !== 'linear') {
-            throw new BadRequest($this->id . ' fetchFundingRates() $subType parameter must be either linear or inverse');
+            throw new BadRequest($this->id . ' fetchFundingRates() subType parameter must be either linear or inverse');
         }
         $request = array(
             'instType' => $instType,
@@ -3010,7 +3010,7 @@ class deepcoin extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3174,7 +3174,7 @@ class deepcoin extends Exchange {
         }
         $marketType = $this->safe_string($params, 'type');
         if ($symbol === null && $marketType === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrderTrades requires a $symbol argument or a market type in the params');
+            throw new ArgumentsRequired($this->id . ' fetchOrderTrades requires a symbol argument or a market type in the params');
         }
         $params = $this->extend(array( 'ordId' => $id ), $params);
         return Async\await($this->fetch_my_trades($symbol, $since, $limit, $params));

@@ -1654,7 +1654,7 @@ class gemini extends Exchange {
         $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stop_price', 'stopPrice' ));
         $params = $this->omit($params, array( 'triggerPrice', 'stop_price', 'stopPrice', 'type' ));
         if ($type === 'stopLimit') {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice parameter or a stop_price parameter for ' . $type . ' orders');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' . $type . ' orders');
         }
         if ($triggerPrice !== null) {
             $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
@@ -1768,7 +1768,7 @@ class gemini extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();

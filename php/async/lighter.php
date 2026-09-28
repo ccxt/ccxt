@@ -143,7 +143,6 @@ class lighter extends Exchange {
                 '4h' => '4h',
                 '12h' => '12h',
                 '1d' => '1d',
-                '1w' => '1w',
             ),
             'hostname' => 'zklighter.elliot.ai',
             'urls' => array(
@@ -374,6 +373,7 @@ class lighter extends Exchange {
                 'integratorTakerFee' => 1000,
                 'authDeadlineExpiry' => 28800, // 8h validity for auth tokens
                 'authDeadlineMinimumRemaining' => 60,
+                'tiersForAccountIndexes' => array(), // being filled on the fly
             ),
             'features' => array(
                 'default' => array(
@@ -480,7 +480,7 @@ class lighter extends Exchange {
         $accountIndex = null;
         list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'loadAccount', 'accountIndex', 'account_index'));
         if ($accountIndex === null) {
-            throw new ArgumentsRequired($this->id . ' requires $accountIndex or account_index');
+            throw new ArgumentsRequired($this->id . ' requires accountIndex or account_index');
         }
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
@@ -521,7 +521,7 @@ class lighter extends Exchange {
                 $walletAddress = $this->eth_get_address_from_private_key($this->privateKey);
             }
             if ($walletAddress === null || $walletAddress === '') {
-                throw new ArgumentsRequired($this->id . ' ' . $methodName1 . '() requires an ' . $optionName1 . '/' . $optionName2 . ' parameter or $walletAddress to fetch $accountIndex-> Alternatively set privateKey in credentials to enable automatic $walletAddress detection.');
+                throw new ArgumentsRequired($this->id . ' ' . $methodName1 . '() requires an ' . $optionName1 . '/' . $optionName2 . ' parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection.');
             }
             $res = Async\await($this->publicGetAccountsByL1Address(array( 'l1_address' => $walletAddress )));
             //
@@ -624,13 +624,13 @@ class lighter extends Exchange {
         $r = Precise::string_mul($n, '1');
         $c = $this->parse_to_int($m);
         if ($c < 0) {
-            throw new BadRequest($this->id . ' pow() requires $m > 0.');
+            throw new BadRequest($this->id . ' pow() requires m > 0.');
         }
         if ($c === 0) {
             return '1';
         }
         if ($c > 100) {
-            throw new BadRequest($this->id . ' pow() requires $m < 100.');
+            throw new BadRequest($this->id . ' pow() requires m < 100.');
         }
         for ($i = 1; $i < $c; $i++) {
             $r = Precise::string_mul($r, $n);
@@ -678,6 +678,11 @@ class lighter extends Exchange {
             return true;
         }
         try {
+            $isStandardTier = Async\await($this->check_if_standard_tier($this->parse_to_int($accountIndex)));
+            if ($isStandardTier) {
+                $this->options['builderFee'] = false;
+                return false;
+            }
             $builder = $this->safe_integer($this->options, 'integratorAccountIndex', 718718);
             $takerFeeRate = $this->safe_integer($this->options, 'integratorTakerFee', 1000);
             $makerFeeRate = $this->safe_integer($this->options, 'integratorMakerFee', 1000);
@@ -687,6 +692,40 @@ class lighter extends Exchange {
             $this->options['builderFee'] = false;
         }
         return true;
+    }
+
+    public function check_if_standard_tier(float $accountIndex) {
+        return Async\async(self::do_check_if_standard_tier(...))($accountIndex);
+    }
+
+    private function do_check_if_standard_tier(float $accountIndex) {
+        $tiersForAccountIndexes = $this->safe_dict($this->options, 'tiersForAccountIndexes', array());
+        $accountIndexStr = (string) $accountIndex;
+        $isStandardTier = $this->safe_bool($tiersForAccountIndexes, $accountIndexStr);
+        if ($isStandardTier !== null) {
+            return $isStandardTier;
+        }
+        $accountLimits = Async\await($this->privateGetAccountLimits(array( 'account_index' => $accountIndex )));
+        //
+        //    {
+        //        "code": 200,
+        //        "max_llp_percentage": 100,
+        //        "max_llp_amount": "0.000000",
+        //        "user_tier": "standard",
+        //        "can_create_public_pool": false,
+        //        "user_tier_name": "standard",
+        //        "current_maker_fee_tick": 0,
+        //        "current_taker_fee_tick": 0,
+        //        "leased_lit": "0.00000000",
+        //        "effective_lit_stakes": "0.00000000",
+        //        "user_tier_last_update": 0
+        //    }
+        //
+        $tier = $this->safe_string($accountLimits, 'user_tier');
+        $isStandard = ($tier === 'standard');
+        $tiersForAccountIndexes[$accountIndexStr] = $isStandard;
+        $this->options['tiersForAccountIndexes'] = $tiersForAccountIndexes;
+        return $isStandard;
     }
 
     public function approve_builder_fee(float $builder, float $takerFeeRate, float $makerFeeRate, float $accountIndex, float $apiKeyIndex, $params = array()): PromiseInterface {
@@ -761,10 +800,10 @@ class lighter extends Exchange {
 
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         /**
          * @ignore
@@ -782,7 +821,7 @@ class lighter extends Exchange {
          * @return {any[]} $request to be sent to the exchange
          */
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument');
         }
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only', false); // default false
         $orderType = strtoupper($type);
@@ -929,7 +968,7 @@ class lighter extends Exchange {
 
     private function do_fetch_nonce(mixed $accountIndex, mixed $apiKeyIndex, $params = array()) {
         if (($accountIndex === null) || ($apiKeyIndex === null)) {
-            throw new ArgumentsRequired($this->id . ' fetchNonce() requires $accountIndex and $apiKeyIndex->');
+            throw new ArgumentsRequired($this->id . ' fetchNonce() requires accountIndex and apiKeyIndex.');
         }
         if (is_array($params) && array_key_exists('nonce' ?? '', $params)) {
             return $this->safe_integer($params, 'nonce');
@@ -956,23 +995,32 @@ class lighter extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $accountIndex = null;
-        list($accountIndex, $params) = Async\await($this->handle_account_index($params, $method, 'accountIndex', 'account_index'));
-        $params['accountIndex'] = $accountIndex;
+        // non-destructively get values from opts/params
+        $accIndexAndParams = Async\await($this->handle_account_index($params, $method, 'accountIndex', 'account_index'));
+        $accountIndex = $accIndexAndParams[0];
+        $apiKeyIndexAndParams = $this->handle_api_key_index($params, $method, 'apiKeyIndex', 'api_key_index');
+        $apiKeyIndex = $apiKeyIndexAndParams[0];
+        // before order-req creation, we need to know account status
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
+        try {
+            $isStandardTier = Async\await($this->check_if_standard_tier($accountIndex));
+            if ($isStandardTier) {
+                $this->options['builderFee'] = false;
+            }
+        } catch (Exception $e) {
+            $this->options['builderFee'] = false;
+        }
         $market = $this->market($symbol);
         $groupingType = null;
         list($groupingType, $params) = $this->handle_option_and_params($params, $method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         $orderRequests = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $totalOrderRequests = count($orderRequests);
-        $apiKeyIndex = null;
         $order = null;
         if ($totalOrderRequests > 0) {
             $order = $orderRequests[0];
-            $apiKeyIndex = $order['api_key_index'];
         }
-        $strAccountIndex = $this->number_to_string($accountIndex);
-        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-        $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
         // the nonce could be updated
         if ($this->safe_integer($order, 'nonce') === null) {
             $order['nonce'] = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex));
@@ -1428,7 +1476,7 @@ class lighter extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrderBook() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrderBook() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1588,7 +1636,7 @@ class lighter extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTicker() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchTicker() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1720,7 +1768,7 @@ class lighter extends Exchange {
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2248,7 +2296,7 @@ class lighter extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2330,7 +2378,7 @@ class lighter extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2788,7 +2836,7 @@ class lighter extends Exchange {
         $address = null;
         list($address, $params) = $this->handle_option_and_params_2($params, 'fetchDeposits', 'address', 'l1_address');
         if ($address === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires an $address parameter');
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires an address parameter');
         }
         $accountIndex = null;
         list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchDeposits', 'accountIndex', 'account_index'));
@@ -3198,12 +3246,12 @@ class lighter extends Exchange {
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         $marginMode = null;
         list($marginMode, $params) = $this->handle_option_and_params_2($params, 'setLeverage', 'marginMode', 'margin_mode');
         if ($marginMode === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires an $marginMode parameter');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires an marginMode parameter');
         }
         return Async\await($this->modify_leverage_and_margin_mode($leverage, $marginMode, $symbol, $params));
     }
@@ -3224,12 +3272,12 @@ class lighter extends Exchange {
          * @return {array} response from the exchange
          */
         if ($marginMode === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires an $marginMode parameter');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires an marginMode parameter');
         }
         $leverage = null;
         list($leverage, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'leverage');
         if ($leverage === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires an $leverage parameter');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires an leverage parameter');
         }
         return Async\await($this->modify_leverage_and_margin_mode($leverage, $marginMode, $symbol, $params));
     }
@@ -3243,12 +3291,12 @@ class lighter extends Exchange {
             Async\await($this->load_markets());
         }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' modifyLeverageAndMarginMode() requires a $marginMode parameter that must be either cross or isolated');
+            throw new BadRequest($this->id . ' modifyLeverageAndMarginMode() requires a marginMode parameter that must be either cross or isolated');
         }
         $apiKeyIndex = null;
         list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'modifyLeverageAndMarginMode', 'apiKeyIndex', 'api_key_index');
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' modifyLeverageAndMarginMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' modifyLeverageAndMarginMode() requires a symbol argument');
         }
         $accountIndex = null;
         list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'modifyLeverageAndMarginMode', 'accountIndex', 'account_index'));
@@ -3282,7 +3330,7 @@ class lighter extends Exchange {
             Async\await($this->load_markets());
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' ' . $method . ' requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' ' . $method . ' requires a symbol argument');
         }
         $apiKeyIndex = null;
         list($apiKeyIndex, $params) = $this->handle_api_key_index($params, $method, 'apiKeyIndex', 'api_key_index');
@@ -3306,7 +3354,7 @@ class lighter extends Exchange {
         } elseif ($id !== null) {
             $signRaw['order_index'] = $this->parse_to_int($id);
         } else {
-            throw new ArgumentsRequired($this->id . ' ' . $method . ' requires order $id or client order id');
+            throw new ArgumentsRequired($this->id . ' ' . $method . ' requires order id or client order id');
         }
         list($txType, $txInfo) = $this->lighter_sign_cancel_order($signer, $this->extend($signRaw, $params));
         return array( $txType, $txInfo, $market );
@@ -3399,7 +3447,7 @@ class lighter extends Exchange {
             Async\await($this->load_markets());
         }
         if (($timeout < 300000) || ($timeout > 1296000000)) {
-            throw new BadRequest($this->id . ' $timeout should be between 5 minutes and 15 days.');
+            throw new BadRequest($this->id . ' timeout should be between 5 minutes and 15 days.');
         }
         $apiKeyIndex = null;
         list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
@@ -3482,13 +3530,13 @@ class lighter extends Exchange {
         list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'setMargin', 'apiKeyIndex', 'api_key_index');
         $direction = $this->safe_integer($params, 'direction'); // 1 increase margin 0 decrease margin
         if ($direction === null) {
-            throw new ArgumentsRequired($this->id . ' setMargin() requires a $direction parameter either 1 (increase margin) or 0 (decrease margin)');
+            throw new ArgumentsRequired($this->id . ' setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)');
         }
         if (!$this->in_array($direction, array( 0, 1 ))) {
-            throw new ArgumentsRequired($this->id . ' setMargin() requires a $direction parameter either 1 (increase margin) or 0 (decrease margin)');
+            throw new ArgumentsRequired($this->id . ' setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)');
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMargin() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setMargin() requires a symbol argument');
         }
         $accountIndex = null;
         list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'setMargin', 'accountIndex', 'account_index'));

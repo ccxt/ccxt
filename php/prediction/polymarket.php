@@ -1070,7 +1070,7 @@ class polymarket extends Exchange {
          * @return {array} a dictionary of [prediction $ticker structures](https://docs.ccxt.com/#/?id=prediction-$ticker-structure) indexed by outcome
          */
         if ($outcomes === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTickers() requires an $outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())');
+            throw new ArgumentsRequired($this->id . ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())');
         }
         // batch-resolve the uncached outcomes (one gamma request per 50 token ids)
         Async\await($this->load_outcomes($outcomes));
@@ -1304,7 +1304,7 @@ class polymarket extends Exchange {
         if (!(is_array($this->timeframes) && array_key_exists($timeframe ?? '', $this->timeframes))) {
             // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
             $supportedKeys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
-            throw new BadRequest($this->id . ' fetchOHLCV() unsupported $timeframe ' . $timeframe . ', supported timeframes are ' . implode(', ', $supportedKeys));
+            throw new BadRequest($this->id . ' fetchOHLCV() unsupported timeframe ' . $timeframe . ', supported timeframes are ' . implode(', ', $supportedKeys));
         }
         $outcomeObj = Async\await($this->load_outcome($outcome));
         $tokenId = $outcomeObj['outcomeId'];
@@ -1472,7 +1472,7 @@ class polymarket extends Exchange {
         $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
         $conditionId = $this->safe_string($outcomeInfo, 'conditionId');
         if ($conditionId === null) {
-            throw new BadRequest($this->id . ' fetchOpenInterest() requires $outcome->info.conditionId for ' . $outcome);
+            throw new BadRequest($this->id . ' fetchOpenInterest() requires outcome.info.conditionId for ' . $outcome);
         }
         $request = array( 'market' => $conditionId );
         $response = Async\await($this->dataPublicGetOi($this->extend($request, $params)));
@@ -1560,7 +1560,7 @@ class polymarket extends Exchange {
         $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
         $conditionId = $this->safe_string($outcomeInfo, 'conditionId');
         if ($conditionId === null) {
-            throw new BadRequest($this->id . ' fetchTrades() requires $outcome->info.conditionId for an $outcome ' . $tokenId);
+            throw new BadRequest($this->id . ' fetchTrades() requires outcome.info.conditionId for an outcome ' . $tokenId);
         }
         // the endpoint filters by market conditionId (which spans BOTH outcome tokens), then we narrow
         // to the requested token client-side below. applying the user's `limit` to this request and
@@ -2137,12 +2137,12 @@ class polymarket extends Exchange {
         }
         if ($price === null) {
             if (!$isMarket) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price for limit orders');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a price for limit orders');
             }
             // market order without an explicit price: use the outcome's current price as the marketable reference
             $price = $this->safe_number($outcomeObj, 'price');
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() could not determine a $price from the $outcome, pass an explicit price');
+                throw new ArgumentsRequired($this->id . ' createOrder() could not determine a price from the outcome, pass an explicit price');
             }
         }
         // tick size + neg-risk flag drive the rounding and the verifying contract; both are read from the
@@ -3073,7 +3073,7 @@ class polymarket extends Exchange {
         if ($hasL2) {
             return;
         }
-        throw new AuthenticationError($this->id . ' requires L2 api credentials ($apiKey, $secret, password) or a privateKey to derive them');
+        throw new AuthenticationError($this->id . ' requires L2 api credentials (apiKey, secret, password) or a privateKey to derive them');
     }
 
     public function ping(mixed $client) {

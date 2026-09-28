@@ -738,7 +738,7 @@ class zebpay extends Exchange {
                 $request['endTime'] = $until;
             }
             if ($until === null || $since === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a both a $since and until/endtime parameter for spot markets');
+                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a both a since and until/endtime parameter for spot markets');
             }
             $params = $this->omit($params, 'priceType');
             $response = $this->publicSpotGetV2MarketKlines($this->extend($request, $params));
@@ -752,7 +752,7 @@ class zebpay extends Exchange {
             }
             if ($until !== null) {
                 if ($since === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument when $params["until"] is used');
+                    throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a since argument when params["until"] is used');
                 }
                 $request['until'] = $until;
             }
@@ -1048,7 +1048,7 @@ class zebpay extends Exchange {
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
         $params = $this->omit($params, array( 'marginAsset', 'takeProfitPrice', 'takeProfitPrice' ));
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a side argument');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -1078,7 +1078,7 @@ class zebpay extends Exchange {
                 $request['type'] = $upperCaseType;
                 if ($type === 'limit') {
                     if ($price === null) {
-                        throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for limit orders');
+                        throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for limit orders');
                     }
                     $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
                 }
@@ -1146,7 +1146,7 @@ class zebpay extends Exchange {
         } else {
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
             if ($clientOrderId === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $clientOrderId parameter for swap orders');
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a clientOrderId parameter for swap orders');
             }
             $request['clientOrderId'] = $clientOrderId;
             $request['symbol'] = $market['id'];
@@ -1473,7 +1473,7 @@ class zebpay extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
