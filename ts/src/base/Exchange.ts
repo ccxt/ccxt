@@ -8240,7 +8240,7 @@ export class BaseExchange {
         }
     }
 
-    parseDepositWithdrawFees (response: any, codes: Strings = undefined, currencyIdKey: Str = undefined): any {
+    parseDepositWithdrawFees (response: any, codes: Strings = undefined, currencyIdKey: Str = undefined): Dict {
         /**
          * @ignore
          * @method
