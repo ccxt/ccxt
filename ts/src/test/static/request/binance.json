@@ -5,8 +5,7 @@
         "timestamp",
         "recvWindow",
         "newClientOrderId",
-        "newClientStrategyId",
-        "clientAlgoId"
+        "newClientStrategyId"
     ],
     "outputType": "urlencoded",
     "options": {
@@ -70,6 +69,9 @@
             {
                 "description": "algo order for inverse swap market without client id in params",
                 "method": "createOrder",
+                "skipValues": [
+                    "clientAlgoId"
+                ],
                 "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
                 "input": [
                     "ETH/USD:ETH",
