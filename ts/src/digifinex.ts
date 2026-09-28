@@ -2098,44 +2098,17 @@ export default class digifinex extends Exchange {
             if (market === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument for swap markets');
             }
-            const numIds = ids.length;
-            if (numIds > 20) {
-                throw new BadRequest (this.id + ' cancelOrders() accepts up to 20 ids for swap markets');
-            }
-            const marketId = market['id'];
-            const ordersRequests: Dict[] = [];
+            const marketSymbol = market['symbol'];
+            const orders: CancellationRequest[] = [];
             for (let i = 0; i < ids.length; i++) {
                 const orderId = ids[i];
-                ordersRequests.push ({
-                    'instrument_id': marketId,
-                    'order_id': orderId,
-                });
-            }
-            const swapResponse = await this.privateSwapPostTradeBatchCancelOrder (ordersRequests); // don't extend with params, otherwise the array body is turned into an object
-            //
-            //     {
-            //         "code": 0,
-            //         "data": [
-            //             "1546771720487047168",
-            //             "1546771720487047169"
-            //         ]
-            //     }
-            //
-            // ids that were not canceled are absent from data
-            const data = this.safeList (swapResponse, 'data', []);
-            const result: Order[] = [];
-            for (let i = 0; i < ids.length; i++) {
-                const orderId = ids[i];
-                const isCanceled = this.inArray (orderId, data);
-                const status = (isCanceled) ? 'canceled' : 'failed';
-                result.push (this.safeOrder ({
-                    'info': orderId,
+                const orderItem: CancellationRequest = {
                     'id': orderId,
-                    'symbol': market['symbol'],
-                    'status': status,
-                }));
+                    'symbol': marketSymbol,
+                };
+                orders.push (orderItem);
             }
-            return result;
+            return await this.cancelOrdersForSymbols (orders, params);
         }
         const request: Dict = {
             'market': marketType,
