@@ -131,7 +131,6 @@ public partial class lighter : Exchange
                 { "4h", "4h" },
                 { "12h", "12h" },
                 { "1d", "1d" },
-                { "1w", "1w" },
             } },
             { "hostname", "zklighter.elliot.ai" },
             { "urls", new Dictionary<string, object>() {
@@ -458,6 +457,7 @@ public partial class lighter : Exchange
                 { "integratorTakerFee", 1000 },
                 { "authDeadlineExpiry", 28800 },
                 { "authDeadlineMinimumRemaining", 60 },
+                { "tiersForAccountIndexes", new Dictionary<string, object>() {} },
             } },
             { "features", new Dictionary<string, object>() {
                 { "default", new Dictionary<string, object>() {
@@ -800,18 +800,65 @@ public partial class lighter : Exchange
         {
             return true;
         }
+        bool standardTier = false;
         try
         {
-            Int64? builder = this.safeInteger(this.options, "integratorAccountIndex", 718718);
-            Int64? takerFeeRate = this.safeInteger(this.options, "integratorTakerFee", 1000);
-            Int64? makerFeeRate = this.safeInteger(this.options, "integratorMakerFee", 1000);
-            await this.approveBuilderFee(builder, takerFeeRate, makerFeeRate, accountIndex, apiKeyIndex);
-            this.options["approvedBuilderFee"] = true;
+            object isStandardTier = await this.checkIfStandardTier(this.parseToInt(accountIndex));
+            if (isTrue(isStandardTier))
+            {
+                standardTier = true;
+                this.options["builderFee"] = false;
+            } else
+            {
+                Int64? builder = this.safeInteger(this.options, "integratorAccountIndex", 718718);
+                Int64? takerFeeRate = this.safeInteger(this.options, "integratorTakerFee", 1000);
+                Int64? makerFeeRate = this.safeInteger(this.options, "integratorMakerFee", 1000);
+                await this.approveBuilderFee(builder, takerFeeRate, makerFeeRate, accountIndex, apiKeyIndex);
+                this.options["approvedBuilderFee"] = true;
+            }
         } catch(Exception e)
         {
             this.options["builderFee"] = false;
         }
+        if (standardTier)
+        {
+            return false;
+        }
         return true;
+    }
+
+    public async virtual Task<object> checkIfStandardTier(object accountIndex)
+    {
+        IDictionary<string, object> tiersForAccountIndexes = this.safeDict(this.options, "tiersForAccountIndexes", new Dictionary<string, object>() {});
+        string accountIndexStr = accountIndex.ToString();
+        bool? isStandardTier = this.safeBool(tiersForAccountIndexes, accountIndexStr);
+        if ((isStandardTier != null))
+        {
+            return isStandardTier;
+        }
+        Dictionary<string, object> accountLimits = await this.privateGetAccountLimits(new Dictionary<string, object>() {
+            { "account_index", accountIndex },
+        });
+        //
+        //    {
+        //        "code": 200,
+        //        "max_llp_percentage": 100,
+        //        "max_llp_amount": "0.000000",
+        //        "user_tier": "standard",
+        //        "can_create_public_pool": false,
+        //        "user_tier_name": "standard",
+        //        "current_maker_fee_tick": 0,
+        //        "current_taker_fee_tick": 0,
+        //        "leased_lit": "0.00000000",
+        //        "effective_lit_stakes": "0.00000000",
+        //        "user_tier_last_update": 0
+        //    }
+        //
+        string? tier = this.safeString(accountLimits, "user_tier");
+        bool isStandard = (tier == "standard");
+        tiersForAccountIndexes[(string)accountIndexStr] = isStandard;
+        this.options["tiersForAccountIndexes"] = tiersForAccountIndexes;
+        return isStandard;
     }
 
     public async virtual Task<Dictionary<string, object>> approveBuilderFee(object builder, object takerFeeRate, object makerFeeRate, object accountIndex, object apiKeyIndex, IDictionary<string, object>? parameters = null)
@@ -1127,25 +1174,36 @@ public partial class lighter : Exchange
         {
             await this.loadMarkets();
         }
-        var accountIndexparamsAccountIndexVariable = await this.handleAccountIndex(parameters, method, "accountIndex", "account_index");
-        var accountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[0];
-        var paramsAccountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[1];
-        ((IDictionary<string,object>)paramsAccountIndex)["accountIndex"] = accountIndex;
-        (Int64?, object) groupingTypeparamsGroupingTypeVariable = this.handleOptionIntegerAndParams(paramsAccountIndex, method, "groupingType", 3);
+        // non-destructively get values from opts/params
+        object accIndexAndParams = await this.handleAccountIndex(parameters, method, "accountIndex", "account_index");
+        Int64? accountIndex = ((Int64?)getValue(accIndexAndParams, 0));
+        List<object> apiKeyIndexAndParams = this.handleApiKeyIndex(parameters, method, "apiKeyIndex", "api_key_index");
+        Int64? apiKeyIndex = ((Int64?)(apiKeyIndexAndParams != null && 0 < apiKeyIndexAndParams.Count ? apiKeyIndexAndParams[0] : null));
+        // before order-req creation, we need to know account status
+        string strAccountIndex = this.numberToString(accountIndex);
+        string strApiKeyIndex = this.numberToString(apiKeyIndex);
+        object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
+        try
+        {
+            object isStandardTier = await this.checkIfStandardTier(accountIndex);
+            if (isTrue(isStandardTier))
+            {
+                this.options["builderFee"] = false;
+            }
+        } catch(Exception e)
+        {
+            this.options["builderFee"] = false;
+        }
+        (Int64?, object) groupingTypeparamsGroupingTypeVariable = this.handleOptionIntegerAndParams(parameters, method, "groupingType", 3);
         Int64? groupingType = groupingTypeparamsGroupingTypeVariable.Item1;
         IDictionary<string, object> paramsGroupingType = ((IDictionary<string, object>)groupingTypeparamsGroupingTypeVariable.Item2); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         List<object> orderRequests = this.createOrderRequest(symbol, type, side, amount, price, paramsGroupingType);
         int totalOrderRequests = (orderRequests?.Count ?? 0);
-        object apiKeyIndex = null;
         object order = null;
         if (totalOrderRequests > 0)
         {
             order = (orderRequests != null && 0 < orderRequests.Count ? orderRequests[0] : null);
-            apiKeyIndex = getValue(order, "api_key_index");
         }
-        string strAccountIndex = this.numberToString(accountIndex);
-        string strApiKeyIndex = this.numberToString(apiKeyIndex);
-        object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsGroupingType);
         // the nonce could be updated
         if (isEqual(this.safeInteger(order, "nonce"), null))
         {
