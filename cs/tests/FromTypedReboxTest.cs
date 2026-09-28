@@ -82,6 +82,31 @@ public partial class BaseTest
         var projectedFee = (Dictionary<string, object>)projectedFees["ACE"];
         Assert(projectedFee.ContainsKey("networks") && !projectedFee.ContainsKey("BEP20"), "nested networks must survive the fee container");
 
+        // Several networks, one without a deposit leaf: every key must survive the typed
+        // projection, the From -> To round trip the emulated fetchDepositWithdrawFee runs,
+        // and the comparison projection; an absent leaf must stay absent.
+        var multiNetworkData = new Dictionary<string, object>() {
+            { "info", new Dictionary<string, object>() },
+            { "networks", new Dictionary<string, object>() {
+                { "BEP20", networkFees },
+                { "ERC20", new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() { { "fee", 5.0 }, { "percentage", false } } },
+                } },
+            } },
+        };
+        var multiNetworkFee = new DepositWithdrawFee(multiNetworkData);
+        Assert(multiNetworkFee.networks.Count == 2, "every network must be kept, got: " + multiNetworkFee.networks.Count);
+        Assert(multiNetworkFee.networks["ERC20"].withdraw?.fee == 5.0, "each network must keep its own withdrawal fee");
+        Assert(!multiNetworkFee.networks["ERC20"].deposit.HasValue, "an absent deposit leaf must stay absent");
+        var roundTrip = ccxt.BaseExchange.ToDepositWithdrawFee(ccxt.BaseExchange.FromDepositWithdrawFee(multiNetworkFee));
+        Assert(roundTrip.networks.Count == 2, "the round trip must keep every network");
+        Assert(roundTrip.networks["BEP20"].withdraw?.fee == 3.0 && roundTrip.networks["BEP20"].withdraw?.percentage == false, "the round trip must keep the withdrawal leaf");
+        Assert(roundTrip.networks["BEP20"].deposit.HasValue && roundTrip.networks["BEP20"].deposit?.fee == null, "the round trip must keep a present deposit leaf with an unknown fee");
+        Assert(roundTrip.networks["ERC20"].withdraw?.fee == 5.0 && !roundTrip.networks["ERC20"].deposit.HasValue, "the round trip must keep the second network as it was");
+        var projectedMulti = (Dictionary<string, object>)testMainClass.detypeForComparison(multiNetworkFee);
+        var projectedMultiNetworks = (Dictionary<string, object>)projectedMulti["networks"];
+        Assert(projectedMultiNetworks.Count == 2 && !projectedMulti.ContainsKey("ERC20"), "comparison must keep every network nested");
+
         var currency = new Currency {
             networks = new Dictionary<string, Network>() { { "BEP20", new Network { fee = 3.0 } } },
         };
