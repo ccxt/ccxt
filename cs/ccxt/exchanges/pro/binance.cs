@@ -4264,17 +4264,15 @@ public partial class binance : ccxt.binance
         string messageHash = ((object)requestId).ToString();
         bool? sor = this.safeBool2(parameters, "sor", "SOR", false);
         parameters = this.omit(parameters, "sor", "SOR");
-        string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-        string? stopLossPrice = this.safeString(parameters, "stopLossPrice", triggerPrice);
-        string? takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-        string? trailingDelta = this.safeString(parameters, "trailingDelta");
-        string? trailingPercent = this.safeStringN(parameters, new List<object>() {"trailingPercent", "callbackRate", "trailingDelta"});
-        bool isTrailingPercentOrder = (trailingPercent != null);
-        bool isStopLoss = (stopLossPrice != null) || (trailingDelta != null);
-        bool isTakeProfit = (takeProfitPrice != null);
-        bool isTriggerOrder = (triggerPrice != null);
-        bool isConditional = isTriggerOrder || isTrailingPercentOrder || isStopLoss || isTakeProfit;
-        Dictionary<string, object> payload = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        object isConditional = this.isConditionalOrder(parameters);
+        if (((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)) && isTrue(isConditional))
+        {
+            throw new NotSupported ((string)(this.id + " createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead")) ;
+        }
+        bool isAlgoOrder = ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) && (((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) || ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true))) && isTrue(isConditional);
+        Dictionary<string, object> payload = this.createOrderRequest(symbol, type, side, amount, price, this.extend(parameters, new Dictionary<string, object>() {
+            { "isAlgoOrder", isAlgoOrder },
+        }));
         object returnRateLimits = false;
         IList<object> returnRateLimitsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrderWs", "returnRateLimits", false);
         returnRateLimits = ((IList<object>)returnRateLimitsparametersVariable)[0];
@@ -4282,7 +4280,7 @@ public partial class binance : ccxt.binance
         ((IDictionary<string,object>)payload)["returnRateLimits"] = returnRateLimits;
         bool? test = this.safeBool(parameters, "test", false);
         parameters = this.omit(parameters, "test");
-        if (((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) && ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) && isConditional)
+        if (isAlgoOrder)
         {
             ((IDictionary<string,object>)payload)["algoType"] = "CONDITIONAL";
         }
@@ -4301,7 +4299,7 @@ public partial class binance : ccxt.binance
                 ((IDictionary<string,object>)message)["method"] = "order.test";
             }
         }
-        if (((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) && ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) && isConditional)
+        if (isAlgoOrder)
         {
             ((IDictionary<string,object>)message)["method"] = "algoOrder.place";
         }
@@ -5263,6 +5261,10 @@ public partial class binance : ccxt.binance
             clientOrderId = this.safeString(order, "c");
         }
         string? stopPrice = this.safeStringN(order, new List<object>() {"P", "sp", "tp"});
+        string? orderType = this.safeStringLower(order, "o");
+        // stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
+        bool isTakeProfitType = this.inArray(orderType, new List<object>() {"take_profit", "take_profit_market", "take_profit_limit"});
+        object takeProfitPrice = isTakeProfitType ? this.omitZero(stopPrice) : null;
         string? timeInForce = this.safeString(order, "f");
         if ((timeInForce == "GTX"))
         {
@@ -5278,7 +5280,7 @@ public partial class binance : ccxt.binance
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", lastTradeTimestamp },
             { "lastUpdateTimestamp", lastUpdateTimestamp },
-            { "type", this.parseOrderTypeByMarket(this.safeStringLower(order, "o"), marketType) },
+            { "type", this.parseOrderTypeByMarket(orderType, marketType) },
             { "timeInForce", timeInForce },
             { "postOnly", null },
             { "reduceOnly", this.safeBool(order, "R") },
@@ -5286,6 +5288,7 @@ public partial class binance : ccxt.binance
             { "price", this.safeString(order, "p") },
             { "stopPrice", stopPrice },
             { "triggerPrice", stopPrice },
+            { "takeProfitPrice", takeProfitPrice },
             { "amount", this.safeString(order, "q") },
             { "cost", this.safeString(order, "Z") },
             { "average", this.safeString(order, "ap") },

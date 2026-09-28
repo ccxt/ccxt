@@ -131,7 +131,6 @@ public partial class lighter : Exchange
                 { "4h", "4h" },
                 { "12h", "12h" },
                 { "1d", "1d" },
-                { "1w", "1w" },
             } },
             { "hostname", "zklighter.elliot.ai" },
             { "urls", new Dictionary<string, object>() {

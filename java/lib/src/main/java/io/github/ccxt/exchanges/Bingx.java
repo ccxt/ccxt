@@ -1055,7 +1055,9 @@ public class Bingx extends BingxApi
                     put( "500", ExchangeError.class );
                     put( "504", ExchangeError.class );
                     put( "100001", AuthenticationError.class );
+                    put( "100004", PermissionDenied.class );
                     put( "100412", AuthenticationError.class );
+                    put( "100413", AuthenticationError.class );
                     put( "100202", InsufficientFunds.class );
                     put( "100204", BadRequest.class );
                     put( "100400", BadRequest.class );
@@ -1074,6 +1076,15 @@ public class Bingx extends BingxApi
                     put( "100437", BadRequest.class );
                     put( "101204", InsufficientFunds.class );
                     put( "110425", InvalidOrder.class );
+                    put( "100490", BadSymbol.class );
+                    put( "101481", DuplicateOrderId.class );
+                    put( "109201", DuplicateOrderId.class );
+                    put( "109400", BadRequest.class );
+                    put( "109418", BadSymbol.class );
+                    put( "109421", OrderNotFound.class );
+                    put( "109425", BadSymbol.class );
+                    put( "109500", OperationFailed.class );
+                    put( "110500", OperationFailed.class );
                     put( "Insufficient assets", InsufficientFunds.class );
                     put( "illegal transferType", BadRequest.class );
                 }} );

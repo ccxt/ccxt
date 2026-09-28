@@ -128,6 +128,7 @@ impl crate::exchange_generated::ExchangeBase for DigifinexCore {
                 "add_margin" => self.add_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "cancel_order" => self.cancel_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_orders_for_symbols" => self.cancel_orders_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "create_market_buy_order_with_cost" => self.create_market_buy_order_with_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "create_order" => self.create_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
@@ -174,7 +175,7 @@ impl crate::exchange_generated::ExchangeBase for DigifinexCore {
                 "parse_borrow_interest" => self.parse_borrow_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_borrow_rate" => self.parse_borrow_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_borrow_rates" => self.parse_borrow_rates(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "parse_cancel_orders" => self.parse_cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_cancel_orders" => self.parse_cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_deposit_withdraw_fees" => self.parse_deposit_withdraw_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -236,6 +237,7 @@ impl DigifinexCore {
         m.insert("addMargin".to_string(), Value::Bool(true));
         m.insert("cancelOrder".to_string(), Value::Bool(true));
         m.insert("cancelOrders".to_string(), Value::Bool(true));
+        m.insert("cancelOrdersForSymbols".to_string(), Value::Bool(true));
         m.insert("createMarketBuyOrderWithCost".to_string(), Value::Bool(true));
         m.insert("createMarketOrderWithCost".to_string(), Value::Bool(false));
         m.insert("createMarketSellOrderWithCost".to_string(), Value::Bool(false));
@@ -2956,13 +2958,13 @@ impl DigifinexCore {
             if (numCanceledOrders != 1.0) {
                 panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() ".into())).into()), id).into()), Value::Str(" not found".into()))));
             }
-            let mut orders: Value = self.parse_cancel_orders(response.clone());
+            let mut orders: Value = self.parse_cancel_orders(response.clone(), &[]);
             return self.safe_dict(orders, Value::Int(0), &[]);
         }  else {
             return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
-        m.insert("orderId".to_string(), self.safe_string_k(response, "data", &[]));
+        m.insert("id".to_string(), self.safe_string_k(response, "data", &[]));
     m
 }), &[]);
         }
@@ -2970,7 +2972,11 @@ impl DigifinexCore {
     Value::Null
 }
 
-    pub fn parse_cancel_orders(&self, mut response: Value) -> Value {
+    pub fn parse_cancel_orders(&self, mut response: Value, optional_args: &[Value]) -> Value {
+        let mut symbolsById = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
         let __response_empty = indexmap::IndexMap::new();
         let response = response.as_map().unwrap_or(&__response_empty);
         let mut success: Value = (match response.get("success") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
@@ -2985,6 +2991,7 @@ impl DigifinexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), order.clone());
+        m.insert("symbol".to_string(), self.safe_string(symbolsById.clone(), order.clone(), &[]));
         m.insert("status".to_string(), Value::Str("canceled".into()));
     m
 }), &[]));
@@ -2998,9 +3005,9 @@ impl DigifinexCore {
             append_to_array(&mut result, self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
-        m.insert("id".to_string(), self.safe_string2(order.clone(), Value::Str("order-id".into()), Value::Str("order_id".into()), &[]));
+        m.insert("id".to_string(), order.clone());
+        m.insert("symbol".to_string(), self.safe_string(symbolsById.clone(), order, &[]));
         m.insert("status".to_string(), Value::Str("failed".into()));
-        m.insert("clientOrderId".to_string(), self.safe_string_k(order, "client-order-id", &[]));
     m
 }), &[]));
         }
@@ -3015,9 +3022,11 @@ impl DigifinexCore {
  * @name digifinex#cancelOrders
  * @description cancel multiple orders
  * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+ * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
  * @param {string[]} ids order ids
- * @param {string} symbol not used by cancelOrders ()
- * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [symbol] unified market symbol, required for swap markets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the request body is an array)
+ * @param {string} [params.type] 'spot', 'margin' or 'swap', defaults to the type of the symbol's market or options.defaultType
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
@@ -3029,18 +3038,162 @@ impl DigifinexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("spot".into())]);
-        let mut orderType: Value = self.safe_string_k(params.clone(), "type", &[defaultType]);
-        params = self.omit(params.clone(), Value::Str("type".into()), &[]);
+        let mut market: Value = Value::Null;
+        if (symbol != Value::Null) {
+            market = self.market(symbol);
+        }
+        let mut marketType: Value = Value::Null;
+        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("cancelOrders".into()), &[market.clone(), params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        if (marketType.as_str() == Some("swap")) {
+            if (market == Value::Null) {
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a symbol argument for swap markets".into()))));
+            }
+            let mut marketSymbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            let mut orders: Value = Value::from(vec![]);
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_640: bool = true;
+                while { if !__for_first_640 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_640 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
+                let mut orderId: Value = ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut orderItem: Value = Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                        m.insert("id".to_string(), orderId);
+                        m.insert("symbol".to_string(), marketSymbol.clone());
+                    m
+                });
+                append_to_array(&mut orders, orderItem);
+            }
+            }
+            return self.cancel_orders_for_symbols(orders, &[params.clone()]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), orderType);
+                m.insert("market".to_string(), marketType);
                 m.insert("order_id".to_string(), join(&ids, &Value::Str(",".into())));
             m
         });
         let __ws_arg_13 = self.extend(request, &[params]);
         let mut response: Value = self.private_spot_post_spot_order_cancel(&[__ws_arg_13]).await;
-        return self.parse_cancel_orders(response);
+        return self.parse_cancel_orders(response, &[]);
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name digifinex#cancelOrdersForSymbols
+ * @description cancel multiple orders for multiple symbols
+ * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+ * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
+ * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, all orders must be of the same market type (spot or swap), example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+ * @param {object} [params] extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the request body is an array)
+ * @param {string} [params.type] 'spot' or 'margin' for spot markets, defaults to 'spot'
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+    pub async fn cancel_orders_for_symbols(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if (self.markets.clone() == Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        let mut ids: Value = Value::from(vec![]);
+        let mut symbols: Value = Value::from(vec![]);
+        let mut symbolsById: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let mut marketType: Value = Value::Null;
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_641: bool = true;
+            while { if !__for_first_641 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_641 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut order: Value = orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut id: Value = self.safe_string_k(order.clone(), "id", &[]);
+            if (id == Value::Null) {
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrdersForSymbols() requires an id for each order".into()))));
+            }
+            let mut symbol: Value = self.safe_string_k(order, "symbol", &[]);
+            if (symbol == Value::Null) {
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrdersForSymbols() requires a symbol for each order".into()))));
+            }
+            let mut market: Value = self.market(symbol);
+            let mut orderMarketType: Value = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            if (marketType == Value::Null) {
+                marketType = orderMarketType.clone();
+            }  else if (marketType.as_str() != orderMarketType.as_str()) {
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelOrdersForSymbols() requires all orders to be of the same market type (spot or swap)".into()))));
+            }
+            append_to_array(&mut ids, id.clone());
+            append_to_array(&mut symbols, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d) = &mut symbolsById { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&id), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)); }
+        }
+        }
+        if (marketType.as_str() == Some("swap")) {
+            let mut numIds: f64 = ((ids.len() as i64) as f64);
+            if numIds > ((20i64) as f64) {
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelOrdersForSymbols() accepts up to 20 orders for swap markets".into()))));
+            }
+            let mut ordersRequests: Value = Value::from(vec![]);
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_642: bool = true;
+                while { if !__for_first_642 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_642 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
+                let mut market: Value = self.market(symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+                let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
+                let mut orderId: Value = ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                append_to_array(&mut ordersRequests, Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                        m.insert("instrument_id".to_string(), marketId);
+                        m.insert("order_id".to_string(), orderId.clone());
+                    m
+                }));
+            }
+            }
+            let mut swapResponse: Value = self.private_swap_post_trade_batch_cancel_order(&[ordersRequests]).await; // don't extend with params, otherwise the array body is turned into an object
+            //
+            //     {
+            //         "code": 0,
+            //         "data": [
+            //             "1546771720487047168",
+            //             "1546771720487047169"
+            //         ]
+            //     }
+            //
+            // ids that were not canceled are absent from data
+            let mut data: Value = self.safe_list_k(swapResponse, "data", &[Value::from(vec![])]);
+            let mut result: Value = Value::from(vec![]);
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_643: bool = true;
+                while { if !__for_first_643 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_643 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
+                let mut orderId: Value = ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut isCanceled: Value = self.in_array(orderId.clone(), data.clone());
+                let mut status: Value = (if is_true(&(isCanceled)) { Value::Str("canceled".into()) } else { Value::Str("failed".into()) });
+                append_to_array(&mut result, self.safe_order(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("info".to_string(), orderId.clone());
+        m.insert("id".to_string(), orderId);
+        m.insert("symbol".to_string(), symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+        m.insert("status".to_string(), status);
+    m
+}), &[]));
+            }
+            }
+            return result;
+        }
+        let mut requestType: Value = Value::Null;
+        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("cancelOrdersForSymbols".into()), &[Value::Null, params.clone(), Value::Str("spot".into())]); requestType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("market".to_string(), requestType);
+                m.insert("order_id".to_string(), join(&ids, &Value::Str(",".into())));
+            m
+        });
+        let __ws_arg_14 = self.extend(request, &[params]);
+        let mut response: Value = self.private_spot_post_spot_order_cancel(&[__ws_arg_14]).await;
+        return self.parse_cancel_orders(response, &[symbolsById]);
 
     Value::Null
 }
@@ -3048,6 +3201,7 @@ impl DigifinexCore {
     pub fn parse_order_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
+                m.insert("-1".to_string(), Value::Str("canceled".into()));
                 m.insert("0".to_string(), Value::Str("open".into()));
                 m.insert("1".to_string(), Value::Str("open".into()));
                 m.insert("2".to_string(), Value::Str("closed".into()));
@@ -3129,6 +3283,7 @@ impl DigifinexCore {
         let mut lastTradeTimestamp: Value = Value::Null;
         let mut timeInForce: Value = Value::Null;
         let mut type_var: Value = Value::Null;
+        let mut reduceOnly: Value = Value::Null;
         let mut side: Value = self.safe_string_k(order.clone(), "type", &[]);
         let mut marketId: Value = self.safe_string2(order.clone(), Value::Str("symbol".into()), Value::Str("instrument_id".into()), &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
@@ -3149,14 +3304,19 @@ impl DigifinexCore {
                     type_var = Value::Str("market".into());
                 }
             }
+            // 1 open long, 2 open short, 3 close long, 4 close short
             if (side.as_str() == Some("1")) {
-                side = Value::Str("open long".into());
+                side = Value::Str("buy".into());
+                reduceOnly = Value::Bool(false);
             }  else if (side.as_str() == Some("2")) {
-                side = Value::Str("open short".into());
+                side = Value::Str("sell".into());
+                reduceOnly = Value::Bool(false);
             }  else if (side.as_str() == Some("3")) {
-                side = Value::Str("close long".into());
+                side = Value::Str("sell".into());
+                reduceOnly = Value::Bool(true);
             }  else if (side.as_str() == Some("4")) {
-                side = Value::Str("close short".into());
+                side = Value::Str("buy".into());
+                reduceOnly = Value::Bool(true);
             }
             timestamp = self.safe_integer_k(order.clone(), "insert_time", &[]);
             lastTradeTimestamp = self.safe_integer_k(order.clone(), "time_stamp", &[]);
@@ -3189,6 +3349,7 @@ impl DigifinexCore {
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), self.safe_number_k(order.clone(), "price", &[]));
         m.insert("triggerPrice".to_string(), Value::Null);
+        m.insert("reduceOnly".to_string(), reduceOnly);
         m.insert("amount".to_string(), self.safe_number2(order.clone(), Value::Str("amount".into()), Value::Str("size".into()), &[]));
         m.insert("filled".to_string(), self.safe_number2(order.clone(), Value::Str("executed_amount".into()), Value::Str("filled_qty".into()), &[]));
         m.insert("remaining".to_string(), Value::Null);
@@ -3261,14 +3422,14 @@ impl DigifinexCore {
         let mut response: Value = Value::Null;
         if (marginMode != Value::Null) || (marketType.as_str() == Some("margin")) {
             marketType = Value::Str("margin".into());
-            let __ws_arg_14 = self.extend(request.clone(), &[query.clone()]);
-            response = self.private_spot_get_margin_order_current(&[__ws_arg_14]).await;
-        }  else if (marketType.as_str() == Some("spot")) {
             let __ws_arg_15 = self.extend(request.clone(), &[query.clone()]);
-            response = self.private_spot_get_spot_order_current(&[__ws_arg_15]).await;
+            response = self.private_spot_get_margin_order_current(&[__ws_arg_15]).await;
+        }  else if (marketType.as_str() == Some("spot")) {
+            let __ws_arg_16 = self.extend(request.clone(), &[query.clone()]);
+            response = self.private_spot_get_spot_order_current(&[__ws_arg_16]).await;
         }  else if (marketType.as_str() == Some("swap")) {
-            let __ws_arg_16 = self.extend(request, &[query]);
-            response = self.private_swap_get_trade_open_orders(&[__ws_arg_16]).await;
+            let __ws_arg_17 = self.extend(request, &[query]);
+            response = self.private_swap_get_trade_open_orders(&[__ws_arg_17]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() not support this market type".into()))));
         }
@@ -3385,14 +3546,14 @@ impl DigifinexCore {
         let mut response: Value = Value::Null;
         if (marginMode != Value::Null) || (marketType.as_str() == Some("margin")) {
             marketType = Value::Str("margin".into());
-            let __ws_arg_17 = self.extend(request.clone(), &[query.clone()]);
-            response = self.private_spot_get_margin_order_history(&[__ws_arg_17]).await;
-        }  else if (marketType.as_str() == Some("spot")) {
             let __ws_arg_18 = self.extend(request.clone(), &[query.clone()]);
-            response = self.private_spot_get_spot_order_history(&[__ws_arg_18]).await;
+            response = self.private_spot_get_margin_order_history(&[__ws_arg_18]).await;
+        }  else if (marketType.as_str() == Some("spot")) {
+            let __ws_arg_19 = self.extend(request.clone(), &[query.clone()]);
+            response = self.private_spot_get_spot_order_history(&[__ws_arg_19]).await;
         }  else if (marketType.as_str() == Some("swap")) {
-            let __ws_arg_19 = self.extend(request, &[query]);
-            response = self.private_swap_get_trade_history_orders(&[__ws_arg_19]).await;
+            let __ws_arg_20 = self.extend(request, &[query]);
+            response = self.private_swap_get_trade_history_orders(&[__ws_arg_20]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() not support this market type".into()))));
         }
@@ -3497,14 +3658,14 @@ impl DigifinexCore {
         let mut response: Value = Value::Null;
         if (marginMode != Value::Null) || (marketType.as_str() == Some("margin")) {
             marketType = Value::Str("margin".into());
-            let __ws_arg_20 = self.extend(request.clone(), &[query.clone()]);
-            response = self.private_spot_get_margin_order(&[__ws_arg_20]).await;
-        }  else if (marketType.as_str() == Some("spot")) {
             let __ws_arg_21 = self.extend(request.clone(), &[query.clone()]);
-            response = self.private_spot_get_spot_order(&[__ws_arg_21]).await;
+            response = self.private_spot_get_margin_order(&[__ws_arg_21]).await;
+        }  else if (marketType.as_str() == Some("spot")) {
+            let __ws_arg_22 = self.extend(request.clone(), &[query.clone()]);
+            response = self.private_spot_get_spot_order(&[__ws_arg_22]).await;
         }  else if (marketType.as_str() == Some("swap")) {
-            let __ws_arg_22 = self.extend(request, &[query]);
-            response = self.private_swap_get_trade_order_info(&[__ws_arg_22]).await;
+            let __ws_arg_23 = self.extend(request, &[query]);
+            response = self.private_swap_get_trade_order_info(&[__ws_arg_23]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() not support this market type".into()))));
         }
@@ -3622,14 +3783,14 @@ impl DigifinexCore {
         let mut response: Value = Value::Null;
         if (marginMode != Value::Null) || (marketType.as_str() == Some("margin")) {
             marketType = Value::Str("margin".into());
-            let __ws_arg_23 = self.extend(request.clone(), &[query.clone()]);
-            response = self.private_spot_get_margin_mytrades(&[__ws_arg_23]).await;
-        }  else if (marketType.as_str() == Some("spot")) {
             let __ws_arg_24 = self.extend(request.clone(), &[query.clone()]);
-            response = self.private_spot_get_spot_mytrades(&[__ws_arg_24]).await;
+            response = self.private_spot_get_margin_mytrades(&[__ws_arg_24]).await;
+        }  else if (marketType.as_str() == Some("spot")) {
+            let __ws_arg_25 = self.extend(request.clone(), &[query.clone()]);
+            response = self.private_spot_get_spot_mytrades(&[__ws_arg_25]).await;
         }  else if (marketType.as_str() == Some("swap")) {
-            let __ws_arg_25 = self.extend(request, &[query]);
-            response = self.private_swap_get_trade_history_trades(&[__ws_arg_25]).await;
+            let __ws_arg_26 = self.extend(request, &[query]);
+            response = self.private_swap_get_trade_history_trades(&[__ws_arg_26]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() not support this market type".into()))));
         }
@@ -3804,14 +3965,14 @@ impl DigifinexCore {
         let mut response: Value = Value::Null;
         if (marginMode != Value::Null) || (marketType.as_str() == Some("margin")) {
             marketType = Value::Str("margin".into());
-            let __ws_arg_26 = self.extend(request.clone(), &[query.clone()]);
-            response = self.private_spot_get_margin_financelog(&[__ws_arg_26]).await;
-        }  else if (marketType.as_str() == Some("spot")) {
             let __ws_arg_27 = self.extend(request.clone(), &[query.clone()]);
-            response = self.private_spot_get_spot_financelog(&[__ws_arg_27]).await;
+            response = self.private_spot_get_margin_financelog(&[__ws_arg_27]).await;
+        }  else if (marketType.as_str() == Some("spot")) {
+            let __ws_arg_28 = self.extend(request.clone(), &[query.clone()]);
+            response = self.private_spot_get_spot_financelog(&[__ws_arg_28]).await;
         }  else if (marketType.as_str() == Some("swap")) {
-            let __ws_arg_28 = self.extend(request, &[query]);
-            response = self.private_swap_get_account_finance_record(&[__ws_arg_28]).await;
+            let __ws_arg_29 = self.extend(request, &[query]);
+            response = self.private_swap_get_account_finance_record(&[__ws_arg_29]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() not support this market type".into()))));
         }
@@ -3913,8 +4074,8 @@ impl DigifinexCore {
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_29 = self.extend(request, &[params]);
-        let mut response: Value = self.private_spot_get_deposit_address(&[__ws_arg_29]).await;
+        let __ws_arg_30 = self.extend(request, &[params]);
+        let mut response: Value = self.private_spot_get_deposit_address(&[__ws_arg_30]).await;
         //
         //     {
         //         "data":[
@@ -3964,11 +4125,11 @@ impl DigifinexCore {
         }
         let mut response: Value = Value::Null;
         if (type_var.as_str() == Some("deposit")) {
-            let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_spot_get_deposit_history(&[__ws_arg_30]).await;
+            let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_spot_get_deposit_history(&[__ws_arg_31]).await;
         }  else {
-            let __ws_arg_31 = self.extend(request, &[params]);
-            response = self.private_spot_get_withdraw_history(&[__ws_arg_31]).await;
+            let __ws_arg_32 = self.extend(request, &[params]);
+            response = self.private_spot_get_withdraw_history(&[__ws_arg_32]).await;
         }
         //
         //     {
@@ -4261,8 +4422,8 @@ impl DigifinexCore {
             //         }
             //     }
             //
-            let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_swap_post_account_transfer(&[__ws_arg_32]).await;
+            let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_swap_post_account_transfer(&[__ws_arg_33]).await;
         }  else {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency_mark".into(), currencyId); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("num".into(), amountString); }
@@ -4273,8 +4434,8 @@ impl DigifinexCore {
             //         "code": 0
             //     }
             //
-            let __ws_arg_33 = self.extend(request, &[params]);
-            response = self.private_spot_post_transfer(&[__ws_arg_33]).await;
+            let __ws_arg_34 = self.extend(request, &[params]);
+            response = self.private_spot_post_transfer(&[__ws_arg_34]).await;
         }
         if (response == Value::Null) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" transfer() returned empty response".into()))));
@@ -4317,8 +4478,8 @@ impl DigifinexCore {
         if (tag != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("memo".into(), tag); }
         }
-        let __ws_arg_34 = self.extend(request, &[params]);
-        let mut response: Value = self.private_spot_post_withdraw_new(&[__ws_arg_34]).await;
+        let __ws_arg_35 = self.extend(request, &[params]);
+        let mut response: Value = self.private_spot_post_withdraw_new(&[__ws_arg_35]).await;
         return self.parse_transaction(response, &[currency]);
 
     Value::Null
@@ -4345,8 +4506,8 @@ impl DigifinexCore {
             market = self.market(symbol);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
-        let __ws_arg_35 = self.extend(request, &[params]);
-        let mut response: Value = self.private_spot_get_margin_positions(&[__ws_arg_35]).await;
+        let __ws_arg_36 = self.extend(request, &[params]);
+        let mut response: Value = self.private_spot_get_margin_positions(&[__ws_arg_36]).await;
         //
         //     {
         //         "margin": "45.71246418952618",
@@ -4435,8 +4596,8 @@ impl DigifinexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_36 = self.extend(request, &[params]);
-        let mut response: Value = self.private_spot_get_margin_assets(&[__ws_arg_36]).await;
+        let __ws_arg_37 = self.extend(request, &[params]);
+        let mut response: Value = self.private_spot_get_margin_assets(&[__ws_arg_37]).await;
         //
         //     {
         //         "list": [
@@ -4458,8 +4619,8 @@ impl DigifinexCore {
         let mut result: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_640: bool = true;
-            while { if !__for_first_640 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_640 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_644: bool = true;
+            while { if !__for_first_644 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_644 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (self.safe_string_k(entry.clone(), "currency", &[]).as_str() == code.as_str()) {
                 result = entry;
@@ -4552,8 +4713,8 @@ impl DigifinexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_641: bool = true;
-            while { if !__for_first_641 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_641 = false; i.as_f64().unwrap_or(f64::NAN) < ((info.len() as i64) as f64) } {
+            let mut __for_first_645: bool = true;
+            while { if !__for_first_645 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_645 = false; i.as_f64().unwrap_or(f64::NAN) < ((info.len() as i64) as f64) } {
             let mut item: Value = info.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut currency: Value = self.safe_string(item.clone(), codeKey.clone(), &[]);
             let mut code: Value = self.safe_currency_code(currency, &[]);
@@ -4594,8 +4755,8 @@ impl DigifinexCore {
                 m.insert("instrument_id".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_37 = self.extend(request, &[params]);
-        let mut response: Value = self.public_swap_get_public_funding_rate(&[__ws_arg_37]).await;
+        let __ws_arg_38 = self.extend(request, &[params]);
+        let mut response: Value = self.public_swap_get_public_funding_rate(&[__ws_arg_38]).await;
         //
         //     {
         //         "code": 0,
@@ -4732,8 +4893,8 @@ impl DigifinexCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
-        let __ws_arg_38 = self.extend(request, &[params]);
-        let mut response: Value = self.public_swap_get_public_funding_rate_history(&[__ws_arg_38]).await;
+        let __ws_arg_39 = self.extend(request, &[params]);
+        let mut response: Value = self.public_swap_get_public_funding_rate_history(&[__ws_arg_39]).await;
         //
         //     {
         //         "code": 0,
@@ -4757,8 +4918,8 @@ impl DigifinexCore {
         let mut rates: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_642: bool = true;
-            while { if !__for_first_642 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_642 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
+            let mut __for_first_646: bool = true;
+            while { if !__for_first_646 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_646 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
             let mut entry: Value = result.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(data.clone(), "instrument_id", &[]);
             let mut symbolInner: Value = self.safe_symbol(marketId, &[]);
@@ -4806,8 +4967,8 @@ impl DigifinexCore {
                 m.insert("instrument_id".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_39 = self.extend(request, &[params]);
-        let mut response: Value = self.private_swap_get_account_trading_fee_rate(&[__ws_arg_39]).await;
+        let __ws_arg_40 = self.extend(request, &[params]);
+        let mut response: Value = self.private_swap_get_account_trading_fee_rate(&[__ws_arg_40]).await;
         //
         //     {
         //         "code": 0,
@@ -4904,11 +5065,11 @@ impl DigifinexCore {
         }
         let mut response: Value = Value::Null;
         if (marketType.as_str() == Some("spot")) || (marketType.as_str() == Some("margin")) {
-            let __ws_arg_40 = self.extend(request.clone(), &[query.clone()]);
-            response = self.private_spot_get_margin_positions(&[__ws_arg_40]).await;
+            let __ws_arg_41 = self.extend(request.clone(), &[query.clone()]);
+            response = self.private_spot_get_margin_positions(&[__ws_arg_41]).await;
         }  else if (marketType.as_str() == Some("swap")) {
-            let __ws_arg_41 = self.extend(request, &[query]);
-            response = self.private_swap_get_account_positions(&[__ws_arg_41]).await;
+            let __ws_arg_42 = self.extend(request, &[query]);
+            response = self.private_swap_get_account_positions(&[__ws_arg_42]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() not support this market type".into()))));
         }
@@ -4970,8 +5131,8 @@ impl DigifinexCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_643: bool = true;
-            while { if !__for_first_643 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_643 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
+            let mut __for_first_647: bool = true;
+            while { if !__for_first_647 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_647 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
             append_to_array(&mut result, self.parse_position(positions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]));
         }
         }
@@ -5015,11 +5176,11 @@ impl DigifinexCore {
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketIdRequest), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         let mut response: Value = Value::Null;
         if (marketType.as_str() == Some("spot")) || (marketType.as_str() == Some("margin")) {
-            let __ws_arg_42 = self.extend(request.clone(), &[query.clone()]);
-            response = self.private_spot_get_margin_positions(&[__ws_arg_42]).await;
+            let __ws_arg_43 = self.extend(request.clone(), &[query.clone()]);
+            response = self.private_spot_get_margin_positions(&[__ws_arg_43]).await;
         }  else if (marketType.as_str() == Some("swap")) {
-            let __ws_arg_43 = self.extend(request, &[query]);
-            response = self.private_swap_get_account_positions(&[__ws_arg_43]).await;
+            let __ws_arg_44 = self.extend(request, &[query]);
+            response = self.private_swap_get_account_positions(&[__ws_arg_44]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchPosition() not support this market type".into()))));
         }
@@ -5230,8 +5391,8 @@ impl DigifinexCore {
                 self.check_required_argument(Value::Str("setLeverage".into()), side, Value::Str("side".into()), &[Value::from(vec![Value::Str("long".into()), Value::Str("short".into())])]);
             }
         }
-        let __ws_arg_44 = self.extend(request, &[params]);
-        return self.private_swap_post_account_leverage(&[__ws_arg_44]).await;
+        let __ws_arg_45 = self.extend(request, &[params]);
+        return self.private_swap_post_account_leverage(&[__ws_arg_45]).await;
 
     Value::Null
 }
@@ -5276,8 +5437,8 @@ impl DigifinexCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }; // default 20 max 100
         }
-        let __ws_arg_45 = self.extend(request, &[params]);
-        let mut response: Value = self.private_swap_get_account_transfer_record(&[__ws_arg_45]).await;
+        let __ws_arg_46 = self.extend(request, &[params]);
+        let mut response: Value = self.private_swap_get_account_transfer_record(&[__ws_arg_46]).await;
         //
         //     {
         //         "code": 0,
@@ -5380,8 +5541,8 @@ impl DigifinexCore {
                 m.insert("instrument_id".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_46 = self.extend(request, &[params]);
-        let mut response: Value = self.public_swap_get_public_instrument(&[__ws_arg_46]).await;
+        let __ws_arg_47 = self.extend(request, &[params]);
+        let mut response: Value = self.public_swap_get_public_instrument(&[__ws_arg_47]).await;
         //
         //     {
         //         "code": 0,
@@ -5451,8 +5612,8 @@ impl DigifinexCore {
         })]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_644: bool = true;
-            while { if !__for_first_644 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_644 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&brackets).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_648: bool = true;
+            while { if !__for_first_648 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_648 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&brackets).as_f64().unwrap_or(f64::NAN) } {
             let mut tier: Value = get_value(&brackets, &i);
             let mut tier: Value = get_value(&brackets, &i);
             let mut marketId: Value = self.safe_string_k(info.clone(), "instrument_id", &[]);
@@ -5597,8 +5758,8 @@ impl DigifinexCore {
         codes = self.market_codes(&[codes.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_645: bool = true;
-            while { if !__for_first_645 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_645 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_649: bool = true;
+            while { if !__for_first_649 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_649 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
@@ -5648,8 +5809,8 @@ impl DigifinexCore {
         let mut depositWithdrawCodes: Value = object_keys(&depositWithdrawFees);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_646: bool = true;
-            while { if !__for_first_646 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_646 = false; i.as_f64().unwrap_or(f64::NAN) < ((depositWithdrawCodes.len() as i64) as f64) } {
+            let mut __for_first_650: bool = true;
+            while { if !__for_first_650 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_650 = false; i.as_f64().unwrap_or(f64::NAN) < ((depositWithdrawCodes.len() as i64) as f64) } {
             let mut code: Value = depositWithdrawCodes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut currency: Value = self.currency(code.clone());
             { let __be_tmp = self.assign_default_deposit_withdraw_fees(get_value(&depositWithdrawFees, &code), &[currency]); if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
@@ -5724,8 +5885,8 @@ impl DigifinexCore {
                 m.insert("side".to_string(), side);
             m
         });
-        let __ws_arg_47 = self.extend(request, &[params]);
-        let mut response: Value = self.private_swap_post_account_position_margin(&[__ws_arg_47]).await;
+        let __ws_arg_48 = self.extend(request, &[params]);
+        let mut response: Value = self.private_swap_post_account_position_margin(&[__ws_arg_48]).await;
         //
         //     {
         //         "code": 0,
@@ -5743,8 +5904,8 @@ impl DigifinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let __ws_arg_48 = self.parse_margin_modification(data, &[market]);
-        return self.extend(__ws_arg_48, &[Value::Map({
+        let __ws_arg_49 = self.parse_margin_modification(data, &[market]);
+        return self.extend(__ws_arg_49, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), status);
     m
@@ -5822,8 +5983,8 @@ impl DigifinexCore {
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), since.clone()); }
         }
-        let __ws_arg_49 = self.extend(request, &[params]);
-        let mut response: Value = self.private_swap_get_account_funding_fee(&[__ws_arg_49]).await;
+        let __ws_arg_50 = self.extend(request, &[params]);
+        let mut response: Value = self.private_swap_get_account_funding_fee(&[__ws_arg_50]).await;
         //
         //     {
         //         "code": 0,
@@ -5904,8 +6065,8 @@ impl DigifinexCore {
                 m.insert("margin_mode".to_string(), marginMode);
             m
         });
-        let __ws_arg_50 = self.extend(request, &[params]);
-        return self.private_swap_post_account_position_mode(&[__ws_arg_50]).await;
+        let __ws_arg_51 = self.extend(request, &[params]);
+        return self.private_swap_post_account_position_mode(&[__ws_arg_51]).await;
 
     Value::Null
 }

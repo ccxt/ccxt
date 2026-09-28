@@ -3702,23 +3702,18 @@ class binance extends binance$1["default"] {
         const messageHash = requestId.toString();
         const sor = this.safeBool2(params, 'sor', 'SOR', false);
         params = this.omit(params, 'sor', 'SOR');
-        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeString(params, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
-        const trailingDelta = this.safeString(params, 'trailingDelta');
-        const trailingPercent = this.safeStringN(params, ['trailingPercent', 'callbackRate', 'trailingDelta']);
-        const isTrailingPercentOrder = trailingPercent !== undefined;
-        const isStopLoss = stopLossPrice !== undefined || trailingDelta !== undefined;
-        const isTakeProfit = takeProfitPrice !== undefined;
-        const isTriggerOrder = triggerPrice !== undefined;
-        const isConditional = isTriggerOrder || isTrailingPercentOrder || isStopLoss || isTakeProfit;
-        const payload = this.createOrderRequest(symbol, type, side, amount, price, params);
+        const isConditional = this.isConditionalOrder(params);
+        if ((market['inverse'] === true) && isConditional) {
+            throw new errors.NotSupported(this.id + ' createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead');
+        }
+        const isAlgoOrder = (market['linear'] === true) && ((market['swap'] === true) || (market['future'] === true)) && isConditional;
+        const payload = this.createOrderRequest(symbol, type, side, amount, price, this.extend(params, { 'isAlgoOrder': isAlgoOrder }));
         let returnRateLimits = false;
         [returnRateLimits, params] = this.handleOptionAndParams(params, 'createOrderWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
         const test = this.safeBool(params, 'test', false);
         params = this.omit(params, 'test');
-        if ((market['linear'] === true) && (market['swap'] === true) && isConditional) {
+        if (isAlgoOrder) {
             payload['algoType'] = 'CONDITIONAL';
         }
         const message = {
@@ -3734,7 +3729,7 @@ class binance extends binance$1["default"] {
                 message['method'] = 'order.test';
             }
         }
-        if ((market['linear'] === true) && (market['swap'] === true) && isConditional) {
+        if (isAlgoOrder) {
             message['method'] = 'algoOrder.place';
         }
         const subscription = {
@@ -4590,6 +4585,10 @@ class binance extends binance$1["default"] {
             clientOrderId = this.safeString(order, 'c');
         }
         const stopPrice = this.safeStringN(order, ['P', 'sp', 'tp']);
+        const orderType = this.safeStringLower(order, 'o');
+        // stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
+        const isTakeProfitType = this.inArray(orderType, ['take_profit', 'take_profit_market', 'take_profit_limit']);
+        const takeProfitPrice = isTakeProfitType ? this.omitZero(stopPrice) : undefined;
         let timeInForce = this.safeString(order, 'f');
         if (timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
@@ -4604,7 +4603,7 @@ class binance extends binance$1["default"] {
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
-            'type': this.parseOrderTypeByMarket(this.safeStringLower(order, 'o'), marketType),
+            'type': this.parseOrderTypeByMarket(orderType, marketType),
             'timeInForce': timeInForce,
             'postOnly': undefined,
             'reduceOnly': this.safeBool(order, 'R'),
@@ -4612,6 +4611,7 @@ class binance extends binance$1["default"] {
             'price': this.safeString(order, 'p'),
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'takeProfitPrice': takeProfitPrice,
             'amount': this.safeString(order, 'q'),
             'cost': this.safeString(order, 'Z'),
             'average': this.safeString(order, 'ap'),
