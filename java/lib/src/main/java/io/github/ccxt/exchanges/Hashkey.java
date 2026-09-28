@@ -3379,7 +3379,7 @@ public class Hashkey extends HashkeyApi
             {
                 throw new NotSupported((((((this.id + " ") + methodName) + "() is not supported for ") + market.get("type")) + " type of markets")) ;
             }
-            Object order = this.safeOrder((Map<String, Object>) (response), (Map<String, Object>) null);
+            Order order = this.safeOrder((Map<String, Object>) (response), (Map<String, Object>) null);
             ((Map<String, Object>)order).put("info", response);
             return new ArrayList<Object>(Arrays.asList(order));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -3429,7 +3429,7 @@ public class Hashkey extends HashkeyApi
             {
                 throw new NotSupported((((((this.id + " ") + methodName) + "() is not supported for ") + marketTypeOption) + " type of markets")) ;
             }
-            Object order = this.safeOrder((Map<String, Object>) (response), (Map<String, Object>) null);
+            Order order = this.safeOrder((Map<String, Object>) (response), (Map<String, Object>) null);
             ((Map<String, Object>)order).put("info", response);
             return new ArrayList<Object>(Arrays.asList(order));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

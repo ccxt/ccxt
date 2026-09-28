@@ -1122,7 +1122,7 @@ public class Backpack extends BackpackApi
         mapLiteral4.put("markPrice", null);
         mapLiteral4.put("indexPrice", null);
         mapLiteral4.put("info", ticker);
-        Object parsedTicker = this.safeTicker(mapLiteral4, marketResolved);
+        Ticker parsedTicker = this.safeTicker(mapLiteral4, marketResolved);
         return (Ticker) parsedTicker;
     }
 

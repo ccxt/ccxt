@@ -1370,7 +1370,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                     // order + trade info together
                     ((List<Object>)trades).add(update);
                 }
-                Object parsedOrder = this.parseWSSwapOrder((Map<String, Object>) (update), (Map<String, Object>) null);
+                Order parsedOrder = this.parseWSSwapOrder((Map<String, Object>) (update), (Map<String, Object>) null);
                 ((List<Object>)parsedOrders).add(parsedOrder);
             }
         }

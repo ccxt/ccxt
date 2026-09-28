@@ -1199,7 +1199,7 @@ public class Toobit extends ToobitApi
             for (var i = 0; i < ((List<?>)all).size(); i++)
             {
                 Object market = (all == null || i < 0 || i >= all.size() ? null : all.get(i));
-                Object parsed = this.parseMarket(market);
+                MarketInterface parsed = this.parseMarket(market);
                 if (!java.util.Objects.equals(parsed, null))
                 {
                     ((List<Object>)result).add(parsed);

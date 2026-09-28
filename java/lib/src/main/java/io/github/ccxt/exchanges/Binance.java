@@ -5353,7 +5353,7 @@ public class Binance extends BinanceApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object parsed = this.parseMarket((markets == null || i < 0 || i >= markets.size() ? null : markets.get(i)));
+                MarketInterface parsed = this.parseMarket((markets == null || i < 0 || i >= markets.size() ? null : markets.get(i)));
                 if (!java.util.Objects.equals(parsed, null))
                 {
                     ((List<Object>)result).add(parsed);
@@ -11146,7 +11146,7 @@ public class Binance extends BinanceApi
             {
                 HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
                 mapLiteral7.put("info", response);
-                Object order = this.safeOrder(mapLiteral7, (Map<String, Object>) null);
+                Order order = this.safeOrder(mapLiteral7, (Map<String, Object>) null);
                 return new ArrayList<Object>(Arrays.asList(order));
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

@@ -452,7 +452,7 @@ public class Limitless extends LimitlessApi
                 {
                     eventKey = this.shortenSlug((String) (groupId));
                 }
-                Object m = this.parseMarket(raw);
+                MarketInterface m = this.parseMarket(raw);
                 ((List<Object>)markets).add(m);
                 if ((!java.util.Objects.equals(eventKey, null)) && (!java.util.Objects.equals(eventKey, "")))
                 {

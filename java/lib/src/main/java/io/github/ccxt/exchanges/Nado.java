@@ -2020,7 +2020,7 @@ public class Nado extends NadoApi
             for (var i = 0; i < ((List<?>)assets).size(); i++)
             {
                 Object currency = (assets == null || i < 0 || i >= assets.size() ? null : assets.get(i));
-                Object parsed = this.parseCurrency(currency);
+                io.github.ccxt.types.CurrencyInterface parsed = this.parseCurrency(currency);
                 String code = this.safeString(parsed, "code");
                 if (java.util.Objects.equals(code, null))
                 {

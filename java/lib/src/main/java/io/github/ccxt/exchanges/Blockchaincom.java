@@ -709,7 +709,7 @@ public class Blockchaincom extends BlockchaincomApi
         mapLiteral1.put("trades", new ArrayList<Object>(Arrays.asList()));
         mapLiteral1.put("fees", new ArrayList<Object>(Arrays.asList()));
         mapLiteral1.put("info", order);
-        Object result = this.safeOrder(mapLiteral1, (Map<String, Object>) null);
+        Order result = this.safeOrder(mapLiteral1, (Map<String, Object>) null);
         return (Order) result;
     }
 

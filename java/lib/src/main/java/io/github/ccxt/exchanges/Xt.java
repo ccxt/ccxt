@@ -1619,7 +1619,7 @@ public class Xt extends XtApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(markets); i++)
         {
-            Object parsed = this.parseMarket(Helpers.GetValue(markets, i));
+            MarketInterface parsed = this.parseMarket(Helpers.GetValue(markets, i));
             if (!java.util.Objects.equals(parsed, null))
             {
                 ((List<Object>)result).add(parsed);

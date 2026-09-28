@@ -3195,7 +3195,7 @@ public class Kalshi extends KalshiApi
         for (var i = 0; i < ((List<?>)rawMarkets).size(); i++)
         {
             Object rawMarket = (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
-            Object parsed = this.parseMarket(rawMarket);
+            MarketInterface parsed = this.parseMarket(rawMarket);
             ((List<Object>)marketsList).add(parsed);
             totalVolume = this.sum(totalVolume, this.safeNumber2(rawMarket, "volume_fp", "volume", 0));
             totalLiquidity = this.sum(totalLiquidity, this.safeNumber2(rawMarket, "liquidity_dollars", "liquidity", 0));
