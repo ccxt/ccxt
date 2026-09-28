@@ -92,7 +92,12 @@ public partial class BaseTest
     public string decimalToPrecision(object a, object b, object c = null, object d = null, object e = null) => Exchange.DecimalToPrecision(a, b, c, d, e);
     public virtual string numberToString(object number) => Exchange.NumberToString(number);
     public static Task<List<object>> promiseAll(object a) => ccxt.Exchange.PromiseAll(a);
-    public static object getValue(object a, object b) => Exchange.GetValue(a, b);
+    public static object getValue(object a, object b) => Exchange.GetValue((a is ValueType || (a is System.Collections.IList && !(a is IList<object>))) ? toComparable(a) : a, b);
+
+    // struct-aware compare seam (test harness only): a unified struct (Ticker, Order, ...) or a
+    // collection of them becomes the plain dict/list the fixtures hold; anything else passes through
+    public static object toComparable(object a) => testMainClass.detypeForComparison(a);
+    public static dict toDict(object a) => (dict)testMainClass.detypeForComparison(a);
 
     public static bool inOp(object a, object b) => Exchange.InOp(a, b);
     // typed twin mirroring Exchange.TranspileHelpers.cs (S58): Dictionary<string, object> + string
@@ -186,6 +191,8 @@ public partial class BaseTest
 
     public bool equals(object a, object b)
     {
+        a = toComparable(a);
+        b = toComparable(b);
         if (a is IList<object>)
         {
             var list1 = (IList<object>)a;
@@ -237,11 +244,13 @@ public partial class BaseTest
 
     public object DeepEqual(object a, object b)
     {
-        return isEqual(json(a), json(b));
+        return isEqual(json(toComparable(a)), json(toComparable(b)));
     }
 
     public void AssertDeepEqual(Exchange exchange, object skippedProperties, object method, object a, object b)
     {
+        a = toComparable(a);
+        b = toComparable(b);
         assert(DeepEqual(a, b), add(add(add(add("two dicts do not match: ", Exchange.Json(a)), " != "), Exchange.Json(b)), method));
     }
 

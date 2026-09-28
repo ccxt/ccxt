@@ -3572,6 +3572,26 @@ class NewTranspiler {
         return out + content.slice (last);
     }
 
+    // synchronous parse*/safe* calls in tests may return a unified struct; the test bodies index
+    // the result as a dictionary, so project it through the harness-only toDict seam
+    detypeStructReturningCalls (content: string): string {
+        const callRe = /exchange\.(?:safe|parse)(?:Ticker|Trade|Order|OrderBook|Balance|Market|Currency)\(/g;
+        let out = '';
+        let last = 0;
+        let match = callRe.exec (content);
+        while (match !== null) {
+            const open = match.index + match[0].length - 1;
+            const close = this.matchingParen (content, open);
+            if (close !== -1) {
+                out += content.slice (last, match.index) + 'toDict(' + content.slice (match.index, close + 1) + ')';
+                last = close + 1;
+                callRe.lastIndex = last;
+            }
+            match = callRe.exec (content);
+        }
+        return out + content.slice (last);
+    }
+
     // a test function parameter annotated `string[]` in its TS source prints as IList<object>, so
     // it can reach a list-typed core parameter; skipped when the body reassigns it
     typeTestListParams (csharp: string, tsFile: string): string {
@@ -8480,6 +8500,7 @@ class NewTranspiler {
                 [/\bcached\.hashmap/g, '((cached as ArrayCache).hashmap)'],
             ]).trim ()
 
+            content = this.detypeStructReturningCalls (content);
             const contentLines = content.split ('\n');
             const contentIdented = contentLines.map ((line: string) => '        ' + line).join ('\n');
 
@@ -8682,6 +8703,7 @@ class NewTranspiler {
                 // must run last: it matches the PascalCase names the previous pass produced
                 contentIndentend = this.detypeWsTypedCoreCalls (contentIndentend);
             }
+            contentIndentend = this.detypeStructReturningCalls (contentIndentend);
             const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
             const fileHeaders = [
                 namespace,
