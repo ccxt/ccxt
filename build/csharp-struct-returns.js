@@ -27,6 +27,8 @@ export const CSHARP_STRUCT_RETURN_TYPES = {
     'Trade': { 'kind': 'one', 'names': [ 'parseTrade', 'parseWsTrade', 'safeTrade' ] },
     'Trades': { 'kind': 'list', 'row': 'Trade', 'names': [ 'parseTrades' ] },
     // --- end Trade ---
+    'Order': { 'kind': 'one', 'names': [ 'parseOrder', 'parseWsOrder', 'safeOrder' ] },
+    'Orders': { 'kind': 'list', 'row': 'Order', 'names': [ 'parseOrders' ] },
 };
 
 const TYPES_FILE = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'cs', 'ccxt', 'base', 'Exchange.Types.cs');
