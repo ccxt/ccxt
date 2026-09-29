@@ -428,7 +428,7 @@ CDEF;
             throw new \InvalidArgumentException('orders must not be empty');
         }
 
-        $cOrders = $this->ffi->new("CreateOrderTxReq[$len]", false);
+        $cOrders = $this->ffi->new("CreateOrderTxReq[$len]");
 
         foreach ($orders as $i => $order) {
             $cOrders[$i]->MarketIndex      = (int)$order['MarketIndex'];
