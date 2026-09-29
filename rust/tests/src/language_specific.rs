@@ -45,7 +45,7 @@ pub fn test_types_rest() -> Result<(), String> {
     returns::<Balances>(b.fetch_balance(n.clone()));
     returns::<Position>(b.fetch_position("BTC/USDT", n.clone()));
     returns::<Transfer>(b.transfer("USDT", 1.0, "spot", "swap", n.clone()));
-    returns::<Transaction>(b.withdraw("USDT", 1.0, "0x0", None, n.clone()));
+    returns::<Transaction>(b.withdraw("USDT", 1.0, "0x0", n.clone()));
     returns::<LedgerEntry>(b.fetch_ledger_entry("id", Some("USDT"), n.clone()));
     returns::<FundingRate>(b.fetch_funding_rate("BTC/USDT:USDT", n.clone()));
     returns::<Greeks>(b.fetch_greeks("BTC/USDT", n.clone()));
