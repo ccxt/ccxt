@@ -4788,17 +4788,14 @@ func (this *Binance) createOrderWsBody(ch chan any, symbol any, typeVar any, sid
 	var messageHash string = ccxt.ToString(requestId)
 	var sor *bool = this.SafeBool2(params, "sor", "SOR", false)
 	params = this.Omit(params, "sor", "SOR")
-	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
-	var stopLossPrice *string = this.SafeString(params, "stopLossPrice", triggerPrice)
-	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
-	var trailingDelta *string = this.SafeString(params, "trailingDelta")
-	var trailingPercent *string = this.SafeStringN(params, []any{"trailingPercent", "callbackRate", "trailingDelta"})
-	var isTrailingPercentOrder bool = (trailingPercent != nil)
-	var isStopLoss bool = (stopLossPrice != nil) || (trailingDelta != nil)
-	var isTakeProfit bool = (takeProfitPrice != nil)
-	var isTriggerOrder bool = (triggerPrice != nil)
-	var isConditional bool = isTriggerOrder || isTrailingPercentOrder || isStopLoss || isTakeProfit
-	var payload any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+	var isConditional any = this.IsConditionalOrder(params)
+	if (ccxt.GetValue(market, "inverse") == true) && (isConditional == true) {
+		panic(ccxt.NotSupported(this.Id + " createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead"))
+	}
+	var isAlgoOrder bool = (ccxt.GetValue(market, "linear") == true) && ((ccxt.GetValue(market, "swap") == true) || (ccxt.GetValue(market, "future") == true)) && (isConditional == true)
+	var payload any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, this.Extend(params, map[string]any{
+		"isAlgoOrder": isAlgoOrder,
+	}))
 	var returnRateLimits any = false
 	var returnRateLimitsparamsVariable []any = this.HandleOptionAndParams(params, "createOrderWs", "returnRateLimits", false)
 	returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
@@ -4806,7 +4803,7 @@ func (this *Binance) createOrderWsBody(ch chan any, symbol any, typeVar any, sid
 	ccxt.AddElementToObject(payload, "returnRateLimits", returnRateLimits)
 	var test *bool = this.SafeBool(params, "test", false)
 	params = this.Omit(params, "test")
-	if (ccxt.GetValue(market, "linear") == true) && (ccxt.GetValue(market, "swap") == true) && isConditional {
+	if isAlgoOrder {
 		ccxt.AddElementToObject(payload, "algoType", "CONDITIONAL")
 	}
 	var message map[string]any = map[string]any{
@@ -4821,16 +4818,16 @@ func (this *Binance) createOrderWsBody(ch chan any, symbol any, typeVar any, sid
 			message["method"] = "order.test"
 		}
 	}
-	if (ccxt.GetValue(market, "linear") == true) && (ccxt.GetValue(market, "swap") == true) && isConditional {
+	if isAlgoOrder {
 		message["method"] = "algoOrder.place"
 	}
 	var subscription map[string]any = map[string]any{
 		"method": this.HandleOrderWs,
 	}
 
-	retRes376315 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-	ccxt.PanicOnError(retRes376315)
-	ch <- retRes376315
+	retRes375815 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
+	ccxt.PanicOnError(retRes375815)
+	ch <- retRes375815
 	return nil
 }
 func (this *Binance) HandleOrderWs(client any, message map[string]any) {
@@ -4962,8 +4959,8 @@ func (this *Binance) editOrderWsBody(ch chan any, id any, symbol any, typeVar an
 	_ = params
 	if this.Markets == nil {
 
-		retRes388212 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes388212)
+		retRes387712 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes387712)
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var marketType any = this.GetMarketType("editOrderWs", market, params)
@@ -4999,9 +4996,9 @@ func (this *Binance) editOrderWsBody(ch chan any, id any, symbol any, typeVar an
 		"method": this.HandleEditOrderWs,
 	}
 
-	retRes391015 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-	ccxt.PanicOnError(retRes391015)
-	ch <- retRes391015
+	retRes390515 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
+	ccxt.PanicOnError(retRes390515)
+	ch <- retRes390515
 	return nil
 }
 func (this *Binance) HandleEditOrderWs(client any, message map[string]any) {
@@ -5144,8 +5141,8 @@ func (this *Binance) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any)
 	_ = params
 	if this.Markets == nil {
 
-		retRes404112 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes404112)
+		retRes403612 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes403612)
 	}
 	if symbol == nil {
 		panic(ccxt.BadRequest(this.Id + " cancelOrderWs requires a symbol"))
@@ -5192,9 +5189,9 @@ func (this *Binance) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any)
 		"method": this.HandleOrderWs,
 	}
 
-	retRes408515 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-	ccxt.PanicOnError(retRes408515)
-	ch <- retRes408515
+	retRes408015 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
+	ccxt.PanicOnError(retRes408015)
+	ch <- retRes408015
 	return nil
 }
 
@@ -5224,8 +5221,8 @@ func (this *Binance) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any
 	}
 	if this.Markets == nil {
 
-		retRes410212 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes410212)
+		retRes409712 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes409712)
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var typeVar any = this.GetMarketType("cancelAllOrdersWs", market, params)
@@ -5252,9 +5249,9 @@ func (this *Binance) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any
 		"method": this.HandleOrdersWs,
 	}
 
-	retRes412615 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-	ccxt.PanicOnError(retRes412615)
-	ch <- retRes412615
+	retRes412115 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
+	ccxt.PanicOnError(retRes412115)
+	ch <- retRes412115
 	return nil
 }
 
@@ -5284,8 +5281,8 @@ func (this *Binance) fetchOrderWsBody(ch chan any, id any, optionalArgs ...any) 
 	_ = params
 	if this.Markets == nil {
 
-		retRes414312 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes414312)
+		retRes413812 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes413812)
 	}
 	if symbol == nil {
 		panic(ccxt.BadRequest(this.Id + " cancelOrderWs requires a symbol"))
@@ -5321,9 +5318,9 @@ func (this *Binance) fetchOrderWsBody(ch chan any, id any, optionalArgs ...any) 
 		"method": this.HandleOrderWs,
 	}
 
-	retRes417615 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-	ccxt.PanicOnError(retRes417615)
-	ch <- retRes417615
+	retRes417115 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
+	ccxt.PanicOnError(retRes417115)
+	ch <- retRes417115
 	return nil
 }
 
@@ -5360,8 +5357,8 @@ func (this *Binance) fetchOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes419612 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes419612)
+		retRes419112 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes419112)
 	}
 	if symbol == nil {
 		panic(ccxt.BadRequest(this.Id + " fetchOrdersWs requires a symbol"))
@@ -5469,8 +5466,8 @@ func (this *Binance) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if this.Markets == nil {
 
-		retRes426312 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes426312)
+		retRes425812 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes425812)
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var typeVar any = this.GetMarketType("fetchOpenOrdersWs", market, params)
@@ -5542,8 +5539,8 @@ func (this *Binance) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes431312 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes431312)
+		retRes430812 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes430812)
 	}
 	var stock any = false
 	var stockparamsVariable []any = this.HandleOptionAndParams(params, "watchOrders", "stock", false)
@@ -5553,10 +5550,10 @@ func (this *Binance) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		// literal on top: a stray type in the caller params must not override
 		// the forced stock, the removed authenticateStock ignored it entirely
 
-		retRes432012 := (<-this.AuthenticateAsync(this.Extend(params, map[string]any{
+		retRes431512 := (<-this.AuthenticateAsync(this.Extend(params, map[string]any{
 			"type": "stock",
 		})))
-		ccxt.PanicOnError(retRes432012)
+		ccxt.PanicOnError(retRes431512)
 		var stockOptions map[string]any = ccxt.SafeMapTyped(this.Options, "stock")
 		var stockListenKey *string = this.SafeString(stockOptions, "listenKey")
 		if stockListenKey == nil {
@@ -5607,8 +5604,8 @@ func (this *Binance) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"subType": subType,
 	}) // needed inside authenticate for isolated margin
 
-	retRes43598 := (<-this.AuthenticateAsync(params))
-	ccxt.PanicOnError(retRes43598)
+	retRes43548 := (<-this.AuthenticateAsync(params))
+	ccxt.PanicOnError(retRes43548)
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("watchOrders", params)
 	marginMode = ccxt.GetValue(marginModeparamsVariable, 0)
@@ -5879,6 +5876,15 @@ func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) any {
 		clientOrderId = this.SafeString(order, "c")
 	}
 	var stopPrice *string = this.SafeStringN(order, []any{"P", "sp", "tp"})
+	var orderType *string = this.SafeStringLower(order, "o")
+	// stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
+	var isTakeProfitType bool = this.InArray(orderType, []any{"take_profit", "take_profit_market", "take_profit_limit"})
+	var takeProfitPrice any = func() any {
+		if isTakeProfitType {
+			return this.OmitZero(stopPrice)
+		}
+		return nil
+	}()
 	var timeInForce any = ccxt.DerefScalar(this.SafeString(order, "f"))
 	if ccxt.IsEqual(timeInForce, "GTX") {
 		// GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
@@ -5893,7 +5899,7 @@ func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) any {
 		"datetime":            this.Iso8601(timestamp),
 		"lastTradeTimestamp":  lastTradeTimestamp,
 		"lastUpdateTimestamp": lastUpdateTimestamp,
-		"type":                this.ParseOrderTypeByMarket(this.SafeStringLower(order, "o"), marketType),
+		"type":                this.ParseOrderTypeByMarket(orderType, marketType),
 		"timeInForce":         timeInForce,
 		"postOnly":            nil,
 		"reduceOnly":          this.SafeBool(order, "R"),
@@ -5901,6 +5907,7 @@ func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) any {
 		"price":               this.SafeString(order, "p"),
 		"stopPrice":           stopPrice,
 		"triggerPrice":        stopPrice,
+		"takeProfitPrice":     takeProfitPrice,
 		"amount":              this.SafeString(order, "q"),
 		"cost":                this.SafeString(order, "Z"),
 		"average":             this.SafeString(order, "ap"),

@@ -561,7 +561,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const ticker = await this.subscribe (channels, channels, isPrivate, params);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString (ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                result[tickerSymbol] = ticker;
+            }
             return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
@@ -731,7 +734,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const timeframe = this.safeString (resolved, 1);
         const ohlcv = this.safeValue (resolved, 2);
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
         }
         const filtered = this.filterBySinceLimit (ohlcv, since, limit, 0, true);
         return this.createOHLCVObject (symbol as string, timeframe as string, filtered);
@@ -855,9 +858,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**

@@ -187,7 +187,6 @@ impl crate::exchange_generated::ExchangeBase for WeexCore {
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
-                "request_id" => self.request_id(),
                 "subscribe_private" => self.subscribe_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "subscribe_public" => self.subscribe_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "un_watch_bids_asks" => self.un_watch_bids_asks(&args[..]).await,
@@ -254,7 +253,6 @@ impl WeexCore {
             "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "pong" => { crate::exchange_stubs::enqueue_spawn("pong", args.to_vec()); crate::Value::Null },
-            "request_id" => self.request_id(),
             "set_balance_cache" => { self.set_balance_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "set_positions_cache" => { self.set_positions_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]); crate::Value::Null },
             "subscribe_private" => { crate::exchange_stubs::enqueue_spawn("subscribe_private", args.to_vec()); crate::Value::Null },
@@ -404,14 +402,12 @@ impl WeexCore {
     Value::Null
 }
 
-    pub fn request_id(&mut self) -> Value {
+    pub fn request_id(&mut self) -> Option<String> {
         self.lock_id(&[]);
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
         self.unlock_id(&[]);
-        return self.number_to_string(requestId);
-
-    Value::Null
+        return self.number_to_string(requestId).as_str().map(str::to_owned);
 }
 
     pub async fn subscribe_public(&mut self, mut messageHashes: Value, mut channels: Value, optional_args: &[Value]) -> Value {
@@ -424,7 +420,7 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut id: Value = self.request_id();
+        let mut id: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut method: Value = Value::Str("SUBSCRIBE".into());
         let mut unsubscribe: Value = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]);
         if (unsubscribe.as_bool() == Some(true)) {
@@ -437,15 +433,18 @@ impl WeexCore {
                 m.insert("params".to_string(), channels);
             m
         });
-        subscription = self.extend(subscription.clone(), &[Value::Map({
+        let mut subscriptionExtended: Value = self.extend(subscription, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
             m
         })]);
-        let mut type_var: Value = (if is_true(&isContract) { Value::Str("contract".into()) } else { Value::Str("spot".into()) });
-        let mut url: Value = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &type_var), &Value::Str("/public".into()));
+        let mut type_var: Value = Value::Str("spot".into());
+        if is_true(&isContract) {
+            type_var = Value::Str("contract".into());
+        }
+        let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var, &[]), Value::Str("/public".into())).into());
         let __ws_arg_0 = self.deep_extend(message, &[params]);
-        return self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_0, messageHashes.clone(), subscription]).await;
+        return self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_0, messageHashes.clone(), subscriptionExtended]).await;
 
     Value::Null
 }
@@ -460,15 +459,18 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut type_var: Value = (if is_true(&isContract) { Value::Str("contract".into()) } else { Value::Str("spot".into()) });
-        let mut url: Value = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &type_var), &Value::Str("/private".into()));
+        let mut type_var: Value = Value::Str("spot".into());
+        if is_true(&isContract) {
+            type_var = Value::Str("contract".into());
+        }
+        let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var, &[]), Value::Str("/private".into())).into());
         self.authenticate(url.clone());
         let mut method: Value = Value::Str("SUBSCRIBE".into());
         let mut unsubscribe: Value = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]);
         if (unsubscribe.as_bool() == Some(true)) {
             method = Value::Str("UNSUBSCRIBE".into());
         }
-        let mut id: Value = self.request_id();
+        let mut id: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut message: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.clone());
@@ -476,13 +478,13 @@ impl WeexCore {
                 m.insert("params".to_string(), Value::from(vec![channel]));
             m
         });
-        subscription = self.extend(subscription.clone(), &[Value::Map({
+        let mut subscriptionExtended: Value = self.extend(subscription, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
             m
         })]);
         let __ws_arg_1 = self.deep_extend(message, &[params]);
-        return self.watch(url, messageHash, &[__ws_arg_1, subscribeHash, subscription]).await;
+        return self.watch(url, messageHash, &[__ws_arg_1, subscribeHash, subscriptionExtended]).await;
 
     Value::Null
 }
@@ -495,7 +497,7 @@ impl WeexCore {
         let mut timestamp: Value = self.nonce();
         let mut payload: Value = Value::Str(format!("{}{}", to_string_val(&timestamp), Value::Str("/v3/ws/private".into())).into());
         let mut signature: Value = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
-        let mut originalHeaders: Value = crate::value::get_value_k(&crate::value::get_value_k(&self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "options"), "headers");
+        let mut originalHeaders: Value = self.safe_dict(crate::value::get_value_k(&self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "options"), Value::Str("headers".into()), &[]);
         let mut userAgent: Value = self.safe_string_k(originalHeaders, "User-Agent", &[Value::Str("ccxt".into())]);
         let mut extendedOptions: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -561,9 +563,9 @@ impl WeexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        symbol = self.symbol(symbol.clone());
-        let mut tickers: Value = self.watch_tickers(&[Value::from(vec![symbol.clone()]), params]).await;
-        return get_value(&tickers, &symbol);
+        let mut symbolValue: Value = self.symbol(symbol.clone());
+        let mut tickers: Value = self.watch_tickers(&[Value::from(vec![symbolValue.clone()]), params]).await;
+        return tickers.as_map().and_then(|__m| symbolValue.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
 
     Value::Null
 }
@@ -587,17 +589,17 @@ impl WeexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]);
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
+        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
+        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
         let mut topic: Value = Value::Str("ticker".into());
         let mut messageHashes: Value = Value::from(vec![]);
         let mut channels: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_615: bool = true;
-            while { if !__for_first_615 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_615 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
-            let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut __for_first_616: bool = true;
+            while { if !__for_first_616 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_616 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut channelName: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".into())).into()), topic).into());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str("::".into())).into()), symbol).into());
@@ -611,10 +613,13 @@ impl WeexCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            add_element_to_object(&mut result, &crate::value::get_value_k(&newTicker, "symbol"), newTicker.clone());
+            let mut newTickerSymbol: Value = self.safe_string_k(newTicker.clone(), "symbol", &[]);
+            if (newTickerSymbol != Value::Null) {
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&newTickerSymbol), newTicker); }
+            }
             return result;
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbols]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }
@@ -658,8 +663,8 @@ impl WeexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]);
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
+        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
+        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
         let mut topic: Value = Value::Str("ticker".into());
         let mut subHashes: Value = Value::from(vec![]);
@@ -667,9 +672,9 @@ impl WeexCore {
         let mut unSubHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_616: bool = true;
-            while { if !__for_first_616 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_616 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
-            let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut __for_first_617: bool = true;
+            while { if !__for_first_617 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_617 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut channelName: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".into())).into()), topic).into());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str("::".into())).into()), symbol).into());
@@ -682,7 +687,7 @@ impl WeexCore {
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
-                m.insert("symbols".to_string(), symbols);
+                m.insert("symbols".to_string(), symbolsNormalized);
                 m.insert("messageHashes".to_string(), unSubHashes.clone());
                 m.insert("subMessageHashes".to_string(), subHashes);
                 m.insert("topic".to_string(), topic);
@@ -759,7 +764,12 @@ impl WeexCore {
         //
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "C", &[]);
         let mut close: Value = self.safe_string_k(ticker.clone(), "c", &[]);
-        let mut symbol: Value = (if (market == Value::Null) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
+        let mut symbol: Value = Value::Null;
+        if (market == Value::Null) {
+            symbol = Value::Null;
+        }  else {
+            symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
@@ -777,7 +787,7 @@ impl WeexCore {
         m.insert("last".to_string(), close);
         m.insert("previousClose".to_string(), self.safe_string_k(ticker.clone(), "x", &[]));
         m.insert("change".to_string(), self.safe_string_k(ticker.clone(), "p", &[]));
-        m.insert("percentage".to_string(), self.safe_string_k(ticker.clone(), "P", &[]));
+        m.insert("percentage".to_string(), crate::precise::Precise::stringMul(&self.safe_string_k(ticker.clone(), "P", &[]), &Value::Str("100".into())));
         m.insert("average".to_string(), self.safe_string_k(ticker.clone(), "w", &[]));
         m.insert("baseVolume".to_string(), self.safe_string_k(ticker.clone(), "v", &[]));
         m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "q", &[]));
@@ -836,17 +846,17 @@ impl WeexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]);
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
+        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
+        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
         let mut topic: Value = Value::Str("trade".into());
         let mut messageHashes: Value = Value::from(vec![]);
         let mut channels: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_617: bool = true;
-            while { if !__for_first_617 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_617 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
-            let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut __for_first_618: bool = true;
+            while { if !__for_first_618 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_618 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut channelName: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".into())).into()), topic).into());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str("::".into())).into()), symbol).into());
@@ -855,12 +865,13 @@ impl WeexCore {
         }
         }
         let mut trades: Value = self.subscribe_public(messageHashes, channels, &[isContract, params]).await;
+        let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
+        let mut tradeSymbol: Value = self.safe_string_k(first, "symbol", &[]);
+        let mut limitResolved: Value = limit.clone();
         if is_true(&self.newUpdates) {
-            let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
-            let mut tradeSymbol: Value = self.safe_string_k(first, "symbol", &[]);
-            limit = trades.get_limit(tradeSymbol, limit.clone());
+            limitResolved = trades.get_limit(tradeSymbol, limit);
         }
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
 
     Value::Null
 }
@@ -903,8 +914,8 @@ impl WeexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]);
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
+        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
+        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
         let mut topic: Value = Value::Str("trade".into());
         let mut subHashes: Value = Value::from(vec![]);
@@ -912,9 +923,9 @@ impl WeexCore {
         let mut unSubHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_618: bool = true;
-            while { if !__for_first_618 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_618 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
-            let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut __for_first_619: bool = true;
+            while { if !__for_first_619 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_619 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut channelName: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".into())).into()), topic).into());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str("::".into())).into()), symbol).into());
@@ -927,7 +938,7 @@ impl WeexCore {
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
-                m.insert("symbols".to_string(), symbols);
+                m.insert("symbols".to_string(), symbolsNormalized);
                 m.insert("messageHashes".to_string(), unSubHashes.clone());
                 m.insert("subMessageHashes".to_string(), subHashes);
                 m.insert("topic".to_string(), Value::Str("trades".into()));
@@ -973,8 +984,8 @@ impl WeexCore {
         let mut newTrades: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_619: bool = true;
-            while { if !__for_first_619 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_619 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_620: bool = true;
+            while { if !__for_first_620 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_620 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut rawTrade: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -986,8 +997,8 @@ impl WeexCore {
         let mut sorted: Value = self.sort_by(newTrades, Value::Str("timestamp".into()), &[]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_620: bool = true;
-            while { if !__for_first_620 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_620 = false; j.as_f64().unwrap_or(f64::NAN) < ((sorted.len() as i64) as f64) } {
+            let mut __for_first_621: bool = true;
+            while { if !__for_first_621 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_621 = false; j.as_f64().unwrap_or(f64::NAN) < ((sorted.len() as i64) as f64) } {
             let mut sortedTrade: Value = sorted.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             tradesArray.append(sortedTrade);
         }
@@ -1009,7 +1020,12 @@ impl WeexCore {
         //     }
         //
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "T", &[]);
-        let mut symbol: Value = (if (market == Value::Null) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
+        let mut symbol: Value = Value::Null;
+        if (market == Value::Null) {
+            symbol = Value::Null;
+        }  else {
+            symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        }
         let mut isBuyerMaker: Value = self.safe_bool_k(trade.clone(), "m", &[]); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         let mut side: Value = Value::Null;
         let mut takerOrMaker: Value = Value::Null;
@@ -1093,7 +1109,7 @@ impl WeexCore {
             self.load_markets(&[]).await;
         }
         let mut callerMethodName: Value = self.safe_string_k(params.clone(), "callerMethodName", &[Value::Str("watchOHLCVForSymbols".into())]);
-        params = self.omit(params.clone(), Value::Str("callerMethodName".into()), &[]);
+        let mut paramsOmitted: Value = self.omit(params, Value::Str("callerMethodName".into()), &[]);
         let mut channels: Value = Value::from(vec![]);
         let mut messageHashes: Value = Value::from(vec![]);
         let mut firstEntry: Value = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(0), &[Value::from(vec![])]);
@@ -1101,20 +1117,21 @@ impl WeexCore {
         let mut firstMarket: Value = self.market(firstSymbol);
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
         let mut priceType: Value = Value::Str("LAST_PRICE".into());
+        let mut paramsPriceType: Value = paramsOmitted.clone();
         if (isContract.as_bool() == Some(true)) {
-            { let __destr_tmp = self.handle_option_and_params2(params.clone(), callerMethodName.clone(), Value::Str("price".into()), Value::Str("priceType".into()), &[priceType.clone()]); priceType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp = self.handle_option_string_and_params2(paramsOmitted, callerMethodName.clone(), Value::Str("price".into()), Value::Str("priceType".into()), &[priceType.clone()]); priceType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsPriceType = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_621: bool = true;
-            while { if !__for_first_621 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_621 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
+            let mut __for_first_622: bool = true;
+            while { if !__for_first_622 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_622 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
             let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
             let mut symbolString: Value = self.safe_string(data.clone(), Value::Int(0), &[]);
             let mut market: Value = self.market(symbolString.clone());
             if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != firstMarket.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str()) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), callerMethodName).into()), Value::Str(" market symbols must be of the same type".into()))));
             }
-            symbolString = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbolString = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut unifiedTimeframe: Value = self.safe_string(data, Value::Int(1), &[Value::Str("1".into())]);
             let mut interval: Value = self.safe_string(self.timeframes.clone(), unifiedTimeframe.clone(), &[unifiedTimeframe.clone()]);
             let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@kline_".into())).into()), interval).into()), Value::Str("_".into())).into()), priceType).into());
@@ -1123,14 +1140,15 @@ impl WeexCore {
             append_to_array(&mut messageHashes, messageHash);
         }
         }
-        let mut symboltimeframestoredVariable = self.subscribe_public(messageHashes, channels, &[isContract, params]).await;
+        let mut symboltimeframestoredVariable = self.subscribe_public(messageHashes, channels, &[isContract, paramsPriceType]).await;
         let mut symbol: Value = get_value(&symboltimeframestoredVariable, &Value::Int(0));
         let mut timeframe: Value = get_value(&symboltimeframestoredVariable, &Value::Int(1));
         let mut stored: Value = get_value(&symboltimeframestoredVariable, &Value::Int(2));
+        let mut limitResolved: Value = limit.clone();
         if is_true(&self.newUpdates) {
-            limit = stored.get_limit(symbol.clone(), limit.clone());
+            limitResolved = stored.get_limit(symbol.clone(), limit);
         }
-        let mut filtered: Value = self.filter_by_since_limit(stored, &[since, limit, Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(stored, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol, timeframe, filtered);
 
     Value::Null
@@ -1178,7 +1196,7 @@ impl WeexCore {
             self.load_markets(&[]).await;
         }
         let mut callerMethodName: Value = self.safe_string_k(params.clone(), "callerMethodName", &[Value::Str("unWatchOHLCVForSymbols".into())]);
-        params = self.omit(params.clone(), Value::Str("callerMethodName".into()), &[]);
+        let mut paramsOmitted: Value = self.omit(params, Value::Str("callerMethodName".into()), &[]);
         let mut channels: Value = Value::from(vec![]);
         let mut subHashes: Value = Value::from(vec![]);
         let mut unSubHashes: Value = Value::from(vec![]);
@@ -1187,20 +1205,21 @@ impl WeexCore {
         let mut firstMarket: Value = self.market(firstSymbol);
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
         let mut priceType: Value = Value::Str("LAST_PRICE".into());
+        let mut paramsPriceType: Value = paramsOmitted.clone();
         if (isContract.as_bool() == Some(true)) {
-            { let __destr_tmp = self.handle_option_and_params2(params.clone(), callerMethodName.clone(), Value::Str("price".into()), Value::Str("priceType".into()), &[priceType.clone()]); priceType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp = self.handle_option_string_and_params2(paramsOmitted, callerMethodName.clone(), Value::Str("price".into()), Value::Str("priceType".into()), &[priceType.clone()]); priceType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsPriceType = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_622: bool = true;
-            while { if !__for_first_622 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_622 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
+            let mut __for_first_623: bool = true;
+            while { if !__for_first_623 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_623 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
             let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
             let mut symbolString: Value = self.safe_string(data.clone(), Value::Int(0), &[]);
             let mut market: Value = self.market(symbolString.clone());
             if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != firstMarket.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str()) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), callerMethodName).into()), Value::Str(" market symbols must be of the same type".into()))));
             }
-            symbolString = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbolString = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut unifiedTimeframe: Value = self.safe_string(data, Value::Int(1), &[Value::Str("1".into())]);
             let mut interval: Value = self.safe_string(self.timeframes.clone(), unifiedTimeframe.clone(), &[unifiedTimeframe.clone()]);
             let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@kline_".into())).into()), interval).into()), Value::Str("_".into())).into()), priceType).into());
@@ -1220,7 +1239,7 @@ impl WeexCore {
                 m.insert("topic".to_string(), Value::Str("ohlcv".into()));
             m
         });
-        return self.subscribe_public(unSubHashes, channels, &[isContract, params, subscription]).await;
+        return self.subscribe_public(unSubHashes, channels, &[isContract, paramsPriceType, subscription]).await;
 
     Value::Null
 }
@@ -1271,7 +1290,7 @@ impl WeexCore {
         })]);
         let mut interval: Value = self.safe_string_k(firstEntry, "i", &[]);
         let mut timeframe: Value = self.find_timeframe(interval, &[]);
-        let mut stored: Value = self.safe_value(self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
+        let mut stored: Value = self.safe_value(self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit);
@@ -1281,8 +1300,8 @@ impl WeexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_623: bool = true;
-            while { if !__for_first_623 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_623 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_624: bool = true;
+            while { if !__for_first_624 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_624 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1320,12 +1339,12 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        params = self.extend(params.clone(), &[Value::Map({
+        let mut paramsExtended: Value = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("callerMethodName".to_string(), Value::Str("watchOrderBook".into()));
             m
         })]);
-        return self.watch_order_book_for_symbols(Value::from(vec![symbol]), &[limit, params]).await;
+        return self.watch_order_book_for_symbols(Value::from(vec![symbol]), &[limit, paramsExtended]).await;
 
     Value::Null
 }
@@ -1350,23 +1369,25 @@ impl WeexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]);
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
+        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
+        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
         let mut callerMethodName: Value = self.safe_string_k(params.clone(), "callerMethodName", &[Value::Str("watchOrderBookForSymbols".into())]);
-        params = self.omit(params.clone(), Value::Str("callerMethodName".into()), &[]);
+        let mut paramsOmitted: Value = self.omit(params, Value::Str("callerMethodName".into()), &[]);
         let mut depth: Value = Value::Str("200".into());
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), callerMethodName, Value::Str("depth".into()), &[depth.clone()]); depth = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut depthOptionparamsDepthVariable = self.handle_option_string_and_params(paramsOmitted, callerMethodName, Value::Str("depth".into()), &[depth]);
+        let mut depthOption: Value = depthOptionparamsDepthVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsDepth: Value = depthOptionparamsDepthVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut messageHashes: Value = Value::from(vec![]);
         let mut channels: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_624: bool = true;
-            while { if !__for_first_624 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_624 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
-            let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut __for_first_625: bool = true;
+            while { if !__for_first_625 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_625 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), symbol).into());
-            let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@depth".into())).into()), depth).into());
+            let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@depth".into())).into()), depthOption).into());
             append_to_array(&mut messageHashes, messageHash);
             append_to_array(&mut channels, channel);
         }
@@ -1376,7 +1397,7 @@ impl WeexCore {
                 m.insert("limit".to_string(), limit.clone());
             m
         });
-        let mut orderbook: Value = self.subscribe_public(messageHashes, channels, &[isContract, params, subscription]).await;
+        let mut orderbook: Value = self.subscribe_public(messageHashes, channels, &[isContract, paramsDepth, subscription]).await;
         return orderbook.limit();
 
     Value::Null
@@ -1397,12 +1418,12 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        params = self.extend(params.clone(), &[Value::Map({
+        let mut paramsExtended: Value = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("callerMethodName".to_string(), Value::Str("unWatchOrderBook".into()));
             m
         })]);
-        return self.un_watch_order_book_for_symbols(Value::from(vec![symbol]), &[params]).await;
+        return self.un_watch_order_book_for_symbols(Value::from(vec![symbol]), &[paramsExtended]).await;
 
     Value::Null
 }
@@ -1425,24 +1446,26 @@ impl WeexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]);
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
+        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
+        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
         let mut callerMethodName: Value = self.safe_string_k(params.clone(), "callerMethodName", &[Value::Str("unWatchOrderBookForSymbols".into())]);
-        params = self.omit(params.clone(), Value::Str("callerMethodName".into()), &[]);
+        let mut paramsOmitted: Value = self.omit(params, Value::Str("callerMethodName".into()), &[]);
         let mut depth: Value = Value::Str("200".into());
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), callerMethodName, Value::Str("depth".into()), &[depth.clone()]); depth = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut depthOptionparamsDepthVariable = self.handle_option_string_and_params(paramsOmitted, callerMethodName, Value::Str("depth".into()), &[depth]);
+        let mut depthOption: Value = depthOptionparamsDepthVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsDepth: Value = depthOptionparamsDepthVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut subHashes: Value = Value::from(vec![]);
         let mut channels: Value = Value::from(vec![]);
         let mut unSubHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_625: bool = true;
-            while { if !__for_first_625 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_625 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
-            let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut __for_first_626: bool = true;
+            while { if !__for_first_626 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_626 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), symbol).into());
-            let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@depth".into())).into()), depth).into());
+            let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@depth".into())).into()), depthOption).into());
             let mut unSubMessageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), messageHash).into());
             append_to_array(&mut subHashes, messageHash);
             append_to_array(&mut channels, channel);
@@ -1452,13 +1475,13 @@ impl WeexCore {
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
-                m.insert("symbols".to_string(), symbols);
+                m.insert("symbols".to_string(), symbolsNormalized);
                 m.insert("messageHashes".to_string(), unSubHashes.clone());
                 m.insert("subMessageHashes".to_string(), subHashes);
                 m.insert("topic".to_string(), Value::Str("orderbook".into()));
             m
         });
-        return self.subscribe_public(unSubHashes, channels, &[isContract, params, subscription]).await;
+        return self.subscribe_public(unSubHashes, channels, &[isContract, paramsDepth, subscription]).await;
 
     Value::Null
 }
@@ -1546,8 +1569,8 @@ impl WeexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]);
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
+        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
+        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
         if (firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchBidsAsks is supported for spot markets only".into()))));
         }
@@ -1555,9 +1578,9 @@ impl WeexCore {
         let mut channels: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_626: bool = true;
-            while { if !__for_first_626 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_626 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
-            let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut __for_first_627: bool = true;
+            while { if !__for_first_627 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_627 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut channelName: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".into())).into()), Value::Str("bookTicker".into())).into());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("bidask::".into()), symbol).into());
@@ -1571,10 +1594,13 @@ impl WeexCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            add_element_to_object(&mut result, &crate::value::get_value_k(&newTicker, "symbol"), newTicker.clone());
+            let mut newTickerSymbol: Value = self.safe_string_k(newTicker.clone(), "symbol", &[]);
+            if (newTickerSymbol != Value::Null) {
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&newTickerSymbol), newTicker); }
+            }
             return result;
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbols]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }
@@ -1597,8 +1623,8 @@ impl WeexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]);
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
+        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
+        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
         if (firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchBidsAsks is supported for spot markets only".into()))));
         }
@@ -1607,9 +1633,9 @@ impl WeexCore {
         let mut unSubHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_627: bool = true;
-            while { if !__for_first_627 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_627 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
-            let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut __for_first_628: bool = true;
+            while { if !__for_first_628 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_628 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut channelName: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".into())).into()), Value::Str("bookTicker".into())).into());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("bidask::".into()), symbol).into());
@@ -1622,7 +1648,7 @@ impl WeexCore {
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
-                m.insert("symbols".to_string(), symbols);
+                m.insert("symbols".to_string(), symbolsNormalized);
                 m.insert("messageHashes".to_string(), unSubHashes.clone());
                 m.insert("subMessageHashes".to_string(), subHashes);
                 m.insert("topic".to_string(), Value::Str("bidsasks".into()));
@@ -1662,7 +1688,12 @@ impl WeexCore {
     pub fn parse_ws_bid_ask(&self, mut message: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "E", &[]);
-        let mut symbol: Value = (if (market == Value::Null) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
+        let mut symbol: Value = Value::Null;
+        if (market == Value::Null) {
+            symbol = Value::Null;
+        }  else {
+            symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
@@ -1703,25 +1734,30 @@ impl WeexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut marketType: Value = Value::Null;
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
-            symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            market = self.market(symbol);
         }
-        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), &[market, params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut symbolResolved: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+        let mut marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), &[market, params]);
+        let mut marketType: Value = marketTypeparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut isContract: Value = (Value::Bool(marketType.as_str() != Some("spot")));
-        let mut messageHash: Value = (if matches!(&isContract, Value::Bool(true)) { Value::Str("myContractTrades".into()) } else { Value::Str("myTrades".into()) });
+        let mut messageHash: Value = Value::Str("myTrades".into());
+        if matches!(&isContract, Value::Bool(true)) {
+            messageHash = Value::Str("myContractTrades".into());
+        }
         let mut subscriptionHash: Value = messageHash.clone();
-        if (symbol != Value::Null) {
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".into()), symbol).into())).into());
+        if (symbolResolved != Value::Null) {
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".into()), symbolResolved).into())).into());
         }
         let mut channel: Value = Value::Str("fill".into());
-        let mut trades: Value = self.subscribe_private(messageHash, subscriptionHash, channel, &[isContract, params]).await;
+        let mut trades: Value = self.subscribe_private(messageHash, subscriptionHash, channel, &[isContract, paramsMarketType]).await;
+        let mut limitResolved: Value = limit.clone();
         if is_true(&self.newUpdates) {
-            limit = trades.get_limit(symbol.clone(), limit.clone());
+            limitResolved = trades.get_limit(symbolResolved.clone(), limit);
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbol, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
 
     Value::Null
 }
@@ -1746,10 +1782,14 @@ impl WeexCore {
         if (symbol != Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchMyTrades does not support a symbol argument. Unsubscribing from myTrades is global for all symbols.".into()))));
         }
-        let mut marketType: Value = Value::Null;
-        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("unWatchMyTrades".into()), &[Value::Null, params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("unWatchMyTrades".into()), &[Value::Null, params]);
+        let mut marketType: Value = marketTypeparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut isContract: Value = (Value::Bool(marketType.as_str() != Some("spot")));
-        let mut subHash: Value = (if matches!(&isContract, Value::Bool(true)) { Value::Str("myContractTrades".into()) } else { Value::Str("myTrades".into()) });
+        let mut subHash: Value = Value::Str("myTrades".into());
+        if matches!(&isContract, Value::Bool(true)) {
+            subHash = Value::Str("myContractTrades".into());
+        }
         let mut unSubHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), subHash).into());
         let mut channel: Value = Value::Str("fill".into());
         let mut subscription: Value = Value::Map({
@@ -1761,7 +1801,7 @@ impl WeexCore {
                 m.insert("subHashIsPrefix".to_string(), Value::Bool(true));
             m
         });
-        return self.subscribe_private(unSubHash.clone(), unSubHash.clone(), channel, &[isContract, params, subscription]).await;
+        return self.subscribe_private(unSubHash.clone(), unSubHash.clone(), channel, &[isContract, paramsMarketType, subscription]).await;
 
     Value::Null
 }
@@ -1827,8 +1867,8 @@ impl WeexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_628: bool = true;
-            while { if !__for_first_628 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_628 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_629: bool = true;
+            while { if !__for_first_629 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_629 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut trade: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1849,8 +1889,8 @@ impl WeexCore {
         }
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_629: bool = true;
-            while { if !__for_first_629 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_629 = false; j.as_f64().unwrap_or(f64::NAN) < ((symbolKeys.len() as i64) as f64) } {
+            let mut __for_first_630: bool = true;
+            while { if !__for_first_630 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_630 = false; j.as_f64().unwrap_or(f64::NAN) < ((symbolKeys.len() as i64) as f64) } {
             let mut symbol: Value = symbolKeys.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into());
             client.resolve(&[trades.clone(), symbolMessageHash]);
@@ -1886,7 +1926,6 @@ impl WeexCore {
             marketType = Value::Str("swap".into());
         }
         let mut marketResolved: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType.clone()]);
-        market = marketResolved.clone();
         let mut side: Value = self.safe_string_lower_k(trade.clone(), "orderSide", &[]);
         let mut fee: Value = Value::Null;
         let mut commission: Value = self.safe_string_k(trade.clone(), "fillFee", &[]);
@@ -1895,9 +1934,9 @@ impl WeexCore {
             let mut feeCurrency: Value = self.safe_currency_code(commissionAsset, &[]);
             if (marketType.as_str() == Some("spot")) {
                 if (side.as_str() == Some("buy")) {
-                    feeCurrency = marketResolved.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
+                    feeCurrency = self.safe_string_k(marketResolved.clone(), "base", &[]);
                 }  else {
-                    feeCurrency = marketResolved.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
+                    feeCurrency = self.safe_string_k(marketResolved.clone(), "quote", &[]);
                 }
             }
             fee = Value::Map({
@@ -1954,23 +1993,28 @@ impl WeexCore {
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
-            symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            market = self.market(symbol);
         }
-        let mut marketType: Value = Value::Null;
-        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchOrders".into()), &[market, params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut symbolResolved: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+        let mut marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchOrders".into()), &[market, params]);
+        let mut marketType: Value = marketTypeparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut isContract: Value = (Value::Bool(marketType.as_str() != Some("spot")));
-        let mut messageHash: Value = (if matches!(&isContract, Value::Bool(true)) { Value::Str("contractOrders".into()) } else { Value::Str("orders".into()) });
+        let mut messageHash: Value = Value::Str("orders".into());
+        if matches!(&isContract, Value::Bool(true)) {
+            messageHash = Value::Str("contractOrders".into());
+        }
         let mut subscriptionHash: Value = messageHash.clone();
-        if (symbol != Value::Null) {
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".into()), symbol).into())).into());
+        if (symbolResolved != Value::Null) {
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".into()), symbolResolved).into())).into());
         }
         let mut channel: Value = Value::Str("orders".into());
-        let mut orders: Value = self.subscribe_private(messageHash, subscriptionHash, channel, &[isContract, params]).await;
+        let mut orders: Value = self.subscribe_private(messageHash, subscriptionHash, channel, &[isContract, paramsMarketType]).await;
+        let mut limitResolved: Value = limit.clone();
         if is_true(&self.newUpdates) {
-            limit = orders.get_limit(symbol.clone(), limit.clone());
+            limitResolved = orders.get_limit(symbolResolved.clone(), limit);
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
 
     Value::Null
 }
@@ -1994,10 +2038,14 @@ impl WeexCore {
         if (symbol != Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchOrders does not support a symbol argument. Unsubscribing from orders is global for all symbols.".into()))));
         }
-        let mut marketType: Value = Value::Null;
-        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("unWatchOrders".into()), &[Value::Null, params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("unWatchOrders".into()), &[Value::Null, params]);
+        let mut marketType: Value = marketTypeparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut isContract: Value = (Value::Bool(marketType.as_str() != Some("spot")));
-        let mut subHash: Value = (if matches!(&isContract, Value::Bool(true)) { Value::Str("contractOrders".into()) } else { Value::Str("orders".into()) });
+        let mut subHash: Value = Value::Str("orders".into());
+        if matches!(&isContract, Value::Bool(true)) {
+            subHash = Value::Str("contractOrders".into());
+        }
         let mut unSubHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), subHash).into());
         let mut channel: Value = Value::Str("orders".into());
         let mut subscription: Value = Value::Map({
@@ -2009,7 +2057,7 @@ impl WeexCore {
                 m.insert("subHashIsPrefix".to_string(), Value::Bool(true));
             m
         });
-        return self.subscribe_private(unSubHash.clone(), unSubHash.clone(), channel, &[isContract, params, subscription]).await;
+        return self.subscribe_private(unSubHash.clone(), unSubHash.clone(), channel, &[isContract, paramsMarketType, subscription]).await;
 
     Value::Null
 }
@@ -2076,8 +2124,8 @@ impl WeexCore {
         let mut orders: Value = self.orders.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_630: bool = true;
-            while { if !__for_first_630 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_630 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_631: bool = true;
+            while { if !__for_first_631 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_631 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut rawOrder: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2098,8 +2146,8 @@ impl WeexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_631: bool = true;
-            while { if !__for_first_631 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_631 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolKeys.len() as i64) as f64) } {
+            let mut __for_first_632: bool = true;
+            while { if !__for_first_632 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_632 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolKeys.len() as i64) as f64) } {
             let mut symbol: Value = symbolKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into());
             client.resolve(&[orders.clone(), symbolMessageHash]);
@@ -2203,7 +2251,7 @@ impl WeexCore {
             marketType = Value::Str("swap".into());
         }
         let mut marketResolved: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType.clone()]);
-        market = marketResolved.clone();
+        let mut marketValue: Value = marketResolved.clone();
         let mut side: Value = self.safe_string_lower_k(order.clone(), "orderSide", &[]);
         let mut fee: Value = Value::Null;
         let mut commission: Value = self.safe_string_k(order.clone(), "cumFillFee", &[]);
@@ -2212,9 +2260,9 @@ impl WeexCore {
             let mut feeCurrency: Value = self.safe_currency_code(commissionAsset, &[]);
             if (marketType.as_str() == Some("spot")) {
                 if (side.as_str() == Some("buy")) {
-                    feeCurrency = marketResolved.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
+                    feeCurrency = self.safe_string_k(marketResolved.clone(), "base", &[]);
                 }  else {
-                    feeCurrency = marketResolved.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
+                    feeCurrency = self.safe_string_k(marketResolved.clone(), "quote", &[]);
                 }
             }
             fee = Value::Map({
@@ -2262,7 +2310,7 @@ impl WeexCore {
         m.insert("takeProfitPrice".to_string(), takeProfitPrice);
         m.insert("info".to_string(), order);
     m
-}), &[market]);
+}), &[marketValue]);
 
     Value::Null
 }
@@ -2285,11 +2333,15 @@ impl WeexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut type_var: Value = Value::Null;
-        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params]);
+        let mut type_var: Value = type_varparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut isContract: Value = (Value::Bool(type_var.as_str() != Some("spot")));
-        let mut urlType: Value = (if matches!(&isContract, Value::Bool(true)) { Value::Str("contract".into()) } else { Value::Str("spot".into()) });
-        let mut url: Value = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &urlType), &Value::Str("/private".into()));
+        let mut urlType: Value = Value::Str("spot".into());
+        if matches!(&isContract, Value::Bool(true)) {
+            urlType = Value::Str("contract".into());
+        }
+        let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), urlType, &[]), Value::Str("/private".into())).into());
         self.authenticate(url.clone());
         let mut client: Value = self.client(&[url]);
         self.set_balance_cache(client.clone(), type_var.clone());
@@ -2300,7 +2352,7 @@ impl WeexCore {
             crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into())])).await;
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str(":".into())).into()), Value::Str("balance".into())).into());
-        return self.subscribe_private(messageHash, type_var, Value::Str("account".into()), &[isContract, params]).await;
+        return self.subscribe_private(messageHash, type_var, Value::Str("account".into()), &[isContract, paramsMarketType]).await;
 
     Value::Null
 }
@@ -2423,8 +2475,8 @@ impl WeexCore {
         let mut balanceUpdates: Value = (match __pro_message.get("d").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_632: bool = true;
-            while { if !__for_first_632 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_632 = false; i.as_f64().unwrap_or(f64::NAN) < ((balanceUpdates.len() as i64) as f64) } {
+            let mut __for_first_633: bool = true;
+            while { if !__for_first_633 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_633 = false; i.as_f64().unwrap_or(f64::NAN) < ((balanceUpdates.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(balanceUpdates.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -2432,7 +2484,7 @@ impl WeexCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string2(entry.clone(), Value::Str("available".into()), Value::Str("amount".into()), &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(entry.clone(), "frozen", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string2(entry, Value::Str("equity".into()), Value::Str("legacyAmount".into()), &[])); }
-            if (accountType != Value::Null) && (code != Value::Null) {
+            if (code != Value::Null) {
                 add_element_to_object(get_value_mut(&mut self.balance, &accountType), &code, account);
             }
         }
@@ -2467,14 +2519,14 @@ impl WeexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut url: Value = add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "contract"), &Value::Str("/private".into()));
+        let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("contract".into()), &[]), Value::Str("/private".into())).into());
         self.authenticate(url.clone());
         let mut client: Value = self.client(&[url]);
-        symbols = self.market_symbols(&[symbols.clone(), Value::Str("swap".into()), Value::Bool(true)]);
+        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Str("swap".into()), Value::Bool(true)]);
         let mut messageHash: Value = Value::Str("positions".into());
         let mut subscriptionHash: Value = messageHash.clone();
-        if (symbols != Value::Null) {
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".into()), join(&symbols, &Value::Str(",".into()))).into())).into());
+        if (symbolsNormalized != Value::Null) {
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".into()), join(&symbolsNormalized, &Value::Str(",".into()))).into())).into());
         }
         let mut channel: Value = Value::Str("positions".into());
         self.set_positions_cache(client.clone(), &[params.clone()]);
@@ -2482,13 +2534,13 @@ impl WeexCore {
         let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]);
         if (is_equal(&fetchPositionsSnapshot, &Value::Bool(true))) && (is_equal(&awaitPositionsSnapshot, &Value::Bool(true))) && (self.positions.clone() == Value::Null) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchPositionsSnapshot".into())])).await;
-            return self.filter_by_symbols_since_limit(snapshot, &[symbols.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
+            return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
         }
         let mut newPositions: Value = self.subscribe_private(messageHash, subscriptionHash, channel, &[Value::Bool(true), params]).await;
         if is_true(&self.newUpdates) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbols, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsNormalized, since, limit, Value::Bool(true)]);
 
     Value::Null
 }
@@ -2516,8 +2568,8 @@ impl WeexCore {
         let mut cache: Value = self.positions.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_633: bool = true;
-            while { if !__for_first_633 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_633 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
+            let mut __for_first_634: bool = true;
+            while { if !__for_first_634 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_634 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
             let mut position: Value = positions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             cache.append(position);
         }
@@ -2614,8 +2666,8 @@ impl WeexCore {
         let mut data: Value = (match message.get("d") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_634: bool = true;
-            while { if !__for_first_634 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_634 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_635: bool = true;
+            while { if !__for_first_635 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_635 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut rawPosition: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2628,8 +2680,8 @@ impl WeexCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str("positions::".into()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_635: bool = true;
-            while { if !__for_first_635 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_635 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
+            let mut __for_first_636: bool = true;
+            while { if !__for_first_636 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_636 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
             let mut messageHash: Value = messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut parts: Value = split(&messageHash, &Value::Str("::".into()));
             let mut symbolsString: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -2673,7 +2725,7 @@ impl WeexCore {
         //
         let mut response: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), self.request_id());
+                m.insert("id".to_string(), self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
                 m.insert("method".to_string(), Value::Str("PONG".into()));
             m
         });
@@ -2705,8 +2757,8 @@ impl WeexCore {
             let mut subHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_636: bool = true;
-                while { if !__for_first_636 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_636 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
+                let mut __for_first_637: bool = true;
+                while { if !__for_first_637 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_637 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
                 let mut unSubHash: Value = self.safe_string(messageHashes.clone(), i.clone(), &[]);
                 let mut subHash: Value = self.safe_string(subHashes.clone(), i.clone(), &[]);
                 self.clean_unsubscription(client.clone(), subHash, unSubHash, &[subHashIsPrefix.clone()]);

@@ -70,12 +70,17 @@ class gemini extends gemini$1["default"] {
             ],
         };
         const subscribeHash = 'l2:' + market['symbol'];
-        const url = this.urls['api']['ws'] + '/v2/marketdata';
-        const trades = await this.watch(url, messageHash, request, subscribeHash);
-        if (this.newUpdates) {
-            limit = trades.getLimit(market['symbol'], limit);
+        const wsUrl = this.safeString(this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' watchTrades() has no websocket url');
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        const url = wsUrl + '/v2/marketdata';
+        const trades = await this.watch(url, messageHash, request, subscribeHash);
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit(market['symbol'], limit);
+        }
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     /**
      * @method
@@ -90,12 +95,13 @@ class gemini extends gemini$1["default"] {
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         const trades = await this.helperForWatchMultipleConstruct('trades', symbols, params);
+        const first = this.safeList(trades, 0);
+        const tradeSymbol = this.safeString(first, 'symbol');
+        let limitResolved = limit;
         if (this.newUpdates) {
-            const first = this.safeList(trades, 0);
-            const tradeSymbol = this.safeString(first, 'symbol');
-            limit = trades.getLimit(tradeSymbol, limit);
+            limitResolved = trades.getLimit(tradeSymbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     parseWsTrade(trade, market = undefined) {
         //
@@ -295,12 +301,17 @@ class gemini extends gemini$1["default"] {
             ],
         };
         const messageHash = 'ohlcv:' + market['symbol'] + ':' + timeframeId;
-        const url = this.urls['api']['ws'] + '/v2/marketdata';
-        const ohlcv = await this.watch(url, messageHash, request, messageHash);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit(symbol, limit);
+        const wsUrl = this.safeString(this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' watchOHLCV() has no websocket url');
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        const url = wsUrl + '/v2/marketdata';
+        const ohlcv = await this.watch(url, messageHash, request, messageHash);
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit(symbol, limit);
+        }
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -392,7 +403,11 @@ class gemini extends gemini$1["default"] {
             ],
         };
         const subscribeHash = 'l2:' + market['symbol'];
-        const url = this.urls['api']['ws'] + '/v2/marketdata';
+        const wsUrl = this.safeString(this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' watchOrderBook() has no websocket url');
+        }
+        const url = wsUrl + '/v2/marketdata';
         const orderbook = await this.watch(url, messageHash, request, subscribeHash);
         return orderbook.limit();
     }
@@ -419,7 +434,7 @@ class gemini extends gemini$1["default"] {
             const delta = changes[i];
             const price = this.safeNumber(delta, 1);
             const size = this.safeNumber(delta, 2);
-            const side = (delta[0] === 'buy') ? 'bids' : 'asks';
+            const side = (this.safeString(delta, 0) === 'buy') ? 'bids' : 'asks';
             const bookside = orderbook[side];
             bookside.store(price, size);
             orderbook[side] = bookside;
@@ -493,7 +508,7 @@ class gemini extends gemini$1["default"] {
         const messageHash = 'bidsasks:' + symbol;
         // last update always overwrites the previous state and is the latest state
         for (let i = 0; i < rawBidAskChanges.length; i++) {
-            const entry = rawBidAskChanges[i];
+            const entry = this.safeDict(rawBidAskChanges, i);
             const rawSide = this.safeString(entry, 'side');
             const price = this.safeNumber(entry, 'price');
             const sizeString = this.safeString(entry, 'remaining');
@@ -525,22 +540,26 @@ class gemini extends gemini$1["default"] {
         if (symbols === undefined) {
             throw new errors.NotSupported(this.id + ' watchMultiple requires at least one symbol');
         }
-        symbols = this.marketSymbols(symbols, undefined, false, true, true);
-        const firstMarket = this.market(symbols[0]);
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, true);
+        const firstMarket = this.market(symbolsNormalized[0]);
         if ((firstMarket['spot'] !== true) && (firstMarket['linear'] !== true)) {
             throw new errors.NotSupported(this.id + ' watchMultiple supports only spot or linear-swap symbols');
         }
         const messageHashes = [];
         const marketIds = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const messageHash = itemHashName + ':' + symbol;
             messageHashes.push(messageHash);
             const market = this.market(symbol);
             marketIds.push(market['id']);
         }
         const queryStr = marketIds.join(',');
-        let url = this.urls['api']['ws'] + '/v1/multimarketdata?symbols=' + queryStr + '&heartbeat=true&';
+        const wsUrl = this.safeString(this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' helperForWatchMultipleConstruct() has no websocket url');
+        }
+        let url = wsUrl + '/v1/multimarketdata?symbols=' + queryStr + '&heartbeat=true&';
         if (itemHashName === 'orderbook') {
             url += 'trades=false&bids=true&offers=true';
         }
@@ -580,7 +599,7 @@ class gemini extends gemini$1["default"] {
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];
         for (let i = 0; i < rawOrderBookChanges.length; i++) {
-            const entry = rawOrderBookChanges[i];
+            const entry = this.safeDict(rawOrderBookChanges, i);
             const price = this.safeNumber(entry, 'price');
             const size = this.safeNumber(entry, 'remaining');
             const rawSide = this.safeString(entry, 'side');
@@ -653,7 +672,11 @@ class gemini extends gemini$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const url = this.urls['api']['ws'] + '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
+        const wsUrl = this.safeString(this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' watchOrders() has no websocket url');
+        }
+        const url = wsUrl + '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -661,16 +684,18 @@ class gemini extends gemini$1["default"] {
             'url': url,
         };
         await this.authenticate(authParams);
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market(symbol);
-            symbol = market['symbol'];
+            market = this.market(symbol);
         }
+        const symbolResolved = (market !== undefined) ? this.safeString(market, 'symbol') : undefined;
         const messageHash = 'orders';
         const orders = await this.watch(url, messageHash, undefined, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
     }
     handleHeartbeat(client, message) {
         //

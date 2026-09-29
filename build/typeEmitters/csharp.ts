@@ -116,6 +116,8 @@ export interface StructSpec {
      * instead of silently dropping them. Reverse helpers write the bag back out.
      */
     extra?: boolean;
+    /** undeclared source keys are copied into `info` (raw info wins on a key collision) */
+    infoExtra?: boolean;
     w?: WrapperSpec;
 }
 
@@ -638,10 +640,12 @@ function renderStruct (ir: TypesIR, spec: StructSpec): string {
         }
         lines.push (INDENT + 'public ' + field.type + ' ' + field.cs + ';');
     }
-    if (spec.extra === true) {
-        lines.push ('');
-        lines.push (INDENT + '// venue-only source keys with no struct field; kept so the struct round-trips losslessly');
-        lines.push (INDENT + 'public Dictionary<string, object>? extra;');
+    if (spec.extra === true || spec.infoExtra === true) {
+        if (spec.extra === true) {
+            lines.push ('');
+            lines.push (INDENT + '// venue-only source keys with no struct field; kept so the struct round-trips losslessly');
+            lines.push (INDENT + 'public Dictionary<string, object>? extra;');
+        }
         lines.push ('');
         lines.push (INDENT + 'private static readonly HashSet<string> ' + spec.n + 'Keys = new HashSet<string> {');
         const keyTokens: string[] = [];
@@ -684,7 +688,8 @@ function renderStruct (ir: TypesIR, spec: StructSpec): string {
             throw new Error ('csharp emitter: ' + spec.n + ' assigns unknown field ' + body[i]);
         }
         const lhs = (field.cs === spec.p || field.cs === spec.b) ? 'this.' + field.cs : field.cs;
-        lines.push (INDENT.repeat (2) + lhs + ' = ' + csExprOf (field.idiom, recv, field.key, field.elem) + ';');
+        const rhs = (spec.infoExtra === true && field.idiom === 'info') ? 'Helper.GetInfoWithExtra(' + recv + ', ' + spec.n + 'Keys)' : csExprOf (field.idiom, recv, field.key, field.elem);
+        lines.push (INDENT.repeat (2) + lhs + ' = ' + rhs + ';');
     }
     if (spec.extra === true) {
         lines.push (INDENT.repeat (2) + 'extra = Helper.GetExtra(' + recv + ', ' + spec.n + 'Keys);');

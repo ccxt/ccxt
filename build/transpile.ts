@@ -519,7 +519,7 @@ class Transpiler {
             [ /Math\.round\s*\(([^\)]+)\)/g, 'int(round($1))' ],
             [ /Math\.ceil\s*\(([^\)]+)\)/g, 'int(math.ceil($1))' ],
             [ /Math\.log/g, 'math.log' ],
-            [ /([a-zA-Z0-9_\.]*\([^\)]+\)|[^\s]+)\s+\?\s*([^\:]+)\s+\:\s*([^\n]+)/g, '$2 if $1 else $3'],
+            [ /([a-zA-Z0-9_\.]*\((?:[^()]|\([^()]*\))+\)|[^\s]+)\s+\?\s*([^\:]+)\s+\:\s*([^\n]+)/g, '$2 if $1 else $3'],
             [ /([^\s]+)\.slice \(([^\,\)]+)\,\s?([^\)]+)\)/g, '$1[$2:$3]' ],
             [ /([^\s]+)\.slice \(([^\)\:]+)\)/g, '$1[$2:]' ],
             [ /([^\s(:]+)\.length/g, 'len($1)' ],
@@ -1138,7 +1138,7 @@ class Transpiler {
             'DepositWithdrawFees': /-> DepositWithdrawFees:/,
             'Transaction': /-> (?:[Ll]ist\[)?Transaction/,
             'FundingRateHistory': /-> (?:[Ll]ist\[)?FundingRateHistory/,
-            'MarketInterface': /-> (?:[Ll]ist\[)?MarketInterface/,
+            'MarketInterface': /(-> (?:[Ll]ist\[)?MarketInterface|: MarketInterface\b)/,
             'TransferEntry': /-> (?:[Ll]ist\[)?TransferEntry\b/,
             'PredictionEvent': /-> (?:[Ll]ist\[)?PredictionEvent/,
             'PredictionOutcome': /: (?:[Ll]ist\[)?PredictionOutcome/,
@@ -1682,7 +1682,11 @@ class Transpiler {
         // same idea for dynamic constructor calls, e.g. new $broad[$broadKey] ($error);
         // the variable only gets its "$" from phpVariablesRegexes below, so handle it here.
         const noSpaceBeforeDynamicNewParen = [ /new (\$[A-Za-z_][A-Za-z0-9_]*(?:\[[^\]]*\])*) \(/g, 'new $1(' ]
-        let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes).concat ([ noSpaceBeforeCallParen, noSpaceBeforeDynamicNewParen ]))
+        let phpBody = this.regexAll (js, phpRegexes)
+        // string literals are data, the variable rules must never turn '&signature=' into '&$signature='
+        const { masked: phpCode, literals } = this.maskPhpStringLiterals (phpBody)
+        phpBody = this.unmaskPhpStringLiterals (this.regexAll (phpCode, phpVariablesRegexes.concat (variablePropertiesRegexes)), literals)
+        phpBody = this.regexAll (phpBody, [ noSpaceBeforeCallParen, noSpaceBeforeDynamicNewParen ])
         // indent async php — awaiting bodies stay flat here on purpose: the caller
         // (transpileMethodsToAllLanguages) emits a thin public stub
         // `return Async\async(self::do_<name>(...))($args);` and re-homes this flat
@@ -1788,6 +1792,53 @@ class Transpiler {
 
     unmaskStringSpaceParens (body: string) {
         return body.replace (/\x02/g, ' ')
+    }
+
+    maskPhpStringLiterals (body: string) {
+        // swaps the contents of every quoted literal that closes on its own line for a
+        // regex-inert token; docstring lines and text after a // marker are left as is
+        const literals: string[] = []
+        const lines = body.split ('\n')
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i]
+            if (/^\s*\/?\*/.test (line) || (line.indexOf ("'") < 0 && line.indexOf ('"') < 0)) {
+                continue
+            }
+            let out = ''
+            let j = 0
+            while (j < line.length) {
+                const c = line[j]
+                if (c === '/' && line[j + 1] === '/') {
+                    break
+                }
+                if (c !== "'" && c !== '"') {
+                    out += c
+                    j++
+                    continue
+                }
+                let k = j + 1
+                while (k < line.length && line[k] !== c) {
+                    k += (line[k] === '\\') ? 2 : 1
+                }
+                if (k >= line.length) {
+                    break
+                }
+                const content = line.slice (j + 1, k)
+                if (content.length > 0) {
+                    literals.push (content)
+                    out += c + '\x03' + (literals.length - 1).toString () + '\x03' + c
+                } else {
+                    out += c + c
+                }
+                j = k + 1
+            }
+            lines[i] = out + line.slice (j)
+        }
+        return { masked: lines.join ('\n'), literals }
+    }
+
+    unmaskPhpStringLiterals (body: string, literals: string[]) {
+        return body.replace (/\x03(\d+)\x03/g, (match: string, index: string) => literals[parseInt (index)])
     }
 
     maskComments (js: string) {
@@ -2326,7 +2377,9 @@ class Transpiler {
                 'Dict': 'dict',
                 'NullableDict': 'dict',
                 'List': 'list',
-                'NullableList': 'list'
+                'NullableList': 'list',
+                // the ws order book class alias prints untyped, as `any` did
+                'Ob': 'object'
             }
             const unwrapLists = (type: string) => {
                 // a union like `Dict | Dict[] | undefined` must be mapped member-by-member;
@@ -2367,6 +2420,8 @@ class Transpiler {
                     'NullableDict': '?array',
                     'List': 'array',
                     'NullableList': '?array',
+                    // the ws order book class alias prints untyped, as `any` did
+                    'Ob': 'mixed',
                 }
                 const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|AllGreeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|MarginLoan|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|DepositWithdrawFee|DepositWithdrawFees|DepositWithdrawFeeNetwork|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|DepositAddresses|LongShortRatio|PositionModeInfo|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?|Status)( \| undefined)?$|\w+\[\]/
 

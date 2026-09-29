@@ -26,7 +26,7 @@ Current feature list:
 
 ## CCXT Terminal
 
-[![CCXT Terminal: One App. Every Market. High-performance trading with real-time sync](https://github.com/user-attachments/assets/5bfe1227-860c-45ad-b43c-884e899b70e1)](https://terminal.ccxt.com)
+[![CCXT Terminal: One App. Every Market. High-performance trading with real-time sync](https://github.com/user-attachments/assets/11f1ead4-24bb-49d5-bb67-cd8f4be35ad6)](https://terminal.ccxt.com)
 
 [**CCXT Terminal**](https://terminal.ccxt.com) is a non-custodial trading platform built on the same open-source CCXT library you already use. It takes you from market analysis to order execution in one place, pairing a scalper DOM and real-time liquidity visualization with low-latency order routing across multiple exchanges.
 
@@ -805,7 +805,7 @@ public class Example {
         System.out.println(ticker.symbol + " last=" + ticker.last);
 
         // Fetch OHLCV
-        var candles = binance.fetchOHLCV("BTC/USDT", "1h", null, 10L, null);
+        var candles = binance.fetchOHLCV("BTC/USDT", "1h", null, 10L);
         System.out.println("Got " + candles.size() + " candles");
 
         // Private API (requires API keys)
@@ -817,7 +817,7 @@ public class Example {
         System.out.println("Order id: " + order.id + " status: " + order.status);
 
         // Cancel it
-        binance.cancelOrder(order.id, "BTC/USDT", null);
+        binance.cancelOrder(order.id, "BTC/USDT");
     }
 }
 ```
@@ -901,15 +901,16 @@ WebSocket support is available via the pro exchange classes:
 ```Java
 import io.github.ccxt.Exchange;
 import io.github.ccxt.exchanges.pro.Binance;
+import io.github.ccxt.types.Ticker;
 
 import java.util.concurrent.TimeUnit;
 
 Exchange exchange = new Binance();
-exchange.loadMarkets().join();
+exchange.loadMarkets(false);
 
 // stream live ticker updates
 for (int i = 0; i < 10; i++) {
-    Object ticker = exchange.watchTicker("BTC/USDT").get(30, TimeUnit.SECONDS);
+    Ticker ticker = exchange.watchTickerAsync("BTC/USDT").get(30, TimeUnit.SECONDS);
     System.out.println(ticker);
 }
 ```

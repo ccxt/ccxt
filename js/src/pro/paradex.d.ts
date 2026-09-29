@@ -3,7 +3,7 @@ import type { Int, Str, Trade, Order, Dict, OrderBook, Ticker, Strings, Tickers,
 import Client from '../base/ws/Client.js';
 export default class paradex extends paradexRest {
     describe(): any;
-    requestId(): any;
+    requestId(): number;
     authenticate(params?: Dict): Promise<any>;
     handleAuthenticationMessage(client: Client, message: Dict): void;
     /**

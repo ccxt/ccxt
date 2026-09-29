@@ -95,7 +95,7 @@ const VIEW_BASES: Record<string, boolean> = {
  */
 const SKIPPED: Record<string, string> = {
     'OrderBook': 'bespoke constructor (unwraps io.github.ccxt.ws.WsOrderBook and guards null data) - no drift against TS',
-    'Balances': 'bespoke constructor (flattens free/used/total sub-maps and the per-currency Balance rows)',
+    'Balances': 'bespoke constructor (flattens free/used/total/debt sub-maps and the per-currency Balance rows)',
     'Network': 'no TS declaration (models an entry of CurrencyInterface.networks, typed Dictionary<any> in TS)',
     'NetworkLimits': 'no TS declaration (nested inside the Java-only Network POJO)',
 };

@@ -216,7 +216,7 @@
                 "method": "cancelOrder",
                 "url": "https://openapi.blofin.com/api/v1/trade/cancel-algo",
                 "input": [
-                    61322087,
+                    "61322087",
                     "LTC/USDT:USDT",
                     {
                         "trigger": true

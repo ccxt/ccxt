@@ -3999,7 +3999,7 @@ func (this *Bitrue) CalculateRateLimiterCost(api any, method any, path any, para
 			}
 		}
 	}
-	return this.SafeNumber(config, "cost", 1)
+	return this.SafeValue(config, "cost", 1)
 }
 
 func NewBitrue(userConfig map[string]any) *Bitrue {

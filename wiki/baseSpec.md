@@ -555,6 +555,7 @@ cancel multiple orders for multiple symbols
 ##### Supported exchanges
 * [bybit](/exchanges/bybit.md#cancelordersforsymbols)
 * [cryptocom](/exchanges/cryptocom.md#cancelordersforsymbols)
+* [digifinex](/exchanges/digifinex.md#cancelordersforsymbols)
 * [gate](/exchanges/gate.md#cancelordersforsymbols)
 * [hyperliquid](/exchanges/hyperliquid.md#cancelordersforsymbols)
 * [okx](/exchanges/okx.md#cancelordersforsymbols)

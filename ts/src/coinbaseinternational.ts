@@ -812,10 +812,9 @@ export default class coinbaseinternational extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 10000) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 10000) as OHLCV[];
         }
         const market = this.market (symbol);
         const request: Dict = {
@@ -1760,8 +1759,8 @@ export default class coinbaseinternational extends Exchange {
         if (this.isEmpty (symbols)) {
             return positions;
         }
-        symbols = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (positions, 'symbol', symbols, false);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        return this.filterByArrayPositions (positions, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -2362,7 +2361,7 @@ export default class coinbaseinternational extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const triggerPrice = this.safeNumberN (params, [ 'stopPrice', 'stop_price', 'triggerPrice' ]);
+        const triggerPrice = this.safeNumberN (paramsPortfolio, [ 'stopPrice', 'stop_price', 'triggerPrice' ]);
         if (triggerPrice !== undefined) {
             request['trigger_price'] = triggerPrice;
         }

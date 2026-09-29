@@ -61,7 +61,7 @@ class bittrade extends bittrade$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         // only supports a limit of 150 at this time
         const messageHash = 'market.' + market['id'] + '.detail';
         const api = this.safeString(this.options, 'api', 'api');
@@ -75,7 +75,7 @@ class bittrade extends bittrade$1["default"] {
         const subscription = {
             'id': requestId,
             'messageHash': messageHash,
-            'symbol': symbol,
+            'symbol': symbolValue,
             'params': params,
         };
         return await this.watch(url, messageHash, this.extend(request, params), messageHash, subscription);
@@ -130,7 +130,7 @@ class bittrade extends bittrade$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         // only supports a limit of 150 at this time
         const messageHash = 'market.' + market['id'] + '.trade.detail';
         const api = this.safeString(this.options, 'api', 'api');
@@ -144,14 +144,15 @@ class bittrade extends bittrade$1["default"] {
         const subscription = {
             'id': requestId,
             'messageHash': messageHash,
-            'symbol': symbol,
+            'symbol': symbolValue,
             'params': params,
         };
         const trades = await this.watch(url, messageHash, this.extend(request, params), messageHash, subscription);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -213,7 +214,7 @@ class bittrade extends bittrade$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const messageHash = 'market.' + market['id'] + '.kline.' + interval;
         const api = this.safeString(this.options, 'api', 'api');
@@ -227,15 +228,16 @@ class bittrade extends bittrade$1["default"] {
         const subscription = {
             'id': requestId,
             'messageHash': messageHash,
-            'symbol': symbol,
+            'symbol': symbolValue,
             'timeframe': timeframe,
             'params': params,
         };
         const ohlcv = await this.watch(url, messageHash, this.extend(request, params), messageHash, subscription);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit(symbol, limit);
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -271,7 +273,7 @@ class bittrade extends bittrade$1["default"] {
             stored = new Cache.ArrayCacheByTimestamp(limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
-        const tick = this.safeValue(message, 'tick');
+        const tick = this.safeDict(message, 'tick');
         const parsed = this.parseOHLCV(tick, market);
         stored.append(parsed);
         client.resolve(stored, ch);
@@ -293,10 +295,10 @@ class bittrade extends bittrade$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         // only supports a limit of 150 at this time
-        limit = (limit === undefined) ? 150 : limit;
-        const messageHash = 'market.' + market['id'] + '.mbp.' + limit.toString();
+        const limitValue = (limit === undefined) ? 150 : limit;
+        const messageHash = 'market.' + market['id'] + '.mbp.' + limitValue.toString();
         const api = this.safeString(this.options, 'api', 'api');
         const hostname = { 'hostname': this.hostname };
         const url = this.implodeParams(this.urls['api']['ws'][api]['public'], hostname);
@@ -308,8 +310,8 @@ class bittrade extends bittrade$1["default"] {
         const subscription = {
             'id': requestId,
             'messageHash': messageHash,
-            'symbol': symbol,
-            'limit': limit,
+            'symbol': symbolValue,
+            'limit': limitValue,
             'params': params,
             'method': this.handleOrderBookSubscription,
         };
@@ -361,7 +363,7 @@ class bittrade extends bittrade$1["default"] {
         try {
             const symbol = this.safeString(subscription, 'symbol');
             const limit = this.safeInteger(subscription, 'limit');
-            const params = this.safeValue(subscription, 'params');
+            const params = this.safeDict(subscription, 'params');
             const api = this.safeString(this.options, 'api', 'api');
             const hostname = { 'hostname': this.hostname };
             const url = this.implodeParams(this.urls['api']['ws'][api]['public'], hostname);

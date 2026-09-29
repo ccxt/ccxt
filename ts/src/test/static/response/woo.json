@@ -1703,7 +1703,7 @@
                 "description": "fetch spot order with correct timestamp",
                 "method": "fetchOrder",
                 "input": [
-                    65902163453,
+                    "65902163453",
                     "LTC/USDT"
                 ],
                 "httpResponse": {
@@ -1756,7 +1756,7 @@
                     "amount": 0.1,
                     "filled": 0.1,
                     "remaining": 0,
-                    "cost": 10.5215,
+                    "cost": 9.566,
                     "trades": [],
                     "fee": {
                         "cost": 0.0001,
