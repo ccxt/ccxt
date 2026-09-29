@@ -2181,8 +2181,20 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 			tries++
 		}
 		errorMsg := fmt.Sprintf("%s nonce is behind the cache after %v tries.", this.Id, maxRetries)
-		client.(ClientInterface).Reject(ExchangeError(errorMsg), messageHash)
-		delete(this.Clients, client.(ClientInterface).GetUrl())
+		err := ExchangeError(errorMsg)
+		client.(ClientInterface).Reject(err, messageHash)
+		// close the dropped connection, otherwise its read and ping loops keep running
+		if client.(ClientInterface).GetError() == nil {
+			client.(ClientInterface).SetError(fmt.Errorf("%v", err))
+		}
+		if wsClient, ok := client.(*WSClient); ok {
+			wsClient.Close()
+		}
+		this.WsClientsMu.Lock()
+		if c, ok := this.Clients[client.(ClientInterface).GetUrl()]; ok && c == client {
+			delete(this.Clients, client.(ClientInterface).GetUrl())
+		}
+		this.WsClientsMu.Unlock()
 		// clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753 (parity with the other ports, see #29399)
 		this.Orderbooks.Store(symbol.(string), this.OrderBook())
 	} else {

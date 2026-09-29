@@ -83,10 +83,14 @@ public class Exchange extends BaseExchange implements TypedSurface {
             // same broken state - previously the catch invoked loadOrderBook again,
             // recursing endlessly when the snapshot request kept failing, see
             // https://github.com/ccxt/ccxt/pull/24224 and https://github.com/ccxt/ccxt/issues/14567
-            // instead, reject the watcher and drop the connection and the cached
+            // instead, reject the watcher, close and drop the connection and the cached
             // orderbook, so the next watchOrderBook() call resubscribes cleanly
             client.reject(error, messageHash);
-            ((java.util.concurrent.ConcurrentHashMap<String, Client>) this.clients).remove(client.url);
+            if (client.error == null) {
+                client.error = error; // onClose must not treat this as a server disconnect
+            }
+            client.close();
+            ((java.util.concurrent.ConcurrentHashMap<String, Client>) this.clients).remove(client.url, client);
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         } catch (Exception e) {
             client.reject(e, messageHash);
