@@ -3416,6 +3416,6 @@ export default class bitrue extends Exchange {
                 }
             }
         }
-        return this.safeNumber (config, 'cost', 1);
+        return this.safeValue (config, 'cost', 1);
     }
 }
