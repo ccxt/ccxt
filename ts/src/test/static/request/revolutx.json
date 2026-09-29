@@ -75,6 +75,17 @@
         ],
         "fetchTrades": [
             {
+                "description": "spot over limit",
+                "method": "fetchTrades",
+                "url": "https://revx.revolut.com/api/1.0/public/trades/all?symbol=BTC-USDC&limit=100",
+                "input": [
+                    "BTC/USDC",
+                    null,
+                    101
+                ],
+                "output": null
+            },
+            {
                 "description": "over limit",
                 "method": "fetchTrades",
                 "url": "https://revx.revolut.com/api/1.0/public/trades/all?symbol=BTC-USD&limit=1900",
