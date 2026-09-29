@@ -1241,9 +1241,6 @@ export default class pacifica extends Exchange {
         if (since === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a "since" argument');
         }
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a "symbol" argument');
-        }
         const defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
         if (this.markets === undefined) {
             await this.loadMarkets ();
