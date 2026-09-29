@@ -97,29 +97,30 @@ class apex extends \ccxt\async\apex {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
-        $symbolsLength = count($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbolsLength = count($symbolsNormalized);
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         $url = $this->get_ws_public_url();
         $topics = array();
         $messageHashes = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
-            $topic = 'recentlyTrade.H.' . $market['id2'];
+            $topic = 'recentlyTrade.H.' . $this->safe_string($market, 'id2');
             $topics[] = $topic;
             $messageHash = 'trade:' . $symbol;
             $messageHashes[] = $messageHash;
         }
         $trades = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
+        $first = $this->safe_dict($trades, 0);
+        $tradeSymbol = $this->safe_string($first, 'symbol');
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $first = $this->safe_dict($trades, 0);
-            $tradeSymbol = $this->safe_string($first, 'symbol');
-            $limit = $trades->getLimit($tradeSymbol, $limit);
+            $limitResolved = $trades->getLimit($tradeSymbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function handle_trades(Client $client, array $message) {
@@ -182,8 +183,8 @@ class apex extends \ccxt\async\apex {
         //
         $id = $this->safe_string_n($trade, array( 'i', 'id', 'v' ));
         $marketId = $this->safe_string_2($trade, 's', 'symbol');
-        $market = $this->safe_market($marketId, $market, null);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market, null);
+        $symbol = $marketResolved['symbol'];
         $timestamp = $this->safe_integer_n($trade, array( 't', 'T', 'createdAt' ));
         $side = $this->safe_string_lower_2($trade, 'S', 'side');
         $price = $this->safe_string_2($trade, 'p', 'price');
@@ -202,7 +203,7 @@ class apex extends \ccxt\async\apex {
             'amount' => $amount,
             'cost' => null,
             'fee' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -241,17 +242,15 @@ class apex extends \ccxt\async\apex {
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $url = $this->get_ws_public_url();
         $topics = array();
         $messageHashes = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        $limitValue = ($limit === null) ? 25 : $limit;
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
-            if ($limit === null) {
-                $limit = 25;
-            }
-            $topic = 'orderBook' . (string) $limit . '.H.' . $market['id2'];
+            $topic = 'orderBook' . (string) $limitValue . '.H.' . $this->safe_string($market, 'id2');
             $topics[] = $topic;
             $messageHash = 'orderbook:' . $symbol;
             $messageHashes[] = $messageHash;
@@ -290,7 +289,7 @@ class apex extends \ccxt\async\apex {
         return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
     }
 
-    public function get_ws_public_url() {
+    public function get_ws_public_url(): string {
         // apex appends a millisecond timestamp to the WS URL for connection-time
         // signing. CCXT's client manager keys clients by URL, so recomputing the
         // timestamp on every watch* call would open a new connection each time.
@@ -298,17 +297,17 @@ class apex extends \ccxt\async\apex {
         $url = $this->safe_string($this->options, 'wsPublicUrl');
         if ($url === null) {
             $timeStamp = (string) $this->milliseconds();
-            $url = $this->urls['api']['ws']['public'] . '&timestamp=' . $timeStamp;
+            $url = $this->safe_string($this->urls['api']['ws'], 'public') . '&timestamp=' . $timeStamp;
             $this->options['wsPublicUrl'] = $url;
         }
         return $url;
     }
 
-    public function get_ws_private_url() {
+    public function get_ws_private_url(): string {
         $url = $this->safe_string($this->options, 'wsPrivateUrl');
         if ($url === null) {
             $timeStamp = (string) $this->milliseconds();
-            $url = $this->urls['api']['ws']['private'] . '&timestamp=' . $timeStamp;
+            $url = $this->safe_string($this->urls['api']['ws'], 'private') . '&timestamp=' . $timeStamp;
             $this->options['wsPrivateUrl'] = $url;
         }
         return $url;
@@ -404,10 +403,10 @@ class apex extends \ccxt\async\apex {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $url = $this->get_ws_public_url();
-        $messageHash = 'ticker:' . $symbol;
-        $topic = 'instrumentInfo' . '.H.' . $market['id2'];
+        $messageHash = 'ticker:' . $symbolValue;
+        $topic = 'instrumentInfo' . '.H.' . $this->safe_string($market, 'id2');
         $topics = array( $topic );
         return Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
     }
@@ -429,14 +428,14 @@ class apex extends \ccxt\async\apex {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, false);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $messageHashes = array();
         $url = $this->get_ws_public_url();
         $topics = array();
-        for ($i = 0; $i < count(($symbols)); $i++) {
-            $symbol = ($symbols)[$i];
+        for ($i = 0; $i < count(($symbolsNormalized)); $i++) {
+            $symbol = ($symbolsNormalized)[$i];
             $market = $this->market($symbol);
-            $topic = 'instrumentInfo' . '.H.' . $market['id2'];
+            $topic = 'instrumentInfo' . '.H.' . $this->safe_string($market, 'id2');
             $topics[] = $topic;
             $messageHash = 'ticker:' . $symbol;
             $messageHashes[] = $messageHash;
@@ -444,10 +443,13 @@ class apex extends \ccxt\async\apex {
         $ticker = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
         if ($this->newUpdates) {
             $result = array();
-            $result[$ticker['symbol']] = $ticker;
+            $tickerSymbol = $this->safe_string($ticker, 'symbol');
+            if ($tickerSymbol !== null) {
+                $result[$tickerSymbol] = $ticker;
+            }
             return $result;
         }
-        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
     }
 
     public function handle_ticker(Client $client, array $message) {
@@ -479,13 +481,13 @@ class apex extends \ccxt\async\apex {
         $parsed = $this->parse_ticker($data);
         if (($updateType === 'snapshot')) {
             $parsed = $this->parse_ticker($data);
-            $symbol = $parsed['symbol'];
+            $symbol = $this->safe_string($parsed, 'symbol');
         } elseif ($updateType === 'delta') {
             $topicParts = explode('.', $topic);
             $topicLength = count($topicParts);
             $marketId = $this->safe_string($topicParts, $topicLength - 1);
             $market = $this->safe_market($marketId, null, null);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol');
             $ticker = $this->safe_dict($this->tickers, $symbol, array());
             $rawTicker = $this->safe_dict($ticker, 'info', array());
             $merged = $this->extend($rawTicker, $data);
@@ -544,7 +546,7 @@ class apex extends \ccxt\async\apex {
         $rawHashes = array();
         $messageHashes = array();
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-            $data = $symbolsAndTimeframes[$i];
+            $data = $this->safe_list($symbolsAndTimeframes, $i);
             $symbolString = $this->safe_string($data, 0);
             $market = $this->market($symbolString);
             $symbolString = $market['id2'];
@@ -554,10 +556,11 @@ class apex extends \ccxt\async\apex {
             $messageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $unfiedTimeframe;
         }
         list($symbol, $timeframe, $stored) = Async\await($this->watch_topics($url, $messageHashes, $rawHashes, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $stored->getLimit($symbol, $limit);
+            $limitResolved = $stored->getLimit($symbol, $limit);
         }
-        $filtered = $this->filter_by_since_limit($stored, $since, $limit, 0, true);
+        $filtered = $this->filter_by_since_limit($stored, $since, $limitResolved, 0, true);
         return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
     }
 
@@ -592,7 +595,10 @@ class apex extends \ccxt\async\apex {
         $timeframe = $this->find_timeframe($timeframeId);
         $marketId = $this->safe_string($topicParts, $topicLength - 1);
         $isSpot = mb_strpos($client->url, 'spot') > -1;
-        $marketType = $isSpot ? 'spot' : 'contract';
+        $marketType = 'contract';
+        if ($isSpot) {
+            $marketType = 'spot';
+        }
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
@@ -659,17 +665,19 @@ class apex extends \ccxt\async\apex {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $symbolResolved = null;
         if ($symbol !== null) {
-            $symbol = $this->symbol($symbol);
-            $messageHash .= ':' . $symbol;
+            $symbolResolved = $this->symbol($symbol);
+            $messageHash .= ':' . $symbolResolved;
         }
         $url = $this->get_ws_private_url();
         Async\await($this->authenticate($url));
         $trades = Async\await($this->watch_topics($url, array( $messageHash ), array( 'myTrades' ), $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -692,26 +700,31 @@ class apex extends \ccxt\async\apex {
             Async\await($this->load_markets());
         }
         $messageHash = '';
+        $symbolsNormalized2 = null;
+        if ($this->is_empty($symbols)) {
+            $symbolsNormalized2 = $symbols;
+        } else {
+            $symbolsNormalized2 = $this->market_symbols($symbols);
+        }
         if (!$this->is_empty($symbols)) {
-            $symbols = $this->market_symbols($symbols);
-            $messageHash = '::' . implode(',', ($symbols));
+            $messageHash = '::' . implode(',', ($symbolsNormalized2));
         }
         $url = $this->get_ws_private_url();
         $messageHash = 'positions' . $messageHash;
         $client = $this->client($url);
         Async\await($this->authenticate($url));
-        $this->set_positions_cache($client, $symbols);
+        $this->set_positions_cache($client, $symbolsNormalized2);
         $cache = $this->positions;
         if ($cache === null) {
             $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
-            return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
+            return $this->filter_by_symbols_since_limit($snapshot, $symbolsNormalized2, $since, $limit, true);
         }
         $topics = array( 'positions' );
         $newPositions = Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
         if ($this->newUpdates) {
             return $newPositions;
         }
-        return $this->filter_by_symbols_since_limit($cache, $symbols, $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($cache, $symbolsNormalized2, $since, $limit, true);
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -734,18 +747,20 @@ class apex extends \ccxt\async\apex {
             Async\await($this->load_markets());
         }
         $messageHash = 'orders';
+        $symbolResolved = null;
         if ($symbol !== null) {
-            $symbol = $this->symbol($symbol);
-            $messageHash .= ':' . $symbol;
+            $symbolResolved = $this->symbol($symbol);
+            $messageHash .= ':' . $symbolResolved;
         }
         $url = $this->get_ws_private_url();
         Async\await($this->authenticate($url));
         $topics = array( 'orders' );
         $orders = Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function handle_my_trades(Client $client, array $lists) {
