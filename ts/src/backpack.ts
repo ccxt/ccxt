@@ -1009,7 +1009,7 @@ export default class backpack extends Exchange {
             request['startTime'] = this.parseToInt (since / 1000); // convert milliseconds to seconds
         }
         if (until === undefined) {
-            const currentMs = this.milliseconds (); // default to current time in seconds
+            const currentMs = this.seconds (); // default to current time in seconds
             const windowLimit = (limit === undefined) ? defaultLimit : limit;
             const minTimestamp = Math.min (currentMs, request['startTime']  + (windowLimit * duration));
             request['endTime'] = this.parseToInt (minTimestamp); // default to current time in seconds if until is not specified
