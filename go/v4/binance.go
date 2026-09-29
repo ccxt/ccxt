@@ -16618,7 +16618,7 @@ func (this *Binance) CalculateRateLimiterCost(api any, method any, path any, par
 			}
 		}
 	}
-	return this.SafeNumber(config, "cost", 1)
+	return this.SafeValue(config, "cost", 1)
 }
 func (this *Binance) RequestAsync(path any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
