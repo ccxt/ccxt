@@ -263,9 +263,18 @@ trait ClientTrait {
             // recursing endlessly when the snapshot request kept failing, see
             // https://github.com/ccxt/ccxt/pull/24224 and https://github.com/ccxt/ccxt/issues/14567
             // instead, reject the watcher and drop the connection and the cached
-            // orderbook, so the next watch_order_book() call resubscribes cleanly
+            // orderbook, so the next watch_order_book() call resubscribes cleanly.
+            // removing the client from $this->clients alone does not drop it: the
+            // socket stays open and keeps feeding every subscription on it into
+            // the exchange caches, next to the replacement connection that the
+            // next watch call dials (a leak that grows with each failed resync,
+            // see https://github.com/ccxt/ccxt/issues/30669). on_error rejects the
+            // other watchers on this connection and lets on_error() of the exchange
+            // unregister the client, then close() tears down the transport, the
+            // same pair Client::on_ping_interval uses for a keepalive timeout
             $client->reject($error, $messageHash);
-            unset($this->clients[$client->url]);
+            $client->on_error($error);
+            $client->close();
             $this->orderbooks[$symbol] = $this->order_book(); // clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
         }) ();
     }
