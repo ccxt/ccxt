@@ -1455,7 +1455,7 @@ exchange.amountToPrecision (symbol, 123.4567890123456789) === 123.45678
 
 In most cases you are required to load the list of markets and trading symbols for a particular exchange prior to accessing other API methods. If you forget to load markets the ccxt library will do that automatically upon your first call to the unified API. It will send two HTTP requests, first for markets and then the second one for other data, sequentially. For that reason, your first call to a unified CCXT API method like fetchTicker, fetchBalance, etc will take more time, than the consequent calls, since it has to do more work loading the market information from the exchange API. See [Notes On Rate Limiter](#notes-on-rate-limiter) for more details.
 
-In order to load markets manually beforehand call the `loadMarkets ()` / `load_markets ()` method on an exchange instance. It returns an associative array of markets indexed by trading symbol. If you want more control over the execution of your logic, preloading markets by hand is recommended.
+In order to load markets manually beforehand call the `loadMarkets ()` / `load_markets ()` method on an exchange instance. It returns an associative array of markets indexed by trading symbol. If you want more control over the execution of your logic, preloading markets manually is recommended.
 
 <!-- tabs:start -->
 
@@ -1511,9 +1511,9 @@ System.out.println(kraken.id + " " + markets.size() + " markets");
 
 <!-- tabs:end -->
 
-Apart from the market info, the `loadMarkets()` call will also load the currencies from the exchange and will cache the info in the `.markets` and the `.currencies` properties respectively.
+Apart from the market info (which is being stored in the `.markets` property), the `loadMarkets()` call also fetches the currencies from the exchange (if a corresponding endpoint exists) and stores it in the `.currencies` property.
 
-The user can also bypass the cache and call unified methods for fetching that information from the exchange endpoints directly, `fetchMarkets()` and `fetchCurrencies()`, though using these methods is not recommended for end-users. The recommended way to preload markets is by calling the `loadMarkets()` unified method. However, new exchange integrations are required to implement these methods if the underlying exchange has the corresponding API endpoints.
+To ignore the stored data and re-fetch the latest data, use the force argument - `loadMarkets(true)`. You can also manually call `fetchMarkets()` and `fetchCurrencies()` methods, however there is no need for end-users to use those methods manually, because the recommended way to preload markets is by calling the `loadMarkets` method.
 
 ### Sharing Markets Between Exchange Instances
 
