@@ -8,6 +8,15 @@
     },
     "isSandboxModeEnabled": true,
     "methods": {
+        "fetchDeposits": [
+            {
+                "description": "fetch USDC deposits from balance history",
+                "method": "fetchDeposits",
+                "url": "https://test-api.pacifica.fi/api/v1/account/balance/history?account=bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchOpenInterests": [
             {
                 "description": "open interest for all markets",
