@@ -673,7 +673,7 @@ export default class deepcoin extends Exchange {
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         const price = this.safeString (paramsPaginate, 'price');
         let maxLimit = 300;
-        if (market['swap'] && price === undefined) {
+        if (market['swap'] === true && price === undefined) {
             maxLimit = 1000;
         }
         if (paginate) {
