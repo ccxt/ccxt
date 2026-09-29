@@ -9783,6 +9783,8 @@ impl std::ops::DerefMut for ${coreName} {
             // its own Rust module. We emit our own run_all() in
             // writeBaseTestsModFile instead.
             if (testName === 'tests.init') continue;
+            // BaseCore exposes checkAddress only through the variadic &[Value] entry
+            if (testName === 'test.checkAddress') continue;
             const tsFile = `${baseFolder}/${testName}.ts`;
             const tsContent = fs.readFileSync(tsFile).toString();
             // `test.cryptography` is marked NO_AUTO_TRANSPILE (it's
