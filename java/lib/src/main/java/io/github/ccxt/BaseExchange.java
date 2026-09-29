@@ -5284,7 +5284,7 @@ public Object describe()
         List<Object> arr = this.toArray(rawCurrencies);
         for (var i = 0; i < ((List<?>)arr).size(); i++)
         {
-            Object parsed = this.parseCurrency((arr == null || i < 0 || i >= arr.size() ? null : arr.get(i)));
+            io.github.ccxt.types.CurrencyInterface parsed = this.parseCurrency((arr == null || i < 0 || i >= arr.size() ? null : arr.get(i)));
             if (java.util.Objects.equals(parsed, null))
             {
                 continue;
@@ -5305,7 +5305,7 @@ public Object describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(markets); i++)
         {
-            Object market = this.parseMarket(Helpers.GetValue(markets, i));
+            MarketInterface market = this.parseMarket(Helpers.GetValue(markets, i));
             // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
             if (!java.util.Objects.equals(market, null))
             {

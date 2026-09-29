@@ -1908,6 +1908,24 @@ public class TestMain extends BaseTest
         return count;
     }
 
+    public Object effectiveSkipKeys(BaseExchange exchange, Object exchangeData, Object entry)
+    {
+        // 'forceCheckKeys' re-enables the full comparison (both presence and value)
+        // for the listed keys in this one entry, overriding the file-level 'skipKeys'
+        Object rawSkipKeys = exchange.safeList(exchangeData, "skipKeys", new ArrayList<Object>(Arrays.asList()));
+        Object forceCheckKeys = exchange.safeList(entry, "forceCheckKeys", new ArrayList<Object>(Arrays.asList()));
+        List<Object> skipKeys = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < ((List<?>)rawSkipKeys).size(); i++)
+        {
+            Object key = (rawSkipKeys == null || i < 0 || i >= ((List<?>)rawSkipKeys).size() ? null : ((List<?>)rawSkipKeys).get(i));
+            if (!Helpers.isTrue((exchange.inArray(key, forceCheckKeys))))
+            {
+                ((List<Object>)skipKeys).add(key);
+            }
+        }
+        return skipKeys;
+    }
+
     public Object AssertNewAndStoredOutputInner(BaseExchange exchange, Object skipKeys, Object newOutput, Object storedOutput, Object strictTypeCheck, Object AssertingKey)
     {
         if (Helpers.isTrue(isNullValue(newOutput)) && Helpers.isTrue(isNullValue(storedOutput)))
@@ -1956,10 +1974,6 @@ public class TestMain extends BaseTest
             for (var i = 0; i < ((List<?>)storedOutputKeys).size(); i++)
             {
                 Object key = (storedOutputKeys == null || i < 0 || i >= storedOutputKeys.size() ? null : storedOutputKeys.get(i));
-                if (Helpers.isTrue(exchange.inArray(key, skipKeys)))
-                {
-                    continue;
-                }
                 if (!Helpers.isTrue((exchange.inArray(key, newOutputKeys))))
                 {
                     if ((java.util.Objects.equals(this.lang, "C#")) && Boolean.TRUE.equals(this.isVacantValue(exchange, Helpers.GetValue(storedOutput, key))))
@@ -1967,6 +1981,10 @@ public class TestMain extends BaseTest
                         continue;
                     }
                     this.AssertStaticError(false, ("output key missing: " + key), storedOutput, newOutput, (Object) null);
+                }
+                if (Helpers.isTrue(exchange.inArray(key, skipKeys)))
+                {
+                    continue;
                 }
                 Object storedValue = Helpers.GetValue(storedOutput, key);
                 Object newValue = Helpers.GetValue(newOutput, key);
@@ -2558,7 +2576,7 @@ public class TestMain extends BaseTest
                     exchange.extendExchangeOptions((Map<String, Object>) (globalOptions));
                     Object testExchangeOptions = exchange.safeValue(result, "options", new HashMap<String, Object>() {{}});
                     exchange.extendExchangeOptions((Map<String, Object>) (testExchangeOptions));
-                    Object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new ArrayList<Object>(Arrays.asList()));
+                    Object skipKeys = this.effectiveSkipKeys(exchange, exchangeData, result);
                     (this.testWsStatically(exchange, method, skipKeys, result)).join();
                     if (!Helpers.isTrue(isSync()))
                     {
@@ -2791,7 +2809,7 @@ public class TestMain extends BaseTest
                         continue;
                     }
                     String type = exchange.safeString(exchangeData, "outputType");
-                    Object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new ArrayList<Object>(Arrays.asList()));
+                    Object skipKeys = this.effectiveSkipKeys(exchange, exchangeData, result);
                     (this.testRequestStatically(exchange, method, result, type, skipKeys)).join();
                     // reset options
                     exchange.options = exchange.convertToSafeDictionary(exchange.deepExtend(oldExchangeOptions, new HashMap<String, Object>() {{}}));
@@ -2888,7 +2906,7 @@ public class TestMain extends BaseTest
                     {
                         continue;
                     }
-                    Object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new ArrayList<Object>(Arrays.asList()));
+                    Object skipKeys = this.effectiveSkipKeys(exchange, exchangeData, result);
                     (this.testResponseStatically(exchange, method, skipKeys, result)).join();
                     // reset options
                     // exchange.options = exchange.deepExtend (oldExchangeOptions, {});

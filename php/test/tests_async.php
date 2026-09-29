@@ -1565,6 +1565,21 @@ class testMainClass {
         return $count;
     }
 
+    public function effective_skip_keys($exchange, $exchange_data, $entry) {
+        // 'forceCheckKeys' re-enables the full comparison (both presence and value)
+        // for the listed keys in this one entry, overriding the file-level 'skipKeys'
+        $raw_skip_keys = $exchange->safe_list($exchange_data, 'skipKeys', []);
+        $force_check_keys = $exchange->safe_list($entry, 'forceCheckKeys', []);
+        $skip_keys = [];
+        for ($i = 0; $i < count($raw_skip_keys); $i++) {
+            $key = $raw_skip_keys[$i];
+            if (!($exchange->in_array($key, $force_check_keys))) {
+                $skip_keys[] = $key;
+            }
+        }
+        return $skip_keys;
+    }
+
     public function assert_new_and_stored_output_inner($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check = true, $asserting_key = null) {
         if (is_null_value($new_output) && is_null_value($stored_output)) {
             return true;
@@ -1604,14 +1619,14 @@ class testMainClass {
             // iterate over the keys
             for ($i = 0; $i < count($stored_output_keys); $i++) {
                 $key = $stored_output_keys[$i];
-                if ($exchange->in_array($key, $skip_keys)) {
-                    continue;
-                }
                 if (!($exchange->in_array($key, $new_output_keys))) {
                     if (($this->lang === 'C#') && $this->is_vacant_value($exchange, $stored_output[$key])) {
                         continue;
                     }
                     $this->assert_static_error(false, 'output key missing: ' . $key, $stored_output, $new_output);
+                }
+                if ($exchange->in_array($key, $skip_keys)) {
+                    continue;
                 }
                 $stored_value = $stored_output[$key];
                 $new_value = $new_output[$key];
@@ -2089,7 +2104,7 @@ class testMainClass {
                     $exchange->extend_exchange_options($global_options);
                     $test_exchange_options = $exchange->safe_value($result, 'options', array());
                     $exchange->extend_exchange_options($test_exchange_options);
-                    $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
+                    $skip_keys = $this->effective_skip_keys($exchange, $exchange_data, $result);
                     \React\Async\await($this->test_ws_statically($exchange, $method, $skip_keys, $result));
                     if (!is_sync()) {
                         \React\Async\await(close($exchange));
@@ -2278,7 +2293,7 @@ class testMainClass {
                         continue;
                     }
                     $type = $exchange->safe_string($exchange_data, 'outputType');
-                    $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
+                    $skip_keys = $this->effective_skip_keys($exchange, $exchange_data, $result);
                     \React\Async\await($this->test_request_statically($exchange, $method, $result, $type, $skip_keys));
                     // reset options
                     $exchange->options = $exchange->convert_to_safe_dictionary($exchange->deep_extend($old_exchange_options, array()));
@@ -2353,7 +2368,7 @@ class testMainClass {
                     if (($is_disabled_java === true) && ($this->lang === 'java')) {
                         continue;
                     }
-                    $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
+                    $skip_keys = $this->effective_skip_keys($exchange, $exchange_data, $result);
                     \React\Async\await($this->test_response_statically($exchange, $method, $skip_keys, $result));
                     // reset options
                     // exchange.options = exchange.deepExtend (oldExchangeOptions, {});

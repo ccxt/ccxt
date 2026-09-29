@@ -28,7 +28,7 @@ public class TestWatchPosition extends BaseTest {
             Boolean success = true;
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPosition", new Object[]{Helpers.toStringArg(symbol), new HashMap<String, Object>() {{}}})).join();
+                response = (exchange.watchPosition(Helpers.toStringArg(symbol), new HashMap<String, Object>() {{}})).join();
             } catch(Exception e)
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))

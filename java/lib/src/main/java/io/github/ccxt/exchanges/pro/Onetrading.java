@@ -607,7 +607,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object order = this.parseTradingOrder((Map<String, Object>) (message), (Map<String, Object>) null);
+        Order order = this.parseTradingOrder((Map<String, Object>) (message), (Map<String, Object>) null);
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         orders.append(order);
         client.resolve(this.orders, ("orders:" + ((Map<String, Object>)order).get("symbol")));

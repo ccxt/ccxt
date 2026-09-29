@@ -4007,7 +4007,7 @@ public class Coinex extends CoinexApi
             io.github.ccxt.base.Pair<String, Map<String, Object>> defaultMethodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchPositions", "method", "v2PrivateGetFuturesPendingPosition");
             String defaultMethod = defaultMethodparamsMethodVariable.first();
             Map<String, Object> paramsMethod = defaultMethodparamsMethodVariable.second();
-            Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market_type", "FUTURES" );
             }};

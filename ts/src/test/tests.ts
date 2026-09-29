@@ -1658,6 +1658,21 @@ class testMainClass {
         return count;
     }
 
+    effectiveSkipKeys (exchange: Exchange, exchangeData: object, entry: object) {
+        // 'forceCheckKeys' re-enables the full comparison (both presence and value)
+        // for the listed keys in this one entry, overriding the file-level 'skipKeys'
+        const rawSkipKeys = exchange.safeList (exchangeData, 'skipKeys', []);
+        const forceCheckKeys = exchange.safeList (entry, 'forceCheckKeys', []);
+        const skipKeys = [];
+        for (let i = 0; i < rawSkipKeys.length; i++) {
+            const key = rawSkipKeys[i];
+            if (!(exchange.inArray (key, forceCheckKeys))) {
+                skipKeys.push (key);
+            }
+        }
+        return skipKeys;
+    }
+
     assertNewAndStoredOutputInner (exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck = true, assertingKey: Str = undefined) {
         if (isNullValue (newOutput) && isNullValue (storedOutput)) {
             return true;
@@ -1701,14 +1716,14 @@ class testMainClass {
             // iterate over the keys
             for (let i = 0; i < storedOutputKeys.length; i++) {
                 const key = storedOutputKeys[i];
-                if (exchange.inArray (key, skipKeys)) {
-                    continue;
-                }
                 if (!(exchange.inArray (key, newOutputKeys))) {
                     if ((this.lang === 'C#') && this.isVacantValue (exchange, storedOutput[key])) {
                         continue; // the struct has no field for it and it carries no data
                     }
                     this.assertStaticError (false, 'output key missing: ' + key, storedOutput, newOutput);
+                }
+                if (exchange.inArray (key, skipKeys)) {
+                    continue; // the key must be present (asserted above), but its value is not compared
                 }
                 const storedValue = storedOutput[key];
                 const newValue = newOutput[key];
@@ -2193,7 +2208,7 @@ class testMainClass {
                 exchange.extendExchangeOptions (globalOptions);
                 const testExchangeOptions = exchange.safeValue (result, 'options', {});
                 exchange.extendExchangeOptions (testExchangeOptions);
-                const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
+                const skipKeys = this.effectiveSkipKeys (exchange, exchangeData, result);
                 await this.testWsStatically (exchange, method, skipKeys, result);
                 if (!isSync ()) {
                     await close (exchange);
@@ -2392,7 +2407,7 @@ class testMainClass {
                     continue;
                 }
                 const type = exchange.safeString (exchangeData, 'outputType');
-                const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
+                const skipKeys = this.effectiveSkipKeys (exchange, exchangeData, result);
                 await this.testRequestStatically (exchange, method, result, type, skipKeys);
                 // reset options
                 exchange.options = exchange.convertToSafeDictionary (exchange.deepExtend (oldExchangeOptions, {}));
@@ -2471,7 +2486,7 @@ class testMainClass {
                 if ((isDisabledJava === true) && (this.lang === 'java')) {
                     continue;
                 }
-                const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
+                const skipKeys = this.effectiveSkipKeys (exchange, exchangeData, result);
                 await this.testResponseStatically (exchange, method, skipKeys, result);
                 // reset options
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, {});

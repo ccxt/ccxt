@@ -558,7 +558,7 @@ public class Revolutx extends RevolutxApi
                 Map<String, Object> currencyData = this.extend(currency, new HashMap<String, Object>() {{
                     put( "id", key );
                 }});
-                Object parsed = this.parseCurrency(currencyData);
+                io.github.ccxt.types.CurrencyInterface parsed = this.parseCurrency(currencyData);
                 String code = this.safeString(parsed, "code", "");
                 if (java.util.Objects.equals(code, ""))
                 {

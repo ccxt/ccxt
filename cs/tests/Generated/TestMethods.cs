@@ -1816,6 +1816,24 @@ public partial class testMainClass
         return count;
     }
 
+    public virtual object effectiveSkipKeys(BaseExchange exchange, object exchangeData, object entry)
+    {
+        // 'forceCheckKeys' re-enables the full comparison (both presence and value)
+        // for the listed keys in this one entry, overriding the file-level 'skipKeys'
+        object rawSkipKeys = exchange.safeList(exchangeData, "skipKeys", new List<object>() {});
+        object forceCheckKeys = exchange.safeList(entry, "forceCheckKeys", new List<object>() {});
+        List<object> skipKeys = new List<object>() {};
+        for (int i = 0; i < getArrayLength(rawSkipKeys); i++)
+        {
+            object key = getValue(rawSkipKeys, i);
+            if (!isTrue((exchange.inArray(key, forceCheckKeys))))
+            {
+                skipKeys.Add(key);
+            }
+        }
+        return skipKeys;
+    }
+
     public virtual object assertNewAndStoredOutputInner(BaseExchange exchange, object skipKeys, object newOutput, object storedOutput, object strictTypeCheck = null, object assertingKey = null)
     {
         strictTypeCheck ??= true;
@@ -1865,10 +1883,6 @@ public partial class testMainClass
             for (int i = 0; i < storedOutputKeys.Count; i++)
             {
                 object key = storedOutputKeys[i];
-                if (isTrue(exchange.inArray(key, skipKeys)))
-                {
-                    continue;
-                }
                 if (!isTrue((exchange.inArray(key, newOutputKeys))))
                 {
                     if ((isEqual(this.lang, "C#")) && isTrue(this.isVacantValue(exchange, getValue(storedOutput, key))))
@@ -1876,6 +1890,10 @@ public partial class testMainClass
                         continue;
                     }
                     this.assertStaticError(false, ("output key missing: " + (key)), storedOutput, newOutput);
+                }
+                if (isTrue(exchange.inArray(key, skipKeys)))
+                {
+                    continue;
                 }
                 object storedValue = getValue(storedOutput, key);
                 object newValue = getValue(newOutput, key);
@@ -2441,7 +2459,7 @@ public partial class testMainClass
                 exchange.extendExchangeOptions(globalOptions);
                 object testExchangeOptions = exchange.safeValue(result, "options", new Dictionary<string, object>() {});
                 exchange.extendExchangeOptions(testExchangeOptions);
-                object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new List<object>() {});
+                object skipKeys = this.effectiveSkipKeys(exchange, exchangeData, result);
                 await this.testWsStatically(exchange, method, skipKeys, result);
                 if (!isTrue(isSync()))
                 {
@@ -2670,7 +2688,7 @@ public partial class testMainClass
                     continue;
                 }
                 object type = exchange.safeString(exchangeData, "outputType");
-                object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new List<object>() {});
+                object skipKeys = this.effectiveSkipKeys(exchange, exchangeData, result);
                 await this.testRequestStatically(exchange, method, result, type, skipKeys);
                 // reset options
                 exchange.options = exchange.convertToSafeDictionary(exchange.deepExtend(oldExchangeOptions, new Dictionary<string, object>() {}));
@@ -2762,7 +2780,7 @@ public partial class testMainClass
                 {
                     continue;
                 }
-                object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new List<object>() {});
+                object skipKeys = this.effectiveSkipKeys(exchange, exchangeData, result);
                 await this.testResponseStatically(exchange, method, skipKeys, result);
                 // reset options
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, {});
