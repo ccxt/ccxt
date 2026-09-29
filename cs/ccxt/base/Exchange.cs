@@ -797,7 +797,6 @@ public partial class BaseExchange
             }
             await Task.WhenAll(tasks);
         }
-        this.clearWsBackoffState();
         if (cleanInstanceCache) {
             this.cleanWsData();
         }

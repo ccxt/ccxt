@@ -59,7 +59,7 @@ public partial class BaseTest
         await testWsBackoffDelayIsHonored();
         await testWsCloseCancelsDelayedConnection();
         await testWsConnectLeavesCallerContext();
-        testWsBackoffStateResetsOnClose();
+        testWsBackoffStatePersistsAcrossClose();
         await testWsBackoffConcurrentUpdates();
     }
 
@@ -154,14 +154,14 @@ public partial class BaseTest
         }
     }
 
-    private void testWsBackoffStateResetsOnClose()
+    private void testWsBackoffStatePersistsAcrossClose()
     {
         var exchange = new BaseExchange();
         var url = "ws://localhost:1234/backoff-state";
         Assert(exchange.calculateWsBackoffDelay(url) == 0, "the first attempt must be immediate");
         Assert(exchange.calculateWsBackoffDelay(url) > 0, "a subsequent attempt must receive backoff");
         exchange.Close().GetAwaiter().GetResult();
-        Assert(exchange.calculateWsBackoffDelay(url) == 0, "the first attempt after Close must be immediate");
+        Assert(exchange.calculateWsBackoffDelay(url) > 0, "backoff state survives Close() like the other languages");
     }
 
     private async Task testWsBackoffConcurrentUpdates()

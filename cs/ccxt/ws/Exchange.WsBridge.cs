@@ -51,13 +51,6 @@ public partial class BaseExchange
         }
     }
 
-    private void clearWsBackoffState()
-    {
-        lock (wsBackoffStateSync)
-        {
-            this.wsBackoffState.Clear();
-        }
-    }
     public ConcurrentDictionary<string, WebSocketClient> clients = new ConcurrentDictionary<string, WebSocketClient>();
     public static ClientWebSocket ws = null;
 
