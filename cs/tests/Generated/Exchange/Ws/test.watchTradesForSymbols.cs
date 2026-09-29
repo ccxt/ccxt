@@ -8,16 +8,16 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testWatchTradesForSymbols(Exchange exchange, object skippedProperties, object symbols)
+    async static public Task<object> testWatchTradesForSymbols(Exchange exchange, object skippedProperties, IList<object> symbols)
     {
         string method = "watchTradesForSymbols";
         object logText = add(add(add(add(add(exchange.id, " "), method), " [symbols: "), exchange.json(symbols)), "] ");
         Int64 now = exchange.milliseconds();
-        object ends = (now + 30000);
+        Int64 ends = (now + 30000);
         int maxIdleTime = 5000;
         bool idle = false;
         List<object> returnedSymbols = new List<object>() {};
-        while ((isLessThan(now, ends)) && !idle)
+        while ((now < ends) && !idle)
         {
             object response = null;
             bool success = true;
@@ -47,7 +47,7 @@ public partial class testMainClass : BaseTest
                     testSharedMethods.assertInArray(exchange, skippedProperties, method, trade, "symbol", symbols);
                     if (!isTrue(exchange.inArray(symbol, returnedSymbols)))
                     {
-                        ((IList<object>)returnedSymbols).Add(symbol);
+                        returnedSymbols.Add(symbol);
                     }
                 }
                 if (elapsedMs > maxIdleTime)
@@ -56,7 +56,7 @@ public partial class testMainClass : BaseTest
                 }
             }
         }
-        assert(((returnedSymbols?.Count ?? 0) == getArrayLength(symbols)), add(add(logText, "only received part of symbols: "), exchange.json(returnedSymbols)));
+        assert(((returnedSymbols?.Count ?? 0) == (symbols?.Count ?? 0)), add(add(logText, "only received part of symbols: "), exchange.json(returnedSymbols)));
         return true;
     }
 
