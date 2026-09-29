@@ -24,7 +24,7 @@ export default class lbank extends Exchange {
      * @returns {dict} an associative dictionary of currencies
      */
     fetchCurrencies(params?: Dict): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): CurrencyInterface;
+    parseCurrency(rawCurrency: Dict[]): CurrencyInterface;
     /**
      * @method
      * @name lbank#fetchMarkets
@@ -330,9 +330,9 @@ export default class lbank extends Exchange {
     fetchDepositWithdrawFees(codes?: Strings, params?: Dict): Promise<DepositWithdrawFees>;
     fetchPrivateDepositWithdrawFees(codes?: Strings, params?: Dict): Promise<DepositWithdrawFees>;
     fetchPublicDepositWithdrawFees(codes?: Strings, params?: Dict): Promise<DepositWithdrawFees>;
-    parsePublicDepositWithdrawFees(response: any[], codes?: Strings): DepositWithdrawFees;
+    parsePublicDepositWithdrawFees(response: Dict[], codes?: Strings): DepositWithdrawFees;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     convertSecretToPem(secret: any): string;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

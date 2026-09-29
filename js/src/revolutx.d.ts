@@ -6,7 +6,7 @@ import type { Balances, Currencies, Currency, Dict, Int, int, Market, MarketInte
  */
 export default class revolutx extends Exchange {
     describe(): any;
-    sign(path: any, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     /**
      * @method
      * @name revolutx#parseMarket

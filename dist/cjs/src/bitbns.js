@@ -297,6 +297,9 @@ class bitbns extends bitbns$1["default"] {
             const quoteId = this.safeString(market, 'quote');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((baseId === undefined) || (base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const marketPrecision = this.safeDict(market, 'precision', {});
             const marketLimits = this.safeDict(market, 'limits', {});
             const amountLimits = this.safeDict(marketLimits, 'amount', {});
@@ -304,7 +307,10 @@ class bitbns extends bitbns$1["default"] {
             const costLimits = this.safeDict(marketLimits, 'cost', {});
             const usdt = (quoteId === 'USDT');
             // INR markets don't need a _INR prefix
-            const uppercaseId = usdt ? (baseId + '_' + quoteId) : baseId;
+            let uppercaseId = baseId;
+            if (usdt) {
+                uppercaseId = (baseId + '_' + quoteId);
+            }
             result.push({
                 'id': id,
                 'uppercaseId': uppercaseId,
@@ -686,10 +692,8 @@ class bitbns extends bitbns$1["default"] {
         const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 't_rate']);
         const targetRate = this.safeString(params, 'target_rate');
         const trailRate = this.safeString(params, 'trail_rate');
-        params = this.omit(params, ['triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate']);
-        if (side === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a side argument');
-        }
+        const paramsOmitted = this.omit(params, ['triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate']);
+        this.checkRequiredArgument('createOrder', side, 'side');
         const request = {
             'side': side.toUpperCase(),
             'symbol': market['uppercaseId'],
@@ -715,10 +719,10 @@ class bitbns extends bitbns$1["default"] {
         }
         let response = undefined;
         if (type === 'limit') {
-            response = await this.v2PostOrders(this.extend(request, params));
+            response = await this.v2PostOrders(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.v1PostPlaceMarketOrderQntySymbol(this.extend(request, params));
+            response = await this.v1PostPlaceMarketOrderQntySymbol(this.extend(request, paramsOmitted));
         }
         //
         //     {
@@ -753,7 +757,7 @@ class bitbns extends bitbns$1["default"] {
         }
         const market = this.market(symbol);
         const isTrigger = this.safeBool2(params, 'trigger', 'stop');
-        params = this.omit(params, ['trigger', 'stop']);
+        const paramsOmitted = this.omit(params, ['trigger', 'stop']);
         const request = {
             'entry_id': id,
             'symbol': market['uppercaseId'],
@@ -763,7 +767,7 @@ class bitbns extends bitbns$1["default"] {
         let quoteSide = (market['quoteId'] === 'USDT') ? 'usdtcancel' : 'cancel';
         quoteSide += tail;
         request['side'] = quoteSide;
-        response = await this.v2PostCancel(this.extend(request, params));
+        response = await this.v2PostCancel(this.extend(request, paramsOmitted));
         const parsed = (response === undefined) ? {} : response;
         return this.parseOrder(parsed, market);
     }
@@ -845,14 +849,17 @@ class bitbns extends bitbns$1["default"] {
         }
         const market = this.market(symbol);
         const isTrigger = this.safeBool2(params, 'trigger', 'stop');
-        params = this.omit(params, ['trigger', 'stop']);
-        const quoteSide = (market['quoteId'] === 'USDT') ? 'usdtListOpen' : 'listOpen';
+        const paramsOmitted = this.omit(params, ['trigger', 'stop']);
+        let quoteSide = 'listOpen';
+        if (market['quoteId'] === 'USDT') {
+            quoteSide = 'usdtListOpen';
+        }
         const request = {
             'symbol': market['uppercaseId'],
             'page': 0,
             'side': (isTrigger === true) ? (quoteSide + 'StopOrders') : (quoteSide + 'Orders'),
         };
-        const response = await this.v2PostGetordersnew(this.extend(request, params));
+        const response = await this.v2PostGetordersnew(this.extend(request, paramsOmitted));
         //
         //     {
         //         "data":[
@@ -908,7 +915,7 @@ class bitbns extends bitbns$1["default"] {
         //         "type":"buy"
         //     }
         //
-        market = this.safeMarket(undefined, market);
+        const marketResolved = this.safeMarket(undefined, market);
         const orderId = this.safeString2(trade, 'id', 'tradeId');
         let timestamp = this.parse8601(this.safeString(trade, 'date'));
         timestamp = this.safeInteger(trade, 'timestamp', timestamp);
@@ -932,11 +939,11 @@ class bitbns extends bitbns$1["default"] {
             amountString = this.safeString(trade, 'base_volume');
             costString = this.safeString(trade, 'quote_volume');
         }
-        const symbol = market['symbol'];
+        const symbol = marketResolved['symbol'];
         let fee = undefined;
         const feeCostString = this.safeString(trade, 'fee');
         if (feeCostString !== undefined) {
-            const feeCurrencyCode = market['quote'];
+            const feeCurrencyCode = marketResolved['quote'];
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
@@ -956,7 +963,7 @@ class bitbns extends bitbns$1["default"] {
             'amount': amountString,
             'cost': costString,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1274,38 +1281,43 @@ class bitbns extends bitbns$1["default"] {
         }
         if (api !== 'www') {
             this.checkRequiredCredentials();
-            headers = {
-                'X-BITBNS-APIKEY': this.apiKey,
-            };
         }
-        const baseUrl = this.implodeHostname(this.urls['api'][api]);
+        const apiKeyHeaders = {
+            'X-BITBNS-APIKEY': this.apiKey,
+        };
+        let requestHeaders = (api !== 'www') ? apiKeyHeaders : headers;
+        const baseApiUrl = this.safeString(this.urls['api'], api);
+        if (baseApiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl = this.implodeHostname(baseApiUrl);
         let url = baseUrl + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const nonce = this.nonce().toString();
+        const queryLength = Object.keys(query).length;
+        let postBody = '{}';
+        if (queryLength > 0) {
+            postBody = this.json(query);
+        }
+        const requestBody = (method === 'POST') ? postBody : body;
         if (method === 'GET') {
-            if (Object.keys(query).length > 0) {
+            if (queryLength > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
         else if (method === 'POST') {
-            if (Object.keys(query).length > 0) {
-                body = this.json(query);
-            }
-            else {
-                body = '{}';
-            }
             const auth = {
                 'timeStamp_nonce': nonce,
-                'body': body,
+                'body': requestBody,
             };
             const payload = this.stringToBase64(this.json(auth));
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha512);
-            headers = (headers === undefined) ? {} : headers;
-            headers['X-BITBNS-PAYLOAD'] = payload;
-            headers['X-BITBNS-SIGNATURE'] = signature;
-            headers['Content-Type'] = 'application/x-www-form-urlencoded';
+            requestHeaders = (requestHeaders === undefined) ? {} : requestHeaders;
+            requestHeaders['X-BITBNS-PAYLOAD'] = payload;
+            requestHeaders['X-BITBNS-SIGNATURE'] = signature;
+            requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

@@ -357,7 +357,11 @@ export default class latoken extends Exchange {
         });
     }
     nonce() {
-        return this.milliseconds() - this.options['timeDifference'];
+        const timeDifference = this.safeInteger(this.options, 'timeDifference');
+        if (timeDifference === undefined) {
+            throw new ExchangeError(this.id + ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return this.milliseconds() - timeDifference;
     }
     /**
      * @method
@@ -606,7 +610,7 @@ export default class latoken extends Exchange {
         const balancesByType = this.groupBy(response, 'type');
         const balances = this.safeList(balancesByType, accountType, []);
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict(balances, i);
             const currencyId = this.safeString(balance, 'currency');
             const timestamp = this.safeInteger(balance, 'timestamp');
             if (timestamp !== undefined) {
@@ -881,9 +885,13 @@ export default class latoken extends Exchange {
         const quoteId = this.safeString(trade, 'quoteCurrency');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        const symbol = base + '/' + quote;
-        if ((this.markets !== undefined) && (symbol in this.markets)) {
-            market = this.market(symbol);
+        let symbol = undefined;
+        let marketResolved = market;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+            if ((this.markets !== undefined) && (symbol in this.markets)) {
+                marketResolved = this.market(symbol);
+            }
         }
         const id = this.safeString(trade, 'id');
         const orderId = this.safeString(trade, 'order');
@@ -909,7 +917,7 @@ export default class latoken extends Exchange {
             'amount': amountString,
             'cost': costString,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -960,12 +968,12 @@ export default class latoken extends Exchange {
         const options = this.safeDict(this.options, 'fetchTradingFee', {});
         const defaultMethod = this.safeString(options, 'method', 'fetchPrivateTradingFee');
         const method = this.safeString(params, 'method', defaultMethod);
-        params = this.omit(params, 'method');
+        const paramsOmitted = this.omit(params, 'method');
         if (method === 'fetchPrivateTradingFee') {
-            return await this.fetchPrivateTradingFee(symbol, params);
+            return await this.fetchPrivateTradingFee(symbol, paramsOmitted);
         }
         else if (method === 'fetchPublicTradingFee') {
-            return await this.fetchPublicTradingFee(symbol, params);
+            return await this.fetchPublicTradingFee(symbol, paramsOmitted);
         }
         else {
             throw new NotSupported(this.id + ' not support this method');
@@ -1157,9 +1165,11 @@ export default class latoken extends Exchange {
         let symbol = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
-            if ((this.markets !== undefined) && (symbol in this.markets)) {
-                market = this.market(symbol);
-            }
+        }
+        const symbolKnown = (symbol !== undefined) && (this.markets !== undefined) && (symbol in this.markets);
+        let marketResolved = market;
+        if (symbolKnown) {
+            marketResolved = this.market(symbol);
         }
         const orderSide = this.safeString(order, 'side');
         let side = undefined;
@@ -1207,7 +1217,7 @@ export default class latoken extends Exchange {
             'remaining': undefined,
             'fee': undefined,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1231,7 +1241,7 @@ export default class latoken extends Exchange {
         }
         let response;
         const isTrigger = this.safeBool2(params, 'trigger', 'stop');
-        params = this.omit(params, 'stop');
+        const paramsOmitted = this.omit(params, 'stop');
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         const market = this.market(symbol);
         const request = {
@@ -1239,10 +1249,10 @@ export default class latoken extends Exchange {
             'quote': market['quoteId'],
         };
         if (isTrigger === true) {
-            response = await this.privateGetAuthStopOrderPairCurrencyQuoteActive(this.extend(request, params));
+            response = await this.privateGetAuthStopOrderPairCurrencyQuoteActive(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.privateGetAuthOrderPairCurrencyQuoteActive(this.extend(request, params));
+            response = await this.privateGetAuthOrderPairCurrencyQuoteActive(this.extend(request, paramsOmitted));
         }
         //
         //     [
@@ -1295,7 +1305,7 @@ export default class latoken extends Exchange {
         };
         let market = undefined;
         const isTrigger = this.safeBool2(params, 'trigger', 'stop');
-        params = this.omit(params, ['stop', 'trigger']);
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
@@ -1305,18 +1315,18 @@ export default class latoken extends Exchange {
             request['currency'] = market['baseId'];
             request['quote'] = market['quoteId'];
             if (isTrigger === true) {
-                response = await this.privateGetAuthStopOrderPairCurrencyQuote(this.extend(request, params));
+                response = await this.privateGetAuthStopOrderPairCurrencyQuote(this.extend(request, paramsOmitted));
             }
             else {
-                response = await this.privateGetAuthOrderPairCurrencyQuote(this.extend(request, params));
+                response = await this.privateGetAuthOrderPairCurrencyQuote(this.extend(request, paramsOmitted));
             }
         }
         else {
             if (isTrigger === true) {
-                response = await this.privateGetAuthStopOrder(this.extend(request, params));
+                response = await this.privateGetAuthStopOrder(this.extend(request, paramsOmitted));
             }
             else {
-                response = await this.privateGetAuthOrder(this.extend(request, params));
+                response = await this.privateGetAuthOrder(this.extend(request, paramsOmitted));
             }
         }
         //
@@ -1363,13 +1373,13 @@ export default class latoken extends Exchange {
             'id': id,
         };
         const isTrigger = this.safeBool2(params, 'trigger', 'stop');
-        params = this.omit(params, ['stop', 'trigger']);
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         let response;
         if (isTrigger === true) {
-            response = await this.privateGetAuthStopOrderGetOrderId(this.extend(request, params));
+            response = await this.privateGetAuthStopOrderGetOrderId(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.privateGetAuthOrderGetOrderId(this.extend(request, params));
+            response = await this.privateGetAuthOrderGetOrderId(this.extend(request, paramsOmitted));
         }
         //
         //     {
@@ -1418,9 +1428,7 @@ export default class latoken extends Exchange {
         }
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
-        if (side === undefined) {
-            throw new ArgumentsRequired(this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument('createOrder', side, 'side');
         const request = {
             'baseCurrency': market['baseId'],
             'quoteCurrency': market['quoteId'],
@@ -1437,14 +1445,14 @@ export default class latoken extends Exchange {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
-        params = this.omit(params, ['triggerPrice', 'stopPrice']);
+        const paramsOmitted = this.omit(params, ['triggerPrice', 'stopPrice']);
         let response;
         if (triggerPrice !== undefined) {
             request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
-            response = await this.privatePostAuthStopOrderPlace(this.extend(request, params));
+            response = await this.privatePostAuthStopOrderPlace(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.privatePostAuthOrderPlace(this.extend(request, params));
+            response = await this.privatePostAuthOrderPlace(this.extend(request, paramsOmitted));
         }
         //
         //    {
@@ -1480,13 +1488,13 @@ export default class latoken extends Exchange {
             'id': id,
         };
         const isTrigger = this.safeBool2(params, 'trigger', 'stop');
-        params = this.omit(params, ['stop', 'trigger']);
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         let response;
         if (isTrigger === true) {
-            response = await this.privatePostAuthStopOrderCancel(this.extend(request, params));
+            response = await this.privatePostAuthStopOrderCancel(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.privatePostAuthOrderCancel(this.extend(request, params));
+            response = await this.privatePostAuthOrderCancel(this.extend(request, paramsOmitted));
         }
         //
         //     {
@@ -1520,25 +1528,25 @@ export default class latoken extends Exchange {
         };
         let market = undefined;
         const isTrigger = this.safeBool2(params, 'trigger', 'stop');
-        params = this.omit(params, ['stop', 'trigger']);
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         let response;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['currency'] = market['baseId'];
             request['quote'] = market['quoteId'];
             if (isTrigger === true) {
-                response = await this.privatePostAuthStopOrderCancelAllCurrencyQuote(this.extend(request, params));
+                response = await this.privatePostAuthStopOrderCancelAllCurrencyQuote(this.extend(request, paramsOmitted));
             }
             else {
-                response = await this.privatePostAuthOrderCancelAllCurrencyQuote(this.extend(request, params));
+                response = await this.privatePostAuthOrderCancelAllCurrencyQuote(this.extend(request, paramsOmitted));
             }
         }
         else {
             if (isTrigger === true) {
-                response = await this.privatePostAuthStopOrderCancelAll(this.extend(request, params));
+                response = await this.privatePostAuthStopOrderCancelAll(this.extend(request, paramsOmitted));
             }
             else {
-                response = await this.privatePostAuthOrderCancelAll(this.extend(request, params));
+                response = await this.privatePostAuthOrderCancelAll(this.extend(request, paramsOmitted));
             }
         }
         //
@@ -1846,6 +1854,8 @@ export default class latoken extends Exchange {
         return this.safeString(statuses, status, status);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let requestHeaders = headers;
+        let requestBody = body;
         const request = '/' + this.version + '/' + this.implodeParams(path, params);
         let requestString = request;
         const query = this.omit(params, this.extractParams(path));
@@ -1859,18 +1869,22 @@ export default class latoken extends Exchange {
             this.checkRequiredCredentials();
             const auth = method + request + urlencodedQuery;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
-            headers = {
+            requestHeaders = {
                 'X-LA-APIKEY': this.apiKey,
                 'X-LA-SIGNATURE': signature,
                 'X-LA-DIGEST': 'HMAC-SHA512', // HMAC-SHA384, HMAC-SHA512, optional
             };
             if (method === 'POST') {
-                headers['Content-Type'] = 'application/json';
-                body = this.json(query);
+                requestHeaders['Content-Type'] = 'application/json';
+                requestBody = this.json(query);
             }
         }
-        const url = this.urls['api']['rest'] + requestString;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const apiUrl = this.safeString(this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + requestString;
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

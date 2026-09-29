@@ -519,6 +519,9 @@ class btcmarkets extends btcmarkets$1["default"] {
         const id = this.safeString(market, 'marketId');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         const fees = this.safeDict(this.safeDict(this.options, 'fees', {}), quote, this.fees);
         const pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'priceDecimals')));
@@ -601,7 +604,7 @@ class btcmarkets extends btcmarkets$1["default"] {
     parseBalance(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict(response, i);
             const currencyId = this.safeString(balance, 'assetName');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -749,8 +752,8 @@ class btcmarkets extends btcmarkets$1["default"] {
         //     }
         //
         const marketId = this.safeString(ticker, 'marketId');
-        market = this.safeMarket(marketId, market, '-');
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market, '-');
+        const symbol = marketResolved['symbol'];
         const timestamp = this.parse8601(this.safeString(ticker, 'timestamp'));
         const last = this.safeString(ticker, 'lastPrice');
         const baseVolume = this.safeString(ticker, 'volume24h');
@@ -778,7 +781,7 @@ class btcmarkets extends btcmarkets$1["default"] {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -855,8 +858,14 @@ class btcmarkets extends btcmarkets$1["default"] {
         //
         const timestamp = this.parse8601(this.safeString(trade, 'timestamp'));
         const marketId = this.safeString(trade, 'marketId');
-        market = this.safeMarket(marketId, market, '-');
-        const feeCurrencyCode = (market['quote'] === 'AUD') ? market['quote'] : market['base'];
+        const marketResolved = this.safeMarket(marketId, market, '-');
+        let feeCurrencyCode = undefined;
+        if (marketResolved['quote'] === 'AUD') {
+            feeCurrencyCode = marketResolved['quote'];
+        }
+        else {
+            feeCurrencyCode = marketResolved['base'];
+        }
         let side = this.safeString(trade, 'side');
         if (side === 'Bid') {
             side = 'buy';
@@ -883,7 +892,7 @@ class btcmarkets extends btcmarkets$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'order': orderId,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': undefined,
             'side': side,
             'price': priceString,
@@ -891,7 +900,7 @@ class btcmarkets extends btcmarkets$1["default"] {
             'cost': undefined,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -992,7 +1001,6 @@ class btcmarkets extends btcmarkets$1["default"] {
         }
         if (triggerPriceIsRequired) {
             const triggerPrice = this.safeNumber(params, 'triggerPrice');
-            params = this.omit(params, 'triggerPrice');
             if (triggerPrice === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice parameter for a ' + type + 'order');
             }
@@ -1004,8 +1012,12 @@ class btcmarkets extends btcmarkets$1["default"] {
         if (clientOrderId !== undefined) {
             request['clientOrderId'] = clientOrderId;
         }
-        params = this.omit(params, 'clientOrderId');
-        const response = await this.privatePostOrders(this.extend(request, params));
+        let paramsTriggerPrice = params;
+        if (triggerPriceIsRequired) {
+            paramsTriggerPrice = this.omit(params, 'triggerPrice');
+        }
+        const paramsOmitted = this.omit(paramsTriggerPrice, 'clientOrderId');
+        const response = await this.privatePostOrders(this.extend(request, paramsOmitted));
         //
         //     {
         //         "orderId": "7524",
@@ -1116,14 +1128,14 @@ class btcmarkets extends btcmarkets$1["default"] {
         let currency = undefined;
         let cost = undefined;
         if (market['quote'] === 'AUD') {
-            currency = market['quote'];
+            currency = this.safeString(market, 'quote');
             const amountString = this.numberToString(amount);
             const priceString = this.numberToString(price);
             const otherUnitsAmount = Precise["default"].stringMul(amountString, priceString);
             cost = this.costToPrecision(symbol, otherUnitsAmount);
         }
         else {
-            currency = market['base'];
+            currency = this.safeString(market, 'base');
             cost = this.amountToPrecision(symbol, amount);
         }
         const rate = this.safeValue(market, takerOrMaker);
@@ -1175,7 +1187,7 @@ class btcmarkets extends btcmarkets$1["default"] {
         //
         const timestamp = this.parse8601(this.safeString(order, 'creationTime'));
         const marketId = this.safeString(order, 'marketId');
-        market = this.safeMarket(marketId, market, '-');
+        const marketResolved = this.safeMarket(marketId, market, '-');
         let side = this.safeString(order, 'side');
         if (side === 'Bid') {
             side = 'buy';
@@ -1199,7 +1211,7 @@ class btcmarkets extends btcmarkets$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -1214,7 +1226,7 @@ class btcmarkets extends btcmarkets$1["default"] {
             'status': status,
             'trades': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1368,7 +1380,7 @@ class btcmarkets extends btcmarkets$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1381,10 +1393,10 @@ class btcmarkets extends btcmarkets$1["default"] {
             this.checkAddress(address);
             request['toAddress'] = address;
         }
-        if (tag !== undefined) {
-            request['toAddress'] = address + '?dt=' + tag;
+        if (tagWithdrawTag !== undefined) {
+            request['toAddress'] = address + '?dt=' + tagWithdrawTag;
         }
-        const response = await this.privatePostWithdrawals(this.extend(request, params));
+        const response = await this.privatePostWithdrawals(this.extend(request, paramsWithdrawTag));
         //
         //      {
         //          "id": "4126657",
@@ -1407,6 +1419,8 @@ class btcmarkets extends btcmarkets$1["default"] {
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         let request = '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.keysort(this.omit(params, this.extractParams(path)));
         if (api === 'private') {
@@ -1420,11 +1434,11 @@ class btcmarkets extends btcmarkets$1["default"] {
                 }
             }
             else {
-                body = this.json(query);
-                auth += body;
+                requestBody = this.json(query);
+                auth += requestBody;
             }
             const signature = this.hmac(this.encode(auth), secret, sha2_js.sha512, 'base64');
-            headers = {
+            requestHeaders = {
                 'Accept': 'application/json',
                 'Accept-Charset': 'UTF-8',
                 'Content-Type': 'application/json',
@@ -1438,8 +1452,14 @@ class btcmarkets extends btcmarkets$1["default"] {
                 request += '?' + this.urlencode(query);
             }
         }
-        const url = this.urls['api'][api] + request;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const apiUrl = this.safeString(this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + request;
+        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
+        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

@@ -164,7 +164,7 @@ export default class btcmarkets extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     calculateFee(symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker?: any, params?: Dict): {
         type: any;
-        currency: string;
+        currency: Str;
         rate: any;
         cost: number;
     };
@@ -243,6 +243,6 @@ export default class btcmarkets extends Exchange {
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }
