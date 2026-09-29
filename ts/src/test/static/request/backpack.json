@@ -383,7 +383,8 @@
                 "output": null
             },
             {
-                "description": "spot",
+                "disabled": true,
+                "description": "spot (disabled bcz of dynamic since calculation)",
                 "method": "fetchOHLCV",
                 "url": "https://api.backpack.exchange/api/v1/klines?endTime=1790680254&interval=1m&startTime=1790674254&symbol=BTC_USDC",
                 "input": [
