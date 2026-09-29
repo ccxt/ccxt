@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import xtRest from '../xt.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { AuthenticationError, NotSupported } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 //  ---------------------------------------------------------------------------
 export default class xt extends xtRest {
     describe() {
@@ -1595,6 +1595,7 @@ export default class xt extends xtRest {
             this.getListenKey(true);
             return;
         }
-        client.reject(message);
+        const error = new ExchangeError(this.id + ' ' + this.json(message));
+        client.reject(error);
     }
 }

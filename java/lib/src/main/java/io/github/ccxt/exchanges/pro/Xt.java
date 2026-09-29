@@ -1946,6 +1946,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             this.getListenKey(true);
             return;
         }
-        client.reject(message);
+        var error = new ExchangeError(((this.id + " ") + this.json(message)));
+        client.reject(error);
     }
 }

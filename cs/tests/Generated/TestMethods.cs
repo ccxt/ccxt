@@ -3013,16 +3013,27 @@ public partial class testMainClass
             await exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 0.002, 102000, new Dictionary<string, object>() {
                 { "triggerPrice", 101000 },
             });
-            object checkOrderRequest = this.urlencodedToDict(exchange.last_request_body);
-            bool algoOrderIdDefined = (!isEqual(getValue(checkOrderRequest, "algoOrderId"), null));
-            assert(algoOrderIdDefined, "binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined");
-            object clientAlgoIdSwap = getValue(swapAlgoOrderRequest, "clientAlgoId");
-            string swapAlgoIdString = ((object)swapId).ToString();
-            assert((((string)clientAlgoIdSwap).StartsWith(((string)swapAlgoIdString)) == true), ((("binance - swap clientOrderId: " + (clientAlgoIdSwap)) + " does not start with swapId") + swapAlgoIdString));
         } catch(Exception e)
         {
             swapAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
         }
+        object clientAlgoIdSwap = getValue(swapAlgoOrderRequest, "clientAlgoId");
+        assert((clientAlgoIdSwap != null), "binance - swap conditional order must send clientAlgoId");
+        assert((((string)clientAlgoIdSwap).StartsWith(((string)swapIdString)) == true), ((("binance - swap clientAlgoId: " + (clientAlgoIdSwap)) + " does not start with swapId") + swapIdString));
+        // inverse swap conditional order
+        object inverseAlgoOrderRequest = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("BTC/USD:BTC", "limit", "buy", 1, 20000, new Dictionary<string, object>() {
+                { "triggerPrice", 21000 },
+            });
+        } catch(Exception e)
+        {
+            inverseAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object clientAlgoIdInverse = getValue(inverseAlgoOrderRequest, "clientAlgoId");
+        assert((clientAlgoIdInverse != null), "binance - inverse swap conditional order must send clientAlgoId");
+        assert((((string)clientAlgoIdInverse).StartsWith(((string)inverseSwapId)) == true), ((("binance - inverse swap clientAlgoId: " + (clientAlgoIdInverse)) + " does not start with inverseSwapId") + inverseSwapId));
         object createOrdersRequest = new Dictionary<string, object>() {};
         try
         {
@@ -3050,6 +3061,53 @@ public partial class testMainClass
             object currentClientOrderId = getValue(current, "newClientOrderId");
             assert((((string)currentClientOrderId).StartsWith(((string)swapIdString)) == true), ((("binance createOrders - clientOrderId: " + (currentClientOrderId)) + " does not start with swapId") + swapIdString));
         }
+        // linear conditional orders cannot be batched
+        object linearConditionalBatchNotSupported = false;
+        try
+        {
+            List<object> linearConditionalOrders = new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTC/USDT:USDT" },
+    { "type", "limit" },
+    { "side", "buy" },
+    { "amount", 1 },
+    { "price", 20000 },
+    { "params", new Dictionary<string, object>() {
+        { "triggerPrice", 21000 },
+    } },
+}};
+            await exchange.CreateOrders(linearConditionalOrders);
+        } catch(Exception e)
+        {
+            linearConditionalBatchNotSupported = (e is NotSupported);
+        }
+        assert(linearConditionalBatchNotSupported, "binance createOrders - linear conditional order must throw NotSupported");
+        // inverse conditional orders are batched in the regular (non-algo) format
+        object inverseConditionalBatchRequest = new Dictionary<string, object>() {};
+        object inverseConditionalBatchNotSupported = false;
+        try
+        {
+            List<object> inverseConditionalOrders = new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTC/USD:BTC" },
+    { "type", "limit" },
+    { "side", "buy" },
+    { "amount", 1 },
+    { "price", 20000 },
+    { "params", new Dictionary<string, object>() {
+        { "triggerPrice", 21000 },
+    } },
+}};
+            await exchange.CreateOrders(inverseConditionalOrders);
+        } catch(Exception e)
+        {
+            inverseConditionalBatchNotSupported = (e is NotSupported);
+            inverseConditionalBatchRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        assert(!isTrue(inverseConditionalBatchNotSupported), "binance createOrders - inverse conditional order must not throw NotSupported");
+        object inverseConditionalBatchOrders = exchange.safeList(inverseConditionalBatchRequest, "batchOrders", new List<object>() {});
+        object inverseConditionalBatchOrder = exchange.safeDict(inverseConditionalBatchOrders, 0, new Dictionary<string, object>() {});
+        object inverseConditionalClientOrderId = exchange.safeString(inverseConditionalBatchOrder, "newClientOrderId");
+        assert((inverseConditionalClientOrderId != null), "binance createOrders - inverse conditional order must send newClientOrderId");
+        assert((((string)inverseConditionalClientOrderId).StartsWith(((string)inverseSwapId)) == true), ((("binance createOrders - inverse conditional clientOrderId: " + (inverseConditionalClientOrderId)) + " does not start with inverseSwapId") + inverseSwapId));
         if (!isTrue(isSync()))
         {
             await close(exchange);

@@ -3085,6 +3085,11 @@ public class Phemex extends PhemexApi
         Double amount = this.safeNumber2(order, "orderQty", "orderQtyRq");
         Double filled = this.safeNumber2(order, "cumQty", "cumQtyRq");
         Double remaining = this.safeNumber2(order, "leavesQty", "leavesQtyRq");
+        if (java.util.Objects.equals(this.safeString(order, "ordStatus"), "Untriggered"))
+        {
+            // an untriggered order cannot fill, so leaves reads zero while the whole amount is outstanding
+            remaining = null;
+        }
         Long timestamp = this.safeIntegerProduct(order, "actionTimeNs", 0.000001);
         if (java.util.Objects.equals(timestamp, null))
         {
@@ -3132,6 +3137,7 @@ public class Phemex extends PhemexApi
         final Object finalTimeInForce = timeInForce;
         final Object finalReduceOnly = reduceOnly;
         final Object finalPrice = price;
+        final Object finalRemaining = remaining;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -3152,7 +3158,7 @@ public class Phemex extends PhemexApi
             put( "stopLossPrice", stopLoss );
             put( "amount", amount );
             put( "filled", filled );
-            put( "remaining", remaining );
+            put( "remaining", finalRemaining );
             put( "cost", cost );
             put( "average", null );
             put( "status", status );

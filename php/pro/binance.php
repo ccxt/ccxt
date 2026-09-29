@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -2975,8 +2976,9 @@ class binance extends \ccxt\async\binance {
         $subscriptionId = $this->safe_integer($result, 'subscriptionId');
         if ($subscriptionId === null) {
             unset($client->subscriptions[$accountType]);
-            $client->reject($message, $accountType);
-            $client->reject($message, $messageHash);
+            $error = new ExchangeError($this->id . ' user data stream subscribe failed ' . $this->json($message));
+            $client->reject($error, $accountType);
+            $client->reject($error, $messageHash);
             return;
         }
         $client->resolve($message, $messageHash);
@@ -3865,23 +3867,18 @@ class binance extends \ccxt\async\binance {
         $messageHash = (string) $requestId;
         $sor = $this->safe_bool_2($params, 'sor', 'SOR', false);
         $params = $this->omit($params, 'sor', 'SOR');
-        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
-        $stopLossPrice = $this->safe_string($params, 'stopLossPrice', $triggerPrice);
-        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
-        $trailingDelta = $this->safe_string($params, 'trailingDelta');
-        $trailingPercent = $this->safe_string_n($params, array( 'trailingPercent', 'callbackRate', 'trailingDelta' ));
-        $isTrailingPercentOrder = $trailingPercent !== null;
-        $isStopLoss = $stopLossPrice !== null || $trailingDelta !== null;
-        $isTakeProfit = $takeProfitPrice !== null;
-        $isTriggerOrder = $triggerPrice !== null;
-        $isConditional = $isTriggerOrder || $isTrailingPercentOrder || $isStopLoss || $isTakeProfit;
-        $payload = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+        $isConditional = $this->isConditionalOrder($params);
+        if (($market['inverse'] === true) && $isConditional) {
+            throw new NotSupported($this->id . ' createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead');
+        }
+        $isAlgoOrder = ($market['linear'] === true) && (($market['swap'] === true) || ($market['future'] === true)) && $isConditional;
+        $payload = $this->create_order_request($symbol, $type, $side, $amount, $price, $this->extend($params, array( 'isAlgoOrder' => $isAlgoOrder )));
         $returnRateLimits = false;
         list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'createOrderWs', 'returnRateLimits', false);
         $payload['returnRateLimits'] = $returnRateLimits;
         $test = $this->safe_bool($params, 'test', false);
         $params = $this->omit($params, 'test');
-        if (($market['linear'] === true) && ($market['swap'] === true) && $isConditional) {
+        if ($isAlgoOrder) {
             $payload['algoType'] = 'CONDITIONAL';
         }
         $message = array(
@@ -3896,7 +3893,7 @@ class binance extends \ccxt\async\binance {
                 $message['method'] = 'order.test';
             }
         }
-        if (($market['linear'] === true) && ($market['swap'] === true) && $isConditional) {
+        if ($isAlgoOrder) {
             $message['method'] = 'algoOrder.place';
         }
         $subscription = array(
@@ -4786,6 +4783,10 @@ class binance extends \ccxt\async\binance {
             $clientOrderId = $this->safe_string($order, 'c');
         }
         $stopPrice = $this->safe_string_n($order, array( 'P', 'sp', 'tp' ));
+        $orderType = $this->safe_string_lower($order, 'o');
+        // stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
+        $isTakeProfitType = $this->in_array($orderType, array( 'take_profit', 'take_profit_market', 'take_profit_limit' ));
+        $takeProfitPrice = $isTakeProfitType ? $this->omit_zero($stopPrice) : null;
         $timeInForce = $this->safe_string($order, 'f');
         if ($timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
@@ -4800,7 +4801,7 @@ class binance extends \ccxt\async\binance {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'lastUpdateTimestamp' => $lastUpdateTimestamp,
-            'type' => $this->parseOrderTypeByMarket($this->safe_string_lower($order, 'o'), $marketType),
+            'type' => $this->parseOrderTypeByMarket($orderType, $marketType),
             'timeInForce' => $timeInForce,
             'postOnly' => null,
             'reduceOnly' => $this->safe_bool($order, 'R'),
@@ -4808,6 +4809,7 @@ class binance extends \ccxt\async\binance {
             'price' => $this->safe_string($order, 'p'),
             'stopPrice' => $stopPrice,
             'triggerPrice' => $stopPrice,
+            'takeProfitPrice' => $takeProfitPrice,
             'amount' => $this->safe_string($order, 'q'),
             'cost' => $this->safe_string($order, 'Z'),
             'average' => $this->safe_string($order, 'ap'),
@@ -5870,12 +5872,14 @@ class binance extends \ccxt\async\binance {
             }
         }
         if (!$rejected) {
-            $client->reject($message, $id);
+            $feedback = new ExchangeError($this->id . ' ' . $this->json($message));
+            $client->reject($feedback, $id);
         }
         // reset connection if 5xx error
         $codeString = $this->safe_string($error, 'code');
         if (($codeString !== null) && ($codeString[0] === '5')) {
-            $client->reset($message);
+            $resetError = new ExchangeError($this->id . ' ' . $this->json($message));
+            $client->reset($resetError);
         }
     }
 
@@ -5892,7 +5896,8 @@ class binance extends \ccxt\async\binance {
         $accountType = $this->get_account_type_from_subscriptions($subscriptionsKeys);
         if ($event === 'eventStreamTerminated') {
             unset($client->subscriptions[$accountType]);
-            $client->reject($message, $accountType);
+            $error = new ExchangeError($this->id . ' user data event stream terminated ' . $this->json($message));
+            $client->reject($error, $accountType);
         }
     }
 

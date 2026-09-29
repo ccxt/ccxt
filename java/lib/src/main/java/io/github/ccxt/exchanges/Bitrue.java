@@ -3952,6 +3952,6 @@ public class Bitrue extends BitrueApi
                 }
             }
         }
-        return this.safeNumber(config, "cost", 1);
+        return this.safeValue(config, "cost", 1);
     }
 }

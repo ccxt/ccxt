@@ -1995,7 +1995,8 @@ class bitvavo extends \ccxt\async\bitvavo {
             $client->reject($e, $messageHash);
         }
         if (!$rejected) {
-            $client->reject($message, $messageHash);
+            $feedback = new ExchangeError($this->id . ' ' . $this->json($message));
+            $client->reject($feedback, $messageHash);
             return true;
         }
         return null;

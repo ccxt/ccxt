@@ -59,7 +59,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                     'method' => 'ticker/{speed}',  // 'ticker/{speed}' or 'ticker/price/{speed}'
                 ),
                 'watchTickers' => array(
-                    'method' => 'ticker/{speed}',  // 'ticker/{speed}','ticker/price/{speed}', 'ticker/{speed}/batch', or 'ticker/{speed}/price/batch''
+                    'method' => 'ticker/{speed}',  // 'ticker/{speed}', 'ticker/price/{speed}', 'ticker/{speed}/batch', or 'ticker/price/{speed}/batch'
                 ),
                 'watchBidsAsks' => array(
                     'method' => 'orderbook/top/{speed}',  // 'orderbook/top/{speed}', 'orderbook/top/{speed}/batch'
@@ -158,22 +158,27 @@ class hitbtc extends \ccxt\async\hitbtc {
         }
         $symbols = $this->market_symbols($symbols);
         $isBatch = mb_strpos($name, 'batch') !== false;
+        $resolvedPerSymbol = !$isBatch || ($messageHashPrefix === 'orderbooks'); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
         $url = $this->urls['api']['ws']['public'];
         $messageHashes = array();
-        if ($symbols !== null && !$isBatch) {
+        if ($symbols !== null && $resolvedPerSymbol) {
             for ($i = 0; $i < count($symbols); $i++) {
                 $messageHashes[] = $messageHashPrefix . '::' . $symbols[$i];
             }
         } else {
             $messageHashes[] = $messageHashPrefix;
         }
+        $requestId = $this->incrementing_nonce();
         $subscribe = array(
             'method' => 'subscribe',
-            'id' => $this->incrementing_nonce(),
+            'id' => $requestId,
             'ch' => $name,
         );
         $request = $this->extend($subscribe, $params);
-        return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
+        $subscription = array(
+            'id' => $requestId,
+        );
+        return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes, $subscription));
     }
 
     public function subscribe_private(string $name, ?string $symbol = null, $params = array()) {
@@ -197,12 +202,16 @@ class hitbtc extends \ccxt\async\hitbtc {
         if ($symbol !== null) {
             $messageHash = $messageHash . '::' . $symbol;
         }
+        $requestId = $this->incrementing_nonce();
         $subscribe = array(
             'method' => $name,
             'params' => $params,
-            'id' => $this->incrementing_nonce(),
+            'id' => $requestId,
         );
-        return Async\await($this->watch($url, $messageHash, $subscribe, $messageHash));
+        $subscription = array(
+            'id' => $requestId,
+        );
+        return Async\await($this->watch($url, $messageHash, $subscribe, $messageHash, $subscription));
     }
 
     public function trade_request(string $name, $params = array()) {
@@ -246,7 +255,7 @@ class hitbtc extends \ccxt\async\hitbtc {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->method] 'orderbook/full', 'orderbook/{$depth}/{$speed}', 'orderbook/{$depth}/{$speed}/batch'
+         * @param {string} [$params->method] 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch'
          * @param {int} [$params->depth] 5 , 10, or 20 (default)
          * @param {int} [$params->speed] 100 (default), 500, or 1000
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
@@ -254,12 +263,13 @@ class hitbtc extends \ccxt\async\hitbtc {
         $options = $this->safe_dict($this->options, 'watchOrderBook');
         $defaultMethod = $this->safe_string($options, 'method', 'orderbook/full');
         $name = $this->safe_string_2($params, 'method', 'defaultMethod', $defaultMethod);
-        $depth = $this->safe_string($params, 'depth', '20');
-        $speed = $this->safe_string($params, 'depth', '100');
+        $depthValue = $this->safe_string($params, 'depth', '20'); // not named depth: the php transpiler would turn the '{depth}' literals into '{$depth}'
+        $speedValue = $this->safe_string($params, 'speed', '100'); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
+        $params = $this->omit($params, array( 'method', 'defaultMethod', 'depth', 'speed' ));
         if ($name === 'orderbook/{depth}/{speed}') {
-            $name = 'orderbook/D' . $depth . '/' . $speed . 'ms';
+            $name = 'orderbook/D' . $depthValue . '/' . $speedValue . 'ms';
         } elseif ($name === 'orderbook/{depth}/{speed}/batch') {
-            $name = 'orderbook/D' . $depth . '/' . $speed . 'ms/batch';
+            $name = 'orderbook/D' . $depthValue . '/' . $speedValue . 'ms/batch';
         }
         $market = $this->market($symbol);
         $request = array(
@@ -295,8 +305,22 @@ class hitbtc extends \ccxt\async\hitbtc {
         //        }
         //    }
         //
-        $snapshot = $this->safe_dict($message, 'snapshot');
-        $data = $this->safe_dict_2($message, 'snapshot', 'update', array());
+        // partial orderbook ('orderbook/D{depth}/{speed}ms' and its '/batch' variant), every message is a full top-N snapshot
+        //
+        //    {
+        //        "ch": "orderbook/D5/500ms",
+        //        "data": {
+        //            "BTCUSDT": {
+        //                "t": 1790511595279,
+        //                "s": 1520022,
+        //                "a": [ [ "85025.97", "0.00732" ], [ "85037.31", "0.03659" ] ],
+        //                "b": [ [ "84995.48", "0.02769" ], [ "84994.29", "0.00724" ] ]
+        //            }
+        //        }
+        //    }
+        //
+        $snapshot = $this->safe_dict_2($message, 'snapshot', 'data');
+        $data = ($snapshot !== null) ? $snapshot : $this->safe_dict($message, 'update', array());
         $type = ($snapshot !== null && $snapshot !== null) ? 'snapshot' : 'update';
         $marketIds = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
@@ -362,7 +386,7 @@ class hitbtc extends \ccxt\async\hitbtc {
          * @param {string} [$params->speed] '1s' (default), or '3s'
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
-        $ticker = Async\await($this->watch_tickers(array( $symbol ), $params));
+        $ticker = Async\await($this->watch_tickers(array( $symbol ), $this->extend($params, array( 'callerMethodName' => 'watchTicker' ))));
         return $this->safe_value($ticker, $symbol);
     }
 
@@ -372,23 +396,31 @@ class hitbtc extends \ccxt\async\hitbtc {
 
     private function do_watch_tickers(?array $symbols = null, $params = array()) {
         /**
-         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string[]} [$symbols]
-         * @param {array} $params extra parameters specific to the exchange API endpoint
-         * @param {string} $params->method 'ticker/{$speed}' ,'ticker/price/{$speed}', 'ticker/{$speed}/batch' (default), or 'ticker/{$speed}/price/batch''
-         * @param {string} $params->speed '1s' (default), or '3s'
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         *
+         * @see https://api.hitbtc.com/#subscribe-to-ticker
+         * @see https://api.hitbtc.com/#subscribe-to-ticker-in-batches
+         * @see https://api.hitbtc.com/#subscribe-to-mini-ticker
+         * @see https://api.hitbtc.com/#subscribe-to-mini-ticker-in-batches
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $tickers for, all markets are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->method] 'ticker/{speed}' (default), 'ticker/price/{speed}', 'ticker/{speed}/batch', or 'ticker/price/{speed}/batch'
+         * @param {string} [$params->speed] '1s' (default), or '3s'
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $symbols = $this->market_symbols($symbols);
-        $options = $this->safe_dict($this->options, 'watchTicker');
+        $methodName = null;
+        list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'watchTickers'); // watchTicker passes its own name, so options.watchTicker still applies to it
+        $options = $this->safe_dict($this->options, $methodName);
         $defaultMethod = $this->safe_string($options, 'method', 'ticker/{speed}/batch');
         $method = $this->safe_string_2($params, 'method', 'defaultMethod', $defaultMethod);
-        $speed = $this->safe_string($params, 'speed', '1s');
-        $name = $this->implode_params($method, array( 'speed' => $speed ));
-        $params = $this->omit($params, array( 'method', 'speed' ));
+        $speedValue = $this->safe_string($params, 'speed', '1s'); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
+        $name = $this->implode_params($method, array( 'speed' => $speedValue ));
+        $params = $this->omit($params, array( 'method', 'defaultMethod', 'speed' ));
         $marketIds = array();
         if ($symbols === null) {
             $marketIds[] = '*';
@@ -540,7 +572,7 @@ class hitbtc extends \ccxt\async\hitbtc {
          *
          * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->method] 'orderbook/top/{$speed}' or 'orderbook/top/{$speed}/batch (default)'
+         * @param {string} [$params->method] 'orderbook/top/{speed}' (default) or 'orderbook/top/{speed}/batch'
          * @param {string} [$params->speed] '100ms' (default) or '500ms' or '1000ms'
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
@@ -551,9 +583,9 @@ class hitbtc extends \ccxt\async\hitbtc {
         $options = $this->safe_dict($this->options, 'watchBidsAsks');
         $defaultMethod = $this->safe_string($options, 'method', 'orderbook/top/{speed}/batch');
         $method = $this->safe_string_2($params, 'method', 'defaultMethod', $defaultMethod);
-        $speed = $this->safe_string($params, 'speed', '100ms');
-        $name = $this->implode_params($method, array( 'speed' => $speed ));
-        $params = $this->omit($params, array( 'method', 'speed' ));
+        $speedValue = $this->safe_string($params, 'speed', '100ms'); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
+        $name = $this->implode_params($method, array( 'speed' => $speedValue ));
+        $params = $this->omit($params, array( 'method', 'defaultMethod', 'speed' ));
         $marketIds = $this->market_ids($symbols);
         $request = array(
             'params' => array(
@@ -1119,7 +1151,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             'side' => $this->safe_string_upper($order, 'side'),
             'timeInForce' => $this->safe_string($order, 'time_in_force'),
             'postOnly' => $this->safe_string($order, 'post_only'),
-            'reduceOnly' => $this->safe_value($order, 'reduce_only'),
+            'reduceOnly' => $this->safe_bool($order, 'reduce_only'),
             'filled' => null,
             'remaining' => null,
             'cost' => null,
@@ -1349,7 +1381,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //    }
         //
         $messageHash = $this->safe_string($message, 'method');
-        $params = $this->safe_value($message, 'params');
+        $params = $this->safe_list($message, 'params', array());
         $balance = $this->parse_balance($params);
         $this->balance = $this->deep_extend($this->balance, $balance);
         $client->resolve($this->balance, $messageHash);
@@ -1496,7 +1528,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         $error = $this->safe_dict($message, 'error');
         if ($error !== null) {
             try {
-                $code = $this->safe_value($error, 'code');
+                $code = $this->safe_string($error, 'code');
                 $errorMessage = $this->safe_string($error, 'message');
                 $description = $this->safe_string($error, 'description');
                 $feedback = $this->id . ' ' . $description;
@@ -1504,6 +1536,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
                 throw new ExchangeError($feedback); // unknown message
             } catch (Exception $e) {
+                $id = $this->safe_string($message, 'id');
                 if ($e instanceof AuthenticationError) {
                     $messageHash = 'authenticated';
                     $client->reject($e, $messageHash);
@@ -1511,8 +1544,19 @@ class hitbtc extends \ccxt\async\hitbtc {
                         unset($client->subscriptions[$messageHash]);
                     }
                 } else {
-                    $id = $this->safe_string($message, 'id');
-                    $client->reject($e, $id);
+                    $client->reject($e, $id); // trade requests use the request id as the message hash
+                }
+                // subscriptions keep the request id, reject the futures waiting for a subscription refused by the exchange,
+                // authentication errors included: a private channel the api key has no access to is refused with 1003
+                // the login request has no id, so a login error matches no subscription
+                $subscriptionHashes = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+                for ($i = 0; $i < count($subscriptionHashes); $i++) {
+                    $subscriptionHash = $subscriptionHashes[$i];
+                    $subscriptionId = $this->safe_string($client->subscriptions[$subscriptionHash], 'id');
+                    if (($subscriptionId !== null) && ($subscriptionId === $id)) {
+                        $client->reject($e, $subscriptionHash);
+                        unset($client->subscriptions[$subscriptionHash]); // so a retry sends the subscribe request again
+                    }
                 }
                 return true;
             }

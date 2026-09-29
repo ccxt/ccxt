@@ -1594,7 +1594,8 @@ class xt extends xt$1["default"] {
             this.getListenKey(true);
             return;
         }
-        client.reject(message);
+        const error = new errors.ExchangeError(this.id + ' ' + this.json(message));
+        client.reject(error);
     }
 }
 

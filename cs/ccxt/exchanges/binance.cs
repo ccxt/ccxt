@@ -4228,7 +4228,6 @@ public partial class binance : Exchange
                     { "Too many requests. Please try again later.", typeof(RateLimitExceeded) },
                     { "This action is disabled on this account.", typeof(AccountSuspended) },
                     { "Limit orders require GTC for this phase.", typeof(BadRequest) },
-                    { "This order type is not possible in this trading phase.", typeof(BadRequest) },
                     { "This type of sub-account exceeds the maximum number limit", typeof(OperationRejected) },
                     { "This symbol is restricted for this account.", typeof(PermissionDenied) },
                     { "This symbol is not permitted for this account.", typeof(PermissionDenied) },
@@ -4237,6 +4236,7 @@ public partial class binance : Exchange
                     { "has no operation privilege", typeof(PermissionDenied) },
                     { "MAX_POSITION", typeof(BadRequest) },
                     { "PERCENT_PRICE_BY_SIDE", typeof(InvalidOrder) },
+                    { "This order type is not possible", typeof(BadRequest) },
                 } },
             } },
             { "rollingWindowSize", 60000 },
@@ -8667,6 +8667,9 @@ public partial class binance : Exchange
         bool postOnly = ((type == "limit_maker")) || ((timeInForce == "PO"));
         string? stopPriceString = this.safeString2(order, "stopPrice", "triggerPrice");
         double? triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
+        // stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
+        bool isTakeProfitType = this.inArray(type, new List<object>() {"take_profit", "take_profit_market", "take_profit_limit"});
+        double? takeProfitPrice = isTakeProfitType ? triggerPrice : null;
         double? feeCost = this.safeNumber(order, "fee");
         Dictionary<string, object> fee = null;
         if (!isEqual(feeCost, null))
@@ -8693,6 +8696,7 @@ public partial class binance : Exchange
             { "side", side },
             { "price", price },
             { "triggerPrice", triggerPrice },
+            { "takeProfitPrice", takeProfitPrice },
             { "amount", amount },
             { "cost", cost },
             { "average", average },
@@ -8734,7 +8738,17 @@ public partial class binance : Exchange
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+            Dictionary<string, object> orderMarket = this.market(marketId);
+            if (((((orderMarket != null && ((IDictionary<string, object>)orderMarket).ContainsKey("linear") ? ((IDictionary<string, object>)orderMarket)["linear"] : null) as bool?) == true)) && ((((orderMarket != null && ((IDictionary<string, object>)orderMarket).ContainsKey("option") ? ((IDictionary<string, object>)orderMarket)["option"] : null) as bool?) != true)) && this.isConditionalOrder(orderParams))
+            {
+                throw new NotSupported ((string)(this.id + " createOrders() does not support conditional order types for linear markets, use createOrder() instead")) ;
+            }
+            // the inverse batch endpoint still accepts conditional order types in the regular (non-algo) format,
+            // but the exchange announced it will reject them after the coin-m migration
+            // https://developers.binance.com/docs/derivatives/coin-margined-futures/Important-CM-UM-Integration-Notice
+            Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, this.extend(orderParams, new Dictionary<string, object>() {
+                { "isAlgoOrder", false },
+            }));
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
         orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
@@ -8851,14 +8865,8 @@ public partial class binance : Exchange
         string? marginMode = this.safeString(parameters, "marginMode");
         bool? porfolioOptionsValue = this.safeBool2(this.options, "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = this.safeBool2(parameters, "papi", "portfolioMargin", porfolioOptionsValue);
-        string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-        string? stopLossPrice = this.safeString(parameters, "stopLossPrice");
-        string? takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-        string? trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRate");
-        bool isTrailingPercentOrder = (trailingPercent != null);
-        bool isStopLoss = (stopLossPrice != null);
-        bool isTakeProfit = (takeProfitPrice != null);
-        bool isConditional = ((triggerPrice != null)) || isTrailingPercentOrder || isStopLoss || isTakeProfit;
+        bool isConditional = this.isConditionalOrder(parameters);
+        bool isAlgoOrder = (((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) || ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true))) && isConditional && isPortfolioMargin != true;
         bool? sor = this.safeBool2(parameters, "sor", "SOR", false);
         bool? test = this.safeBool(parameters, "test", false);
         bool? stock = this.safeBool(market, "stock", false);
@@ -8866,7 +8874,9 @@ public partial class binance : Exchange
         // if (isPortfolioMargin) {
         //     params['portfolioMargin'] = isPortfolioMargin;
         // }
-        Dictionary<string, object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        Dictionary<string, object> request = this.createOrderRequest(symbol, type, side, amount, price, this.extend(parameters, new Dictionary<string, object>() {
+            { "isAlgoOrder", isAlgoOrder },
+        }));
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true))
         {
@@ -8956,6 +8966,21 @@ public partial class binance : Exchange
     /**
      * @method
      * @ignore
+     * @name binance#isConditionalOrder
+     * @description checks whether the order params describe a conditional (trigger, stop loss, take profit or trailing) order
+     * @param {object} [params] the params passed to createOrder
+     * @returns {boolean} true if the order is conditional
+     */
+    public virtual bool isConditionalOrder(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        List<object> conditionalKeys = new List<object>() {"triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "trailingPercent", "callbackRate", "trailingDelta"};
+        return ((bool)((object)(((this.safeStringN(parameters, conditionalKeys) != null))))!);
+    }
+
+    /**
+     * @method
+     * @ignore
      * @name binance#createOrderRequest
      * @description helper function to build the request
      * @param {string} symbol unified symbol of the market to create an order in
@@ -8980,6 +9005,9 @@ public partial class binance : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string? marketType = this.safeString(parameters, "type", (market.ContainsKey("type") ? market["type"] : null));
         bool? stock = this.safeBool(market, "stock", false);
+        // set by the caller: the algo order endpoints name the client id, trigger and activation fields differently
+        bool? isAlgoOrder = this.safeBool(parameters, "isAlgoOrder", false);
+        parameters = this.omit(parameters, "isAlgoOrder");
         string? clientOrderId = this.safeStringN(parameters, new List<object>() {"clientAlgoId", "newClientOrderId", "clientOrderId"});
         string initialUppercaseType = ((string)type).ToUpper();
         bool isMarketOrder = (initialUppercaseType == "MARKET");
@@ -9031,7 +9059,8 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["callbackRate"] = trailingPercent;
                 if ((trailingTriggerPrice != null))
                 {
-                    ((IDictionary<string,object>)request)["activationPrice"] = this.priceToPrecision(symbol, trailingTriggerPrice);
+                    string activationPriceKey = isAlgoOrder == true ? "activatePrice" : "activationPrice";
+                    ((IDictionary<string,object>)request)[(string)activationPriceKey] = this.priceToPrecision(symbol, trailingTriggerPrice);
                 }
             } else
             {
@@ -9122,7 +9151,7 @@ public partial class binance : Exchange
             }
         }
         string clientOrderIdRequest = isPortfolioMarginConditional ? "newClientStrategyId" : "newClientOrderId";
-        if (((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) && ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) && isConditional && !(isPortfolioMargin == true))
+        if ((isAlgoOrder == true))
         {
             clientOrderIdRequest = "clientAlgoId";
         } else if ((stock == true))
@@ -9383,7 +9412,7 @@ public partial class binance : Exchange
             }
             if ((stopPrice != null))
             {
-                if (((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) && !(isPortfolioMargin == true))
+                if ((isAlgoOrder == true))
                 {
                     ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, stopPrice);
                 } else
@@ -9438,7 +9467,7 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["icebergQty"] = this.amountToPrecision(symbol, icebergAmount);
             }
         }
-        object requestParams = this.omit(parameters, new List<object>() {"type", "newClientOrderId", "clientOrderId", "postOnly", "stopLossPrice", "takeProfitPrice", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "quoteOrderQty", "cost", "test", "hedged", "icebergAmount"});
+        object requestParams = this.omit(parameters, new List<object>() {"type", "newClientOrderId", "clientOrderId", "postOnly", "stopLossPrice", "takeProfitPrice", "stopPrice", "triggerPrice", "trailingTriggerPrice", "activationPrice", "trailingPercent", "quoteOrderQty", "cost", "test", "hedged", "icebergAmount"});
         return this.extend(request, requestParams);
     }
 
@@ -15884,7 +15913,7 @@ public partial class binance : Exchange
                 }
             }
         }
-        return this.safeNumber(config, "cost", 1);
+        return this.safeValue(config, "cost", 1);
     }
 
     public async override Task<object> request(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null, object config = null)

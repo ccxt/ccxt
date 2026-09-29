@@ -67,6 +67,7 @@ public class Digifinex extends DigifinexApi
                 put( "addMargin", true );
                 put( "cancelOrder", true );
                 put( "cancelOrders", true );
+                put( "cancelOrdersForSymbols", true );
                 put( "createMarketBuyOrderWithCost", true );
                 put( "createMarketOrderWithCost", false );
                 put( "createMarketSellOrderWithCost", false );
@@ -2544,15 +2545,16 @@ public class Digifinex extends DigifinexApi
                 final Object finalResponse = response;
                 return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "info", finalResponse );
-                    put( "orderId", Digifinex.this.safeString(finalResponse, "data") );
+                    put( "id", Digifinex.this.safeString(finalResponse, "data") );
                 }}));
             }
         }).thenApply(Order::new);
 
     }
 
-    public Object parseCancelOrders(Map<String, Object> response)
+    public Object parseCancelOrders(Map<String, Object> response, Object... optionalArgs)
     {
+        Object symbolsById = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         List<Object> success = (List<Object>) this.safeList(response, "success", new ArrayList<Object>(Arrays.asList()));
         List<Object> error = (List<Object>) this.safeList(response, "error", new ArrayList<Object>(Arrays.asList()));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -2562,6 +2564,7 @@ public class Digifinex extends DigifinexApi
             ((List<Object>)result).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", order );
+                put( "symbol", Digifinex.this.safeString(symbolsById, order) );
                 put( "status", "canceled" );
             }})));
         }
@@ -2570,9 +2573,9 @@ public class Digifinex extends DigifinexApi
             Object order = (error == null || i < 0 || i >= error.size() ? null : error.get(i));
             ((List<Object>)result).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", order );
-                put( "id", Digifinex.this.safeString2(order, "order-id", "order_id") );
+                put( "id", order );
+                put( "symbol", Digifinex.this.safeString(symbolsById, order) );
                 put( "status", "failed" );
-                put( "clientOrderId", Digifinex.this.safeString(order, "client-order-id") );
             }})));
         }
         return result;
@@ -2583,9 +2586,11 @@ public class Digifinex extends DigifinexApi
      * @name digifinex#cancelOrders
      * @description cancel multiple orders
      * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+     * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by cancelOrders ()
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [symbol] unified market symbol, required for swap markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the request body is an array)
+     * @param {string} [params.type] 'spot', 'margin' or 'swap', defaults to the type of the symbol's market or options.defaultType
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
@@ -2599,11 +2604,37 @@ public class Digifinex extends DigifinexApi
             {
                 (this.loadMarkets()).join();
             }
-            String defaultType = this.safeString(this.options, "defaultType", "spot");
-            String orderType = this.safeString(parameters, "type", defaultType);
-            parameters = this.omit(parameters, "type");
+            Object market = null;
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                market = this.market(symbol);
+            }
+            Object marketType = null;
+            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrders", market, parameters);
+            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            if (java.util.Objects.equals(marketType, "swap"))
+            {
+                if (java.util.Objects.equals(market, null))
+                {
+                    throw new ArgumentsRequired((this.id + " cancelOrders() requires a symbol argument for swap markets")) ;
+                }
+                Object marketSymbol = ((Map<String, Object>)market).get("symbol");
+                List<Object> orders = new ArrayList<Object>(Arrays.asList());
+                for (var i = 0; i < ((List<?>)ids).size(); i++)
+                {
+                    Object orderId = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
+                    Map<String, Object> orderItem = new HashMap<String, Object>() {{
+                        put( "id", orderId );
+                        put( "symbol", marketSymbol );
+                    }};
+                    ((List<Object>)orders).add(orderItem);
+                }
+                return (this.cancelOrdersForSymbols((Object)(orders), (Object)(parameters))).join();
+            }
+            final Object finalMarketType = marketType;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", orderType );
+                put( "market", finalMarketType );
                 put( "order_id", String.join(",", (List<String>)ids) );
             }};
             Map<String, Object> response = (this.privateSpotPostSpotOrderCancel(this.extend(request, parameters))).join();
@@ -2624,9 +2655,134 @@ public class Digifinex extends DigifinexApi
 
     }
 
+    /**
+     * @method
+     * @name digifinex#cancelOrdersForSymbols
+     * @description cancel multiple orders for multiple symbols
+     * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+     * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
+     * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, all orders must be of the same market type (spot or swap), example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the request body is an array)
+     * @param {string} [params.type] 'spot' or 'margin' for spot markets, defaults to 'spot'
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelOrdersForSymbols(Object orders, Object... optionalArgs)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object ids = new ArrayList<Object>(Arrays.asList());
+            List<Object> symbols = new ArrayList<Object>(Arrays.asList());
+            Map<String, Object> symbolsById = new HashMap<String, Object>() {{}};
+            Object marketType = null;
+            for (var i = 0; i < ((List<?>)orders).size(); i++)
+            {
+                Object order = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                String id = this.safeString(order, "id");
+                if (java.util.Objects.equals(id, null))
+                {
+                    throw new ArgumentsRequired((this.id + " cancelOrdersForSymbols() requires an id for each order")) ;
+                }
+                String symbol = this.safeString(order, "symbol");
+                if (java.util.Objects.equals(symbol, null))
+                {
+                    throw new ArgumentsRequired((this.id + " cancelOrdersForSymbols() requires a symbol for each order")) ;
+                }
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Object orderMarketType = ((Map<String, Object>)market).get("type");
+                if (java.util.Objects.equals(marketType, null))
+                {
+                    marketType = orderMarketType;
+                } else if (!java.util.Objects.equals(marketType, orderMarketType))
+                {
+                    throw new BadRequest((this.id + " cancelOrdersForSymbols() requires all orders to be of the same market type (spot or swap)")) ;
+                }
+                ((List<Object>)ids).add(id);
+                ((List<Object>)symbols).add(((Map<String, Object>)market).get("symbol"));
+                ((Map<String, Object>)symbolsById).put((String)id, ((Map<String, Object>)market).get("symbol"));
+            }
+            if (java.util.Objects.equals(marketType, "swap"))
+            {
+                Object numIds = ((List<?>)ids).size();
+                if (Helpers.isGreaterThan(numIds, 20))
+                {
+                    throw new BadRequest((this.id + " cancelOrdersForSymbols() accepts up to 20 orders for swap markets")) ;
+                }
+                List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
+                for (var i = 0; i < ((List<?>)ids).size(); i++)
+                {
+                    Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
+                    Object marketId = ((Map<String, Object>)market).get("id");
+                    Object orderId = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
+                    ((List<Object>)ordersRequests).add(new HashMap<String, Object>() {{
+                        put( "instrument_id", marketId );
+                        put( "order_id", orderId );
+                    }});
+                }
+                Map<String, Object> swapResponse = (this.privateSwapPostTradeBatchCancelOrder(ordersRequests)).join(); // don't extend with params, otherwise the array body is turned into an object
+                //
+                //     {
+                //         "code": 0,
+                //         "data": [
+                //             "1546771720487047168",
+                //             "1546771720487047169"
+                //         ]
+                //     }
+                //
+                // ids that were not canceled are absent from data
+                List<Object> data = (List<Object>) this.safeList(swapResponse, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> result = new ArrayList<Object>(Arrays.asList());
+                for (var i = 0; i < ((List<?>)ids).size(); i++)
+                {
+                    Object orderId = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
+                    boolean isCanceled = this.inArray(orderId, data);
+                    String status = ((isCanceled)) ? "canceled" : "failed";
+    final Object finalI = i;
+                                    ((List<Object>)result).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+                        put( "info", orderId );
+                        put( "id", orderId );
+                        put( "symbol", Helpers.GetValue(symbols, finalI) );
+                        put( "status", status );
+                    }})));
+                }
+                return result;
+            }
+            Object requestType = null;
+            List<Object> requestTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrdersForSymbols", null, parameters, "spot");
+            requestType = ((List<Object>) requestTypeparametersVariable).get(0);
+            parameters = ((List<Object>) requestTypeparametersVariable).get(1);
+            final Object finalRequestType = requestType;
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "market", finalRequestType );
+                put( "order_id", String.join(",", (List<String>)ids) );
+            }};
+            Map<String, Object> response = (this.privateSpotPostSpotOrderCancel(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "code": 0,
+            //         "success": [
+            //             "198361cecdc65f9c8c9bb2fa68faec40",
+            //             "3fb0d98e51c18954f10d439a9cf57de0"
+            //         ],
+            //         "error": [
+            //             "78a7104e3c65cc0c5a212a53e76d0205"
+            //         ]
+            //     }
+            //
+            return this.parseCancelOrders((Map<String, Object>) (response), symbolsById);
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+
+    }
+
     public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
+            put( "-1", "canceled" );
             put( "0", "open" );
             put( "1", "open" );
             put( "2", "closed" );
@@ -2706,6 +2862,7 @@ public class Digifinex extends DigifinexApi
         Object lastTradeTimestamp = null;
         String timeInForce = null;
         Object type = null;
+        Object reduceOnly = null;
         String side = this.safeString(order, "type");
         String marketId = this.safeString2(order, "symbol", "instrument_id");
         String symbol = this.safeSymbol(marketId, market);
@@ -2733,18 +2890,23 @@ public class Digifinex extends DigifinexApi
                     type = "market";
                 }
             }
+            // 1 open long, 2 open short, 3 close long, 4 close short
             if (java.util.Objects.equals(side, "1"))
             {
-                side = "open long";
+                side = "buy";
+                reduceOnly = false;
             } else if (java.util.Objects.equals(side, "2"))
             {
-                side = "open short";
+                side = "sell";
+                reduceOnly = false;
             } else if (java.util.Objects.equals(side, "3"))
             {
-                side = "close long";
+                side = "sell";
+                reduceOnly = true;
             } else if (java.util.Objects.equals(side, "4"))
             {
-                side = "close short";
+                side = "buy";
+                reduceOnly = true;
             }
             timestamp = this.safeInteger(order, "insert_time");
             lastTradeTimestamp = this.safeInteger(order, "time_stamp");
@@ -2771,6 +2933,7 @@ public class Digifinex extends DigifinexApi
         final Object finalType = type;
         final Object finalTimeInForce = timeInForce;
         final Object finalSide = side;
+        final Object finalReduceOnly = reduceOnly;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Digifinex.this.safeString2(order, "order_id", "data") );
@@ -2785,6 +2948,7 @@ public class Digifinex extends DigifinexApi
             put( "side", finalSide );
             put( "price", Digifinex.this.safeNumber(order, "price") );
             put( "triggerPrice", null );
+            put( "reduceOnly", finalReduceOnly );
             put( "amount", Digifinex.this.safeNumber2(order, "amount", "size") );
             put( "filled", Digifinex.this.safeNumber2(order, "executed_amount", "filled_qty") );
             put( "remaining", null );

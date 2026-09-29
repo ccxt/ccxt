@@ -608,7 +608,9 @@ class bingx extends Exchange {
                     '500' => '\\ccxt\\ExchangeError',
                     '504' => '\\ccxt\\ExchangeError',
                     '100001' => '\\ccxt\\AuthenticationError',
+                    '100004' => '\\ccxt\\PermissionDenied', // {"code":100004,"msg":"Permission denied, the API key was created without the permission ..."}
                     '100412' => '\\ccxt\\AuthenticationError',
+                    '100413' => '\\ccxt\\AuthenticationError', // {"code":100413,"msg":"Incorrect apiKey, please check your valid api key ..."}
                     '100202' => '\\ccxt\\InsufficientFunds',
                     '100204' => '\\ccxt\\BadRequest',
                     '100400' => '\\ccxt\\BadRequest',
@@ -627,6 +629,15 @@ class bingx extends Exchange {
                     '100437' => '\\ccxt\\BadRequest', // {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
                     '101204' => '\\ccxt\\InsufficientFunds', // {"code":101204,"msg":"","data":{}}
                     '110425' => '\\ccxt\\InvalidOrder', // {"code":110425,"msg":"Please ensure that the minimum nominal value of the order placed must be greater than 2u","data":{}}
+                    '100490' => '\\ccxt\\BadSymbol', // spot trading pair is offline
+                    '101481' => '\\ccxt\\DuplicateOrderId',
+                    '109201' => '\\ccxt\\DuplicateOrderId',
+                    '109400' => '\\ccxt\\BadRequest', // {"code":109400,"msg":"Invalid parameters, err:startTs: ... field is required","data":{}}
+                    '109418' => '\\ccxt\\BadSymbol', // trading pair is offline and cannot be ordered through the api
+                    '109421' => '\\ccxt\\OrderNotFound',
+                    '109425' => '\\ccxt\\BadSymbol', // {"code":109425,"msg":"NOPE-USDT not exist, please verify it ...","data":{}}
+                    '109500' => '\\ccxt\\OperationFailed', // {"code":109500,"msg":"The current system is busy, please try again later"}
+                    '110500' => '\\ccxt\\OperationFailed', // order system busy
                     'Insufficient assets' => '\\ccxt\\InsufficientFunds', // {"transferErrorMsg":"Insufficient assets"}
                     'illegal transferType' => '\\ccxt\\BadRequest', // {"transferErrorMsg":"illegal transferType"}
                 ),

@@ -4288,7 +4288,6 @@ public class Binance extends BinanceApi
                     put( "Too many requests. Please try again later.", RateLimitExceeded.class );
                     put( "This action is disabled on this account.", AccountSuspended.class );
                     put( "Limit orders require GTC for this phase.", BadRequest.class );
-                    put( "This order type is not possible in this trading phase.", BadRequest.class );
                     put( "This type of sub-account exceeds the maximum number limit", OperationRejected.class );
                     put( "This symbol is restricted for this account.", PermissionDenied.class );
                     put( "This symbol is not permitted for this account.", PermissionDenied.class );
@@ -4297,6 +4296,7 @@ public class Binance extends BinanceApi
                     put( "has no operation privilege", PermissionDenied.class );
                     put( "MAX_POSITION", BadRequest.class );
                     put( "PERCENT_PRICE_BY_SIDE", InvalidOrder.class );
+                    put( "This order type is not possible", BadRequest.class );
                 }} );
             }} );
             put( "rollingWindowSize", 60000 );
@@ -8894,6 +8894,9 @@ public class Binance extends BinanceApi
         Boolean postOnly = (java.util.Objects.equals(type, "limit_maker")) || (java.util.Objects.equals(timeInForce, "PO"));
         String stopPriceString = this.safeString2(order, "stopPrice", "triggerPrice");
         Object triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
+        // stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
+        boolean isTakeProfitType = this.inArray(type, new ArrayList<Object>(Arrays.asList("take_profit", "take_profit_market", "take_profit_limit")));
+        Object takeProfitPrice = ((isTakeProfitType)) ? triggerPrice : null;
         Double feeCost = this.safeNumber(order, "fee");
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
@@ -8927,6 +8930,7 @@ public class Binance extends BinanceApi
             put( "side", side );
             put( "price", price );
             put( "triggerPrice", triggerPrice );
+            put( "takeProfitPrice", takeProfitPrice );
             put( "amount", amount );
             put( "cost", finalCost );
             put( "average", average );
@@ -8971,7 +8975,17 @@ public class Binance extends BinanceApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+                Map<String, Object> orderMarket = (Map<String, Object>) this.market(marketId);
+                if ((java.util.Objects.equals(((Map<String, Object>)orderMarket).get("linear"), true)) && (!java.util.Objects.equals(((Map<String, Object>)orderMarket).get("option"), true)) && Boolean.TRUE.equals(this.isConditionalOrder(orderParams)))
+                {
+                    throw new NotSupported((this.id + " createOrders() does not support conditional order types for linear markets, use createOrder() instead")) ;
+                }
+                // the inverse batch endpoint still accepts conditional order types in the regular (non-algo) format,
+                // but the exchange announced it will reject them after the coin-m migration
+                // https://developers.binance.com/docs/derivatives/coin-margined-futures/Important-CM-UM-Integration-Notice
+                Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, this.extend(orderParams, new HashMap<String, Object>() {{
+                    put( "isAlgoOrder", false );
+                }}));
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
@@ -9094,14 +9108,8 @@ public class Binance extends BinanceApi
             String marginMode = this.safeString(parameters, "marginMode");
             Object porfolioOptionsValue = this.safeBool2(this.options, "papi", "portfolioMargin", false);
             Object isPortfolioMargin = this.safeBool2(parameters, "papi", "portfolioMargin", porfolioOptionsValue);
-            String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-            String stopLossPrice = this.safeString(parameters, "stopLossPrice");
-            String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-            String trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRate");
-            Boolean isTrailingPercentOrder = !java.util.Objects.equals(trailingPercent, null);
-            Boolean isStopLoss = !java.util.Objects.equals(stopLossPrice, null);
-            Boolean isTakeProfit = !java.util.Objects.equals(takeProfitPrice, null);
-            Boolean isConditional = (!java.util.Objects.equals(triggerPrice, null)) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit);
+            Object isConditional = this.isConditionalOrder(parameters);
+            Boolean isAlgoOrder = ((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true))) && Boolean.TRUE.equals(isConditional) && !Helpers.isTrue(isPortfolioMargin);
             Object sor = this.safeBool2(parameters, "sor", "SOR", false);
             Boolean test = (Boolean) this.safeBool(parameters, "test", false);
             Boolean stock = (Boolean) this.safeBool(market, "stock", false);
@@ -9109,7 +9117,9 @@ public class Binance extends BinanceApi
             // if (isPortfolioMargin) {
             //     params['portfolioMargin'] = isPortfolioMargin;
             // }
-            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, this.extend(parameters, new HashMap<String, Object>() {{
+                put( "isAlgoOrder", isAlgoOrder );
+            }}));
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true))
             {
@@ -9201,6 +9211,21 @@ public class Binance extends BinanceApi
     /**
      * @method
      * @ignore
+     * @name binance#isConditionalOrder
+     * @description checks whether the order params describe a conditional (trigger, stop loss, take profit or trailing) order
+     * @param {object} [params] the params passed to createOrder
+     * @returns {boolean} true if the order is conditional
+     */
+    public Object isConditionalOrder(Object... optionalArgs)
+    {
+        Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+        List<Object> conditionalKeys = new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "trailingPercent", "callbackRate", "trailingDelta"));
+        return (!java.util.Objects.equals(this.safeStringN(parameters, conditionalKeys), null));
+    }
+
+    /**
+     * @method
+     * @ignore
      * @name binance#createOrderRequest
      * @description helper function to build the request
      * @param {string} symbol unified symbol of the market to create an order in
@@ -9226,6 +9251,9 @@ public class Binance extends BinanceApi
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         String marketType = this.safeString(parameters, "type", ((Map<String, Object>)market).get("type"));
         Boolean stock = (Boolean) this.safeBool(market, "stock", false);
+        // set by the caller: the algo order endpoints name the client id, trigger and activation fields differently
+        Boolean isAlgoOrder = (Boolean) this.safeBool(parameters, "isAlgoOrder", false);
+        parameters = this.omit(parameters, "isAlgoOrder");
         String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clientAlgoId", "newClientOrderId", "clientOrderId")));
         Object initialUppercaseType = ((String)type).toUpperCase();
         Boolean isMarketOrder = java.util.Objects.equals(initialUppercaseType, "MARKET");
@@ -9278,7 +9306,8 @@ public class Binance extends BinanceApi
                 ((Map<String, Object>)request).put("callbackRate", trailingPercent);
                 if (!java.util.Objects.equals(trailingTriggerPrice, null))
                 {
-                    ((Map<String, Object>)request).put("activationPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
+                    String activationPriceKey = ((Boolean.TRUE.equals(isAlgoOrder))) ? "activatePrice" : "activationPrice";
+                    ((Map<String, Object>)request).put((String)activationPriceKey, this.priceToPrecision(symbol, trailingTriggerPrice));
                 }
             } else
             {
@@ -9369,7 +9398,7 @@ public class Binance extends BinanceApi
             }
         }
         String clientOrderIdRequest = ((Boolean.TRUE.equals(isPortfolioMarginConditional))) ? "newClientStrategyId" : "newClientOrderId";
-        if ((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && Boolean.TRUE.equals(isConditional) && !Helpers.isTrue(isPortfolioMargin))
+        if (Boolean.TRUE.equals(isAlgoOrder))
         {
             clientOrderIdRequest = "clientAlgoId";
         } else if (java.util.Objects.equals(stock, true))
@@ -9630,7 +9659,7 @@ public class Binance extends BinanceApi
             }
             if (!java.util.Objects.equals(stopPrice, null))
             {
-                if ((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && !Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isAlgoOrder))
                 {
                     ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, stopPrice));
                 } else
@@ -9685,7 +9714,7 @@ public class Binance extends BinanceApi
                 ((Map<String, Object>)request).put("icebergQty", this.amountToPrecision(symbol, icebergAmount));
             }
         }
-        Object requestParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("type", "newClientOrderId", "clientOrderId", "postOnly", "stopLossPrice", "takeProfitPrice", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "quoteOrderQty", "cost", "test", "hedged", "icebergAmount")));
+        Object requestParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("type", "newClientOrderId", "clientOrderId", "postOnly", "stopLossPrice", "takeProfitPrice", "stopPrice", "triggerPrice", "trailingTriggerPrice", "activationPrice", "trailingPercent", "quoteOrderQty", "cost", "test", "hedged", "icebergAmount")));
         return this.extend(request, requestParams);
     }
 
@@ -16500,7 +16529,7 @@ final Object finalMarket = market;
                 }
             }
         }
-        return this.safeNumber(config, "cost", 1);
+        return this.safeValue(config, "cost", 1);
     }
 
     public CompletableFuture<Object> request(Object path, Object... optionalArgs)

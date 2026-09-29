@@ -42,6 +42,7 @@ class digifinex extends Exchange {
                 'addMargin' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'cancelOrdersForSymbols' => true,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => false,
                 'createMarketSellOrderWithCost' => false,
@@ -2113,12 +2114,12 @@ class digifinex extends Exchange {
         } else {
             return $this->safe_order(array(
                 'info' => $response,
-                'orderId' => $this->safe_string($response, 'data'),
+                'id' => $this->safe_string($response, 'data'),
             ));
         }
     }
 
-    public function parse_cancel_orders(array $response): array {
+    public function parse_cancel_orders(array $response, array $symbolsById = array()): array {
         $success = $this->safe_list($response, 'success', array());
         $error = $this->safe_list($response, 'error', array());
         $result = array();
@@ -2127,6 +2128,7 @@ class digifinex extends Exchange {
             $result[] = $this->safe_order(array(
                 'info' => $order,
                 'id' => $order,
+                'symbol' => $this->safe_string($symbolsById, $order),
                 'status' => 'canceled',
             ));
         }
@@ -2134,9 +2136,9 @@ class digifinex extends Exchange {
             $order = $error[$i];
             $result[] = $this->safe_order(array(
                 'info' => $order,
-                'id' => $this->safe_string_2($order, 'order-id', 'order_id'),
+                'id' => $order,
+                'symbol' => $this->safe_string($symbolsById, $order),
                 'status' => 'failed',
-                'clientOrderId' => $this->safe_string($order, 'client-order-id'),
             ));
         }
         return $result;
@@ -2148,23 +2150,44 @@ class digifinex extends Exchange {
 
     private function do_cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
         /**
-         * cancel multiple orders
+         * cancel multiple $orders
          *
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
          *
          * @param {string[]} $ids order $ids
-         * @param {string} $symbol not used by cancelOrders ()
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$symbol] unified $market $symbol, required for swap markets
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the $request body is an array)
+         * @param {string} [$params->type] 'spot', 'margin' or 'swap', defaults to the type of the symbol's $market or options.defaultType
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $orderType = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelOrders', $market, $params);
+        if ($marketType === 'swap') {
+            if ($market === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument for swap markets');
+            }
+            $marketSymbol = $market['symbol'];
+            $orders = array();
+            for ($i = 0; $i < count($ids); $i++) {
+                $orderId = $ids[$i];
+                $orderItem = array(
+                    'id' => $orderId,
+                    'symbol' => $marketSymbol,
+                );
+                $orders[] = $orderItem;
+            }
+            return Async\await($this->cancel_orders_for_symbols($orders, $params));
+        }
         $request = array(
-            'market' => $orderType,
+            'market' => $marketType,
             'order_id' => implode(',', $ids),
         );
         $response = Async\await($this->privateSpotPostSpotOrderCancel($this->extend($request, $params)));
@@ -2183,8 +2206,116 @@ class digifinex extends Exchange {
         return $this->parse_cancel_orders($response);
     }
 
+    public function cancel_orders_for_symbols(array $orders, $params = array()): PromiseInterface {
+        return Async\async(self::do_cancel_orders_for_symbols(...))($orders, $params);
+    }
+
+    private function do_cancel_orders_for_symbols(array $orders, $params = array()) {
+        /**
+         * cancel multiple $orders for multiple $symbols
+         *
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-$order
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
+         *
+         * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol, all $orders must be of the same $market type (spot or swap), example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the $request body is an array)
+         * @param {string} [$params->type] 'spot' or 'margin' for spot markets, defaults to 'spot'
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=$order-structure $order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $ids = array();
+        $symbols = array();
+        $symbolsById = array();
+        $marketType = null;
+        for ($i = 0; $i < count($orders); $i++) {
+            $order = $orders[$i];
+            $id = $this->safe_string($order, 'id');
+            if ($id === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrdersForSymbols() requires an id for each order');
+            }
+            $symbol = $this->safe_string($order, 'symbol');
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrdersForSymbols() requires a symbol for each order');
+            }
+            $market = $this->market($symbol);
+            $orderMarketType = $market['type'];
+            if ($marketType === null) {
+                $marketType = $orderMarketType;
+            } elseif ($marketType !== $orderMarketType) {
+                throw new BadRequest($this->id . ' cancelOrdersForSymbols() requires all orders to be of the same market type (spot or swap)');
+            }
+            $ids[] = $id;
+            $symbols[] = $market['symbol'];
+            $symbolsById[$id] = $market['symbol'];
+        }
+        if ($marketType === 'swap') {
+            $numIds = count($ids);
+            if ($numIds > 20) {
+                throw new BadRequest($this->id . ' cancelOrdersForSymbols() accepts up to 20 orders for swap markets');
+            }
+            $ordersRequests = array();
+            for ($i = 0; $i < count($ids); $i++) {
+                $market = $this->market($symbols[$i]);
+                $marketId = $market['id'];
+                $orderId = $ids[$i];
+                $ordersRequests[] = array(
+                    'instrument_id' => $marketId,
+                    'order_id' => $orderId,
+                );
+            }
+            $swapResponse = Async\await($this->privateSwapPostTradeBatchCancelOrder($ordersRequests)); // don't extend with params, otherwise the array body is turned into an object
+            //
+            //     {
+            //         "code": 0,
+            //         "data": [
+            //             "1546771720487047168",
+            //             "1546771720487047169"
+            //         ]
+            //     }
+            //
+            // ids that were not canceled are absent from data
+            $data = $this->safe_list($swapResponse, 'data', array());
+            $result = array();
+            for ($i = 0; $i < count($ids); $i++) {
+                $orderId = $ids[$i];
+                $isCanceled = $this->in_array($orderId, $data);
+                $status = ($isCanceled) ? 'canceled' : 'failed';
+                $result[] = $this->safe_order(array(
+                    'info' => $orderId,
+                    'id' => $orderId,
+                    'symbol' => $symbols[$i],
+                    'status' => $status,
+                ));
+            }
+            return $result;
+        }
+        $requestType = null;
+        list($requestType, $params) = $this->handle_market_type_and_params('cancelOrdersForSymbols', null, $params, 'spot');
+        $request = array(
+            'market' => $requestType,
+            'order_id' => implode(',', $ids),
+        );
+        $response = Async\await($this->privateSpotPostSpotOrderCancel($this->extend($request, $params)));
+        //
+        //     {
+        //         "code": 0,
+        //         "success": [
+        //             "198361cecdc65f9c8c9bb2fa68faec40",
+        //             "3fb0d98e51c18954f10d439a9cf57de0"
+        //         ],
+        //         "error": [
+        //             "78a7104e3c65cc0c5a212a53e76d0205"
+        //         ]
+        //     }
+        //
+        return $this->parse_cancel_orders($response, $symbolsById);
+    }
+
     public function parse_order_status(?string $status) {
         $statuses = array(
+            '-1' => 'canceled', // swap
             '0' => 'open',
             '1' => 'open', // partially filled
             '2' => 'closed',
@@ -2262,6 +2393,7 @@ class digifinex extends Exchange {
         $lastTradeTimestamp = null;
         $timeInForce = null;
         $type = null;
+        $reduceOnly = null;
         $side = $this->safe_string($order, 'type');
         $marketId = $this->safe_string_2($order, 'symbol', 'instrument_id');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -2282,14 +2414,19 @@ class digifinex extends Exchange {
                     $type = 'market';
                 }
             }
+            // 1 open long, 2 open short, 3 close long, 4 close short
             if ($side === '1') {
-                $side = 'open long';
+                $side = 'buy';
+                $reduceOnly = false;
             } elseif ($side === '2') {
-                $side = 'open short';
+                $side = 'sell';
+                $reduceOnly = false;
             } elseif ($side === '3') {
-                $side = 'close long';
+                $side = 'sell';
+                $reduceOnly = true;
             } elseif ($side === '4') {
-                $side = 'close short';
+                $side = 'buy';
+                $reduceOnly = true;
             }
             $timestamp = $this->safe_integer($order, 'insert_time');
             $lastTradeTimestamp = $this->safe_integer($order, 'time_stamp');
@@ -2321,6 +2458,7 @@ class digifinex extends Exchange {
             'side' => $side,
             'price' => $this->safe_number($order, 'price'),
             'triggerPrice' => null,
+            'reduceOnly' => $reduceOnly,
             'amount' => $this->safe_number_2($order, 'amount', 'size'),
             'filled' => $this->safe_number_2($order, 'executed_amount', 'filled_qty'),
             'remaining' => null,

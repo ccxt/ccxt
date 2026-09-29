@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
+use ccxt\InvalidNonce;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -1118,7 +1119,8 @@ class cex extends \ccxt\async\cex {
         $messageHash = 'orderbook:' . $symbol;
         if ($incrementalId !== $storedOrderBook['nonce'] + 1) {
             unset($client->subscriptions[$messageHash]);
-            $client->reject($this->id . ' watchOrderBook() skipped a message', $messageHash);
+            $error = new InvalidNonce($this->id . ' watchOrderBook() skipped a message');
+            $client->reject($error, $messageHash);
             return;
         }
         $timestamp = $this->safe_integer($data, 'time');

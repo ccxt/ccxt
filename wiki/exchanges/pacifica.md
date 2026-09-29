@@ -765,8 +765,8 @@ make a withdrawal (only support native USDC)
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
-| address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
+| address | <code>string</code> | Yes | validated but not sent, funds go to the account wallet |
+| tag | <code>string</code> | Yes | not used by withdraw () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.expiryWindow | <code>int</code> | No | time to live in milliseconds |
 

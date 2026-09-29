@@ -3338,6 +3338,6 @@ final Object finalBase = base;
         {
             return Helpers.GetValue(config, "noMarket");
         }
-        return this.safeNumber(config, "cost", 1);
+        return this.safeValue(config, "cost", 1);
     }
 }

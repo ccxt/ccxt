@@ -3501,8 +3501,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         if (java.util.Objects.equals(subscriptionId, null))
         {
             ((Map<String,Object>)client.subscriptions).remove((String)accountType);
-            client.reject(message, accountType);
-            client.reject(message, messageHash);
+            var error = new ExchangeError(((this.id + " user data stream subscribe failed ") + this.json(message)));
+            client.reject(error, accountType);
+            client.reject(error, messageHash);
             return;
         }
         client.resolve(message, messageHash);
@@ -4593,17 +4594,15 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object messageHash = String.valueOf(requestId);
             Object sor = this.safeBool2(parameters, "sor", "SOR", false);
             parameters = this.omit(parameters, "sor", "SOR");
-            String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-            String stopLossPrice = this.safeString(parameters, "stopLossPrice", triggerPrice);
-            String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-            String trailingDelta = this.safeString(parameters, "trailingDelta");
-            String trailingPercent = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("trailingPercent", "callbackRate", "trailingDelta")));
-            Boolean isTrailingPercentOrder = !java.util.Objects.equals(trailingPercent, null);
-            Boolean isStopLoss = !java.util.Objects.equals(stopLossPrice, null) || !java.util.Objects.equals(trailingDelta, null);
-            Boolean isTakeProfit = !java.util.Objects.equals(takeProfitPrice, null);
-            Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
-            Boolean isConditional = Boolean.TRUE.equals(isTriggerOrder) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit);
-            Object payload = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Object isConditional = this.isConditionalOrder(parameters);
+            if ((java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true)) && Boolean.TRUE.equals(isConditional))
+            {
+                throw new NotSupported((this.id + " createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead")) ;
+            }
+            Boolean isAlgoOrder = (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)) && ((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true))) && Boolean.TRUE.equals(isConditional);
+            Object payload = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, this.extend(parameters, new HashMap<String, Object>() {{
+                put( "isAlgoOrder", isAlgoOrder );
+            }}));
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrderWs", "returnRateLimits", false);
             returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
@@ -4611,7 +4610,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             ((Map<String, Object>)payload).put("returnRateLimits", returnRateLimits);
             Boolean test = (Boolean) this.safeBool(parameters, "test", false);
             parameters = this.omit(parameters, "test");
-            if ((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && Boolean.TRUE.equals(isConditional))
+            if (Boolean.TRUE.equals(isAlgoOrder))
             {
                 ((Map<String, Object>)payload).put("algoType", "CONDITIONAL");
             }
@@ -4631,7 +4630,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     ((Map<String, Object>)message).put("method", "order.test");
                 }
             }
-            if ((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && Boolean.TRUE.equals(isConditional))
+            if (Boolean.TRUE.equals(isAlgoOrder))
             {
                 ((Map<String, Object>)message).put("method", "algoOrder.place");
             }
@@ -5674,6 +5673,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             clientOrderId = this.safeString(order, "c");
         }
         String stopPrice = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("P", "sp", "tp")));
+        String orderType = this.safeStringLower(order, "o");
+        // stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
+        boolean isTakeProfitType = this.inArray(orderType, new ArrayList<Object>(Arrays.asList("take_profit", "take_profit_market", "take_profit_limit")));
+        Object takeProfitPrice = ((isTakeProfitType)) ? this.omitZero(stopPrice) : null;
         String timeInForce = this.safeString(order, "f");
         if (java.util.Objects.equals(timeInForce, "GTX"))
         {
@@ -5694,7 +5697,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             put( "datetime", Binance.this.iso8601(finalTimestamp) );
             put( "lastTradeTimestamp", finalLastTradeTimestamp );
             put( "lastUpdateTimestamp", lastUpdateTimestamp );
-            put( "type", Binance.this.parseOrderTypeByMarket(Binance.this.safeStringLower(order, "o"), marketType) );
+            put( "type", Binance.this.parseOrderTypeByMarket((String) (orderType), marketType) );
             put( "timeInForce", finalTimeInForce );
             put( "postOnly", null );
             put( "reduceOnly", Binance.this.safeBool(order, "R") );
@@ -5702,6 +5705,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             put( "price", Binance.this.safeString(order, "p") );
             put( "stopPrice", stopPrice );
             put( "triggerPrice", stopPrice );
+            put( "takeProfitPrice", takeProfitPrice );
             put( "amount", Binance.this.safeString(order, "q") );
             put( "cost", Binance.this.safeString(order, "Z") );
             put( "average", Binance.this.safeString(order, "ap") );
@@ -6948,13 +6952,15 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         if (!Boolean.TRUE.equals(rejected))
         {
-            client.reject(message, id);
+            var feedback = new ExchangeError(((this.id + " ") + this.json(message)));
+            client.reject(feedback, id);
         }
         // reset connection if 5xx error
         String codeString = this.safeString(error, "code");
         if ((!java.util.Objects.equals(codeString, null)) && (java.util.Objects.equals(Helpers.GetValue(codeString, 0), "5")))
         {
-            client.reset(message);
+            var resetError = new ExchangeError(((this.id + " ") + this.json(message)));
+            client.reset(resetError);
         }
     }
 
@@ -6973,7 +6979,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         if (java.util.Objects.equals(eventVar, "eventStreamTerminated"))
         {
             ((Map<String,Object>)client.subscriptions).remove((String)accountType);
-            client.reject(message, accountType);
+            var error = new ExchangeError(((this.id + " user data event stream terminated ") + this.json(message)));
+            client.reject(error, accountType);
         }
     }
 

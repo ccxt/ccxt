@@ -2744,6 +2744,6 @@ class bitvavo extends Exchange {
         if ((is_array($config) && array_key_exists('noMarket' ?? '', $config)) && !(is_array($params) && array_key_exists('market' ?? '', $params))) {
             return $config['noMarket'];
         }
-        return $this->safe_number($config, 'cost', 1);
+        return $this->safe_value($config, 'cost', 1);
     }
 }

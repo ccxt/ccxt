@@ -2798,7 +2798,6 @@ class binance extends Exchange {
                     'Too many requests. Please try again later.' => '\\ccxt\\RateLimitExceeded', // {"msg":"Too many requests. Please try again later.","success":false}
                     'This action is disabled on this account.' => '\\ccxt\\AccountSuspended', // {"code":-2011,"msg":"This action is disabled on this account."}
                     'Limit orders require GTC for this phase.' => '\\ccxt\\BadRequest',
-                    'This order type is not property_exists($this, possible) trading phase.' => '\\ccxt\\BadRequest',
                     'This type of sub-account exceeds the maximum number limit' => '\\ccxt\\OperationRejected', // {"code":-9000,"msg":"This type of sub-account exceeds the maximum number limit"}
                     'This symbol is restricted for this account.' => '\\ccxt\\PermissionDenied',
                     'This symbol is not permitted for this account.' => '\\ccxt\\PermissionDenied', // {"code":-2010,"msg":"This symbol is not permitted for this account."}
@@ -2807,6 +2806,7 @@ class binance extends Exchange {
                     'has no operation privilege' => '\\ccxt\\PermissionDenied',
                     'MAX_POSITION' => '\\ccxt\\BadRequest', // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                     'PERCENT_PRICE_BY_SIDE' => '\\ccxt\\InvalidOrder', // {"code":-1013,"msg":"Filter failure: PERCENT_PRICE_BY_SIDE"}
+                    'This order type is not possible' => '\\ccxt\\BadRequest', // matched broadly: the php transpiler mangles the full message as an exact key
                 ),
             ),
             'rollingWindowSize' => 60000.0,
@@ -6901,6 +6901,9 @@ class binance extends Exchange {
         $postOnly = ($type === 'limit_maker') || ($timeInForce === 'PO');
         $stopPriceString = $this->safe_string_2($order, 'stopPrice', 'triggerPrice');
         $triggerPrice = $this->parse_number($this->omit_zero($stopPriceString));
+        // stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
+        $isTakeProfitType = $this->in_array($type, array( 'take_profit', 'take_profit_market', 'take_profit_limit' ));
+        $takeProfitPrice = $isTakeProfitType ? $triggerPrice : null;
         $feeCost = $this->safe_number($order, 'fee');
         $fee = null;
         if ($feeCost !== null) {
@@ -6926,6 +6929,7 @@ class binance extends Exchange {
             'side' => $side,
             'price' => $price,
             'triggerPrice' => $triggerPrice,
+            'takeProfitPrice' => $takeProfitPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -6967,7 +6971,16 @@ class binance extends Exchange {
             $amount = $this->safe_value($rawOrder, 'amount');
             $price = $this->safe_value($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
-            $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
+            $orderMarket = $this->market($marketId);
+            if (($orderMarket['linear'] === true) && ($orderMarket['option'] !== true) && $this->is_conditional_order($orderParams)) {
+                // linear conditional order types are only accepted by the algo order endpoints, which have no batch variant
+                // https://developers.binance.com/docs/derivatives/change-log (2025-11-06)
+                throw new NotSupported($this->id . ' createOrders() does not support conditional order types for linear markets, use createOrder() instead');
+            }
+            // the inverse batch endpoint still accepts conditional order types in the regular (non-algo) format,
+            // but the exchange announced it will reject them after the coin-m migration
+            // https://developers.binance.com/docs/derivatives/coin-margined-futures/Important-CM-UM-Integration-Notice
+            $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $this->extend($orderParams, array( 'isAlgoOrder' => false )));
             $ordersRequests[] = $orderRequest;
         }
         $orderSymbols = $this->market_symbols($orderSymbols, null, false, true, true);
@@ -7081,14 +7094,8 @@ class binance extends Exchange {
         $marginMode = $this->safe_string($params, 'marginMode');
         $porfolioOptionsValue = $this->safe_bool_2($this->options, 'papi', 'portfolioMargin', false);
         $isPortfolioMargin = $this->safe_bool_2($params, 'papi', 'portfolioMargin', $porfolioOptionsValue);
-        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
-        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
-        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
-        $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRate');
-        $isTrailingPercentOrder = $trailingPercent !== null;
-        $isStopLoss = $stopLossPrice !== null;
-        $isTakeProfit = $takeProfitPrice !== null;
-        $isConditional = ($triggerPrice !== null) || $isTrailingPercentOrder || $isStopLoss || $isTakeProfit;
+        $isConditional = $this->is_conditional_order($params);
+        $isAlgoOrder = (($market['swap'] === true) || ($market['future'] === true)) && $isConditional && !$isPortfolioMargin;
         $sor = $this->safe_bool_2($params, 'sor', 'SOR', false);
         $test = $this->safe_bool($params, 'test', false);
         $stock = $this->safe_bool($market, 'stock', false);
@@ -7096,7 +7103,7 @@ class binance extends Exchange {
         // if (isPortfolioMargin) {
         //     params['portfolioMargin'] = isPortfolioMargin;
         // }
-        $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+        $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $this->extend($params, array( 'isAlgoOrder' => $isAlgoOrder )));
         $response = null;
         if ($market['option'] === true) {
             $response = Async\await($this->eapiPrivatePostOrder($request));
@@ -7157,6 +7164,17 @@ class binance extends Exchange {
         return $this->parse_order($response, $market);
     }
 
+    public function is_conditional_order($params = array()): bool {
+        /**
+         * @ignore
+         * checks whether the order $params describe a conditional (trigger, stop loss, take profit or trailing) order
+         * @param {array} [$params] the $params passed to createOrder
+         * @return {boolean} true if the order is conditional
+         */
+        $conditionalKeys = array( 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingPercent', 'callbackRate', 'trailingDelta' );
+        return ($this->safe_string_n($params, $conditionalKeys) !== null);
+    }
+
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         /**
          * @ignore
@@ -7178,6 +7196,9 @@ class binance extends Exchange {
         $market = $this->market($symbol);
         $marketType = $this->safe_string($params, 'type', $market['type']);
         $stock = $this->safe_bool($market, 'stock', false);
+        // set by the caller: the algo order endpoints name the client id, trigger and activation fields differently
+        $isAlgoOrder = $this->safe_bool($params, 'isAlgoOrder', false);
+        $params = $this->omit($params, 'isAlgoOrder');
         $clientOrderId = $this->safe_string_n($params, array( 'clientAlgoId', 'newClientOrderId', 'clientOrderId' ));
         $initialUppercaseType = strtoupper($type);
         $isMarketOrder = $initialUppercaseType === 'MARKET';
@@ -7220,7 +7241,8 @@ class binance extends Exchange {
                 $uppercaseType = 'TRAILING_STOP_MARKET';
                 $request['callbackRate'] = $trailingPercent;
                 if ($trailingTriggerPrice !== null) {
-                    $request['activationPrice'] = $this->price_to_precision($symbol, $trailingTriggerPrice);
+                    $activationPriceKey = $isAlgoOrder ? 'activatePrice' : 'activationPrice';
+                    $request[$activationPriceKey] = $this->price_to_precision($symbol, $trailingTriggerPrice);
                 }
             } else {
                 if (($uppercaseType !== 'STOP_LOSS') && ($uppercaseType !== 'TAKE_PROFIT') && ($uppercaseType !== 'STOP_LOSS_LIMIT') && ($uppercaseType !== 'TAKE_PROFIT_LIMIT')) {
@@ -7287,7 +7309,7 @@ class binance extends Exchange {
             }
         }
         $clientOrderIdRequest = $isPortfolioMarginConditional ? 'newClientStrategyId' : 'newClientOrderId';
-        if (($market['linear'] === true) && ($market['swap'] === true) && $isConditional && !$isPortfolioMargin) {
+        if ($isAlgoOrder) {
             $clientOrderIdRequest = 'clientAlgoId';
         } elseif ($stock === true) {
             $clientOrderIdRequest = 'clientOrderId';
@@ -7489,7 +7511,7 @@ class binance extends Exchange {
                 }
             }
             if ($stopPrice !== null) {
-                if (($market['swap'] === true) && !$isPortfolioMargin) {
+                if ($isAlgoOrder) {
                     $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
                 } else {
                     $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
@@ -7531,7 +7553,7 @@ class binance extends Exchange {
                 $request['icebergQty'] = $this->amount_to_precision($symbol, $icebergAmount);
             }
         }
-        $requestParams = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'icebergAmount' ));
+        $requestParams = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'activationPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'icebergAmount' ));
         return $this->extend($request, $requestParams);
     }
 
@@ -13614,7 +13636,7 @@ class binance extends Exchange {
                 }
             }
         }
-        return $this->safe_number($config, 'cost', 1);
+        return $this->safe_value($config, 'cost', 1);
     }
 
     public function request(mixed $path, $api = 'public', mixed $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, mixed $config = array()) {

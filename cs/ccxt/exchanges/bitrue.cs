@@ -3700,6 +3700,6 @@ public partial class bitrue : Exchange
                 }
             }
         }
-        return this.safeNumber(config, "cost", 1);
+        return this.safeValue(config, "cost", 1);
     }
 }

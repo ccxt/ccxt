@@ -3230,7 +3230,7 @@ impl BitvavoCore {
         if (in_op(&config, &Value::Str("noMarket".into()))) && !(in_op(&params, &Value::Str("market".into()))) {
             return config.as_map().and_then(|__m| __m.get("noMarket")).cloned().unwrap_or(Value::Null);
         }
-        return self.safe_number_k(config, "cost", &[Value::Int(1)]);
+        return self.safe_value_k(config, "cost", &[Value::Int(1)]);
 
     Value::Null
 }

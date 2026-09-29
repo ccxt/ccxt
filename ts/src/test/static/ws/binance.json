@@ -5145,6 +5145,109 @@
                     "signature"
                 ],
                 "disabledJava": "the cached-order fee/trades merge does not reach the cache in java - same family as disabledCS, investigate separately"
+            },
+            {
+                "description": "linear swap take profit algo order update",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "url": "wss://fstream.binance.com/private/ws?listenKey=offline-listen-key",
+                "options": {
+                    "future": {
+                        "listenKey": "offline-listen-key",
+                        "lastAuthenticatedTime": 9999999999999
+                    },
+                    "watchPositions": {
+                        "fetchPositionsSnapshot": false
+                    }
+                },
+                                "messages": [
+                    {
+                        "e": "ALGO_UPDATE",
+                        "T": 1790420981562,
+                        "E": 1790420981573,
+                        "o": {
+                            "caid": "x-cvBPrNm941fed79a040f4b9c862342",
+                            "aid": "1000000219326089",
+                            "at": "CONDITIONAL",
+                            "o": "TAKE_PROFIT",
+                            "s": "ETHUSDT",
+                            "S": "SELL",
+                            "ps": "BOTH",
+                            "f": "GTC",
+                            "q": "0.008",
+                            "X": "NEW",
+                            "ai": "",
+                            "tp": "4000",
+                            "p": "4100",
+                            "V": "EXPIRE_MAKER",
+                            "wt": "CONTRACT_PRICE",
+                            "pm": "NONE",
+                            "cp": false,
+                            "pP": false,
+                            "R": false,
+                            "tt": 0,
+                            "gtd": 0,
+                            "ia": false
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "caid": "x-cvBPrNm941fed79a040f4b9c862342",
+                                "aid": "1000000219326089",
+                                "at": "CONDITIONAL",
+                                "o": "TAKE_PROFIT",
+                                "s": "ETHUSDT",
+                                "S": "SELL",
+                                "ps": "BOTH",
+                                "f": "GTC",
+                                "q": "0.008",
+                                "X": "NEW",
+                                "ai": "",
+                                "tp": "4000",
+                                "p": "4100",
+                                "V": "EXPIRE_MAKER",
+                                "wt": "CONTRACT_PRICE",
+                                "pm": "NONE",
+                                "cp": false,
+                                "pP": false,
+                                "R": false,
+                                "tt": 0,
+                                "gtd": 0,
+                                "ia": false
+                            },
+                            "symbol": "ETH/USDT:USDT",
+                            "id": "1000000219326089",
+                            "clientOrderId": "x-cvBPrNm941fed79a040f4b9c862342",
+                            "timestamp": null,
+                            "datetime": null,
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": null,
+                            "type": "limit",
+                            "timeInForce": "GTC",
+                            "postOnly": false,
+                            "reduceOnly": false,
+                            "side": "sell",
+                            "price": 4100,
+                            "stopPrice": 4000,
+                            "triggerPrice": 4000,
+                            "takeProfitPrice": 4000,
+                            "amount": 0.008,
+                            "cost": null,
+                            "average": null,
+                            "filled": null,
+                            "remaining": null,
+                            "status": "open",
+                            "fee": null,
+                            "trades": [],
+                            "fees": [],
+                            "stopLossPrice": null
+                        }
+                    ]
+                ]
             }
         ],
         "watchMyTrades": [

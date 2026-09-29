@@ -2790,7 +2790,6 @@ class binance extends binance$1["default"] {
                     'Too many requests. Please try again later.': errors.RateLimitExceeded, // {"msg":"Too many requests. Please try again later.","success":false}
                     'This action is disabled on this account.': errors.AccountSuspended, // {"code":-2011,"msg":"This action is disabled on this account."}
                     'Limit orders require GTC for this phase.': errors.BadRequest,
-                    'This order type is not possible in this trading phase.': errors.BadRequest,
                     'This type of sub-account exceeds the maximum number limit': errors.OperationRejected, // {"code":-9000,"msg":"This type of sub-account exceeds the maximum number limit"}
                     'This symbol is restricted for this account.': errors.PermissionDenied,
                     'This symbol is not permitted for this account.': errors.PermissionDenied, // {"code":-2010,"msg":"This symbol is not permitted for this account."}
@@ -2799,6 +2798,7 @@ class binance extends binance$1["default"] {
                     'has no operation privilege': errors.PermissionDenied,
                     'MAX_POSITION': errors.BadRequest, // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                     'PERCENT_PRICE_BY_SIDE': errors.InvalidOrder, // {"code":-1013,"msg":"Filter failure: PERCENT_PRICE_BY_SIDE"}
+                    'This order type is not possible': errors.BadRequest, // matched broadly: the php transpiler mangles the full message as an exact key
                 },
             },
             'rollingWindowSize': 60000.0,
@@ -6892,6 +6892,9 @@ class binance extends binance$1["default"] {
         const postOnly = (type === 'limit_maker') || (timeInForce === 'PO');
         const stopPriceString = this.safeString2(order, 'stopPrice', 'triggerPrice');
         const triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
+        // stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
+        const isTakeProfitType = this.inArray(type, ['take_profit', 'take_profit_market', 'take_profit_limit']);
+        const takeProfitPrice = isTakeProfitType ? triggerPrice : undefined;
         const feeCost = this.safeNumber(order, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -6917,6 +6920,7 @@ class binance extends binance$1["default"] {
             'side': side,
             'price': price,
             'triggerPrice': triggerPrice,
+            'takeProfitPrice': takeProfitPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -6953,7 +6957,16 @@ class binance extends binance$1["default"] {
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+            const orderMarket = this.market(marketId);
+            if ((orderMarket['linear'] === true) && (orderMarket['option'] !== true) && this.isConditionalOrder(orderParams)) {
+                // linear conditional order types are only accepted by the algo order endpoints, which have no batch variant
+                // https://developers.binance.com/docs/derivatives/change-log (2025-11-06)
+                throw new errors.NotSupported(this.id + ' createOrders() does not support conditional order types for linear markets, use createOrder() instead');
+            }
+            // the inverse batch endpoint still accepts conditional order types in the regular (non-algo) format,
+            // but the exchange announced it will reject them after the coin-m migration
+            // https://developers.binance.com/docs/derivatives/coin-margined-futures/Important-CM-UM-Integration-Notice
+            const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, this.extend(orderParams, { 'isAlgoOrder': false }));
             ordersRequests.push(orderRequest);
         }
         orderSymbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
@@ -7064,14 +7077,8 @@ class binance extends binance$1["default"] {
         const marginMode = this.safeString(params, 'marginMode');
         const porfolioOptionsValue = this.safeBool2(this.options, 'papi', 'portfolioMargin', false);
         const isPortfolioMargin = this.safeBool2(params, 'papi', 'portfolioMargin', porfolioOptionsValue);
-        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeString(params, 'stopLossPrice');
-        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
-        const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRate');
-        const isTrailingPercentOrder = trailingPercent !== undefined;
-        const isStopLoss = stopLossPrice !== undefined;
-        const isTakeProfit = takeProfitPrice !== undefined;
-        const isConditional = (triggerPrice !== undefined) || isTrailingPercentOrder || isStopLoss || isTakeProfit;
+        const isConditional = this.isConditionalOrder(params);
+        const isAlgoOrder = ((market['swap'] === true) || (market['future'] === true)) && isConditional && !isPortfolioMargin;
         const sor = this.safeBool2(params, 'sor', 'SOR', false);
         const test = this.safeBool(params, 'test', false);
         const stock = this.safeBool(market, 'stock', false);
@@ -7079,7 +7086,7 @@ class binance extends binance$1["default"] {
         // if (isPortfolioMargin) {
         //     params['portfolioMargin'] = isPortfolioMargin;
         // }
-        const request = this.createOrderRequest(symbol, type, side, amount, price, params);
+        const request = this.createOrderRequest(symbol, type, side, amount, price, this.extend(params, { 'isAlgoOrder': isAlgoOrder }));
         let response = undefined;
         if (market['option'] === true) {
             response = await this.eapiPrivatePostOrder(request);
@@ -7157,6 +7164,18 @@ class binance extends binance$1["default"] {
     /**
      * @method
      * @ignore
+     * @name binance#isConditionalOrder
+     * @description checks whether the order params describe a conditional (trigger, stop loss, take profit or trailing) order
+     * @param {object} [params] the params passed to createOrder
+     * @returns {boolean} true if the order is conditional
+     */
+    isConditionalOrder(params = {}) {
+        const conditionalKeys = ['triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingPercent', 'callbackRate', 'trailingDelta'];
+        return (this.safeStringN(params, conditionalKeys) !== undefined);
+    }
+    /**
+     * @method
+     * @ignore
      * @name binance#createOrderRequest
      * @description helper function to build the request
      * @param {string} symbol unified symbol of the market to create an order in
@@ -7177,6 +7196,9 @@ class binance extends binance$1["default"] {
         const market = this.market(symbol);
         const marketType = this.safeString(params, 'type', market['type']);
         const stock = this.safeBool(market, 'stock', false);
+        // set by the caller: the algo order endpoints name the client id, trigger and activation fields differently
+        const isAlgoOrder = this.safeBool(params, 'isAlgoOrder', false);
+        params = this.omit(params, 'isAlgoOrder');
         const clientOrderId = this.safeStringN(params, ['clientAlgoId', 'newClientOrderId', 'clientOrderId']);
         const initialUppercaseType = type.toUpperCase();
         const isMarketOrder = initialUppercaseType === 'MARKET';
@@ -7219,7 +7241,8 @@ class binance extends binance$1["default"] {
                 uppercaseType = 'TRAILING_STOP_MARKET';
                 request['callbackRate'] = trailingPercent;
                 if (trailingTriggerPrice !== undefined) {
-                    request['activationPrice'] = this.priceToPrecision(symbol, trailingTriggerPrice);
+                    const activationPriceKey = isAlgoOrder ? 'activatePrice' : 'activationPrice';
+                    request[activationPriceKey] = this.priceToPrecision(symbol, trailingTriggerPrice);
                 }
             }
             else {
@@ -7296,7 +7319,7 @@ class binance extends binance$1["default"] {
             }
         }
         let clientOrderIdRequest = isPortfolioMarginConditional ? 'newClientStrategyId' : 'newClientOrderId';
-        if ((market['linear'] === true) && (market['swap'] === true) && isConditional && !isPortfolioMargin) {
+        if (isAlgoOrder) {
             clientOrderIdRequest = 'clientAlgoId';
         }
         else if (stock === true) {
@@ -7523,7 +7546,7 @@ class binance extends binance$1["default"] {
                 }
             }
             if (stopPrice !== undefined) {
-                if ((market['swap'] === true) && !isPortfolioMargin) {
+                if (isAlgoOrder) {
                     request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
                 }
                 else {
@@ -7566,7 +7589,7 @@ class binance extends binance$1["default"] {
                 request['icebergQty'] = this.amountToPrecision(symbol, icebergAmount);
             }
         }
-        const requestParams = this.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'icebergAmount']);
+        const requestParams = this.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'activationPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'icebergAmount']);
         return this.extend(request, requestParams);
     }
     /**
@@ -13592,7 +13615,7 @@ class binance extends binance$1["default"] {
                 }
             }
         }
-        return this.safeNumber(config, 'cost', 1);
+        return this.safeValue(config, 'cost', 1);
     }
     async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
         const response = await this.fetch2(path, api, method, params, headers, body, config);
