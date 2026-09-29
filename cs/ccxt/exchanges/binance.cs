@@ -15913,7 +15913,7 @@ public partial class binance : Exchange
                 }
             }
         }
-        return this.safeNumber(config, "cost", 1);
+        return this.safeValue(config, "cost", 1);
     }
 
     public async override Task<object> request(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null, object config = null)
