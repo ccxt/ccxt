@@ -708,7 +708,7 @@ class weex extends Exchange {
         ));
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
@@ -1634,7 +1634,7 @@ class weex extends Exchange {
                     $startTime = $now - $timeDelta;
                 } elseif ($since === null) {
                     if ($until === null) {
-                        throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since or $until argument');
+                        throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a since or until argument');
                     }
                     $startTime = $until - $timeDelta;
                 } else {
@@ -1823,7 +1823,7 @@ class weex extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): array {
         /**
          * retrieves the open interest of a contract trading pair
          *
@@ -1844,7 +1844,7 @@ class weex extends Exchange {
         return $this->parse_open_interest($response, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -1941,7 +1941,7 @@ class weex extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -1955,7 +1955,7 @@ class weex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1975,7 +1975,7 @@ class weex extends Exchange {
         return $this->parse_funding_rate_histories($response, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -2018,7 +2018,7 @@ class weex extends Exchange {
         $response = null;
         if ($type === 'spot') {
             if ($sandboxMode === true) {
-                throw new NotSupported($this->id . ' fetchBalance() only supports the swap account in sandbox mode, use $params["type"] = "swap"');
+                throw new NotSupported($this->id . ' fetchBalance() only supports the swap account in sandbox mode, use params["type"] = "swap"');
             }
             //
             //     {
@@ -2169,7 +2169,7 @@ class weex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * Create an order on the exchange
          *
@@ -2241,14 +2241,14 @@ class weex extends Exchange {
 
     public function create_spot_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createSpotOrderRequest() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createSpotOrderRequest() requires a side argument');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -2328,14 +2328,14 @@ class weex extends Exchange {
 
     public function create_contract_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createContractOrderRequest() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createContractOrderRequest() requires a side argument');
         }
         $request = array(
             'symbol' => $this->to_sandbox_market_id($market),
@@ -2352,7 +2352,7 @@ class weex extends Exchange {
         $isStopLoss = ($stopLossPrice !== null);
         $isTakeProfit = ($takeProfitPrice !== null);
         if ($isTrigger && ($isStopLoss || $isTakeProfit)) {
-            throw new BadRequest($this->id . ' createOrder() cannot use the $triggerPrice parameter together with the $stopLossPrice or $takeProfitPrice parameters');
+            throw new BadRequest($this->id . ' createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters');
         }
         $reduceOnly = $this->safe_bool($query, 'reduceOnly');
         if ($isStopLoss || $isTakeProfit) {
@@ -2374,10 +2374,10 @@ class weex extends Exchange {
         $hasStopLoss = ($stopLoss !== null);
         // the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at market price
         if ($hasTakeProfit && ($this->safe_number($takeProfit, 'price') !== null)) {
-            throw new NotSupported($this->id . ' createOrder() does not support the $price field inside the $takeProfit $params, the attached take profit executes at $market price');
+            throw new NotSupported($this->id . ' createOrder() does not support the price field inside the takeProfit params, the attached take profit executes at market price');
         }
         if ($hasStopLoss && ($this->safe_number($stopLoss, 'price') !== null)) {
-            throw new NotSupported($this->id . ' createOrder() does not support the $price field inside the $stopLoss $params, the attached stop loss executes at $market price');
+            throw new NotSupported($this->id . ' createOrder() does not support the price field inside the stopLoss params, the attached stop loss executes at market price');
         }
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
@@ -2392,7 +2392,7 @@ class weex extends Exchange {
                 throw new NotSupported($this->id . ' createOrders() does not support trigger orders');
             }
             if ($timeInForce !== null) {
-                throw new BadRequest($this->id . ' createOrder() cannot use the $timeInForce parameter with trigger orders');
+                throw new BadRequest($this->id . ' createOrder() cannot use the timeInForce parameter with trigger orders');
             }
             $request['clientAlgoId'] = $clientOrderId;
             $params['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
@@ -2423,13 +2423,13 @@ class weex extends Exchange {
                 throw new NotSupported($this->id . ' createOrders() does not support stop loss and take profit orders');
             }
             if ($timeInForce !== null) {
-                throw new BadRequest($this->id . ' createOrder() cannot use $timeInForce parameter with $stopLoss and $takeProfit orders');
+                throw new BadRequest($this->id . ' createOrder() cannot use timeInForce parameter with stopLoss and takeProfit orders');
             }
             if ($hasStopLoss || $hasTakeProfit) {
-                throw new BadRequest($this->id . ' createOrder() cannot use both stopLossPrice/takeProfitPrice parameters and stopLoss/takeProfit objects in $params at the same time');
+                throw new BadRequest($this->id . ' createOrder() cannot use both stopLossPrice/takeProfitPrice parameters and stopLoss/takeProfit objects in params at the same time');
             }
             if ($isStopLoss && $isTakeProfit) {
-                throw new BadRequest($this->id . ' createOrder() cannot use both $stopLossPrice and $takeProfitPrice parameters at the same time');
+                throw new BadRequest($this->id . ' createOrder() cannot use both stopLossPrice and takeProfitPrice parameters at the same time');
             }
             $request['clientAlgoId'] = $clientOrderId;
             $orderType = null;
@@ -2491,7 +2491,7 @@ class weex extends Exchange {
         return $this->safe_string($types, $triggerPriceType, $triggerPriceType);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open $order
          *
@@ -2517,7 +2517,7 @@ class weex extends Exchange {
         list($type, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
         $trigger = $this->safe_bool($params, 'trigger', false);
         if (($trigger === true) && $id === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires an $id argument for $trigger orders');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires an id argument for trigger orders');
         }
         $request = array();
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
@@ -2525,7 +2525,7 @@ class weex extends Exchange {
         if ($clientOrderId !== null) {
             $request['origClientOrderId'] = $clientOrderId;
         } elseif ($id === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires an $id argument or $clientOrderId parameter');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires an id argument or clientOrderId parameter');
         } else {
             $request['orderId'] = $id;
         }
@@ -2557,7 +2557,7 @@ class weex extends Exchange {
         return $order;
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders
          *
@@ -2587,7 +2587,7 @@ class weex extends Exchange {
         $response = null;
         if ($marketType === 'spot') {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument for spot markets');
+                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument for spot markets');
             }
             $response = $this->privateDeleteApiV3OpenOrders($this->extend($request, $params));
         } elseif ($trigger === true) {
@@ -2601,7 +2601,7 @@ class weex extends Exchange {
         return $this->parse_orders($response, $market, null, null, $extendedParams);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple orders
          *
@@ -2641,7 +2641,7 @@ class weex extends Exchange {
                 $request['orderIdList'] = $ids;
             }
         } else {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires an $ids argument or $clientOrderIds parameter');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires an ids argument or clientOrderIds parameter');
         }
         $response = null;
         if ($isSpot) {
@@ -2656,7 +2656,7 @@ class weex extends Exchange {
         return $this->parse_orders($ordersResponse, $market, null, null, $extendedParams);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -2682,14 +2682,14 @@ class weex extends Exchange {
         $isSpot = ($marketType === 'spot');
         $request = array();
         if (($id === null) && !$isSpot) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires an $id argument for non-spot markets');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires an id argument for non-spot markets');
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         $params = $this->omit($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['origClientOrderId'] = $clientOrderId;
         } elseif ($id === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires an $id argument or $clientOrderId parameter for spot markets');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires an id argument or clientOrderId parameter for spot markets');
         } else {
             $request['orderId'] = $id;
         }
@@ -2890,7 +2890,7 @@ class weex extends Exchange {
         $orders = null;
         if ($marketType === 'spot') {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument for spot markets');
+                throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a symbol argument for spot markets');
             }
             $orders = $this->fetch_orders($symbol, $since, null, $params);
         } else {
@@ -2927,7 +2927,7 @@ class weex extends Exchange {
         $orders = null;
         if ($marketType === 'spot') {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires a $symbol argument for spot markets');
+                throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires a symbol argument for spot markets');
             }
             $orders = $this->fetch_orders($symbol, $since, null, $params);
         } else {
@@ -2951,7 +2951,7 @@ class weex extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -3289,7 +3289,7 @@ class weex extends Exchange {
         throw new InvalidOrder($feedback);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all the trades made from a single order
          *
@@ -3338,7 +3338,7 @@ class weex extends Exchange {
         list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         $isSpot = ($marketType === 'spot');
         if ($isSpot && ($symbol === null)) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument for spot markets');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument for spot markets');
         }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate', false);
@@ -3628,7 +3628,7 @@ class weex extends Exchange {
         if ($hasSince && !$hasUntil) {
             $request['endTime'] = $this->milliseconds();
         } elseif ($hasUntil && !$hasSince) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires $since to be set when until is used');
+            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires since to be set when until is used');
         }
         $response = $this->contractPrivatePostCapiV3AccountIncome($this->extend($request, $params));
         //
@@ -3707,7 +3707,7 @@ class weex extends Exchange {
         return $this->parse_positions($response, $symbols);
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): array {
         /**
          * fetch data on an open position
          *
@@ -3748,7 +3748,7 @@ class weex extends Exchange {
         return $this->parse_positions($response, array( $market['symbol'] ));
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         //     {
         //         "id": 737191855967437160,
@@ -4038,7 +4038,7 @@ class weex extends Exchange {
         return $this->safe_string($marginTypes, $marginType, $marginType);
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()): array {
         /**
          * set margin mode to 'cross' or 'isolated'
          *
@@ -4050,7 +4050,7 @@ class weex extends Exchange {
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -4070,7 +4070,7 @@ class weex extends Exchange {
         );
         $result = $this->safe_string($marginTypes, $marginMode);
         if ($result === null) {
-            throw new ArgumentsRequired($this->id . ' $marginMode must be either cross or isolated');
+            throw new ArgumentsRequired($this->id . ' marginMode must be either cross or isolated');
         }
         return $result;
     }
@@ -4135,7 +4135,7 @@ class weex extends Exchange {
         );
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): array {
         /**
          * set the level of $leverage for a $market
          *
@@ -4156,7 +4156,7 @@ class weex extends Exchange {
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -4210,7 +4210,7 @@ class weex extends Exchange {
         );
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()): array {
         /**
          * set $hedged to true or false for a $market
          *
@@ -4223,7 +4223,7 @@ class weex extends Exchange {
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setPositionMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setPositionMode() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -4232,7 +4232,7 @@ class weex extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('setPositionMode', $params);
         if ($marginMode === null) {
-            throw new ArgumentsRequired($this->id . ' setPositionMode() also sets $marginMode, so a $marginMode parameter is required');
+            throw new ArgumentsRequired($this->id . ' setPositionMode() also sets marginMode, so a marginMode parameter is required');
         }
         $separatedType = $hedged ? 'SEPARATED' : 'COMBINED';
         $request = array(
@@ -4243,7 +4243,7 @@ class weex extends Exchange {
         return $this->contractPrivatePostCapiV3AccountMarginType($this->extend($request, $params));
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): array {
+    public function modify_margin_helper(string $symbol, ?float $amount, int $type, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -4363,7 +4363,7 @@ class weex extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $endpoint = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $isBatch = (mb_strpos($path, 'batch') !== false);

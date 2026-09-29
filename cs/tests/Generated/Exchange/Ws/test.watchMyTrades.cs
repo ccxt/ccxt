@@ -12,7 +12,7 @@ public partial class testMainClass : BaseTest
     {
         string method = "watchMyTrades";
         Int64 now = exchange.milliseconds();
-        object ends = add(now, 15000);
+        object ends = (now + 15000);
         while (isLessThan(now, ends))
         {
             bool success = true;
@@ -30,11 +30,11 @@ public partial class testMainClass : BaseTest
                 // continue;
                 success = false;
             }
-            if (isTrue(isEqual(success, true)))
+            if ((success == true))
             {
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
-                for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(response); i++)
                 {
                     testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now, false);
                 }

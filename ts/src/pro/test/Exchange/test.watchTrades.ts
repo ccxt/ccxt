@@ -3,7 +3,6 @@ import testTrade from '../../../test/Exchange/base/test.trade.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { Exchange, Trade } from '../../../../ccxt.js';
 
-
 async function testWatchTrades (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchTrades';
     let now = exchange.milliseconds ();

@@ -23,7 +23,7 @@ Don't write from scratch. Copy a similar exchange that's already certified and a
 |---|---|
 | Spot + futures, signed REST | `ts/src/binance.ts`, `ts/src/okx.ts` |
 | Spot only | `ts/src/kraken.ts`, `ts/src/coinbase.ts` |
-| Derivatives focus | `ts/src/bybit.ts`, `ts/src/bitmex.ts` |
+| Derivatives focus | `ts/src/bybit.ts`, `ts/src/hyperliquid.ts` |
 | Decentralised / on-chain signing | `ts/src/hyperliquid.ts`, `ts/src/dydx.ts` |
 | WebSocket reference | `ts/src/pro/binance.ts`, `ts/src/pro/okx.ts` |
 

@@ -160,7 +160,7 @@ export default class hyperliquid extends Exchange {
                 'public': {
                     'post': {
                         'info': {
-                            'cost': 20,
+                            'cost': 10,
                             'byType': {
                                 'l2Book': 2,
                                 'allMids': 2,
@@ -2122,7 +2122,7 @@ export default class hyperliquid extends Exchange {
         await this.initializeClient();
         const market = this.market(symbol);
         const nonce = this.incrementingNonce();
-        const isBuy = (side === 'BUY');
+        const isBuy = (side.toUpperCase() === 'BUY');
         let vaultAddress = undefined;
         const randomize = this.safeBool(params, 'randomize', false);
         params = this.omit(params, 'randomize');
@@ -2348,8 +2348,8 @@ export default class hyperliquid extends Exchange {
             let orderParams = this.safeDict(rawOrder, 'params', {});
             const slippage = this.safeString(orderParams, 'slippage', defaultSlippage);
             orderParams['slippage'] = slippage;
-            const stopLoss = this.safeValue(orderParams, 'stopLoss');
-            const takeProfit = this.safeValue(orderParams, 'takeProfit');
+            const stopLoss = this.safeDict(orderParams, 'stopLoss');
+            const takeProfit = this.safeDict(orderParams, 'takeProfit');
             const hasStopLoss = (stopLoss !== undefined);
             const hasTakeProfit = (takeProfit !== undefined);
             orderParams = this.omit(orderParams, ['stopLoss', 'takeProfit']);

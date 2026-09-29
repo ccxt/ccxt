@@ -7,6 +7,7 @@ import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -30,9 +31,9 @@ public class TestWatchPositions extends BaseTest {
             try
             {
                 response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{new ArrayList<Object>(Arrays.asList(symbol))})).join();
-                if (Helpers.isTrue(Helpers.isEqual(response, null)))
+                if (java.util.Objects.equals(response, null))
                 {
-                    throw new RuntimeException((String)Helpers.add(exchange.id, " watch returned undefined response")) ;
+                    throw new RuntimeException((String)(exchange.id + " watch returned undefined response")) ;
                 }
             } catch(Exception e)
             {
@@ -44,15 +45,15 @@ public class TestWatchPositions extends BaseTest {
                 // continue;
                 success = false;
             }
-            if (Helpers.isTrue(Helpers.isEqual(success, true)))
+            if (java.util.Objects.equals(success, true))
             {
-                if (Helpers.isTrue(Helpers.isEqual(response, null)))
+                if (java.util.Objects.equals(response, null))
                 {
-                    throw new RuntimeException((String)Helpers.add(exchange.id, " watch returned undefined response")) ;
+                    throw new RuntimeException((String)(exchange.id + " watch returned undefined response")) ;
                 }
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(response); i++)
                 {
                     TestPosition.testPosition(exchange, skippedProperties, method, Helpers.GetValue(response, i), null, now);
                 }
@@ -76,15 +77,15 @@ public class TestWatchPositions extends BaseTest {
                 // continue;
                 success2 = false;
             }
-            if (Helpers.isTrue(Helpers.isEqual(success2, true)))
+            if (java.util.Objects.equals(success2, true))
             {
-                Assert(Helpers.isArray(positionsForSymbols), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return an array, returned "), exchange.json(positionsForSymbols)));
+                Assert((positionsForSymbols instanceof List), ((((exchange.id + " ") + method) + " must return an array, returned ") + exchange.json(positionsForSymbols)));
                 // max theoretical 4 positions: two for one-way-mode and two for two-way mode
-                Assert(Helpers.isLessThanOrEqual(Helpers.getArrayLength(positionsForSymbols), 4), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.json(positionsForSymbols)));
+                Assert(((List<?>)positionsForSymbols).size() <= 4, ((((exchange.id + " ") + method) + " positions length for particular symbol should be less than 4, returned ") + exchange.json(positionsForSymbols)));
                 now = exchange.milliseconds();
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positionsForSymbols)); i++)
+                for (var i = 0; i < ((List<?>)positionsForSymbols).size(); i++)
                 {
-                    TestPosition.testPosition(exchange, skippedProperties, method, Helpers.GetValue(positionsForSymbols, i), symbol, now);
+                    TestPosition.testPosition(exchange, skippedProperties, method, (positionsForSymbols == null || i < 0 || i >= ((List<?>)positionsForSymbols).size() ? null : ((List<?>)positionsForSymbols).get(i)), symbol, now);
                 }
                 TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, positionsForSymbols);
             }

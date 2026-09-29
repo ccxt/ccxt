@@ -141,6 +141,13 @@
         ],
         "fetchOrder": [
             {
+                "description": "filled order average from fill event",
+                "method": "fetchOrder",
+                "url": "https://test-api.pacifica.fi/api/v1/orders/history_by_id?order_id=395934592",
+                "input": ["395934592"],
+                "output": null
+            },
+            {
                 "description": "Fetch order by id",
                 "method": "fetchOrder",
                 "url": "https://test-api.pacifica.fi/api/v1/orders/history_by_id?order_id=241146145",

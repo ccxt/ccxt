@@ -9,265 +9,265 @@ package ccxt
 
 // PublicGetAssets returns a channel that yields a JSON object.
 func (this *Delta) PublicGetAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAssets", args...)
+	return this.Fetch2Async("assets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetIndices returns a channel that yields a JSON object.
 func (this *Delta) PublicGetIndices(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetIndices", args...)
+	return this.Fetch2Async("indices", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetProducts returns a channel that yields a JSON object.
 func (this *Delta) PublicGetProducts(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetProducts", args...)
+	return this.Fetch2Async("products", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetProductsSymbol returns a channel that yields a JSON object.
 func (this *Delta) PublicGetProductsSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetProductsSymbol", args...)
+	return this.Fetch2Async("products/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTickers returns a channel that yields a JSON object.
 func (this *Delta) PublicGetTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTickers", args...)
+	return this.Fetch2Async("tickers", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTickersSymbol returns a channel that yields a JSON object.
 func (this *Delta) PublicGetTickersSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTickersSymbol", args...)
+	return this.Fetch2Async("tickers/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetL2orderbookSymbol returns a channel that yields a JSON object.
 func (this *Delta) PublicGetL2orderbookSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetL2orderbookSymbol", args...)
+	return this.Fetch2Async("l2orderbook/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTradesSymbol returns a channel that yields a JSON object.
 func (this *Delta) PublicGetTradesSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradesSymbol", args...)
+	return this.Fetch2Async("trades/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetStats returns a channel that yields a JSON array.
 func (this *Delta) PublicGetStats(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetStats", args...)
+	return this.Fetch2Async("stats", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetHistoryCandles returns a channel that yields a JSON object.
 func (this *Delta) PublicGetHistoryCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetHistoryCandles", args...)
+	return this.Fetch2Async("history/candles", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetHistorySparklines returns a channel that yields a JSON object.
 func (this *Delta) PublicGetHistorySparklines(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetHistorySparklines", args...)
+	return this.Fetch2Async("history/sparklines", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetSettings returns a channel that yields a JSON object.
 func (this *Delta) PublicGetSettings(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSettings", args...)
+	return this.Fetch2Async("settings", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetOrders returns a channel that yields a JSON object.
 func (this *Delta) PrivateGetOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrders", args...)
+	return this.Fetch2Async("orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetOrdersOrderId returns a channel that yields a JSON object.
 func (this *Delta) PrivateGetOrdersOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrdersOrderId", args...)
+	return this.Fetch2Async("orders/{order_id}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetOrdersClientOrderIdClientOid returns a channel that yields a JSON object.
 func (this *Delta) PrivateGetOrdersClientOrderIdClientOid(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrdersClientOrderIdClientOid", args...)
+	return this.Fetch2Async("orders/client_order_id/{client_oid}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetProductsProductIdOrdersLeverage returns a channel that yields a JSON object.
 func (this *Delta) PrivateGetProductsProductIdOrdersLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetProductsProductIdOrdersLeverage", args...)
+	return this.Fetch2Async("products/{product_id}/orders/leverage", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetPositionsMargined returns a channel that yields a JSON object.
 func (this *Delta) PrivateGetPositionsMargined(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetPositionsMargined", args...)
+	return this.Fetch2Async("positions/margined", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetPositions returns a channel that yields a JSON object.
 func (this *Delta) PrivateGetPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetPositions", args...)
+	return this.Fetch2Async("positions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetOrdersHistory returns a channel that yields a JSON object.
 func (this *Delta) PrivateGetOrdersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrdersHistory", args...)
+	return this.Fetch2Async("orders/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetFills returns a channel that yields a JSON object.
 func (this *Delta) PrivateGetFills(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFills", args...)
+	return this.Fetch2Async("fills", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetFillsHistoryDownloadCsv returns a channel that yields a JSON object.
 func (this *Delta) PrivateGetFillsHistoryDownloadCsv(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFillsHistoryDownloadCsv", args...)
+	return this.Fetch2Async("fills/history/download/csv", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWalletBalances returns a channel that yields a JSON object.
 func (this *Delta) PrivateGetWalletBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWalletBalances", args...)
+	return this.Fetch2Async("wallet/balances", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWalletTransactions returns a channel that yields a JSON object.
 func (this *Delta) PrivateGetWalletTransactions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWalletTransactions", args...)
+	return this.Fetch2Async("wallet/transactions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWalletTransactionsDownload returns a channel that yields a JSON object.
 func (this *Delta) PrivateGetWalletTransactionsDownload(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWalletTransactionsDownload", args...)
+	return this.Fetch2Async("wallet/transactions/download", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWalletsSubAccountsTransferHistory returns a channel that yields a JSON object.
 func (this *Delta) PrivateGetWalletsSubAccountsTransferHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWalletsSubAccountsTransferHistory", args...)
+	return this.Fetch2Async("wallets/sub_accounts_transfer_history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetUsersTradingPreferences returns a channel that yields a JSON object.
 func (this *Delta) PrivateGetUsersTradingPreferences(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetUsersTradingPreferences", args...)
+	return this.Fetch2Async("users/trading_preferences", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetSubAccounts returns a channel that yields a JSON object.
 func (this *Delta) PrivateGetSubAccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSubAccounts", args...)
+	return this.Fetch2Async("sub_accounts", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetProfile returns a channel that yields a JSON object.
 func (this *Delta) PrivateGetProfile(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetProfile", args...)
+	return this.Fetch2Async("profile", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetRateLimitsQuota returns a channel that yields a JSON object.
 func (this *Delta) PrivateGetRateLimitsQuota(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetRateLimitsQuota", args...)
+	return this.Fetch2Async("rate_limits/quota", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetHeartbeat returns a channel that yields a JSON object.
 func (this *Delta) PrivateGetHeartbeat(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetHeartbeat", args...)
+	return this.Fetch2Async("heartbeat", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetDepositsAddress returns a channel that yields a JSON object.
 func (this *Delta) PrivateGetDepositsAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDepositsAddress", args...)
+	return this.Fetch2Async("deposits/address", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostOrders returns a channel that yields a JSON object.
 func (this *Delta) PrivatePostOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrders", args...)
+	return this.Fetch2Async("orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostOrdersBracket returns a channel that yields a JSON object.
 func (this *Delta) PrivatePostOrdersBracket(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrdersBracket", args...)
+	return this.Fetch2Async("orders/bracket", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostOrdersBatch returns a channel that yields a JSON object.
 func (this *Delta) PrivatePostOrdersBatch(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrdersBatch", args...)
+	return this.Fetch2Async("orders/batch", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostProductsProductIdOrdersLeverage returns a channel that yields a JSON object.
 func (this *Delta) PrivatePostProductsProductIdOrdersLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostProductsProductIdOrdersLeverage", args...)
+	return this.Fetch2Async("products/{product_id}/orders/leverage", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostPositionsChangeMargin returns a channel that yields a JSON object.
 func (this *Delta) PrivatePostPositionsChangeMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPositionsChangeMargin", args...)
+	return this.Fetch2Async("positions/change_margin", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostPositionsCloseAll returns a channel that yields a JSON object.
 func (this *Delta) PrivatePostPositionsCloseAll(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPositionsCloseAll", args...)
+	return this.Fetch2Async("positions/close_all", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostWalletsSubAccountBalanceTransfer returns a channel that yields a JSON object.
 func (this *Delta) PrivatePostWalletsSubAccountBalanceTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWalletsSubAccountBalanceTransfer", args...)
+	return this.Fetch2Async("wallets/sub_account_balance_transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostHeartbeatCreate returns a channel that yields a JSON object.
 func (this *Delta) PrivatePostHeartbeatCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostHeartbeatCreate", args...)
+	return this.Fetch2Async("heartbeat/create", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostHeartbeat returns a channel that yields a JSON object.
 func (this *Delta) PrivatePostHeartbeat(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostHeartbeat", args...)
+	return this.Fetch2Async("heartbeat", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostOrdersCancelAfter returns a channel that yields a JSON object.
 func (this *Delta) PrivatePostOrdersCancelAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrdersCancelAfter", args...)
+	return this.Fetch2Async("orders/cancel_after", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostOrdersLeverage returns a channel that yields a JSON object.
 func (this *Delta) PrivatePostOrdersLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrdersLeverage", args...)
+	return this.Fetch2Async("orders/leverage", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePutOrders returns a channel that yields a JSON object.
 func (this *Delta) PrivatePutOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePutOrders", args...)
+	return this.Fetch2Async("orders", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePutOrdersBracket returns a channel that yields a JSON object.
 func (this *Delta) PrivatePutOrdersBracket(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePutOrdersBracket", args...)
+	return this.Fetch2Async("orders/bracket", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePutOrdersBatch returns a channel that yields a JSON object.
 func (this *Delta) PrivatePutOrdersBatch(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePutOrdersBatch", args...)
+	return this.Fetch2Async("orders/batch", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePutPositionsAutoTopup returns a channel that yields a JSON object.
 func (this *Delta) PrivatePutPositionsAutoTopup(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePutPositionsAutoTopup", args...)
+	return this.Fetch2Async("positions/auto_topup", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePutUsersUpdateMmp returns a channel that yields a JSON object.
 func (this *Delta) PrivatePutUsersUpdateMmp(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePutUsersUpdateMmp", args...)
+	return this.Fetch2Async("users/update_mmp", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePutUsersResetMmp returns a channel that yields a JSON object.
 func (this *Delta) PrivatePutUsersResetMmp(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePutUsersResetMmp", args...)
+	return this.Fetch2Async("users/reset_mmp", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePutUsersMarginMode returns a channel that yields a JSON object.
 func (this *Delta) PrivatePutUsersMarginMode(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePutUsersMarginMode", args...)
+	return this.Fetch2Async("users/margin_mode", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePutUsersTradingPreferences returns a channel that yields a JSON object.
 func (this *Delta) PrivatePutUsersTradingPreferences(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePutUsersTradingPreferences", args...)
+	return this.Fetch2Async("users/trading_preferences", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteOrders returns a channel that yields a JSON object.
 func (this *Delta) PrivateDeleteOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteOrders", args...)
+	return this.Fetch2Async("orders", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteOrdersAll returns a channel that yields a JSON object.
 func (this *Delta) PrivateDeleteOrdersAll(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteOrdersAll", args...)
+	return this.Fetch2Async("orders/all", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteOrdersBatch returns a channel that yields a JSON object.
 func (this *Delta) PrivateDeleteOrdersBatch(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteOrdersBatch", args...)
+	return this.Fetch2Async("orders/batch", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

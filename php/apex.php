@@ -305,7 +305,7 @@ class apex extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array()) {
+    public function fetch_time($params = array()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -837,6 +837,7 @@ class apex extends Exchange {
         if ($limit === null) {
             $limit = 200; // default is 200 when requested with `since`
         }
+        $limit = min($limit, 200); // fix maxcap
         $request['limit'] = $limit; // max 200, default 200
         list($request, $params) = $this->handle_until_option('end', $request, $params, 0.001);
         if ($since !== null) {
@@ -1017,7 +1018,7 @@ class apex extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): array {
         /**
          * retrieves the open interest of a contract trading pair
          *
@@ -1040,7 +1041,7 @@ class apex extends Exchange {
         return $this->parse_open_interest($rawTicker, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         // {
         //     "symbol": "BTCUSDT",
@@ -1087,7 +1088,7 @@ class apex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1338,7 +1339,7 @@ class apex extends Exchange {
         return $this->options['accountId'];
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -1365,7 +1366,7 @@ class apex extends Exchange {
         $market = $this->market($symbol);
         $orderType = strtoupper($type);
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a side argument');
         }
         $orderSide = strtoupper($side);
         $orderSize = $this->amount_to_precision($symbol, $amount);
@@ -1390,7 +1391,7 @@ class apex extends Exchange {
         }
         $isMarket = $orderType === 'MARKET';
         if ($isMarket && ($price === null)) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for $market orders');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for market orders');
         }
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarket, null, $params);
@@ -1634,7 +1635,7 @@ class apex extends Exchange {
         return array( $this->parse_order($data, $market) );
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -1660,7 +1661,7 @@ class apex extends Exchange {
         return $this->safe_order($data);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -1755,7 +1756,7 @@ class apex extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all the trades made from a single order
          *
@@ -1785,7 +1786,7 @@ class apex extends Exchange {
         return $this->parse_trades($orders, null, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple $orders made by the user *classic accounts only*
          *
@@ -1827,7 +1828,7 @@ class apex extends Exchange {
         return $this->parse_trades($orders, $market, $since, $limit);
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple orders made by the user *classic accounts only*
          *
@@ -1868,7 +1869,7 @@ class apex extends Exchange {
         return $this->parse_incomes($fundingValues, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null): array {
         //
         // {
         //     "id": "1234",
@@ -1911,7 +1912,7 @@ class apex extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1947,7 +1948,7 @@ class apex extends Exchange {
         return $this->parse_positions($positions, $symbols);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // {
         //     "symbol": "BTC-USDT",
@@ -2001,7 +2002,7 @@ class apex extends Exchange {
         ));
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
         $headers = array(
             'User-Agent' => 'apex-CCXT',

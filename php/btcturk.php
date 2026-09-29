@@ -307,7 +307,7 @@ class btcturk extends Exchange {
         return $this->parse_markets($markets);
     }
 
-    public function parse_market(mixed $entry): array {
+    public function parse_market(array $entry): array {
         $id = $this->safe_string($entry, 'name');
         $baseId = $this->safe_string($entry, 'numerator');
         $quoteId = $this->safe_string($entry, 'denominator');
@@ -497,6 +497,17 @@ class btcturk extends Exchange {
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $last = $this->safe_string($ticker, 'last');
+        $open = $this->safe_string($ticker, 'open');
+        $change = $this->safe_string($ticker, 'daily');
+        $percentage = $this->safe_string($ticker, 'dailyPercent');
+        $average = $this->safe_string($ticker, 'average');
+        if (($open !== null) && ($last !== null) && !Precise::string_eq($open, '0')) {
+            // The reported daily fields can disagree with last - open.
+            // Let safeTicker derive the unified change, percentage and average from these prices.
+            $change = null;
+            $percentage = null;
+            $average = null;
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -508,13 +519,13 @@ class btcturk extends Exchange {
             'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_string($ticker, 'open'),
+            'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_string($ticker, 'daily'),
-            'percentage' => $this->safe_string($ticker, 'dailyPercent'),
-            'average' => $this->safe_string($ticker, 'average'),
+            'change' => $change,
+            'percentage' => $percentage,
+            'average' => $average,
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
@@ -553,7 +564,7 @@ class btcturk extends Exchange {
             $this->load_markets();
         }
         $tickers = $this->fetch_tickers(array( $symbol ), $params);
-        return $this->safe_value($tickers, $symbol);
+        return $this->safe_dict($tickers, $symbol);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -709,7 +720,7 @@ class btcturk extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'resolution' => $this->safe_value($this->timeframes, $timeframe, $timeframe), // allows the user to pass custom timeframes if needed
+            'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe), // allows the user to pass custom timeframes if needed
         );
         $until = $this->safe_integer($params, 'until', $this->milliseconds());
         $request['to'] = $this->parse_to_int(($until / 1000));
@@ -721,7 +732,7 @@ class btcturk extends Exchange {
         if ($limit !== null) {
             $limit = min($limit, 11000); // max 11000 candles diapason can be covered
             if ($timeframe === '1y') { // difficult with leap years
-                throw new BadRequest($this->id . ' fetchOHLCV () does not accept a $limit parameter when $timeframe == "1y"');
+                throw new BadRequest($this->id . ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
             $seconds = $this->parse_timeframe($timeframe);
             $limitSeconds = $seconds * ($limit - 1);
@@ -794,7 +805,7 @@ class btcturk extends Exchange {
         return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -831,7 +842,7 @@ class btcturk extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -1014,7 +1025,7 @@ class btcturk extends Exchange {
         ), $market);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all trades made by the user
          *
@@ -1063,11 +1074,11 @@ class btcturk extends Exchange {
         return $this->parse_trades($dataList, $market, $since, $limit);
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         if ($this->id === 'btctrader') {
             throw new ExchangeError($this->id . ' is an abstract base API for BTCExchange, BTCTurk');
         }

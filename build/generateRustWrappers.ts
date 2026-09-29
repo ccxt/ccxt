@@ -1,4 +1,11 @@
 #!/usr/bin/env tsx
+// The runtime `Value::Str` payload is a `Cow<'static, str>`: emitted string
+// literals borrow (`"lit".into()`) instead of allocating.
+const RUST_LITERAL_BOX_ALLOC = /Value::Str\(("(?:[^"\\]|\\.)*")\.to_string\(\)\)/g;
+function borrowLiteralBoxes(content: string): string {
+    return content.replace(RUST_LITERAL_BOX_ALLOC, 'Value::Str($1.into())');
+}
+
 /**
  * Rust Typed Wrapper Generator for CCXT
  *
@@ -280,7 +287,7 @@ function mapReturnType(name: string, tsReturn: string): { rustReturn: string, de
         if (elem === 'string') {
             return {
                 rustReturn: 'Vec<String>',
-                decode: v => `match ${v} { Value::Arr(arr) => arr.iter().filter_map(|x| match x { Value::Str(s) => Some(s.clone()), _ => None }).collect(), _ => Vec::new() }`,
+                decode: v => `match ${v} { Value::Arr(arr) => arr.iter().filter_map(|x| match x { Value::Str(s) => Some(s.to_string()), _ => None }).collect(), _ => Vec::new() }`,
             };
         }
         return null;
@@ -294,7 +301,7 @@ function mapReturnType(name: string, tsReturn: string): { rustReturn: string, de
 
     // Scalar fallbacks
     if (isStringType(inner)) {
-        return { rustReturn: 'Option<String>', decode: v => `match ${v} { Value::Str(s) => Some(s), _ => None }` };
+        return { rustReturn: 'Option<String>', decode: v => `match ${v} { Value::Str(s) => Some(s.to_string()), _ => None }` };
     }
     if (isBooleanType(inner)) {
         return { rustReturn: 'Option<bool>', decode: v => `match ${v} { Value::Bool(b) => Some(b), _ => None }` };
@@ -338,13 +345,13 @@ function mapParamType(p: any): ParamInfo | null {
             return {
                 name, isOptional: true,
                 rustType: `Option<&str>`,
-                toValueExpr: `${name}.map(|s| Value::Str(s.to_string())).unwrap_or(Value::Null)`,
+                toValueExpr: `${name}.map(Value::from).unwrap_or(Value::Null)`,
             };
         }
         return {
             name, isOptional: false,
             rustType: `&str`,
-            toValueExpr: `Value::Str(${name}.to_string())`,
+            toValueExpr: `Value::from(${name})`,
         };
     }
     if (isIntegerType(tsType ?? '')) {
@@ -394,13 +401,13 @@ function mapParamType(p: any): ParamInfo | null {
             return {
                 name, isOptional: true,
                 rustType: `Option<Vec<String>>`,
-                toValueExpr: `match ${name} { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::Str).collect())), None => Value::Null }`,
+                toValueExpr: `match ${name} { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }`,
             };
         }
         return {
             name, isOptional: false,
             rustType: `Vec<String>`,
-            toValueExpr: `Value::Arr(std::sync::Arc::new(${name}.into_iter().map(Value::Str).collect()))`,
+            toValueExpr: `Value::Arr(std::sync::Arc::new(${name}.into_iter().map(|s| Value::Str(s.into())).collect()))`,
         };
     }
     // Unknown / object — pass through as `Value`. Honour the TS optionality
@@ -754,7 +761,7 @@ function generateTypedWrapper(exchangeId: string, methods: MethodInfo[], directl
         '    /// One loaded market, typed. Call after `load_markets`.',
         '    /// `Err(BadSymbol)` when the symbol is not listed on this venue.',
         '    pub fn market(&self, symbol: &str) -> crate::Result<Market> {',
-        '        let sym = Value::Str(symbol.to_string());',
+        '        let sym = Value::from(symbol);',
         '        crate::runtime::catch_typed(|| Market::from_value(ExchangeBase::market(&*self.core, sym)))',
         '    }',
         '',
@@ -814,53 +821,53 @@ function generateTypedWrapper(exchangeId: string, methods: MethodInfo[], directl
         '',
         '    /// Credentials, settable after construction.',
         '    pub fn set_api_key(&mut self, v: &str) -> &mut Self {',
-        '        self.core.apiKey = Value::Str(v.to_string());',
+        '        self.core.apiKey = Value::from(v);',
         '        self',
         '    }',
         '    pub fn set_secret(&mut self, v: &str) -> &mut Self {',
-        '        self.core.secret = Value::Str(v.to_string());',
+        '        self.core.secret = Value::from(v);',
         '        self',
         '    }',
         '    pub fn set_password(&mut self, v: &str) -> &mut Self {',
-        '        self.core.password = Value::Str(v.to_string());',
+        '        self.core.password = Value::from(v);',
         '        self',
         '    }',
         '    pub fn set_uid(&mut self, v: &str) -> &mut Self {',
-        '        self.core.uid = Value::Str(v.to_string());',
+        '        self.core.uid = Value::from(v);',
         '        self',
         '    }',
         '    pub fn set_wallet_address(&mut self, v: &str) -> &mut Self {',
-        '        self.core.walletAddress = Value::Str(v.to_string());',
+        '        self.core.walletAddress = Value::from(v);',
         '        self',
         '    }',
         '    pub fn set_private_key(&mut self, v: &str) -> &mut Self {',
-        '        self.core.privateKey = Value::Str(v.to_string());',
+        '        self.core.privateKey = Value::from(v);',
         '        self',
         '    }',
         '    pub fn set_token(&mut self, v: &str) -> &mut Self {',
-        '        self.core.token = Value::Str(v.to_string());',
+        '        self.core.token = Value::from(v);',
         '        self',
         '    }',
         '',
         '    /// Proxies. Set at most ONE of these — the request path rejects',
         '    /// conflicting proxy settings.',
         '    pub fn set_http_proxy(&mut self, url: &str) -> &mut Self {',
-        '        self.core.httpProxy = Value::Str(url.to_string());',
+        '        self.core.httpProxy = Value::from(url);',
         '        self',
         '    }',
         '    pub fn set_https_proxy(&mut self, url: &str) -> &mut Self {',
-        '        self.core.httpsProxy = Value::Str(url.to_string());',
+        '        self.core.httpsProxy = Value::from(url);',
         '        self',
         '    }',
         '    pub fn set_socks_proxy(&mut self, url: &str) -> &mut Self {',
-        '        self.core.socksProxy = Value::Str(url.to_string());',
+        '        self.core.socksProxy = Value::from(url);',
         '        self',
         '    }',
         '    /// WebSocket proxy. The `watch*` transport dials it with an HTTP',
         '    /// CONNECT tunnel — separate from the REST proxies above, which',
         '    /// only apply to `fetch*`.',
         '    pub fn set_ws_proxy(&mut self, url: &str) -> &mut Self {',
-        '        self.core.wsProxy = Value::Str(url.to_string());',
+        '        self.core.wsProxy = Value::from(url);',
         '        self',
         '    }',
         '',
@@ -911,7 +918,7 @@ function generateTypedWrapper(exchangeId: string, methods: MethodInfo[], directl
         '    /// The ccxt id of this exchange, e.g. binance.',
         '    pub fn id(&self) -> String {',
         '        match &self.core.id {',
-        '            Value::Str(s) => s.clone(),',
+        '            Value::Str(s) => s.to_string(),',
         '            _ => String::new(),',
         '        }',
         '    }',
@@ -1046,6 +1053,106 @@ function main() {
         generateDomain(cfg, methods, baseMethods, onlyId);
     }
     writeTestCoreRegistry();
+    if (!onlyId) {
+        writeCargoFeatures();
+    }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Per-exchange cargo features
+//
+// Every transpiled Core is declared behind `#[cfg(feature = "<id>")]` (see
+// `writeModFile` in build/rustTranspiler.ts and the typed mod.rs/aggregator
+// writers above), so a consumer can compile the venues it uses instead of all
+// 200+ — that split is what brings a single-exchange build from tens of GB of
+// RAM down to a few hundred MB. The feature lists live in each crate's
+// Cargo.toml between the `BEGIN/END GENERATED FEATURES` markers, which this
+// function rewrites; everything outside the markers is hand-written.
+//
+//   ccxt-base        <id> = []                 (or ["<parent>"] for a derived venue)
+//                    prediction-<id> = []      prediction ids overlap REST ids
+//                    all-exchanges / all-prediction = [every id]
+//   ccxt             <id> = ["ccxt-base/<id>"]              all = [every id]
+//   ccxt-prediction  <id> = ["ccxt-base/prediction-<id>"]   all = [every id]
+//   ccxt-pro         <id> = ["ccxt-base/<id>", "<pro parent>"?]   all = [every id]
+//
+// `default = ["all"]` on the three typed crates keeps `cargo add ccxt` building
+// everything, as before; `default-features = false, features = ["binance"]`
+// opts into the lean build.
+
+// Same rule as `rustFeatureName` in build/rustTranspiler.ts (kept local so this
+// script does not import the transpiler module and its side effects).
+function rustFeatureName(id: string, prediction = false): string {
+    return prediction ? `prediction-${id}` : id;
+}
+
+function coreIds(folder: string): string[] {
+    if (!fs.existsSync(folder)) return [];
+    return fs.readdirSync(folder)
+        .filter(f => f.endsWith('.rs') && !f.endsWith('_api.rs') && !f.endsWith('_typed.rs') && f !== 'mod.rs')
+        .filter(f => !['cache.rs', 'order_book.rs', 'ws_client.rs'].includes(f))
+        .map(f => f.replace(/\.rs$/, ''))
+        .sort();
+}
+
+function replaceGeneratedFeatures(manifest: string, lines: string[]): void {
+    const src = fs.readFileSync(manifest, 'utf-8');
+    const begin = src.indexOf('# BEGIN GENERATED FEATURES');
+    const end = src.indexOf('# END GENERATED FEATURES');
+    if (begin === -1 || end === -1 || end < begin) {
+        throw new Error(`${manifest}: missing BEGIN/END GENERATED FEATURES markers`);
+    }
+    const beginLineEnd = src.indexOf('\n', begin) + 1;
+    const out = src.slice(0, beginLineEnd) + lines.join('\n') + '\n' + src.slice(end);
+    if (out !== src) {
+        fs.writeFileSync(manifest, out, 'utf-8');
+    }
+    console.log(`Wrote ${lines.length} feature line(s) into ${manifest}`);
+}
+
+function writeCargoFeatures(): void {
+    const restIds = coreIds(EXCHANGES_FOLDER);
+    const restParents = parseParents(EXCHANGES_FOLDER, 'exchanges');
+    const predictionFolder = './rust/ccxt-base/src/prediction/';
+    const predictionIds = coreIds(predictionFolder);
+    const proFolder = './rust/ccxt-pro/src/pro/';
+    const proIds = coreIds(proFolder);
+    const proParents = parseParents(proFolder, 'pro');
+    const list = (ids: string[]) => `[${ids.map(i => JSON.stringify(i)).join(', ')}]`;
+
+    // ccxt-base: one feature per Core, a derived venue pulls in its parent
+    const base: string[] = [];
+    for (const id of restIds) {
+        const parent = restParents.get(id);
+        base.push(`${id} = ${parent ? list([parent]) : '[]'}`);
+    }
+    for (const id of predictionIds) {
+        base.push(`${rustFeatureName(id, true)} = []`);
+    }
+    base.push(`all-exchanges = ${list(restIds)}`);
+    base.push(`all-prediction = ${list(predictionIds.map(id => rustFeatureName(id, true)))}`);
+    replaceGeneratedFeatures('./rust/ccxt-base/Cargo.toml', base);
+
+    // ccxt: forward to the engine Core
+    const rest = restIds.map(id => `${id} = ${list([`ccxt-base/${id}`])}`);
+    rest.push(`all = ${list(restIds)}`);
+    replaceGeneratedFeatures('./rust/ccxt/Cargo.toml', rest);
+
+    // ccxt-prediction: forward to the prefixed engine Core
+    const prediction = predictionIds.map(id => `${id} = ${list([`ccxt-base/${rustFeatureName(id, true)}`])}`);
+    prediction.push(`all = ${list(predictionIds)}`);
+    replaceGeneratedFeatures('./rust/ccxt-prediction/Cargo.toml', prediction);
+
+    // ccxt-pro: a WS venue embeds its REST Core (engine feature) and, when it
+    // derives from another WS venue, that venue's pro feature
+    const pro = proIds.map(id => {
+        const deps = [`ccxt-base/${id}`];
+        const parent = proParents.get(id);
+        if (parent && parent !== id) deps.push(parent);
+        return `${id} = ${list(deps)}`;
+    });
+    pro.push(`all = ${list(proIds)}`);
+    replaceGeneratedFeatures('./rust/ccxt-pro/Cargo.toml', pro);
 }
 
 interface DomainCfg {
@@ -1148,7 +1255,7 @@ function generateDomain(cfg: DomainCfg, methods: MethodInfo[], baseMethods: Set<
         ]);
         const out = path.join(cfg.outFolder, `${id}_typed.rs`);
         const content = generateTypedWrapper(id, exchangeMethods, directlyCallable, cfg.coreModule);
-        fs.writeFileSync(out, content, 'utf-8');
+        fs.writeFileSync(out, borrowLiteralBoxes(content), 'utf-8');
         generatedIds.push(id);
     }
     const generated = generatedIds.length;
@@ -1165,6 +1272,7 @@ function generateDomain(cfg: DomainCfg, methods: MethodInfo[], baseMethods: Set<
     // factory that builds a boxed wrapper by exchange id for dynamic selection.
     const aggLines: string[] = [genTypedExchangeTrait(domainMethods)];
     for (const id of allTyped) {
+        aggLines.push(`#[cfg(feature = ${JSON.stringify(id)})]`);
         aggLines.push(`pub use crate::${cfg.wrapperModule}::${id}_typed::${capitalize(id)};`);
     }
     aggLines.push('');
@@ -1175,6 +1283,7 @@ function generateDomain(cfg: DomainCfg, methods: MethodInfo[], baseMethods: Set<
     aggLines.push('pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn TypedExchange>> {');
     aggLines.push('    match id {');
     for (const id of allTyped) {
+        aggLines.push(`        #[cfg(feature = ${JSON.stringify(id)})]`);
         aggLines.push(`        ${JSON.stringify(id)} => Some(Box::new(${capitalize(id)}::new(config))),`);
     }
     aggLines.push('        _ => None,');
@@ -1212,7 +1321,7 @@ function writeTypedModFile(outFolder: string, ids: string[], modReExport: string
         lines.push(`pub use ${modReExport};`);
     }
     lines.push('');
-    lines.push(...[...ids].sort().map(id => `pub mod ${id}_typed;`));
+    lines.push(...[...ids].sort().map(id => `#[cfg(feature = ${JSON.stringify(id)})]\npub mod ${id}_typed;`));
     lines.push('');
     fs.writeFileSync(modPath, lines.join('\n'), 'utf-8');
     console.log(`Wrote ${modPath} with ${ids.length} 'pub mod <id>_typed;' decl(s)`);
@@ -1273,10 +1382,13 @@ function writeTestCoreRegistry(): void {
         L.push('};');
         L.push('');
     }
-    for (const id of predDup) {
+    // every prediction Core also gets its `Pred<Id>Core` alias, not only the ids shared with
+    // a REST venue: live_dispatch.rs names PredBinanceCore / PredHyperliquidCore by hand, and
+    // a scoped (pruned) build may have dropped the REST twin
+    for (const id of pred) {
         L.push(`pub(crate) use ccxt::prediction::${id}::${capitalize(id)}Core as Pred${capitalize(id)}Core;`);
     }
-    if (predDup.length) L.push('');
+    if (pred.length) L.push('');
     if (pro.length) {
         L.push('pub(crate) use ccxt_pro::pro::{');
         for (const id of pro) L.push(`    ${id}::${capitalize(id)}Core as Ws${capitalize(id)}Core,`);

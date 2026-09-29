@@ -50,7 +50,14 @@ jobs:
           # releases predate the `v` prefix (4.0.3, 4.3.22 …), 76 of which render in
           # CHANGELOG.md today, and an allowlist anchored on `^v` would delete them all on the
           # next regeneration, since the file is rebuilt from scratch each run.
-          args: -i ^(ccxt-mcp-|go/)
+          #
+          # -d=false drops draft releases. changelog-from-release includes them by default and
+          # renders releases in GitHub API order, which returns drafts first. cleanup-old-tags
+          # prunes old version tags on every release, and GitHub demotes a release whose tag
+          # disappeared to a draft - that is how the 2023 4.0.3 release (tag pruned, release
+          # kept) ended up as the first section of CHANGELOG.md and got announced as the
+          # latest version. Drafts are not published releases and do not belong in the file.
+          args: -d=false -i ^(ccxt-mcp-|go/)
       - name: Set up Node.js
         uses: actions/setup-node@v5
         with:
@@ -61,7 +68,12 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: node --experimental-strip-types build/utils/release-announcement.ts --changelog CHANGELOG.md
+        run: |
+          # package.json on master carries the version the release workflow just published, so
+          # the announcement names that release instead of whatever section happens to be first.
+          VERSION=$(node -p "require('./package.json').version")
+          echo "Announcing CCXT $VERSION"
+          node --experimental-strip-types build/utils/release-announcement.ts --changelog CHANGELOG.md --version "$VERSION"
   failed-release:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion != 'success' }}
     runs-on: ubuntu-latest

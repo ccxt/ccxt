@@ -63,11 +63,11 @@ class backpack extends \ccxt\async\backpack {
         ));
     }
 
-    public function watch_public(mixed $topics, mixed $messageHashes, $params = array(), $unwatch = false) {
+    public function watch_public(array $topics, array $messageHashes, $params = array(), bool $unwatch = false) {
         return Async\async(self::do_watch_public(...))($topics, $messageHashes, $params, $unwatch);
     }
 
-    private function do_watch_public(mixed $topics, mixed $messageHashes, $params = array(), $unwatch = false) {
+    private function do_watch_public(array $topics, array $messageHashes, $params = array(), bool $unwatch = false) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -85,11 +85,11 @@ class backpack extends \ccxt\async\backpack {
         return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
     }
 
-    public function watch_private(mixed $topics, mixed $messageHashes, $params = array(), $unwatch = false) {
+    public function watch_private(array $topics, array $messageHashes, $params = array(), bool $unwatch = false) {
         return Async\async(self::do_watch_private(...))($topics, $messageHashes, $params, $unwatch);
     }
 
-    private function do_watch_private(mixed $topics, mixed $messageHashes, $params = array(), $unwatch = false) {
+    private function do_watch_private(array $topics, array $messageHashes, $params = array(), bool $unwatch = false) {
         $this->check_required_credentials();
         $url = $this->urls['api']['ws']['private'];
         $instruction = 'subscribe';
@@ -280,7 +280,7 @@ class backpack extends \ccxt\async\backpack {
         return Async\await($this->watch_public($topics, $messageHashes, $params, true));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
         //         data: {
@@ -410,7 +410,7 @@ class backpack extends \ccxt\async\backpack {
         return Async\await($this->watch_public($topics, $messageHashes, $params, true));
     }
 
-    public function handle_bid_ask(Client $client, mixed $message) {
+    public function handle_bid_ask(Client $client, array $message) {
         //
         //     {
         //         data: {
@@ -436,7 +436,7 @@ class backpack extends \ccxt\async\backpack {
         $client->resolve($parsedBidAsk, $messageHash);
     }
 
-    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(array $ticker, ?array $market = null): array {
         //
         //     {
         //         A: '0.4087',
@@ -583,7 +583,7 @@ class backpack extends \ccxt\async\backpack {
         return Async\await($this->watch_public($topics, $messageHashes, $params, true));
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
         //         data: {
@@ -714,7 +714,7 @@ class backpack extends \ccxt\async\backpack {
         }
         $trades = Async\await($this->watch_public($topics, $messageHashes, $params));
         if ($this->newUpdates) {
-            $first = $this->safe_value($trades, 0);
+            $first = $this->safe_dict($trades, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limit = $trades->getLimit($tradeSymbol, $limit);
         }
@@ -755,7 +755,7 @@ class backpack extends \ccxt\async\backpack {
         return Async\await($this->watch_public($topics, $messageHashes, $params, true));
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
         //         data: {
@@ -790,7 +790,7 @@ class backpack extends \ccxt\async\backpack {
         $client->resolve($cache, 'trades');
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null): array {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         E: '1754601477746429',
@@ -936,7 +936,7 @@ class backpack extends \ccxt\async\backpack {
         return Async\await($this->watch_public($topics, $messageHashes, $params, true));
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -995,14 +995,14 @@ class backpack extends \ccxt\async\backpack {
         $this->handle_bid_asks($storedAsks, $asks);
     }
 
-    public function handle_bid_asks(mixed $bookSide, mixed $bidAsks) {
+    public function handle_bid_asks(mixed $bookSide, array $bidAsks) {
         for ($i = 0; $i < count($bidAsks); $i++) {
             $bidAsk = $this->parse_order_book_bid_ask($bidAsks[$i]);
             $bookSide->storeArray($bidAsk);
         }
     }
 
-    public function get_cache_index(mixed $orderbook, mixed $cache) {
+    public function get_cache_index(mixed $orderbook, mixed $cache): float {
         //
         // {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
         $firstDelta = $this->safe_dict($cache, 0);
@@ -1099,7 +1099,7 @@ class backpack extends \ccxt\async\backpack {
         return Async\await($this->watch_private(array( $topic ), array( $messageHash ), $params, true));
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //     {
         //         data: {
@@ -1142,7 +1142,7 @@ class backpack extends \ccxt\async\backpack {
         $client->resolve($orders, $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null): array {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         //     {
         //         E: '1754939110175879',
@@ -1278,7 +1278,7 @@ class backpack extends \ccxt\async\backpack {
         return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
     }
 
-    public function un_watch_positions(?array $symbols = null, $params = array()): PromiseInterface {
+    public function un_watch_positions(?array $symbols = null, $params = array()) {
         return Async\async(self::do_un_watch_positions(...))($symbols, $params);
     }
 
@@ -1311,7 +1311,7 @@ class backpack extends \ccxt\async\backpack {
         return Async\await($this->watch_private($topics, $messageHashes, $params, true));
     }
 
-    public function handle_positions(mixed $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //     {
         //         data: {
@@ -1352,7 +1352,7 @@ class backpack extends \ccxt\async\backpack {
         $client->resolve(array( $parsedPosition ), $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_position(mixed $position, ?array $market = null) {
+    public function parse_ws_position(array $position, ?array $market = null): array {
         //
         //     {
         //         B: '4236.36',
@@ -1451,7 +1451,7 @@ class backpack extends \ccxt\async\backpack {
         }
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //     {
         //         id: null,

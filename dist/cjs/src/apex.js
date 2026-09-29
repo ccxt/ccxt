@@ -829,6 +829,7 @@ class apex extends apex$1["default"] {
         if (limit === undefined) {
             limit = 200; // default is 200 when requested with `since`
         }
+        limit = Math.min(limit, 200); // fix maxcap
         request['limit'] = limit; // max 200, default 200
         [request, params] = this.handleUntilOption('end', request, params, 0.001);
         if (since !== undefined) {

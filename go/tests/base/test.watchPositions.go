@@ -15,7 +15,7 @@ func testWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 	defer ReturnPanicError(ch)
 	var method string = "watchPositions"
 	var now int64 = exchange.Milliseconds()
-	var ends any = Add(now, 15000)
+	var ends any = now + 15000
 	for IsLessThan(now, ends) {
 		var response any = nil
 		var success bool = true
@@ -56,7 +56,7 @@ func testWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 			}
 			AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol)
 			now = exchange.Milliseconds()
-			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
+			for i := 0; i < GetArrayLength(response); i++ {
 				TestPosition(exchange, skippedProperties, method, GetValue(response, i), nil, now)
 			}
 			AssertTimestampOrder(exchange, method, symbol, response)
@@ -97,9 +97,9 @@ func testWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 		if success2 == true {
 			Assert(IsArray(positionsForSymbols), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return an array, returned "), exchange.Json(positionsForSymbols)))
 			// max theoretical 4 positions: two for one-way-mode and two for two-way mode
-			Assert(IsLessThanOrEqual(GetArrayLength(positionsForSymbols), 4), Add(Add(Add(Add(exchange.GetId(), " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.Json(positionsForSymbols)))
+			Assert((GetArrayLength(positionsForSymbols) <= 4), Add(Add(Add(Add(exchange.GetId(), " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.Json(positionsForSymbols)))
 			now = exchange.Milliseconds()
-			for i := 0; IsLessThan(i, GetArrayLength(positionsForSymbols)); i++ {
+			for i := 0; i < GetArrayLength(positionsForSymbols); i++ {
 				TestPosition(exchange, skippedProperties, method, GetValue(positionsForSymbols, i), symbol, now)
 			}
 			AssertTimestampOrder(exchange, method, symbol, positionsForSymbols)

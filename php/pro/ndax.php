@@ -81,8 +81,8 @@ class ndax extends \ccxt\async\ndax {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
-        $payload = $this->safe_value($message, 'o', array());
+    public function handle_ticker(Client $client, array $message) {
+        $payload = $this->safe_dict($message, 'o', array());
         //
         //     {
         //         "OMSId": 1,
@@ -164,7 +164,7 @@ class ndax extends \ccxt\async\ndax {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         $payload = $this->safe_list($message, 'o', array());
         //
         // initial snapshot
@@ -260,7 +260,7 @@ class ndax extends \ccxt\async\ndax {
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
         //         "m": 1,
@@ -295,7 +295,7 @@ class ndax extends \ccxt\async\ndax {
             if ($marketId !== null) {
                 $updates[$marketId] = array();
             }
-            $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+            $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
             $keys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
             for ($j = 0; $j < count($keys); $j++) {
                 $timeframe = $keys[$j];
@@ -367,7 +367,7 @@ class ndax extends \ccxt\async\ndax {
                 $messageHash = $name . ':' . $timeframe . ':' . $marketId;
                 $market = $this->safe_market($marketId);
                 $symbol = $market['symbol'];
-                $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe, array());
+                $stored = $this->safe_list($this->ohlcvs[$symbol], $timeframe, array());
                 $client->resolve($stored, $messageHash);
             }
         }
@@ -426,7 +426,7 @@ class ndax extends \ccxt\async\ndax {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
         //         "m": 3,
@@ -450,7 +450,7 @@ class ndax extends \ccxt\async\ndax {
         //         0,   // 9 Side
         //     ],
         //
-        $firstBidAsk = $this->safe_value($payload, 0, array());
+        $firstBidAsk = $this->safe_list($payload, 0, array());
         $marketId = $this->safe_string($firstBidAsk, 7);
         if ($marketId === null) {
             return;
@@ -506,7 +506,7 @@ class ndax extends \ccxt\async\ndax {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_order_book_subscription(Client $client, mixed $message, mixed $subscription) {
+    public function handle_order_book_subscription(Client $client, array $message, array $subscription) {
         //
         //     {
         //         "m": 1,
@@ -515,7 +515,7 @@ class ndax extends \ccxt\async\ndax {
         //         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
         //     }
         //
-        $payload = $this->safe_value($message, 'o', array());
+        $payload = $this->safe_list($message, 'o', array());
         //
         //     [
         //         [
@@ -543,7 +543,7 @@ class ndax extends \ccxt\async\ndax {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message) {
         //
         //     {
         //         "m": 1,
@@ -554,7 +554,7 @@ class ndax extends \ccxt\async\ndax {
         //
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $id = $this->safe_integer($message, 'i');
-        $subscription = ($id === null) ? null : $this->safe_value($subscriptionsById, $id);
+        $subscription = ($id === null) ? null : $this->safe_dict($subscriptionsById, $id);
         if ($subscription !== null) {
             $method = $this->safe_value($subscription, 'method');
             if ($method !== null) {
@@ -563,7 +563,7 @@ class ndax extends \ccxt\async\ndax {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         //
         //     {
         //         "m": 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error

@@ -5,7 +5,7 @@
 
 from ccxt.kucoin import kucoin
 from ccxt.abstract.kucoinfutures import ImplicitAPI
-from ccxt.base.types import Strings, TransferEntry
+from ccxt.base.types import Str, Strings, Tickers, TransferEntry
 from ccxt.base.errors import BadRequest
 
 
@@ -40,7 +40,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             },
         })
 
-    def fetch_bids_asks(self, symbols: Strings = None, params={}):
+    def fetch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches the bid and ask price and volume for multiple markets
         :param str[] [symbols]: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
@@ -53,7 +53,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         extendedRequest = self.extend(request, params)
         return self.fetch_tickers(symbols, extendedRequest)
 
-    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -120,7 +120,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'toAccount': toAccount,
         })
 
-    def parse_transfer_type(self, transferType: object):
+    def parse_transfer_type(self, transferType: Str) -> Str:
         transferTypes = {
             'spot': 'TRADE',
             'funding': 'MAIN',

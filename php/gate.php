@@ -797,6 +797,9 @@ class gate extends Exchange {
                 'createOrder' => array(
                     'expiration' => 86400, // for conditional orders
                 ),
+                'fetchOrderBook' => array(
+                    'maxSpotLimit' => 1000, // the spot depth cap accepted by the venue, overriden in gateeu
+                ),
                 'createMarketBuyOrderRequiresPrice' => true,
                 'networks' => array(
                     'BTC' => 'BTC',
@@ -1229,7 +1232,7 @@ class gate extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function load_unified_status($params = array()) {
+    public function load_unified_status($params = array()): bool {
         /**
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * returns $unifiedAccount so the user can check if the unified account is enabled
@@ -1265,7 +1268,7 @@ class gate extends Exchange {
         return $this->options['unifiedAccount'];
     }
 
-    public function upgrade_unified_trade_account($params = array()) {
+    public function upgrade_unified_trade_account($params = array()): array {
         return $this->privateUnifiedPutUnifiedMode($params);
     }
 
@@ -1287,7 +1290,7 @@ class gate extends Exchange {
         return $this->safe_integer($response, 'server_time');
     }
 
-    public function create_expired_option_market(string $symbol) {
+    public function create_expired_option_market(string $symbol): array {
         // support expired option contracts
         $quote = 'USDT';
         $settle = $quote;
@@ -1449,7 +1452,7 @@ class gate extends Exchange {
         for ($i = 0; $i < count($spotMarketsResponse); $i++) {
             $spotMarket = $this->safe_dict($spotMarketsResponse, $i, array());
             $id = $this->safe_string($spotMarket, 'id');
-            $marginMarket = $this->safe_value($marginMarkets, $id);
+            $marginMarket = $this->safe_dict($marginMarkets, $id);
             $market = $this->deep_extend($marginMarket, $spotMarket);
             list($baseId, $quoteId) = explode('_', $id);
             $base = $this->safe_currency_code($baseId);
@@ -1562,7 +1565,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function parse_contract_market(mixed $market, mixed $settleId) {
+    public function parse_contract_market(array $market, ?string $settleId): array {
         //
         //  Perpetual swap
         //
@@ -1806,7 +1809,7 @@ class gate extends Exchange {
                 $symbol = $base . '/' . $quote;
                 $expiry = $this->safe_timestamp($market, 'expiration_time');
                 $strike = $this->safe_string($market, 'strike_price');
-                $isCall = $this->safe_value($market, 'is_call');
+                $isCall = $this->safe_bool($market, 'is_call');
                 $optionLetter = ($isCall === true) ? 'C' : 'P';
                 $optionType = ($isCall === true) ? 'call' : 'put';
                 $symbol = $symbol . ':' . $quote . '-' . $this->yymmdd($expiry) . '-' . $strike . '-' . $optionLetter;
@@ -1944,7 +1947,7 @@ class gate extends Exchange {
         $request = array();
         if (!$trigger) {
             if ($market === null) {
-                throw new ArgumentsRequired($this->id . ' spotOrderPrepareRequest() requires a $market argument for non-$trigger orders');
+                throw new ArgumentsRequired($this->id . ' spotOrderPrepareRequest() requires a market argument for non-trigger orders');
             }
             $request['account'] = $marginMode;
             $request['currency_pair'] = $market['id']; // Should always be set for non-trigger
@@ -1976,7 +1979,7 @@ class gate extends Exchange {
         return array( $request, $query );
     }
 
-    public function get_margin_mode(mixed $trigger, mixed $params) {
+    public function get_margin_mode(?bool $trigger, array $params): array {
         /**
          * @ignore
          * Gets the margin type for this api call
@@ -2000,7 +2003,7 @@ class gate extends Exchange {
                 $marginMode = 'normal';
             }
             if ($marginMode === 'cross_margin') {
-                throw new BadRequest($this->id . ' getMarginMode() does not support $trigger orders for cross margin');
+                throw new BadRequest($this->id . ' getMarginMode() does not support trigger orders for cross margin');
             }
         }
         $isUnifiedAccount = false;
@@ -2011,11 +2014,11 @@ class gate extends Exchange {
         return array( $marginMode, $params );
     }
 
-    public function get_settlement_currencies(mixed $type, mixed $method) {
-        $options = $this->safe_value($this->options, $type, array()); // [ 'BTC', 'USDT' ] unified codes
-        $fetchMarketsContractOptions = $this->safe_value($options, $method, array());
+    public function get_settlement_currencies(?string $type, ?string $method): array {
+        $options = $this->safe_dict($this->options, $type, array()); // [ 'BTC', 'USDT' ] unified codes
+        $fetchMarketsContractOptions = $this->safe_dict($options, $method, array());
         $defaultSettle = ($type === 'swap') ? array( 'usdt' ) : array( 'btc' );
-        return $this->safe_value($fetchMarketsContractOptions, 'settlementCurrencies', $defaultSettle);
+        return $this->safe_list($fetchMarketsContractOptions, 'settlementCurrencies', $defaultSettle);
     }
 
     public function fetch_currencies($params = array()): array {
@@ -2028,7 +2031,7 @@ class gate extends Exchange {
          * @return {array} an associative dictionary of currencies
          */
         // sandbox/testnet only supports future markets
-        $apiBackup = $this->safe_value($this->urls, 'apiBackup');
+        $apiBackup = $this->safe_dict($this->urls, 'apiBackup');
         if ($apiBackup !== null) {
             return array();
         }
@@ -2331,7 +2334,7 @@ class gate extends Exchange {
         );
     }
 
-    public function parse_funding_interval(mixed $interval) {
+    public function parse_funding_interval(?string $interval): ?string {
         $intervals = array(
             '3600000' => '1h',
             '14400000' => '4h',
@@ -2342,7 +2345,7 @@ class gate extends Exchange {
         return $this->safe_string($intervals, $interval, $interval);
     }
 
-    public function fetch_network_deposit_address(string $code, $params = array()) {
+    public function fetch_network_deposit_address(string $code, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2402,7 +2405,7 @@ class gate extends Exchange {
             'currency' => $currency['id'],
         );
         $response = $this->privateWalletGetDepositAddress($this->extend($request, $params));
-        $chains = $this->safe_value($response, 'multichain_addresses', array());
+        $chains = $this->safe_list($response, 'multichain_addresses', array());
         $currencyId = $this->safe_string($response, 'currency');
         $currency = $this->safe_currency($currencyId, $currency);
         $parsed = $this->parse_deposit_addresses($chains, null, false);
@@ -2518,7 +2521,7 @@ class gate extends Exchange {
         return $this->parse_trading_fees($response);
     }
 
-    public function parse_trading_fees(mixed $response) {
+    public function parse_trading_fees(array $response): array {
         $result = array();
         $symbols = $this->symbols;
         for ($i = 0; $i < count($symbols); $i++) {
@@ -2529,7 +2532,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function parse_trading_fee(mixed $info, ?array $market = null) {
+    public function parse_trading_fee(array $info, ?array $market = null): array {
         //
         //    {
         //        "user_id": 1486602,
@@ -2544,10 +2547,10 @@ class gate extends Exchange {
         //        "futures_maker_fee": "0"
         //    }
         //
-        $gtDiscount = $this->safe_value($info, 'gt_discount');
+        $gtDiscount = $this->safe_bool($info, 'gt_discount');
         $taker = ($gtDiscount === true) ? 'gt_taker_fee' : 'taker_fee';
         $maker = ($gtDiscount === true) ? 'gt_maker_fee' : 'maker_fee';
-        $contract = $this->safe_value($market, 'contract');
+        $contract = $this->safe_bool($market, 'contract');
         $takerKey = ($contract === true) ? 'futures_taker_fee' : $taker;
         $makerKey = ($contract === true) ? 'futures_maker_fee' : $maker;
         return array(
@@ -2602,7 +2605,7 @@ class gate extends Exchange {
             if (($codes !== null) && !$this->in_array($code, $codes)) {
                 continue;
             }
-            $withdrawFixOnChains = $this->safe_value($entry, 'withdraw_fix_on_chains');
+            $withdrawFixOnChains = $this->safe_dict($entry, 'withdraw_fix_on_chains');
             if ($withdrawFixOnChains === null) {
                 $withdrawFees = $this->safe_number($entry, 'withdraw_fix');
             } else {
@@ -2660,7 +2663,7 @@ class gate extends Exchange {
         return $this->parse_deposit_withdraw_fees($response, $codes, 'currency');
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
         //
         //    {
         //        "currency": "MTN",
@@ -2678,7 +2681,7 @@ class gate extends Exchange {
         //        }
         //    }
         //
-        $withdrawFixOnChains = $this->safe_value($fee, 'withdraw_fix_on_chains');
+        $withdrawFixOnChains = $this->safe_dict($fee, 'withdraw_fix_on_chains');
         $result = array(
             'info' => $fee,
             'withdraw' => array(
@@ -2715,7 +2718,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of funding payments paid and received on this account
          *
@@ -2752,7 +2755,7 @@ class gate extends Exchange {
         } elseif ($type === 'future') {
             $response = $this->privateDeliveryGetSettleAccountBook($this->extend($request, $requestParams));
         } else {
-            throw new NotSupported($this->id . ' fetchFundingHistory() only support swap & future $market type');
+            throw new NotSupported($this->id . ' fetchFundingHistory() only support swap & future market type');
         }
         //
         //    [
@@ -2833,7 +2836,9 @@ class gate extends Exchange {
         list($request, $query) = $this->prepare_request($market, $market['type'], $params);
         if ($limit !== null) {
             if ($market['spot'] === true) {
-                $limit = min($limit, 1000);
+                // gateeu returns an empty book for a spot limit above 100
+                $maxSpotLimit = $this->handle_option('fetchOrderBook', 'maxSpotLimit', 1000);
+                $limit = min($limit, $maxSpotLimit);
             } else {
                 $limit = min($limit, 300);
             }
@@ -2849,7 +2854,7 @@ class gate extends Exchange {
         } elseif ($market['option'] === true) {
             $response = $this->publicOptionsGetOrderBook($this->extend($request, $query));
         } else {
-            throw new NotSupported($this->id . ' fetchOrderBook() not support this $market type');
+            throw new NotSupported($this->id . ' fetchOrderBook() not support this market type');
         }
         //
         // spot
@@ -2960,7 +2965,7 @@ class gate extends Exchange {
             $request['underlying'] = $this->safe_string($optionParts, 0);
             $response = $this->publicOptionsGetTickers($this->extend($request, $query));
         } else {
-            throw new NotSupported($this->id . ' fetchTicker() not support this $market type');
+            throw new NotSupported($this->id . ' fetchTicker() not support this market type');
         }
         $ticker = null;
         if ($market['option'] === true) {
@@ -2972,7 +2977,7 @@ class gate extends Exchange {
                 }
             }
         } else {
-            $ticker = $this->safe_value($response, 0);
+            $ticker = $this->safe_dict($response, 0);
         }
         if ($ticker === null) {
             throw new NullResponse($this->id . ' fetchTicker() returned empty response');
@@ -3133,12 +3138,12 @@ class gate extends Exchange {
             $request['underlying'] = $this->safe_string($optionParts, 0);
             $response = $this->publicOptionsGetTickers($this->extend($request, $requestParams));
         } else {
-            throw new NotSupported($this->id . ' fetchTickers() not support this $market $type, provide $symbols or set $params["defaultType"] to one from spot/margin/swap/future/option');
+            throw new NotSupported($this->id . ' fetchTickers() not support this market type, provide symbols or set params["defaultType"] to one from spot/margin/swap/future/option');
         }
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_balance_helper(mixed $entry) {
+    public function parse_balance_helper(array $entry) {
         $account = $this->account();
         $account['used'] = $this->safe_string_2($entry, 'freeze', 'locked');
         $account['free'] = $this->safe_string($entry, 'available');
@@ -3204,7 +3209,7 @@ class gate extends Exchange {
         } elseif ($type === 'option') {
             $response = $this->privateOptionsGetAccounts($this->extend($request, $requestQuery));
         } else {
-            throw new NotSupported($this->id . ' fetchBalance() not support this $market type');
+            throw new NotSupported($this->id . ' fetchBalance() not support this market type');
         }
         $contract = (($type === 'swap') || ($type === 'future') || ($type === 'option'));
         if ($contract) {
@@ -3424,8 +3429,8 @@ class gate extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             if ($isolated) {
-                $base = $this->safe_value($entry, 'base', array());
-                $quote = $this->safe_value($entry, 'quote', array());
+                $base = $this->safe_dict($entry, 'base', array());
+                $quote = $this->safe_dict($entry, 'quote', array());
                 $baseCode = $this->safe_currency_code($this->safe_string($base, 'currency'));
                 $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'currency'));
                 $result = $this->merge_balance_account($result, $baseCode, $this->parse_balance_helper($base));
@@ -3517,7 +3522,7 @@ class gate extends Exchange {
         return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_option_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
+    public function fetch_option_ohlcv(string $symbol, ?string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         // separated option logic because the from, to and limit parameters weren't functioning
         if ($this->markets === null) {
             $this->load_markets();
@@ -3530,7 +3535,7 @@ class gate extends Exchange {
         return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -3545,7 +3550,7 @@ class gate extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -3710,7 +3715,7 @@ class gate extends Exchange {
         } elseif ($market['type'] === 'option') {
             $response = $this->publicOptionsGetTrades($this->extend($request, $query));
         } else {
-            throw new NotSupported($this->id . ' fetchTrades() not support this $market type.');
+            throw new NotSupported($this->id . ' fetchTrades() not support this market type.');
         }
         //
         // spot
@@ -3755,7 +3760,7 @@ class gate extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all the trades made from a single order
          *
@@ -3772,7 +3777,7 @@ class gate extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -3800,7 +3805,7 @@ class gate extends Exchange {
         return $response;
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * Fetch personal trading history
          *
@@ -3873,7 +3878,7 @@ class gate extends Exchange {
         } elseif ($type === 'option') {
             $response = $this->privateOptionsGetMyTrades($this->extend($request, $params));
         } else {
-            throw new NotSupported($this->id . ' fetchMyTrades() not support this $market $type->');
+            throw new NotSupported($this->id . ' fetchMyTrades() not support this market type.');
         }
         //
         // spot
@@ -4255,7 +4260,7 @@ class gate extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction_type(mixed $type) {
+    public function parse_transaction_type(?string $type): ?string {
         $types = array(
             'd' => 'deposit',
             'w' => 'withdrawal',
@@ -4376,7 +4381,7 @@ class gate extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * Create an order on the exchange
          *
@@ -4515,7 +4520,7 @@ class gate extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_orders_request(array $orders, $params = array()) {
+    public function create_orders_request(array $orders, $params = array()): array {
         $ordersRequests = array();
         $orderSymbols = array();
         $ordersLength = count($orders);
@@ -4523,7 +4528,7 @@ class gate extends Exchange {
             throw new BadRequest($this->id . ' createOrders() requires at least one order');
         }
         if ($ordersLength > 10) {
-            throw new BadRequest($this->id . ' createOrders() accepts a maximum of 10 $orders at a time');
+            throw new BadRequest($this->id . ' createOrders() accepts a maximum of 10 orders at a time');
         }
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $orders[$i];
@@ -4533,7 +4538,7 @@ class gate extends Exchange {
             $side = $this->safe_string($rawOrder, 'side');
             $amount = $this->safe_value($rawOrder, 'amount');
             $price = $this->safe_value($rawOrder, 'price');
-            $orderParams = $this->safe_value($rawOrder, 'params', array());
+            $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             $triggerValue = $this->safe_value_n($orderParams, array( 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ));
             if ($triggerValue !== null) {
@@ -4551,7 +4556,7 @@ class gate extends Exchange {
         return $ordersRequests;
     }
 
-    public function create_orders(array $orders, $params = array()) {
+    public function create_orders(array $orders, $params = array()): array {
         /**
          * create a list of trade $orders
          *
@@ -4578,12 +4583,12 @@ class gate extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
         $contract = $market['contract'];
@@ -4595,7 +4600,7 @@ class gate extends Exchange {
         $isTakeProfitOrder = $takeProfitPrice !== null;
         $isTpsl = $isStopLossOrder || $isTakeProfitOrder;
         if ($isStopLossOrder && $isTakeProfitOrder) {
-            throw new ExchangeError($this->id . ' createOrder() $stopLossPrice and $takeProfitPrice cannot both be defined');
+            throw new ExchangeError($this->id . ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
         }
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
         $exchangeSpecificTimeInForce = $this->safe_string_lower_n($params, array( 'timeInForce', 'tif', 'time_in_force' ));
@@ -4612,11 +4617,11 @@ class gate extends Exchange {
         $isLimitOrder = ($type === 'limit');
         $isMarketOrder = ($type === 'market');
         if ($isLimitOrder && $price === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder () requires a $price argument for ' . $type . ' orders');
+            throw new ArgumentsRequired($this->id . ' createOrder () requires a price argument for ' . $type . ' orders');
         }
         if ($isMarketOrder) {
             if (($timeInForce === 'poc') || ($timeInForce === 'gtc')) {
-                throw new ExchangeError($this->id . ' createOrder () $timeInForce for $market order can only be "FOK" or "IOC"');
+                throw new ExchangeError($this->id . ' createOrder () timeInForce for market order can only be "FOK" or "IOC"');
             } else {
                 if ($timeInForce === null) {
                     $defaultTif = $this->safe_string($this->options, 'defaultTimeInForce', 'IOC');
@@ -4692,7 +4697,7 @@ class gate extends Exchange {
                         $quoteAmount = $this->cost_to_precision($symbol, $cost);
                     } elseif ($createMarketBuyOrderRequiresPrice) {
                         if ($price === null) {
-                            throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
+                            throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                         } else {
                             $amountString = $this->number_to_string($amount);
                             $priceString = $this->number_to_string($price);
@@ -4720,7 +4725,7 @@ class gate extends Exchange {
                 //     no longer than 28 bytes without t- prefix
                 //     can only include 0-9, A-Z, a-z, underscores (_), hyphens (-) or dots (.)
                 if (strlen($clientOrderId) > 28) {
-                    throw new BadRequest($this->id . ' createOrder () $clientOrderId or text param must be up to 28 characters');
+                    throw new BadRequest($this->id . ' createOrder () clientOrderId or text param must be up to 28 characters');
                 }
                 $params = $this->omit($params, 'textIsRequired');
                 if ($clientOrderId[0] !== 't') {
@@ -4770,7 +4775,7 @@ class gate extends Exchange {
                     }
                     $priceType = $this->safe_integer($params, 'price_type', 0);
                     if ($priceType < 0 || $priceType > 2) {
-                        throw new BadRequest($this->id . ' createOrder () price_type should be 0 latest deal $price, 1 mark $price, 2 index price');
+                        throw new BadRequest($this->id . ' createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price');
                     }
                     $params = $this->omit($params, array( 'price_type' ));
                     $request['trigger'] = array(
@@ -4792,7 +4797,7 @@ class gate extends Exchange {
                 }
             } else {
                 // spot conditional order
-                $options = $this->safe_value($this->options, 'createOrder', array());
+                $options = $this->safe_dict($this->options, 'createOrder', array());
                 $marginMode = null;
                 list($marginMode, $params) = $this->get_margin_mode(true, $params);
                 if ($timeInForce === null) {
@@ -4837,7 +4842,7 @@ class gate extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): array {
         /**
          * create a $market buy order by providing the $symbol and $cost
          *
@@ -4861,7 +4866,7 @@ class gate extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function edit_order_request(string $id, ?string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order_request(string $id, ?string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         $market = $this->market($symbol);
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('editOrder', $market, $params);
@@ -4903,7 +4908,7 @@ class gate extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
          * edit a trade order, gate currently only supports the modification of the $price or $amount fields
          *
@@ -5190,8 +5195,8 @@ class gate extends Exchange {
                 'id' => $this->safe_string($order, 'id'),
             ));
         }
-        $put = $this->safe_value_2($order, 'put', 'initial', array());
-        $trigger = $this->safe_value($order, 'trigger', array());
+        $put = $this->safe_dict_2($order, 'put', 'initial', array());
+        $trigger = $this->safe_dict($order, 'trigger', array());
         $contract = $this->safe_string($put, 'contract');
         $type = $this->safe_string($put, 'type');
         $timeInForce = $this->safe_string_upper_2($put, 'time_in_force', 'tif');
@@ -5331,14 +5336,14 @@ class gate extends Exchange {
             'cost' => Precise::string_abs($cost),
             'filled' => null,
             'remaining' => $remaining,
-            'fee' => $multipleFeeCurrencies ? null : $this->safe_value($fees, 0),
+            'fee' => $multipleFeeCurrencies ? null : $this->safe_dict($fees, 0),
             'fees' => $multipleFeeCurrencies ? $fees : array(),
             'trades' => null,
             'info' => $order,
         ), $market);
     }
 
-    public function fetch_order_request(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order_request(string $id, ?string $symbol = null, $params = array()): array {
         $market = ($symbol === null) ? null : $this->market($symbol);
         $trigger = $this->safe_bool_n($params, array( 'trigger', 'is_stop_order', 'stop' ), false);
         $params = $this->omit($params, array( 'is_stop_order', 'stop', 'trigger' ));
@@ -5358,7 +5363,7 @@ class gate extends Exchange {
         return array( $request, $requestParams );
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * Retrieves information on an order
          *
@@ -5410,7 +5415,7 @@ class gate extends Exchange {
         } elseif ($type === 'option') {
             $response = $this->privateOptionsGetOrdersOrderId($this->extend($request, $requestParams));
         } else {
-            throw new NotSupported($this->id . ' fetchOrder() not support this $market type');
+            throw new NotSupported($this->id . ' fetchOrder() not support this market type');
         }
         return $this->parse_order($response, $market);
     }
@@ -5499,7 +5504,7 @@ class gate extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function prepare_orders_by_status_request(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function prepare_orders_by_status_request(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -5539,7 +5544,7 @@ class gate extends Exchange {
         return array( $request, $finalParams );
     }
 
-    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+    public function fetch_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -5582,7 +5587,7 @@ class gate extends Exchange {
         } elseif ($type === 'option') {
             $response = $this->privateOptionsGetOrders($this->extend($request, $requestParams));
         } else {
-            throw new NotSupported($this->id . ' fetchOrders() not support this $market type');
+            throw new NotSupported($this->id . ' fetchOrders() not support this market type');
         }
         //
         // spot open orders
@@ -5744,7 +5749,7 @@ class gate extends Exchange {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * Cancels an open order
          *
@@ -5794,7 +5799,7 @@ class gate extends Exchange {
         } elseif ($type === 'option') {
             $response = $this->privateOptionsDeleteOrdersOrderId($this->extend($request, $requestParams));
         } else {
-            throw new NotSupported($this->id . ' cancelOrder() not support this $market type');
+            throw new NotSupported($this->id . ' cancelOrder() not support this market type');
         }
         //
         // spot
@@ -5880,7 +5885,7 @@ class gate extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple orders
          *
@@ -5907,7 +5912,7 @@ class gate extends Exchange {
         list($type, $params) = $this->handle_market_type_and_params('cancelOrders', $market, $params);
         $isSpot = ($type === 'spot');
         if ($isSpot && ($symbol === null)) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders requires a $symbol argument for spot markets');
+            throw new ArgumentsRequired($this->id . ' cancelOrders requires a symbol argument for spot markets');
         }
         if ($isSpot) {
             $ordersRequests = array();
@@ -5932,7 +5937,7 @@ class gate extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function cancel_orders_for_symbols(array $orders, $params = array()) {
+    public function cancel_orders_for_symbols(array $orders, $params = array()): array {
         /**
          * cancel multiple $orders for multiple symbols
          *
@@ -5975,7 +5980,7 @@ class gate extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders
          *
@@ -6022,7 +6027,7 @@ class gate extends Exchange {
         } elseif ($type === 'option') {
             $response = $this->privateOptionsDeleteOrders($this->extend($request, $requestParams));
         } else {
-            throw new NotSupported($this->id . ' cancelAllOrders() not support this $market type');
+            throw new NotSupported($this->id . ' cancelAllOrders() not support this market type');
         }
         //
         //    [
@@ -6095,7 +6100,7 @@ class gate extends Exchange {
         if ($fromId === 'margin' || $toId === 'margin') {
             $symbol = $this->safe_string_2($params, 'symbol', 'currency_pair');
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' transfer requires $params["symbol"] for isolated margin transfers');
+                throw new ArgumentsRequired($this->id . ' transfer requires params["symbol"] for isolated margin transfers');
             }
             $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
@@ -6155,12 +6160,12 @@ class gate extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (($leverage < 0) || ($leverage > 100)) {
-            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 100');
+            throw new BadRequest($this->id . ' setLeverage() leverage should be between 1 and 100');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -6186,7 +6191,7 @@ class gate extends Exchange {
         } elseif ($market['future'] === true) {
             $response = $this->privateDeliveryPostSettlePositionsContractLeverage($this->extend($request, $query));
         } else {
-            throw new NotSupported($this->id . ' setLeverage() not support this $market type');
+            throw new NotSupported($this->id . ' setLeverage() not support this market type');
         }
         //
         //     {
@@ -6218,7 +6223,7 @@ class gate extends Exchange {
         return $response;
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // swap and future
         //
@@ -6363,7 +6368,7 @@ class gate extends Exchange {
         ));
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): array {
         /**
          * fetch data on an open contract position
          *
@@ -7104,11 +7109,11 @@ class gate extends Exchange {
         );
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $authentication = $api[0]; // public, private
         $type = $api[1]; // spot, margin, future, delivery
         $query = $this->omit($params, $this->extract_params($path));
@@ -7130,7 +7135,7 @@ class gate extends Exchange {
             // endpoints like createOrders use an array instead of an object
             // so we infer the settle from one of the elements
             // they have to be all the same so relying on the first one is fine
-            $first = $this->safe_value($params, 0, array());
+            $first = $this->safe_dict($params, 0, array());
             $path = $this->implode_params($path, $first);
         } else {
             $path = $this->implode_params($path, $params);
@@ -7142,7 +7147,7 @@ class gate extends Exchange {
         }
         $url = $this->urls['api'][$authentication][$type];
         if ($url === null) {
-            throw new NotSupported($this->id . ' does not have a testnet for the ' . $type . ' market $type->');
+            throw new NotSupported($this->id . ' does not have a testnet for the ' . $type . ' market type.');
         }
         $url .= $entirePath;
         if ($authentication === 'public') {
@@ -7204,7 +7209,7 @@ class gate extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, $params = array()): array {
+    public function modify_margin_helper(string $symbol, ?float $amount, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -7216,7 +7221,7 @@ class gate extends Exchange {
         } elseif ($market['future'] === true) {
             $response = $this->privateDeliveryPostSettlePositionsContractMargin($this->extend($request, $query));
         } else {
-            throw new NotSupported($this->id . ' modifyMarginHelper() not support this $market type');
+            throw new NotSupported($this->id . ' modifyMarginHelper() not support this market type');
         }
         return $this->parse_margin_modification($response, $market);
     }
@@ -7259,7 +7264,7 @@ class gate extends Exchange {
             'marginMode' => 'isolated',
             'amount' => null,
             'total' => $total,
-            'code' => $this->safe_value($market, 'quote'),
+            'code' => $this->safe_string($market, 'quote'),
             'status' => 'ok',
             'timestamp' => null,
             'datetime' => null,
@@ -7401,7 +7406,7 @@ class gate extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=settlement-history-structure settlement history objects~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchSettlementHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchSettlementHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -7497,7 +7502,7 @@ class gate extends Exchange {
             if ($market === null) {
                 $underlying = $this->safe_string($params, 'underlying');
                 if ($underlying === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchMySettlementHistory() requires a $symbol argument or an $underlying parameter in params');
+                    throw new ArgumentsRequired($this->id . ' fetchMySettlementHistory() requires a symbol argument or an underlying parameter in params');
                 }
             } else {
                 $marketId = $market['id'];
@@ -7521,14 +7526,14 @@ class gate extends Exchange {
             //
             $response = $this->privateOptionsGetMySettlements($this->extend($request, $params));
         }
-        $result = $this->safe_value($response, 'result', array());
-        $data = $this->safe_value($result, 'list', array());
+        $result = $this->safe_dict($response, 'result', array());
+        $data = $this->safe_list($result, 'list', array());
         $settlements = $this->parse_settlements($data, $market);
         $sorted = $this->sort_by($settlements, 'timestamp');
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function parse_settlement(mixed $settlement, mixed $market) {
+    public function parse_settlement(array $settlement, ?array $market = null): array {
         //
         // fetchSettlementHistory
         //
@@ -7579,7 +7584,7 @@ class gate extends Exchange {
         );
     }
 
-    public function parse_settlements(mixed $settlements, mixed $market) {
+    public function parse_settlements(array $settlements, ?array $market = null): array {
         //
         // fetchSettlementHistory
         //
@@ -7818,7 +7823,7 @@ class gate extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $ledgerType = array(
             'deposit' => 'deposit',
             'withdraw' => 'withdrawal',
@@ -7922,7 +7927,7 @@ class gate extends Exchange {
         return $underlyings;
     }
 
-    public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * retrieves the public liquidations of a trading pair
          *
@@ -7969,7 +7974,7 @@ class gate extends Exchange {
         return $this->parse_liquidations($this->to_array($response), $market, $since, $limit);
     }
 
-    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * retrieves the users liquidated positions
          *
@@ -7984,7 +7989,7 @@ class gate extends Exchange {
          * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyLiquidations() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyLiquidations() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -8048,7 +8053,7 @@ class gate extends Exchange {
         return $this->parse_liquidations($this->to_array($response), $market, $since, $limit);
     }
 
-    public function parse_liquidation(mixed $liquidation, ?array $market = null) {
+    public function parse_liquidation(mixed $liquidation, ?array $market = null): array {
         //
         // fetchLiquidations
         //

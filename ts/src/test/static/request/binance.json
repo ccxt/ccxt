@@ -5,7 +5,8 @@
         "timestamp",
         "recvWindow",
         "newClientOrderId",
-        "newClientStrategyId"
+        "newClientStrategyId",
+        "clientAlgoId"
     ],
     "outputType": "urlencoded",
     "options": {
@@ -67,6 +68,22 @@
         ],
         "createOrder": [
             {
+                "description": "algo order for inverse swap market without client id in params",
+                "method": "createOrder",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
+                "input": [
+                    "ETH/USD:ETH",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "stopLossPrice": 3000
+                    }
+                ],
+                "output": "timestamp=1790581474927&symbol=ETHUSD_PERP&side=BUY&clientAlgoId=x-xcKtGhcudc617b05cb6a4c0a865f98&newOrderRespType=RESULT&type=STOP_MARKET&quantity=1&triggerPrice=3000&algoType=CONDITIONAL&recvWindow=10000&signature=13218d651e5a89185e5119f6071316c8b6b1138ed8973ffe0af80e759e33033d"
+            },
+            {
                 "description": "Swap inverse market sell with stopLossPrice",
                 "method": "createOrder",
                 "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
@@ -77,10 +94,11 @@
                     1,
                     null,
                     {
-                        "stopLossPrice": 1000
+                        "stopLossPrice": 1000,
+                        "clientOrderId": "x-xcKtGhcuInverseSlTest001"
                     }
                 ],
-                "output": "timestamp=1782212047354&symbol=ETHUSD_PERP&side=SELL&newClientOrderId=x-xcKtGhcu816e735bb2af4b22b03c68&newOrderRespType=RESULT&type=STOP_MARKET&quantity=1&triggerPrice=1000&algoType=CONDITIONAL&recvWindow=10000&signature=4c24bc0d0b5f62ac7c86a3f27622211990b457bde44e8ba598bc8044d770a2e7"
+                "output": "timestamp=1790420174597&symbol=ETHUSD_PERP&side=SELL&clientAlgoId=x-xcKtGhcuInverseSlTest001&newOrderRespType=RESULT&type=STOP_MARKET&quantity=1&triggerPrice=1000&algoType=CONDITIONAL&recvWindow=10000&signature=bdbacfeb4c273e6f1a8cca1b6ec79cea129f737d4c2ad968a5f0cde36b00bd46"
             },
             {
                 "description": "Swap inverse limit sell with takeProfitPrice (type 2)",
@@ -93,10 +111,11 @@
                     1,
                     2500,
                     {
-                        "takeProfitPrice": 2600
+                        "takeProfitPrice": 2600,
+                        "clientOrderId": "x-xcKtGhcuInverseTpTest001"
                     }
                 ],
-                "output": "timestamp=1782211898027&symbol=ETHUSD_PERP&side=SELL&newClientOrderId=x-xcKtGhcu18b6588661a442c2a47097&newOrderRespType=RESULT&type=TAKE_PROFIT&quantity=1&price=2500&triggerPrice=2600&algoType=CONDITIONAL&recvWindow=10000&signature=2892c8bde1aa58603b1747ebc11638aa97bffb35ea45678ce25a1a0d50436d87"
+                "output": "timestamp=1790420183370&symbol=ETHUSD_PERP&side=SELL&clientAlgoId=x-xcKtGhcuInverseTpTest001&newOrderRespType=RESULT&type=TAKE_PROFIT&quantity=1&price=2500&triggerPrice=2600&algoType=CONDITIONAL&recvWindow=10000&signature=2e87af88c2c52f6a8df37432f6708e0bcc99ec7751111edf79acbd64e8c2666e"
             },
             {
                 "description": "spot +selfTradePrevention +iceberg",
@@ -423,6 +442,76 @@
                     }
                 ],
                 "output": "timestamp=1763537539093&symbol=BTCUSDT&side=SELL&callbackRate=5&newClientOrderId=x-cvBPrNm9df3d5f685656489d9cf7bf&newOrderRespType=RESULT&type=TRAILING_STOP_MARKET&quantity=0.11&reduceOnly=true&algoType=CONDITIONAL&recvWindow=10000&signature=c902728a2809cd2e122ff5276ee2a9aab644eff5f19696b3ca19f43fa8a9d172"
+            },
+            {
+                "description": "inverse swap trailingDelta order with activation price",
+                "method": "createOrder",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
+                "input": [
+                    "ETH/USD:ETH",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "trailingDelta": 5,
+                        "activationPrice": 4000,
+                        "clientOrderId": "x-xcKtGhcuNewTrail1"
+                    }
+                ],
+                "output": "timestamp=1790432488309&symbol=ETHUSD_PERP&side=SELL&callbackRate=5&activatePrice=4000&clientAlgoId=x-xcKtGhcuNewTrail1&newOrderRespType=RESULT&type=TRAILING_STOP_MARKET&quantity=1&trailingDelta=5&algoType=CONDITIONAL&recvWindow=10000&signature=353963572e552f4f97827073eeeff3995cc288542973b44f89ea57c9ea20888b"
+            },
+            {
+                "description": "linear swap trailingPercent order with activation price",
+                "method": "createOrder",
+                "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.008,
+                    null,
+                    {
+                        "trailingPercent": 5,
+                        "activationPrice": 4000,
+                        "clientOrderId": "x-cvBPrNm9NewTrail1"
+                    }
+                ],
+                "output": "timestamp=1790432490357&symbol=ETHUSDT&side=SELL&callbackRate=5&activatePrice=4000&clientAlgoId=x-cvBPrNm9NewTrail1&newOrderRespType=RESULT&type=TRAILING_STOP_MARKET&quantity=0.008&algoType=CONDITIONAL&recvWindow=10000&signature=81557053ae6540f757ec49276370db396fda38b12bbb4367b85c661ca4261691"
+            },
+            {
+                "description": "linear future conditional createOrder",
+                "method": "createOrder",
+                "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder",
+                "input": [
+                    "ETH/USDT:USDT-261225",
+                    "limit",
+                    "sell",
+                    0.008,
+                    4100,
+                    {
+                        "takeProfitPrice": 4000,
+                        "clientOrderId": "x-cvBPrNm9NewQtrTp1"
+                    }
+                ],
+                "output": "timestamp=1790433244069&symbol=ETHUSDT_261225&side=SELL&clientAlgoId=x-cvBPrNm9NewQtrTp1&newOrderRespType=RESULT&type=TAKE_PROFIT&quantity=0.008&price=4100&triggerPrice=4000&algoType=CONDITIONAL&recvWindow=10000&signature=6bcbd0907a03a93be1036da90c2630d42bb131bb5eb601cb6064f878377bdcf3"
+            },
+            {
+                "description": "inverse future conditional createOrder",
+                "method": "createOrder",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
+                "input": [
+                    "ETH/USD:ETH-261225",
+                    "limit",
+                    "sell",
+                    1,
+                    4100,
+                    {
+                        "takeProfitPrice": 4000,
+                        "clientOrderId": "x-xcKtGhcuNewQtrTp1"
+                    }
+                ],
+                "output": "timestamp=1790433246043&symbol=ETHUSD_261225&side=SELL&clientAlgoId=x-xcKtGhcuNewQtrTp1&newOrderRespType=RESULT&type=TAKE_PROFIT&quantity=1&price=4100&triggerPrice=4000&algoType=CONDITIONAL&recvWindow=10000&signature=12a2b0d9bc6b044a25acf013cda7068c0b4b2d17b1ed86b9f373b86bb28eaf6f"
             },
             {
                 "description": "Linear swap portfolio margin limit buy order",
@@ -775,6 +864,19 @@
                     }
                 ],
                 "output": "timestamp=1785987650308&symbol=AAPL&side=SELL&clientOrderId=x-TKT5PX2F512ee9e3711341369454f9&orderType=MARKET&quantity=0.0576724&recvWindow=10000&signature=d071ca15633e8122f8ce7f4b8926aecc1065f5f156ebc09e042f42fe823d1a60"
+            },
+            {
+                "description": "Exchange rate underlying swap createOrder",
+                "method": "createOrder",
+                "url": "https://fapi.binance.com/fapi/v1/order",
+                "input": [
+                    "USDBRL/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    5
+                ],
+                "output": "timestamp=1790229579913&symbol=USDBRLUSDT&side=BUY&newClientOrderId=x-cvBPrNm97965dacb36dd4b4a9735ac&newOrderRespType=RESULT&type=LIMIT&quantity=1&price=5&timeInForce=GTC&recvWindow=10000&signature=c23b11351f8a23972827eae4b46b37e0fc40bfc8c7ab5f92d290b7dee9c51d1d"
             }
         ],
         "createOrders": [
@@ -801,6 +903,48 @@
                     ]
                 ],
                 "output": "timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderId\":\"x-xcKtGhcub371e14dda9e4fda804421\",\"newOrderRespType\":\"RESULT\",\"type\":\"LIMIT\",\"quantity\":\"0.1\",\"price\":\"60\",\"timeInForce\":\"GTC\"},{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderId\":\"x-xcKtGhcu2b5cffec484a42138cdf8e\",\"newOrderRespType\":\"RESULT\",\"type\":\"LIMIT\",\"quantity\":\"0.11\",\"price\":\"61\",\"timeInForce\":\"GTC\"}]&recvWindow=10000&signature=ce06633e6e16101cf7b4c3fd0f6a1afa3901206050382fafae81deddc1867f92"
+            },
+            {
+                "description": "inverse swap conditional createOrders uses the regular batch format",
+                "method": "createOrders",
+                "url": "https://demo-dapi.binance.com/dapi/v1/batchOrders",
+                "input": [
+                    [
+                        {
+                            "symbol": "ETH/USD:ETH",
+                            "type": "limit",
+                            "side": "sell",
+                            "amount": 1,
+                            "price": 4100,
+                            "params": {
+                                "takeProfitPrice": 4000,
+                                "clientOrderId": "x-xcKtGhcuNewPerpBatch1"
+                            }
+                        }
+                    ]
+                ],
+                "output": "timestamp=1790432486244&batchOrders=[{\"symbol\":\"ETHUSD_PERP\",\"side\":\"SELL\",\"newClientOrderId\":\"x-xcKtGhcuNewPerpBatch1\",\"newOrderRespType\":\"RESULT\",\"type\":\"TAKE_PROFIT\",\"quantity\":\"1\",\"price\":\"4100\",\"stopPrice\":\"4000\"}]&recvWindow=10000&signature=5a5cdb474a4f6bfc75fad73e17e79f3c4a73db290a3168e3c1f7fd035b53dbae"
+            },
+            {
+                "description": "inverse future conditional createOrders uses the regular batch format",
+                "method": "createOrders",
+                "url": "https://demo-dapi.binance.com/dapi/v1/batchOrders",
+                "input": [
+                    [
+                        {
+                            "symbol": "ETH/USD:ETH-261225",
+                            "type": "limit",
+                            "side": "sell",
+                            "amount": 1,
+                            "price": 4100,
+                            "params": {
+                                "takeProfitPrice": 4000,
+                                "clientOrderId": "x-xcKtGhcuNewQtrBatch1"
+                            }
+                        }
+                    ]
+                ],
+                "output": "timestamp=1790433248013&batchOrders=[{\"symbol\":\"ETHUSD_261225\",\"side\":\"SELL\",\"newClientOrderId\":\"x-xcKtGhcuNewQtrBatch1\",\"newOrderRespType\":\"RESULT\",\"type\":\"TAKE_PROFIT\",\"quantity\":\"1\",\"price\":\"4100\",\"stopPrice\":\"4000\"}]&recvWindow=10000&signature=35fadcdd4a84840fa21b65a28e888225a254f1094c32bf970de8ada797ed462b"
             }
         ],
         "createMarketOrderWithCost": [
@@ -1102,6 +1246,16 @@
                     "AAPL/USDC"
                 ],
                 "output": "timestamp=1785925627906&orderId=edf82072-9f42-4d47-b09e-602c8f1b35c9&recvWindow=10000&signature=b0f782caa4b714548bc847131d6b413e0bdccad9c9e74587de50e9a7d43f98b6"
+            },
+            {
+                "description": "Exchange rate underlying swap cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://fapi.binance.com/fapi/v1/order?timestamp=1790231024782&symbol=USDBRLUSDT&orderId=1245734&recvWindow=10000&signature=10d8059c71117cc0aac6ad3679b6744efaf85586efc18a9cbc0496fdd1a9fba5",
+                "input": [
+                    "1245734",
+                    "USDBRL/USDT:USDT"
+                ],
+                "output": null
             }
         ],
         "cancelOrders": [
@@ -1588,6 +1742,15 @@
                         "endTime": 1785925976372
                     }
                 ]
+            },
+            {
+                "description": "Exchange rate underlying swap fetchOrders",
+                "method": "fetchOrders",
+                "url": "https://fapi.binance.com/fapi/v1/allOrders?timestamp=1790230361366&symbol=USDBRLUSDT&recvWindow=10000&signature=4030113ade850abeea55f0195fa12898b012561a6cf04d455cabc87ab754d69e",
+                "input": [
+                    "USDBRL/USDT:USDT"
+                ],
+                "output": null
             }
         ],
         "fetchOrder": [
@@ -1708,6 +1871,16 @@
                     "edf82072-9f42-4d47-b09e-602c8f1b35c9",
                     "AAPL/USDC"
                 ]
+            },
+            {
+                "description": "Exchange rate underlying swap fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://fapi.binance.com/fapi/v1/order?timestamp=1790230246817&symbol=USDBRLUSDT&orderId=1245734&recvWindow=10000&signature=7b1511bbafa70ff23a79583ec03ce8b14aed479c9ad18e9b31ea78fa2e260db7",
+                "input": [
+                    "1245734",
+                    "USDBRL/USDT:USDT"
+                ],
+                "output": null
             }
         ],
         "fetchOpenOrders": [
@@ -1871,6 +2044,15 @@
                 "input": [
                     "AAPL/USDC"
                 ]
+            },
+            {
+                "description": "Exchange rate underlying swap fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://fapi.binance.com/fapi/v1/openOrders?timestamp=1790229787202&symbol=USDBRLUSDT&recvWindow=10000&signature=bd7e27f0d95544f50f8b999f7aa9f26ea89d7ce9799079dc71e2b453b3de89ea",
+                "input": [
+                    "USDBRL/USDT:USDT"
+                ],
+                "output": null
             }
         ],
         "fetchCanceledOrders": [
@@ -1963,6 +2145,15 @@
                         "endTime": 1785926663067
                     }
                 ]
+            },
+            {
+                "description": "Exchange rate underlying swap fetchCanceledOrders",
+                "method": "fetchCanceledOrders",
+                "url": "https://fapi.binance.com/fapi/v1/allOrders?timestamp=1790230571789&symbol=USDBRLUSDT&recvWindow=10000&signature=a152cb0e5d63dac03ad1e06429304e07a76084324051288263327289b96f1cfe",
+                "input": [
+                    "USDBRL/USDT:USDT"
+                ],
+                "output": null
             }
         ],
         "fetchClosedOrders": [
@@ -2721,6 +2912,18 @@
                     "until": 1725549149000
                   }
                 ]
+            },
+            {
+                "description": "Exchange rate underlying swap fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://fapi.binance.com/fapi/v1/klines?interval=1m&limit=3&symbol=USDBRLUSDT",
+                "input": [
+                    "USDBRL/USDT:USDT",
+                    "1m",
+                    null,
+                    3
+                ],
+                "output": null
             }
         ],
         "fetchTradingFees": [
@@ -2981,6 +3184,17 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "Exchange rate underlying swap fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://fapi.binance.com/fapi/v1/aggTrades?symbol=USDBRLUSDT&limit=3",
+                "input": [
+                    "USDBRL/USDT:USDT",
+                    null,
+                    3
+                ],
+                "output": null
             }
         ],
         "fetchPositionsRisk": [
@@ -3682,7 +3896,6 @@
                     }
                 ]
             },
-            
             {
                 "description": "Inverse portfolio margin trigger fetch open order",
                 "method": "fetchOpenOrder",
@@ -3695,6 +3908,16 @@
                         "trigger": true
                     }
                 ]
+            },
+            {
+                "description": "Exchange rate underlying swap fetchOpenOrder",
+                "method": "fetchOpenOrder",
+                "url": "https://fapi.binance.com/fapi/v1/openOrder?timestamp=1790230117483&symbol=USDBRLUSDT&orderId=1245734&recvWindow=10000&signature=495215d2f9913f04b9f2a7c556dece99e6d3f3214cb703c827731f8f787e90db",
+                "input": [
+                    "1245734",
+                    "USDBRL/USDT:USDT"
+                ],
+                "output": null
             }
         ],
         "fetchPositionMode": [

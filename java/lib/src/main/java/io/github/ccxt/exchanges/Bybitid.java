@@ -39,6 +39,9 @@ public class Bybitid extends BybitidApi
                 put( "fees", "https://help.bybit.com/hc/en-us/articles/360039261154" );
                 put( "referral", null );
             }} );
+            put( "httpExceptions", new HashMap<String, Object>() {{
+                put( "403", PermissionDenied.class );
+            }} );
         }});
     }
 }

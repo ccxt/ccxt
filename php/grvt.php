@@ -522,7 +522,7 @@ class grvt extends Exchange {
         return true;
     }
 
-    public function sign_in_with_api_key($params = array()) {
+    public function sign_in_with_api_key($params = array()): array {
         $now = $this->milliseconds();
         // expires in 24 hours as CS suggested
         $expires = $this->safe_integer($this->options, 'signInExpiration', 0);
@@ -544,7 +544,7 @@ class grvt extends Exchange {
         return $response;
     }
 
-    public function sign_in_with_private_key($params = array()) {
+    public function sign_in_with_private_key($params = array()): array {
         $this->check_required_credentials();
         $now = $this->milliseconds();
         // expires in 24 hours as CS suggested
@@ -570,7 +570,7 @@ class grvt extends Exchange {
         return $response;
     }
 
-    public function initialize_client($params = array()) {
+    public function initialize_client($params = array()): ?bool {
         $builderFee = $this->safe_bool($params, 'builderFee', $this->safe_bool($this->options, 'builderFee', true)); // we shouldn't omit here
         if ($builderFee !== true) {
             return false; // skip if builder fee is not enabled
@@ -1233,7 +1233,7 @@ class grvt extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -1248,7 +1248,7 @@ class grvt extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1290,7 +1290,7 @@ class grvt extends Exchange {
         return $this->parse_funding_rate_histories($result, $market);
     }
 
-    public function parse_funding_rate_history(mixed $rawItem, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $rawItem, ?array $market = null): array {
         //
         //            {
         //                "instrument": "BTC_USDT_Perp",
@@ -1315,11 +1315,11 @@ class grvt extends Exchange {
         );
     }
 
-    public function get_sub_account_id(mixed $params) {
+    public function get_sub_account_id(array $params): string {
         $subAccountId = null;
         list($subAccountId, $params) = $this->handle_option_and_params($params, 'getSubAccountId', 'accountId');
         if ($subAccountId === null) {
-            throw new ArgumentsRequired($this->id . ' you should set "accountId" in options or $params, which can be found in the grvt dashboard, under Api-Keys page');
+            throw new ArgumentsRequired($this->id . ' you should set "accountId" in options or params, which can be found in the grvt dashboard, under Api-Keys page');
         }
         return (string) $subAccountId;
     }
@@ -1540,7 +1540,7 @@ class grvt extends Exchange {
         }
     }
 
-    public function internal_fetch_transfers(mixed $req, mixed $currency = null, ?int $since = null, ?int $limit = null) {
+    public function internal_fetch_transfers(array $req, ?array $currency = null, ?int $since = null, ?int $limit = null): array {
         $response = $this->privateTradingPostFullV1TransferHistory($req);
         //
         //    {
@@ -1704,7 +1704,7 @@ class grvt extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a code argument');
         }
         $this->load_markets_and_sign_in();
         $request = array();
@@ -1799,7 +1799,7 @@ class grvt extends Exchange {
             $fundingAccountId = null;
             list($fundingAccountId, $params) = $this->handle_option_and_params($params, 'transfer', 'fundingAccountId');
             if ($tradingAccountId === null || $fundingAccountId === null) {
-                throw new ArgumentsRequired($this->id . ' transfer() => you should set (in the options or $params) "tradingAccountId" and "fundingAccountId" (you can use "0" as a main funding account id)');
+                throw new ArgumentsRequired($this->id . ' transfer() => you should set (in the options or params) "tradingAccountId" and "fundingAccountId" (you can use "0" as a main funding account id)');
             }
             $fromAccount = ($fromAccount === 'trading') ? $tradingAccountId : $fundingAccountId;
             $toAccount = ($toAccount === 'trading') ? $tradingAccountId : $fundingAccountId;
@@ -1990,7 +1990,7 @@ class grvt extends Exchange {
         return $this->parse_transaction($result, $currency);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -2027,7 +2027,7 @@ class grvt extends Exchange {
         } elseif ($side === 'buy') {
             $orderLeg['is_buying_asset'] = true;
         } else {
-            throw new InvalidOrder($this->id . ' createOrder() => order $side must be either "buy" or "sell"');
+            throw new InvalidOrder($this->id . ' createOrder() => order side must be either "buy" or "sell"');
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId === null) {
@@ -2100,7 +2100,7 @@ class grvt extends Exchange {
             } else {
                 $triggerDirection = $this->safe_string($params, 'triggerDirection');
                 if ($triggerDirection === null) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerDirection parameter when $triggerPrice is specified, must be "ascending" or "descending"');
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a triggerDirection parameter when triggerPrice is specified, must be "ascending" or "descending"');
                 }
                 if ($triggerDirection !== null) {
                     if ($triggerDirection === 'ascending') {
@@ -2203,7 +2203,7 @@ class grvt extends Exchange {
         return intval($x);
     }
 
-    public function eip_message_for_order(mixed $order, mixed $structureType) {
+    public function eip_message_for_order(array $order, ?string $structureType): array {
         $priceMultiplier = '1000000000';
         $orderLegs = $this->safe_list($order, 'legs', array());
         $legs = array();
@@ -2257,7 +2257,7 @@ class grvt extends Exchange {
         return $returnValue;
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all trades made by the user
          *
@@ -2389,7 +2389,7 @@ class grvt extends Exchange {
         return $this->parse_positions($result, $symbols);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         //            {
         //                "event_time": "1765258069092857642",
@@ -2489,7 +2489,7 @@ class grvt extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         $this->load_markets_and_sign_in();
         $market = $this->market($symbol);
@@ -2587,7 +2587,7 @@ class grvt extends Exchange {
         );
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of funding payments paid and received on this account
          *
@@ -2852,7 +2852,7 @@ class grvt extends Exchange {
         return $this->parse_orders($result, null, $since, $limit);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -3105,7 +3105,7 @@ class grvt extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders in a $market
          *
@@ -3138,7 +3138,7 @@ class grvt extends Exchange {
         return $this->parse_orders(array( $result ));
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -3277,7 +3277,7 @@ class grvt extends Exchange {
         );
     }
 
-    public function handle_until_option_string(string $key, mixed $request, mixed $params, $multiplier = 1) {
+    public function handle_until_option_string(string $key, array $request, ?array $params = null, float $multiplier = 1): array {
         $until = $this->safe_integer_2($params, 'until', 'till');
         if ($until !== null) {
             $request[$key] = $this->number_to_string($this->parse_to_int($until * $multiplier));
@@ -3292,7 +3292,7 @@ class grvt extends Exchange {
         return $requestId;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . $path;
         $queryString = '';
@@ -3332,7 +3332,7 @@ class grvt extends Exchange {
                 $accountId = $this->safe_string($this->options, 'AuthAccountId');
                 $cookieValue = $this->safe_string($this->options, 'AuthCookieValue');
                 if ($cookieValue === null || $accountId === null) {
-                    throw new AuthenticationError($this->id . ' : at first, you need to authenticate with exchange using signIn() $method->');
+                    throw new AuthenticationError($this->id . ' : at first, you need to authenticate with exchange using signIn() method.');
                 }
                 $headers['Cookie'] = $cookieValue;
                 $headers['X-Grvt-Account-Id'] = $accountId;
@@ -3351,7 +3351,7 @@ class grvt extends Exchange {
                 $this->options['AuthCookieValue'] = $cookieValue;
             }
             if ($this->options['AuthCookieValue'] === null || $this->options['AuthAccountId'] === null) {
-                throw new AuthenticationError($this->id . ' signIn() failed to receive auth-$cookie or account-id');
+                throw new AuthenticationError($this->id . ' signIn() failed to receive auth-cookie or account-id');
             }
         } else {
             $errorCode = $this->safe_string($response, 'code');

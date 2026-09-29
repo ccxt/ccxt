@@ -691,7 +691,7 @@ class independentreserve extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -782,7 +782,7 @@ class independentreserve extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = 50, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = 50, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -925,9 +925,9 @@ class independentreserve extends Exchange {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $fee = $this->safe_value($fees, $market['base'], array());
+            $fee = $this->safe_dict($fees, $market['base'], array());
             $result[$symbol] = array(
-                'info' => $this->safe_value($fee, 'info'),
+                'info' => $this->safe_dict($fee, 'info'),
                 'symbol' => $symbol,
                 'maker' => $this->safe_number($fee, 'fee'),
                 'taker' => $this->safe_number($fee, 'fee'),
@@ -938,7 +938,7 @@ class independentreserve extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -977,7 +977,7 @@ class independentreserve extends Exchange {
         ), $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1106,7 +1106,7 @@ class independentreserve extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            throw new BadRequest($this->id . ' withdraw () does not accept $params["networkCode"]');
+            throw new BadRequest($this->id . ' withdraw () does not accept params["networkCode"]');
         }
         $response = Async\await($this->privatePostWithdrawDigitalCurrency($this->extend($request, $params)));
         //
@@ -1182,7 +1182,12 @@ class independentreserve extends Exchange {
         );
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function nonce(): float {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return $this->milliseconds();
+    }
+
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'public') {
             if (count($params) > 0) {
@@ -1190,7 +1195,8 @@ class independentreserve extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce();
+            // independentreserve requires an increasing nonce
+            $nonce = $this->incrementing_nonce();
             $auth = array(
                 $url,
                 'apiKey=' . $this->apiKey,

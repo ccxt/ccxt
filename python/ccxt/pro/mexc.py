@@ -85,7 +85,7 @@ class mexc(ccxt.async_support.mexc):
             },
         })
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -110,7 +110,7 @@ class mexc(ccxt.async_support.mexc):
             }
             return await self.watch_swap_public(channel, messageHash, requestParams, params)
 
-    def handle_ticker(self, client: Client, message: object):
+    def handle_ticker(self, client: Client, message: dict):
         #
         # swap
         #
@@ -197,7 +197,7 @@ class mexc(ccxt.async_support.mexc):
         messageHash = 'ticker:' + symbol
         client.resolve(ticker, messageHash)
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -259,7 +259,7 @@ class mexc(ccxt.async_support.mexc):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    def handle_tickers(self, client: Client, message: object):
+    def handle_tickers(self, client: Client, message: dict):
         #
         # swap
         #
@@ -405,7 +405,7 @@ class mexc(ccxt.async_support.mexc):
             'quoteVolume': self.safe_number(ticker, 'q'),
         }, market)
 
-    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
 
         https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/individual-symbol-book-ticker-streams
@@ -445,7 +445,7 @@ class mexc(ccxt.async_support.mexc):
             return tickers
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
 
-    def handle_bid_ask(self, client: Client, message: object):
+    def handle_bid_ask(self, client: Client, message: dict):
         #
         #    {
         #        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
@@ -467,7 +467,7 @@ class mexc(ccxt.async_support.mexc):
         messageHash = 'bidask:' + symbol
         client.resolve(parsedTicker, messageHash)
 
-    def parse_ws_bid_ask(self, ticker: object, market: Market = None):
+    def parse_ws_bid_ask(self, ticker: dict, market: Market = None) -> Ticker:
         data = self.safe_dict(ticker, 'd')
         marketId = self.safe_string(ticker, 's')
         market = self.safe_market(marketId, market)
@@ -484,7 +484,7 @@ class mexc(ccxt.async_support.mexc):
             'info': ticker,
         }, market)
 
-    async def watch_spot_public(self, channel: object, messageHash: object, params={}):
+    async def watch_spot_public(self, channel: str, messageHash: str, params: dict = {}):
         unsubscribed = self.safe_bool(params, 'unsubscribed', False)
         params = self.omit(params, ['unsubscribed'])
         url = self.urls['api']['ws']['spot']
@@ -495,7 +495,7 @@ class mexc(ccxt.async_support.mexc):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    async def watch_spot_private(self, channel: object, messageHash: object, params={}):
+    async def watch_spot_private(self, channel: str, messageHash: str, params: dict = {}):
         self.check_required_credentials()
         listenKey = await self.authenticate(channel)
         url = self.urls['api']['ws']['spot'] + '?listenKey=' + listenKey
@@ -505,7 +505,7 @@ class mexc(ccxt.async_support.mexc):
         }
         return await self.watch(url, messageHash, self.extend(request, params), channel)
 
-    async def watch_swap_public(self, channel: object, messageHash: object, requestParams: object, params={}):
+    async def watch_swap_public(self, channel: str, messageHash: str, requestParams: dict, params: dict = {}):
         url = self.urls['api']['ws']['swap']
         request = {
             'method': channel,
@@ -514,7 +514,7 @@ class mexc(ccxt.async_support.mexc):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    async def watch_swap_private(self, messageHash: object, params={}):
+    async def watch_swap_private(self, messageHash: str, params: dict = {}):
         self.check_required_credentials()
         channel = 'login'
         url = self.urls['api']['ws']['swap']
@@ -532,7 +532,7 @@ class mexc(ccxt.async_support.mexc):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, channel)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
 
         https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/k-line-streams  # spot
@@ -550,7 +550,7 @@ class mexc(ccxt.async_support.mexc):
             await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        timeframes = self.safe_value(self.options, 'timeframes', {})
+        timeframes = self.safe_dict(self.options, 'timeframes', {})
         timeframeId = self.safe_string(timeframes, timeframe)
         messageHash = 'candles:' + symbol + ':' + timeframe
         ohlcv = None
@@ -569,7 +569,7 @@ class mexc(ccxt.async_support.mexc):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client: Client, message: object):
+    def handle_ohlcv(self, client: Client, message: dict):
         #
         # spot
         #
@@ -644,17 +644,17 @@ class mexc(ccxt.async_support.mexc):
             timeframe = self.find_timeframe(timeframeId, self.options['timeframes'])
             parsed = self.parse_ws_ohlcv(data, self.safe_market(symbol))
         else:
-            d = self.safe_value_2(message, 'd', 'data', {})
-            rawOhlcv = self.safe_value(d, 'k', d)
+            d = self.safe_dict_2(message, 'd', 'data', {})
+            rawOhlcv = self.safe_dict(d, 'k', d)
             timeframeId = self.safe_string_2(rawOhlcv, 'i', 'interval')
-            timeframes = self.safe_value(self.options, 'timeframes', {})
+            timeframes = self.safe_dict(self.options, 'timeframes', {})
             timeframe = self.find_timeframe(timeframeId, timeframes)
             marketId = self.safe_string_2(message, 's', 'symbol')
             market = self.safe_market(marketId)
             symbol = market['symbol']
             parsed = self.parse_ws_ohlcv(rawOhlcv, market)
         messageHash = 'candles:' + symbol + ':' + timeframe
-        symbolOhlcvs = self.safe_value(self.ohlcvs, symbol, {})
+        symbolOhlcvs = self.safe_dict(self.ohlcvs, symbol, {})
         self.ohlcvs[symbol] = symbolOhlcvs
         stored = self.safe_value(symbolOhlcvs, timeframe)
         if stored is None:
@@ -723,7 +723,7 @@ class mexc(ccxt.async_support.mexc):
             volume,
         ]
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
 
         https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/diffdepth-stream  # spot
@@ -756,7 +756,7 @@ class mexc(ccxt.async_support.mexc):
         orderbook = self.require_value(orderbook, 'watchOrderBook() orderbook is required')
         return orderbook.limit()
 
-    def handle_order_book_subscription(self, client: Client, message: object):
+    def handle_order_book_subscription(self, client: Client, message: dict):
         # spot
         #     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         #
@@ -766,10 +766,10 @@ class mexc(ccxt.async_support.mexc):
         symbol = self.safe_symbol(marketId)
         self.orderbooks[symbol] = self.order_book({})
 
-    def get_cache_index(self, orderbook: object, cache: object):
+    def get_cache_index(self, orderbook: object, cache: object) -> float:
         # return the first index of the cache that can be applied to the orderbook or -1 if not possible
         nonce = self.safe_integer(orderbook, 'nonce')
-        firstDelta = self.safe_value(cache, 0)
+        firstDelta = self.safe_dict(cache, 0)
         firstDeltaNonce = self.safe_integer_n(firstDelta, ['r', 'version', 'fromVersion'])
         if (nonce is None) or (firstDeltaNonce is None):
             return -1
@@ -784,7 +784,7 @@ class mexc(ccxt.async_support.mexc):
                 return i
         return len(cache)
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         # spot
         #    {
@@ -855,7 +855,7 @@ class mexc(ccxt.async_support.mexc):
         marketId = self.safe_string_2(message, 's', 'symbol')
         symbol = self.safe_symbol(marketId)
         messageHash = 'orderbook:' + symbol
-        subscription = self.safe_value(client.subscriptions, messageHash)
+        subscription = self.safe_dict(client.subscriptions, messageHash)
         limit = self.safe_integer(subscription, 'limit')
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
@@ -914,7 +914,7 @@ class mexc(ccxt.async_support.mexc):
         self.handle_bookside_delta(asksOrderSide, asks)
         self.handle_bookside_delta(bidsOrderSide, bids)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
 
         https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/trade-streams  # spot
@@ -947,7 +947,7 @@ class mexc(ccxt.async_support.mexc):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message: object):
+    def handle_trades(self, client: Client, message: dict):
         # protobuf
         # {
         # "channel": "spot@public.aggre.deals.v3.api.pb@100ms@BTCUSDT",
@@ -1054,7 +1054,7 @@ class mexc(ccxt.async_support.mexc):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trade(self, client: Client, message: object, subscription: dict | None = None):
+    def handle_my_trade(self, client: Client, message: dict, subscription: dict | None = None):
         #
         #    {
         #        "c": "spot@private.deals.v3.api",
@@ -1228,7 +1228,7 @@ class mexc(ccxt.async_support.mexc):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message: object):
+    def handle_order(self, client: Client, message: dict):
         #
         # spot
         #    {
@@ -1430,7 +1430,7 @@ class mexc(ccxt.async_support.mexc):
             'info': order,
         }, market)
 
-    def parse_ws_order_status(self, status: object, market: Market = None):
+    def parse_ws_order_status(self, status: Str, market: Market = None) -> Str:
         statuses = {
             '0': 'open',     # new/pending (OCO orders)
             '1': 'open',     # new order
@@ -1445,7 +1445,7 @@ class mexc(ccxt.async_support.mexc):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_ws_order_type(self, type: object):
+    def parse_ws_order_type(self, type: Str) -> Str:
         types = {
             '1': 'limit',   # LIMIT_ORDER
             '2': 'limit',  # POST_ONLY
@@ -1458,7 +1458,7 @@ class mexc(ccxt.async_support.mexc):
         }
         return self.safe_string(types, type)
 
-    def parse_ws_time_in_force(self, timeInForce: object):
+    def parse_ws_time_in_force(self, timeInForce: Str) -> Str:
         timeInForceIds = {
             '1': 'GTC',   # LIMIT_ORDER
             '2': 'PO',  # POST_ONLY
@@ -1471,7 +1471,7 @@ class mexc(ccxt.async_support.mexc):
         }
         return self.safe_string(timeInForceIds, timeInForce)
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
 
         https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-update  # spot
@@ -1492,7 +1492,7 @@ class mexc(ccxt.async_support.mexc):
         else:
             return await self.watch_swap_private(messageHash, params)
 
-    def handle_balance(self, client: Client, message: object):
+    def handle_balance(self, client: Client, message: dict):
         #
         # spot
         #
@@ -1548,7 +1548,7 @@ class mexc(ccxt.async_support.mexc):
         self.balance[type] = self.safe_balance(self.balance[type])
         client.resolve(self.balance[type], messageHash)
 
-    async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    async def watch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         watch the current funding rate
 
@@ -1593,7 +1593,7 @@ class mexc(ccxt.async_support.mexc):
         self.handle_unsubscriptions(client, [messageHash])
         return None
 
-    def handle_funding_rate(self, client: Client, message: object):
+    def handle_funding_rate(self, client: Client, message: dict):
         #
         #     {
         #         "symbol": "BTC_USDT",
@@ -1748,7 +1748,7 @@ class mexc(ccxt.async_support.mexc):
             await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        timeframes = self.safe_value(self.options, 'timeframes', {})
+        timeframes = self.safe_dict(self.options, 'timeframes', {})
         timeframeId = self.safe_string(timeframes, timeframe)
         messageHash = 'unsubscribe:candles:' + symbol + ':' + timeframe
         url = None
@@ -1870,7 +1870,7 @@ class mexc(ccxt.async_support.mexc):
                 if symbol in self.fundingRates:
                     del self.fundingRates[symbol]
 
-    async def authenticate(self, subscriptionHash: object, params={}):
+    async def authenticate(self, subscriptionHash: Str, params: dict = {}):
         # we only need one listenKey since ccxt shares connections
         listenKey = self.safe_string(self.options, 'listenKey')
         if listenKey is not None:
@@ -1907,7 +1907,7 @@ class mexc(ccxt.async_support.mexc):
         self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, listenKey, params)
         return listenKey
 
-    async def keep_alive_listen_key(self, listenKey: object, params={}):
+    async def keep_alive_listen_key(self, listenKey: Str, params: dict = {}):
         if listenKey is None:
             return
         request = {
@@ -1924,11 +1924,11 @@ class mexc(ccxt.async_support.mexc):
             client.reject(error)
             del self.clients[url]
 
-    def handle_pong(self, client: Client, message: object):
+    def handle_pong(self, client: Client, message: dict) -> dict:
         client.lastPong = self.milliseconds()
         return message
 
-    def handle_subscription_status(self, client: Client, message: object):
+    def handle_subscription_status(self, client: Client, message: dict):
         #
         #    {
         #        "id": 0,
@@ -1950,7 +1950,7 @@ class mexc(ccxt.async_support.mexc):
             if method is not None:
                 method(client, message)
 
-    def handle_protobuf_message(self, client: Client, message: object) -> bool:
+    def handle_protobuf_message(self, client: Client, message: dict) -> bool:
         # protobuf message decoded
         #  {
         #    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",

@@ -337,7 +337,7 @@ class revolutx(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves all available markets on the exchange
 
@@ -419,7 +419,7 @@ class revolutx(Exchange, ImplicitAPI):
             'networks': {},
         }
 
-    async def fetch_currencies(self, params={}) -> Currencies:
+    async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on the exchange
 
@@ -502,7 +502,7 @@ class revolutx(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -558,7 +558,7 @@ class revolutx(Exchange, ImplicitAPI):
             return filtered
         return result
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker for a given market symbol
 
@@ -577,7 +577,7 @@ class revolutx(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchTicker() could not find ticker for symbol ' + symbol)
         return ticker
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches the current order book snapshot for a given market symbol
 
@@ -631,7 +631,7 @@ class revolutx(Exchange, ImplicitAPI):
         volume = self.safe_number(ohlcv, 'volume')
         return [timestamp, open, high, low, close, volume]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data for a given market symbol
 
@@ -711,7 +711,7 @@ class revolutx(Exchange, ImplicitAPI):
             'fees': [],
         }
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetches the public trade history for a given market symbol
 
@@ -762,7 +762,7 @@ class revolutx(Exchange, ImplicitAPI):
             result.append(self.parse_trade(trade, market))
         return self.filter_by_symbol_since_limit(self.sort_by(result, 'timestamp'), symbol, since, limit)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         fetches the current balance for the authenticated user
 
@@ -885,7 +885,7 @@ class revolutx(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -963,7 +963,7 @@ class revolutx(Exchange, ImplicitAPI):
         }), market)
         return order
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order by its id
 
@@ -986,7 +986,7 @@ class revolutx(Exchange, ImplicitAPI):
             'status': 'canceled',
         })
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}) -> list[Order]:
+    async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancels all open orders
 
@@ -1001,7 +1001,7 @@ class revolutx(Exchange, ImplicitAPI):
         await self.privateDelete10Orders(params)
         return []
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches an order by its id
 
@@ -1037,7 +1037,7 @@ class revolutx(Exchange, ImplicitAPI):
             market = self.market(symbol)
         return self.parse_order(data, market)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches all open orders for the authenticated user
 
@@ -1087,7 +1087,7 @@ class revolutx(Exchange, ImplicitAPI):
             result.append(self.parse_order(order))
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches historical orders for the authenticated user
 
@@ -1140,7 +1140,7 @@ class revolutx(Exchange, ImplicitAPI):
             result.append(self.parse_order(order))
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches closed(filled, cancelled, rejected) orders for the authenticated user
 
@@ -1195,7 +1195,7 @@ class revolutx(Exchange, ImplicitAPI):
             'fees': [],
         }
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetches the trade history for the authenticated user
 
@@ -1252,7 +1252,7 @@ class revolutx(Exchange, ImplicitAPI):
             result.append(self.parse_my_trade(trade, market))
         return result
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         replaces an existing order
 

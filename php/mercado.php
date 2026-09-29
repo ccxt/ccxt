@@ -302,7 +302,7 @@ class mercado extends Exchange {
         //     ]
         //
         $result = array();
-        $amountLimits = $this->safe_value($this->options, 'limits', array());
+        $amountLimits = $this->safe_dict($this->options, 'limits', array());
         $coins = $this->to_array($response);
         for ($i = 0; $i < count($coins); $i++) {
             $coin = $coins[$i];
@@ -441,7 +441,7 @@ class mercado extends Exchange {
             'coin' => $market['base'],
         );
         $response = $this->publicGetCoinTicker($this->extend($request, $params));
-        $ticker = $this->safe_value($response, 'ticker', array());
+        $ticker = $this->safe_dict($response, 'ticker', array());
         //
         //     {
         //         "ticker": {
@@ -524,7 +524,7 @@ class mercado extends Exchange {
     }
 
     public function parse_balance(mixed $response): array {
-        $data = $this->safe_value($response, 'response_data', array());
+        $data = $this->safe_dict($response, 'response_data', array());
         $balances = $this->safe_dict($data, 'balance', array());
         $result = array( 'info' => $response );
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
@@ -532,7 +532,7 @@ class mercado extends Exchange {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             if (is_array($balances) && array_key_exists($currencyId ?? '', $balances)) {
-                $balance = $this->safe_value($balances, $currencyId, array());
+                $balance = $this->safe_dict($balances, $currencyId, array());
                 $account = $this->account();
                 $account['free'] = $this->safe_string($balance, 'available');
                 $account['total'] = $this->safe_string($balance, 'total');
@@ -557,7 +557,7 @@ class mercado extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -587,7 +587,7 @@ class mercado extends Exchange {
         } else {
             if ($side === 'buy') {
                 if ($price === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and amount');
+                    throw new InvalidOrder($this->id . ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount');
                 }
                 $amountString = $this->number_to_string($amount);
                 $priceString = $this->number_to_string($price);
@@ -606,7 +606,7 @@ class mercado extends Exchange {
         ), $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open $order
          * @param {string} $id $order $id
@@ -615,7 +615,7 @@ class mercado extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -649,7 +649,7 @@ class mercado extends Exchange {
         //         "server_unix_timestamp": "1536956499"
         //     }
         //
-        $responseData = $this->safe_value($response, 'response_data', array());
+        $responseData = $this->safe_dict($response, 'response_data', array());
         $order = $this->safe_dict($responseData, 'order', array());
         return $this->parse_order($order, $market);
     }
@@ -709,7 +709,7 @@ class mercado extends Exchange {
         $amount = $this->safe_string($order, 'quantity');
         $filled = $this->safe_string($order, 'executed_quantity');
         $lastTradeTimestamp = $this->safe_timestamp($order, 'updated_timestamp');
-        $rawTrades = $this->safe_value($order, 'operations', array());
+        $rawTrades = $this->safe_list($order, 'operations', array());
         $symbol = $market['symbol'];
         return $this->safe_order(array(
             'info' => $order,
@@ -736,7 +736,7 @@ class mercado extends Exchange {
         ), $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an $order made by the user
          * @param {string} $id $order $id
@@ -745,7 +745,7 @@ class mercado extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -756,7 +756,7 @@ class mercado extends Exchange {
             'order_id' => intval($id),
         );
         $response = $this->privatePostGetOrder($this->extend($request, $params));
-        $responseData = $this->safe_value($response, 'response_data', array());
+        $responseData = $this->safe_dict($response, 'response_data', array());
         $order = $this->safe_dict($responseData, 'order');
         return $this->parse_order($order, $market);
     }
@@ -785,17 +785,17 @@ class mercado extends Exchange {
         if ($code === 'BRL') {
             $account_ref = (is_array($params) && array_key_exists('account_ref' ?? '', $params));
             if (!$account_ref) {
-                throw new ArgumentsRequired($this->id . ' withdraw() requires $account_ref parameter to withdraw ' . $code);
+                throw new ArgumentsRequired($this->id . ' withdraw() requires account_ref parameter to withdraw ' . $code);
             }
         } elseif ($code !== 'LTC') {
             $tx_fee = (is_array($params) && array_key_exists('tx_fee' ?? '', $params));
             if (!$tx_fee) {
-                throw new ArgumentsRequired($this->id . ' withdraw() requires $tx_fee parameter to withdraw ' . $code);
+                throw new ArgumentsRequired($this->id . ' withdraw() requires tx_fee parameter to withdraw ' . $code);
             }
             if ($code === 'XRP') {
                 if ($tag === null) {
                     if (!(is_array($params) && array_key_exists('destination_tag' ?? '', $params))) {
-                        throw new ArgumentsRequired($this->id . ' withdraw() requires a $tag argument or destination_tag parameter to withdraw ' . $code);
+                        throw new ArgumentsRequired($this->id . ' withdraw() requires a tag argument or destination_tag parameter to withdraw ' . $code);
                     }
                 } else {
                     $request['destination_tag'] = $tag;
@@ -822,7 +822,7 @@ class mercado extends Exchange {
         //         "server_unix_timestamp": "1453912088"
         //     }
         //
-        $responseData = $this->safe_value($response, 'response_data', array());
+        $responseData = $this->safe_dict($response, 'response_data', array());
         $withdrawal = $this->safe_dict($responseData, 'withdrawal');
         return $this->parse_transaction($withdrawal, $currency);
     }
@@ -921,7 +921,7 @@ class mercado extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -931,7 +931,7 @@ class mercado extends Exchange {
             'coin_pair' => $market['id'],
         );
         $response = $this->privatePostListOrders($this->extend($request, $params));
-        $responseData = $this->safe_value($response, 'response_data', array());
+        $responseData = $this->safe_dict($response, 'response_data', array());
         $orders = $this->safe_list($responseData, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
@@ -946,7 +946,7 @@ class mercado extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -957,12 +957,12 @@ class mercado extends Exchange {
             'status_list' => '[2]', // open only
         );
         $response = $this->privatePostListOrders($this->extend($request, $params));
-        $responseData = $this->safe_value($response, 'response_data', array());
+        $responseData = $this->safe_dict($response, 'response_data', array());
         $orders = $this->safe_list($responseData, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all $trades made by the user
          * @param {string} $symbol unified $market $symbol
@@ -972,7 +972,7 @@ class mercado extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -983,14 +983,14 @@ class mercado extends Exchange {
             'has_fills' => true,
         );
         $response = $this->privatePostListOrders($this->extend($request, $params));
-        $responseData = $this->safe_value($response, 'response_data', array());
-        $ordersRaw = $this->safe_value($responseData, 'orders', array());
+        $responseData = $this->safe_dict($response, 'response_data', array());
+        $ordersRaw = $this->safe_list($responseData, 'orders', array());
         $orders = $this->parse_orders($ordersRaw, $market, $since, $limit);
         $trades = $this->orders_to_trades($orders);
         return $this->filter_by_symbol_since_limit($trades, $market['symbol'], $since, $limit);
     }
 
-    public function orders_to_trades(mixed $orders) {
+    public function orders_to_trades(array $orders): array {
         $result = array();
         for ($i = 0; $i < count($orders); $i++) {
             $trades = $this->safe_list($orders[$i], 'trades', array());
@@ -1001,7 +1001,12 @@ class mercado extends Exchange {
         return $result;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function nonce(): float {
+        // the venue accepts any strictly-increasing integer tonce, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return $this->milliseconds();
+    }
+
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api'][$api] . '/';
         $query = $this->omit($params, $this->extract_params($path));
         if (($api === 'public') || ($api === 'v4Public') || ($api === 'v4PublicNet')) {
@@ -1012,7 +1017,8 @@ class mercado extends Exchange {
         } else {
             $this->check_required_credentials();
             $url .= $this->version . '/';
-            $nonce = $this->nonce();
+            // mercado requires each tonce to be greater than the previous one
+            $nonce = $this->incrementing_nonce();
             $body = $this->urlencode($this->extend(array(
                 'tapi_method' => $path,
                 'tapi_nonce' => $nonce,

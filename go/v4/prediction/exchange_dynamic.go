@@ -28,6 +28,12 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 	case "polymarket":
 		polymarketItf := NewPolymarket(exchangeArgs)
 		return polymarketItf, true
+	case "predictfun":
+		predictfunItf := NewPredictfun(exchangeArgs)
+		return predictfunItf, true
+	case "sxbet":
+		sxbetItf := NewSxbet(exchangeArgs)
+		return sxbetItf, true
 	default:
 		return nil, false
 	}

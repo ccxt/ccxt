@@ -47,7 +47,7 @@ class extended(ccxt.async_support.extended):
             },
         })
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -74,7 +74,7 @@ class extended(ccxt.async_support.extended):
         })
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         #     {
         #         "ts": 1701563440000,
@@ -159,7 +159,7 @@ class extended(ccxt.async_support.extended):
             self.options['ws']['options'] = originalOptions
         return await self.watch(url, messageHash, None, messageHash, subscription)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -186,7 +186,7 @@ class extended(ccxt.async_support.extended):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         watches balance updates
 
@@ -199,7 +199,7 @@ class extended(ccxt.async_support.extended):
             await self.load_markets()
         return await self.watch_private('balance', params)
 
-    def handle_balance(self, client: Client, message: object):
+    def handle_balance(self, client: Client, message: dict):
         #
         #     {
         #         "type": "BALANCE",
@@ -225,10 +225,15 @@ class extended(ccxt.async_support.extended):
         #         "seq": 1
         #     }
         #
+        # merge updates into the existing balance object instead of building a
+        # fresh one: a consumer awakened by an earlier message holds a reference
+        # to this.balance, and Client.resolve is a no-op while nobody is
+        # awaiting, so a replaced object would make updates landing in that
+        # window invisible to the consumer forever (issue #26773)
+        if self.balance is None:
+            self.balance = {}
         data = self.safe_dict(message, 'data', {})
-        result = {
-            'info': data,
-        }
+        self.balance['info'] = data
         balance = self.safe_dict(data, 'balance')
         if balance is not None:
             currencyId = self.safe_string(balance, 'collateralName')
@@ -237,7 +242,7 @@ class extended(ccxt.async_support.extended):
                 account = self.account()
                 account['free'] = self.safe_string(balance, 'availableForWithdrawal')
                 account['total'] = self.safe_string(balance, 'balance')
-                result[code] = account
+                self.balance[code] = account
         spotBalances = self.safe_list(data, 'spotBalances', [])
         for i in range(0, len(spotBalances)):
             spotBalance = self.safe_dict(spotBalances, i, {})
@@ -247,14 +252,14 @@ class extended(ccxt.async_support.extended):
                 account = self.account()
                 account['free'] = self.safe_string(spotBalance, 'availableToWithdraw')
                 account['total'] = self.safe_string(spotBalance, 'balance')
-                result[code] = account
+                self.balance[code] = account
         timestamp = self.safe_integer(message, 'ts')
-        result['timestamp'] = timestamp
-        result['datetime'] = self.iso8601(timestamp)
-        self.balance = self.safe_balance(self.deep_extend(self.balance, result))
+        self.balance['timestamp'] = timestamp
+        self.balance['datetime'] = self.iso8601(timestamp)
+        self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
@@ -281,7 +286,7 @@ class extended(ccxt.async_support.extended):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client: Client, message: object):
+    def handle_my_trades(self, client: Client, message: dict):
         #
         #     {
         #         "type": "TRADE",
@@ -334,7 +339,7 @@ class extended(ccxt.async_support.extended):
             if messageHash.find('myTrades:') == 0:
                 client.resolve(stored, messageHash)
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
         watches information on multiple positions
 
@@ -360,7 +365,7 @@ class extended(ccxt.async_support.extended):
             return positions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
-    def handle_positions(self, client: Client, message: object):
+    def handle_positions(self, client: Client, message: dict):
         #
         #     {
         #         "type": "POSITION",
@@ -412,7 +417,7 @@ class extended(ccxt.async_support.extended):
                 client.resolve(filtered, messageHash)
         client.resolve(newPositions, 'positions')
 
-    def handle_orders(self, client: Client, message: object):
+    def handle_orders(self, client: Client, message: dict):
         #
         #     {
         #         "type": "ORDER",
@@ -469,7 +474,7 @@ class extended(ccxt.async_support.extended):
             if messageHash.find('orders:') == 0:
                 client.resolve(orders, messageHash)
 
-    async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    async def watch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         watch the current funding rate
 
@@ -493,7 +498,7 @@ class extended(ccxt.async_support.extended):
             'messageHash': messageHash,
         })
 
-    def handle_funding_rate(self, client: Client, message: object):
+    def handle_funding_rate(self, client: Client, message: dict):
         #
         #     {
         #         "ts": 1701563440000,
@@ -512,7 +517,7 @@ class extended(ccxt.async_support.extended):
         messageHash = 'fundingRate:' + symbol
         client.resolve(fundingRate, messageHash)
 
-    def parse_ws_funding_rate(self, fundingRate: object, market: Market = None, message: object = None) -> FundingRate:
+    def parse_ws_funding_rate(self, fundingRate: dict, market: Market = None, message: dict = None) -> FundingRate:
         marketId = self.safe_string(fundingRate, 'm')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(message, 'ts')
@@ -538,7 +543,7 @@ class extended(ccxt.async_support.extended):
             'interval': None,
         }
 
-    async def watch_mark_price(self, symbol: str, params={}) -> Ticker:
+    async def watch_mark_price(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a mark price for a specific market
 
@@ -563,7 +568,7 @@ class extended(ccxt.async_support.extended):
             'messageHash': messageHash,
         })
 
-    def handle_mark_price(self, client: Client, message: object):
+    def handle_mark_price(self, client: Client, message: dict):
         #
         #     {
         #         "type": "MP",
@@ -594,7 +599,7 @@ class extended(ccxt.async_support.extended):
         messageHash = 'markPrice:' + symbol
         client.resolve(ticker, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -623,7 +628,7 @@ class extended(ccxt.async_support.extended):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message: object):
+    def handle_trades(self, client: Client, message: dict):
         #
         #     {
         #         "ts": 1701563440000,
@@ -666,7 +671,7 @@ class extended(ccxt.async_support.extended):
             stored.append(trade)
         client.resolve(stored, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -711,7 +716,7 @@ class extended(ccxt.async_support.extended):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client: Client, message: object):
+    def handle_ohlcv(self, client: Client, message: dict):
         #
         #     {
         #         "ts": 1695738675123,
@@ -736,7 +741,7 @@ class extended(ccxt.async_support.extended):
         candleType = self.safe_string(subscription, 'candleType')
         cacheKey = timeframe if (candleType == 'trades') else timeframe + ':' + candleType
         messageHash = self.safe_string(subscription, 'messageHash')
-        self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+        self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.ohlcvs[symbol], cacheKey)
         if stored is None:
             defaultLimit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
@@ -764,11 +769,11 @@ class extended(ccxt.async_support.extended):
                 return subscription
         return None
 
-    def handle_error_message(self, client: Client, message: object) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
         #     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
         #
-        error = self.safe_value(message, 'error')
+        error = self.safe_dict(message, 'error')
         if error is None:
             return False
         feedback = self.id + ' ' + self.json(message)
@@ -778,7 +783,7 @@ class extended(ccxt.async_support.extended):
         self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
         raise ExchangeError(feedback)
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         if self.handle_error_message(client, message) is True:
             return
         type = self.safe_string(message, 'type')

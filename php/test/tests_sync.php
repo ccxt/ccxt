@@ -2510,15 +2510,24 @@ class testMainClass {
             $exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 0.002, 102000, array(
                 'triggerPrice' => 101000,
             ));
-            $check_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
-            $algo_order_id_defined = ($check_order_request['algoOrderId'] !== null);
-            assert($algo_order_id_defined, 'binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined');
-            $client_algo_id_swap = $swap_algo_order_request['clientAlgoId'];
-            $swap_algo_id_string = ((string) $swap_id);
-            assert(str_starts_with($client_algo_id_swap, $swap_algo_id_string) === true, 'binance - swap clientOrderId: ' . $client_algo_id_swap . ' does not start with swapId' . $swap_algo_id_string);
         } catch(\Throwable $e) {
             $swap_algo_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
         }
+        $client_algo_id_swap = $swap_algo_order_request['clientAlgoId'];
+        assert($client_algo_id_swap !== null, 'binance - swap conditional order must send clientAlgoId');
+        assert(str_starts_with($client_algo_id_swap, $swap_id_string) === true, 'binance - swap clientAlgoId: ' . $client_algo_id_swap . ' does not start with swapId' . $swap_id_string);
+        // inverse swap conditional order
+        $inverse_algo_order_request = array();
+        try {
+            $exchange->create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000, array(
+                'triggerPrice' => 21000,
+            ));
+        } catch(\Throwable $e) {
+            $inverse_algo_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+        }
+        $client_algo_id_inverse = $inverse_algo_order_request['clientAlgoId'];
+        assert($client_algo_id_inverse !== null, 'binance - inverse swap conditional order must send clientAlgoId');
+        assert(str_starts_with($client_algo_id_inverse, $inverse_swap_id) === true, 'binance - inverse swap clientAlgoId: ' . $client_algo_id_inverse . ' does not start with inverseSwapId' . $inverse_swap_id);
         $create_orders_request = array();
         try {
             $orders = [array(
@@ -2543,6 +2552,49 @@ class testMainClass {
             $current_client_order_id = $current['newClientOrderId'];
             assert(str_starts_with($current_client_order_id, $swap_id_string) === true, 'binance createOrders - clientOrderId: ' . $current_client_order_id . ' does not start with swapId' . $swap_id_string);
         }
+        // linear conditional orders cannot be batched
+        $linear_conditional_batch_not_supported = false;
+        try {
+            $linear_conditional_orders = [array(
+    'symbol' => 'BTC/USDT:USDT',
+    'type' => 'limit',
+    'side' => 'buy',
+    'amount' => 1,
+    'price' => 20000,
+    'params' => array(
+        'triggerPrice' => 21000,
+    ),
+)];
+            $exchange->create_orders($linear_conditional_orders);
+        } catch(\Throwable $e) {
+            $linear_conditional_batch_not_supported = ($e instanceof NotSupported);
+        }
+        assert($linear_conditional_batch_not_supported, 'binance createOrders - linear conditional order must throw NotSupported');
+        // inverse conditional orders are batched in the regular (non-algo) format
+        $inverse_conditional_batch_request = array();
+        $inverse_conditional_batch_not_supported = false;
+        try {
+            $inverse_conditional_orders = [array(
+    'symbol' => 'BTC/USD:BTC',
+    'type' => 'limit',
+    'side' => 'buy',
+    'amount' => 1,
+    'price' => 20000,
+    'params' => array(
+        'triggerPrice' => 21000,
+    ),
+)];
+            $exchange->create_orders($inverse_conditional_orders);
+        } catch(\Throwable $e) {
+            $inverse_conditional_batch_not_supported = ($e instanceof NotSupported);
+            $inverse_conditional_batch_request = $this->urlencoded_to_dict($exchange->last_request_body);
+        }
+        assert(!$inverse_conditional_batch_not_supported, 'binance createOrders - inverse conditional order must not throw NotSupported');
+        $inverse_conditional_batch_orders = $exchange->safe_list($inverse_conditional_batch_request, 'batchOrders', []);
+        $inverse_conditional_batch_order = $exchange->safe_dict($inverse_conditional_batch_orders, 0, array());
+        $inverse_conditional_client_order_id = $exchange->safe_string($inverse_conditional_batch_order, 'newClientOrderId');
+        assert($inverse_conditional_client_order_id !== null, 'binance createOrders - inverse conditional order must send newClientOrderId');
+        assert(str_starts_with($inverse_conditional_client_order_id, $inverse_swap_id) === true, 'binance createOrders - inverse conditional clientOrderId: ' . $inverse_conditional_client_order_id . ' does not start with inverseSwapId' . $inverse_swap_id);
         if (!is_sync()) {
             close($exchange);
         }

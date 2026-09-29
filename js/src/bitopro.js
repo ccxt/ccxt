@@ -786,7 +786,7 @@ export default class bitopro extends Exchange {
         }
         const response = await this.publicGetProvisioningLimitationsAndFees(params);
         const tradingFeeRate = this.safeDict(response, 'tradingFeeRate', {});
-        const first = this.safeValue(tradingFeeRate, 0);
+        const first = this.safeDict(tradingFeeRate, 0);
         //
         //     {
         //         "tradingFeeRate":[
@@ -1169,7 +1169,7 @@ export default class bitopro extends Exchange {
         }
         if (orderType === 'STOP_LIMIT') {
             request['price'] = this.priceToPrecision(symbol, price);
-            const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+            const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
             params = this.omit(params, ['triggerPrice', 'stopPrice']);
             if (triggerPrice === undefined) {
                 throw new InvalidOrder(this.id + ' createOrder() requires a triggerPrice parameter for ' + orderType + ' orders');

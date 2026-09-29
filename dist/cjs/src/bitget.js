@@ -73,7 +73,7 @@ class bitget extends bitget$1["default"] {
                 'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
-                'fetchDeposit': false,
+                'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
@@ -131,7 +131,7 @@ class bitget extends bitget$1["default"] {
                 'fetchTransfer': false,
                 'fetchTransfers': true,
                 'fetchWithdrawAddresses': false,
-                'fetchWithdrawal': false,
+                'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'repayCrossMargin': true,
@@ -2125,7 +2125,7 @@ class bitget extends bitget$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.safeInteger(data, 'serverTime');
     }
     /**
@@ -2284,7 +2284,7 @@ class bitget extends bitget$1["default"] {
             const baseId = this.safeString(market, 'baseCoin');
             const quote = this.safeCurrencyCode(quoteId);
             const base = this.safeCurrencyCode(baseId);
-            const supportMarginCoins = this.safeValue(market, 'supportMarginCoins', []);
+            const supportMarginCoins = this.safeList(market, 'supportMarginCoins', []);
             let settleId = undefined;
             if (this.inArray(baseId, supportMarginCoins)) {
                 settleId = baseId;
@@ -2725,7 +2725,7 @@ class bitget extends bitget$1["default"] {
         //            },
         //            ...
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseCurrencies(data);
     }
     parseCurrency(rawCurrency) {
@@ -2941,7 +2941,7 @@ class bitget extends bitget$1["default"] {
         //         ]
         //     }
         //
-        const result = this.safeValue(response, 'data', []);
+        const result = this.safeList(response, 'data', []);
         return this.parseMarketLeverageTiers(result, market);
     }
     parseMarketLeverageTiers(info, market = undefined) {
@@ -3128,6 +3128,24 @@ class bitget extends bitget$1["default"] {
     }
     /**
      * @method
+     * @name bitget#fetchDeposit
+     * @description fetch data on a currency deposit via the deposit id, looks back 30 days for uta accounts and 90 days otherwise
+     * @see https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-deposit-records
+     * @param {string} id deposit id
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async fetchDeposit(id, code = undefined, params = {}) {
+        const request = {
+            'orderId': id,
+        };
+        const deposits = await this.fetchDeposits(code, undefined, undefined, this.extend(request, params));
+        return this.safeDict(deposits, 0, {});
+    }
+    /**
+     * @method
      * @name bitget#withdraw
      * @description make a withdrawal
      * @see https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
@@ -3183,10 +3201,10 @@ class bitget extends bitget$1["default"] {
         //          }
         //      }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const result = this.parseTransaction(data, currency);
         result['type'] = 'withdrawal';
-        const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
+        const withdrawOptions = this.safeDict(this.options, 'withdraw', {});
         const fillResponseFromRequest = this.safeBool(withdrawOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest === true) {
             result['currency'] = code;
@@ -3314,6 +3332,24 @@ class bitget extends bitget$1["default"] {
         const rawTransactions = this.safeList(response, 'data', []);
         return this.parseTransactions(rawTransactions, currency, since, limit);
     }
+    /**
+     * @method
+     * @name bitget#fetchWithdrawal
+     * @description fetch data on a currency withdrawal via the withdrawal id, looks back 30 days for uta accounts and 90 days otherwise
+     * @see https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-withdrawal-records
+     * @param {string} id withdrawal id
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async fetchWithdrawal(id, code = undefined, params = {}) {
+        const request = {
+            'orderId': id,
+        };
+        const withdrawals = await this.fetchWithdrawals(code, undefined, undefined, this.extend(request, params));
+        return this.safeDict(withdrawals, 0, {});
+    }
     parseTransaction(transaction, currency = undefined) {
         //
         // fetchDeposits
@@ -3356,7 +3392,7 @@ class bitget extends bitget$1["default"] {
         // fetchDeposits & fetchWithdrawals uta rows use the same fields, except
         //
         //     {
-        //         "recordId": "63dbe57f0f0a5f6d3e74ff1b07e4c4f5332b96fec74c14190a52e0cea1726364",
+        //         "recordId": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
         //         "createdTime": "1787913850359",
         //         "updatedTime": "1787913880178"
         //     }
@@ -3567,7 +3603,7 @@ class bitget extends bitget$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const bidsKey = (uta === true) ? 'b' : 'bids';
         const asksKey = (uta === true) ? 'a' : 'asks';
         const timestamp = this.safeInteger(data, 'ts');
@@ -3928,7 +3964,7 @@ class bitget extends bitget$1["default"] {
         }
         let market = undefined;
         if (symbols !== undefined) {
-            const symbol = this.safeValue(symbols, 0);
+            const symbol = this.safeString(symbols, 0);
             market = this.market(symbol);
         }
         let response = undefined;
@@ -4278,7 +4314,7 @@ class bitget extends bitget$1["default"] {
                 request['limit'] = limit;
             }
         }
-        const options = this.safeValue(this.options, 'fetchTrades', {});
+        const options = this.safeDict(this.options, 'fetchTrades', {});
         let response = undefined;
         let productType = undefined;
         [productType, params] = this.handleProductTypeAndParams(market, params);
@@ -4294,7 +4330,7 @@ class bitget extends bitget$1["default"] {
             response = await this.publicUtaGetV3MarketFills(this.extend(request, params));
         }
         else if (market['spot'] === true) {
-            const spotOptions = this.safeValue(options, 'spot', {});
+            const spotOptions = this.safeDict(options, 'spot', {});
             const defaultSpotMethod = this.safeString(spotOptions, 'method', 'publicSpotGetV2SpotMarketFillsHistory');
             const spotMethod = this.safeString(params, 'method', defaultSpotMethod);
             params = this.omit(params, 'method');
@@ -4310,7 +4346,7 @@ class bitget extends bitget$1["default"] {
             }
         }
         else {
-            const swapOptions = this.safeValue(options, 'swap', {});
+            const swapOptions = this.safeDict(options, 'swap', {});
             const defaultSwapMethod = this.safeString(swapOptions, 'method', 'publicMixGetV2MixMarketFillsHistory');
             const swapMethod = this.safeString(params, 'method', defaultSwapMethod);
             params = this.omit(params, 'method');
@@ -4449,7 +4485,7 @@ class bitget extends bitget$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTradingFee(data, market);
     }
     /**
@@ -5066,7 +5102,7 @@ class bitget extends bitget$1["default"] {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseBalance(data);
     }
     parseUtaBalance(balance) {
@@ -5635,9 +5671,9 @@ class bitget extends bitget$1["default"] {
         const market = this.market(symbol);
         const marginParams = this.handleMarginModeAndParams('createOrder', params);
         const marginMode = marginParams[0];
-        const triggerPrice = this.safeValue2(params, 'stopPrice', 'triggerPrice');
-        const stopLossTriggerPrice = this.safeValue(params, 'stopLossPrice');
-        const takeProfitTriggerPrice = this.safeValue(params, 'takeProfitPrice');
+        const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
+        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRatio');
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isTriggerOrder = triggerPrice !== undefined;
@@ -5728,8 +5764,8 @@ class bitget extends bitget$1["default"] {
         }
         const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
-        const stopLoss = this.safeValue(params, 'stopLoss');
-        const takeProfit = this.safeValue(params, 'takeProfit');
+        const stopLoss = this.safeDict(params, 'stopLoss');
+        const takeProfit = this.safeDict(params, 'takeProfit');
         const hasStopLoss = stopLoss !== undefined;
         const hasTakeProfit = takeProfit !== undefined;
         const isStopLossTrigger = stopLossTriggerPrice !== undefined;
@@ -5859,11 +5895,11 @@ class bitget extends bitget$1["default"] {
             hedged = !oneWayMode;
         }
         const isMarketOrder = type === 'market';
-        const triggerPrice = this.safeValue2(params, 'stopPrice', 'triggerPrice');
-        const stopLossTriggerPrice = this.safeValue(params, 'stopLossPrice');
-        const takeProfitTriggerPrice = this.safeValue(params, 'takeProfitPrice');
-        const stopLoss = this.safeValue(params, 'stopLoss');
-        const takeProfit = this.safeValue(params, 'takeProfit');
+        const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
+        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
+        const stopLoss = this.safeDict(params, 'stopLoss');
+        const takeProfit = this.safeDict(params, 'takeProfit');
         const isTriggerOrder = triggerPrice !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
@@ -5981,12 +6017,12 @@ class bitget extends bitget$1["default"] {
             }
             else {
                 if (hasStopLoss) {
-                    const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice');
+                    const slTriggerPrice = this.safeNumber2(stopLoss, 'triggerPrice', 'stopPrice');
                     if (slTriggerPrice === undefined) {
                         throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter');
                     }
                     request['presetStopLossPrice'] = this.priceToPrecision(symbol, slTriggerPrice);
-                    const slLimitPrice = this.safeValue(stopLoss, 'price');
+                    const slLimitPrice = this.safeNumber(stopLoss, 'price');
                     if (slLimitPrice !== undefined) {
                         // without the execute price the exchange fills the attached stop loss
                         // at the market price, see https://github.com/ccxt/ccxt/issues/23459
@@ -5994,12 +6030,12 @@ class bitget extends bitget$1["default"] {
                     }
                 }
                 if (hasTakeProfit) {
-                    const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice');
+                    const tpTriggerPrice = this.safeNumber2(takeProfit, 'triggerPrice', 'stopPrice');
                     if (tpTriggerPrice === undefined) {
                         throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter');
                     }
                     request['presetStopSurplusPrice'] = this.priceToPrecision(symbol, tpTriggerPrice);
-                    const tpLimitPrice = this.safeValue(takeProfit, 'price');
+                    const tpLimitPrice = this.safeNumber(takeProfit, 'price');
                     if (tpLimitPrice !== undefined) {
                         request['presetStopSurplusExecutePrice'] = this.priceToPrecision(symbol, tpLimitPrice);
                     }
@@ -6116,9 +6152,9 @@ class bitget extends bitget$1["default"] {
             }
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
-            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
+            const orderParams = this.safeDict(rawOrder, 'params', {});
             const marginResult = this.handleMarginModeAndParams('createOrders', orderParams);
             const currentMarginMode = marginResult[0];
             if (currentMarginMode !== undefined) {
@@ -6191,9 +6227,9 @@ class bitget extends bitget$1["default"] {
             }
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
-            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
+            const orderParams = this.safeDict(rawOrder, 'params', {});
             const marginResult = this.handleMarginModeAndParams('createOrders', orderParams);
             const currentMarginMode = marginResult[0];
             if (currentMarginMode !== undefined) {
@@ -6259,9 +6295,9 @@ class bitget extends bitget$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const failure = this.safeValue(data, 'failureList', []);
-        const orderInfo = this.safeValue(data, 'successList', []);
+        const data = this.safeDict(response, 'data', {});
+        const failure = this.safeList(data, 'failureList', []);
+        const orderInfo = this.safeList(data, 'successList', []);
         const both = this.arrayConcat(orderInfo, failure);
         return this.parseOrders(both, market);
     }
@@ -6317,14 +6353,14 @@ class bitget extends bitget$1["default"] {
             request['orderId'] = id;
         }
         const isMarketOrder = type === 'market';
-        const triggerPrice = this.safeValue2(params, 'stopPrice', 'triggerPrice');
+        const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         const isTriggerOrder = triggerPrice !== undefined;
-        const stopLossPrice = this.safeValue(params, 'stopLossPrice');
+        const stopLossPrice = this.safeNumber(params, 'stopLossPrice');
         const isStopLossOrder = stopLossPrice !== undefined;
-        const takeProfitPrice = this.safeValue(params, 'takeProfitPrice');
+        const takeProfitPrice = this.safeNumber(params, 'takeProfitPrice');
         const isTakeProfitOrder = takeProfitPrice !== undefined;
-        const stopLoss = this.safeValue(params, 'stopLoss');
-        const takeProfit = this.safeValue(params, 'takeProfit');
+        const stopLoss = this.safeDict(params, 'stopLoss');
+        const takeProfit = this.safeDict(params, 'takeProfit');
         const hasStopLoss = stopLoss !== undefined;
         const hasTakeProfit = takeProfit !== undefined;
         const trailingTriggerPrice = this.safeString(params, 'trailingTriggerPrice', this.numberToString(price));
@@ -6486,11 +6522,11 @@ class bitget extends bitget$1["default"] {
                 params = this.omit(params, 'newClientOrderId');
                 request['newClientOid'] = newClientOrderId;
                 if (hasStopLoss) {
-                    const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice');
+                    const slTriggerPrice = this.safeNumber2(stopLoss, 'triggerPrice', 'stopPrice');
                     request['newPresetStopLossPrice'] = this.priceToPrecision(symbol, slTriggerPrice);
                 }
                 if (hasTakeProfit) {
-                    const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice');
+                    const tpTriggerPrice = this.safeNumber2(takeProfit, 'triggerPrice', 'stopPrice');
                     request['newPresetStopSurplusPrice'] = this.priceToPrecision(symbol, tpTriggerPrice);
                 }
                 response = await this.privateMixPostV2MixOrderModifyOrder(this.extend(request, params));
@@ -6545,8 +6581,8 @@ class bitget extends bitget$1["default"] {
         let response = {};
         [marginMode, params] = this.handleMarginModeAndParams('cancelOrder', params);
         const request = {};
-        const trailing = this.safeValue(params, 'trailing');
-        const trigger = this.safeValue2(params, 'stop', 'trigger');
+        const trailing = this.safeBool(params, 'trailing');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger', 'trailing']);
         if (!((market['spot'] === true) && (trigger === true))) {
             request['symbol'] = market['id'];
@@ -6674,10 +6710,10 @@ class bitget extends bitget$1["default"] {
         //         "data": null
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         let order = {};
         if (isContractTriggerEndpoint) {
-            const orderInfo = this.safeValue(data, 'successList', []);
+            const orderInfo = this.safeList(data, 'successList', []);
             order = this.safeDict(orderInfo, 0, {});
         }
         else {
@@ -6760,7 +6796,7 @@ class bitget extends bitget$1["default"] {
         }
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('cancelOrders', params);
-        const trigger = this.safeValue2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         const orderIdList = [];
         for (let i = 0; i < ids.length; i++) {
@@ -6820,7 +6856,7 @@ class bitget extends bitget$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const orders = this.safeList(data, 'successList', []);
         return this.parseOrders(orders, market);
     }
@@ -7923,14 +7959,14 @@ class bitget extends bitget$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         if (marketType === 'spot') {
             if ((marginMode !== undefined) || (trigger === true)) {
-                return this.parseOrders(this.safeValue(data, 'orderList', []), market, since, limit);
+                return this.parseOrders(this.safeList(data, 'orderList'), market, since, limit);
             }
         }
         else {
-            return this.parseOrders(this.safeValue(data, 'entrustedList', []), market, since, limit);
+            return this.parseOrders(this.safeList(data, 'entrustedList'), market, since, limit);
         }
         if (typeof response === 'string') {
             response = JSON.parse(response);
@@ -8269,7 +8305,7 @@ class bitget extends bitget$1["default"] {
         //
         const data = this.safeValue(response, 'data');
         if ((marketType === 'swap') || (marketType === 'future')) {
-            const bills = this.safeValue(data, 'bills', []);
+            const bills = this.safeList(data, 'bills', []);
             return this.parseLedger(bills, currency, since, limit);
         }
         return this.parseLedger(data, currency, since, limit);
@@ -9264,7 +9300,7 @@ class bitget extends bitget$1["default"] {
         }
         const side = this.safeString2(position, 'holdSide', 'posSide');
         const leverage = this.safeString(position, 'leverage');
-        const contractSizeNumber = this.safeValue(market, 'contractSize');
+        const contractSizeNumber = this.safeNumber(market, 'contractSize');
         const contractSize = this.numberToString(contractSizeNumber);
         const baseAmount = this.safeString2(position, 'total', 'openTotalPos');
         const entryPrice = this.safeStringN(position, ['openPriceAvg', 'openAvgPrice', 'avgPrice']);
@@ -9546,7 +9582,7 @@ class bitget extends bitget$1["default"] {
         }
         let market = undefined;
         if (symbols !== undefined) {
-            const symbol = this.safeValue(symbols, 0);
+            const symbol = this.safeString(symbols, 0);
             market = this.market(symbol);
         }
         const request = {};
@@ -9823,7 +9859,7 @@ class bitget extends bitget$1["default"] {
             //     }
             //
         }
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         let bills = this.safeList2(data, 'bills', 'list', []);
         if (uta === true) {
             bills = this.filterByArray(bills, 'type', ['CONTRACT_MAIN_SETTLE_FEE_USER_IN', 'CONTRACT_MAIN_SETTLE_FEE_USER_OUT'], false);
@@ -10355,7 +10391,7 @@ class bitget extends bitget$1["default"] {
         [type, params] = this.handleMarketTypeAndParams('fetchTransfers', undefined, params);
         const fromAccount = this.safeString(params, 'fromAccount', type);
         params = this.omit(params, 'fromAccount');
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         type = this.safeString(accountsByType, fromAccount);
         const currency = this.currency(code);
         let request = {
@@ -10417,7 +10453,7 @@ class bitget extends bitget$1["default"] {
         let uta = undefined;
         [uta, params] = await this.handleUTAAndParams(params, 'transfer', false);
         const currency = this.currency(code);
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromType = this.safeString(accountsByType, fromAccount);
         const toType = this.safeString(accountsByType, toAccount);
         const request = {
@@ -10484,7 +10520,7 @@ class bitget extends bitget$1["default"] {
         const status = this.safeStringLower(transfer, 'status');
         const currencyId = this.safeString(transfer, 'coin');
         const fromAccountRaw = this.safeString(transfer, 'fromType');
-        const accountsById = this.safeValue(this.options, 'accountsById', {});
+        const accountsById = this.safeDict(this.options, 'accountsById', {});
         const fromAccount = this.safeString(accountsById, fromAccountRaw, fromAccountRaw);
         const toAccountRaw = this.safeString(transfer, 'toType');
         const toAccount = this.safeString(accountsById, toAccountRaw, toAccountRaw);
@@ -10639,7 +10675,7 @@ class bitget extends bitget$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseMarginLoan(data, currency);
     }
     /**
@@ -10678,7 +10714,7 @@ class bitget extends bitget$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseMarginLoan(data, currency, market);
     }
     /**
@@ -10718,7 +10754,7 @@ class bitget extends bitget$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseMarginLoan(data, currency, market);
     }
     /**
@@ -10754,7 +10790,7 @@ class bitget extends bitget$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseMarginLoan(data, currency);
     }
     parseMarginLoan(info, currency = undefined, market = undefined) {
@@ -10920,7 +10956,7 @@ class bitget extends bitget$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const liquidations = this.safeList(data, 'resultList', []);
         return this.parseLiquidations(liquidations, market, since, limit);
     }
@@ -11032,7 +11068,7 @@ class bitget extends bitget$1["default"] {
         //     }
         //
         const timestamp = this.safeInteger(response, 'requestTime');
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const first = this.safeDict(data, 0, {});
         first['timestamp'] = timestamp;
         return this.parseIsolatedBorrowRate(first, market);
@@ -11156,7 +11192,7 @@ class bitget extends bitget$1["default"] {
             //         ]
             //     }
             //
-            const data = this.safeValue(response, 'data', []);
+            const data = this.safeList(response, 'data', []);
             result = this.safeDict(data, 0, {});
         }
         const timestamp = this.safeInteger(response, 'requestTime');
@@ -11309,8 +11345,8 @@ class bitget extends bitget$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const rows = this.safeValue(data, 'resultList', []);
+        const data = this.safeDict(response, 'data', {});
+        const rows = this.safeList(data, 'resultList', []);
         const interest = this.parseBorrowInterests(rows, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }
@@ -11430,7 +11466,7 @@ class bitget extends bitget$1["default"] {
             //     }
             //
         }
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const order = this.safeList2(data, 'successList', 'list', []);
         return this.parseOrder(order[0], market);
     }
@@ -11495,7 +11531,7 @@ class bitget extends bitget$1["default"] {
             //     }
             //
         }
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const orderInfo = this.safeList2(data, 'successList', 'list', []);
         return this.parsePositions(orderInfo, undefined, params);
     }

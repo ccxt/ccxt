@@ -53,7 +53,7 @@ func (this *Paradex) Describe() any {
 }
 func (this *Paradex) RequestId() any {
 	var requestId any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
-	ccxt.AddElementToObject(this.Options, "requestId", requestId)
+	this.Options.Store("requestId", requestId)
 	return requestId
 }
 func (this *Paradex) AuthenticateAsync(optionalArgs ...any) <-chan any {
@@ -134,15 +134,15 @@ func (this *Paradex) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes10212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes10212)
 	}
 	var messageHash any = "trades."
 	if !ccxt.IsEqual(symbol, nil) {
-		var market any = this.Market(symbol)
-		messageHash = ccxt.Add(messageHash, ccxt.GetValue(market, "id"))
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		messageHash = ccxt.Add(messageHash, market["id"])
 	} else {
 		messageHash = ccxt.Add(messageHash, "ALL")
 	}
@@ -157,14 +157,14 @@ func (this *Paradex) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 
 	trades := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Paradex) HandleTrade(client any, message any) any {
+func (this *Paradex) HandleTrade(client any, message map[string]any) any {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -183,7 +183,7 @@ func (this *Paradex) HandleTrade(client any, message any) any {
 	//         }
 	//     }
 	//
-	var params any = this.SafeDict(message, "params", map[string]any{})
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data any = this.SafeDict(params, "data", map[string]any{})
 	var parsedTrade any = this.ParseTrade(data)
 	var symbol any = ccxt.GetValue(parsedTrade, "symbol")
@@ -220,13 +220,13 @@ func (this *Paradex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes17212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes17212)
 	}
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add(ccxt.Add("order_book.", ccxt.GetValue(market, "id")), ".snapshot@15@100ms")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var messageHash any = ccxt.Add(ccxt.Add("order_book.", market["id"]), ".snapshot@15@100ms")
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",
@@ -242,7 +242,7 @@ func (this *Paradex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Paradex) HandleOrderBook(client any, message any) {
+func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -272,12 +272,12 @@ func (this *Paradex) HandleOrderBook(client any, message any) {
 	//         }
 	//     }
 	//
-	var params any = this.SafeDict(message, "params", map[string]any{})
-	var data any = this.SafeDict(params, "data", map[string]any{})
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+	var data map[string]any = ccxt.SafeMapTyped(params, "data")
 	var marketId *string = this.SafeString(data, "market")
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var timestamp *int64 = this.SafeInteger(data, "last_updated_at")
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol any = market["symbol"]
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
 	}
@@ -286,16 +286,16 @@ func (this *Paradex) HandleOrderBook(client any, message any) {
 		"asks": []any{},
 	}
 	var inserts any = this.SafeList(data, "inserts")
-	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(inserts)); i++ {
-		var insert any = this.SafeDict(inserts, i)
+	for i := 0; i < ccxt.GetArrayLength(inserts); i++ {
+		var insert map[string]any = ccxt.SafeMapTyped(inserts, i)
 		var side *string = this.SafeString(insert, "side")
 		var price *string = this.SafeString(insert, "price")
 		var size *string = this.SafeString(insert, "size")
 		if side != nil && *side == "BUY" {
-			retRes23816 := ccxt.GetValue(orderbookData, "bids")
+			retRes23816 := orderbookData["bids"]
 			ccxt.AppendToArray(&retRes23816, []any{price, size})
 		} else {
-			retRes24016 := ccxt.GetValue(orderbookData, "asks")
+			retRes24016 := orderbookData["asks"]
 			ccxt.AppendToArray(&retRes24016, []any{price, size})
 		}
 	}
@@ -326,7 +326,7 @@ func (this *Paradex) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes26212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes26212)
@@ -341,7 +341,7 @@ func (this *Paradex) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 			"channel": channel,
 		},
 	}
-	var messageHash any = ccxt.Add(ccxt.Add(channel, "."), symbol)
+	var messageHash any = ccxt.Add(channel+".", symbol)
 
 	retRes27515 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
 	ccxt.PanicOnError(retRes27515)
@@ -370,7 +370,7 @@ func (this *Paradex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes28912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes28912)
@@ -385,19 +385,19 @@ func (this *Paradex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 			"channel": channel,
 		},
 	}
-	var messageHashes any = []any{}
-	if !ccxt.IsEqual(symbols, nil) && ccxt.IsArray(symbols) {
-		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-			var messageHash any = ccxt.Add(ccxt.Add(channel, "."), ccxt.GetValue(symbols, i))
-			ccxt.AppendToArray(&messageHashes, messageHash)
+	var messageHashes []any = []any{}
+	if (symbols != nil) && ccxt.IsArray(symbols) {
+		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
+			var messageHash any = ccxt.Add(channel+".", ccxt.GetValue(symbols, i))
+			messageHashes = append(messageHashes, messageHash)
 		}
 	} else {
-		ccxt.AppendToArray(&messageHashes, channel)
+		messageHashes = append(messageHashes, channel)
 	}
 
 	newTicker := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes))
 	ccxt.PanicOnError(newTicker)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(newTicker, "symbol"), newTicker)
 
@@ -436,7 +436,7 @@ func (this *Paradex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes33212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes33212)
@@ -446,10 +446,10 @@ func (this *Paradex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError(retRes3348)
 	var messageHash any = "orders"
 	var channel any = "orders."
-	if !ccxt.IsEqual(symbol, nil) {
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		channel = ccxt.Add(channel, ccxt.GetValue(market, "id"))
+	if symbol != nil {
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		symbol = market["symbol"]
+		channel = ccxt.Add(channel, market["id"])
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 	} else {
 		channel = ccxt.Add(channel, "ALL")
@@ -465,14 +465,14 @@ func (this *Paradex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), channel))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
 	return nil
 }
-func (this *Paradex) HandleOrder(client any, message any) {
+func (this *Paradex) HandleOrder(client any, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -500,7 +500,7 @@ func (this *Paradex) HandleOrder(client any, message any) {
 	//         }
 	//     }
 	//
-	var params any = this.SafeDict(message, "params", map[string]any{})
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data any = this.SafeDict(params, "data", map[string]any{})
 	var parsed any = this.ParseOrder(data)
 	var symbol *string = this.SafeString(parsed, "symbol")
@@ -512,11 +512,11 @@ func (this *Paradex) HandleOrder(client any, message any) {
 	var messageHash string = "orders"
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 	if symbol != nil {
-		var symbolMessageHash any = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
+		var symbolMessageHash any = messageHash + ":" + *symbol
 		client.(ccxt.ClientInterface).Resolve(this.Orders, symbolMessageHash)
 	}
 }
-func (this *Paradex) HandleTicker(client any, message any) any {
+func (this *Paradex) HandleTicker(client any, message map[string]any) any {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -541,7 +541,7 @@ func (this *Paradex) HandleTicker(client any, message any) any {
 	//         }
 	//     }
 	//
-	var params any = this.SafeDict(message, "params", map[string]any{})
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data any = this.SafeDict(params, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
 	var market any = this.SafeMarket(marketId)
@@ -574,7 +574,7 @@ func (this *Paradex) watchFundingRateBody(ch chan any, symbol any, optionalArgs 
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes45512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes45512)
@@ -589,7 +589,7 @@ func (this *Paradex) watchFundingRateBody(ch chan any, symbol any, optionalArgs 
 			"channel": channel,
 		},
 	}
-	var messageHash any = ccxt.Add(ccxt.Add(channel, "."), symbol)
+	var messageHash any = ccxt.Add(channel+".", symbol)
 
 	retRes46815 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
 	ccxt.PanicOnError(retRes46815)
@@ -618,7 +618,7 @@ func (this *Paradex) watchFundingRatesBody(ch chan any, optionalArgs ...any) any
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes48212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes48212)
@@ -633,24 +633,24 @@ func (this *Paradex) watchFundingRatesBody(ch chan any, optionalArgs ...any) any
 			"channel": channel,
 		},
 	}
-	var messageHashes any = []any{}
-	if !ccxt.IsEqual(symbols, nil) {
+	var messageHashes []any = []any{}
+	if symbols != nil {
 		var symbolsLength int = ccxt.GetArrayLength(symbols)
-		if ccxt.IsGreaterThan(symbolsLength, 0) {
-			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-				var messageHash any = ccxt.Add(ccxt.Add(channel, "."), ccxt.GetValue(symbols, i))
-				ccxt.AppendToArray(&messageHashes, messageHash)
+		if symbolsLength > 0 {
+			for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
+				var messageHash any = ccxt.Add(channel+".", ccxt.GetValue(symbols, i))
+				messageHashes = append(messageHashes, messageHash)
 			}
 		} else {
-			ccxt.AppendToArray(&messageHashes, channel) // if an empty array is passed, subscribe to all funding rates
+			messageHashes = append(messageHashes, channel) // if an empty array is passed, subscribe to all funding rates
 		}
 	} else {
-		ccxt.AppendToArray(&messageHashes, channel)
+		messageHashes = append(messageHashes, channel)
 	}
 
 	newFundingRates := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes))
 	ccxt.PanicOnError(newFundingRates)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(newFundingRates, "symbol"), newFundingRates)
 
@@ -661,7 +661,7 @@ func (this *Paradex) watchFundingRatesBody(ch chan any, optionalArgs ...any) any
 	ch <- this.FilterByArray(this.FundingRates, "symbol", symbols)
 	return nil
 }
-func (this *Paradex) HandleFundingRate(client any, message any) {
+func (this *Paradex) HandleFundingRate(client any, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -680,7 +680,7 @@ func (this *Paradex) HandleFundingRate(client any, message any) {
 	//         }
 	//     }
 	//
-	var params any = this.SafeDict(message, "params", map[string]any{})
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data any = this.SafeDict(params, "data", map[string]any{})
 	var fundingRate any = this.ParseFundingRateWs(data)
 	var symbol any = ccxt.GetValue(fundingRate, "symbol")
@@ -749,11 +749,11 @@ func (this *Paradex) HandleErrorMessage(client any, message any) any {
 	} else {
 		var errorCode *string = this.SafeString(error, "code")
 		if errorCode != nil {
-			var feedback any = ccxt.Add(ccxt.Add(this.Id, " "), this.Json(error))
-			this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions, "exact"), "-32600", feedback)
+			var feedback any = ccxt.Add(this.Id+" ", this.Json(error))
+			this.ThrowExactlyMatchedException(this.Exceptions["exact"], "-32600", feedback)
 			var messageString any = this.SafeValue(error, "message")
 			if !ccxt.IsEqual(messageString, nil) {
-				this.ThrowBroadlyMatchedException(ccxt.GetValue(this.Exceptions, "broad"), messageString, feedback)
+				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], messageString, feedback)
 			}
 		}
 		return false
@@ -791,7 +791,7 @@ func (this *Paradex) HandleMessage(client any, message any) {
 	//         }
 	//     }
 	//
-	var result any = this.SafeValue(message, "result")
+	var result any = this.SafeDict(message, "result")
 	if !ccxt.IsEqual(result, nil) {
 		this.HandleAuthenticationMessage(client, message)
 		return

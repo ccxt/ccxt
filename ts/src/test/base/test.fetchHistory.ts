@@ -1,6 +1,5 @@
 
 
-
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
@@ -35,7 +34,6 @@ async function testFetchHistoryBase () {
     assert (1 + 1 < 3, 'sample assertion');
 }
 
-
 // async function testFetchHistoryDerived () {
 //     const exchange = new ccxt.coinbase ({
 //         'id': 'sampleexchange',
@@ -57,11 +55,9 @@ async function testFetchHistoryBase () {
 //     assert (1 + 1 < 3, 'sample assertion');
 // }
 
-
 async function testFetchHistory () {
     await testFetchHistoryBase ();
     // await testFetchHistoryDerived ();
 }
-
 
 export default testFetchHistory;

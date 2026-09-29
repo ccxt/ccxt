@@ -11,7 +11,7 @@ use super::*;
 
 pub fn testTradingFee(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut symbol: Value, mut entry: Value) {
     // prediction-market fee structures are keyed by an outcome handle, not a `symbol`
-    if is_true(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)])) {
+    if matches!(exchange.safe_bool(get_value(&exchange, &Value::Str("has".into())), Value::Str("prediction".into()), &[Value::Bool(false)]), Value::Bool(true)) {
         skippedProperties = exchange.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Bool(true));
@@ -24,12 +24,12 @@ pub fn testTradingFee(mut exchange: Value, mut skippedProperties: Value, mut met
     let mut m = indexmap::IndexMap::new();
     m
 }));
-            m.insert("symbol".to_string(), Value::Str("ETH/BTC".to_string()));
-            m.insert("maker".to_string(), exchange.parse_number(Value::Str("0.002".to_string()), &[]));
-            m.insert("taker".to_string(), exchange.parse_number(Value::Str("0.003".to_string()), &[]));
+            m.insert("symbol".to_string(), Value::Str("ETH/BTC".into()));
+            m.insert("maker".to_string(), exchange.parse_number(Value::Str("0.002".into()), &[]));
+            m.insert("taker".to_string(), exchange.parse_number(Value::Str("0.003".into()), &[]));
         m
     });
-    let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("tierBased".to_string()), Value::Str("percentage".to_string()), Value::Str("symbol".to_string())]);
+    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("tierBased".into()), Value::Str("percentage".into()), Value::Str("symbol".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
-    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".to_string()).clone(), symbol.clone()]);
+    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()).clone(), symbol.clone()]);
 }

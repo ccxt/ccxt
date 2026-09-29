@@ -614,7 +614,9 @@ class bingx extends bingx$1["default"] {
                     '500': errors.ExchangeError,
                     '504': errors.ExchangeError,
                     '100001': errors.AuthenticationError,
+                    '100004': errors.PermissionDenied, // {"code":100004,"msg":"Permission denied, the API key was created without the permission ..."}
                     '100412': errors.AuthenticationError,
+                    '100413': errors.AuthenticationError, // {"code":100413,"msg":"Incorrect apiKey, please check your valid api key ..."}
                     '100202': errors.InsufficientFunds,
                     '100204': errors.BadRequest,
                     '100400': errors.BadRequest,
@@ -633,6 +635,15 @@ class bingx extends bingx$1["default"] {
                     '100437': errors.BadRequest, // {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
                     '101204': errors.InsufficientFunds, // {"code":101204,"msg":"","data":{}}
                     '110425': errors.InvalidOrder, // {"code":110425,"msg":"Please ensure that the minimum nominal value of the order placed must be greater than 2u","data":{}}
+                    '100490': errors.BadSymbol, // spot trading pair is offline
+                    '101481': errors.DuplicateOrderId,
+                    '109201': errors.DuplicateOrderId,
+                    '109400': errors.BadRequest, // {"code":109400,"msg":"Invalid parameters, err:startTs: ... field is required","data":{}}
+                    '109418': errors.BadSymbol, // trading pair is offline and cannot be ordered through the api
+                    '109421': errors.OrderNotFound,
+                    '109425': errors.BadSymbol, // {"code":109425,"msg":"NOPE-USDT not exist, please verify it ...","data":{}}
+                    '109500': errors.OperationFailed, // {"code":109500,"msg":"The current system is busy, please try again later"}
+                    '110500': errors.OperationFailed, // order system busy
                     'Insufficient assets': errors.InsufficientFunds, // {"transferErrorMsg":"Insufficient assets"}
                     'illegal transferType': errors.BadRequest, // {"transferErrorMsg":"illegal transferType"}
                 },
@@ -1580,7 +1591,7 @@ class bingx extends bingx$1["default"] {
             }
         }
         return this.safeTrade({
-            'id': this.safeStringN(trade, ['id', 't', 'fillId']),
+            'id': this.safeStringN(trade, ['id', 't', 'fillId', 'tradeId']),
             'info': trade,
             'timestamp': time,
             'datetime': this.iso8601(time),
@@ -4452,7 +4463,7 @@ class bingx extends bingx$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        const clientOrderIds = this.safeValue(params, 'clientOrderIds');
+        const clientOrderIds = this.safeList(params, 'clientOrderIds');
         params = this.omit(params, 'clientOrderIds');
         let idsToParse = ids;
         const areClientOrderIds = (clientOrderIds !== undefined);
@@ -5138,6 +5149,14 @@ class bingx extends bingx$1["default"] {
             response = await this.contractV1PrivateGetAllOrders(this.extend(request, params));
         }
         else if (type === 'spot') {
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+            const until = this.safeInteger2(params, 'until', 'till');
+            if (until !== undefined) {
+                request['endTime'] = until;
+            }
+            params = this.omit(params, ['until', 'till']);
             if (limit !== undefined) {
                 request['pageSize'] = limit;
             }
@@ -5730,7 +5749,7 @@ class bingx extends bingx$1["default"] {
         //
         // parse withdraw-type output first...
         //
-        const data = this.safeValue(transaction, 'data');
+        const data = this.safeDict(transaction, 'data');
         const dataId = (data === undefined) ? undefined : this.safeString(data, 'id');
         const id = this.safeString(transaction, 'id', dataId);
         const address = this.safeString(transaction, 'address');

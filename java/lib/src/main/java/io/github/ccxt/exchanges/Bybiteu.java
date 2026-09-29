@@ -70,6 +70,10 @@ public class Bybiteu extends BybiteuApi
             }} );
             put( "options", new HashMap<String, Object>() {{
                 put( "mica", true );
+                put( "defaultType", "spot" );
+                put( "fetchMarkets", new HashMap<String, Object>() {{
+                    put( "types", new ArrayList<Object>(Arrays.asList("spot")) );
+                }} );
             }} );
         }});
     }

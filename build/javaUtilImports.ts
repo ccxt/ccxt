@@ -64,6 +64,17 @@ export const CCXT_TYPE_IMPORTS: Record<string, string> = Object.fromEntries (
 // simple name -> fully-qualified name, every collapsed type
 export const JAVA_IMPORTS: Record<string, string> = { ...JAVA_UTIL_IMPORTS, ...CCXT_TYPE_IMPORTS };
 
+// Native spelling of the `Helpers.toTypedList` runtime helper: the element type of a typed-list
+// return is statically known to the generator (TS return annotation), so the raw list is mapped
+// through the typed constructor reference inline. `res` is the raw result the call site holds;
+// the expression is the helper's body verbatim (the cast to `List<?>` erases identically), so
+// null / non-list / element behaviour matches. `List<?>` rather than `List<Object>`: the raw
+// future may already be statically typed (`List<Order>`), from which `List<Object>` is
+// inconvertible.
+export function nativeTypedList (elementType: string, rawVar = 'res'): string {
+    return `((java.util.List<?>) ${rawVar}).stream().map(${elementType}::new).collect(java.util.stream.Collectors.toList())`;
+}
+
 function escapeRegExp (s: string): string {
     return s.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
 }

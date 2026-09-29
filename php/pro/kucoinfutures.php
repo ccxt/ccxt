@@ -40,7 +40,7 @@ class kucoinfutures extends \ccxt\pro\kucoin {
         ));
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_bids_asks(...))($symbols, $params);
     }
 
@@ -131,7 +131,7 @@ class kucoinfutures extends \ccxt\pro\kucoin {
         ));
     }
 
-    public function parse_transfer_type(mixed $transferType) {
+    public function parse_transfer_type(?string $transferType): ?string {
         $transferTypes = array(
             'spot' => 'TRADE',
             'funding' => 'MAIN',

@@ -151,6 +151,11 @@ export default class hyperliquid extends Exchange {
         super.setSandboxMode(enabled);
         this.options['sandboxMode'] = enabled;
     }
+    nonce() {
+        // the venue nonce is a millisecond timestamp and must be strictly increasing per signer
+        // incrementingNonce () reads this and bumps past the previous value when two signed actions share a millisecond
+        return this.milliseconds();
+    }
     /**
      * @ignore
      * @method
@@ -1211,7 +1216,7 @@ export default class hyperliquid extends Exchange {
         const marketSymbol = this.safeString(outcomeObj, 'market');
         const market = this.market(marketSymbol);
         const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const isBuy = (side.toUpperCase() === 'BUY');
         const isMarket = (type.toUpperCase() === 'MARKET');
         const assetId = this.safeInteger(outcomeInfo, 'assetId');
@@ -1365,7 +1370,7 @@ export default class hyperliquid extends Exchange {
         const outcomeObj = this.outcome(outcome);
         const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
         const assetId = this.safeInteger(outcomeInfo, 'assetId');
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const clientOrderId = this.safeValue2(params, 'clientOrderId', 'client_id');
         params = this.omit(params, ['clientOrderId', 'client_id']);
         const cancelReq = [];
@@ -2122,7 +2127,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} the raw exchange response
      */
     async approveBuilderFee(builder, maxFeeRate) {
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const payload = {
             'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',

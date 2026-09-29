@@ -1606,7 +1606,7 @@ export default class coinbase extends Exchange {
         const newMarkets = [];
         for (let i = 0; i < result.length; i++) {
             const market = result[i];
-            const info = this.safeValue(market, 'info', {});
+            const info = this.safeDict(market, 'info', {});
             const realMarketIds = this.safeList(info, 'alias_to', []);
             const length = realMarketIds.length;
             if (length > 0) {

@@ -62,6 +62,10 @@ jobs:
         node-version: '22'
     - name: Test pre-push file selection
       run: node --test build/tests/test.pre-push.mjs
+    - name: Test release announcement
+      run: node --experimental-strip-types --test build/tests/test.release-announcement.mjs
+    - name: Test released tag lookup
+      run: node --experimental-strip-types --test build/tests/test.released-tags.mjs
     - name: Debug binary FILES [REMOVE]
       run: git ls-files | grep binaries
     - name: Install npm dependencies

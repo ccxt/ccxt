@@ -99,7 +99,7 @@ export default class bittrade extends bittradeRest {
         //         }
         //     }
         //
-        const tick = this.safeValue(message, 'tick', {});
+        const tick = this.safeDict(message, 'tick', {});
         const ch = this.safeString(message, 'ch');
         if (ch === undefined) {
             return message;
@@ -108,7 +108,7 @@ export default class bittrade extends bittradeRest {
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
         const ticker = this.parseTicker(tick, market);
-        const timestamp = this.safeValue(message, 'ts');
+        const timestamp = this.safeInteger(message, 'ts');
         ticker['timestamp'] = timestamp;
         ticker['datetime'] = this.iso8601(timestamp);
         const symbol = ticker['symbol'];
@@ -175,8 +175,8 @@ export default class bittrade extends bittradeRest {
         //         }
         //     }
         //
-        const tick = this.safeValue(message, 'tick', {});
-        const data = this.safeValue(tick, 'data', {});
+        const tick = this.safeDict(message, 'tick', {});
+        const data = this.safeList(tick, 'data', []);
         const ch = this.safeString(message, 'ch');
         if (ch === undefined) {
             return message;
@@ -265,7 +265,7 @@ export default class bittrade extends bittradeRest {
         const symbol = market['symbol'];
         const interval = this.safeString(parts, 3);
         const timeframe = this.findTimeframe(interval);
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -343,7 +343,7 @@ export default class bittrade extends bittradeRest {
         const messageHash = this.safeString(subscription, 'messageHash');
         const timestamp = this.safeInteger(message, 'ts');
         const orderbook = this.orderbooks[symbol];
-        const data = this.safeValue(message, 'data');
+        const data = this.safeDict(message, 'data');
         const snapshot = this.parseOrderBook(data, symbol);
         snapshot['nonce'] = this.safeInteger(data, 'seqNum');
         snapshot['timestamp'] = timestamp;
@@ -421,15 +421,15 @@ export default class bittrade extends bittradeRest {
         //         }
         //     }
         //
-        const tick = this.safeValue(message, 'tick', {});
+        const tick = this.safeDict(message, 'tick', {});
         const seqNum = this.safeInteger(tick, 'seqNum');
         const prevSeqNum = this.safeInteger(tick, 'prevSeqNum');
         if ((prevSeqNum === undefined) || (seqNum === undefined)) {
             return orderbook;
         }
         if ((prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
-            const asks = this.safeValue(tick, 'asks', []);
-            const bids = this.safeValue(tick, 'bids', []);
+            const asks = this.safeList(tick, 'asks', []);
+            const bids = this.safeList(tick, 'bids', []);
             this.handleDeltas(orderbook['asks'], asks);
             this.handleDeltas(orderbook['bids'], bids);
             orderbook['nonce'] = seqNum;
@@ -503,7 +503,7 @@ export default class bittrade extends bittradeRest {
             return message;
         }
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
-        const subscription = this.safeValue(subscriptionsById, id);
+        const subscription = this.safeDict(subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue(subscription, 'method');
             if (method !== undefined) {
@@ -594,7 +594,7 @@ export default class bittrade extends bittradeRest {
                 return false;
             }
             const subscriptionsById = this.indexBy(client.subscriptions, 'id');
-            const subscription = this.safeValue(subscriptionsById, id);
+            const subscription = this.safeDict(subscriptionsById, id);
             if (subscription !== undefined) {
                 const errorCode = this.safeString(message, 'err-code');
                 try {

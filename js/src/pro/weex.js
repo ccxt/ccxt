@@ -9,6 +9,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import weexRest from '../weex.js';
 import { BadRequest, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import Precise from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 export default class weex extends weexRest {
     describe() {
@@ -344,7 +345,8 @@ export default class weex extends weexRest {
             'last': close,
             'previousClose': this.safeString(ticker, 'x'),
             'change': this.safeString(ticker, 'p'),
-            'percentage': this.safeString(ticker, 'P'),
+            // The live spot and contract streams report P as a relative change.
+            'percentage': Precise.stringMul(this.safeString(ticker, 'P'), '100'),
             'average': this.safeString(ticker, 'w'),
             'baseVolume': this.safeString(ticker, 'v'),
             'quoteVolume': this.safeString(ticker, 'q'),
@@ -400,7 +402,7 @@ export default class weex extends weexRest {
         }
         const trades = await this.subscribePublic(messageHashes, channels, isContract, params);
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
@@ -1596,7 +1598,7 @@ export default class weex extends weexRest {
             'type': type,
         };
         const response = await this.fetchBalance(params);
-        this.balance[type] = this.extend(response, this.safeValue(this.balance, type, {}));
+        this.balance[type] = this.extend(response, this.safeDict(this.balance, type, {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];

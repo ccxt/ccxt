@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testAfterConstruct(BaseExchange exchange, object skippedProperties)
     {
-        if (!isTrue((inOp(skippedProperties, "networks"))))
+        if (!(inOp(skippedProperties, "networks")))
         {
             testOptionsNetworks(exchange, skippedProperties);
         }
@@ -17,7 +17,7 @@ public partial class testMainClass : BaseTest
     }
     public static void testOptionsNetworks(BaseExchange exchange, object skippedProperties)
     {
-        if (!isTrue((inOp(skippedProperties, "networks"))))
+        if (!(inOp(skippedProperties, "networks")))
         {
             // only allow these whitelisted unified networkCodes to be repeated
             List<object> allowedUnifiedAliases = new List<object>() {"BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "SOL", "POLYGON", "MATIC", "CARDANO", "ADA", "ATOM", "COSMOS"};
@@ -25,13 +25,13 @@ public partial class testMainClass : BaseTest
             // KeyError in Python (e.g. an exchange whose options has no 'networks', like the
             // hyperliquid prediction market)
             IDictionary<string, object> networks = exchange.safeDict(exchange.options, "networks");
-            if (isTrue(isEqual(networks, null)))
+            if ((networks == null))
             {
                 return;
             }
             // 1) ensure 'networks' dictionary exists in options
             assert(exchange.isDictionary(networks), "exchange.options[\"networks\"] is not a dict");
-            if (isTrue(isEqual(getArrayLength(new List<object>(((IDictionary<string,object>)networks).Keys)), 0)))
+            if (((new List<object>(((IDictionary<string,object>)networks).Keys)).Count == 0))
             {
                 return;
             }
@@ -42,41 +42,41 @@ public partial class testMainClass : BaseTest
             List<object> networkCodes = new List<object>(((IDictionary<string,object>)getValue(exchange.options, "networks")).Keys);
             // 3) ensure that the same network-id is not assigned to multiple networkCodes
             List<object> collectedNetworkIds = new List<object>() {};
-            for (int i = 0; isLessThan(i, getArrayLength(networkCodes)); postFixIncrement(ref i))
+            for (int i = 0; i < networkCodes.Count; i++)
             {
-                string? networkCode = ((string)getValue(networkCodes, i));
+                string? networkCode = ((string)networkCodes[i]);
                 object networkId = getValue(getValue(exchange.options, "networks"), networkCode);
                 if (!isTrue(exchange.inArray(networkCode, allowedUnifiedAliases)))
                 {
-                    assert(!isTrue(exchange.inArray(networkId, collectedNetworkIds)), add(add("exchange.options[\"networks\"] should not contain multiple non-unified networkCodes (in the list of unified-networks) with the same networkId: \"", networkId), "\""));
+                    assert(!isTrue(exchange.inArray(networkId, collectedNetworkIds)), (("exchange.options[\"networks\"] should not contain multiple non-unified networkCodes (in the list of unified-networks) with the same networkId: \"" + (networkId)) + "\""));
                 }
                 ((IList<object>)collectedNetworkIds).Add(networkId);
             }
             // 4) ensure that there are no same networkCode with different case (uppercase/lowercase)
             List<object> collectedNetworkCodes = new List<object>() {};
-            for (int i = 0; isLessThan(i, getArrayLength(networkCodes)); postFixIncrement(ref i))
+            for (int i = 0; i < networkCodes.Count; i++)
             {
-                string networkCodeLower = ((string)(getValue(networkCodes, i))).ToLower();
-                assert(!isTrue(exchange.inArray(networkCodeLower, collectedNetworkCodes)), add(add("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"", getValue(networkCodes, i)), "\" in different uppercase/lowercase format"));
+                string networkCodeLower = ((string)(networkCodes[i])).ToLower();
+                assert(!isTrue(exchange.inArray(networkCodeLower, collectedNetworkCodes)), (("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"" + (networkCodes[i])) + "\" in different uppercase/lowercase format"));
                 ((IList<object>)collectedNetworkCodes).Add(networkCodeLower);
             }
             // 5) test networkCodeToId & networkIdToCode
-            for (int i = 0; isLessThan(i, getArrayLength(networkCodes)); postFixIncrement(ref i))
+            for (int i = 0; i < networkCodes.Count; i++)
             {
-                string? networkCode = ((string)getValue(networkCodes, i));
+                string? networkCode = ((string)networkCodes[i]);
                 object networkId = getValue(getValue(exchange.options, "networks"), networkCode);
                 // check networkCodeToId
                 object networkIdConverted = exchange.networkCodeToId(networkCode);
-                assert(isEqual(networkId, networkIdConverted), add(add(add(add(add(add(add(add("exchange.networkCodeToId (\"", networkCode), "\")=\""), networkIdConverted), "\" does not match exchange.options[\"networks\"][\""), networkCode), "\"]=\""), networkId), "\""));
+                assert(isEqual(networkId, networkIdConverted), (((((((("exchange.networkCodeToId (\"" + networkCode) + "\")=\"") + (networkIdConverted)) + "\" does not match exchange.options[\"networks\"][\"") + networkCode) + "\"]=\"") + (networkId)) + "\""));
                 // ensure it exists in networksById
-                assert(inOp(getValue(exchange.options, "networksById"), networkId), add(add("exchange.options[\"networksById\"] does not contain networkId \"", networkId), "\""));
+                assert(inOp(getValue(exchange.options, "networksById"), networkId), (("exchange.options[\"networksById\"] does not contain networkId \"" + (networkId)) + "\""));
                 // ensure networkCode matches for networksById (however, it only works if one mapping is set)
                 if (!isTrue(exchange.inArray(networkCode, allowedUnifiedAliases)))
                 {
-                    assert(isEqual(getValue(getValue(exchange.options, "networksById"), networkId), networkCode), add(add(add(add(add(add("exchange.options[\"networksById\"][\"", networkId), "\"] value is not expected \""), networkCode), "\", but: \""), getValue(getValue(exchange.options, "networksById"), networkId)), "\""));
+                    assert(isEqual(getValue(getValue(exchange.options, "networksById"), networkId), networkCode), (((((("exchange.options[\"networksById\"][\"" + (networkId)) + "\"] value is not expected \"") + networkCode) + "\", but: \"") + (getValue(getValue(exchange.options, "networksById"), networkId))) + "\""));
                     // check networkIdToCode conversion back
                     object networkCodeConverted = exchange.networkIdToCode(networkId);
-                    assert(isEqual(networkCode, networkCodeConverted), add(add(add(add(add(add("exchange.networkIdToCode (\"", networkId), "\")=\""), networkCodeConverted), "\" does not match key \""), networkCode), "\" of exchange.options[\"networks\"]"));
+                    assert(isEqual(networkCode, networkCodeConverted), (((((("exchange.networkIdToCode (\"" + (networkId)) + "\")=\"") + (networkCodeConverted)) + "\" does not match key \"") + networkCode) + "\" of exchange.options[\"networks\"]"));
                 }
             }
         }

@@ -9,185 +9,185 @@ package ccxt
 
 // PublicGetDepthPair returns a channel that yields a JSON object.
 func (this *Zaif) PublicGetDepthPair(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDepthPair", args...)
+	return this.Fetch2Async("depth/{pair}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetCurrenciesPair returns a channel that yields a JSON array.
 func (this *Zaif) PublicGetCurrenciesPair(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCurrenciesPair", args...)
+	return this.Fetch2Async("currencies/{pair}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetCurrenciesAll returns a channel that yields a JSON array.
 func (this *Zaif) PublicGetCurrenciesAll(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCurrenciesAll", args...)
+	return this.Fetch2Async("currencies/all", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetCurrencyPairsPair returns a channel that yields a JSON array.
 func (this *Zaif) PublicGetCurrencyPairsPair(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCurrencyPairsPair", args...)
+	return this.Fetch2Async("currency_pairs/{pair}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetCurrencyPairsAll returns a channel that yields a JSON array.
 func (this *Zaif) PublicGetCurrencyPairsAll(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCurrencyPairsAll", args...)
+	return this.Fetch2Async("currency_pairs/all", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetLastPricePair returns a channel that yields a JSON object.
 func (this *Zaif) PublicGetLastPricePair(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetLastPricePair", args...)
+	return this.Fetch2Async("last_price/{pair}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTickerPair returns a channel that yields a JSON object.
 func (this *Zaif) PublicGetTickerPair(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTickerPair", args...)
+	return this.Fetch2Async("ticker/{pair}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTradesPair returns a channel that yields a JSON array.
 func (this *Zaif) PublicGetTradesPair(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradesPair", args...)
+	return this.Fetch2Async("trades/{pair}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetVaspInfoVaspMasterId returns a channel that yields a JSON array.
 func (this *Zaif) PublicGetVaspInfoVaspMasterId(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetVaspInfoVaspMasterId", args...)
+	return this.Fetch2Async("vasp_info/{vasp_master_id}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetCountryInfoCode returns a channel that yields a JSON array.
 func (this *Zaif) PublicGetCountryInfoCode(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCountryInfoCode", args...)
+	return this.Fetch2Async("country_info/{code}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetCorpTypeIdInfoId returns a channel that yields a JSON array.
 func (this *Zaif) PublicGetCorpTypeIdInfoId(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCorpTypeIdInfoId", args...)
+	return this.Fetch2Async("corp_type_id_info/{id}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostActiveOrders returns a channel that yields a JSON object.
 func (this *Zaif) PrivatePostActiveOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostActiveOrders", args...)
+	return this.Fetch2Async("active_orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostCancelOrder returns a channel that yields a JSON object.
 func (this *Zaif) PrivatePostCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCancelOrder", args...)
+	return this.Fetch2Async("cancel_order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostDepositHistory returns a channel that yields a JSON object.
 func (this *Zaif) PrivatePostDepositHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDepositHistory", args...)
+	return this.Fetch2Async("deposit_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostGetIdInfo returns a channel that yields a JSON object.
 func (this *Zaif) PrivatePostGetIdInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetIdInfo", args...)
+	return this.Fetch2Async("get_id_info", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostGetInfo returns a channel that yields a JSON object.
 func (this *Zaif) PrivatePostGetInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetInfo", args...)
+	return this.Fetch2Async("get_info", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // PrivatePostGetInfo2 returns a channel that yields a JSON object.
 func (this *Zaif) PrivatePostGetInfo2(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetInfo2", args...)
+	return this.Fetch2Async("get_info2", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostGetPersonalInfo returns a channel that yields a JSON object.
 func (this *Zaif) PrivatePostGetPersonalInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetPersonalInfo", args...)
+	return this.Fetch2Async("get_personal_info", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostTrade returns a channel that yields a JSON object.
 func (this *Zaif) PrivatePostTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTrade", args...)
+	return this.Fetch2Async("trade", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostTradeHistory returns a channel that yields a JSON object.
 func (this *Zaif) PrivatePostTradeHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeHistory", args...)
+	return this.Fetch2Async("trade_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
 }
 
 // PrivatePostWithdraw returns a channel that yields a JSON object.
 func (this *Zaif) PrivatePostWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWithdraw", args...)
+	return this.Fetch2Async("withdraw", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostWithdrawHistory returns a channel that yields a JSON object.
 func (this *Zaif) PrivatePostWithdrawHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWithdrawHistory", args...)
+	return this.Fetch2Async("withdraw_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // EcapiPostCreateInvoice returns a channel that yields a JSON object.
 func (this *Zaif) EcapiPostCreateInvoice(args ...any) <-chan any {
-	return this.callEndpointAsync("ecapiPostCreateInvoice", args...)
+	return this.Fetch2Async("createInvoice", "ecapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EcapiPostGetInvoice returns a channel that yields a JSON object.
 func (this *Zaif) EcapiPostGetInvoice(args ...any) <-chan any {
-	return this.callEndpointAsync("ecapiPostGetInvoice", args...)
+	return this.Fetch2Async("getInvoice", "ecapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EcapiPostGetInvoiceIdsByOrderNumber returns a channel that yields a JSON object.
 func (this *Zaif) EcapiPostGetInvoiceIdsByOrderNumber(args ...any) <-chan any {
-	return this.callEndpointAsync("ecapiPostGetInvoiceIdsByOrderNumber", args...)
+	return this.Fetch2Async("getInvoiceIdsByOrderNumber", "ecapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EcapiPostCancelInvoice returns a channel that yields a JSON object.
 func (this *Zaif) EcapiPostCancelInvoice(args ...any) <-chan any {
-	return this.callEndpointAsync("ecapiPostCancelInvoice", args...)
+	return this.Fetch2Async("cancelInvoice", "ecapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // TlapiPostGetPositions returns a channel that yields a JSON object.
 func (this *Zaif) TlapiPostGetPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("tlapiPostGetPositions", args...)
+	return this.Fetch2Async("get_positions", "tlapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(66)})
 }
 
 // TlapiPostPositionHistory returns a channel that yields a JSON object.
 func (this *Zaif) TlapiPostPositionHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("tlapiPostPositionHistory", args...)
+	return this.Fetch2Async("position_history", "tlapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(66)})
 }
 
 // TlapiPostActivePositions returns a channel that yields a JSON object.
 func (this *Zaif) TlapiPostActivePositions(args ...any) <-chan any {
-	return this.callEndpointAsync("tlapiPostActivePositions", args...)
+	return this.Fetch2Async("active_positions", "tlapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // TlapiPostCreatePosition returns a channel that yields a JSON object.
 func (this *Zaif) TlapiPostCreatePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("tlapiPostCreatePosition", args...)
+	return this.Fetch2Async("create_position", "tlapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(33)})
 }
 
 // TlapiPostChangePosition returns a channel that yields a JSON object.
 func (this *Zaif) TlapiPostChangePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("tlapiPostChangePosition", args...)
+	return this.Fetch2Async("change_position", "tlapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(33)})
 }
 
 // TlapiPostCancelPosition returns a channel that yields a JSON object.
 func (this *Zaif) TlapiPostCancelPosition(args ...any) <-chan any {
-	return this.callEndpointAsync("tlapiPostCancelPosition", args...)
+	return this.Fetch2Async("cancel_position", "tlapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(33)})
 }
 
 // FapiGetGroupsGroupId returns a channel that yields a JSON array.
 func (this *Zaif) FapiGetGroupsGroupId(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiGetGroupsGroupId", args...)
+	return this.Fetch2Async("groups/{group_id}", "fapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiGetLastPriceGroupIdPair returns a channel that yields a JSON object.
 func (this *Zaif) FapiGetLastPriceGroupIdPair(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiGetLastPriceGroupIdPair", args...)
+	return this.Fetch2Async("last_price/{group_id}/{pair}", "fapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiGetTickerGroupIdPair returns a channel that yields a JSON object.
 func (this *Zaif) FapiGetTickerGroupIdPair(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiGetTickerGroupIdPair", args...)
+	return this.Fetch2Async("ticker/{group_id}/{pair}", "fapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiGetTradesGroupIdPair returns a channel that yields a JSON array.
 func (this *Zaif) FapiGetTradesGroupIdPair(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiGetTradesGroupIdPair", args...)
+	return this.Fetch2Async("trades/{group_id}/{pair}", "fapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiGetDepthGroupIdPair returns a channel that yields a JSON object.
 func (this *Zaif) FapiGetDepthGroupIdPair(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiGetDepthGroupIdPair", args...)
+	return this.Fetch2Async("depth/{group_id}/{pair}", "fapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

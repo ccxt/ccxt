@@ -18,7 +18,7 @@ func testFetchOpenInterestHistoryBody(ch chan any, exchange ccxt.ICoreExchange, 
 	openInterestHistory := (<-exchange.FetchOpenInterestHistoryAsync(symbol))
 	PanicOnError(openInterestHistory)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, openInterestHistory, symbol)
-	for i := 0; IsLessThan(i, GetArrayLength(openInterestHistory)); i++ {
+	for i := 0; i < GetArrayLength(openInterestHistory); i++ {
 		TestOpenInterest(exchange, skippedProperties, method, GetValue(openInterestHistory, i))
 	}
 

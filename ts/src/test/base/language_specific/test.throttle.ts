@@ -70,7 +70,6 @@ async function testThrottle () {
         },
     ]
 
-
     let number = 0
     for (const test of testCases) {
         test['number'] = number++

@@ -31,7 +31,6 @@ const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
 
-
 // ############## detect cli arguments ############## //
 const argv = process.argv.slice (2); // remove first two arguments (which is process and script path "js/src/test/test.js")
 
@@ -48,7 +47,6 @@ const argvExchange = argvs_filtered[0];
 const argvSymbol   = selectArgv (argv, '/');
 const argvMethod   = selectArgv (argv, '()');
 // #################################################### //
-
 
 function getCliArgValue (arg: string) {
     return process.argv.includes (arg) || false;
@@ -323,7 +321,6 @@ function isLinux () {
 function isAmd64 () {
     return process.arch === "x64";
 }
-
 
 export {
     // errors
