@@ -480,6 +480,42 @@
                 "output": "timestamp=1790432490357&symbol=ETHUSDT&side=SELL&callbackRate=5&activatePrice=4000&clientAlgoId=x-cvBPrNm9NewTrail1&newOrderRespType=RESULT&type=TRAILING_STOP_MARKET&quantity=0.008&algoType=CONDITIONAL&recvWindow=10000&signature=81557053ae6540f757ec49276370db396fda38b12bbb4367b85c661ca4261691"
             },
             {
+                "description": "linear future trailingPercent order with activation price",
+                "method": "createOrder",
+                "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder",
+                "input": [
+                    "ETH/USDT:USDT-261225",
+                    "market",
+                    "sell",
+                    0.008,
+                    null,
+                    {
+                        "trailingPercent": 5,
+                        "activationPrice": 4000,
+                        "clientOrderId": "x-cvBPrNm9QtrTrail1"
+                    }
+                ],
+                "output": "timestamp=1790657938652&symbol=ETHUSDT_261225&side=SELL&callbackRate=5&activatePrice=4000&clientAlgoId=x-cvBPrNm9QtrTrail1&newOrderRespType=RESULT&type=TRAILING_STOP_MARKET&quantity=0.008&algoType=CONDITIONAL&recvWindow=10000&signature=69f21af3dfe09a0fba1b5cc311b7d90b09c5e9424fff090b7a367112f9429912"
+            },
+            {
+                "description": "inverse future trailingPercent order with activation price",
+                "method": "createOrder",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
+                "input": [
+                    "ETH/USD:ETH-261225",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "trailingPercent": 5,
+                        "activationPrice": 4000,
+                        "clientOrderId": "x-xcKtGhcuQtrTrail1"
+                    }
+                ],
+                "output": "timestamp=1790657940595&symbol=ETHUSD_261225&side=SELL&callbackRate=5&activatePrice=4000&clientAlgoId=x-xcKtGhcuQtrTrail1&newOrderRespType=RESULT&type=TRAILING_STOP_MARKET&quantity=1&algoType=CONDITIONAL&recvWindow=10000&signature=b27ffdf1b32606209866f2635ee3537fc7b6264d6f0312f84be3a82f98802d47"
+            },
+            {
                 "description": "linear future conditional createOrder",
                 "method": "createOrder",
                 "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder",

@@ -7165,7 +7165,7 @@ export default class binance extends Exchange {
         let uppercaseType = type.toUpperCase ();
         let stopPrice: Str = undefined;
         if (isTrailingPercentOrder) {
-            if (market['swap'] === true) {
+            if ((market['swap'] === true) || (market['future'] === true)) {
                 uppercaseType = 'TRAILING_STOP_MARKET';
                 request['callbackRate'] = trailingPercent;
                 if (trailingTriggerPrice !== undefined) {
