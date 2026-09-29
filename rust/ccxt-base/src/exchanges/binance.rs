@@ -17633,7 +17633,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
         }
-        return self.safe_number_k(config, "cost", &[Value::Int(1)]);
+        return self.safe_value_k(config, "cost", &[Value::Int(1)]);
 
     Value::Null
 }
