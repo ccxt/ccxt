@@ -439,6 +439,7 @@ export interface Trade {
     takerOrMaker: 'taker' | 'maker' | Str; // string, 'taker' or 'maker'
     cost: Num;                    // total cost (including fees), `price * amount`
     fee: Fee;
+    fees?: Fee[];                 // every fee paid, when in several currencies
 }
 
 export interface Order {
@@ -465,8 +466,12 @@ export interface Order {
     cost: Num;
     trades: Trade[];
     fee: Fee;
+    fees?: Fee[];
     reduceOnly: Bool;
     postOnly: Bool;
+    marginMode?: Str;
+    leverage?: Num;
+    hedged?: Bool;
     info: any;
 }
 

@@ -518,7 +518,7 @@ type Trade struct {
 	Cost         *float64
 	Id           *string
 	Order        *string
-	Info         map[string]any
+	Info         any
 	Timestamp    *int64
 	Datetime     *string
 	Symbol       *string
@@ -526,7 +526,7 @@ type Trade struct {
 	Side         *string
 	TakerOrMaker *string
 	Fee          Fee
-	extra        map[string]any
+	Fees         []Fee
 }
 
 func NewTrade(data any) Trade {
@@ -545,7 +545,8 @@ func NewTrade(data any) Trade {
 		Side:         SafeStringTyped(m, "side"),
 		TakerOrMaker: SafeStringTyped(m, "takerOrMaker"),
 		Fee:          NewFee(SafeValue(m, "fee", map[string]any{}).(map[string]any)),
-		Info:         m,
+		Fees:         NewFeeArray(m["fees"]),
+		Info:         SafeValue(m, "info", nil),
 	}
 }
 
@@ -568,7 +569,11 @@ type Order struct {
 	Status              *string
 	ReduceOnly          *bool
 	PostOnly            *bool
+	MarginMode          *string
+	Leverage            *float64
+	Hedged              *bool
 	Fee                 Fee
+	Fees                []Fee
 	Trades              []Trade
 	TriggerPrice        *float64
 	StopLossPrice       *float64
@@ -576,8 +581,7 @@ type Order struct {
 	LastUpdateTimestamp *int64
 	TimeInForce         *string
 	StopPrice           *float64
-	Info                map[string]any
-	extra               map[string]any
+	Info                any
 }
 
 func NewOrder(data any) Order {
@@ -609,7 +613,11 @@ func NewOrder(data any) Order {
 		Status:              SafeStringTyped(m, "status"),
 		ReduceOnly:          SafeBoolTyped(m, "reduceOnly"),
 		PostOnly:            SafeBoolTyped(m, "postOnly"),
+		MarginMode:          SafeStringTyped(m, "marginMode"),
+		Leverage:            SafeFloatTyped(m, "leverage"),
+		Hedged:              SafeBoolTyped(m, "hedged"),
 		Fee:                 NewFee(SafeValue(m, "fee", map[string]any{}).(map[string]any)),
+		Fees:                NewFeeArray(m["fees"]),
 		Trades:              trades,
 		TriggerPrice:        SafeFloatTyped(m, "triggerPrice"),
 		StopLossPrice:       SafeFloatTyped(m, "stopLossPrice"),
@@ -617,7 +625,7 @@ func NewOrder(data any) Order {
 		LastUpdateTimestamp: SafeInt64Typed(m, "lastUpdateTimestamp"),
 		TimeInForce:         SafeStringTyped(m, "timeInForce"),
 		StopPrice:           SafeFloatTyped(m, "stopPrice"),
-		Info:                m,
+		Info:                SafeValue(m, "info", nil),
 	}
 }
 
@@ -644,8 +652,7 @@ type Ticker struct {
 	QuoteVolume   *float64
 	IndexPrice    *float64
 	MarkPrice     *float64
-	Info          map[string]any
-	extra         map[string]any
+	Info          any
 }
 
 func NewTicker(data any) Ticker {
@@ -672,7 +679,7 @@ func NewTicker(data any) Ticker {
 		QuoteVolume:   SafeFloatTyped(m, "quoteVolume"),
 		IndexPrice:    SafeFloatTyped(m, "indexPrice"),
 		MarkPrice:     SafeFloatTyped(m, "markPrice"),
-		Info:          GetInfoWithExtra(m, "symbol", "timestamp", "datetime", "high", "low", "bid", "bidVolume", "ask", "askVolume", "vwap", "open", "close", "last", "previousClose", "change", "percentage", "average", "quoteVolume", "baseVolume", "indexPrice", "markPrice"),
+		Info:          SafeValue(m, "info", nil),
 	}
 }
 
@@ -2272,6 +2279,21 @@ func NewLeverageTier(data any) LeverageTier {
 }
 
 // array helpers
+
+// NewFeeArray builds the `fees` list; a missing or non-list value gives nil
+func NewFeeArray(fees2 any) []Fee {
+	fees, ok := fees2.([]any)
+	if !ok {
+		return nil
+	}
+	result := make([]Fee, 0, len(fees))
+	for _, f := range fees {
+		if feeMap, isMap := f.(map[string]any); isMap {
+			result = append(result, NewFee(feeMap))
+		}
+	}
+	return result
+}
 
 func NewTradeArray(trades2 any) []Trade {
 	var trades []any

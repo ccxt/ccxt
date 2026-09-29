@@ -101,10 +101,6 @@ const KEEP_PORT_ONLY: Record<string, string[]> = {
     'FundingHistory': [ 'Currency' ],
     'IsolatedBorrowRate': [ 'Rate' ],
     'Leverage': [ 'Leverage' ],
-    // keys outside the TS interface, kept for the map round trip (exchange_struct_returns.go)
-    'Ticker': [ 'extra' ],
-    'Trade': [ 'extra' ],
-    'Order': [ 'extra' ],
 };
 
 /**
@@ -117,14 +113,13 @@ const TYPE_OVERRIDES: Record<string, Record<string, string>> = {
     'Position': { 'Timestamp': '*float64', 'LastUpdateTimestamp': '*float64' },
     // TS `Num` but Go/C# hold it as an int (leverage tier levels)
     'LeverageTier': { 'Tier': '*int64' },
+    // TS `info: any`: the raw response may be a list or a string (bitfinex, kraken, digifinex)
+    'Ticker': { 'Info': 'any' },
+    'Trade': { 'Info': 'any' },
+    'Order': { 'Info': 'any' },
 };
 
-const PLAIN_ACCESSOR = /^(?:Safe(?:Float|Int64|String|Bool)Typed\(\s*\w+\s*,\s*(?:"[^"]*"|\d+)\s*\)|GetInfo\(\s*\w+\s*\)|GetInfoWithExtra\(\s*\w+(?:\s*,\s*"[^"]*")*\s*\))$/;
-
-/** structs whose constructor copies undeclared payload keys under Info (the exchange's own info keys win), like C# infoExtra */
-const INFO_EXTRA: Record<string, boolean> = {
-    'Ticker': true,
-};
+const PLAIN_ACCESSOR = /^(?:Safe(?:Float|Int64|String|Bool)Typed\(\s*\w+\s*,\s*(?:"[^"]*"|\d+)\s*\)|GetInfo\(\s*\w+\s*\))$/;
 
 const PLAIN_STRING_KEY_ACCESSOR = /^(Safe(?:Float|Int64|String|Bool)Typed\(\s*\w+\s*,\s*")([^"]*)("\s*\))$/;
 
@@ -620,7 +615,7 @@ function planInterface (ir: TypesIR, goName: string, type: IRType, learned: Lear
             continue;
         }
         const isInfo = tsName === 'info';
-        const learnedExpr = (isInfo && INFO_EXTRA[goName]) ? undefined : learnedExprs[fieldName];
+        const learnedExpr = learnedExprs[fieldName];
         const typeChanged = learnedType !== undefined && learnedType !== goType;
         let expr: string | undefined = undefined;
         if (learnedExpr !== undefined && !PLAIN_ACCESSOR.test (learnedExpr)) {
@@ -634,9 +629,6 @@ function planInterface (ir: TypesIR, goName: string, type: IRType, learned: Lear
             // the type changed (drift fix) or there is no learned expression — the
             // accessor must be regenerated from the NEW type
             expr = defaultExpr (goType, tsName, accessor, isInfo, helpers);
-            if (isInfo && INFO_EXTRA[goName] && expr !== undefined) {
-                expr = 'GetInfoWithExtra(' + accessor + type.fields.filter ((f) => tsFieldName (f) !== 'info').map ((f) => ', "' + tsFieldName (f) + '"').join ('') + ')';
-            }
             if (expr === undefined) {
                 expr = learnedExpr;
             }

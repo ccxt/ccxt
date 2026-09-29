@@ -141,6 +141,7 @@ class Trade(TypedDict):
     takerOrMaker: Str
     cost: Num
     fee: Fee
+    fees: list[Fee]
 
 
 class Position(TypedDict):
@@ -222,8 +223,12 @@ class Order(TypedDict):
     cost: Num
     trades: list[Trade]
     fee: Fee
+    fees: list[Fee]
     reduceOnly: Bool
     postOnly: Bool
+    marginMode: Str
+    leverage: Num
+    hedged: Bool
     info: dict[str, Any]
 
 
