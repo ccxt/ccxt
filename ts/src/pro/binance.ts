@@ -4702,8 +4702,12 @@ export default class binance extends binanceRest {
         } else if (executionType === 'TRADE') {
             lastTradeTimestamp = T;
         }
-        if (timestamp === undefined) {
-            timestamp = T; // ALGO_UPDATE carries no execution type and no order time
+        const isAlgoOrder = ('aid' in order); // the ALGO_UPDATE payload carries the algo id, but no execution type (x) and no order time (O)
+        if (isAlgoOrder && (timestamp === undefined)) {
+            const algoStatus = this.safeString (order, 'X');
+            if ((algoStatus === 'NEW') || (algoStatus === 'CANCELED')) {
+                timestamp = T;
+            }
         }
         const lastUpdateTimestamp = T;
         let fee: FeeString = undefined;
