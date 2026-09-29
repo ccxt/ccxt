@@ -988,8 +988,8 @@ public class Mexc extends MexcApi
                 put( "trading", new HashMap<String, Object>() {{
                     put( "tierBased", false );
                     put( "percentage", true );
-                    put( "maker", Mexc.this.parseNumber("0.002") );
-                    put( "taker", Mexc.this.parseNumber("0.002") );
+                    put( "maker", Mexc.this.parseNumber("0.00") );
+                    put( "taker", Mexc.this.parseNumber("0.0005") );
                 }} );
             }} );
             put( "options", new HashMap<String, Object>() {{
