@@ -5453,6 +5453,7 @@ Most of methods returning orders within ccxt unified API will yield an order str
 ```
 
 - The `status` of an order is usually either `'open'` (not filled or partially filled), `'closed'` (fully filled), or `'canceled'` (unfilled and canceled, or partially filled then canceled).
+- OKX algo orders are an exception: a `closed` status records that the algo lifecycle reached `effective`, and that closed lifecycle does not establish child execution. When the exchange omits the executed quantity, `filled`, `remaining`, and `cost` stay empty. Child order ids are left in `info` (`ordId`, `ordIdList`) and can be fetched separately.
 - Some exchanges allow the user to specify an expiration timestamp upon placing a new order. If the order is not filled by that time, its `status` becomes `'expired'`.
 - Use the `filled` value to determine if the order is filled, partially filled or fully filled, and by how much.
 - The work on `'fee'` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.
