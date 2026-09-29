@@ -1709,8 +1709,8 @@ impl MexcCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("tierBased".to_string(), Value::Bool(false));
         m.insert("percentage".to_string(), Value::Bool(true));
-        m.insert("maker".to_string(), self.parse_number(Value::Str("0.002".into()), &[]));
-        m.insert("taker".to_string(), self.parse_number(Value::Str("0.002".into()), &[]));
+        m.insert("maker".to_string(), self.parse_number(Value::Str("0.00".into()), &[]));
+        m.insert("taker".to_string(), self.parse_number(Value::Str("0.0005".into()), &[]));
     m
 }));
     m
