@@ -5,6 +5,7 @@ import testWsCacheNative from "./test.cacheNative.js";
 import testWsSingleFlight from "./test.singleFlight.js";
 import testWsSingleFlightWiring from "./test.singleFlightWiring.js";
 import testWsKeepAliveTimeout from "./test.keepAliveTimeout.js";
+import testWsLoadOrderBookResyncClose from "./test.loadOrderBookResyncClose.js";
 import testWsClientThrottleWiring from "./test.clientThrottleWiring.js";
 import testBingxOrderFreshness from "./test.bingxOrderFreshness.js";
 import testHyperliquidPendingUnsubscribe from "./test.pendingUnsubscribe.hyperliquid.js";
@@ -18,6 +19,7 @@ async function testBaseWs () {
     await testWsSingleFlight ();
     await testWsSingleFlightWiring ();
     await testWsKeepAliveTimeout ();
+    await testWsLoadOrderBookResyncClose ();
     await testWsClientThrottleWiring ();
     await testHyperliquidPendingUnsubscribe ();
 }
