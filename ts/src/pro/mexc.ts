@@ -819,11 +819,12 @@ export default class mexc extends mexcRest {
         }
         for (let i = 0; i < cache.length; i++) {
             const delta = cache[i];
-            const deltaNonce = this.safeIntegerN (delta, [ 'r', 'version', 'fromVersion' ]);
-            if (deltaNonce === undefined) {
+            // replay starts at the first push ending after the snapshot (toVersion > lastUpdateId)
+            const deltaEnd = this.safeIntegerN (delta, [ 'toVersion', 'version', 'r' ]);
+            if (deltaEnd === undefined) {
                 continue;
             }
-            if (deltaNonce >= nonce) {
+            if (deltaEnd > nonce) {
                 return i;
             }
         }
@@ -956,13 +957,14 @@ export default class mexc extends mexcRest {
 
     override handleDelta (orderbook: any, delta: any) {
         const existingNonce = this.safeInteger (orderbook, 'nonce');
-        const deltaNonce = this.safeIntegerN (delta, [ 'r', 'version', 'fromVersion' ]);
-        if ((deltaNonce !== undefined) && (existingNonce !== undefined) && (deltaNonce < existingNonce)) {
+        // the local version is the push's toVersion; a push is stale only if it ends at or before it
+        const deltaEnd = this.safeIntegerN (delta, [ 'toVersion', 'version', 'r' ]);
+        if ((deltaEnd !== undefined) && (existingNonce !== undefined) && (deltaEnd <= existingNonce)) {
             // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
             // so, we just skip old updates
             return;
         }
-        orderbook['nonce'] = deltaNonce;
+        orderbook['nonce'] = deltaEnd;
         const asks = this.safeList (delta, 'asks', []);
         const bids = this.safeList (delta, 'bids', []);
         const asksOrderSide = orderbook['asks'];
