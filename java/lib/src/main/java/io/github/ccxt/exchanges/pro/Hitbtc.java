@@ -166,9 +166,10 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             }
             symbols = this.marketSymbols(symbols);
             Boolean isBatch = ((String)name).indexOf("batch") >= 0;
+            Boolean resolvedPerSymbol = !Boolean.TRUE.equals(isBatch) || (java.util.Objects.equals(messageHashPrefix, "orderbooks")); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            if (!java.util.Objects.equals(symbols, null) && !Boolean.TRUE.equals(isBatch))
+            if (!java.util.Objects.equals(symbols, null) && Boolean.TRUE.equals(resolvedPerSymbol))
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
@@ -178,13 +179,17 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 ((List<Object>)messageHashes).add(messageHashPrefix);
             }
+            Object requestId = this.incrementingNonce();
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
-                put( "id", Hitbtc.this.incrementingNonce() );
+                put( "id", requestId );
                 put( "ch", name );
             }};
             Map<String, Object> request = this.extend(subscribe, parameters);
-            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "id", requestId );
+            }};
+            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, subscription)).join();
         });
 
     }
@@ -215,12 +220,16 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 messageHash = ((messageHash + "::") + symbol);
             }
+            Object requestId = this.incrementingNonce();
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", name );
                 put( "params", parameters );
-                put( "id", Hitbtc.this.incrementingNonce() );
+                put( "id", requestId );
             }};
-            return (this.watch(url, messageHash, subscribe, messageHash, null)).join();
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "id", requestId );
+            }};
+            return (this.watch(url, messageHash, subscribe, messageHash, subscription)).join();
         });
 
     }
@@ -281,14 +290,15 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook");
             String defaultMethod = this.safeString(options, "method", "orderbook/full");
             Object name = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
-            String depth = this.safeString(parameters, "depth", "20");
-            String speed = this.safeString(parameters, "depth", "100");
+            String depthValue = this.safeString(parameters, "depth", "20"); // not named depth: the php transpiler would turn the '{depth}' literals into '{$depth}'
+            String speedValue = this.safeString(parameters, "speed", "100"); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "defaultMethod", "depth", "speed")));
             if (java.util.Objects.equals(name, "orderbook/{depth}/{speed}"))
             {
-                name = (((("orderbook/D" + depth) + "/") + speed) + "ms");
+                name = (((("orderbook/D" + depthValue) + "/") + speedValue) + "ms");
             } else if (java.util.Objects.equals(name, "orderbook/{depth}/{speed}/batch"))
             {
-                name = (((("orderbook/D" + depth) + "/") + speed) + "ms/batch");
+                name = (((("orderbook/D" + depthValue) + "/") + speedValue) + "ms/batch");
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -327,8 +337,22 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //        }
         //    }
         //
-        Map<String, Object> snapshot = (Map<String, Object>) this.safeDict(message, "snapshot");
-        Object data = this.safeDict2(message, "snapshot", "update", new HashMap<String, Object>() {{}});
+        // partial orderbook ('orderbook/D{depth}/{speed}ms' and its '/batch' variant), every message is a full top-N snapshot
+        //
+        //    {
+        //        "ch": "orderbook/D5/500ms",
+        //        "data": {
+        //            "BTCUSDT": {
+        //                "t": 1790511595279,
+        //                "s": 1520022,
+        //                "a": [ [ "85025.97", "0.00732" ], [ "85037.31", "0.03659" ] ],
+        //                "b": [ [ "84995.48", "0.02769" ], [ "84994.29", "0.00724" ] ]
+        //            }
+        //        }
+        //    }
+        //
+        Object snapshot = this.safeDict2(message, "snapshot", "data");
+        Object data = (((!java.util.Objects.equals(snapshot, null)))) ? snapshot : this.safeDict(message, "update", new HashMap<String, Object>() {{}});
         String type = (((!java.util.Objects.equals(snapshot, null) && !java.util.Objects.equals(snapshot, null)))) ? "snapshot" : "update";
         List<Object> marketIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
@@ -402,7 +426,9 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         return BaseExchange.supplyAsync(() -> {
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object ticker = (this.watchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
+            Object ticker = (this.watchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(this.extend(parameters, new HashMap<String, Object>() {{
+                put( "callerMethodName", "watchTicker" );
+            }})))).join();
             return this.safeValue(ticker, symbol);
         }).thenApply(Ticker::new);
 
@@ -410,13 +436,17 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
 
     /**
      * @method
-     * @name hitbtc#watchTicker
-     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @param {string[]} [symbols]
-     * @param {object} params extra parameters specific to the exchange API endpoint
-     * @param {string} params.method 'ticker/{speed}' ,'ticker/price/{speed}', 'ticker/{speed}/batch' (default), or 'ticker/{speed}/price/batch''
-     * @param {string} params.speed '1s' (default), or '3s'
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+     * @name hitbtc#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://api.hitbtc.com/#subscribe-to-ticker
+     * @see https://api.hitbtc.com/#subscribe-to-ticker-in-batches
+     * @see https://api.hitbtc.com/#subscribe-to-mini-ticker
+     * @see https://api.hitbtc.com/#subscribe-to-mini-ticker-in-batches
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the tickers for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] 'ticker/{speed}' (default), 'ticker/price/{speed}', 'ticker/{speed}/batch', or 'ticker/price/{speed}/batch'
+     * @param {string} [params.speed] '1s' (default), or '3s'
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
@@ -430,14 +460,18 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchTicker");
+            String methodName = null;
+            List<Object> methodNameparametersVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchTickers");
+            methodName = (String) ((List<Object>) methodNameparametersVariable).get(0);
+            parameters = ((List<Object>) methodNameparametersVariable).get(1); // watchTicker passes its own name, so options.watchTicker still applies to it
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, methodName);
             String defaultMethod = this.safeString(options, "method", "ticker/{speed}/batch");
             String method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
-            String speed = this.safeString(parameters, "speed", "1s");
+            String speedValue = this.safeString(parameters, "speed", "1s"); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
             Object name = this.implodeParams(method, new HashMap<String, Object>() {{
-                put( "speed", speed );
+                put( "speed", speedValue );
             }});
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "speed")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "defaultMethod", "speed")));
             List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(symbols, null))
             {
@@ -596,7 +630,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
      * @see https://api.hitbtc.com/#subscribe-to-top-of-book
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.method] 'orderbook/top/{speed}' or 'orderbook/top/{speed}/batch (default)'
+     * @param {string} [params.method] 'orderbook/top/{speed}' (default) or 'orderbook/top/{speed}/batch'
      * @param {string} [params.speed] '100ms' (default) or '500ms' or '1000ms'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -615,11 +649,11 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBidsAsks");
             String defaultMethod = this.safeString(options, "method", "orderbook/top/{speed}/batch");
             String method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
-            String speed = this.safeString(parameters, "speed", "100ms");
+            String speedValue = this.safeString(parameters, "speed", "100ms"); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
             Object name = this.implodeParams(method, new HashMap<String, Object>() {{
-                put( "speed", speed );
+                put( "speed", speedValue );
             }});
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "speed")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "defaultMethod", "speed")));
             Object marketIds = this.marketIds(symbols);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "params", new HashMap<String, Object>() {{
@@ -1249,7 +1283,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             put( "side", Hitbtc.this.safeStringUpper(order, "side") );
             put( "timeInForce", Hitbtc.this.safeString(order, "time_in_force") );
             put( "postOnly", Hitbtc.this.safeString(order, "post_only") );
-            put( "reduceOnly", Hitbtc.this.safeValue(order, "reduce_only") );
+            put( "reduceOnly", Hitbtc.this.safeBool(order, "reduce_only") );
             put( "filled", null );
             put( "remaining", null );
             put( "cost", null );
@@ -1541,7 +1575,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         String messageHash = this.safeString(message, "method");
-        Object parameters = this.safeValue(message, "params");
+        List<Object> parameters = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> balance = (Map<String, Object>) this.parseBalance(parameters);
         this.balance = this.deepExtend(this.balance, balance);
         client.resolve(this.balance, messageHash);
@@ -1711,7 +1745,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         {
             try
             {
-                Object code = this.safeValue(error, "code");
+                String code = this.safeString(error, "code");
                 String errorMessage = this.safeString(error, "message");
                 String description = this.safeString(error, "description");
                 Object feedback = ((this.id + " ") + description);
@@ -1720,6 +1754,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 throw new ExchangeError((String)feedback) ;
             } catch(Exception e)
             {
+                String id = this.safeString(message, "id");
                 if (Helpers.isInstance(e, AuthenticationError.class))
                 {
                     String messageHash = "authenticated";
@@ -1730,8 +1765,21 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                     }
                 } else
                 {
-                    String id = this.safeString(message, "id");
-                    client.reject(e, id);
+                    client.reject(e, id); // trade requests use the request id as the message hash
+                }
+                // subscriptions keep the request id, reject the futures waiting for a subscription refused by the exchange,
+                // authentication errors included: a private channel the api key has no access to is refused with 1003
+                // the login request has no id, so a login error matches no subscription
+                List<Object> subscriptionHashes = Helpers.objectKeys(client.subscriptions);
+                for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
+                {
+                    Object subscriptionHash = (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i));
+                    String subscriptionId = this.safeString(Helpers.GetValue(client.subscriptions, subscriptionHash), "id");
+                    if ((!java.util.Objects.equals(subscriptionId, null)) && (java.util.Objects.equals(subscriptionId, id)))
+                    {
+                        client.reject(e, subscriptionHash);
+                        ((Map<String,Object>)client.subscriptions).remove((String)subscriptionHash); // so a retry sends the subscribe request again
+                    }
                 }
                 return true;
             }

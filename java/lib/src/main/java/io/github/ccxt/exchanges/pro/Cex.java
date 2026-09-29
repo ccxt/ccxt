@@ -1248,7 +1248,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         if (!Helpers.isEqual(incrementalId, Helpers.add(((Map<String, Object>)storedOrderBook).get("nonce"), 1)))
         {
             ((Map<String,Object>)client.subscriptions).remove(messageHash);
-            client.reject((this.id + " watchOrderBook() skipped a message"), messageHash);
+            var error = new InvalidNonce((this.id + " watchOrderBook() skipped a message"));
+            client.reject(error, messageHash);
             return;
         }
         Long timestamp = this.safeInteger(data, "time");
