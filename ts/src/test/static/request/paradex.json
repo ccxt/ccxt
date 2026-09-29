@@ -108,6 +108,40 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "swap +since +limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.prod.paradex.trade/v1/markets/klines?resolution=60&symbol=BTC-USD-PERP&start_at=1790600000000&end_at=1790610799999",
+                "input": [
+                    "BTC/USD:USDC",
+                    "1h",
+                    1790600000000,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "swap +since",
+                "method": "fetchOHLCV",
+                "url": "https://api.prod.paradex.trade/v1/markets/klines?resolution=60&symbol=BTC-USD-PERP&start_at=1790600000000&end_at=1790963599999",
+                "input": [
+                    "BTC/USD:USDC",
+                    "1h",
+                    1790600000000
+                ],
+                "output": null
+            },
+            {
+                "disabled": true,
+                "description": "swap (disabled bcz of dynamic since)",
+                "method": "fetchOHLCV",
+                "url": "https://api.prod.paradex.trade/v1/markets/klines?resolution=1&symbol=BTC-USD-PERP&end_at=1790685798616&start_at=1790679738617",
+                "input": [
+                    "BTC/USD:USDC",
+                    "1m"
+                ],
+                "output": null
+            },
+            {
                 "description": "mark ohlcv",
                 "method": "fetchOHLCV",
                 "url": "https://api.prod.paradex.trade/v1/markets/klines?resolution=60&symbol=BTC-USD-PERP&price_kind=mark&end_at=1764326287714&start_at=1763962687715",

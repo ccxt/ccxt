@@ -860,22 +860,22 @@ export default class paradex extends Exchange {
         if (price !== undefined) {
             request['price_kind'] = price;
         }
-        request = this.handleUntilOption ('end_at', request, params);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_at', request, params);
         const hasEnd = ('end_at' in request);
-        const paramsOmitted: Dict = this.omit (params, [ 'until', 'till', 'price' ]);
+        const paramsOmitted: Dict = this.omit (paramsUntil, [ 'price' ]);
         const limitResolved = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
         if (since !== undefined) {
-            request['start_at'] = since;
+            requestUntil['start_at'] = since;
             if (!hasEnd) {
-                request['end_at'] = since + duration * (limitResolved + 1) * 1000 - 1;
+                requestUntil['end_at'] = since + duration * (limitResolved + 1) * 1000 - 1;
             }
         } else {
             if (!hasEnd) {
-                request['end_at'] = this.milliseconds ();
+                requestUntil['end_at'] = this.milliseconds ();
             }
-            request['start_at'] = request['end_at'] - duration * (limitResolved + 1) * 1000 + 1;
+            requestUntil['start_at'] = requestUntil['end_at'] - duration * (limitResolved + 1) * 1000 + 1;
         }
-        const response = await this.publicGetMarketsKlines (this.extend (request, paramsOmitted));
+        const response = await this.publicGetMarketsKlines (this.extend (requestUntil, paramsOmitted));
         //
         //     {
         //         "results": [
