@@ -2837,6 +2837,55 @@ function goOperatorGluesTokens (operator: string, right: string): boolean {
         (pair === '++') || (pair === '--');
 }
 
+// go/printer never doubles grouping parens: a ParenExpr whose operand is itself a ParenExpr
+// prints its operand only, so `((a == b))` comes out `(a == b)`; call/conversion parens are kept
+const GO_PAREN_KEYWORDS = new Set ([ 'if', 'for', 'switch', 'return', 'case', 'go', 'defer', 'range' ]);
+function goGofmtNestedParens (content: string): string {
+    if (content.indexOf ('((') < 0) {
+        return content;
+    }
+    const match = new Map<number, number> ();
+    const stack: number[] = [];
+    for (let i = 0; i < content.length; i++) {
+        const char = content[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            i = goSkipLiteralText (content, i);
+        } else if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
+            i = goSkipCommentText (content, i);
+        } else if (char === '(') {
+            stack.push (i);
+        } else if (char === ')' && stack.length > 0) {
+            match.set (stack.pop (), i);
+        }
+    }
+    const drop = new Set<number> ();
+    for (const [ open, close ] of match) {
+        if ((content[open + 1] !== '(') || (match.get (open + 1) !== close - 1)) {
+            continue;
+        }
+        let k = open - 1;
+        while ((k >= 0) && (content[k] === ' ' || content[k] === '\t')) {
+            k -= 1;
+        }
+        const word = /(\w+)$/.exec (content.slice (Math.max (0, k - 15), k + 1));
+        if ((k >= 0) && GO_OPERAND_ENDER.test (content[k]) && !((word !== null) && GO_PAREN_KEYWORDS.has (word[1]))) {
+            continue;                     // outer is a call/conversion paren: keep it
+        }
+        drop.add (open + 1);
+        drop.add (close - 1);
+    }
+    if (drop.size === 0) {
+        return content;
+    }
+    let out = '';
+    for (let i = 0; i < content.length; i++) {
+        if (!drop.has (i)) {
+            out += content[i];
+        }
+    }
+    return out;
+}
+
 // index of the last byte of the Go literal that starts at `index`
 function goSkipLiteralText (content: string, index: number): number {
     const quote = content[index];
@@ -3951,7 +4000,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     // parens of that form are exactly the ones gofmt's stripParens() takes off a control
     // expression - so the spacing pass runs once more over its output
     // market-row reads run after dropNoOpMapTyped so `MapTyped(this.Market(..))` writes read as rows
-    content = goGofmtSplicedText (g10kIsEqualNative (h2kG16NativeStringHelpers (path, nativeMarketRowReads (dropNoOpMapTyped (goSafeDictMapReads (g10kMaplistOmitOfTupleMaps (goOmitDictOfTypedMaps (goEndpointCheckedReceives (content)))))))));
+    content = goGofmtSplicedText (goGofmtNestedParens (g10kIsEqualNative (h2kG16NativeStringHelpers (path, nativeMarketRowReads (dropNoOpMapTyped (goSafeDictMapReads (g10kMaplistOmitOfTupleMaps (goOmitDictOfTypedMaps (goEndpointCheckedReceives (content))))))))));
     content = g10kGvMapReads (content);
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
@@ -6187,7 +6236,7 @@ ${constStatements.join('\n')}
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
-            fs.writeFileSync (goPredictionBase, goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file))))))));
+            fs.writeFileSync (goPredictionBase, goGofmtSplicedText (goGofmtNestedParens (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file))))))))));
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
