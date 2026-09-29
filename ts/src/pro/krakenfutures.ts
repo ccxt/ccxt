@@ -568,11 +568,14 @@ export default class krakenfutures extends krakenfuturesRest {
             const market = this.market (marketId);
             const symbol = market['symbol'];
             const messageHash = this.getMessageHash ('trade', undefined, symbol);
-            if (this.safeList (this.trades, symbol) === undefined) {
+            // safeValue, not safeList: the values are ArrayCache instances, and
+            // the typed accessor casts them to a plain list in c#, which throws
+            let tradesArray = this.safeValue (this.trades, symbol);
+            if (tradesArray === undefined) {
                 const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                this.trades[symbol] = new ArrayCache (tradesLimit);
+                tradesArray = new ArrayCache (tradesLimit);
+                this.trades[symbol] = tradesArray;
             }
-            const tradesArray = this.trades[symbol];
             if (channel === 'trade_snapshot') {
                 const trades = this.safeList (message, 'trades', []);
                 const length = trades.length;
