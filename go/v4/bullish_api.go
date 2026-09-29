@@ -8,361 +8,361 @@
 package ccxt
 
 // PublicGetV1Nonce returns a channel that yields a JSON object.
-func (this *Bullish) PublicGetV1Nonce(args ...any) <-chan any {
-	return this.Fetch2Async("v1/nonce", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1Nonce(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/nonce", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1Time returns a channel that yields a JSON object.
-func (this *Bullish) PublicGetV1Time(args ...any) <-chan any {
-	return this.Fetch2Async("v1/time", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1Time(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/time", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1Assets returns a channel that yields a JSON array.
-func (this *Bullish) PublicGetV1Assets(args ...any) <-chan any {
-	return this.Fetch2Async("v1/assets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1Assets(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/assets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1AssetsSymbol returns a channel that yields a JSON object.
-func (this *Bullish) PublicGetV1AssetsSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v1/assets/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1AssetsSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/assets/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1VolGrids returns a channel that yields a JSON array.
-func (this *Bullish) PublicGetV1VolGrids(args ...any) <-chan any {
-	return this.Fetch2Async("v1/vol-grids", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1VolGrids(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/vol-grids", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1AssetsSymbolVolGrid returns a channel that yields a JSON object.
-func (this *Bullish) PublicGetV1AssetsSymbolVolGrid(args ...any) <-chan any {
-	return this.Fetch2Async("v1/assets/{symbol}/vol-grid", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1AssetsSymbolVolGrid(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/assets/{symbol}/vol-grid", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1Markets returns a channel that yields a JSON array.
-func (this *Bullish) PublicGetV1Markets(args ...any) <-chan any {
-	return this.Fetch2Async("v1/markets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1Markets(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/markets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1MarketsSymbol returns a channel that yields a JSON object.
-func (this *Bullish) PublicGetV1MarketsSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v1/markets/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1MarketsSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/markets/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1HistoryMarkets returns a channel that yields a JSON array.
-func (this *Bullish) PublicGetV1HistoryMarkets(args ...any) <-chan any {
-	return this.Fetch2Async("v1/history/markets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1HistoryMarkets(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/history/markets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1HistoryMarketsSymbol returns a channel that yields a JSON object.
-func (this *Bullish) PublicGetV1HistoryMarketsSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v1/history/markets/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1HistoryMarketsSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/history/markets/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1MarketsSymbolOrderbookHybrid returns a channel that yields a JSON object.
-func (this *Bullish) PublicGetV1MarketsSymbolOrderbookHybrid(args ...any) <-chan any {
-	return this.Fetch2Async("v1/markets/{symbol}/orderbook/hybrid", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1MarketsSymbolOrderbookHybrid(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/markets/{symbol}/orderbook/hybrid", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1MarketsSymbolTrades returns a channel that yields a JSON array.
-func (this *Bullish) PublicGetV1MarketsSymbolTrades(args ...any) <-chan any {
-	return this.Fetch2Async("v1/markets/{symbol}/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1MarketsSymbolTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/markets/{symbol}/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1MarketsSymbolTick returns a channel that yields a JSON object.
-func (this *Bullish) PublicGetV1MarketsSymbolTick(args ...any) <-chan any {
-	return this.Fetch2Async("v1/markets/{symbol}/tick", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1MarketsSymbolTick(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/markets/{symbol}/tick", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1MarketsSymbolCandle returns a channel that yields a JSON array.
-func (this *Bullish) PublicGetV1MarketsSymbolCandle(args ...any) <-chan any {
-	return this.Fetch2Async("v1/markets/{symbol}/candle", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1MarketsSymbolCandle(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/markets/{symbol}/candle", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1MarketsSymbolAuctions returns a channel that yields a JSON object.
-func (this *Bullish) PublicGetV1MarketsSymbolAuctions(args ...any) <-chan any {
-	return this.Fetch2Async("v1/markets/{symbol}/auctions", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1MarketsSymbolAuctions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/markets/{symbol}/auctions", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1MarketsSymbolAuctionsNoii returns a channel that yields a JSON object.
-func (this *Bullish) PublicGetV1MarketsSymbolAuctionsNoii(args ...any) <-chan any {
-	return this.Fetch2Async("v1/markets/{symbol}/auctions/noii", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1MarketsSymbolAuctionsNoii(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/markets/{symbol}/auctions/noii", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1HistoryMarketsSymbolTrades returns a channel that yields a JSON array.
-func (this *Bullish) PublicGetV1HistoryMarketsSymbolTrades(args ...any) <-chan any {
-	return this.Fetch2Async("v1/history/markets/{symbol}/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1HistoryMarketsSymbolTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/history/markets/{symbol}/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1HistoryMarketsSymbolFundingRate returns a channel that yields a JSON array.
-func (this *Bullish) PublicGetV1HistoryMarketsSymbolFundingRate(args ...any) <-chan any {
-	return this.Fetch2Async("v1/history/markets/{symbol}/funding-rate", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1HistoryMarketsSymbolFundingRate(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/history/markets/{symbol}/funding-rate", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1HistoryMarketsSymbolAuctions returns a channel that yields a JSON array.
-func (this *Bullish) PublicGetV1HistoryMarketsSymbolAuctions(args ...any) <-chan any {
-	return this.Fetch2Async("v1/history/markets/{symbol}/auctions", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1HistoryMarketsSymbolAuctions(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/history/markets/{symbol}/auctions", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1HistoryOptionTrades returns a channel that yields a JSON array.
-func (this *Bullish) PublicGetV1HistoryOptionTrades(args ...any) <-chan any {
-	return this.Fetch2Async("v1/history/option-trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1HistoryOptionTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/history/option-trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1IndexPrices returns a channel that yields a JSON array.
-func (this *Bullish) PublicGetV1IndexPrices(args ...any) <-chan any {
-	return this.Fetch2Async("v1/index-prices", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1IndexPrices(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/index-prices", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1IndexPricesAssetSymbol returns a channel that yields a JSON object.
-func (this *Bullish) PublicGetV1IndexPricesAssetSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v1/index-prices/{assetSymbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1IndexPricesAssetSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/index-prices/{assetSymbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1ExpiryPricesSymbol returns a channel that yields a JSON object.
-func (this *Bullish) PublicGetV1ExpiryPricesSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v1/expiry-prices/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1ExpiryPricesSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/expiry-prices/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1OptionLadder returns a channel that yields a JSON array.
-func (this *Bullish) PublicGetV1OptionLadder(args ...any) <-chan any {
-	return this.Fetch2Async("v1/option-ladder", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1OptionLadder(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/option-ladder", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1OptionLadderSymbol returns a channel that yields a JSON object.
-func (this *Bullish) PublicGetV1OptionLadderSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v1/option-ladder/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PublicGetV1OptionLadderSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/option-ladder/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2Orders returns a channel that yields a JSON array.
-func (this *Bullish) PrivateGetV2Orders(args ...any) <-chan any {
-	return this.Fetch2Async("v2/orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV2Orders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v2/orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2HistoryOrders returns a channel that yields a JSON array.
-func (this *Bullish) PrivateGetV2HistoryOrders(args ...any) <-chan any {
-	return this.Fetch2Async("v2/history/orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV2HistoryOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v2/history/orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2OrdersOrderId returns a channel that yields a JSON object.
-func (this *Bullish) PrivateGetV2OrdersOrderId(args ...any) <-chan any {
-	return this.Fetch2Async("v2/orders/{orderId}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV2OrdersOrderId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v2/orders/{orderId}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2OrdersClientOrderIdClientOrderId returns a channel that yields a JSON object.
-func (this *Bullish) PrivateGetV2OrdersClientOrderIdClientOrderId(args ...any) <-chan any {
-	return this.Fetch2Async("v2/orders/client-order-id/{clientOrderId}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV2OrdersClientOrderIdClientOrderId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v2/orders/client-order-id/{clientOrderId}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2AmmInstructions returns a channel that yields a JSON array.
-func (this *Bullish) PrivateGetV2AmmInstructions(args ...any) <-chan any {
-	return this.Fetch2Async("v2/amm-instructions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV2AmmInstructions(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v2/amm-instructions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2AmmInstructionsInstructionId returns a channel that yields a JSON object.
-func (this *Bullish) PrivateGetV2AmmInstructionsInstructionId(args ...any) <-chan any {
-	return this.Fetch2Async("v2/amm-instructions/{instructionId}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV2AmmInstructionsInstructionId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v2/amm-instructions/{instructionId}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1WalletsTransactions returns a channel that yields a JSON object.
-func (this *Bullish) PrivateGetV1WalletsTransactions(args ...any) <-chan any {
-	return this.Fetch2Async("v1/wallets/transactions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV1WalletsTransactions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/wallets/transactions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1WalletsLimitsSymbol returns a channel that yields a JSON object.
-func (this *Bullish) PrivateGetV1WalletsLimitsSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v1/wallets/limits/{symbol}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV1WalletsLimitsSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/wallets/limits/{symbol}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1WalletsDepositInstructionsCryptoSymbol returns a channel that yields a JSON array.
-func (this *Bullish) PrivateGetV1WalletsDepositInstructionsCryptoSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v1/wallets/deposit-instructions/crypto/{symbol}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV1WalletsDepositInstructionsCryptoSymbol(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/wallets/deposit-instructions/crypto/{symbol}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1WalletsWithdrawalInstructionsCryptoSymbol returns a channel that yields a JSON array.
-func (this *Bullish) PrivateGetV1WalletsWithdrawalInstructionsCryptoSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v1/wallets/withdrawal-instructions/crypto/{symbol}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV1WalletsWithdrawalInstructionsCryptoSymbol(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/wallets/withdrawal-instructions/crypto/{symbol}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1WalletsDepositInstructionsFiatSymbol returns a channel that yields a JSON array.
-func (this *Bullish) PrivateGetV1WalletsDepositInstructionsFiatSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v1/wallets/deposit-instructions/fiat/{symbol}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV1WalletsDepositInstructionsFiatSymbol(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/wallets/deposit-instructions/fiat/{symbol}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1WalletsWithdrawalInstructionsFiatSymbol returns a channel that yields a JSON array.
-func (this *Bullish) PrivateGetV1WalletsWithdrawalInstructionsFiatSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v1/wallets/withdrawal-instructions/fiat/{symbol}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV1WalletsWithdrawalInstructionsFiatSymbol(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/wallets/withdrawal-instructions/fiat/{symbol}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1WalletsSelfHostedVerificationAttempts returns a channel that yields a JSON array.
-func (this *Bullish) PrivateGetV1WalletsSelfHostedVerificationAttempts(args ...any) <-chan any {
-	return this.Fetch2Async("v1/wallets/self-hosted/verification-attempts", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV1WalletsSelfHostedVerificationAttempts(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/wallets/self-hosted/verification-attempts", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1Trades returns a channel that yields a JSON array.
-func (this *Bullish) PrivateGetV1Trades(args ...any) <-chan any {
-	return this.Fetch2Async("v1/trades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bullish) PrivateGetV1Trades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/trades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetV1HistoryTrades returns a channel that yields a JSON array.
-func (this *Bullish) PrivateGetV1HistoryTrades(args ...any) <-chan any {
-	return this.Fetch2Async("v1/history/trades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bullish) PrivateGetV1HistoryTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/history/trades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetV1TradesTradeId returns a channel that yields a JSON object.
-func (this *Bullish) PrivateGetV1TradesTradeId(args ...any) <-chan any {
-	return this.Fetch2Async("v1/trades/{tradeId}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bullish) PrivateGetV1TradesTradeId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/trades/{tradeId}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetV1TradesClientOrderIdClientOrderId returns a channel that yields a JSON array.
-func (this *Bullish) PrivateGetV1TradesClientOrderIdClientOrderId(args ...any) <-chan any {
-	return this.Fetch2Async("v1/trades/client-order-id/{clientOrderId}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV1TradesClientOrderIdClientOrderId(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/trades/client-order-id/{clientOrderId}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1AccountsAsset returns a channel that yields a JSON array.
-func (this *Bullish) PrivateGetV1AccountsAsset(args ...any) <-chan any {
-	return this.Fetch2Async("v1/accounts/asset", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV1AccountsAsset(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/accounts/asset", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1AccountsAssetSymbol returns a channel that yields a JSON object.
-func (this *Bullish) PrivateGetV1AccountsAssetSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v1/accounts/asset/{symbol}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV1AccountsAssetSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/accounts/asset/{symbol}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1UsersLogout returns a channel that yields a JSON object.
-func (this *Bullish) PrivateGetV1UsersLogout(args ...any) <-chan any {
-	return this.Fetch2Async("v1/users/logout", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV1UsersLogout(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/users/logout", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1UsersHmacLogin returns a channel that yields a JSON object.
-func (this *Bullish) PrivateGetV1UsersHmacLogin(args ...any) <-chan any {
-	return this.Fetch2Async("v1/users/hmac/login", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV1UsersHmacLogin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/users/hmac/login", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1AccountsTradingAccounts returns a channel that yields a JSON array.
-func (this *Bullish) PrivateGetV1AccountsTradingAccounts(args ...any) <-chan any {
-	return this.Fetch2Async("v1/accounts/trading-accounts", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV1AccountsTradingAccounts(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/accounts/trading-accounts", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1AccountsTradingAccountsTradingAccountId returns a channel that yields a JSON object.
-func (this *Bullish) PrivateGetV1AccountsTradingAccountsTradingAccountId(args ...any) <-chan any {
-	return this.Fetch2Async("v1/accounts/trading-accounts/{tradingAccountId}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV1AccountsTradingAccountsTradingAccountId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/accounts/trading-accounts/{tradingAccountId}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1DerivativesPositions returns a channel that yields a JSON array.
-func (this *Bullish) PrivateGetV1DerivativesPositions(args ...any) <-chan any {
-	return this.Fetch2Async("v1/derivatives-positions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV1DerivativesPositions(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/derivatives-positions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1HistoryDerivativesSettlement returns a channel that yields a JSON array.
-func (this *Bullish) PrivateGetV1HistoryDerivativesSettlement(args ...any) <-chan any {
-	return this.Fetch2Async("v1/history/derivatives-settlement", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV1HistoryDerivativesSettlement(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/history/derivatives-settlement", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1HistoryTransfer returns a channel that yields a JSON array.
-func (this *Bullish) PrivateGetV1HistoryTransfer(args ...any) <-chan any {
-	return this.Fetch2Async("v1/history/transfer", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV1HistoryTransfer(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/history/transfer", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV1HistoryBorrowInterest returns a channel that yields a JSON array.
-func (this *Bullish) PrivateGetV1HistoryBorrowInterest(args ...any) <-chan any {
-	return this.Fetch2Async("v1/history/borrow-interest", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV1HistoryBorrowInterest(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/history/borrow-interest", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2MmpConfiguration returns a channel that yields a JSON object.
-func (this *Bullish) PrivateGetV2MmpConfiguration(args ...any) <-chan any {
-	return this.Fetch2Async("v2/mmp-configuration", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV2MmpConfiguration(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v2/mmp-configuration", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2OtcTrades returns a channel that yields a JSON array.
-func (this *Bullish) PrivateGetV2OtcTrades(args ...any) <-chan any {
-	return this.Fetch2Async("v2/otc-trades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV2OtcTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v2/otc-trades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2OtcTradesOtcTradeId returns a channel that yields a JSON object.
-func (this *Bullish) PrivateGetV2OtcTradesOtcTradeId(args ...any) <-chan any {
-	return this.Fetch2Async("v2/otc-trades/{otcTradeId}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV2OtcTradesOtcTradeId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v2/otc-trades/{otcTradeId}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2OtcTradesUnconfirmedTrade returns a channel that yields a JSON object.
-func (this *Bullish) PrivateGetV2OtcTradesUnconfirmedTrade(args ...any) <-chan any {
-	return this.Fetch2Async("v2/otc-trades/unconfirmed-trade", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV2OtcTradesUnconfirmedTrade(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v2/otc-trades/unconfirmed-trade", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2OtcTradesDelegatedAccounts returns a channel that yields a JSON array.
-func (this *Bullish) PrivateGetV2OtcTradesDelegatedAccounts(args ...any) <-chan any {
-	return this.Fetch2Async("v2/otc-trades/delegated-accounts", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV2OtcTradesDelegatedAccounts(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v2/otc-trades/delegated-accounts", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2IdbDelegatedAccounts returns a channel that yields a JSON array.
-func (this *Bullish) PrivateGetV2IdbDelegatedAccounts(args ...any) <-chan any {
-	return this.Fetch2Async("v2/idb/delegated-accounts", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV2IdbDelegatedAccounts(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v2/idb/delegated-accounts", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2IdbOtcTrades returns a channel that yields a JSON array.
-func (this *Bullish) PrivateGetV2IdbOtcTrades(args ...any) <-chan any {
-	return this.Fetch2Async("v2/idb/otc-trades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivateGetV2IdbOtcTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v2/idb/otc-trades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV2Orders returns a channel that yields a JSON object.
-func (this *Bullish) PrivatePostV2Orders(args ...any) <-chan any {
-	return this.Fetch2Async("v2/orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bullish) PrivatePostV2Orders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v2/orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostV2Command returns a channel that yields a JSON object.
-func (this *Bullish) PrivatePostV2Command(args ...any) <-chan any {
-	return this.Fetch2Async("v2/command", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bullish) PrivatePostV2Command(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v2/command", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostV2AmmInstructions returns a channel that yields a JSON object.
-func (this *Bullish) PrivatePostV2AmmInstructions(args ...any) <-chan any {
-	return this.Fetch2Async("v2/amm-instructions", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivatePostV2AmmInstructions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v2/amm-instructions", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1WalletsWithdrawal returns a channel that yields a JSON object.
-func (this *Bullish) PrivatePostV1WalletsWithdrawal(args ...any) <-chan any {
-	return this.Fetch2Async("v1/wallets/withdrawal", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivatePostV1WalletsWithdrawal(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/wallets/withdrawal", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV2UsersLogin returns a channel that yields a JSON object.
-func (this *Bullish) PrivatePostV2UsersLogin(args ...any) <-chan any {
-	return this.Fetch2Async("v2/users/login", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivatePostV2UsersLogin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v2/users/login", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1SimulatePortfolioMargin returns a channel that yields a JSON object.
-func (this *Bullish) PrivatePostV1SimulatePortfolioMargin(args ...any) <-chan any {
-	return this.Fetch2Async("v1/simulate-portfolio-margin", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivatePostV1SimulatePortfolioMargin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/simulate-portfolio-margin", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1BulkSimulatePortfolioMargin returns a channel that yields a JSON array.
-func (this *Bullish) PrivatePostV1BulkSimulatePortfolioMargin(args ...any) <-chan any {
-	return this.Fetch2Async("v1/bulk-simulate-portfolio-margin", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivatePostV1BulkSimulatePortfolioMargin(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/bulk-simulate-portfolio-margin", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1WalletsSelfHostedInitiate returns a channel that yields a JSON object.
-func (this *Bullish) PrivatePostV1WalletsSelfHostedInitiate(args ...any) <-chan any {
-	return this.Fetch2Async("v1/wallets/self-hosted/initiate", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivatePostV1WalletsSelfHostedInitiate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/wallets/self-hosted/initiate", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV2MmpConfiguration returns a channel that yields a JSON object.
-func (this *Bullish) PrivatePostV2MmpConfiguration(args ...any) <-chan any {
-	return this.Fetch2Async("v2/mmp-configuration", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivatePostV2MmpConfiguration(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v2/mmp-configuration", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV2OtcTrades returns a channel that yields a JSON object.
-func (this *Bullish) PrivatePostV2OtcTrades(args ...any) <-chan any {
-	return this.Fetch2Async("v2/otc-trades", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivatePostV2OtcTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v2/otc-trades", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV2OtcCommand returns a channel that yields a JSON object.
-func (this *Bullish) PrivatePostV2OtcCommand(args ...any) <-chan any {
-	return this.Fetch2Async("v2/otc-command", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivatePostV2OtcCommand(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v2/otc-command", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV2IdbOtcTrades returns a channel that yields a JSON object.
-func (this *Bullish) PrivatePostV2IdbOtcTrades(args ...any) <-chan any {
-	return this.Fetch2Async("v2/idb/otc-trades", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivatePostV2IdbOtcTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v2/idb/otc-trades", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV2IdbOtcCommand returns a channel that yields a JSON object.
-func (this *Bullish) PrivatePostV2IdbOtcCommand(args ...any) <-chan any {
-	return this.Fetch2Async("v2/idb/otc-command", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bullish) PrivatePostV2IdbOtcCommand(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v2/idb/otc-command", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
