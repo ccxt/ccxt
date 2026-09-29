@@ -808,6 +808,9 @@ export default class binance extends Exchange {
                         'openOrder': { 'cost': 1 } as Endpoint<Dict>,
                         'openOrders': { 'cost': 1, 'noSymbol': 5 } as Endpoint<List>,
                         'openAlgoOrders': { 'cost': 1, 'noSymbol': 40 } as Endpoint<List>,
+                        // algoOrder and allAlgoOrders exist on dapi like on fapi, verified live incl. the weights, they are missing from the documentation
+                        'algoOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'allAlgoOrders': { 'cost': 5 } as Endpoint<List>,
                         'allOrders': { 'cost': 5 } as Endpoint<List>,
                         'balance': { 'cost': 1 } as Endpoint<List>,
                         'account': { 'cost': 5 } as Endpoint<Dict>,
@@ -847,6 +850,8 @@ export default class binance extends Exchange {
                     'delete': {
                         'order': { 'cost': 1 } as Endpoint<Dict>,
                         'algoOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        // algoOpenOrders exists on dapi like on fapi, verified live incl. the weight, it is missing from the documentation
+                        'algoOpenOrders': { 'cost': 1 } as Endpoint<Dict>,
                         'allOpenOrders': { 'cost': 1 } as Endpoint<List>,
                         'batchOrders': { 'cost': 5 } as Endpoint<List>,
                         'listenKey': { 'cost': 1 } as Endpoint<Dict>,
@@ -7607,17 +7612,17 @@ export default class binance extends Exchange {
         const isOptionType = type === 'option';
         const isLinearType = this.isLinear (type, subType);
         const isInverseType = this.isInverse (type, subType);
-        const isLinearSwapConditional = isLinearType && (market !== undefined) && (market['swap'] === true) && (isConditional === true) && (isPortfolioMargin !== true);
+        const isContractConditional = (isLinearType || isInverseType) && (isConditional === true) && (isPortfolioMargin !== true);
         const clientOrderId = this.safeStringN (params, [ 'origClientOrderId', 'clientOrderId', 'clientAlgoId' ]);
         if (clientOrderId !== undefined) {
             if (isOptionType) {
                 request['clientOrderId'] = clientOrderId;
-            } else if (isLinearSwapConditional === true) {
+            } else if (isContractConditional === true) {
                 request['clientAlgoId'] = clientOrderId;
             } else {
                 request['origClientOrderId'] = clientOrderId;
             }
-        } else if (isLinearSwapConditional === true) {
+        } else if (isContractConditional === true) {
             request['algoId'] = id;
         } else {
             request['orderId'] = id;
@@ -7640,7 +7645,11 @@ export default class binance extends Exchange {
             if (isPortfolioMargin) {
                 response = await this.papiGetCmOrder (this.extend (request, params));
             } else {
-                response = await this.dapiPrivateGetOrder (this.extend (request, params));
+                if (isConditional === true) {
+                    response = await this.dapiPrivateGetAlgoOrder (this.extend (request, params));
+                } else {
+                    response = await this.dapiPrivateGetOrder (this.extend (request, params));
+                }
             }
         } else if ((type === 'margin') || (marginMode !== undefined) || isPortfolioMargin) {
             if (isPortfolioMargin) {
@@ -7772,7 +7781,11 @@ export default class binance extends Exchange {
                     response = await this.papiGetCmAllOrders (this.extend (request, params));
                 }
             } else {
-                response = await this.dapiPrivateGetAllOrders (this.extend (request, params));
+                if (isConditional === true) {
+                    response = await this.dapiPrivateGetAllAlgoOrders (this.extend (request, params));
+                } else {
+                    response = await this.dapiPrivateGetAllOrders (this.extend (request, params));
+                }
             }
         } else {
             if (isPortfolioMargin) {
@@ -8148,6 +8161,10 @@ export default class binance extends Exchange {
         const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
         params = this.omit (params, [ 'stop', 'trigger', 'conditional' ]);
         const isPortfolioMarginConditional = (isPortfolioMargin && isConditional);
+        if ((isConditional === true) && !isPortfolioMargin && ((market['swap'] === true) || (market['future'] === true))) {
+            // the algo order endpoints have no open-order-scoped single order query
+            throw new NotSupported (this.id + ' fetchOpenOrder() does not support conditional orders, use fetchOrder() or fetchOpenOrders() with the trigger param instead');
+        }
         const orderIdRequest = (isPortfolioMarginConditional === true) ? 'strategyId' : 'orderId';
         request[orderIdRequest] = id;
         let response: NullableDict = undefined;
@@ -8517,12 +8534,12 @@ export default class binance extends Exchange {
         const isOptionType = type === 'option';
         const isLinearType = this.isLinear (type, subType);
         const isInverseType = this.isInverse (type, subType);
-        const isSwapConditional = (market !== undefined) && (market['swap'] === true) && (isConditional === true) && (isPortfolioMargin !== true);
+        const isContractConditional = (market !== undefined) && ((market['swap'] === true) || (market['future'] === true)) && (isConditional === true) && (isPortfolioMargin !== true);
         const clientOrderId = this.safeStringN (params, [ 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'clientAlgoId' ]);
         if (clientOrderId !== undefined) {
             if (isOptionType) {
                 request['clientOrderId'] = clientOrderId;
-            } else if (isSwapConditional === true) {
+            } else if (isContractConditional === true) {
                 request['clientAlgoId'] = clientOrderId;
             } else {
                 if (isPortfolioMargin && (isConditional === true)) {
@@ -8534,7 +8551,7 @@ export default class binance extends Exchange {
         } else {
             if (isPortfolioMargin && (isConditional === true)) {
                 request['strategyId'] = id;
-            } else if (isSwapConditional === true) {
+            } else if (isContractConditional === true) {
                 request['algoId'] = id;
             } else {
                 request['orderId'] = id;
@@ -8713,7 +8730,11 @@ export default class binance extends Exchange {
                     //
                 }
             } else {
-                response = await this.dapiPrivateDeleteAllOpenOrders (this.extend (request, params));
+                if (isConditional === true) {
+                    response = await this.dapiPrivateDeleteAlgoOpenOrders (this.extend (request, params));
+                } else {
+                    response = await this.dapiPrivateDeleteAllOpenOrders (this.extend (request, params));
+                }
                 //
                 //    {
                 //        "code": 200,

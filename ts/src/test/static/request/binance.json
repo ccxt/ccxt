@@ -1113,6 +1113,18 @@
                 "output": null
             },
             {
+                "description": "cancel inverse future conditional order by id",
+                "method": "cancelOrder",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder?timestamp=1790658988106&symbol=ETHUSD_261225&algoId=1000000222434692&recvWindow=10000&signature=5f20585f4ac663d5f25bb18ff528f65ab7ca0476299dcba7adaf7a66c173675b",
+                "input": [
+                    "1000000222434692",
+                    "ETH/USD:ETH-261225",
+                    {
+                        "trigger": true
+                    }
+                ]
+            },
+            {
                 "description": "Swap cancelOrder",
                 "method": "cancelOrder",
                 "url": "https://testnet.binancefuture.com/fapi/v1/order?timestamp=1699382897679&symbol=LTCUSDT&orderId=652509009&recvWindow=10000&signature=02d0287d26b9b0603902e299840941f6738f9fbb3f497390b29d7077c42c318b",
@@ -1420,6 +1432,17 @@
                 "url": "https://demo-fapi.binance.com/fapi/v1/algoOpenOrders?timestamp=1764496137606&symbol=BTCUSDT&recvWindow=10000&signature=366e0bf8af3e3c266818c2c6e262122ac9621102b0b5fb98bd9e12364c24d752",
                 "input": [
                     "BTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ]
+            },
+            {
+                "description": "inverse swap trigger cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOpenOrders?timestamp=1790658986205&symbol=ETHUSD_PERP&recvWindow=10000&signature=b662aecb890da8878c029acf68a496e360584aaf2571b3d633a22bfbb4396471",
+                "input": [
+                    "ETH/USD:ETH",
                     {
                         "trigger": true
                     }
@@ -1767,6 +1790,19 @@
                 ]
             },
             {
+                "description": "inverse swap conditional fetchOrders",
+                "method": "fetchOrders",
+                "url": "https://demo-dapi.binance.com/dapi/v1/allAlgoOrders?timestamp=1790658984335&symbol=ETHUSD_PERP&recvWindow=10000&signature=2e4adc41a5fc48c68bde8de5e01962b450a5c3a48a11b11218ac4715003beafb",
+                "input": [
+                    "ETH/USD:ETH",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ]
+            },
+            {
                 "description": "stock fetchOrders",
                 "method": "fetchOrders",
                 "url": "https://api.binance.com/sapi/v1/equity/order/history?timestamp=1785925976373&symbol=AAPL&endTime=1785925976372&startTime=1785321176372&recvWindow=10000&signature=8cfe001e2184b35eac4f7ad9972a73caa718dccf45617dba3a041efe007c5aad",
@@ -1894,6 +1930,30 @@
                 "input": [
                     "3386",
                     "BTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ]
+            },
+            {
+                "description": "inverse swap conditional fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder?timestamp=1790658980541&symbol=ETHUSD_PERP&algoId=1000000222434651&recvWindow=10000&signature=3e37f0f554e444b2eb12f0d68b107b4b47e62345c24ec630b1c2395cf2b8347c",
+                "input": [
+                    "1000000222434651",
+                    "ETH/USD:ETH",
+                    {
+                        "trigger": true
+                    }
+                ]
+            },
+            {
+                "description": "linear future conditional fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder?timestamp=1790658982436&symbol=ETHUSDT_261225&algoId=1000000222434593&recvWindow=10000&signature=767f47d0d3663cbdcfa3830809e264abc0c2ef086dc7cade1b37b47a41b0646f",
+                "input": [
+                    "1000000222434593",
+                    "ETH/USDT:USDT-261225",
                     {
                         "trigger": true
                     }
