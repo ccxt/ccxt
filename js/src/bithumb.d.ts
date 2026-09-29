@@ -323,7 +323,7 @@ export default class bithumb extends Exchange {
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list response from the exchange
      */
-    fetchWithdrawalWhitelist(params?: Dict): Promise<any>;
+    fetchWithdrawalWhitelist(params?: {}): Promise<any>;
     /**
      * @method
      * @name bithumb#fetchWithdrawal
@@ -423,10 +423,10 @@ export default class bithumb extends Exchange {
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code
      */
     fetchDepositAddresses(codes?: Strings, params?: Dict): Promise<DepositAddress[]>;
-    parseDepositAddress(response: Dict, currency?: Currency): DepositAddress;
+    parseDepositAddress(response: any, currency?: Currency): DepositAddress;
     fixCommaNumber(numberStr: Str): string | undefined;
     nonce(): number;
     urlencodeWithArrayBrackets(query: Dict): string;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

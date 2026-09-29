@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.whitebit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, BorrowInterest, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Account, Balances, BorrowInterest, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -489,7 +489,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
+        if self.options['adjustForTimeDifference'] is True:
             self.load_time_difference()
         markets = self.v4PublicGetMarkets()
         #
@@ -521,16 +521,13 @@ class whitebit(Exchange, ImplicitAPI):
         id = self.safe_string(market, 'name')
         baseId = self.safe_string(market, 'stock')
         quoteId = self.safe_string(market, 'money')
-        if quoteId == 'PERP':
-            quoteId = 'USDT'
+        quoteId = 'USDT' if (quoteId == 'PERP') else quoteId
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        if (base is None) or (quote is None):
-            return None
         active = self.safe_bool(market, 'tradesEnabled')
         isCollateral = self.safe_bool(market, 'isCollateral')
         typeId = self.safe_string(market, 'type')
-        type = None
+        type: MarketType
         settle = None
         settleId = None
         symbol = base + '/' + quote
@@ -910,7 +907,7 @@ class whitebit(Exchange, ImplicitAPI):
         #    }
         #
         depositWithdrawFees = {}
-        codesValue = self.market_codes(codes)
+        codes = self.market_codes(codes)
         currencyIds = list(response.keys())
         for i in range(0, len(currencyIds)):
             entry = currencyIds[i]
@@ -918,7 +915,7 @@ class whitebit(Exchange, ImplicitAPI):
             currencyId = splitEntry[0]
             feeInfo = response[entry]
             code = self.safe_currency_code(currencyId)
-            if (code is not None) and ((codesValue is None) or (self.in_array(code, codesValue))):
+            if (code is not None) and ((codes is None) or (self.in_array(code, codes))):
                 depositWithdrawFee = self.safe_dict(depositWithdrawFees, code)
                 if depositWithdrawFee is None:
                     depositWithdrawFees[code] = self.deposit_withdraw_fee({})
@@ -1072,7 +1069,7 @@ class whitebit(Exchange, ImplicitAPI):
             marketSymbol = self.safe_string(market, 'symbol')
             if (market is None) or (market is None) or (marketSymbol is None) or (marketSymbol == ''):
                 continue  # Skip invalid markets silently
-            symbol = marketSymbol
+            symbol = market['symbol']
             # Filter by symbols if specified
             if symbols is not None:
                 symbolFound = False
@@ -1202,7 +1199,7 @@ class whitebit(Exchange, ImplicitAPI):
             for j in range(0, len(feeKeys)):
                 feeKey = feeKeys[j]
                 fee = self.safe_dict(feesData, feeKey)
-                if (fee is not None and fee is not None) and self.safe_string(fee, 'ticker') == code:
+                if (fee is not None and fee is not None) and fee['ticker'] == code:
                     feeData = fee
                     break
             # Build comprehensive funding limits
@@ -1375,13 +1372,13 @@ class whitebit(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string_2(ticker, 'tradingPairs', 'ticker_id')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         # last price is provided as "last" or "last_price"
         last = self.safe_string_n(ticker, ['last', 'last_price', 'lastPrice'])
         # if "close" is provided, use it, otherwise use <last>
         close = self.safe_string(ticker, 'close', last)
         return self.safe_ticker({
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'timestamp': None,
             'datetime': None,
             'high': self.safe_string(ticker, 'high'),
@@ -1402,7 +1399,7 @@ class whitebit(Exchange, ImplicitAPI):
             'quoteVolume': self.safe_string_n(ticker, ['quote_volume', 'deal', 'quoteVolume24h', 'money_volume']),
             'indexPrice': self.safe_string(ticker, 'index_price'),
             'info': ticker,
-        }, marketResolved)
+        }, market)
 
     def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -1423,7 +1420,7 @@ class whitebit(Exchange, ImplicitAPI):
         # Extract control parameters from params
         checkActive = self.safe_bool(params, 'checkActive', True)
         checkExecuted = self.safe_bool(params, 'checkExecuted', True)
-        paramsOmitted = self.omit(params, ['checkActive', 'checkExecuted'])
+        params = self.omit(params, ['checkActive', 'checkExecuted'])
         request = {
             'orderId': id,
         }
@@ -1434,7 +1431,7 @@ class whitebit(Exchange, ImplicitAPI):
         # Try active orders first (if enabled)
         if checkActive is True:
             try:
-                response = self.v4PrivatePostOrders(self.extend(request, paramsOmitted))
+                response = self.v4PrivatePostOrders(self.extend(request, params))
                 # Search for order in active orders response (array format)
                 orders = self.to_array(response)
                 for i in range(0, len(orders)):
@@ -1450,7 +1447,7 @@ class whitebit(Exchange, ImplicitAPI):
         # Try executed orders (if enabled)
         if checkExecuted is True:
             try:
-                response = self.v4PrivatePostTradeAccountOrderHistory(self.extend(request, paramsOmitted))
+                response = self.v4PrivatePostTradeAccountOrderHistory(self.extend(request, params))
                 # Search for order in executed orders response (object format)
                 marketIds = list(response.keys())
                 for i in range(0, len(marketIds)):
@@ -1482,20 +1479,21 @@ class whitebit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols)
+        symbols = self.market_symbols(symbols)
         onlyContractSymbols = True
-        if symbolsNormalized is not None:
-            for i in range(0, len(symbolsNormalized)):
-                symbol = symbolsNormalized[i]
+        if symbols is not None:
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
                 market = self.market(symbol)
                 if market['contract'] is not True:
                     onlyContractSymbols = False
                     break
         else:
             onlyContractSymbols = False
-        marketType, paramsMarketType = self.handle_market_type_and_params('fetchTickers', None, params)
-        methodOption, paramsMethod = self.handle_option_string_and_params(paramsMarketType, 'fetchTickers', 'method')
-        method = methodOption
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchTickers', None, params)
+        method = None
+        method, params = self.handle_option_and_params(params, 'fetchTickers', 'method', method)
         if method is None:
             # if the user did not specify a method, choose it based on market type and symbols
             if onlyContractSymbols or (marketType == 'swap'):
@@ -1515,7 +1513,7 @@ class whitebit(Exchange, ImplicitAPI):
             #          "change":"2.12"
             #      },
             #
-            response = self.v4PublicGetTicker(paramsMethod)
+            response = self.v4PublicGetTicker(params)
         elif method == 'v4PublicGetFutures':
             #
             #     {
@@ -1556,12 +1554,12 @@ class whitebit(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            response = self.v4PublicGetFutures(paramsMethod)
+            response = self.v4PublicGetFutures(params)
         else:
-            response = self.v2PublicGetTicker(paramsMethod)
+            response = self.v2PublicGetTicker(params)
         resultList = self.safe_list(response, 'result')
         if resultList is not None:
-            return self.parse_tickers(resultList, symbolsNormalized)
+            return self.parse_tickers(resultList, symbols)
         marketIds = list(response.keys())
         result = {}
         for i in range(0, len(marketIds)):
@@ -1570,7 +1568,7 @@ class whitebit(Exchange, ImplicitAPI):
             ticker = self.parse_ticker(response[marketId], market)
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -1762,7 +1760,7 @@ class whitebit(Exchange, ImplicitAPI):
         #          "feeAsset": "USDT"
         #      }
         #
-        marketResolved = self.safe_market(None, market)
+        market = self.safe_market(None, market)
         timestamp = self.safe_timestamp_2(trade, 'time', 'trade_timestamp')
         orderId = self.safe_string_2(trade, 'dealOrderId', 'orderId')
         cost = self.safe_string(trade, 'deal')
@@ -1770,7 +1768,7 @@ class whitebit(Exchange, ImplicitAPI):
         amount = self.safe_string_2(trade, 'amount', 'quote_volume')
         id = self.safe_string_2(trade, 'id', 'tradeID')
         side = self.safe_string_2(trade, 'type', 'side')
-        symbol = marketResolved['symbol']
+        symbol = market['symbol']
         role = self.safe_integer(trade, 'role')
         takerOrMaker = None
         if role is not None:
@@ -1796,7 +1794,7 @@ class whitebit(Exchange, ImplicitAPI):
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        }, marketResolved)
+        }, market)
 
     def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
@@ -1818,14 +1816,15 @@ class whitebit(Exchange, ImplicitAPI):
             'market': market['id'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        maxLimit = 1440
-        sinceLimit = maxLimit if (limit is None) else min(limit, maxLimit)
-        limitResolved = sinceLimit if (since is not None) else limit
         if since is not None:
+            maxLimit = 1440
+            if limit is None:
+                limit = maxLimit
+            limit = min(limit, maxLimit)
             start = self.parse_to_int(since / 1000)
             request['start'] = start
-        if limitResolved is not None:
-            request['limit'] = min(limitResolved, 1440)
+        if limit is not None:
+            request['limit'] = min(limit, 1440)
         response = self.v1PublicGetKline(self.extend(request, params))
         #
         #     {
@@ -1839,7 +1838,7 @@ class whitebit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_list(response, 'result', [])
-        return self.parse_ohlcvs(result, market, timeframe, since, limitResolved)
+        return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
@@ -1959,43 +1958,44 @@ class whitebit(Exchange, ImplicitAPI):
             'market': market['id'],
             'side': side,
         }
-        cost, paramsCost = self.handle_param_string(params, 'cost')
+        cost = None
+        cost, params = self.handle_param_string(params, 'cost')
         if cost is not None:
             if (side != 'buy') or (type != 'market'):
                 raise InvalidOrder(self.id + ' createOrder() cost is only supported for market buy orders')
             request['amount'] = self.cost_to_precision(symbol, cost)
         else:
             request['amount'] = self.amount_to_precision(symbol, amount)
-        clientOrderId = self.safe_string_2(paramsCost, 'clOrdId', 'clientOrderId')
+        clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         if clientOrderId is None:
             brokerId = self.safe_string(self.options, 'brokerId')
             if brokerId is not None:
                 request['clientOrderId'] = brokerId + self.uuid16()
         else:
             request['clientOrderId'] = clientOrderId
-        paramsOmitted = self.omit(paramsCost, ['clientOrderId']) if (clientOrderId is not None) else paramsCost
+            params = self.omit(params, ['clientOrderId'])
         marketType = self.safe_string(market, 'type')
         isLimitOrder = type == 'limit'
         isMarketOrder = type == 'market'
-        triggerPrice = self.safe_number_n(paramsOmitted, ['triggerPrice', 'stopPrice', 'activation_price'])
+        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'activation_price'])
         isStopOrder = (triggerPrice is not None)
-        timeInForce = self.safe_string_upper(paramsOmitted, 'timeInForce')
+        timeInForce = self.safe_string_upper(params, 'timeInForce')
         if (timeInForce is not None) and (timeInForce != 'GTC') and (timeInForce != 'IOC') and (timeInForce != 'PO'):
             raise NotSupported(self.id + ' createOrder() does not support timeInForce ' + timeInForce + ', only GTC, IOC and PO are allowed')
-        postOnly = self.is_post_only(isMarketOrder, False, paramsOmitted)
+        postOnly = self.is_post_only(isMarketOrder, False, params)
         ioc = (timeInForce == 'IOC')
         if isStopOrder and (postOnly or ioc):
             raise NotSupported(self.id + ' createOrder() does not support postOnly or timeInForce IOC for stop orders')
         if ioc and not isLimitOrder:
             raise NotSupported(self.id + ' createOrder() timeInForce IOC is only supported for limit orders')
-        marginMode, query = self.handle_margin_mode_and_params('createOrder', paramsOmitted)
+        marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
         if postOnly:
             request['postOnly'] = True
         if ioc:
             request['ioc'] = True
         if marginMode is not None and marginMode != 'cross':
             raise NotSupported(self.id + ' createOrder() is only available for cross margin')
-        orderParams = self.omit(query, ['postOnly', 'triggerPrice', 'stopPrice', 'timeInForce'])
+        params = self.omit(query, ['postOnly', 'triggerPrice', 'stopPrice', 'timeInForce'])
         useCollateralEndpoint = marginMode is not None or marketType == 'swap'
         response: dict
         if isStopOrder:
@@ -2003,30 +2003,30 @@ class whitebit(Exchange, ImplicitAPI):
             if isLimitOrder:
                 # stop limit order
                 request['price'] = self.price_to_precision(symbol, price)
-                response = self.v4PrivatePostOrderStopLimit(self.extend(request, orderParams))
+                response = self.v4PrivatePostOrderStopLimit(self.extend(request, params))
             else:
                 # stop market order
                 if useCollateralEndpoint:
-                    response = self.v4PrivatePostOrderCollateralTriggerMarket(self.extend(request, orderParams))
+                    response = self.v4PrivatePostOrderCollateralTriggerMarket(self.extend(request, params))
                 else:
-                    response = self.v4PrivatePostOrderStopMarket(self.extend(request, orderParams))
+                    response = self.v4PrivatePostOrderStopMarket(self.extend(request, params))
         else:
             if isLimitOrder:
                 # limit order
                 request['price'] = self.price_to_precision(symbol, price)
                 if useCollateralEndpoint:
-                    response = self.v4PrivatePostOrderCollateralLimit(self.extend(request, orderParams))
+                    response = self.v4PrivatePostOrderCollateralLimit(self.extend(request, params))
                 else:
-                    response = self.v4PrivatePostOrderNew(self.extend(request, orderParams))
+                    response = self.v4PrivatePostOrderNew(self.extend(request, params))
             else:
                 # market order
                 if useCollateralEndpoint:
-                    response = self.v4PrivatePostOrderCollateralMarket(self.extend(request, orderParams))
+                    response = self.v4PrivatePostOrderCollateralMarket(self.extend(request, params))
                 else:
                     if cost is not None:
-                        response = self.v4PrivatePostOrderMarket(self.extend(request, orderParams))
+                        response = self.v4PrivatePostOrderMarket(self.extend(request, params))
                     else:
-                        response = self.v4PrivatePostOrderStockMarket(self.extend(request, orderParams))
+                        response = self.v4PrivatePostOrderStockMarket(self.extend(request, params))
         return self.parse_order(response)
 
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
@@ -2083,8 +2083,8 @@ class whitebit(Exchange, ImplicitAPI):
         hasModifiableParam = (amount is not None) or (price is not None) or (triggerPrice is not None) or (total is not None)
         if not hasModifiableParam:
             raise ArgumentsRequired(self.id + ' editOrder() requires at least one of: amount, price, activationPrice, or total parameters')
-        paramsOmitted = self.omit(params, ['clientOrderId', 'triggerPrice', 'stopPrice', 'activationPrice', 'total'])
-        response = self.v4PrivatePostOrderModify(self.extend(request, paramsOmitted))
+        params = self.omit(params, ['clientOrderId', 'triggerPrice', 'stopPrice', 'activationPrice', 'total'])
+        response = self.v4PrivatePostOrderModify(self.extend(request, params))
         return self.parse_order(response)
 
     def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -2148,22 +2148,22 @@ class whitebit(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
-        marketType, paramsMarketType = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        type = None
+        type, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         requestType = []
-        requestParams = paramsMarketType
-        if marketType == 'spot':
-            isMargin, paramsIsMargin = self.handle_option_bool_and_params(paramsMarketType, 'cancelAllOrders', 'isMargin', False)
-            requestParams = paramsIsMargin
+        if type == 'spot':
+            isMargin = None
+            isMargin, params = self.handle_option_and_params(params, 'cancelAllOrders', 'isMargin', False)
             if isMargin:
                 requestType.append('margin')
             else:
                 requestType.append('spot')
-        elif marketType == 'swap':
+        elif type == 'swap':
             requestType.append('futures')
         else:
-            raise NotSupported(self.id + ' cancelAllOrders() does not support ' + marketType + ' type')
+            raise NotSupported(self.id + ' cancelAllOrders() does not support ' + type + ' type')
         request['type'] = requestType
-        response = self.v4PrivatePostOrderCancelAll(self.extend(request, requestParams))
+        response = self.v4PrivatePostOrderCancelAll(self.extend(request, params))
         #
         # []
         #
@@ -2215,7 +2215,7 @@ class whitebit(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrdersAfter() requires a symbol argument in params')
         market = self.market(symbol)
-        paramsOmitted = self.omit(params, 'symbol')
+        params = self.omit(params, 'symbol')
         if timeout is None:
             raise ExchangeError(self.id + ' cancelAllOrdersAfter() missing timeout')
         isBiggerThanZero = (timeout > 0)
@@ -2226,7 +2226,7 @@ class whitebit(Exchange, ImplicitAPI):
             request['timeout'] = self.number_to_string(timeout / 1000)
         else:
             request['timeout'] = 'null'
-        response = self.v4PrivatePostOrderKillSwitch(self.extend(request, paramsOmitted))
+        response = self.v4PrivatePostOrderKillSwitch(self.extend(request, params))
         #
         #     {
         #         "market": "BTC_USDT", // currency market,
@@ -2270,19 +2270,20 @@ class whitebit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        marketType, paramsMarketType = self.handle_market_type_and_params('fetchBalance', None, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         response: dict
         if marketType == 'swap':
-            response = self.v4PrivatePostCollateralAccountBalance(paramsMarketType)
+            response = self.v4PrivatePostCollateralAccountBalance(params)
         else:
             options = self.safe_dict(self.options, 'fetchBalance', {})
             defaultAccount = self.safe_string(options, 'account')
-            account = self.safe_string_2(paramsMarketType, 'account', 'type', defaultAccount)
-            paramsOmitted = self.omit(paramsMarketType, ['account', 'type'])
+            account = self.safe_string_2(params, 'account', 'type', defaultAccount)
+            params = self.omit(params, ['account', 'type'])
             if account == 'main' or account == 'funding':
-                response = self.v4PrivatePostMainAccountBalance(paramsOmitted)
+                response = self.v4PrivatePostMainAccountBalance(params)
             else:
-                response = self.v4PrivatePostTradeAccountBalance(paramsOmitted)
+                response = self.v4PrivatePostTradeAccountBalance(params)
         #
         # main account
         #
@@ -2369,8 +2370,8 @@ class whitebit(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             request['market'] = market['id']
-        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else symbol
         if limit is not None:
             request['limit'] = min(limit, 100)  # default 50 max 100
         response = self.v4PrivatePostTradeAccountOrderHistory(self.extend(request, params))
@@ -2401,7 +2402,7 @@ class whitebit(Exchange, ImplicitAPI):
                 order = self.parse_order(orders[j], marketNew)
                 results.append(self.extend(order, {'status': 'closed'}))
         results = self.sort_by(results, 'timestamp')
-        results = self.filter_by_symbol_since_limit(results, symbolResolved, since, limit)
+        results = self.filter_by_symbol_since_limit(results, symbol, since, limit)
         return results
 
     def parse_order_type(self, type: Str):
@@ -2457,8 +2458,8 @@ class whitebit(Exchange, ImplicitAPI):
         #      }
         #
         marketId = self.safe_string(order, 'market')
-        marketResolved = self.safe_market(marketId, market, '_')
-        symbol = marketResolved['symbol']
+        market = self.safe_market(marketId, market, '_')
+        symbol = market['symbol']
         side = self.safe_string(order, 'side')
         filled = self.safe_string(order, 'dealStock')
         remaining = self.safe_string(order, 'left')
@@ -2481,7 +2482,7 @@ class whitebit(Exchange, ImplicitAPI):
         if dealFee is not None:
             fee = {
                 'cost': self.parse_number(dealFee),
-                'currency': marketResolved['quote'],
+                'currency': market['quote'],
             }
         timestamp = self.safe_timestamp_2(order, 'ctime', 'timestamp')
         lastTradeTimestamp = self.safe_timestamp(order, 'ftime')
@@ -2514,7 +2515,7 @@ class whitebit(Exchange, ImplicitAPI):
             'cost': cost,
             'fee': fee,
             'trades': None,
-        }, marketResolved)
+        }, market)
 
     def parse_order_status(self, status: Str):
         statuses = {
@@ -2594,10 +2595,10 @@ class whitebit(Exchange, ImplicitAPI):
             request['ticker'] = currency['id']
         if since is not None:
             request['startDate'] = self.parse_to_int(since / 1000)
-        limitResolved = limit
         if limit is None or limit > 100:
-            limitResolved = 100
-        request['limit'] = limitResolved
+            limit = 100
+        if limit is not None:
+            request['limit'] = limit
         # Use transactionMethod parameter to filter withdrawals server-side (method = 2)
         request['transactionMethod'] = '2'
         response = self.v4PrivatePostMainAccountHistory(self.extend(request, params))
@@ -2619,7 +2620,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         { ... }                                 // More withdrawal transactions
         #     ]
         #
-        return self.parse_transactions(self.safe_list(response, 'records', []), currency, since, limitResolved)
+        return self.parse_transactions(self.safe_list(response, 'records', []), currency, since, limit)
 
     def fetch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -2643,10 +2644,10 @@ class whitebit(Exchange, ImplicitAPI):
             request['ticker'] = currency['id']
         if since is not None:
             request['startDate'] = self.parse_to_int(since / 1000)
-        limitResolved = limit
         if limit is None or limit > 100:
-            limitResolved = 100
-        request['limit'] = limitResolved
+            limit = 100
+        if limit is not None:
+            request['limit'] = limit
         # Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
         response = self.v4PrivatePostMainAccountHistory(self.extend(request, params))
         #
@@ -2677,7 +2678,7 @@ class whitebit(Exchange, ImplicitAPI):
         #     }
         #
         records = self.safe_list(response, 'records', [])
-        return self.parse_transactions(records, currency, since, limitResolved)
+        return self.parse_transactions(records, currency, since, limit)
 
     def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
@@ -2791,7 +2792,7 @@ class whitebit(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'account', {})
         return self.parse_deposit_address(data, currency)
 
-    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
@@ -2997,7 +2998,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         "centralized": false,
         #     }
         #
-        currencyResolved = self.safe_currency(None, currency)
+        currency = self.safe_currency(None, currency)
         address = self.safe_string(transaction, 'address')
         timestamp = self.safe_timestamp(transaction, 'createdAt')
         currencyId = self.safe_string(transaction, 'ticker')
@@ -3014,7 +3015,7 @@ class whitebit(Exchange, ImplicitAPI):
             'addressTo': address if (method == '2') else None,
             'amount': self.safe_number(transaction, 'amount'),
             'type': 'deposit' if (method == '1') else 'withdrawal',
-            'currency': self.safe_currency_code(currencyId, currencyResolved),
+            'currency': self.safe_currency_code(currencyId, currency),
             'status': self.parse_transaction_status(status),
             'updated': None,
             'tagFrom': None,
@@ -3024,7 +3025,7 @@ class whitebit(Exchange, ImplicitAPI):
             'internal': None,
             'fee': {
                 'cost': self.safe_number(transaction, 'fee'),
-                'currency': self.safe_currency_code(currencyId, currencyResolved),
+                'currency': self.safe_currency_code(currencyId, currency),
             },
             'info': transaction,
         }
@@ -3276,10 +3277,9 @@ class whitebit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbolValue = self.symbol(symbol)
-        response = self.fetch_funding_rates([symbolValue], params)
-        fundingRate = self.safe_dict(response, symbolValue)
-        return fundingRate
+        symbol = self.symbol(symbol)
+        response = self.fetch_funding_rates([symbol], params)
+        return self.safe_value(response, symbol)
 
     def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
@@ -3293,7 +3293,7 @@ class whitebit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols)
+        symbols = self.market_symbols(symbols)
         response = self.v4PublicGetFutures(params)
         #
         #    [
@@ -3340,7 +3340,7 @@ class whitebit(Exchange, ImplicitAPI):
         #    ]
         #
         data = self.safe_list(response, 'result', [])
-        return self.parse_funding_rates(data, symbolsNormalized)
+        return self.parse_funding_rates(data, symbols)
 
     def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
@@ -3427,8 +3427,8 @@ class whitebit(Exchange, ImplicitAPI):
             request['startDate'] = since
         if limit is not None:
             request['limit'] = limit
-        requestUntil, paramsUntil = self.handle_until_option('endDate', request, params)
-        response = self.v4PrivatePostCollateralAccountFundingHistory(self.extend(requestUntil, paramsUntil))
+        request, params = self.handle_until_option('endDate', request, params)
+        response = self.v4PrivatePostCollateralAccountFundingHistory(self.extend(request, params))
         #
         #     {
         #         "records": [
@@ -3449,7 +3449,7 @@ class whitebit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'records', [])
         return self.parse_funding_histories(data, market, since, limit)
 
-    def parse_funding_history(self, contract: dict, market: Market = None):
+    def parse_funding_history(self, contract: object, market: Market = None):
         #
         #     {
         #         "market": "BTC_PERP",
@@ -3473,10 +3473,10 @@ class whitebit(Exchange, ImplicitAPI):
             'amount': self.safe_number(contract, 'fundingAmount'),
         }
 
-    def parse_funding_histories(self, contracts: list[dict], market: Market = None, since: Int = None, limit: Int = None) -> list[FundingHistory]:
+    def parse_funding_histories(self, contracts: object, market: Market = None, since: Int = None, limit: Int = None) -> list[FundingHistory]:
         result = []
         for i in range(0, len(contracts)):
-            contract = self.safe_dict(contracts, i)
+            contract = contracts[i]
             result.append(self.parse_funding_history(contract, market))
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_since_limit(sorted, since, limit)
@@ -3646,8 +3646,8 @@ class whitebit(Exchange, ImplicitAPI):
             request['from'] = self.number_to_string(start)
         if limit is not None:
             request['limit'] = limit
-        requestUntil, paramsUntil = self.handle_until_option('to', request, params, 0.001)
-        response = self.v4PrivatePostConvertHistory(self.extend(requestUntil, paramsUntil))
+        request, params = self.handle_until_option('to', request, params, 0.001)
+        response = self.v4PrivatePostConvertHistory(self.extend(request, params))
         #
         #     {
         #         "records": [
@@ -3757,8 +3757,8 @@ class whitebit(Exchange, ImplicitAPI):
             request['startDate'] = since
         if limit is not None:
             request['limit'] = since
-        requestUntil, paramsUntil = self.handle_until_option('endDate', request, params)
-        response = self.v4PrivatePostCollateralAccountPositionsHistory(self.extend(requestUntil, paramsUntil))
+        request, params = self.handle_until_option('endDate', request, params)
+        response = self.v4PrivatePostCollateralAccountPositionsHistory(self.extend(request, params))
         #
         #     [
         #         {
@@ -3797,7 +3797,7 @@ class whitebit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols)
+        symbols = self.market_symbols(symbols)
         response = self.v4PrivatePostCollateralAccountPositionsOpen(params)
         #
         #     [
@@ -3820,7 +3820,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_positions(response, symbolsNormalized)
+        return self.parse_positions(response, symbols)
 
     def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """
@@ -3962,9 +3962,10 @@ class whitebit(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         maxLimit = 100
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, maxLimit)
+            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, maxLimit)
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -3973,10 +3974,10 @@ class whitebit(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['startDate'] = int(round(since / 1000))
-        requestUntil, paramsUntil = self.handle_until_option('until_timestamp', request, paramsPaginate, 0.001)
+        request, params = self.handle_until_option('until_timestamp', request, params, 0.001)
         if limit is not None:
-            requestUntil['limit'] = limit
-        response = self.v4PublicGetFundingHistoryMarket(self.extend(requestUntil, paramsUntil))
+            request['limit'] = limit
+        response = self.v4PublicGetFundingHistoryMarket(self.extend(request, params))
         #
         #     [
         #         {
@@ -3992,59 +3993,48 @@ class whitebit(Exchange, ImplicitAPI):
 
     def parse_funding_rate_history(self, info: object, market: Market = None) -> FundingRateHistory:
         marketId = self.safe_string(info, 'market')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         timestamp = self.safe_timestamp(info, 'fundingTime')
         return {
             'info': info,
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'fundingRate': self.safe_number(info, 'fundingRate'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
 
     def nonce(self) -> float:
-        return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
+        return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         query = self.omit(params, self.extract_params(path))
         version = self.safe_value(api, 0)
-        accessibility = self.safe_string(api, 1)
-        publicHeaders = {} if (headers is None) else headers
-        publicHeaders['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
+        accessibility = self.safe_value(api, 1)
+        if headers is None:
+            headers = {}
+        headers['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
         pathWithParams = '/' + self.implode_params(path, params)
-        apiUrl = self.safe_string(self.urls['api'][version], accessibility)
-        if apiUrl is None:
-            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = apiUrl + pathWithParams
+        url = (self.urls['api'])[version][accessibility] + pathWithParams
         if accessibility == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        privateBody = None
-        privateHeaders = {}
         if accessibility == 'private':
             self.check_required_credentials()
             # whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
             nonce = str(self.incrementing_nonce())
             secret = self.encode(self.secret)
             request = '/' + 'api' + '/' + version + pathWithParams
-            nonceWindow, requestParams = self.handle_option_bool_and_params(params, 'sign', 'nonceWindow', False)
-            privateBody = self.json(self.extend({'request': request, 'nonce': nonce, 'nonceWindow': nonceWindow}, requestParams))
-            payload = self.string_to_base64(privateBody)
+            nonceWindow, requestParams = self.handle_option_and_params(params, 'sign', 'nonceWindow', False)
+            body = self.json(self.extend({'request': request, 'nonce': nonce, 'nonceWindow': nonceWindow}, requestParams))
+            payload = self.string_to_base64(body)
             signature = self.hmac(self.encode(payload), secret, hashlib.sha512)
-            privateHeaders = {
+            headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': self.apiKey,
                 'X-TXC-PAYLOAD': payload,
                 'X-TXC-SIGNATURE': signature,
             }
-        isPrivate = (accessibility == 'private')
-        requestBody = body
-        if isPrivate:
-            requestBody = privateBody
-        requestHeaders = publicHeaders
-        if isPrivate:
-            requestHeaders = privateHeaders
-        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if (code == 418) or (code == 429):

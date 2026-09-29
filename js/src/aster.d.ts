@@ -138,7 +138,7 @@ export default class aster extends Exchange {
      * @returns {object} a dictionary of lastprices structures
      */
     fetchLastPrices(symbols?: Strings, params?: Dict): Promise<LastPrices>;
-    parseLastPrice(entry: Dict, market?: Market): LastPrice;
+    parseLastPrice(entry: any, market?: Market): LastPrice;
     /**
      * @method
      * @name aster#fetchBidsAsks
@@ -161,7 +161,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
+    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     /**
      * @method
      * @name aster#fetchFundingRates
@@ -454,7 +454,7 @@ export default class aster extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
     addMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
-    parseIncome(income: Dict, market?: Market): object;
+    parseIncome(income: any, market?: Market): object;
     /**
      * @method
      * @name aster#fetchFundingHistory
@@ -558,7 +558,7 @@ export default class aster extends Exchange {
     parseTransferStatus(status: Str): Str;
     hashMessage(binaryMessage: any): string;
     signHash(hash: string, privateKey: string): string;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     encodeValuesWithJson(values: Dict): string;
     capitalizeKeys(dict: Dict): Dict;
     loadMarketsAndSignIn(): Promise<void>;

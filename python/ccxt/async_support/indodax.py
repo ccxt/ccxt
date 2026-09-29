@@ -318,7 +318,7 @@ class indodax(Exchange, ImplicitAPI):
         })
 
     def nonce(self) -> float:
-        return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
+        return self.milliseconds() - self.options['timeDifference']
 
     async def fetch_time(self, params: dict = {}) -> Int:
         """
@@ -383,8 +383,6 @@ class indodax(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'base_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            if (base is None) or (quote is None):
-                continue
             isMaintenance = self.safe_integer(market, 'is_maintenance')
             inMaintenance = (isMaintenance is not None) and (isMaintenance != 0)
             result.append({
@@ -718,19 +716,20 @@ class indodax(Exchange, ImplicitAPI):
         selectedTimeframe = self.safe_string(self.timeframes, timeframe, timeframe)
         now = self.seconds()
         until = self.safe_integer(params, 'until', now)
-        paramsOmitted = self.omit(params, ['until'])
+        params = self.omit(params, ['until'])
         request = {
             'to': until,
             'tf': selectedTimeframe,
             'symbol': market['id'],
         }
-        limitResolved = 1000 if (limit is None) else limit
+        if limit is None:
+            limit = 1000
         if since is not None:
             request['from'] = int(math.floor(since / 1000))
         else:
             duration = self.parse_timeframe(timeframe)
-            request['from'] = now - limitResolved * duration - 1
-        response = await self.publicGetTradingviewHistoryV2(self.extend(request, paramsOmitted))
+            request['from'] = now - limit * duration - 1
+        response = await self.publicGetTradingviewHistoryV2(self.extend(request, params))
         #
         #     [
         #         {
@@ -743,7 +742,7 @@ class indodax(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limitResolved)
+        return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
 
     def parse_order_status(self, status: Str):
         statuses = {
@@ -797,7 +796,7 @@ class indodax(Exchange, ImplicitAPI):
         #
         side = None
         if 'type' in order:
-            side = self.safe_string(order, 'type')
+            side = order['type']
         status = self.parse_order_status(self.safe_string(order, 'status', 'open'))
         symbol = None
         cost = None
@@ -806,14 +805,14 @@ class indodax(Exchange, ImplicitAPI):
         remaining = None
         filled = None
         marketId = self.safe_string(order, 'pair')
-        marketResolved = self.safe_market(marketId, market)
-        if marketResolved is not None:
-            symbol = marketResolved['symbol']
-            quoteId = marketResolved['quoteId']
-            baseId = marketResolved['baseId']
-            if (marketResolved['quoteId'] == 'idr') and ('order_rp' in order):
+        market = self.safe_market(marketId, market)
+        if market is not None:
+            symbol = market['symbol']
+            quoteId = market['quoteId']
+            baseId = market['baseId']
+            if (market['quoteId'] == 'idr') and ('order_rp' in order):
                 quoteId = 'rp'
-            if (marketResolved['baseId'] == 'idr') and ('remain_rp' in order):
+            if (market['baseId'] == 'idr') and ('remain_rp' in order):
                 baseId = 'rp'
             cost = self.safe_string(order, 'order_' + quoteId)
             amount = self.safe_string(order, 'order_' + baseId)
@@ -963,14 +962,11 @@ class indodax(Exchange, ImplicitAPI):
         }
         priceIsRequired = False
         quantityIsRequired = False
-        isMarketBuy = (type == 'market') and (side == 'buy')
-        paramsOmitted = params
-        if isMarketBuy:
-            paramsOmitted = self.omit(params, 'cost')
         if type == 'market':
             if side == 'buy':
                 quoteAmount = None
                 cost = self.safe_number(params, 'cost')
+                params = self.omit(params, 'cost')
                 if cost is not None:
                     quoteAmount = self.cost_to_precision(symbol, cost)
                 else:
@@ -994,7 +990,7 @@ class indodax(Exchange, ImplicitAPI):
             request['price'] = price
         if quantityIsRequired:
             request[market['baseId']] = self.amount_to_precision(symbol, amount)
-        result = await self.privatePostTrade(self.extend(request, paramsOmitted))
+        result = await self.privatePostTrade(self.extend(request, params))
         data = self.safe_dict(result, 'return', {})
         id = self.safe_string(data, 'order_id')
         return self.safe_order({
@@ -1015,7 +1011,7 @@ class indodax(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        side = self.safe_string(params, 'side')
+        side = self.safe_value(params, 'side')
         if side is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires an extra "side" param')
         if self.markets is None:
@@ -1229,7 +1225,7 @@ class indodax(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         if self.markets is None:
             await self.load_markets()
@@ -1247,9 +1243,9 @@ class indodax(Exchange, ImplicitAPI):
             'withdraw_address': address,
             'request_id': str(requestId),
         }
-        if (tagWithdrawTag is not None) and (tagWithdrawTag != ''):
-            request['withdraw_memo'] = tagWithdrawTag
-        response = await self.privatePostWithdrawCoin(self.extend(request, paramsWithdrawTag))
+        if (tag is not None) and (tag != ''):
+            request['withdraw_memo'] = tag
+        response = await self.privatePostWithdrawCoin(self.extend(request, params))
         #
         #     {
         #         "success": 1,
@@ -1439,39 +1435,27 @@ class indodax(Exchange, ImplicitAPI):
                     }
         return result
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
-        if apiUrl is None:
-            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = apiUrl
-        privateBody = None
-        privateHeaders = None
-        isPublic = (api == 'public')
-        if isPublic:
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        url = self.urls['api'][api]
+        if api == 'public':
             query = self.omit(params, self.extract_params(path))
             requestPath = '/' + self.implode_params(path, params)
-            url += requestPath
+            url = url + requestPath
             if len(query) > 0:
                 url += '?' + self.urlencode_with_array_repeat(query)
         else:
             self.check_required_credentials()
-            privateBody = self.urlencode(self.extend({
+            body = self.urlencode(self.extend({
                 'method': path,
                 'timestamp': self.nonce(),
                 'recvWindow': self.options['recvWindow'],
             }, params))
-            privateHeaders = {
+            headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': self.apiKey,
-                'Sign': self.hmac(self.encode(privateBody), self.encode(self.secret), hashlib.sha512),
+                'Sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
-        requestBody = privateBody
-        if isPublic:
-            requestBody = body
-        requestHeaders = privateHeaders
-        if isPublic:
-            requestHeaders = headers
-        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

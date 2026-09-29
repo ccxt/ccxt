@@ -196,11 +196,11 @@ export default class lighter extends lighterRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        symbol = market['symbol'];
         const request = {
             'channel': 'order_book/' + market['id'],
         };
-        const messageHash = this.getMessageHash('orderbook', symbolValue);
+        const messageHash = this.getMessageHash('orderbook', symbol);
         const orderbook = await this.subscribePublic(messageHash, this.extend(request, params));
         return orderbook.limit();
     }
@@ -218,11 +218,11 @@ export default class lighter extends lighterRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        symbol = market['symbol'];
         const request = {
             'channel': 'order_book/' + market['id'],
         };
-        const subMessageHash = this.getMessageHash('orderbook', symbolValue);
+        const subMessageHash = this.getMessageHash('orderbook', symbol);
         const messageHash = 'unsubscribe:' + subMessageHash;
         return await this.unsubscribe(messageHash, this.extend(request, params));
     }
@@ -315,14 +315,14 @@ export default class lighter extends lighterRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        symbol = market['symbol'];
         if (market['swap'] !== true) {
             throw new NotSupported(this.id + ' watchTicker() is only supported for swap markets');
         }
         const request = {
             'channel': 'market_stats/' + market['id'],
         };
-        const messageHash = this.getMessageHash('ticker', symbolValue);
+        const messageHash = this.getMessageHash('ticker', symbol);
         return await this.subscribePublic(messageHash, this.extend(request, params));
     }
     /**
@@ -339,14 +339,14 @@ export default class lighter extends lighterRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        symbol = market['symbol'];
         if (market['swap'] !== true) {
             throw new NotSupported(this.id + ' unWatchTicker() is only supported for swap markets');
         }
         const request = {
             'channel': 'market_stats/' + market['id'],
         };
-        const subMessageHash = this.getMessageHash('ticker', symbolValue);
+        const subMessageHash = this.getMessageHash('ticker', symbol);
         const messageHash = 'unsubscribe:' + subMessageHash;
         return await this.unsubscribe(messageHash, this.extend(request, params));
     }
@@ -363,8 +363,8 @@ export default class lighter extends lighterRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
-        const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
+        symbols = this.marketSymbols(symbols, undefined, true, true);
+        const firstMarket = this.getMarketFromSymbols(symbols);
         if ((firstMarket !== undefined) && (firstMarket['swap'] !== true)) {
             throw new NotSupported(this.id + ' watchTickers() is only supported for swap markets');
         }
@@ -373,28 +373,25 @@ export default class lighter extends lighterRest {
         };
         const messageHashes = [];
         let symbolsLength = 0;
-        if (symbolsNormalized !== undefined) {
-            symbolsLength = symbolsNormalized.length;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
         }
-        if ((symbolsNormalized === undefined) || (symbolsLength === 0)) {
+        if ((symbols === undefined) || (symbolsLength === 0)) {
             messageHashes.push(this.getMessageHash('ticker'));
         }
         else {
-            for (let i = 0; i < symbolsNormalized.length; i++) {
-                const symbol = symbolsNormalized[i];
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
                 messageHashes.push(this.getMessageHash('ticker', symbol));
             }
         }
         const newTicker = await this.subscribePublicMultiple(messageHashes, this.extend(request, params));
         if (this.newUpdates) {
             const result = {};
-            const newTickerSymbol = this.safeString(newTicker, 'symbol');
-            if (newTickerSymbol !== undefined) {
-                result[newTickerSymbol] = newTicker;
-            }
+            result[newTicker['symbol']] = newTicker;
             return result;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbolsNormalized);
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     /**
      * @method
@@ -409,8 +406,8 @@ export default class lighter extends lighterRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
-        const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
+        symbols = this.marketSymbols(symbols, undefined, true, true);
+        const firstMarket = this.getMarketFromSymbols(symbols);
         if ((firstMarket !== undefined) && (firstMarket['swap'] !== true)) {
             throw new NotSupported(this.id + ' unWatchTickers() is only supported for swap markets');
         }
@@ -503,10 +500,7 @@ export default class lighter extends lighterRest {
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'size');
         const isMakerAsk = this.safeBool(trade, 'is_maker_ask');
-        let side = 'sell';
-        if (isMakerAsk === true) {
-            side = 'buy';
-        }
+        const side = (isMakerAsk === true) ? 'buy' : 'sell';
         return this.safeTrade({
             'info': trade,
             'id': tradeId,
@@ -605,7 +599,7 @@ export default class lighter extends lighterRest {
         const request = {
             'channel': 'trade/' + market['id'],
         };
-        const messageHash = this.getMessageHash('trade', this.safeString(market, 'symbol'));
+        const messageHash = this.getMessageHash('trade', market['symbol']);
         const trades = await this.subscribePublic(messageHash, this.extend(request, params));
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
@@ -626,7 +620,7 @@ export default class lighter extends lighterRest {
         const request = {
             'channel': 'trade/' + market['id'],
         };
-        const subMessageHash = this.getMessageHash('trade', this.safeString(market, 'symbol'));
+        const subMessageHash = this.getMessageHash('trade', market['symbol']);
         const messageHash = 'unsubscribe:' + subMessageHash;
         return await this.unsubscribe(messageHash, this.extend(request, params));
     }
@@ -690,13 +684,7 @@ export default class lighter extends lighterRest {
         }
         let fee = undefined;
         if (takerOrMaker !== undefined) {
-            let feeRateRaw = undefined;
-            if (takerOrMaker === 'maker') {
-                feeRateRaw = this.safeString(trade, 'maker_fee');
-            }
-            else {
-                feeRateRaw = this.safeString(trade, 'taker_fee');
-            }
+            const feeRateRaw = (takerOrMaker === 'maker') ? this.safeString(trade, 'maker_fee') : this.safeString(trade, 'taker_fee');
             const feeRate = (feeRateRaw !== undefined) ? Precise.stringDiv(feeRateRaw, '1000000') : '0';
             const feeAmount = Precise.stringMul(costString, feeRate);
             fee = {
@@ -807,23 +795,22 @@ export default class lighter extends lighterRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const [accountIndex, paramsAccountIndex] = await this.handleAccountIndex(params, 'watchMyTrades', 'accountIndex', 'account_index');
+        let accountIndex = undefined;
+        [accountIndex, params] = await this.handleAccountIndex(params, 'watchMyTrades', 'accountIndex', 'account_index');
         let messageHash = this.getMessageHash('myTrades');
-        let symbolResolved = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            symbolResolved = this.safeString(market, 'symbol');
-            messageHash = this.getMessageHash('myTrades', symbolResolved);
+            symbol = market['symbol'];
+            messageHash = this.getMessageHash('myTrades', symbol);
         }
         const request = {
             'channel': 'account_all_trades/' + this.numberToString(accountIndex),
         };
-        const trades = await this.subscribePublic(messageHash, this.extend(request, paramsAccountIndex));
-        let limitResolved = limit;
+        const trades = await this.subscribePublic(messageHash, this.extend(request, params));
         if (this.newUpdates) {
-            limitResolved = trades.getLimit(symbolResolved, limit);
+            limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     /**
      * @method
@@ -839,13 +826,14 @@ export default class lighter extends lighterRest {
         if (symbol !== undefined) {
             throw new NotSupported(this.id + ' unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only');
         }
-        const [accountIndex, paramsAccountIndex] = await this.handleAccountIndex(params, 'unWatchMyTrades', 'accountIndex', 'account_index');
+        let accountIndex = undefined;
+        [accountIndex, params] = await this.handleAccountIndex(params, 'unWatchMyTrades', 'accountIndex', 'account_index');
         const subMessageHash = this.getMessageHash('myTrades');
         const messageHash = 'unsubscribe:' + subMessageHash;
         const request = {
             'channel': 'account_all_trades/' + this.numberToString(accountIndex),
         };
-        return await this.unsubscribe(messageHash, this.extend(request, paramsAccountIndex));
+        return await this.unsubscribe(messageHash, this.extend(request, params));
     }
     parseWsLiquidation(liquidation, market = undefined) {
         //
@@ -878,10 +866,7 @@ export default class lighter extends lighterRest {
         //
         const timestamp = this.safeInteger(liquidation, 'timestamp');
         const isMakerAsk = this.safeBool(liquidation, 'is_maker_ask');
-        let side = 'sell';
-        if (isMakerAsk === true) {
-            side = 'buy';
-        }
+        const side = (isMakerAsk === true) ? 'buy' : 'sell';
         const contracts = this.safeString(liquidation, 'size');
         const contractSize = this.safeString(market, 'contractSize');
         const price = this.safeString(liquidation, 'price');
@@ -997,17 +982,19 @@ export default class lighter extends lighterRest {
             await this.loadMarkets();
         }
         const defaultType = this.safeString2(this.options, 'watchBalance', 'defaultType', 'spot');
-        const [type, paramsType] = this.handleParamString(params, 'type', defaultType);
-        const [accountIndex, paramsAccountIndex] = await this.handleAccountIndex(paramsType, 'watchBalance', 'accountIndex', 'account_index');
+        let type = undefined;
+        [type, params] = this.handleParamString(params, 'type', defaultType);
+        let accountIndex = undefined;
+        [accountIndex, params] = await this.handleAccountIndex(params, 'watchBalance', 'accountIndex', 'account_index');
         const messageHash = this.getMessageHash('balances', undefined, type);
         const request = {};
         if (type === 'spot') {
             request['channel'] = 'account_all_assets/' + this.numberToString(accountIndex);
-            return await this.subscribePrivate(messageHash, this.extend(request, paramsAccountIndex));
+            return await this.subscribePrivate(messageHash, this.extend(request, params));
         }
         else {
             request['channel'] = 'user_stats/' + this.numberToString(accountIndex);
-            return await this.subscribePublic(messageHash, this.extend(request, paramsAccountIndex));
+            return await this.subscribePublic(messageHash, this.extend(request, params));
         }
     }
     handleBalance(client, message) {
@@ -1076,7 +1063,7 @@ export default class lighter extends lighterRest {
             const assetIds = Object.keys(assets);
             for (let i = 0; i < assetIds.length; i++) {
                 const assetId = assetIds[i];
-                const asset = this.safeDict(assets, assetId);
+                const asset = assets[assetId];
                 const codeId = this.safeString(asset, 'symbol');
                 const code = this.safeCurrencyCode(codeId);
                 const account = this.account();
@@ -1117,24 +1104,24 @@ export default class lighter extends lighterRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const [accountIndex, paramsAccountIndex] = await this.handleAccountIndex(params, 'watchOrders', 'accountIndex', 'account_index');
+        let accountIndex = undefined;
+        [accountIndex, params] = await this.handleAccountIndex(params, 'watchOrders', 'accountIndex', 'account_index');
         let messageHash = undefined;
         const request = {};
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            messageHash = this.getMessageHash('orders', this.safeString(market, 'symbol'));
+            messageHash = this.getMessageHash('orders', market['symbol']);
             request['channel'] = 'account_orders/' + market['id'] + '/' + this.numberToString(accountIndex);
         }
         else {
             messageHash = this.getMessageHash('orders');
             request['channel'] = 'account_all_orders/' + this.numberToString(accountIndex);
         }
-        const orders = await this.subscribePrivate(messageHash, this.extend(request, paramsAccountIndex));
-        let limitResolved = limit;
+        const orders = await this.subscribePrivate(messageHash, this.extend(request, params));
         if (this.newUpdates) {
-            limitResolved = orders.getLimit(symbol, limit);
+            limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limitResolved, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     /**
      * @method
@@ -1149,12 +1136,13 @@ export default class lighter extends lighterRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const [accountIndex, paramsAccountIndex] = await this.handleAccountIndex(params, 'unWatchOrders', 'accountIndex', 'account_index');
+        let accountIndex = undefined;
+        [accountIndex, params] = await this.handleAccountIndex(params, 'unWatchOrders', 'accountIndex', 'account_index');
         let subMessageHash = undefined;
         const request = {};
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            subMessageHash = this.getMessageHash('orders', this.safeString(market, 'symbol'));
+            subMessageHash = this.getMessageHash('orders', market['symbol']);
             request['channel'] = 'account_orders/' + market['id'] + '/' + this.numberToString(accountIndex);
         }
         else {
@@ -1162,7 +1150,7 @@ export default class lighter extends lighterRest {
             request['channel'] = 'account_all_orders/' + this.numberToString(accountIndex);
         }
         const messageHash = 'unsubscribe:' + subMessageHash;
-        return await this.unsubscribe(messageHash, this.extend(request, paramsAccountIndex));
+        return await this.unsubscribe(messageHash, this.extend(request, params));
     }
     requestId(url) {
         const options = this.safeDict(this.options, 'requestId', this.createSafeDictionary());
@@ -1196,8 +1184,7 @@ export default class lighter extends lighterRest {
         const url = this.urls['api']['ws'];
         const requestId = this.requestId(url);
         const messageHash = 'jsonapi/sendtx:' + requestId;
-        const [txType, txInfo, order] = await this.signAndCreateOrder('createOrderWs', symbol, type, side, amount, price, params);
-        const market = this.market(symbol);
+        const [txType, txInfo, order, market] = await this.signAndCreateOrder('createOrderWs', symbol, type, side, amount, price, params);
         const parsedTx = this.parseJson(txInfo);
         const message = {
             'type': 'jsonapi/sendtx',
@@ -1229,8 +1216,7 @@ export default class lighter extends lighterRest {
         const url = this.urls['api']['ws'];
         const requestId = this.requestId(url);
         const messageHash = 'jsonapi/sendtx:' + requestId;
-        const [txType, txInfo] = await this.signAndCancelOrder('cancelOrderWs', id, symbol, params);
-        const market = this.market(symbol);
+        const [txType, txInfo, market] = await this.signAndCancelOrder('cancelOrderWs', id, symbol, params);
         const parsedTx = this.parseJson(txInfo);
         const message = {
             'type': 'jsonapi/sendtx',

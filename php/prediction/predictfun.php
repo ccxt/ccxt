@@ -353,16 +353,14 @@ class predictfun extends Exchange {
         }
         $queries = $this->parse_search_queries($params);
         $queriesLength = count($queries);
-        $paramsValue = $this->omit($params, array( 'query', 'queries' ));
-        // keys dropped before the client-side pass; the categories listing also drops its limit
-        $postOmitKeys = array( 'tags' );
-        $userLimit = $this->safe_integer($paramsValue, 'limit');
+        $params = $this->omit($params, array( 'query', 'queries' ));
+        $userLimit = $this->safe_integer($params, 'limit');
         $fetchCap = $this->safe_integer($this->options, 'maxFetchEventsResults', 100);
         if ($userLimit !== null) {
             $fetchCap = $userLimit;
         }
-        $slug = $this->safe_string_2($paramsValue, 'slug', 'eventId');
-        $rest = $this->omit($paramsValue, array( 'status', 'limit', 'sort', 'eventId', 'slug', 'tags', 'marketVariant' ));
+        $slug = $this->safe_string_2($params, 'slug', 'eventId');
+        $rest = $this->omit($params, array( 'status', 'limit', 'sort', 'eventId', 'slug', 'tags', 'marketVariant' ));
         if ($this->markets === null) {
             $this->markets = $this->create_safe_dictionary();
         }
@@ -375,18 +373,17 @@ class predictfun extends Exchange {
             // a query/queries scope is answered by the dedicated search endpoint — the categories
             // listing has no text filter, so paging it and matching client-side would both miss
             // the venue's semantic matches and cost one request per page
-            $rawTopics = Async\await($this->fetch_raw_topics_by_queries($queries, $paramsValue));
+            $rawTopics = Async\await($this->fetch_raw_topics_by_queries($queries, $params));
         } else {
             $request = array();
-            $tags = $this->safe_list($paramsValue, 'tags', array());
+            $tags = $this->safe_list($params, 'tags', array());
             $tagsLength = count($tags);
             if ($tagsLength > 0) {
                 $tagsString = implode(',', $tags);
                 $request['tagIds'] = $tagsString;
             }
-            $postOmitKeys[] = 'limit';
-            $paramsCategories = $this->omit($paramsValue, array( 'limit', 'tags' ));
-            $extendedRequest = $this->extend($request, $paramsCategories);
+            $params = $this->omit($params, array( 'limit', 'tags' ));
+            $extendedRequest = $this->extend($request, $params);
             $rawTopicsResponse = Async\await($this->predictfunGetV1Categories($extendedRequest));
             //
             //     {
@@ -591,10 +588,10 @@ class predictfun extends Exchange {
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // predictfun topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        $postParams = $this->omit($paramsValue, $postOmitKeys);
+        $postParams = $this->omit($params, array( 'tags' ));
         // status is documented as the venue enum ('OPEN' / 'RESOLVED') but the shared client-side
         // pass speaks the unified vocabulary — translate so it doesn't discard every row it matched
-        $rawStatus = $this->safe_string($paramsValue, 'status');
+        $rawStatus = $this->safe_string($params, 'status');
         if ($rawStatus === 'OPEN') {
             $postParams = $this->extend($postParams, array( 'status' => 'active' ));
         } elseif ($rawStatus === 'RESOLVED') {
@@ -699,7 +696,7 @@ class predictfun extends Exchange {
             $categories = $this->safe_list($data, 'categories', array());
             $categoriesLength = count($categories);
             for ($ci = 0; $ci < $categoriesLength; $ci++) {
-                $category = $this->safe_dict($categories, $ci);
+                $category = $categories[$ci];
                 $categorySlug = $this->safe_string($category, 'slug');
                 if ($categorySlug === null) {
                     // nothing to key a duplicate on, keep the row rather than drop it
@@ -1142,10 +1139,7 @@ class predictfun extends Exchange {
         $topicSlug = $this->safe_string($rawMarket, 'categorySlug');
         // the same handle parseEvent () derives for the enclosing event - stamping it here is what
         // lets every outcome-addressed structure (order, ticker, trade, position) report an event
-        $eventHandle = null;
-        if ($topicSlug !== null) {
-            $eventHandle = $this->shorten_slug($topicSlug);
-        }
+        $eventHandle = ($topicSlug !== null) ? $this->shorten_slug($topicSlug) : null;
         $title = $this->safe_string($rawMarket, 'title', $marketId);
         $topicMarkets = $this->safe_list($rawTopic, 'markets', array());
         $marketCount = count($topicMarkets);
@@ -1211,10 +1205,7 @@ class predictfun extends Exchange {
         }
         $resolvedOutcome = $resolvedOutcomeRaw;
         $collateral = 'USDT';
-        $marketType = 'binary';
-        if ($rawOutcomesLength > 2) {
-            $marketType = 'categorical';
-        }
+        $marketType = ($rawOutcomesLength > 2) ? 'categorical' : 'binary';
         $createdDatetime = $this->safe_string($rawMarket, 'createdAt');
         return array(
             'id' => $marketId,
@@ -1264,11 +1255,11 @@ class predictfun extends Exchange {
         );
     }
 
-    public function fetch_order_book(string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_order_book(?string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_book(...))($outcome, $limit, $params);
     }
 
-    private function do_fetch_order_book(string $outcome, ?int $limit = null, $params = array()) {
+    private function do_fetch_order_book(?string $outcome, ?int $limit = null, $params = array()) {
         /**
          * fetches the order book for a single prediction $outcome token
          *
@@ -1319,14 +1310,14 @@ class predictfun extends Exchange {
             $noBids = array();
             $noAsks = array();
             for ($i = 0; $i < count($bids); $i++) {
-                $bid = $this->safe_list($bids, $i);
+                $bid = $bids[$i];
                 $bidPrice = $this->safe_string($bid, 0);
                 $bidSize = $this->parse_number($this->safe_string($bid, 1));
                 $complementPrice = $this->parse_number(Precise::string_sub('1', $bidPrice));
                 $noAsks[] = array( $complementPrice, $bidSize );
             }
             for ($i = 0; $i < count($asks); $i++) {
-                $ask = $this->safe_list($asks, $i);
+                $ask = $asks[$i];
                 $askPrice = $this->safe_string($ask, 0);
                 $askSize = $this->parse_number($this->safe_string($ask, 1));
                 $complementPrice = $this->parse_number(Precise::string_sub('1', $askPrice));
@@ -1343,11 +1334,11 @@ class predictfun extends Exchange {
         }
     }
 
-    public function fetch_ticker(string $outcome, $params = array()): PromiseInterface {
+    public function fetch_ticker(?string $outcome, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ticker(...))($outcome, $params);
     }
 
-    private function do_fetch_ticker(string $outcome, $params = array()) {
+    private function do_fetch_ticker(?string $outcome, $params = array()) {
         /**
          * fetches the best bid and ask for a single prediction $outcome token
          *
@@ -1560,11 +1551,11 @@ class predictfun extends Exchange {
         return $this->parse_prediction_trades($flattenTrades, $outcomeObj, $since, $limit);
     }
 
-    public function fetch_trades(string $outcome, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_trades(?string $outcome, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_trades(...))($outcome, $since, $limit, $params);
     }
 
-    private function do_fetch_trades(string $outcome, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_trades(?string $outcome, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches the most recent settled matches for a single prediction $outcome token
          *
@@ -1627,7 +1618,7 @@ class predictfun extends Exchange {
         $flattenTrades = array();
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $entry = $this->safe_dict($data, $i);
+            $entry = $data[$i];
             $taker = $this->safe_dict($entry, 'taker', array());
             $takerOutcome = $this->safe_dict($taker, 'outcome', array());
             $takerIndexSet = $this->safe_integer($takerOutcome, 'indexSet');
@@ -1940,10 +1931,7 @@ class predictfun extends Exchange {
         if ($tokenId === null) {
             throw new ArgumentsRequired($this->id . ' createOrder() could not resolve the on chain token id of ' . $outcome);
         }
-        $strategy = 'LIMIT';
-        if ($type === 'market') {
-            $strategy = 'MARKET';
-        }
+        $strategy = ($type === 'market') ? 'MARKET' : 'LIMIT';
         $isMarket = ($strategy === 'MARKET');
         if ((!$isMarket) && ($price === null)) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a "price" argument for a limit order');
@@ -1961,7 +1949,8 @@ class predictfun extends Exchange {
         // read through the extractor rather than off the instance, so one call can opt in without
         // reconfiguring the exchange - and so the key is taken out of params instead of riding
         // along into the request body
-        list($warnOnMarketOrderWithoutPrice, $paramsWarnOnMarketOrderWithoutPrice) = $this->handle_option_bool_and_params($params, 'createOrder', 'warnOnMarketOrderWithoutPrice', true);
+        $warnOnMarketOrderWithoutPrice = true;
+        list($warnOnMarketOrderWithoutPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'warnOnMarketOrderWithoutPrice', true);
         if ($price === null) {
             // a priceless limit order already threw above, so this is a market order
             if ($warnOnMarketOrderWithoutPrice) {
@@ -1985,7 +1974,7 @@ class predictfun extends Exchange {
             $makerAmount = $costWei;
             $takerAmount = $quantityWei;
         }
-        $slippageBps = $this->safe_string($paramsWarnOnMarketOrderWithoutPrice, 'slippageBps', '0');
+        $slippageBps = $this->safe_string($params, 'slippageBps', '0');
         if (Precise::string_gt($slippageBps, '0')) {
             if ($isBuy) {
                 // widen what the taker is willing to pay, capped at one unit of collateral a share
@@ -2001,14 +1990,14 @@ class predictfun extends Exchange {
         $marketObj = $this->safe_dict($this->markets, $marketSymbol, array());
         $marketRow = $this->safe_dict($marketObj, 'info', array());
         $marketFeeRateBps = $this->safe_string($marketRow, 'feeRateBps', '200');  // should be at least 200
-        $feeRateBps = $this->safe_string($paramsWarnOnMarketOrderWithoutPrice, 'feeRateBps', $marketFeeRateBps);
+        $feeRateBps = $this->safe_string($params, 'feeRateBps', $marketFeeRateBps);
         $marketIsNegRisk = $this->safe_bool($marketRow, 'isNegRisk', false);
-        $isNegRisk = $this->safe_bool($paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', $marketIsNegRisk);
+        $isNegRisk = $this->safe_bool($params, 'isNegRisk', $marketIsNegRisk);
         $marketIsYieldBearing = $this->safe_bool($marketRow, 'isYieldBearing', false);
-        $isYieldBearing = $this->safe_bool($paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', $marketIsYieldBearing);
+        $isYieldBearing = $this->safe_bool($params, 'isYieldBearing', $marketIsYieldBearing);
         $defaultExpiration = $this->safe_integer($this->options, 'defaultExpiration', 3600); // 1 hour
         $expirationDelta = $defaultExpiration;
-        $expiration = $this->safe_integer($paramsWarnOnMarketOrderWithoutPrice, 'expiration');
+        $expiration = $this->safe_integer($params, 'expiration');
         if ($expiration === null) {
             if ($isMarket) {
                 $expirationDelta = $this->safe_integer($this->options, 'marketOrderExpiration', $defaultExpiration);
@@ -2017,19 +2006,19 @@ class predictfun extends Exchange {
             $expiration = $this->sum($now, $expirationDelta);
         }
         $nonce = $this->incrementing_nonce();
-        $salt = $this->safe_string($paramsWarnOnMarketOrderWithoutPrice, 'salt', $this->number_to_string($nonce));
+        $salt = $this->safe_string($params, 'salt', $this->number_to_string($nonce));
         $taker = '0x0000000000000000000000000000000000000000';
-        list($takerOption, $paramsTaker) = $this->handle_option_and_params($paramsWarnOnMarketOrderWithoutPrice, 'createOrder', 'taker', $taker);
+        list($taker, $params) = $this->handle_option_and_params($params, 'createOrder', 'taker', $taker);
         $contractOrder = array(
             'salt' => $salt,
             'maker' => $this->walletAddress,
             'signer' => $this->walletAddress,
-            'taker' => $takerOption,
+            'taker' => $taker,
             'tokenId' => $tokenId,
             'makerAmount' => $this->decimal_to_precision($makerAmount, TRUNCATE, 0, DECIMAL_PLACES),
             'takerAmount' => $this->decimal_to_precision($takerAmount, TRUNCATE, 0, DECIMAL_PLACES),
             'expiration' => $expiration,
-            'nonce' => $this->safe_string($paramsTaker, 'nonce', '0'),
+            'nonce' => $this->safe_string($params, 'nonce', '0'),
             'feeRateBps' => $feeRateBps,
             'side' => $isBuy ? 0 : 1,
             'signatureType' => 0, // EOA
@@ -2044,28 +2033,28 @@ class predictfun extends Exchange {
             'pricePerShare' => $this->decimal_to_precision($priceWei, TRUNCATE, 0, DECIMAL_PLACES),
             'strategy' => $strategy,
         );
-        $postOnly = $this->safe_bool($paramsTaker, 'isPostOnly', false);
-        list($postOnlyOption, $paramsPostOnly) = $this->handle_post_only($isMarket, $postOnly, $paramsTaker);
-        if ($postOnlyOption) {
-            $data['isPostOnly'] = $postOnlyOption;
+        $postOnly = $this->safe_bool($params, 'isPostOnly', false);
+        list($postOnly, $params) = $this->handle_post_only($isMarket, $postOnly, $params);
+        if ($postOnly) {
+            $data['isPostOnly'] = $postOnly;
         }
-        $timeInForce = $this->safe_string_upper($paramsPostOnly, 'timeInForce');
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         if ($timeInForce === 'FOK') {
             $data['isFillOrKill'] = true;
         }
         // documented, and the venue takes it inside data rather than as a top level key
-        $selfTradePrevention = $this->safe_string_upper($paramsPostOnly, 'selfTradePrevention');
+        $selfTradePrevention = $this->safe_string_upper($params, 'selfTradePrevention');
         if ($selfTradePrevention !== null) {
             $data['selfTradePrevention'] = $selfTradePrevention;
         }
         // every param the method consumes itself has to come out, otherwise it survives into the
         // extend below and is posted as a top level key next to 'data'
-        $paramsOmitted = $this->omit($paramsPostOnly, array( 'isPostOnly', 'timeInForce', 'isFillOrKill', 'feeRateBps', 'isNegRisk', 'isYieldBearing', 'slippageBps', 'salt', 'nonce', 'expiration', 'selfTradePrevention', 'taker' ));
+        $params = $this->omit($params, array( 'isPostOnly', 'timeInForce', 'isFillOrKill', 'feeRateBps', 'isNegRisk', 'isYieldBearing', 'slippageBps', 'salt', 'nonce', 'expiration', 'selfTradePrevention', 'taker' ));
         // the JWT authorises the order, the api key only authorises the request
         $request = array(
             'data' => $data,
         );
-        $response = Async\await($this->predictfunPostV1Orders($this->extend($request, $paramsOmitted)));
+        $response = Async\await($this->predictfunPostV1Orders($this->extend($request, $params)));
         //
         //     {
         //         "data": {
@@ -2391,11 +2380,11 @@ class predictfun extends Exchange {
         return $this->parse_prediction_orders($rows, $outcomeObj);
     }
 
-    public function fetch_order(string $id, ?string $outcome = null, $params = array()): PromiseInterface {
+    public function fetch_order(?string $id, ?string $outcome = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $outcome, $params);
     }
 
-    private function do_fetch_order(string $id, ?string $outcome = null, $params = array()) {
+    private function do_fetch_order(?string $id, ?string $outcome = null, $params = array()) {
         /**
          * fetches one of your own orders by its hash
          *
@@ -3175,12 +3164,11 @@ class predictfun extends Exchange {
          * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
          */
         $messageHash = 'orders';
-        $outcomeResolved = $outcome;
-        if ($outcomeResolved !== null) {
-            Async\await($this->load_outcome($outcomeResolved));
-            $outcomeObj = $this->outcome($outcomeResolved);
-            $outcomeResolved = $this->safe_outcome_symbol(null, $outcomeObj);
-            $messageHash = 'orders::' . $outcomeResolved;
+        if ($outcome !== null) {
+            Async\await($this->load_outcome($outcome));
+            $outcomeObj = $this->outcome($outcome);
+            $outcome = $this->safe_outcome_symbol(null, $outcomeObj);
+            $messageHash = 'orders::' . $outcome;
         } else {
             // events arrive for whatever market the wallet traded, and the handler that resolves
             // them is synchronous - so the universe is warmed here, while there is still a place to
@@ -3190,11 +3178,10 @@ class predictfun extends Exchange {
             Async\await($this->load_outcomes());
         }
         $orders = Async\await($this->watch_wallet_events($messageHash, $params));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $orders->getLimit($outcomeResolved, $limitResolved);
+            $limit = $orders->getLimit($outcome, $limit);
         }
-        return $this->filter_by_outcome_since_limit($orders, $outcomeResolved, $since, $limitResolved, true);
+        return $this->filter_by_outcome_since_limit($orders, $outcome, $since, $limit, true);
     }
 
     public function watch_my_trades(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -3214,23 +3201,21 @@ class predictfun extends Exchange {
          * @return {array[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
          */
         $messageHash = 'myTrades';
-        $outcomeResolved = $outcome;
-        if ($outcomeResolved !== null) {
-            Async\await($this->load_outcome($outcomeResolved));
-            $outcomeObj = $this->outcome($outcomeResolved);
-            $outcomeResolved = $this->safe_outcome_symbol(null, $outcomeObj);
-            $messageHash = 'myTrades::' . $outcomeResolved;
+        if ($outcome !== null) {
+            Async\await($this->load_outcome($outcome));
+            $outcomeObj = $this->outcome($outcome);
+            $outcome = $this->safe_outcome_symbol(null, $outcomeObj);
+            $messageHash = 'myTrades::' . $outcome;
         } else {
             // same as watchOrders (): the fills come from the one wallet topic and are resolved by
             // a synchronous handler, so the cache is warmed here rather than on the first event
             Async\await($this->load_outcomes());
         }
         $trades = Async\await($this->watch_wallet_events($messageHash, $params));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($outcomeResolved, $limitResolved);
+            $limit = $trades->getLimit($outcome, $limit);
         }
-        return $this->filter_by_outcome_since_limit($trades, $outcomeResolved, $since, $limitResolved, true);
+        return $this->filter_by_outcome_since_limit($trades, $outcome, $since, $limit, true);
     }
 
     public function un_watch_orders(?string $outcome = null, $params = array()): PromiseInterface {
@@ -3511,7 +3496,7 @@ class predictfun extends Exchange {
         $noAsks = array();
         $bidsLength = count($rawBids);
         for ($i = 0; $i < $bidsLength; $i++) {
-            $bid = $this->safe_list($rawBids, $i);
+            $bid = $rawBids[$i];
             $bidPrice = $this->safe_string($bid, 0);
             $bidSize = $this->parse_number($this->safe_string($bid, 1));
             $yesBids[] = array( $this->parse_number($bidPrice), $bidSize );
@@ -3520,7 +3505,7 @@ class predictfun extends Exchange {
         }
         $asksLength = count($rawAsks);
         for ($i = 0; $i < $asksLength; $i++) {
-            $ask = $this->safe_list($rawAsks, $i);
+            $ask = $rawAsks[$i];
             $askPrice = $this->safe_string($ask, 0);
             $askSize = $this->parse_number($this->safe_string($ask, 1));
             $yesAsks[] = array( $this->parse_number($askPrice), $askSize );
@@ -3529,7 +3514,7 @@ class predictfun extends Exchange {
         $outcomes = $this->outcomes_by_market_id($marketId);
         $outcomesLength = count($outcomes);
         for ($i = 0; $i < $outcomesLength; $i++) {
-            $outcomeObj = $this->safe_dict($outcomes, $i);
+            $outcomeObj = $outcomes[$i];
             $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
             $isYesOutcome = $this->safe_integer($outcomeInfo, 'indexSet') === 1;
             $outcomeHandle = $this->safe_string($outcomeObj, 'outcome');
@@ -3687,10 +3672,7 @@ class predictfun extends Exchange {
         // undefined rather than guessed - a handle that does not match the one the rest of the api
         // reports is worse than none at all
         $topicSlug = $this->safe_string($details, 'categorySlug');
-        $eventHandle = null;
-        if ($topicSlug !== null) {
-            $eventHandle = $this->shorten_slug($topicSlug);
-        }
+        $eventHandle = ($topicSlug !== null) ? $this->shorten_slug($topicSlug) : null;
         $label = $this->strip_price_formatting($this->safe_string_upper($details, 'outcomeName'));
         return array(
             'outcome' => null,
@@ -3942,7 +3924,7 @@ class predictfun extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, mixed $api = 'predictfun', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'predictfun', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
          * builds the request URL and attaches the API key header required by every endpoint
@@ -3973,7 +3955,7 @@ class predictfun extends Exchange {
             }
         }
         $existingHeaders = ($headers !== null) ? $headers : array();
-        $headersValue = $existingHeaders;
+        $headers = $existingHeaders;
         $authHeaders = array();
         if (($apiKey !== null) && (!$sandboxMode)) {
             // the php transpiler prefixes every standalone 'api' with a $, string literals included,
@@ -4008,15 +3990,14 @@ class predictfun extends Exchange {
         if (($jwtToken !== null) && $this->in_array($path, $walletPaths)) {
             $authHeaders['Authorization'] = 'Bearer ' . $jwtToken;
         }
-        $bodyValue = $body;
         if ($method !== 'GET') {
             if (!$sandboxMode) {
                 $this->check_required_credentials();
             }
             $authHeaders['Content-Type'] = 'application/json';
-            $bodyValue = $this->json($params);
+            $body = $this->json($params);
         }
-        $headersExtended = $this->extend($headersValue, $authHeaders);
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyValue, 'headers' => $headersExtended );
+        $headers = $this->extend($headers, $authHeaders);
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

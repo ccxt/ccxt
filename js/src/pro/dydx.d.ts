@@ -24,7 +24,7 @@ export default class dydx extends dydxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
+    unWatchTrades(symbol: string, params?: {}): Promise<any>;
     handleTrades(client: Client, message: Dict): void;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     /**
@@ -47,7 +47,7 @@ export default class dydx extends dydxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
     /**
@@ -74,8 +74,8 @@ export default class dydx extends dydxRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: Dict): void;
-    handleErrorMessage(client: Client, message: Dict): boolean;
+    handleErrorMessage(client: Client, message: any): boolean;
     handleMessage(client: Client, message: Dict): void;
 }

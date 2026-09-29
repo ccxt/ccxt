@@ -493,9 +493,6 @@ class bydfi extends Exchange {
         $settleId = $this->safe_string($market, 'marginAsset');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        if (($base === null) || ($quote === null)) {
-            return null;
-        }
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote . ':' . $settle;
         $inverse = $this->safe_bool($market, 'reverse');
@@ -705,11 +702,13 @@ class bydfi extends Exchange {
         $paginate = $this->safe_bool($params, 'paginate', false);
         if ($paginate === true) {
             $maxLimit = 500;
-            $paramsPaginate = $this->extend($this->omit($params, 'paginate'), array( 'paginationDirection' => 'backward' ));
-            $paginatedResponse = $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate, $maxLimit, true);
+            $params = $this->omit($params, 'paginate');
+            $params = $this->extend($params, array( 'paginationDirection' => 'backward' ));
+            $paginatedResponse = $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params, $maxLimit, true);
             return $this->sort_by($paginatedResponse, 'timestamp');
         }
-        list($contractType, $paramsContractType) = $this->handle_option_string_and_params($params, 'fetchMyTrades', 'contractType', 'FUTURE');
+        $contractType = 'FUTURE';
+        list($contractType, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'contractType', $contractType);
         $request = array(
             'contractType' => $contractType,
         );
@@ -718,11 +717,11 @@ class bydfi extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $paramsSinceUntil = $this->handle_since_and_until('fetchMyTrades', $since, $paramsContractType);
+        $params = $this->handle_since_and_until('fetchMyTrades', $since, $params);
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetV1FapiTradeHistoryTrade($this->extend($request, $paramsSinceUntil));
+        $response = $this->privateGetV1FapiTradeHistoryTrade($this->extend($request, $params));
         //
         //     {
         //         "code": 200,
@@ -785,7 +784,7 @@ class bydfi extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($trade, 'symbol');
-        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($trade, 'time');
         $fee = null;
         $rawType = $this->safe_string($trade, 'type');
@@ -793,7 +792,7 @@ class bydfi extends Exchange {
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => $marketResolved['settle'],
+                'currency' => $market['settle'],
             );
         }
         $orderId = $this->safe_string($trade, 'orderId');
@@ -806,7 +805,7 @@ class bydfi extends Exchange {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'id' => $this->safe_string($trade, 'id'),
             'order' => $orderId,
             'type' => $this->parse_trade_type($rawType),
@@ -816,7 +815,7 @@ class bydfi extends Exchange {
             'amount' => $this->safe_string_2($trade, 'quantity', 'dealVolume'),
             'cost' => null,
             'fee' => $fee,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function parse_trade_type(?string $type): ?string {
@@ -846,9 +845,10 @@ class bydfi extends Exchange {
             $this->load_markets();
         }
         $maxLimit = 500; // docs says max 1500, but in practice only 500 works
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxLimit);
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit);
         }
         $market = $this->market($symbol);
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -857,13 +857,9 @@ class bydfi extends Exchange {
             'interval' => $interval,
         );
         $startTime = $since;
-        $numberOfCandles = $maxLimit;
-        if ($limit !== null && $limit !== null && $limit !== 0) {
-            $numberOfCandles = $limit;
-        }
+        $numberOfCandles = ($limit !== null && $limit !== null && $limit !== 0) ? $limit : $maxLimit;
         $until = null;
-        $paramsUntil = null;
-        list($until, $paramsUntil) = $this->handle_option_integer_and_params($paramsPaginate, 'fetchOHLCV', 'until');
+        list($until, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'until');
         $now = $this->milliseconds();
         $duration = $this->parse_timeframe($timeframe) * 1000;
         $timeDelta = $duration * $numberOfCandles;
@@ -886,7 +882,7 @@ class bydfi extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetV1FapiMarketKlines($this->extend($request, $paramsUntil));
+        $response = $this->publicGetV1FapiMarketKlines($this->extend($request, $params));
         //
         //     {
         //         "code": 200,
@@ -1005,11 +1001,11 @@ class bydfi extends Exchange {
         //     }
         //
         $marketId = $this->safe_string_2($ticker, 'symbol', 's');
-        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_2($ticker, 'time', 'E');
         $last = $this->safe_string_2($ticker, 'last', 'c');
         return $this->safe_ticker(array(
-            'symbol' => $this->safe_symbol($marketId, $marketResolved),
+            'symbol' => $this->safe_symbol($marketId, $market),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string_2($ticker, 'high', 'h'),
@@ -1031,7 +1027,7 @@ class bydfi extends Exchange {
             'markPrice' => null,
             'indexPrice' => null,
             'info' => $ticker,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function fetch_funding_rate(string $symbol, $params = array()): array {
@@ -1133,11 +1129,12 @@ class bydfi extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        list($until, $paramsUntil) = $this->handle_option_integer_and_params($params, 'fetchFundingRateHistory', 'until');
+        $until = null;
+        list($until, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->publicGetV1FapiMarketFundingRateHistory($this->extend($request, $paramsUntil));
+        $response = $this->publicGetV1FapiMarketFundingRateHistory($this->extend($request, $params));
         //
         //     {
         //         "code": 200,
@@ -1209,8 +1206,8 @@ class bydfi extends Exchange {
         $market = $this->market($symbol);
         $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $wallet = 'W001';
-        $walletOption = $this->handle_option_string_and_params($params, 'createOrder', 'wallet', $wallet)[0];
-        $orderRequest = $this->extend($orderRequest, array( 'wallet' => $walletOption ));
+        list($wallet, $params) = $this->handle_option_and_params($params, 'createOrder', 'wallet', $wallet);
+        $orderRequest = $this->extend($orderRequest, array( 'wallet' => $wallet ));
         $response = $this->privatePostV1FapiTradePlaceOrder($orderRequest);
         //
         //     {
@@ -1280,82 +1277,78 @@ class bydfi extends Exchange {
         $trailingPercent = $this->safe_string($params, 'trailingPercent');
         $isTailingStopOrder = ($trailingPercent !== null);
         $stopPrice = null;
-        $isStopOrTakeProfit = $isStopLossOrder || $isTakeProfitOrder;
-        $query = $params;
-        if ($isStopOrTakeProfit) {
-            $query = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice' ));
-        }
-        if ($isStopOrTakeProfit) {
+        if ($isStopLossOrder || $isTakeProfitOrder) {
             $stopPrice = $isStopLossOrder ? $stopLossPrice : $takeProfitPrice;
+            $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice' ));
             $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
         } elseif ($isTailingStopOrder) {
-            $query = $this->omit($query, array( 'trailingPercent' ));
+            $params = $this->omit($params, array( 'trailingPercent' ));
             $request['callbackRate'] = $trailingPercent;
             $trailingTriggerPrice = $this->number_to_string($price);
-            list($trailingTriggerPrice, $query) = $this->handle_param_string($query, 'trailingTriggerPrice', $trailingTriggerPrice);
+            list($trailingTriggerPrice, $params) = $this->handle_param_string($params, 'trailingTriggerPrice', $trailingTriggerPrice);
             if ($trailingTriggerPrice !== null) {
                 $request['activationPrice'] = $this->price_to_precision($symbol, $trailingTriggerPrice);
-                $query = $this->omit($query, array( 'trailingTriggerPrice' ));
+                $params = $this->omit($params, array( 'trailingTriggerPrice' ));
             }
         }
-        $typeValue = strtoupper($type);
-        $isMarketOrder = (($typeValue === 'MARKET') || ($typeValue === 'STOP_MARKET') || ($typeValue === 'TAKE_PROFIT_MARKET') || ($typeValue === 'TRAILING_STOP_MARKET'));
+        $type = strtoupper($type);
+        $isMarketOrder = (($type === 'MARKET') || ($type === 'STOP_MARKET') || ($type === 'TAKE_PROFIT_MARKET') || ($type === 'TRAILING_STOP_MARKET'));
         if ($isMarketOrder) {
-            if ($typeValue === 'MARKET') {
+            if ($type === 'MARKET') {
                 if ($isStopLossOrder) {
-                    $typeValue = 'STOP_MARKET';
+                    $type = 'STOP_MARKET';
                 } elseif ($isTakeProfitOrder) {
-                    $typeValue = 'TAKE_PROFIT_MARKET';
+                    $type = 'TAKE_PROFIT_MARKET';
                 } elseif ($isTailingStopOrder) {
-                    $typeValue = 'TRAILING_STOP_MARKET';
+                    $type = 'TRAILING_STOP_MARKET';
                 }
             }
         } else {
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for a ' . $typeValue . ' order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for a ' . $type . ' order');
             }
             $request['price'] = $this->price_to_precision($symbol, $price);
             if ($isStopLossOrder) {
-                $typeValue = 'STOP';
+                $type = 'STOP';
             } elseif ($isTakeProfitOrder) {
-                $typeValue = 'TAKE_PROFIT';
+                $type = 'TAKE_PROFIT';
             }
         }
-        $request['type'] = $typeValue;
+        $request['type'] = $type;
         $hedged = false;
-        list($hedged, $query) = $this->handle_option_bool_and_params($query, 'createOrder', 'hedged', $hedged);
-        $reduceOnly = $this->safe_bool($query, 'reduceOnly', false);
+        list($hedged, $params) = $this->handle_option_and_params($params, 'createOrder', 'hedged', $hedged);
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
         if ($hedged) {
-            $query = $this->omit($query, 'reduceOnly');
+            $params = $this->omit($params, 'reduceOnly');
             if ($side === 'buy') {
                 $request['positionSide'] = ($reduceOnly === true) ? 'SHORT' : 'LONG';
             } elseif ($side === 'sell') {
                 $request['positionSide'] = ($reduceOnly === true) ? 'LONG' : 'SHORT';
             }
         }
-        $closePosition = $this->safe_bool($query, 'closePosition', false);
+        $closePosition = $this->safe_bool($params, 'closePosition', false);
         if ($closePosition !== true) {
-            $query = $this->omit($query, 'closePosition');
+            $params = $this->omit($params, 'closePosition');
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-        } elseif (($typeValue !== 'STOP_MARKET') && ($typeValue !== 'TAKE_PROFIT_MARKET')) {
+        } elseif (($type !== 'STOP_MARKET') && ($type !== 'TAKE_PROFIT_MARKET')) {
             throw new NotSupported($this->id . ' createOrder() closePosition is only supported for stopLoss and takeProfit market orders');
         }
-        $timeInForce = $this->handle_time_in_force($query);
+        $timeInForce = $this->handle_time_in_force($params);
         $postOnly = false;
-        list($postOnly, $query) = $this->handle_post_only($isMarketOrder, $timeInForce === 'POST_ONLY', $query);
+        list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $timeInForce === 'POST_ONLY', $params);
         if ($postOnly) {
             $timeInForce = 'POST_ONLY';
         }
         if ($timeInForce !== null) {
             $request['timeInForce'] = $timeInForce;
-            $query = $this->omit($query, 'timeInForce');
+            $params = $this->omit($params, 'timeInForce');
         }
         if ($isStopLossOrder || $isTakeProfitOrder || $isTailingStopOrder) {
             $workingType = 'CONTRACT_PRICE';
-            list($workingType, $query) = $this->handle_option_string_and_params($query, 'createOrder', 'triggerPriceType', $workingType);
+            list($workingType, $params) = $this->handle_option_and_params($params, 'createOrder', 'triggerPriceType', $workingType);
             $request['workingType'] = $this->encode_working_type($workingType);
         }
-        return $this->extend($request, $query);
+        return $this->extend($request, $params);
     }
 
     public function encode_working_type(?string $workingType): ?string {
@@ -1389,7 +1382,7 @@ class bydfi extends Exchange {
         }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $this->safe_dict($orders, $i);
+            $rawOrder = $orders[$i];
             $symbol = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
@@ -1400,12 +1393,12 @@ class bydfi extends Exchange {
             $ordersRequests[] = $orderRequest;
         }
         $wallet = 'W001';
-        list($walletOption, $paramsWallet) = $this->handle_option_string_and_params($params, 'createOrder', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_and_params($params, 'createOrder', 'wallet', $wallet);
         $request = array(
-            'wallet' => $walletOption,
+            'wallet' => $wallet,
             'orders' => $ordersRequests,
         );
-        $response = $this->privatePostV1FapiTradeBatchPlaceOrder($this->extend($request, $paramsWallet));
+        $response = $this->privatePostV1FapiTradeBatchPlaceOrder($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data);
     }
@@ -1432,8 +1425,8 @@ class bydfi extends Exchange {
         }
         $request = $this->create_edit_order_request($id, $symbol, 'limit', $side, $amount, $price, $params);
         $wallet = 'W001';
-        $walletOption = $this->handle_option_string_and_params($params, 'editOrder', 'wallet', $wallet)[0];
-        $request['wallet'] = $walletOption;
+        list($wallet, $params) = $this->handle_option_and_params($params, 'editOrder', 'wallet', $wallet);
+        $request['wallet'] = $wallet;
         $response = $this->privatePostV1FapiTradeEditOrder($request);
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data);
@@ -1459,7 +1452,7 @@ class bydfi extends Exchange {
         }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $this->safe_dict($orders, $i);
+            $rawOrder = $orders[$i];
             $id = $this->safe_string($rawOrder, 'id');
             $symbol = $this->safe_string($rawOrder, 'symbol');
             $side = $this->safe_string($rawOrder, 'side');
@@ -1470,12 +1463,12 @@ class bydfi extends Exchange {
             $ordersRequests[] = $orderRequest;
         }
         $wallet = 'W001';
-        list($walletOption, $paramsWallet) = $this->handle_option_string_and_params($params, 'editOrder', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_and_params($params, 'editOrder', 'wallet', $wallet);
         $request = array(
-            'wallet' => $walletOption,
+            'wallet' => $wallet,
             'editOrders' => $ordersRequests,
         );
-        $response = $this->privatePostV1FapiTradeBatchEditOrder($this->extend($request, $paramsWallet));
+        $response = $this->privatePostV1FapiTradeBatchEditOrder($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data);
     }
@@ -1521,12 +1514,12 @@ class bydfi extends Exchange {
         }
         $market = $this->market($symbol);
         $wallet = 'W001';
-        list($walletOption, $paramsWallet) = $this->handle_option_string_and_params($params, 'cancelAllOrders', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'wallet', $wallet);
         $request = array(
             'symbol' => $market['id'],
-            'wallet' => $walletOption,
+            'wallet' => $wallet,
         );
-        $response = $this->privatePostV1FapiTradeCancelAllOrder($this->extend($request, $paramsWallet));
+        $response = $this->privatePostV1FapiTradeCancelAllOrder($this->extend($request, $params));
         //
         //     {
         //         "code": 200,
@@ -1586,14 +1579,14 @@ class bydfi extends Exchange {
         }
         $market = $this->market($symbol);
         $wallet = 'W001';
-        list($walletOption, $paramsWallet) = $this->handle_option_string_and_params($params, 'fetchOpenOrders', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'wallet', $wallet);
         $request = array(
             'symbol' => $market['id'],
-            'wallet' => $walletOption,
+            'wallet' => $wallet,
         );
         $trigger = false;
-        list($triggerOption, $paramsTrigger) = $this->handle_option_bool_and_params($paramsWallet, 'fetchOpenOrders', 'trigger', $trigger);
-        if (!$triggerOption) {
+        list($trigger, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'trigger', $trigger);
+        if (!$trigger) {
             //
             //     {
             //         "code": 200,
@@ -1626,9 +1619,9 @@ class bydfi extends Exchange {
             //         "success": true
             //     }
             //
-            $response = $this->privateGetV1FapiTradeOpenOrder($this->extend($request, $paramsTrigger));
+            $response = $this->privateGetV1FapiTradeOpenOrder($this->extend($request, $params));
         } else {
-            $response = $this->privateGetV1FapiTradePlanOrder($this->extend($request, $paramsTrigger));
+            $response = $this->privateGetV1FapiTradePlanOrder($this->extend($request, $params));
         }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
@@ -1666,14 +1659,14 @@ class bydfi extends Exchange {
             $request['orderId'] = $id;
         }
         $wallet = 'W001';
-        list($walletOption, $paramsWallet) = $this->handle_option_string_and_params($params, 'fetchOpenOrder', 'wallet', $wallet);
-        $request['wallet'] = $walletOption;
+        list($wallet, $params) = $this->handle_option_and_params($params, 'fetchOpenOrder', 'wallet', $wallet);
+        $request['wallet'] = $wallet;
         $trigger = false;
-        list($triggerOption, $paramsTrigger) = $this->handle_option_bool_and_params($paramsWallet, 'fetchOpenOrder', 'trigger', $trigger);
-        if (!$triggerOption) {
-            $response = $this->privateGetV1FapiTradeOpenOrder($this->extend($request, $paramsTrigger));
+        list($trigger, $params) = $this->handle_option_and_params($params, 'fetchOpenOrder', 'trigger', $trigger);
+        if (!$trigger) {
+            $response = $this->privateGetV1FapiTradeOpenOrder($this->extend($request, $params));
         } else {
-            $response = $this->privateGetV1FapiTradePlanOrder($this->extend($request, $paramsTrigger));
+            $response = $this->privateGetV1FapiTradePlanOrder($this->extend($request, $params));
         }
         $data = $this->safe_list($response, 'data', array());
         $order = $this->safe_dict($data, 0, array());
@@ -1702,11 +1695,13 @@ class bydfi extends Exchange {
         $paginate = $this->safe_bool($params, 'paginate', false);
         if ($paginate === true) {
             $maxLimit = 500;
-            $paramsPaginate = $this->extend($this->omit($params, 'paginate'), array( 'paginationDirection' => 'backward' ));
-            $paginatedResponse = $this->fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $paramsPaginate, $maxLimit, true);
+            $params = $this->omit($params, 'paginate');
+            $params = $this->extend($params, array( 'paginationDirection' => 'backward' ));
+            $paginatedResponse = $this->fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $params, $maxLimit, true);
             return $this->sort_by($paginatedResponse, 'timestamp');
         }
-        list($contractType, $paramsContractType) = $this->handle_option_string_and_params($params, 'fetchCanceledAndClosedOrders', 'contractType', 'FUTURE');
+        $contractType = 'FUTURE';
+        list($contractType, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'contractType', $contractType);
         $request = array(
             'contractType' => $contractType,
         );
@@ -1715,11 +1710,11 @@ class bydfi extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $paramsSinceUntil = $this->handle_since_and_until('fetchCanceledAndClosedOrders', $since, $paramsContractType);
+        $params = $this->handle_since_and_until('fetchCanceledAndClosedOrders', $since, $params);
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetV1FapiTradeHistoryOrder($this->extend($request, $paramsSinceUntil));
+        $response = $this->privateGetV1FapiTradeHistoryOrder($this->extend($request, $params));
         //
         //     {
         //         "code": 200,
@@ -1771,8 +1766,7 @@ class bydfi extends Exchange {
 
     public function handle_since_and_until(string $methodName, ?int $since = null, $params = array()): array {
         $until = null;
-        $paramsUntil = null;
-        list($until, $paramsUntil) = $this->handle_option_integer_and_params_2($params, $methodName, 'until', 'endTime');
+        list($until, $params) = $this->handle_option_and_params_2($params, $methodName, 'until', 'endTime');
         $now = $this->milliseconds();
         $sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         $startTime = $since;
@@ -1798,7 +1792,7 @@ class bydfi extends Exchange {
             'startTime' => $startTime,
             'endTime' => $until,
         );
-        return $this->extend($request, $paramsUntil);
+        return $this->extend($request, $params);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1867,7 +1861,7 @@ class bydfi extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');
-        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_2($order, 'createTime', 'ctime');
         $rawType = $this->safe_string($order, 'orderType');
         $stopPrice = $this->safe_string_n($order, array( 'stopPrice', 'activatePrice', 'triggerPrice' ));
@@ -1875,7 +1869,7 @@ class bydfi extends Exchange {
         $isTakeProfitOrder = ($rawType === 'TAKE_PROFIT') || ($rawType === 'TAKE_PROFIT_MARKET');
         $rawTimeInForce = $this->safe_string($order, 'timeInForce');
         $timeInForce = $this->parse_order_time_in_force($rawTimeInForce);
-        $postOnly = false;
+        $postOnly = null;
         if ($timeInForce === 'PO') {
             $postOnly = true;
         }
@@ -1884,7 +1878,7 @@ class bydfi extends Exchange {
         $quoteFee = $this->safe_number($order, 'quoteFee');
         if ($quoteFee !== null) {
             $fee['cost'] = $quoteFee;
-            $fee['currency'] = $marketResolved['quote'];
+            $fee['currency'] = $market['quote'];
         }
         return $this->safe_order(array(
             'info' => $order,
@@ -1895,7 +1889,7 @@ class bydfi extends Exchange {
             'lastTradeTimestamp' => null,
             'lastUpdateTimestamp' => $this->safe_integer_2($order, 'updateTime', 'mtime'),
             'status' => $this->parse_order_status($rawStatus),
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'type' => $this->parse_order_type($rawType),
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
@@ -1912,7 +1906,7 @@ class bydfi extends Exchange {
             'trades' => null,
             'fee' => $fee,
             'average' => $this->omit_zero($this->safe_string($order, 'avgPrice')),
-        ), $marketResolved);
+        ), $market);
     }
 
     public function parse_order_type(?string $type): ?string {
@@ -1973,13 +1967,13 @@ class bydfi extends Exchange {
         }
         $market = $this->market($symbol);
         $wallet = 'W001';
-        list($walletOption, $paramsWallet) = $this->handle_option_string_and_params($params, 'setLeverage', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_and_params($params, 'setLeverage', 'wallet', $wallet);
         $request = array(
             'symbol' => $market['id'],
             'leverage' => $leverage,
-            'wallet' => $walletOption,
+            'wallet' => $wallet,
         );
-        $response = $this->privatePostV1FapiTradeLeverage($this->extend($request, $paramsWallet));
+        $response = $this->privatePostV1FapiTradeLeverage($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data', array());
         return $data;
     }
@@ -2003,12 +1997,12 @@ class bydfi extends Exchange {
         }
         $market = $this->market($symbol);
         $wallet = 'W001';
-        list($walletOption, $paramsWallet) = $this->handle_option_string_and_params($params, 'fetchLeverage', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_and_params($params, 'fetchLeverage', 'wallet', $wallet);
         $request = array(
             'symbol' => $market['id'],
-            'wallet' => $walletOption,
+            'wallet' => $wallet,
         );
-        $response = $this->privateGetV1FapiTradeLeverage($this->extend($request, $paramsWallet));
+        $response = $this->privateGetV1FapiTradeLeverage($this->extend($request, $params));
         //
         //     {
         //         "code": 200,
@@ -2052,11 +2046,11 @@ class bydfi extends Exchange {
             $this->load_markets();
         }
         $contractType = 'FUTURE';
-        list($contractTypeOption, $paramsContractType) = $this->handle_option_string_and_params($params, 'fetchPositions', 'contractType', $contractType);
+        list($contractType, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'contractType', $contractType);
         $request = array(
-            'contractType' => $contractTypeOption,
+            'contractType' => $contractType,
         );
-        $response = $this->privateGetV1FapiTradePositions($this->extend($request, $paramsContractType));
+        $response = $this->privateGetV1FapiTradePositions($this->extend($request, $params));
         //
         //     {
         //         "code": 200,
@@ -2100,12 +2094,12 @@ class bydfi extends Exchange {
         }
         $market = $this->market($symbol);
         $contractType = 'FUTURE';
-        list($contractTypeOption, $paramsContractType) = $this->handle_option_string_and_params($params, 'fetchPositions', 'contractType', $contractType);
+        list($contractType, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'contractType', $contractType);
         $request = array(
-            'contractType' => $contractTypeOption,
+            'contractType' => $contractType,
             'symbol' => $market['id'],
         );
-        $response = $this->privateGetV1FapiTradePositions($this->extend($request, $paramsContractType));
+        $response = $this->privateGetV1FapiTradePositions($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_positions($data, array( $market['symbol'] ));
     }
@@ -2163,11 +2157,11 @@ class bydfi extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($position, 'symbol');
-        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $buyOrSell = $this->safe_string($position, 'side');
         $rawPositionSide = $this->safe_string_lower($position, 'positionSide');
         $positionSide = $this->parse_position_side($buyOrSell);
-        $hedged = false;
+        $hedged = null;
         $isFetchPositionsHistory = false;
         if ($rawPositionSide !== null) {
             $isFetchPositionsHistory = true;
@@ -2178,7 +2172,7 @@ class bydfi extends Exchange {
                 $hedged = false;
             }
         }
-        $contractSize = $this->safe_string($marketResolved, 'contractSize');
+        $contractSize = $this->safe_string($market, 'contractSize');
         $contracts = $this->safe_string_2($position, 'volume', 'openPositionVolume');
         if (!$isFetchPositionsHistory) {
             // in fetchPositions, the 'volume' is in base currency units, need to convert to contracts
@@ -2188,7 +2182,7 @@ class bydfi extends Exchange {
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'id'),
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'entryPrice' => $this->parse_number($this->safe_string_2($position, 'avgOpenPositionPrice', 'avgPrice')),
             'markPrice' => $this->parse_number($this->safe_string($position, 'markPrice')),
             'lastPrice' => $this->parse_number($this->safe_string($position, 'avgClosePositionPrice')),
@@ -2243,16 +2237,16 @@ class bydfi extends Exchange {
         }
         $market = $this->market($symbol);
         $contractType = 'FUTURE';
-        list($contractTypeOption, $paramsContractType) = $this->handle_option_string_and_params($params, 'fetchPositionHistory', 'contractType', $contractType);
+        list($contractType, $params) = $this->handle_option_and_params($params, 'fetchPositionHistory', 'contractType', $contractType);
         $request = array(
             'symbol' => $market['id'],
-            'contractType' => $contractTypeOption,
+            'contractType' => $contractType,
         );
-        $paramsSinceAndUntil = $this->handle_since_and_until('fetchPositionsHistory', $since, $paramsContractType);
+        $params = $this->handle_since_and_until('fetchPositionsHistory', $since, $params);
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetV1FapiTradePositionHistory($this->extend($request, $paramsSinceAndUntil));
+        $response = $this->privateGetV1FapiTradePositionHistory($this->extend($request, $params));
         //
         //
         $data = $this->safe_list($response, 'data', array());
@@ -2279,15 +2273,15 @@ class bydfi extends Exchange {
             $this->load_markets();
         }
         $contractType = 'FUTURE';
-        list($contractTypeOption, $paramsContractType) = $this->handle_option_string_and_params($params, 'fetchPositionsHistory', 'contractType', $contractType);
+        list($contractType, $params) = $this->handle_option_and_params($params, 'fetchPositionsHistory', 'contractType', $contractType);
         $request = array(
-            'contractType' => $contractTypeOption,
+            'contractType' => $contractType,
         );
-        $paramsSinceAndUntil = $this->handle_since_and_until('fetchPositionsHistory', $since, $paramsContractType);
+        $params = $this->handle_since_and_until('fetchPositionsHistory', $since, $params);
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetV1FapiTradePositionHistory($this->extend($request, $paramsSinceAndUntil));
+        $response = $this->privateGetV1FapiTradePositionHistory($this->extend($request, $params));
         //
         //     {
         //         "code": 200,
@@ -2352,15 +2346,15 @@ class bydfi extends Exchange {
         }
         $market = $this->market($symbol);
         $contractType = 'FUTURE';
-        list($contractTypeOption, $paramsContractType) = $this->handle_option_string_and_params($params, 'fetchMarginMode', 'contractType', $contractType);
+        list($contractType, $params) = $this->handle_option_and_params($params, 'fetchMarginMode', 'contractType', $contractType);
         $wallet = 'W001';
-        list($walletOption, $paramsWallet) = $this->handle_option_string_and_params($paramsContractType, 'fetchMarginMode', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_and_params($params, 'fetchMarginMode', 'wallet', $wallet);
         $request = array(
-            'contractType' => $contractTypeOption,
+            'contractType' => $contractType,
             'symbol' => $market['id'],
-            'wallet' => $walletOption,
+            'wallet' => $wallet,
         );
-        $response = $this->privateGetV1FapiUserDataAssetsMargin($this->extend($request, $paramsWallet));
+        $response = $this->privateGetV1FapiUserDataAssetsMargin($this->extend($request, $params));
         //
         //     {
         //         "code": 200,
@@ -2402,8 +2396,8 @@ class bydfi extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
         }
-        $marginModeValue = strtolower($marginMode);
-        if ($marginModeValue !== 'isolated' && $marginModeValue !== 'cross') {
+        $marginMode = strtolower($marginMode);
+        if ($marginMode !== 'isolated' && $marginMode !== 'cross') {
             throw new BadRequest($this->id . ' setMarginMode() marginMode argument should be isolated or cross');
         }
         if ($this->markets === null) {
@@ -2411,16 +2405,16 @@ class bydfi extends Exchange {
         }
         $market = $this->market($symbol);
         $contractType = 'FUTURE';
-        list($contractTypeOption, $paramsContractType) = $this->handle_option_string_and_params($params, 'setMarginMode', 'contractType', $contractType);
+        list($contractType, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'contractType', $contractType);
         $wallet = 'W001';
-        list($walletOption, $paramsWallet) = $this->handle_option_string_and_params($paramsContractType, 'setMarginMode', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'wallet', $wallet);
         $request = array(
-            'contractType' => $contractTypeOption,
+            'contractType' => $contractType,
             'symbol' => $market['id'],
-            'marginType' => strtoupper($marginModeValue),
-            'wallet' => $walletOption,
+            'marginType' => strtoupper($marginMode),
+            'wallet' => $wallet,
         );
-        return $this->privatePostV1FapiUserDataMarginType($this->extend($request, $paramsWallet));
+        return $this->privatePostV1FapiUserDataMarginType($this->extend($request, $params));
     }
 
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()): array {
@@ -2443,21 +2437,18 @@ class bydfi extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $positionType = 'ONEWAY';
-        if ($hedged) {
-            $positionType = 'HEDGE';
-        }
+        $positionType = $hedged ? 'HEDGE' : 'ONEWAY';
         $wallet = 'W001';
-        list($walletOption, $paramsWallet) = $this->handle_option_string_and_params($params, 'setPositionMode', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_and_params($params, 'setPositionMode', 'wallet', $wallet);
         $contractType = 'FUTURE';
-        list($contractTypeOption, $paramsContractType) = $this->handle_option_string_and_params($paramsWallet, 'setPositionMode', 'contractType', $contractType);
+        list($contractType, $params) = $this->handle_option_and_params($params, 'setPositionMode', 'contractType', $contractType);
         $settleCoin = 'USDT';
-        list($settleCoinOption, $paramsSettleCoin) = $this->handle_option_string_and_params($paramsContractType, 'setPositionMode', 'settleCoin', $settleCoin);
+        list($settleCoin, $params) = $this->handle_option_and_params($params, 'setPositionMode', 'settleCoin', $settleCoin);
         $request = array(
-            'contractType' => $contractTypeOption,
-            'wallet' => $walletOption,
+            'contractType' => $contractType,
+            'wallet' => $wallet,
             'positionType' => $positionType,
-            'settleCoin' => $settleCoinOption,
+            'settleCoin' => $settleCoin,
         );
         //
         //     {
@@ -2466,7 +2457,7 @@ class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        return $this->privatePostV1FapiUserDataPositionSideDual($this->extend($request, $paramsSettleCoin));
+        return $this->privatePostV1FapiUserDataPositionSideDual($this->extend($request, $params));
     }
 
     public function fetch_position_mode(?string $symbol = null, $params = array()): array {
@@ -2485,12 +2476,13 @@ class bydfi extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($wallet, $paramsWallet) = $this->handle_option_string_and_params($params, 'fetchPositionMode', 'wallet', 'W001');
-        list($contractType, $paramsContractType) = $this->handle_option_string_and_params($paramsWallet, 'fetchPositionMode', 'contractType', 'FUTURE');
+        $wallet = 'W001';
+        list($wallet, $params) = $this->handle_option_and_params($params, 'fetchPositionMode', 'wallet', $wallet);
+        $contractType = 'FUTURE';
+        list($contractType, $params) = $this->handle_option_and_params($params, 'fetchPositionMode', 'contractType', $contractType);
         $settleCoin = 'USDT';
-        $query = $paramsContractType;
         if ($symbol === null) {
-            list($settleCoin, $query) = $this->handle_option_string_and_params($paramsContractType, 'fetchPositionMode', 'settleCoin', $settleCoin);
+            list($settleCoin, $params) = $this->handle_option_and_params($params, 'fetchPositionMode', 'settleCoin', $settleCoin);
         } else {
             $market = $this->market($symbol);
             $settleCoin = $market['settleId'];
@@ -2500,7 +2492,7 @@ class bydfi extends Exchange {
             'settleCoin' => $settleCoin,
             'wallet' => $wallet,
         );
-        $response = $this->privateGetV1FapiUserDataPositionSideDual($this->extend($request, $query));
+        $response = $this->privateGetV1FapiUserDataPositionSideDual($this->extend($request, $params));
         //
         //     {
         //         "code": 200,
@@ -2542,8 +2534,10 @@ class bydfi extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-        list($wallet, $paramsWallet) = $this->handle_option_string_and_params($paramsMarketType, 'fetchBalance', 'wallet');
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $wallet = null;
+        list($wallet, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'wallet');
         $request = array();
         if ($wallet === null) {
             $options = $this->safe_dict($this->options, 'accountsByType', array());
@@ -2565,7 +2559,7 @@ class bydfi extends Exchange {
             //         "success": true
             //     }
             //
-            $response = $this->privateGetV1AccountAssets($this->extend($request, $paramsWallet));
+            $response = $this->privateGetV1AccountAssets($this->extend($request, $params));
         } else {
             $request['wallet'] = $wallet;
             //
@@ -2596,7 +2590,7 @@ class bydfi extends Exchange {
             //         ],
             //         "success": true
             //     }
-            $response = $this->privateGetV1FapiAccountBalance($this->extend($request, $paramsWallet));
+            $response = $this->privateGetV1FapiAccountBalance($this->extend($request, $params));
         }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_balance($data);
@@ -2609,7 +2603,7 @@ class bydfi extends Exchange {
             'datetime' => null,
         );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $this->safe_dict($response, $i);
+            $balance = $response[$i];
             $symbol = $this->safe_string($balance, 'asset');
             $code = $this->safe_currency_code($symbol);
             $account = $this->account();
@@ -2691,22 +2685,28 @@ class bydfi extends Exchange {
         $paginate = $this->safe_bool($params, 'paginate', false);
         if ($paginate === true) {
             $maxLimit = 50;
-            $paramsPaginate = $this->extend($this->omit($params, 'paginate'), array( 'paginationDirection' => 'backward' ));
-            $paginatedResponse = $this->fetch_paginated_call_dynamic('fetchTransfers', $this->safe_string($currency, 'code'), $since, $limit, $paramsPaginate, $maxLimit, true);
+            $params = $this->omit($params, 'paginate');
+            $params = $this->extend($params, array( 'paginationDirection' => 'backward' ));
+            $paginatedResponse = $this->fetch_paginated_call_dynamic('fetchTransfers', $currency['code'], $since, $limit, $params, $maxLimit, true);
             return $this->sort_by($paginatedResponse, 'timestamp');
         }
         $request = array(
             'asset' => $currency['id'],
         );
-        list($until, $paramsUntil) = $this->handle_option_integer_and_params_2($params, 'fetchTransfers', 'until', 'endTime');
-        // exchange requires endTime, and startTime but allows any value
-        $sinceResolved = ($since === null) ? 1 : $since;
-        $request['startTime'] = $sinceResolved;
-        $request['endTime'] = ($until === null) ? $this->milliseconds() : $until;
+        $until = null;
+        list($until, $params) = $this->handle_option_and_params_2($params, 'fetchTransfers', 'until', 'endTime');
+        if ($until === null) {
+            $until = $this->milliseconds(); // exchange requires endTime
+        }
+        if ($since === null) {
+            $since = 1; // exchange requires startTime but allows any value
+        }
+        $request['startTime'] = $since;
+        $request['endTime'] = $until;
         if ($limit !== null) {
             $request['rows'] = $limit;
         }
-        $response = $this->privateGetV1AccountTransferRecords($this->extend($request, $paramsUntil));
+        $response = $this->privateGetV1AccountTransferRecords($this->extend($request, $params));
         //
         //     {
         //         "code": 200,
@@ -2727,7 +2727,7 @@ class bydfi extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_transfers($data, $currency, $sinceResolved, $limit);
+        return $this->parse_transfers($data, $currency, $since, $limit);
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -2811,11 +2811,8 @@ class bydfi extends Exchange {
         return $this->fetch_transactions_helper('withdrawal', $code, $since, $limit, $params);
     }
 
-    public function fetch_transactions_helper(string $type, ?string $code, ?int $since, ?int $limit, mixed $params): array {
-        $methodName = 'fetchWithdrawals';
-        if ($type === 'deposit') {
-            $methodName = 'fetchDeposits';
-        }
+    public function fetch_transactions_helper(mixed $type, mixed $code, mixed $since, mixed $limit, mixed $params): array {
+        $methodName = ($type === 'deposit') ? 'fetchDeposits' : 'fetchWithdrawals';
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a code argument');
         }
@@ -2826,16 +2823,16 @@ class bydfi extends Exchange {
         $paginate = $this->safe_bool($params, 'paginate', false);
         if ($paginate === true) {
             $maxLimit = 50;
-            $paramsPaginate = $this->extend($this->omit($params, 'paginate'), array( 'paginationDirection' => 'backward' ));
-            $paginatedResponse = $this->fetch_paginated_call_dynamic($methodName, $this->safe_string($currency, 'code'), $since, $limit, $paramsPaginate, $maxLimit, true);
+            $params = $this->omit($params, 'paginate');
+            $params = $this->extend($params, array( 'paginationDirection' => 'backward' ));
+            $paginatedResponse = $this->fetch_paginated_call_dynamic($methodName, $currency['code'], $since, $limit, $params, $maxLimit, true);
             return $this->sort_by($paginatedResponse, 'timestamp');
         }
         $request = array(
             'asset' => $currency['id'],
         );
         $until = null;
-        $paramsUntil = null;
-        list($until, $paramsUntil) = $this->handle_option_integer_and_params_2($params, 'fetchTransfers', 'until', 'endTime');
+        list($until, $params) = $this->handle_option_and_params_2($params, 'fetchTransfers', 'until', 'endTime');
         $now = $this->milliseconds();
         $sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         $startTime = $since;
@@ -2884,19 +2881,19 @@ class bydfi extends Exchange {
             //         "success": true
             //     }
             //
-            $response = $this->privateGetV1SpotDepositRecords($this->extend($request, $paramsUntil));
+            $response = $this->privateGetV1SpotDepositRecords($this->extend($request, $params));
         } else {
             //
             // todo check after withdrawal
             //
-            $response = $this->privateGetV1SpotWithdrawRecords($this->extend($request, $paramsUntil));
+            $response = $this->privateGetV1SpotWithdrawRecords($this->extend($request, $params));
         }
         $data = $this->safe_list($response, 'data', array());
         $transactionParams = array(
             'type' => $type,
         );
-        $paramsTransaction = $this->extend($paramsUntil, $transactionParams);
-        return $this->parse_transactions($data, $currency, $since, $limit, $paramsTransaction);
+        $params = $this->extend($params, $transactionParams);
+        return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2960,12 +2957,8 @@ class bydfi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
-        if ($apiUrl === null) {
-            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
-        }
-        $url = $apiUrl;
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $url = $this->urls['api'][$api];
         $endpoint = '/' . $path;
         $query = '';
         $sortedParams = $this->keysort($params);
@@ -2975,24 +2968,22 @@ class bydfi extends Exchange {
                 $endpoint .= '?' . $query;
             }
         }
-        $requestBody = null;
-        $requestHeaders = null;
         if ($api === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
             if ($method === 'GET') {
                 $payload = $this->apiKey . $timestamp . $query;
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'hex');
-                $requestHeaders = array(
+                $headers = array(
                     'X-API-KEY' => $this->apiKey,
                     'X-API-TIMESTAMP' => $timestamp,
                     'X-API-SIGNATURE' => $signature,
                 );
             } else {
-                $requestBody = $this->json($sortedParams);
-                $payload = $this->apiKey . $timestamp . $requestBody;
+                $body = $this->json($sortedParams);
+                $payload = $this->apiKey . $timestamp . $body;
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'hex');
-                $requestHeaders = array(
+                $headers = array(
                     'Content-Type' => 'application/json',
                     'X-API-KEY' => $this->apiKey,
                     'X-API-TIMESTAMP' => $timestamp,
@@ -3001,9 +2992,7 @@ class bydfi extends Exchange {
             }
         }
         $url .= $endpoint;
-        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
-        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

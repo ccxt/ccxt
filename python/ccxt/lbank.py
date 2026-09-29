@@ -398,12 +398,13 @@ class lbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
-        type, paramsMarketType = self.handle_market_type_and_params('fetchTime', None, params)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTime', None, params)
         response: dict
         if type == 'swap':
-            response = self.contractPublicGetCfdOpenApiV1PubGetTime(paramsMarketType)
+            response = self.contractPublicGetCfdOpenApiV1PubGetTime(params)
         else:
-            response = self.spotPublicGetTimestamp(paramsMarketType)
+            response = self.spotPublicGetTimestamp(params)
         #
         # spot
         #
@@ -471,13 +472,13 @@ class lbank(Exchange, ImplicitAPI):
         values = list(grouped.values())
         return self.parse_currencies(values)
 
-    def parse_currency(self, rawCurrency: list[dict]) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency[0], 'assetCode')  # first member is guaranteed
         code = self.safe_currency_code(id)
         networksRaw = rawCurrency
         networks = {}
         for j in range(0, len(networksRaw)):
-            networkEntry = self.safe_dict(networksRaw, j)
+            networkEntry = networksRaw[j]
             networkId = self.safe_string(networkEntry, 'chain')
             if networkId is None:
                 networkId = self.safe_string(networkEntry, 'assetCode')  # use type as fallback if networkId is not present
@@ -571,8 +572,6 @@ class lbank(Exchange, ImplicitAPI):
             quoteId = parts[1]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            if (base is None) or (quote is None):
-                continue
             symbol = base + '/' + quote
             result.append({
                 'id': marketId,
@@ -668,8 +667,6 @@ class lbank(Exchange, ImplicitAPI):
             quoteId = settleId
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            if (base is None) or (quote is None):
-                continue
             settle = self.safe_currency_code(settleId)
             symbol = base + '/' + quote + ':' + settle
             result.append({
@@ -765,8 +762,8 @@ class lbank(Exchange, ImplicitAPI):
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         tickerData = self.safe_dict(ticker, 'ticker', {})
-        marketResolved = self.safe_market(marketId, market)
-        data = ticker if (marketResolved['contract'] is True) else tickerData
+        market = self.safe_market(marketId, market)
+        data = ticker if (market['contract'] is True) else tickerData
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -788,7 +785,7 @@ class lbank(Exchange, ImplicitAPI):
             'baseVolume': self.safe_string_2(data, 'vol', 'volume'),
             'quoteVolume': self.safe_string(data, 'turnover'),
             'info': ticker,
-        }, marketResolved)
+        }, market)
 
     def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -805,8 +802,7 @@ class lbank(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['swap'] is True:
             responseForSwap = self.fetch_tickers([market['symbol']], params)
-            swapTicker = self.safe_dict(responseForSwap, market['symbol'])
-            return swapTicker
+            return self.safe_value(responseForSwap, market['symbol'])
         request = {
             'symbol': market['id'],
         }
@@ -850,20 +846,21 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = None
-        symbolsNormalized = self.market_symbols(symbols)
-        if symbolsNormalized is not None:
-            symbolsLength = len(symbolsNormalized)
+        if symbols is not None:
+            symbols = self.market_symbols(symbols)
+            symbolsLength = len(symbols)
             if symbolsLength > 0:
-                market = self.market(symbolsNormalized[0])
+                market = self.market(symbols[0])
         request = {}
-        type, paramsMarketType = self.handle_market_type_and_params('fetchTickers', market, params)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         response: dict
         if type == 'swap':
             request['productGroup'] = 'SwapU'
-            response = self.contractPublicGetCfdOpenApiV1PubMarketData(self.extend(request, paramsMarketType))
+            response = self.contractPublicGetCfdOpenApiV1PubMarketData(self.extend(request, params))
         else:
             request['symbol'] = 'all'
-            response = self.spotPublicGetTicker24hr(self.extend(request, paramsMarketType))
+            response = self.spotPublicGetTicker24hr(self.extend(request, params))
         #
         # spot
         #
@@ -910,7 +907,7 @@ class lbank(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        return self.parse_tickers(data, symbolsNormalized)
+        return self.parse_tickers(data, symbols)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -927,18 +924,20 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        limitResolved = 60 if (limit is None) else limit
+        if limit is None:
+            limit = 60
         request = {
             'symbol': market['id'],
         }
-        type, paramsMarketType = self.handle_market_type_and_params('fetchOrderBook', market, params)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchOrderBook', market, params)
         response: dict
         if type == 'swap':
-            request['depth'] = limitResolved
-            response = self.contractPublicGetCfdOpenApiV1PubMarketOrder(self.extend(request, paramsMarketType))
+            request['depth'] = limit
+            response = self.contractPublicGetCfdOpenApiV1PubMarketOrder(self.extend(request, params))
         else:
-            request['size'] = limitResolved
-            response = self.spotPublicGetDepth(self.extend(request, paramsMarketType))
+            request['size'] = limit
+            response = self.spotPublicGetDepth(self.extend(request, params))
         #
         # spot
         #
@@ -1115,12 +1114,12 @@ class lbank(Exchange, ImplicitAPI):
         options = self.safe_dict(self.options, 'fetchTrades', {})
         defaultMethod = self.safe_string(options, 'method', 'spotPublicGetTrades')
         method = self.safe_string(params, 'method', defaultMethod)
-        paramsOmitted = self.omit(params, 'method')
+        params = self.omit(params, 'method')
         response: dict
         if method == 'spotPublicGetSupplementTrades':
-            response = self.spotPublicGetSupplementTrades(self.extend(request, paramsOmitted))
+            response = self.spotPublicGetSupplementTrades(self.extend(request, params))
         else:
-            response = self.spotPublicGetTrades(self.extend(request, paramsOmitted))
+            response = self.spotPublicGetTrades(self.extend(request, params))
         #
         #      {
         #          "result":"true",
@@ -1177,11 +1176,15 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        limitResolved = 100 if (limit is None) else min(limit, 2000)
-        duration = self.parse_timeframe(timeframe)
-        sinceResolved = (self.milliseconds() - (duration * 1000 * limitResolved)) if (since is None) else since
-        parsedSince = self.parse_to_int(sinceResolved / 1000)
-        parsedLimit = min(limitResolved + 1, 2000)  # max 2000;
+        if limit is None:
+            limit = 100
+        else:
+            limit = min(limit, 2000)
+        if since is None:
+            duration = self.parse_timeframe(timeframe)
+            since = self.milliseconds() - (duration * 1000 * limit)
+        parsedSince = self.parse_to_int(since / 1000)
+        parsedLimit = min(limit + 1, 2000)  # max 2000;
         request = {
             'symbol': market['id'],
             'type': self.safe_string(self.timeframes, timeframe, timeframe),
@@ -1211,7 +1214,7 @@ class lbank(Exchange, ImplicitAPI):
         #   ]
         # ]
         #
-        return self.parse_ohlcvs(ohlcvs, market, timeframe, sinceResolved, limitResolved)
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_balance(self, response: object) -> Balances:
         #
@@ -1297,7 +1300,7 @@ class lbank(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        data = self.safe_dict(response, 'data')
+        data = self.safe_value(response, 'data')
         # from spotPrivatePostUserInfo
         toBtc = self.safe_value(data, 'toBtc')
         if toBtc is not None:
@@ -1317,7 +1320,7 @@ class lbank(Exchange, ImplicitAPI):
         balances = self.safe_list(data, 'balances')
         if balances is not None:
             for i in range(0, len(balances)):
-                item = self.safe_dict(balances, i)
+                item = balances[i]
                 currencyId = self.safe_string(item, 'asset')
                 codeInner = self.safe_currency_code(currencyId)
                 account = self.account()
@@ -1330,7 +1333,7 @@ class lbank(Exchange, ImplicitAPI):
         isArray = isinstance(data, list)
         if isArray is True:
             for i in range(0, len(data)):
-                item = self.safe_dict(data, i)
+                item = data[i]
                 currencyId = self.safe_string(item, 'coin')
                 codeInner = self.safe_currency_code(currencyId)
                 account = self.account()
@@ -1401,8 +1404,7 @@ class lbank(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         responseForSwap = self.fetch_funding_rates([market['symbol']], params)
-        fundingRate = self.safe_dict(responseForSwap, market['symbol'])
-        return fundingRate
+        return self.safe_value(responseForSwap, market['symbol'])
 
     def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
@@ -1416,7 +1418,7 @@ class lbank(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols)
+        symbols = self.market_symbols(symbols)
         request = {
             'productGroup': 'SwapU',
         }
@@ -1445,7 +1447,7 @@ class lbank(Exchange, ImplicitAPI):
         #     "success": True,
         # }
         data = self.safe_list(response, 'data', [])
-        return self.parse_funding_rates(data, symbolsNormalized)
+        return self.parse_funding_rates(data, symbols)
 
     def fetch_balance(self, params: dict = {}) -> Balances:
         """
@@ -1537,8 +1539,7 @@ class lbank(Exchange, ImplicitAPI):
         """
         market = self.market(symbol)
         result = self.fetch_trading_fees(self.extend(params, {'category': market['id']}))
-        fee = self.safe_dict(result, symbol)
-        return fee
+        return self.safe_dict(result, symbol)
 
     def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
@@ -1602,7 +1603,7 @@ class lbank(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_2(params, 'custom_id', 'clientOrderId')
         postOnly = self.safe_bool(params, 'postOnly', False)
         timeInForce = self.safe_string_upper(params, 'timeInForce')
-        paramsRequest = self.omit(params, ['custom_id', 'clientOrderId', 'timeInForce', 'postOnly'])
+        params = self.omit(params, ['custom_id', 'clientOrderId', 'timeInForce', 'postOnly'])
         request = {
             'symbol': market['id'],
         }
@@ -1629,9 +1630,9 @@ class lbank(Exchange, ImplicitAPI):
                 request['type'] = side + '_' + 'market'
                 quoteAmount = None
                 createMarketBuyOrderRequiresPrice = True
-                createMarketBuyOrderRequiresPrice, paramsRequest = self.handle_option_bool_and_params(paramsRequest, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
-                cost = self.safe_number(paramsRequest, 'cost')
-                paramsRequest = self.omit(paramsRequest, 'cost')
+                createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                cost = self.safe_number(params, 'cost')
+                params = self.omit(params, 'cost')
                 if cost is not None:
                     quoteAmount = self.cost_to_precision(symbol, cost)
                 elif createMarketBuyOrderRequiresPrice:
@@ -1650,13 +1651,13 @@ class lbank(Exchange, ImplicitAPI):
             request['custom_id'] = clientOrderId
         options = self.safe_dict(self.options, 'createOrder', {})
         defaultMethod = self.safe_string(options, 'method', 'spotPrivatePostSupplementCreateOrder')
-        method = self.safe_string(paramsRequest, 'method', defaultMethod)
-        paramsOmitted = self.omit(paramsRequest, 'method')
+        method = self.safe_string(params, 'method', defaultMethod)
+        params = self.omit(params, 'method')
         response: dict
         if method == 'spotPrivatePostCreateOrder':
-            response = self.spotPrivatePostCreateOrder(self.extend(request, paramsOmitted))
+            response = self.spotPrivatePostCreateOrder(self.extend(request, params))
         else:
-            response = self.spotPrivatePostSupplementCreateOrder(self.extend(request, paramsOmitted))
+            response = self.spotPrivatePostSupplementCreateOrder(self.extend(request, params))
         #
         #      {
         #          "result":true,
@@ -1778,7 +1779,7 @@ class lbank(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_2(order, 'time', 'create_time')
         rawStatus = self.safe_string(order, 'status')
         marketId = self.safe_string(order, 'symbol')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         timeInForce = None
         postOnly = False
         type = 'limit'
@@ -1808,7 +1809,7 @@ class lbank(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': self.parse_order_status(rawStatus),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -1823,7 +1824,7 @@ class lbank(Exchange, ImplicitAPI):
             'fee': None,
             'info': order,
             'average': None,
-        }, marketResolved)
+        }, market)
 
     def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -1944,8 +1945,8 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        sinceValue = self.safe_value(params, 'start_date', since)
-        paramsOmitted = self.omit(params, 'start_date')
+        since = self.safe_value(params, 'start_date', since)
+        params = self.omit(params, 'start_date')
         request = {
             'symbol': market['id'],
             # 'start_date' Start time yyyy-mm-dd, the maximum is today, the default is yesterday
@@ -1957,10 +1958,10 @@ class lbank(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['size'] = limit
-        if sinceValue is not None:
-            request['start_date'] = self.ymd(sinceValue, '-')  # max query 2 days ago
-            request['end_date'] = self.ymd(sinceValue + 86400000, '-')  # will cover 2 days
-        response = self.spotPrivatePostTransactionHistory(self.extend(request, paramsOmitted))
+        if since is not None:
+            request['start_date'] = self.ymd(since, '-')  # max query 2 days ago
+            request['end_date'] = self.ymd(since + 86400000, '-')  # will cover 2 days
+        response = self.spotPrivatePostTransactionHistory(self.extend(request, params))
         #
         #      {
         #          "result":true,
@@ -1982,7 +1983,7 @@ class lbank(Exchange, ImplicitAPI):
         #      }
         #
         trades = self.safe_list(response, 'data', [])
-        return self.parse_trades(trades, market, sinceValue, limit)
+        return self.parse_trades(trades, market, since, limit)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -2003,11 +2004,12 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        limitResolved = 100 if (limit is None) else limit
+        if limit is None:
+            limit = 100
         request = {
             'symbol': market['id'],
             'current_page': 1,
-            'page_length': limitResolved,
+            'page_length': limit,
             # 'status'  -1: Cancelled, 0: Unfilled, 1: Partially filled, 2: Completely filled, 3: Partially filled and cancelled, 4: Cancellation is being processed
         }
         response = self.spotPrivatePostSupplementOrdersInfoHistory(self.extend(request, params))
@@ -2040,7 +2042,7 @@ class lbank(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'data', {})
         orders = self.safe_list(result, 'orders', [])
-        return self.parse_orders(orders, market, since, limitResolved)
+        return self.parse_orders(orders, market, since, limit)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -2059,11 +2061,12 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        limitResolved = 100 if (limit is None) else limit
+        if limit is None:
+            limit = 100
         request = {
             'symbol': market['id'],
             'current_page': 1,
-            'page_length': limitResolved,
+            'page_length': limit,
         }
         response = self.spotPrivatePostSupplementOrdersInfoNoDeal(self.extend(request, params))
         #
@@ -2095,7 +2098,7 @@ class lbank(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'data', {})
         orders = self.safe_list(result, 'orders', [])
-        return self.parse_orders(orders, market, since, limitResolved)
+        return self.parse_orders(orders, market, since, limit)
 
     def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -2113,7 +2116,7 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         clientOrderId = self.safe_string_2(params, 'origClientOrderId', 'clientOrderId')
-        paramsOmitted = self.omit(params, ['origClientOrderId', 'clientOrderId'])
+        params = self.omit(params, ['origClientOrderId', 'clientOrderId'])
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -2121,7 +2124,7 @@ class lbank(Exchange, ImplicitAPI):
         }
         if clientOrderId is not None:
             request['origClientOrderId'] = clientOrderId
-        response = self.spotPrivatePostSupplementCancelOrder(self.extend(request, paramsOmitted))
+        response = self.spotPrivatePostSupplementCancelOrder(self.extend(request, params))
         #
         #   {
         #      "result":true,
@@ -2201,12 +2204,12 @@ class lbank(Exchange, ImplicitAPI):
         options = self.safe_dict(self.options, 'fetchDepositAddress', {})
         defaultMethod = self.safe_string(options, 'method', 'fetchDepositAddressDefault')
         method = self.safe_string(params, 'method', defaultMethod)
-        paramsOmitted = self.omit(params, 'method')
+        params = self.omit(params, 'method')
         response: dict
         if method == 'fetchDepositAddressSupplement':
-            response = self.fetch_deposit_address_supplement(code, paramsOmitted)
+            response = self.fetch_deposit_address_supplement(code, params)
         else:
-            response = self.fetch_deposit_address_default(code, paramsOmitted)
+            response = self.fetch_deposit_address_default(code, params)
         return response
 
     def fetch_deposit_address_default(self, code: str, params: dict = {}) -> DepositAddress:
@@ -2217,10 +2220,10 @@ class lbank(Exchange, ImplicitAPI):
             'assetCode': currency['id'],
         }
         network = self.get_network_code_for_currency(code, params)
-        paramsOmitted = self.omit(params, 'network') if (network is not None) else params
         if network is not None:
             request['netWork'] = network  # ... yes, really lol
-        response = self.spotPrivatePostGetDepositAddress(self.extend(request, paramsOmitted))
+            params = self.omit(params, 'network')
+        response = self.spotPrivatePostGetDepositAddress(self.extend(request, params))
         #
         #      {
         #          "result":true,
@@ -2256,10 +2259,10 @@ class lbank(Exchange, ImplicitAPI):
         networks = self.safe_dict(self.options, 'networks')
         network = self.safe_string_upper(params, 'network')
         network = self.safe_string(networks, network, network)
-        paramsOmitted = self.omit(params, 'network') if (network is not None) else params
         if network is not None:
             request['networkName'] = network
-        response = self.spotPrivatePostSupplementGetDepositAddress(self.extend(request, paramsOmitted))
+            params = self.omit(params, 'network')
+        response = self.spotPrivatePostSupplementGetDepositAddress(self.extend(request, params))
         #
         #      {
         #          "result":true,
@@ -2296,12 +2299,12 @@ class lbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         if self.markets is None:
             self.load_markets()
-        fee = self.safe_string(paramsWithdrawTag, 'fee')
-        paramsOmitted = self.omit(paramsWithdrawTag, 'fee')
+        fee = self.safe_string(params, 'fee')
+        params = self.omit(params, 'fee')
         # The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
         self.check_required_argument('withdraw', fee, 'fee')
         currency = self.currency(code)
@@ -2317,15 +2320,15 @@ class lbank(Exchange, ImplicitAPI):
             # 'withdrawOrderId': withdrawOrderId
             # 'type': type=1 is for intra-site transfer
         }
-        if tagWithdrawTag is not None:
-            request['memo'] = tagWithdrawTag
-        network = self.safe_string_upper_2(paramsOmitted, 'network', 'networkName')
-        paramsOmitted2 = self.omit(paramsOmitted, ['network', 'networkName'])
+        if tag is not None:
+            request['memo'] = tag
+        network = self.safe_string_upper_2(params, 'network', 'networkName')
+        params = self.omit(params, ['network', 'networkName'])
         networks = self.safe_dict(self.options, 'networks')
         networkId = self.safe_string(networks, network, network)
         if networkId is not None:
             request['networkName'] = networkId
-        response = self.spotPrivatePostSupplementWithdraw(self.extend(request, paramsOmitted2))
+        response = self.spotPrivatePostSupplementWithdraw(self.extend(request, params))
         #
         #      {
         #          "result":true,
@@ -2565,11 +2568,11 @@ class lbank(Exchange, ImplicitAPI):
             options = self.safe_dict(self.options, 'fetchTransactionFees', {})
             defaultMethod = self.safe_string(options, 'method', 'fetchPrivateTransactionFees')
             method = self.safe_string(params, 'method', defaultMethod)
-            paramsOmitted = self.omit(params, 'method')
+            params = self.omit(params, 'method')
             if method == 'fetchPublicTransactionFees':
-                result = self.fetch_public_transaction_fees(paramsOmitted)
+                result = self.fetch_public_transaction_fees(params)
             else:
-                result = self.fetch_private_transaction_fees(paramsOmitted)
+                result = self.fetch_private_transaction_fees(params)
         else:
             result = self.fetch_public_transaction_fees(params)
         return result
@@ -2613,14 +2616,14 @@ class lbank(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'data', [])
         withdrawFees = {}
         for i in range(0, len(result)):
-            entry = self.safe_dict(result, i)
+            entry = result[i]
             currencyId = self.safe_string(entry, 'coin')
             code = self.safe_currency_code(currencyId)
             networkList = self.safe_list(entry, 'networkList', [])
             if code is not None:
                 withdrawFees[code] = {}
             for j in range(0, len(networkList)):
-                networkEntry = self.safe_dict(networkList, j)
+                networkEntry = networkList[j]
                 fee = self.safe_number(networkEntry, 'withdrawFee')
                 if fee is not None:
                     networkCode = self.network_id_to_code(self.safe_string(networkEntry, 'name'), code)
@@ -2639,12 +2642,12 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         code = self.safe_string_2(params, 'coin', 'assetCode')
-        paramsOmitted = self.omit(params, ['coin', 'assetCode'])
+        params = self.omit(params, ['coin', 'assetCode'])
         request = {}
         if code is not None:
             currency = self.currency(code)
             request['assetCode'] = currency['id']
-        response = self.spotPublicGetWithdrawConfigs(self.extend(request, paramsOmitted))
+        response = self.spotPublicGetWithdrawConfigs(self.extend(request, params))
         #
         #    {
         #        "result": "true",
@@ -2669,7 +2672,7 @@ class lbank(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'data', [])
         withdrawFees = {}
         for i in range(0, len(result)):
-            item = self.safe_dict(result, i)
+            item = result[i]
             canWithdraw = self.safe_string(item, 'canWithDraw')
             if canWithdraw == 'true':
                 currencyId = self.safe_string(item, 'assetCode')
@@ -2708,11 +2711,11 @@ class lbank(Exchange, ImplicitAPI):
             options = self.safe_dict(self.options, 'fetchDepositWithdrawFees', {})
             defaultMethod = self.safe_string(options, 'method', 'fetchPrivateDepositWithdrawFees')
             method = self.safe_string(params, 'method', defaultMethod)
-            paramsOmitted = self.omit(params, 'method')
+            params = self.omit(params, 'method')
             if method == 'fetchPublicDepositWithdrawFees':
-                response = self.fetch_public_deposit_withdraw_fees(codes, paramsOmitted)
+                response = self.fetch_public_deposit_withdraw_fees(codes, params)
             else:
-                response = self.fetch_private_deposit_withdraw_fees(codes, paramsOmitted)
+                response = self.fetch_private_deposit_withdraw_fees(codes, params)
         else:
             response = self.fetch_public_deposit_withdraw_fees(codes, params)
         return response
@@ -2787,7 +2790,7 @@ class lbank(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_public_deposit_withdraw_fees(data, codes)
 
-    def parse_public_deposit_withdraw_fees(self, response: list[dict], codes: Strings = None) -> DepositWithdrawFees:
+    def parse_public_deposit_withdraw_fees(self, response: list[object], codes: Strings = None) -> DepositWithdrawFees:
         #
         #    [
         #        {
@@ -2870,7 +2873,7 @@ class lbank(Exchange, ImplicitAPI):
         code = self.safe_string(currency, 'code')
         networkList = self.safe_list(fee, 'networkList', [])
         for j in range(0, len(networkList)):
-            networkEntry = self.safe_dict(networkList, j)
+            networkEntry = networkList[j]
             networkCode = self.network_id_to_code(self.safe_string(networkEntry, 'name'), code)
             withdrawFee = self.safe_number(networkEntry, 'withdrawFee')
             isDefault = self.safe_bool(networkEntry, 'isDefault')
@@ -2893,20 +2896,14 @@ class lbank(Exchange, ImplicitAPI):
                     }
         return result
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         query = self.omit(params, self.extract_params(path))
-        apiUrl = self.safe_string(self.urls['api'], 'rest')
-        if apiUrl is None:
-            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = apiUrl + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         # Every spot endpoint ends with ".do"
         if api[0] == 'spot':
             url += '.do'
         else:
-            contractUrl = self.safe_string(self.urls['api'], 'contract')
-            if contractUrl is None:
-                raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-            url = contractUrl + '/' + self.implode_params(path, params)
+            url = self.urls['api']['contract'] + '/' + self.implode_params(path, params)
         if api[1] == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(self.keysort(query))
@@ -2946,14 +2943,13 @@ class lbank(Exchange, ImplicitAPI):
             elif signatureMethod == 'HmacSHA256':
                 sign = self.hmac(self.encode(uppercaseHash), self.encode(self.secret), hashlib.sha256)
             query['sign'] = sign
-            bodySigned = self.urlencode(self.keysort(query))
-            headersSigned = {
+            body = self.urlencode(self.keysort(query))
+            headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'timestamp': timestamp,
                 'signature_method': signatureMethod,
                 'echostr': echostr,
             }
-            return {'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def convert_secret_to_pem(self, secret: object):

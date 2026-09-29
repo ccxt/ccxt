@@ -623,7 +623,7 @@ class backpack extends backpack$1["default"] {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.safeBool(this.options, 'adjustForTimeDifference', false)) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const response = await this.publicGetApiV1Markets(params);
@@ -723,9 +723,6 @@ class backpack extends backpack$1["default"] {
         const quoteId = this.safeString(market, 'quoteSymbol');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        if ((base === undefined) || (quote === undefined)) {
-            return undefined;
-        }
         let symbol = base + '/' + quote;
         const filters = this.safeDict(market, 'filters', {});
         const priceFilter = this.safeDict(filters, 'price', {});
@@ -876,8 +873,8 @@ class backpack extends backpack$1["default"] {
         //     }, ...
         //
         const marketId = this.safeString(ticker, 'symbol');
-        const marketResolved = this.safeMarket(marketId, market);
-        const symbol = this.safeSymbol(marketId, marketResolved);
+        market = this.safeMarket(marketId, market);
+        const symbol = this.safeSymbol(marketId, market);
         const open = this.safeString(ticker, 'firstPrice');
         const last = this.safeString(ticker, 'lastPrice');
         const high = this.safeString(ticker, 'high');
@@ -914,7 +911,7 @@ class backpack extends backpack$1["default"] {
             'markPrice': undefined,
             'indexPrice': undefined,
             'info': ticker,
-        }, marketResolved);
+        }, market);
         return parsedTicker;
     }
     /**
@@ -981,33 +978,32 @@ class backpack extends backpack$1["default"] {
             'symbol': market['id'],
             'interval': interval,
         };
-        const [until, paramsUntil] = this.handleOptionIntegerAndParams(params, 'fetchOHLCV', 'until');
+        let until = undefined;
+        [until, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'until');
         if (until !== undefined) {
             request['endTime'] = this.parseToInt(until / 1000); // convert milliseconds to seconds
         }
         const defaultLimit = 100;
-        let limitResolved = limit;
-        if ((since === undefined) && (limit === undefined)) {
-            limitResolved = defaultLimit;
-        }
         if (since === undefined) {
+            if (limit === undefined) {
+                limit = defaultLimit;
+            }
             const duration = this.parseTimeframe(timeframe);
             const endTime = (until !== undefined && until !== null && until !== 0) ? this.parseToInt(until / 1000) : this.seconds();
-            const windowLimit = (limit === undefined) ? defaultLimit : limit;
-            const startTime = endTime - (windowLimit * duration);
+            const startTime = endTime - (limit * duration);
             request['startTime'] = startTime;
         }
         else {
             request['startTime'] = this.parseToInt(since / 1000); // convert milliseconds to seconds
         }
-        const price = this.safeString(paramsUntil, 'price');
-        const paramsOmitted = (price !== undefined) ? this.omit(paramsUntil, 'price') : paramsUntil;
+        const price = this.safeString(params, 'price');
         if (price !== undefined) {
             request['priceType'] = this.capitalize(price);
+            params = this.omit(params, 'price');
         }
-        const response = await this.publicGetApiV1Klines(this.extend(request, paramsOmitted));
+        const response = await this.publicGetApiV1Klines(this.extend(request, params));
         const ohlcvs = this.toArray(response);
-        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limitResolved);
+        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -1070,8 +1066,8 @@ class backpack extends backpack$1["default"] {
         //     }
         //
         const marketId = this.safeString(contract, 'symbol');
-        const marketResolved = this.safeMarket(marketId, market);
-        const symbol = this.safeSymbol(marketId, marketResolved);
+        market = this.safeMarket(marketId, market);
+        const symbol = this.safeSymbol(marketId, market);
         const nextFundingTimestamp = this.safeInteger(contract, 'nextFundingTimestamp');
         return {
             'info': contract,
@@ -1189,7 +1185,7 @@ class backpack extends backpack$1["default"] {
             });
         }
         const sorted = this.sortBy(rates, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, 'symbol'), since, limit);
+        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
     }
     /**
      * @method
@@ -1256,15 +1252,15 @@ class backpack extends backpack$1["default"] {
             request['limit'] = limit;
         }
         const until = this.safeInteger(params, 'until');
-        const paramsOmitted = (until !== undefined) ? this.omit(params, ['until']) : params;
         if (until !== undefined) {
+            params = this.omit(params, ['until']);
             request['to'] = until;
         }
-        const fillType = this.safeString(paramsOmitted, 'fillType');
+        const fillType = this.safeString(params, 'fillType');
         if (fillType === undefined) {
             request['fillType'] = 'User'; // default
         }
-        const response = await this.privateGetWapiV1HistoryFills(this.extend(request, paramsOmitted));
+        const response = await this.privateGetWapiV1HistoryFills(this.extend(request, params));
         const responseList = this.toArray(response);
         return this.parseTrades(responseList, market, since, limit);
     }
@@ -1298,7 +1294,7 @@ class backpack extends backpack$1["default"] {
         //
         const id = this.safeString2(trade, 'id', 'tradeId');
         const marketId = this.safeString(trade, 'symbol');
-        const marketResolved = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market);
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'quantity');
         const isBuyerMaker = this.safeBool(trade, 'isBuyerMaker');
@@ -1333,7 +1329,7 @@ class backpack extends backpack$1["default"] {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'id': id,
             'order': orderId,
             'type': undefined,
@@ -1343,7 +1339,7 @@ class backpack extends backpack$1["default"] {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -1418,7 +1414,7 @@ class backpack extends backpack$1["default"] {
         for (let i = 0; i < balanceKeys.length; i++) {
             const id = balanceKeys[i];
             const code = this.safeCurrencyCode(id);
-            const balance = this.safeDict(response, id);
+            const balance = response[id];
             const account = this.account();
             const locked = this.safeString(balance, 'locked');
             const staked = this.safeString(balance, 'staked');
@@ -1458,11 +1454,12 @@ class backpack extends backpack$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
-        const [until, paramsUntil] = this.handleOptionIntegerAndParams(params, 'fetchDeposits', 'until');
+        let until = undefined;
+        [until, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.privateGetWapiV1CapitalDeposits(this.extend(request, paramsUntil));
+        const response = await this.privateGetWapiV1CapitalDeposits(this.extend(request, params));
         return this.parseTransactions(response, currency, since, limit);
     }
     /**
@@ -1492,11 +1489,12 @@ class backpack extends backpack$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [until, paramsUntil] = this.handleOptionIntegerAndParams(params, 'fetchWithdrawals', 'until');
+        let until = undefined;
+        [until, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'until');
         if (until !== undefined) {
             request['to'] = until;
         }
-        const response = await this.privateGetWapiV1CapitalWithdrawals(this.extend(request, paramsUntil));
+        const response = await this.privateGetWapiV1CapitalWithdrawals(this.extend(request, params));
         return this.parseTransactions(response, currency, since, limit);
     }
     /**
@@ -1526,7 +1524,7 @@ class backpack extends backpack$1["default"] {
             request['clientId'] = tag; // memo or tag
         }
         const [networkCode, query] = this.handleNetworkCodeAndParams(params);
-        const networkId = this.networkCodeToId(networkCode, this.safeString(currency, 'code'));
+        const networkId = this.networkCodeToId(networkCode, currency['code']);
         if (networkId === undefined) {
             throw new errors.BadRequest(this.id + ' withdraw() requires a network parameter');
         }
@@ -1678,15 +1676,16 @@ class backpack extends backpack$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const [networkCode, paramsNetworkCode] = this.handleNetworkCodeAndParams(params);
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes');
         }
         const currency = this.currency(code);
         const request = {
-            'blockchain': this.networkCodeToId(networkCode, this.safeString(currency, 'code')),
+            'blockchain': this.networkCodeToId(networkCode, currency['code']),
         };
-        const response = await this.privateGetWapiV1CapitalDepositAddress(this.extend(request, paramsNetworkCode));
+        const response = await this.privateGetWapiV1CapitalDepositAddress(this.extend(request, params));
         return this.parseDepositAddress(response, currency);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
@@ -1697,10 +1696,10 @@ class backpack extends backpack$1["default"] {
         //
         const address = this.safeString(depositAddress, 'address');
         const currencyId = this.safeString(depositAddress, 'currency');
-        const currencyResolved = this.safeCurrency(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         return {
             'info': depositAddress,
-            'currency': currencyResolved['code'],
+            'currency': currency['code'],
             'network': undefined, // network is not returned by the API
             'address': address,
             'tag': undefined,
@@ -1760,7 +1759,7 @@ class backpack extends backpack$1["default"] {
         }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = this.safeDict(orders, i);
+            const rawOrder = orders[i];
             const marketId = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
@@ -1789,11 +1788,7 @@ class backpack extends backpack$1["default"] {
         };
         const triggerPrice = this.safeString(params, 'triggerPrice');
         const isTriggerOrder = triggerPrice !== undefined;
-        let quantityKey = 'quantity';
-        if (isTriggerOrder) {
-            quantityKey = 'triggerQuantity';
-        }
-        const omitKeys = [];
+        const quantityKey = isTriggerOrder ? 'triggerQuantity' : 'quantity';
         // handle basic limit/market order types
         if (type === 'limit') {
             request['price'] = this.priceToPrecision(symbol, price);
@@ -1803,8 +1798,7 @@ class backpack extends backpack$1["default"] {
             const cost = this.safeString2(params, 'cost', 'quoteQuantity');
             if (cost !== undefined) {
                 request['quoteQuantity'] = this.costToPrecision(symbol, cost);
-                omitKeys.push('cost');
-                omitKeys.push('quoteQuantity');
+                params = this.omit(params, ['cost', 'quoteQuantity']);
             }
             else {
                 request[quantityKey] = this.amountToPrecision(symbol, amount);
@@ -1813,19 +1807,19 @@ class backpack extends backpack$1["default"] {
         // trigger orders
         if (isTriggerOrder) {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
-            omitKeys.push('triggerPrice');
+            params = this.omit(params, 'triggerPrice');
         }
         const clientOrderId = this.safeInteger(params, 'clientOrderId'); // the exchange requires uint
         if (clientOrderId !== undefined) {
             request['clientId'] = clientOrderId;
-            omitKeys.push('clientOrderId');
+            params = this.omit(params, 'clientOrderId');
         }
-        const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', false, this.omit(params, omitKeys));
+        let postOnly = false;
+        [postOnly, params] = this.handlePostOnly(type === 'market', false, params);
         if (postOnly) {
-            paramsPostOnly['postOnly'] = true;
+            params['postOnly'] = true;
         }
-        const bracketKeys = [];
-        const takeProfit = this.safeDict(paramsPostOnly, 'takeProfit');
+        const takeProfit = this.safeDict(params, 'takeProfit');
         if (takeProfit !== undefined) {
             const takeProfitTriggerPrice = this.safeString(takeProfit, 'triggerPrice');
             if (takeProfitTriggerPrice !== undefined) {
@@ -1835,9 +1829,9 @@ class backpack extends backpack$1["default"] {
             if (takeProfitPrice !== undefined) {
                 request['takeProfitLimitPrice'] = this.priceToPrecision(symbol, takeProfitPrice);
             }
-            bracketKeys.push('takeProfit');
+            params = this.omit(params, 'takeProfit');
         }
-        const stopLoss = this.safeDict(paramsPostOnly, 'stopLoss');
+        const stopLoss = this.safeDict(params, 'stopLoss');
         if (stopLoss !== undefined) {
             const stopLossTriggerPrice = this.safeString(stopLoss, 'triggerPrice');
             if (stopLossTriggerPrice !== undefined) {
@@ -1847,9 +1841,10 @@ class backpack extends backpack$1["default"] {
             if (stopLossPrice !== undefined) {
                 request['stopLossLimitPrice'] = this.priceToPrecision(symbol, stopLossPrice);
             }
-            bracketKeys.push('stopLoss');
+            params = this.omit(params, 'stopLoss');
         }
-        const [selfTradePrevention, paramsSelfTradePrevention] = this.handleOptionStringAndParams(this.omit(paramsPostOnly, bracketKeys), 'createOrder', 'selfTradePrevention');
+        let selfTradePrevention = undefined;
+        [selfTradePrevention, params] = this.handleOptionAndParams(params, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
             if (selfTradePrevention === 'EXPIRE_MAKER') {
                 request['selfTradePrevention'] = 'RejectMaker';
@@ -1861,7 +1856,7 @@ class backpack extends backpack$1["default"] {
                 request['selfTradePrevention'] = 'RejectBoth';
             }
         }
-        return this.extend(request, paramsSelfTradePrevention);
+        return this.extend(request, params);
     }
     encodeOrderSide(side) {
         const sides = {
@@ -2172,8 +2167,8 @@ class backpack extends backpack$1["default"] {
         if (this.isEmpty(symbols)) {
             return positions;
         }
-        const symbolsNormalized = this.marketSymbols(symbols);
-        return this.filterByArrayPositions(positions, 'symbol', symbolsNormalized);
+        symbols = this.marketSymbols(symbols);
+        return this.filterByArrayPositions(positions, 'symbol', symbols, false);
     }
     parsePosition(position, market = undefined) {
         //
@@ -2212,8 +2207,8 @@ class backpack extends backpack$1["default"] {
         //
         const id = this.safeString(position, 'positionId');
         const marketId = this.safeString(position, 'symbol');
-        const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        market = this.safeMarket(marketId, market);
+        const symbol = market['symbol'];
         const entryPrice = this.safeString(position, 'entryPrice');
         const markPrice = this.safeString(position, 'markPrice');
         const netCost = this.safeString(position, 'netCost');
@@ -2317,22 +2312,12 @@ class backpack extends backpack$1["default"] {
         };
     }
     nonce() {
-        const timeDifference = this.safeInteger(this.options, 'timeDifference');
-        if (timeDifference === undefined) {
-            throw new errors.ExchangeError(this.id + ' nonce() requires a numeric options["timeDifference"]');
-        }
-        return this.milliseconds() - timeDifference;
+        return this.milliseconds() - this.options['timeDifference'];
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + path;
-        const apiUrl = this.safeString(this.urls['api'], api);
-        if (apiUrl === undefined) {
-            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
-        }
-        let url = apiUrl;
+        let url = this.urls['api'][api];
         const sortedParams = Array.isArray(params) ? params : this.keysort(params);
-        let headersSigned = undefined;
-        let bodySigned = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials();
             const ts = this.nonce().toString();
@@ -2354,7 +2339,7 @@ class backpack extends backpack$1["default"] {
             const secretBytes = this.base64ToBinary(this.secret);
             const seed = this.arraySlice(secretBytes, 0, 32);
             const signature = crypto.eddsa(this.encode(payload), seed, ed25519_js.ed25519);
-            headersSigned = {
+            headers = {
                 'X-Timestamp': ts,
                 'X-Window': recvWindow,
                 'X-API-Key': this.apiKey,
@@ -2362,8 +2347,8 @@ class backpack extends backpack$1["default"] {
                 'X-Broker-Id': '1400',
             };
             if (method !== 'GET') {
-                bodySigned = this.json(sortedParams);
-                headersSigned['Content-Type'] = 'application/json';
+                body = this.json(sortedParams);
+                headers['Content-Type'] = 'application/json';
             }
         }
         if (method === 'GET') {
@@ -2373,12 +2358,7 @@ class backpack extends backpack$1["default"] {
             }
         }
         url += endpoint;
-        const headersResolved = (api === 'private') ? headersSigned : headers;
-        let bodyResolved = body;
-        if ((api === 'private') && (method !== 'GET')) {
-            bodyResolved = bodySigned;
-        }
-        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     generateBatchPayload(params, ts, recvWindow, instruction) {
         let payload = '';

@@ -473,7 +473,7 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
+        if ($this->options['adjustForTimeDifference'] === true) {
             $this->load_time_difference();
         }
         $markets = $this->v4PublicGetMarkets();
@@ -507,18 +507,12 @@ class whitebit extends Exchange {
         $id = $this->safe_string($market, 'name');
         $baseId = $this->safe_string($market, 'stock');
         $quoteId = $this->safe_string($market, 'money');
-        if ($quoteId === 'PERP') {
-            $quoteId = 'USDT';
-        }
+        $quoteId = ($quoteId === 'PERP') ? 'USDT' : $quoteId;
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        if (($base === null) || ($quote === null)) {
-            return null;
-        }
         $active = $this->safe_bool($market, 'tradesEnabled');
         $isCollateral = $this->safe_bool($market, 'isCollateral');
         $typeId = $this->safe_string($market, 'type');
-        $type = null;
         $settle = null;
         $settleId = null;
         $symbol = $base . '/' . $quote;
@@ -911,7 +905,7 @@ class whitebit extends Exchange {
         //    }
         //
         $depositWithdrawFees = array();
-        $codesValue = $this->market_codes($codes);
+        $codes = $this->market_codes($codes);
         $currencyIds = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $entry = $currencyIds[$i];
@@ -919,7 +913,7 @@ class whitebit extends Exchange {
             $currencyId = $splitEntry[0];
             $feeInfo = $response[$entry];
             $code = $this->safe_currency_code($currencyId);
-            if (($code !== null) && (($codesValue === null) || ($this->in_array($code, $codesValue)))) {
+            if (($code !== null) && (($codes === null) || ($this->in_array($code, $codes)))) {
                 $depositWithdrawFee = $this->safe_dict($depositWithdrawFees, $code);
                 if ($depositWithdrawFee === null) {
                     $depositWithdrawFees[$code] = $this->deposit_withdraw_fee(array());
@@ -1086,7 +1080,7 @@ class whitebit extends Exchange {
             if (($market === null) || ($market === null) || ($marketSymbol === null) || ($marketSymbol === '')) {
                 continue; // Skip invalid markets silently
             }
-            $symbol = $marketSymbol;
+            $symbol = $market['symbol'];
             // Filter by symbols if specified
             if ($symbols !== null) {
                 $symbolFound = false;
@@ -1226,7 +1220,7 @@ class whitebit extends Exchange {
             for ($j = 0; $j < count($feeKeys); $j++) {
                 $feeKey = $feeKeys[$j];
                 $fee = $this->safe_dict($feesData, $feeKey);
-                if (($fee !== null && $fee !== null) && $this->safe_string($fee, 'ticker') === $code) {
+                if (($fee !== null && $fee !== null) && $fee['ticker'] === $code) {
                     $feeData = $fee;
                     break;
                 }
@@ -1411,13 +1405,13 @@ class whitebit extends Exchange {
         //     }
         //
         $marketId = $this->safe_string_2($ticker, 'tradingPairs', 'ticker_id');
-        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         // last price is provided as "last" or "last_price"
         $last = $this->safe_string_n($ticker, array( 'last', 'last_price', 'lastPrice' ));
         // if "close" is provided, use it, otherwise use <last>
         $close = $this->safe_string($ticker, 'close', $last);
         return $this->safe_ticker(array(
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'timestamp' => null,
             'datetime' => null,
             'high' => $this->safe_string($ticker, 'high'),
@@ -1438,7 +1432,7 @@ class whitebit extends Exchange {
             'quoteVolume' => $this->safe_string_n($ticker, array( 'quote_volume', 'deal', 'quoteVolume24h', 'money_volume' )),
             'indexPrice' => $this->safe_string($ticker, 'index_price'),
             'info' => $ticker,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -1461,7 +1455,7 @@ class whitebit extends Exchange {
         // Extract control parameters from params
         $checkActive = $this->safe_bool($params, 'checkActive', true);
         $checkExecuted = $this->safe_bool($params, 'checkExecuted', true);
-        $paramsOmitted = $this->omit($params, array( 'checkActive', 'checkExecuted' ));
+        $params = $this->omit($params, array( 'checkActive', 'checkExecuted' ));
         $request = array(
             'orderId' => $id,
         );
@@ -1473,7 +1467,7 @@ class whitebit extends Exchange {
         // Try active orders first (if enabled)
         if ($checkActive === true) {
             try {
-                $response = $this->v4PrivatePostOrders($this->extend($request, $paramsOmitted));
+                $response = $this->v4PrivatePostOrders($this->extend($request, $params));
                 // Search for order in active orders response (array format)
                 $orders = $this->to_array($response);
                 for ($i = 0; $i < count($orders); $i++) {
@@ -1494,7 +1488,7 @@ class whitebit extends Exchange {
         // Try executed orders (if enabled)
         if ($checkExecuted === true) {
             try {
-                $response = $this->v4PrivatePostTradeAccountOrderHistory($this->extend($request, $paramsOmitted));
+                $response = $this->v4PrivatePostTradeAccountOrderHistory($this->extend($request, $params));
                 // Search for order in executed orders response (object format)
                 $marketIds = is_array($response) ? array_keys($response) : array();
                 for ($i = 0; $i < count($marketIds); $i++) {
@@ -1534,11 +1528,11 @@ class whitebit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbols = $this->market_symbols($symbols);
         $onlyContractSymbols = true;
-        if ($symbolsNormalized !== null) {
-            for ($i = 0; $i < count($symbolsNormalized); $i++) {
-                $symbol = $symbolsNormalized[$i];
+        if ($symbols !== null) {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
                 $market = $this->market($symbol);
                 if ($market['contract'] !== true) {
                     $onlyContractSymbols = false;
@@ -1548,9 +1542,10 @@ class whitebit extends Exchange {
         } else {
             $onlyContractSymbols = false;
         }
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchTickers', null, $params);
-        list($methodOption, $paramsMethod) = $this->handle_option_string_and_params($paramsMarketType, 'fetchTickers', 'method');
-        $method = $methodOption;
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+        $method = null;
+        list($method, $params) = $this->handle_option_and_params($params, 'fetchTickers', 'method', $method);
         if ($method === null) {
             // if the user did not specify a method, choose it based on market type and symbols
             if ($onlyContractSymbols || ($marketType === 'swap')) {
@@ -1571,7 +1566,7 @@ class whitebit extends Exchange {
             //          "change":"2.12"
             //      },
             //
-            $response = $this->v4PublicGetTicker($paramsMethod);
+            $response = $this->v4PublicGetTicker($params);
         } elseif ($method === 'v4PublicGetFutures') {
             //
             //     {
@@ -1612,13 +1607,13 @@ class whitebit extends Exchange {
             //         ]
             //     }
             //
-            $response = $this->v4PublicGetFutures($paramsMethod);
+            $response = $this->v4PublicGetFutures($params);
         } else {
-            $response = $this->v2PublicGetTicker($paramsMethod);
+            $response = $this->v2PublicGetTicker($params);
         }
         $resultList = $this->safe_list($response, 'result');
         if ($resultList !== null) {
-            return $this->parse_tickers($resultList, $symbolsNormalized);
+            return $this->parse_tickers($resultList, $symbols);
         }
         $marketIds = is_array($response) ? array_keys($response) : array();
         $result = array();
@@ -1629,7 +1624,7 @@ class whitebit extends Exchange {
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
-        return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
@@ -1832,7 +1827,7 @@ class whitebit extends Exchange {
         //          "feeAsset": "USDT"
         //      }
         //
-        $marketResolved = $this->safe_market(null, $market);
+        $market = $this->safe_market(null, $market);
         $timestamp = $this->safe_timestamp_2($trade, 'time', 'trade_timestamp');
         $orderId = $this->safe_string_2($trade, 'dealOrderId', 'orderId');
         $cost = $this->safe_string($trade, 'deal');
@@ -1840,7 +1835,7 @@ class whitebit extends Exchange {
         $amount = $this->safe_string_2($trade, 'amount', 'quote_volume');
         $id = $this->safe_string_2($trade, 'id', 'tradeID');
         $side = $this->safe_string_2($trade, 'type', 'side');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $market['symbol'];
         $role = $this->safe_integer($trade, 'role');
         $takerOrMaker = null;
         if ($role !== null) {
@@ -1868,7 +1863,7 @@ class whitebit extends Exchange {
             'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1892,15 +1887,17 @@ class whitebit extends Exchange {
             'market' => $market['id'],
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        $maxLimit = 1440;
-        $sinceLimit = ($limit === null) ? $maxLimit : min($limit, $maxLimit);
-        $limitResolved = ($since !== null) ? $sinceLimit : $limit;
         if ($since !== null) {
+            $maxLimit = 1440;
+            if ($limit === null) {
+                $limit = $maxLimit;
+            }
+            $limit = min($limit, $maxLimit);
             $start = $this->parse_to_int($since / 1000);
             $request['start'] = $start;
         }
-        if ($limitResolved !== null) {
-            $request['limit'] = min($limitResolved, 1440);
+        if ($limit !== null) {
+            $request['limit'] = min($limit, 1440);
         }
         $response = $this->v1PublicGetKline($this->extend($request, $params));
         //
@@ -1915,7 +1912,7 @@ class whitebit extends Exchange {
         //     }
         //
         $result = $this->safe_list($response, 'result', array());
-        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limitResolved);
+        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -2042,7 +2039,8 @@ class whitebit extends Exchange {
             'market' => $market['id'],
             'side' => $side,
         );
-        list($cost, $paramsCost) = $this->handle_param_string($params, 'cost');
+        $cost = null;
+        list($cost, $params) = $this->handle_param_string($params, 'cost');
         if ($cost !== null) {
             if (($side !== 'buy') || ($type !== 'market')) {
                 throw new InvalidOrder($this->id . ' createOrder() cost is only supported for market buy orders');
@@ -2051,7 +2049,7 @@ class whitebit extends Exchange {
         } else {
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
         }
-        $clientOrderId = $this->safe_string_2($paramsCost, 'clOrdId', 'clientOrderId');
+        $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
         if ($clientOrderId === null) {
             $brokerId = $this->safe_string($this->options, 'brokerId');
             if ($brokerId !== null) {
@@ -2059,18 +2057,18 @@ class whitebit extends Exchange {
             }
         } else {
             $request['clientOrderId'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clientOrderId' ));
         }
-        $paramsOmitted = ($clientOrderId !== null) ? $this->omit($paramsCost, array( 'clientOrderId' )) : $paramsCost;
         $marketType = $this->safe_string($market, 'type');
         $isLimitOrder = $type === 'limit';
         $isMarketOrder = $type === 'market';
-        $triggerPrice = $this->safe_number_n($paramsOmitted, array( 'triggerPrice', 'stopPrice', 'activation_price' ));
+        $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'activation_price' ));
         $isStopOrder = ($triggerPrice !== null);
-        $timeInForce = $this->safe_string_upper($paramsOmitted, 'timeInForce');
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         if (($timeInForce !== null) && ($timeInForce !== 'GTC') && ($timeInForce !== 'IOC') && ($timeInForce !== 'PO')) {
             throw new NotSupported($this->id . ' createOrder() does not support timeInForce ' . $timeInForce . ', only GTC, IOC and PO are allowed');
         }
-        $postOnly = $this->is_post_only($isMarketOrder, false, $paramsOmitted);
+        $postOnly = $this->is_post_only($isMarketOrder, false, $params);
         $ioc = ($timeInForce === 'IOC');
         if ($isStopOrder && ($postOnly || $ioc)) {
             throw new NotSupported($this->id . ' createOrder() does not support postOnly or timeInForce IOC for stop orders');
@@ -2078,7 +2076,7 @@ class whitebit extends Exchange {
         if ($ioc && !$isLimitOrder) {
             throw new NotSupported($this->id . ' createOrder() timeInForce IOC is only supported for limit orders');
         }
-        list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $paramsOmitted);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
         if ($postOnly) {
             $request['postOnly'] = true;
         }
@@ -2088,20 +2086,20 @@ class whitebit extends Exchange {
         if ($marginMode !== null && $marginMode !== 'cross') {
             throw new NotSupported($this->id . ' createOrder() is only available for cross margin');
         }
-        $orderParams = $this->omit($query, array( 'postOnly', 'triggerPrice', 'stopPrice', 'timeInForce' ));
+        $params = $this->omit($query, array( 'postOnly', 'triggerPrice', 'stopPrice', 'timeInForce' ));
         $useCollateralEndpoint = $marginMode !== null || $marketType === 'swap';
         if ($isStopOrder) {
             $request['activation_price'] = $this->price_to_precision($symbol, $triggerPrice);
             if ($isLimitOrder) {
                 // stop limit order
                 $request['price'] = $this->price_to_precision($symbol, $price);
-                $response = $this->v4PrivatePostOrderStopLimit($this->extend($request, $orderParams));
+                $response = $this->v4PrivatePostOrderStopLimit($this->extend($request, $params));
             } else {
                 // stop market order
                 if ($useCollateralEndpoint) {
-                    $response = $this->v4PrivatePostOrderCollateralTriggerMarket($this->extend($request, $orderParams));
+                    $response = $this->v4PrivatePostOrderCollateralTriggerMarket($this->extend($request, $params));
                 } else {
-                    $response = $this->v4PrivatePostOrderStopMarket($this->extend($request, $orderParams));
+                    $response = $this->v4PrivatePostOrderStopMarket($this->extend($request, $params));
                 }
             }
         } else {
@@ -2109,19 +2107,19 @@ class whitebit extends Exchange {
                 // limit order
                 $request['price'] = $this->price_to_precision($symbol, $price);
                 if ($useCollateralEndpoint) {
-                    $response = $this->v4PrivatePostOrderCollateralLimit($this->extend($request, $orderParams));
+                    $response = $this->v4PrivatePostOrderCollateralLimit($this->extend($request, $params));
                 } else {
-                    $response = $this->v4PrivatePostOrderNew($this->extend($request, $orderParams));
+                    $response = $this->v4PrivatePostOrderNew($this->extend($request, $params));
                 }
             } else {
                 // market order
                 if ($useCollateralEndpoint) {
-                    $response = $this->v4PrivatePostOrderCollateralMarket($this->extend($request, $orderParams));
+                    $response = $this->v4PrivatePostOrderCollateralMarket($this->extend($request, $params));
                 } else {
                     if ($cost !== null) {
-                        $response = $this->v4PrivatePostOrderMarket($this->extend($request, $orderParams));
+                        $response = $this->v4PrivatePostOrderMarket($this->extend($request, $params));
                     } else {
-                        $response = $this->v4PrivatePostOrderStockMarket($this->extend($request, $orderParams));
+                        $response = $this->v4PrivatePostOrderStockMarket($this->extend($request, $params));
                     }
                 }
             }
@@ -2190,8 +2188,8 @@ class whitebit extends Exchange {
         if (!$hasModifiableParam) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires at least one of => amount, price, activationPrice, or total parameters');
         }
-        $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'triggerPrice', 'stopPrice', 'activationPrice', 'total' ));
-        $response = $this->v4PrivatePostOrderModify($this->extend($request, $paramsOmitted));
+        $params = $this->omit($params, array( 'clientOrderId', 'triggerPrice', 'stopPrice', 'activationPrice', 'total' ));
+        $response = $this->v4PrivatePostOrderModify($this->extend($request, $params));
         return $this->parse_order($response);
     }
 
@@ -2248,7 +2246,7 @@ class whitebit extends Exchange {
          *
          * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->type] $market type, ['swap', 'spot']
+         * @param {string} [$params->type] $market $type, ['swap', 'spot']
          * @param {boolean} [$params->isMargin] cancel all margin orders
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -2261,24 +2259,24 @@ class whitebit extends Exchange {
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
         $requestType = array();
-        $requestParams = $paramsMarketType;
-        if ($marketType === 'spot') {
-            list($isMargin, $paramsIsMargin) = $this->handle_option_bool_and_params($paramsMarketType, 'cancelAllOrders', 'isMargin', false);
-            $requestParams = $paramsIsMargin;
+        if ($type === 'spot') {
+            $isMargin = null;
+            list($isMargin, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'isMargin', false);
             if ($isMargin) {
                 $requestType[] = 'margin';
             } else {
                 $requestType[] = 'spot';
             }
-        } elseif ($marketType === 'swap') {
+        } elseif ($type === 'swap') {
             $requestType[] = 'futures';
         } else {
-            throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $marketType . ' type');
+            throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $type . ' type');
         }
         $request['type'] = $requestType;
-        $response = $this->v4PrivatePostOrderCancelAll($this->extend($request, $requestParams));
+        $response = $this->v4PrivatePostOrderCancelAll($this->extend($request, $params));
         //
         // []
         //
@@ -2336,7 +2334,7 @@ class whitebit extends Exchange {
             throw new ArgumentsRequired($this->id . ' cancelAllOrdersAfter() requires a symbol argument in params');
         }
         $market = $this->market($symbol);
-        $paramsOmitted = $this->omit($params, 'symbol');
+        $params = $this->omit($params, 'symbol');
         if ($timeout === null) {
             throw new ExchangeError($this->id . ' cancelAllOrdersAfter() missing timeout');
         }
@@ -2349,7 +2347,7 @@ class whitebit extends Exchange {
         } else {
             $request['timeout'] = 'null';
         }
-        $response = $this->v4PrivatePostOrderKillSwitch($this->extend($request, $paramsOmitted));
+        $response = $this->v4PrivatePostOrderKillSwitch($this->extend($request, $params));
         //
         //     {
         //         "market": "BTC_USDT", // currency market,
@@ -2400,18 +2398,19 @@ class whitebit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         if ($marketType === 'swap') {
-            $response = $this->v4PrivatePostCollateralAccountBalance($paramsMarketType);
+            $response = $this->v4PrivatePostCollateralAccountBalance($params);
         } else {
             $options = $this->safe_dict($this->options, 'fetchBalance', array());
             $defaultAccount = $this->safe_string($options, 'account');
-            $account = $this->safe_string_2($paramsMarketType, 'account', 'type', $defaultAccount);
-            $paramsOmitted = $this->omit($paramsMarketType, array( 'account', 'type' ));
+            $account = $this->safe_string_2($params, 'account', 'type', $defaultAccount);
+            $params = $this->omit($params, array( 'account', 'type' ));
             if ($account === 'main' || $account === 'funding') {
-                $response = $this->v4PrivatePostMainAccountBalance($paramsOmitted);
+                $response = $this->v4PrivatePostMainAccountBalance($params);
             } else {
-                $response = $this->v4PrivatePostTradeAccountBalance($paramsOmitted);
+                $response = $this->v4PrivatePostTradeAccountBalance($params);
             }
         }
         //
@@ -2506,9 +2505,9 @@ class whitebit extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $request['market'] = $market['id'];
         }
-        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         if ($limit !== null) {
             $request['limit'] = min($limit, 100); // default 50 max 100
         }
@@ -2542,7 +2541,7 @@ class whitebit extends Exchange {
             }
         }
         $results = $this->sort_by($results, 'timestamp');
-        $results = $this->filter_by_symbol_since_limit($results, $symbolResolved, $since, $limit);
+        $results = $this->filter_by_symbol_since_limit($results, $symbol, $since, $limit);
         return $results;
     }
 
@@ -2600,8 +2599,8 @@ class whitebit extends Exchange {
         //      }
         //
         $marketId = $this->safe_string($order, 'market');
-        $marketResolved = $this->safe_market($marketId, $market, '_');
-        $symbol = $marketResolved['symbol'];
+        $market = $this->safe_market($marketId, $market, '_');
+        $symbol = $market['symbol'];
         $side = $this->safe_string($order, 'side');
         $filled = $this->safe_string($order, 'dealStock');
         $remaining = $this->safe_string($order, 'left');
@@ -2627,7 +2626,7 @@ class whitebit extends Exchange {
         if ($dealFee !== null) {
             $fee = array(
                 'cost' => $this->parse_number($dealFee),
-                'currency' => $marketResolved['quote'],
+                'currency' => $market['quote'],
             );
         }
         $timestamp = $this->safe_timestamp_2($order, 'ctime', 'timestamp');
@@ -2662,7 +2661,7 @@ class whitebit extends Exchange {
             'cost' => $cost,
             'fee' => $fee,
             'trades' => null,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function parse_order_status(?string $status) {
@@ -2751,11 +2750,12 @@ class whitebit extends Exchange {
         if ($since !== null) {
             $request['startDate'] = $this->parse_to_int($since / 1000);
         }
-        $limitResolved = $limit;
         if ($limit === null || $limit > 100) {
-            $limitResolved = 100;
+            $limit = 100;
         }
-        $request['limit'] = $limitResolved;
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
         // Use transactionMethod parameter to filter withdrawals server-side (method = 2)
         $request['transactionMethod'] = '2';
         $response = $this->v4PrivatePostMainAccountHistory($this->extend($request, $params));
@@ -2777,7 +2777,7 @@ class whitebit extends Exchange {
         //         { ... }                                 // More withdrawal transactions
         //     ]
         //
-        return $this->parse_transactions($this->safe_list($response, 'records', array()), $currency, $since, $limitResolved);
+        return $this->parse_transactions($this->safe_list($response, 'records', array()), $currency, $since, $limit);
     }
 
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -2805,11 +2805,12 @@ class whitebit extends Exchange {
         if ($since !== null) {
             $request['startDate'] = $this->parse_to_int($since / 1000);
         }
-        $limitResolved = $limit;
         if ($limit === null || $limit > 100) {
-            $limitResolved = 100;
+            $limit = 100;
         }
-        $request['limit'] = $limitResolved;
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
         // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
         $response = $this->v4PrivatePostMainAccountHistory($this->extend($request, $params));
         //
@@ -2840,7 +2841,7 @@ class whitebit extends Exchange {
         //     }
         //
         $records = $this->safe_list($response, 'records', array());
-        return $this->parse_transactions($records, $currency, $since, $limitResolved);
+        return $this->parse_transactions($records, $currency, $since, $limit);
     }
 
     public function fetch_deposit_address(string $code, $params = array()): array {
@@ -2962,7 +2963,7 @@ class whitebit extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
@@ -3185,7 +3186,7 @@ class whitebit extends Exchange {
         //         "centralized": false,
         //     }
         //
-        $currencyResolved = $this->safe_currency(null, $currency);
+        $currency = $this->safe_currency(null, $currency);
         $address = $this->safe_string($transaction, 'address');
         $timestamp = $this->safe_timestamp($transaction, 'createdAt');
         $currencyId = $this->safe_string($transaction, 'ticker');
@@ -3202,7 +3203,7 @@ class whitebit extends Exchange {
             'addressTo' => ($method === '2') ? $address : null,
             'amount' => $this->safe_number($transaction, 'amount'),
             'type' => ($method === '1') ? 'deposit' : 'withdrawal',
-            'currency' => $this->safe_currency_code($currencyId, $currencyResolved),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
             'status' => $this->parse_transaction_status($status),
             'updated' => null,
             'tagFrom' => null,
@@ -3212,7 +3213,7 @@ class whitebit extends Exchange {
             'internal' => null,
             'fee' => array(
                 'cost' => $this->safe_number($transaction, 'fee'),
-                'currency' => $this->safe_currency_code($currencyId, $currencyResolved),
+                'currency' => $this->safe_currency_code($currencyId, $currency),
             ),
             'info' => $transaction,
         );
@@ -3479,10 +3480,9 @@ class whitebit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbolValue = $this->symbol($symbol);
-        $response = $this->fetch_funding_rates(array( $symbolValue ), $params);
-        $fundingRate = $this->safe_dict($response, $symbolValue);
-        return $fundingRate;
+        $symbol = $this->symbol($symbol);
+        $response = $this->fetch_funding_rates(array( $symbol ), $params);
+        return $this->safe_value($response, $symbol);
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array()): array {
@@ -3498,7 +3498,7 @@ class whitebit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbols = $this->market_symbols($symbols);
         $response = $this->v4PublicGetFutures($params);
         //
         //    [
@@ -3545,7 +3545,7 @@ class whitebit extends Exchange {
         //    ]
         //
         $data = $this->safe_list($response, 'result', array());
-        return $this->parse_funding_rates($data, $symbolsNormalized);
+        return $this->parse_funding_rates($data, $symbols);
     }
 
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
@@ -3638,8 +3638,8 @@ class whitebit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('endDate', $request, $params);
-        $response = $this->v4PrivatePostCollateralAccountFundingHistory($this->extend($requestUntil, $paramsUntil));
+        list($request, $params) = $this->handle_until_option('endDate', $request, $params);
+        $response = $this->v4PrivatePostCollateralAccountFundingHistory($this->extend($request, $params));
         //
         //     {
         //         "records": [
@@ -3661,7 +3661,7 @@ class whitebit extends Exchange {
         return $this->parse_funding_histories($data, $market, $since, $limit);
     }
 
-    public function parse_funding_history(?array $contract, ?array $market = null) {
+    public function parse_funding_history(mixed $contract, ?array $market = null) {
         //
         //     {
         //         "market": "BTC_PERP",
@@ -3686,10 +3686,10 @@ class whitebit extends Exchange {
         );
     }
 
-    public function parse_funding_histories(array $contracts, ?array $market = null, ?int $since = null, ?int $limit = null): array {
+    public function parse_funding_histories(mixed $contracts, ?array $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($contracts); $i++) {
-            $contract = $this->safe_dict($contracts, $i);
+            $contract = $contracts[$i];
             $result[] = $this->parse_funding_history($contract, $market);
         }
         $sorted = $this->sort_by($result, 'timestamp');
@@ -3874,8 +3874,8 @@ class whitebit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('to', $request, $params, 0.001);
-        $response = $this->v4PrivatePostConvertHistory($this->extend($requestUntil, $paramsUntil));
+        list($request, $params) = $this->handle_until_option('to', $request, $params, 0.001);
+        $response = $this->v4PrivatePostConvertHistory($this->extend($request, $params));
         //
         //     {
         //         "records": [
@@ -3990,8 +3990,8 @@ class whitebit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $since;
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('endDate', $request, $params);
-        $response = $this->v4PrivatePostCollateralAccountPositionsHistory($this->extend($requestUntil, $paramsUntil));
+        list($request, $params) = $this->handle_until_option('endDate', $request, $params);
+        $response = $this->v4PrivatePostCollateralAccountPositionsHistory($this->extend($request, $params));
         //
         //     [
         //         {
@@ -4032,7 +4032,7 @@ class whitebit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbols = $this->market_symbols($symbols);
         $response = $this->v4PrivatePostCollateralAccountPositionsOpen($params);
         //
         //     [
@@ -4055,7 +4055,7 @@ class whitebit extends Exchange {
         //         }
         //     ]
         //
-        return $this->parse_positions($response, $symbolsNormalized);
+        return $this->parse_positions($response, $symbols);
     }
 
     public function fetch_position(string $symbol, $params = array()): array {
@@ -4203,9 +4203,10 @@ class whitebit extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         $maxLimit = 100;
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $paramsPaginate, $maxLimit);
+            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, $maxLimit);
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -4217,11 +4218,11 @@ class whitebit extends Exchange {
         if ($since !== null) {
             $request['startDate'] = (int) round($since / 1000);
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('until_timestamp', $request, $paramsPaginate, 0.001);
+        list($request, $params) = $this->handle_until_option('until_timestamp', $request, $params, 0.001);
         if ($limit !== null) {
-            $requestUntil['limit'] = $limit;
+            $request['limit'] = $limit;
         }
-        $response = $this->v4PublicGetFundingHistoryMarket($this->extend($requestUntil, $paramsUntil));
+        $response = $this->v4PublicGetFundingHistoryMarket($this->extend($request, $params));
         //
         //     [
         //         {
@@ -4238,11 +4239,11 @@ class whitebit extends Exchange {
 
     public function parse_funding_rate_history(mixed $info, ?array $market = null): array {
         $marketId = $this->safe_string($info, 'market');
-        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_timestamp($info, 'fundingTime');
         return array(
             'info' => $info,
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'fundingRate' => $this->safe_number($info, 'fundingRate'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -4250,55 +4251,42 @@ class whitebit extends Exchange {
     }
 
     public function nonce(): float {
-        return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
+        return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $query = $this->omit($params, $this->extract_params($path));
         $version = $this->safe_value($api, 0);
-        $accessibility = $this->safe_string($api, 1);
-        $publicHeaders = ($headers === null) ? array() : $headers;
-        $publicHeaders['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;
-        $pathWithParams = '/' . $this->implode_params($path, $params);
-        $apiUrl = $this->safe_string($this->urls['api'][$version], $accessibility);
-        if ($apiUrl === null) {
-            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        $accessibility = $this->safe_value($api, 1);
+        if ($headers === null) {
+            $headers = array();
         }
-        $url = $apiUrl . $pathWithParams;
+        $headers['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;
+        $pathWithParams = '/' . $this->implode_params($path, $params);
+        $url = ($this->urls['api'])[$version][$accessibility] . $pathWithParams;
         if ($accessibility === 'public') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         }
-        $privateBody = null;
-        $privateHeaders = array();
         if ($accessibility === 'private') {
             $this->check_required_credentials();
             // whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
             $nonce = (string) $this->incrementing_nonce();
             $secret = $this->encode($this->secret);
             $request = '/' . 'api' . '/' . $version . $pathWithParams;
-            list($nonceWindow, $requestParams) = $this->handle_option_bool_and_params($params, 'sign', 'nonceWindow', false);
-            $privateBody = $this->json($this->extend(array( 'request' => $request, 'nonce' => $nonce, 'nonceWindow' => $nonceWindow ), $requestParams));
-            $payload = base64_encode($privateBody);
+            list($nonceWindow, $requestParams) = $this->handle_option_and_params($params, 'sign', 'nonceWindow', false);
+            $body = $this->json($this->extend(array( 'request' => $request, 'nonce' => $nonce, 'nonceWindow' => $nonceWindow ), $requestParams));
+            $payload = base64_encode($body);
             $signature = $this->hmac($this->encode($payload), $secret, 'sha512');
-            $privateHeaders = array(
+            $headers = array(
                 'Content-Type' => 'application/json',
                 'X-TXC-APIKEY' => $this->apiKey,
                 'X-TXC-PAYLOAD' => $payload,
                 'X-TXC-SIGNATURE' => $signature,
             );
         }
-        $isPrivate = ($accessibility === 'private');
-        $requestBody = $body;
-        if ($isPrivate) {
-            $requestBody = $privateBody;
-        }
-        $requestHeaders = $publicHeaders;
-        if ($isPrivate) {
-            $requestHeaders = $privateHeaders;
-        }
-        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

@@ -15,6 +15,7 @@ func newBequant() *Bequant {
 	base := newHitbtc()
 	p.base = base
 	p.Hitbtc = base
+	ccxt.SetDefaults(p)
 	return p
 }
 

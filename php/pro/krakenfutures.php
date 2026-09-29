@@ -144,12 +144,14 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         );
         $marketIds = array();
         $messageHash = $name;
-        $symbolsValue = ($symbols === null) ? array() : $symbols;
-        for ($i = 0; $i < count($symbolsValue); $i++) {
-            $symbol = $symbolsValue[$i];
+        if ($symbols === null) {
+            $symbols = array();
+        }
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $marketIds[] = $this->market_id($symbol);
         }
-        $length = count($symbolsValue);
+        $length = count($symbols);
         if ($length === 1) {
             $market = $this->market($marketIds[0]);
             $messageHash = $messageHash . ':' . $market['symbol'];
@@ -205,9 +207,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolValue = $this->symbol($symbol);
-        $tickers = Async\await($this->watch_tickers(array( $symbolValue ), $params));
-        return $tickers[$symbolValue];
+        $symbol = $this->symbol($symbol);
+        $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
+        return $tickers[$symbol];
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -227,17 +229,14 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols, null, false);
-        $ticker = Async\await($this->watch_multi_helper('ticker', 'ticker', $symbolsNormalized, null, $params));
+        $symbols = $this->market_symbols($symbols, null, false);
+        $ticker = Async\await($this->watch_multi_helper('ticker', 'ticker', $symbols, null, $params));
         if ($this->newUpdates) {
             $result = array();
-            $tickerSymbol = $this->safe_string($ticker, 'symbol');
-            if ($tickerSymbol !== null) {
-                $result[$tickerSymbol] = $ticker;
-            }
+            $result[$ticker['symbol']] = $ticker;
             return $result;
         }
-        return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
     public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
@@ -257,10 +256,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $ticker = Async\await($this->watch_multi_helper('bidask', 'ticker_lite', $symbols, null, $params));
         if ($this->newUpdates) {
             $result = array();
-            $tickerSymbol = $this->safe_string($ticker, 'symbol');
-            if ($tickerSymbol !== null) {
-                $result[$tickerSymbol] = $ticker;
-            }
+            $result[$ticker['symbol']] = $ticker;
             return $result;
         }
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
@@ -298,13 +294,12 @@ class krakenfutures extends \ccxt\async\krakenfutures {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
         $trades = Async\await($this->watch_multi_helper('trade', 'trade', $symbols, null, $params));
-        $first = $this->safe_list($trades, 0);
-        $tradeSymbol = $this->safe_string($first, 'symbol');
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($tradeSymbol, $limit);
+            $first = $this->safe_list($trades, 0);
+            $tradeSymbol = $this->safe_string($first, 'symbol');
+            $limit = $trades->getLimit($tradeSymbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -341,16 +336,16 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             Async\await($this->load_markets());
         }
         $messageHash = '';
-        $symbolsNormalized = $this->market_symbols($symbols);
-        if (($symbolsNormalized !== null) && !$this->is_empty($symbolsNormalized)) {
-            $messageHash = '::' . implode(',', $symbolsNormalized);
+        $symbols = $this->market_symbols($symbols);
+        if (($symbols !== null) && !$this->is_empty($symbols)) {
+            $messageHash = '::' . implode(',', $symbols);
         }
         $messageHash = 'positions' . $messageHash;
         $newPositions = Async\await($this->subscribe_private('open_positions', $messageHash, $params));
         if ($this->newUpdates) {
             return $newPositions;
         }
-        return $this->filter_by_symbols_since_limit($this->positions, $symbolsNormalized, $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
     }
 
     public function handle_positions(Client $client, array $message) {
@@ -494,14 +489,15 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($verbose, $paramsVerbose) = $this->handle_option_bool_and_params($params, 'watchOrders', 'verbose', false);
+        $verbose = false;
+        list($verbose, $params) = $this->handle_option_and_params($params, 'watchOrders', 'verbose', false);
         $name = 'open_orders';
         $messageHash = 'orders';
         if ($verbose) {
             $name = 'open_orders_verbose';
             $messageHash = 'orders:verbose';
         }
-        $feed = $this->safe_string($paramsVerbose, 'feed');
+        $feed = $this->safe_string($params, 'feed');
         if ($feed !== null) {
             $name = $feed;
             $messageHash = 'orders';
@@ -513,12 +509,11 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $market = $this->market($symbol);
             $messageHash .= ':' . $market['symbol'];
         }
-        $orders = Async\await($this->subscribe_private($name, $messageHash, $paramsVerbose));
-        $limitResolved = $limit;
+        $orders = Async\await($this->subscribe_private($name, $messageHash, $params));
         if ($this->newUpdates) {
-            $limitResolved = $orders->getLimit($symbol, $limit);
+            $limit = $orders->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($orders, $since, $limitResolved, 'timestamp', true);
+        return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -547,11 +542,10 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $messageHash .= ':' . $market['symbol'];
         }
         $trades = Async\await($this->subscribe_private($name, $messageHash, $params));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($symbol, $limit);
+            $limit = $trades->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function watch_balance($params = array()): PromiseInterface {
@@ -573,14 +567,15 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
         $name = 'balances';
         $messageHash = $name;
-        list($account, $paramsAccount) = $this->handle_option_string_and_params($params, 'watchBalance', 'account');
+        $account = null;
+        list($account, $params) = $this->handle_option_and_params($params, 'watchBalance', 'account');
         if ($account !== null) {
             if ($account !== 'futures' && $account !== 'flex_futures') {
                 throw new ArgumentsRequired($this->id . ' watchBalance account must be either \'futures\' or \'flex_futures\'');
             }
             $messageHash .= ':' . $account;
         }
-        return Async\await($this->subscribe_private($name, $messageHash, $paramsAccount));
+        return Async\await($this->subscribe_private($name, $messageHash, $params));
     }
 
     public function handle_trade(Client $client, array $message) {
@@ -678,12 +673,12 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //     }
         //
         $marketId = $this->safe_string($trade, 'product_id');
-        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($trade, 'time');
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $this->safe_string($trade, 'uid'),
-            'symbol' => $this->safe_string($marketResolved, 'symbol'),
+            'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'order' => null,
@@ -698,7 +693,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 'cost' => null,
                 'currency' => null,
             ),
-        ), $marketResolved);
+        ), $market);
     }
 
     public function parse_ws_order_trade(array $trade, ?array $market = null): array {
@@ -1160,7 +1155,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
+    public function parse_ws_ticker(array $ticker, ?array $market = null) {
         //
         //    {
         //        "time": 1680811086487,
@@ -1211,6 +1206,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //
         $marketId = $this->safe_string($ticker, 'product_id');
         $marketResolved = $this->safe_market($marketId, $market);
+        $market = $marketResolved;
         $symbol = $marketResolved['symbol'];
         $timestamp = $this->parse8601($this->safe_string($ticker, 'lastTime'));
         $last = $this->safe_string($ticker, 'last');
@@ -1288,14 +1284,14 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             return;
         }
         for ($i = 0; $i < count($bids); $i++) {
-            $bid = $this->safe_dict($bids, $i);
+            $bid = $bids[$i];
             $price = $this->safe_number($bid, 'price');
             $qty = $this->safe_number($bid, 'qty');
             $bidsSide = $orderbook['bids'];
             $bidsSide->store($price, $qty);
         }
         for ($i = 0; $i < count($asks); $i++) {
-            $ask = $this->safe_dict($asks, $i);
+            $ask = $asks[$i];
             $price = $this->safe_number($ask, 'price');
             $qty = $this->safe_number($ask, 'qty');
             $asksSide = $orderbook['asks'];
@@ -1636,7 +1632,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //
         $timestamp = $this->safe_integer($trade, 'time');
         $marketId = $this->safe_string($trade, 'instrument');
-        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $isBuy = $this->safe_bool($trade, 'buy');
         $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
         return $this->safe_trade(array(
@@ -1644,7 +1640,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             'id' => $this->safe_string($trade, 'fill_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $this->safe_string($marketResolved, 'symbol'),
+            'symbol' => $this->safe_string($market, 'symbol'),
             'order' => $this->safe_string($trade, 'order_id'),
             'type' => $this->safe_string($trade, 'type'),
             'side' => ($isBuy === true) ? 'buy' : 'sell',
@@ -1670,13 +1666,13 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
         $url = $this->urls['api']['ws'];
         // symbols are required
-        $symbolsNormalized = $this->market_symbols($symbols, null, false, true, false);
+        $symbols = $this->market_symbols($symbols, null, false, true, false);
         $messageHashes = array();
         $rawSubs = array();
-        for ($i = 0; $i < count($symbolsNormalized); $i++) {
-            $messageHash = $this->get_message_hash($unifiedName, null, $this->symbol($symbolsNormalized[$i]));
+        for ($i = 0; $i < count($symbols); $i++) {
+            $messageHash = $this->get_message_hash($unifiedName, null, $this->symbol($symbols[$i]));
             $messageHashes[] = $messageHash;
-            $market = $this->market($symbolsNormalized[$i]);
+            $market = $this->market($symbols[$i]);
             if (!$this->subscription_exists_for_hash($url, $messageHash)) {
                 $rawSubs[] = $market['id'];
             }
@@ -1698,7 +1694,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         return (is_array($client->subscriptions) && array_key_exists($hash ?? '', $client->subscriptions));
     }
 
-    public function get_message_hash(string $unifiedElementName, ?string $subChannelName = null, ?string $symbol = null): string {
+    public function get_message_hash(string $unifiedElementName, ?string $subChannelName = null, ?string $symbol = null) {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         $withSymbol = $symbol !== null;

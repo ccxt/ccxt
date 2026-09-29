@@ -86,7 +86,7 @@ export default class p2b extends p2bRest {
      * @param {float} [params.interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleOHLCV(client: Client, message: Dict): Dict;
     handleTrade(client: Client, message: Dict): Dict;
     handleTicker(client: Client, message: Dict): Dict;

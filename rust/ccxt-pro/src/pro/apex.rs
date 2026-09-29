@@ -174,6 +174,8 @@ impl crate::exchange_generated::ExchangeBase for ApexCore {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "get_ws_private_url" => self.get_ws_private_url(),
+                "get_ws_public_url" => self.get_ws_public_url(),
                 "handle_authenticate" => self.handle_authenticate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -210,6 +212,8 @@ impl ApexCore {
         let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
+            "get_ws_private_url" => self.get_ws_private_url(),
+            "get_ws_public_url" => self.get_ws_public_url(),
             "handle_account" => { self.handle_account(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_authenticate" => self.handle_authenticate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -368,34 +372,33 @@ impl ApexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut symbolsLength: f64 = ((symbolsNormalized.len() as i64) as f64);
+        symbols = self.market_symbols(&[symbols.clone()]);
+        let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
         if (symbolsLength == 0.0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTradesForSymbols() requires a non-empty array of symbols".into()))));
         }
-        let mut url: Value = self.get_ws_public_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        let mut url: Value = self.get_ws_public_url();
         let mut topics: Value = Value::from(vec![]);
         let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_2: bool = true;
-            while { if !__for_first_2 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_2 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_2 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_2 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
-            let mut topic: Value = Value::Str(format!("{}{}", Value::Str("recentlyTrade.H.".into()), self.safe_string_k(market, "id2", &[])).into());
+            let mut topic: Value = add(&Value::Str("recentlyTrade.H.".into()), &market.as_map().and_then(|__m| __m.get("id2")).cloned().unwrap_or(Value::Null));
             append_to_array(&mut topics, topic);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol).into());
             append_to_array(&mut messageHashes, messageHash);
         }
         }
         let mut trades: Value = self.watch_topics(url, messageHashes, topics, &[params]).await;
-        let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
-        let mut tradeSymbol: Value = self.safe_string_k(first, "symbol", &[]);
-        let mut limitResolved: Value = limit.clone();
         if is_true(&self.newUpdates) {
-            limitResolved = trades.get_limit(tradeSymbol, limit);
+            let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
+            let mut tradeSymbol: Value = self.safe_string_k(first, "symbol", &[]);
+            limit = trades.get_limit(tradeSymbol, limit.clone());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
 
     Value::Null
 }
@@ -467,8 +470,8 @@ impl ApexCore {
         //
         let mut id: Value = self.safe_string_n(trade.clone(), Value::from(vec![Value::Str("i".into()), Value::Str("id".into()), Value::Str("v".into())]), &[]);
         let mut marketId: Value = self.safe_string2(trade.clone(), Value::Str("s".into()), Value::Str("symbol".into()), &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId, market, Value::Null]);
-        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        market = self.safe_market(&[marketId, market.clone(), Value::Null]);
+        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Value = self.safe_integer_n(trade.clone(), Value::from(vec![Value::Str("t".into()), Value::Str("T".into()), Value::Str("createdAt".into())]), &[]);
         let mut side: Value = self.safe_string_lower2(trade.clone(), Value::Str("S".into()), Value::Str("side".into()), &[]);
         let mut price: Value = self.safe_string2(trade.clone(), Value::Str("p".into()), Value::Str("price".into()), &[]);
@@ -489,7 +492,7 @@ impl ApexCore {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[marketResolved]);
+}), &[market]);
 
     Value::Null
 }
@@ -538,18 +541,20 @@ impl ApexCore {
         if (symbolsLength == 0.0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".into()))));
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut url: Value = self.get_ws_public_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        symbols = self.market_symbols(&[symbols.clone()]);
+        let mut url: Value = self.get_ws_public_url();
         let mut topics: Value = Value::from(vec![]);
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut limitValue: Value = (if (limit == Value::Null) { Value::Int(25) } else { limit.clone() });
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_4: bool = true;
-            while { if !__for_first_4 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_4 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_4 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_4 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
-            let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook".into()), to_string_val(&limitValue)).into()), Value::Str(".H.".into())).into()), self.safe_string_k(market, "id2", &[])).into());
+            if (limit == Value::Null) {
+                limit = Value::Int(25);
+            }
+            let mut topic: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook".into()), to_string_val(&limit)).into()), Value::Str(".H.".into())).into()), &market.as_map().and_then(|__m| __m.get("id2")).cloned().unwrap_or(Value::Null));
             append_to_array(&mut topics, topic);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
             append_to_array(&mut messageHashes, messageHash);
@@ -599,7 +604,7 @@ impl ApexCore {
     Value::Null
 }
 
-    pub fn get_ws_public_url(&mut self) -> Option<String> {
+    pub fn get_ws_public_url(&mut self) -> Value {
         // apex appends a millisecond timestamp to the WS URL for connection-time
         // signing. CCXT's client manager keys clients by URL, so recomputing the
         // timestamp on every watch* call would open a new connection each time.
@@ -607,20 +612,24 @@ impl ApexCore {
         let mut url: Value = self.safe_string_k(self.options.clone(), "wsPublicUrl", &[]);
         if (url == Value::Null) {
             let mut timeStamp: Value = to_string_val(&self.milliseconds());
-            url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("public".into()), &[]), Value::Str("&timestamp=".into())).into()), timeStamp).into());
+            url = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), &Value::Str("&timestamp=".into())), timeStamp).into());
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPublicUrl".into(), url.clone()); }
         }
-        return url.as_str().map(str::to_owned);
+        return url;
+
+    Value::Null
 }
 
-    pub fn get_ws_private_url(&mut self) -> Option<String> {
+    pub fn get_ws_private_url(&mut self) -> Value {
         let mut url: Value = self.safe_string_k(self.options.clone(), "wsPrivateUrl", &[]);
         if (url == Value::Null) {
             let mut timeStamp: Value = to_string_val(&self.milliseconds());
-            url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[]), Value::Str("&timestamp=".into())).into()), timeStamp).into());
+            url = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("&timestamp=".into())), timeStamp).into());
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPrivateUrl".into(), url.clone()); }
         }
-        return url.as_str().map(str::to_owned);
+        return url;
+
+    Value::Null
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
@@ -721,11 +730,11 @@ impl ApexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol);
-        let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut url: Value = self.get_ws_public_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbolValue).into());
-        let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("instrumentInfo".into()), Value::Str(".H.".into())).into()), self.safe_string_k(market, "id2", &[])).into());
+        let mut market: Value = self.market(symbol.clone());
+        symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut url: Value = self.get_ws_public_url();
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
+        let mut topic: Value = add(&Value::Str(format!("{}{}", Value::Str("instrumentInfo".into()), Value::Str(".H.".into())).into()), &market.as_map().and_then(|__m| __m.get("id2")).cloned().unwrap_or(Value::Null));
         let mut topics: Value = Value::from(vec![topic]);
         return self.watch_topics(url, Value::from(vec![messageHash]), topics, &[params]).await;
 
@@ -750,17 +759,17 @@ impl ApexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
+        symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut url: Value = self.get_ws_public_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        let mut url: Value = self.get_ws_public_url();
         let mut topics: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_7: bool = true;
-            while { if !__for_first_7 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_7 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_7 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_7 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
-            let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("instrumentInfo".into()), Value::Str(".H.".into())).into()), self.safe_string_k(market, "id2", &[])).into());
+            let mut topic: Value = add(&Value::Str(format!("{}{}", Value::Str("instrumentInfo".into()), Value::Str(".H.".into())).into()), &market.as_map().and_then(|__m| __m.get("id2")).cloned().unwrap_or(Value::Null));
             append_to_array(&mut topics, topic);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
             append_to_array(&mut messageHashes, messageHash);
@@ -772,13 +781,10 @@ impl ApexCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tickerSymbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
-            if (tickerSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tickerSymbol), ticker); }
-            }
+            add_element_to_object(&mut result, &crate::value::get_value_k(&ticker, "symbol"), ticker.clone());
             return result;
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbols]);
 
     Value::Null
 }
@@ -817,13 +823,13 @@ impl ApexCore {
         let mut parsed: Value = self.parse_ticker(data.clone(), &[]);
         if (updateType.as_deref() == Some("snapshot")) {
             parsed = self.parse_ticker(data.clone(), &[]);
-            symbol = self.safe_string_k(parsed.clone(), "symbol", &[]);
+            symbol = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         }  else if (updateType.as_deref() == Some("delta")) {
             let mut topicParts: Value = split(&topic, &Value::Str(".".into()));
             let mut topicLength: Value = Value::Int(topicParts.len() as i64);
             let mut marketId: Value = self.safe_string(topicParts, (match (&(topicLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
             let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null]);
-            symbol = self.safe_string_k(market, "symbol", &[]);
+            symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = self.safe_dict(self.tickers.clone(), symbol.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -891,14 +897,14 @@ impl ApexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut url: Value = self.get_ws_public_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        let mut url: Value = self.get_ws_public_url();
         let mut rawHashes: Value = Value::from(vec![]);
         let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_8 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
-            let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
+            let mut data: Value = symbolsAndTimeframes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut symbolString: Value = self.safe_string(data.clone(), Value::Int(0), &[]);
             let mut market: Value = self.market(symbolString.clone());
             symbolString = market.as_map().and_then(|__m| __m.get("id2")).cloned().unwrap_or(Value::Null);
@@ -912,11 +918,10 @@ impl ApexCore {
         let mut symbol: Value = get_value(&symboltimeframestoredVariable, &Value::Int(0));
         let mut timeframe: Value = get_value(&symboltimeframestoredVariable, &Value::Int(1));
         let mut stored: Value = get_value(&symboltimeframestoredVariable, &Value::Int(2));
-        let mut limitResolved: Value = limit.clone();
         if is_true(&self.newUpdates) {
-            limitResolved = stored.get_limit(symbol.clone(), limit);
+            limit = stored.get_limit(symbol.clone(), limit.clone());
         }
-        let mut filtered: Value = self.filter_by_since_limit(stored, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(stored, &[since, limit, Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol, timeframe, filtered);
 
     Value::Null
@@ -955,10 +960,7 @@ impl ApexCore {
         let mut timeframe: Value = self.find_timeframe(timeframeId, &[]);
         let mut marketId: Value = self.safe_string(topicParts, (match (&(topicLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
         let mut isSpot: bool = Value::Int(get_value(&client, &Value::Str("url".into())).as_str().and_then(|__s| __s.find("spot")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
-        let mut marketType: Value = Value::Str("contract".into());
-        if isSpot {
-            marketType = Value::Str("spot".into());
-        }
+        let mut marketType: Value = (if isSpot { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
         let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if !(in_op(&self.ohlcvs, &symbol)) {
@@ -1016,19 +1018,17 @@ impl ApexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
-            symbolResolved = self.symbol(symbol.clone());
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbolResolved).into())).into());
+            symbol = self.symbol(symbol.clone());
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbol).into())).into());
         }
-        let mut url: Value = self.get_ws_private_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        let mut url: Value = self.get_ws_private_url();
         self.authenticate(url.clone(), &[]).await;
         let mut trades: Value = self.watch_topics(url, Value::from(vec![messageHash]), Value::from(vec![Value::Str("myTrades".into())]), &[params]).await;
-        let mut limitResolved: Value = limit.clone();
         if is_true(&self.newUpdates) {
-            limitResolved = trades.get_limit(symbolResolved.clone(), limit);
+            limit = trades.get_limit(symbol.clone(), limit.clone());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbol, since, limit, Value::Bool(true)]);
 
     Value::Null
 }
@@ -1056,31 +1056,26 @@ impl ApexCore {
             self.load_markets(&[]).await;
         }
         let mut messageHash: Value = Value::Str("".into());
-        let mut symbolsNormalized2: Value = Value::Null;
-        if self.is_empty(symbols.clone()).as_bool() == Some(true) {
-            symbolsNormalized2 = symbols.clone();
-        }  else {
-            symbolsNormalized2 = self.market_symbols(&[symbols.clone()]);
+        if !(self.is_empty(symbols.clone()).as_bool() == Some(true)) {
+            symbols = self.market_symbols(&[symbols.clone()]);
+            messageHash = Value::Str(format!("{}{}", Value::Str("::".into()), join(&symbols, &Value::Str(",".into()))).into());
         }
-        if !(self.is_empty(symbols).as_bool() == Some(true)) {
-            messageHash = Value::Str(format!("{}{}", Value::Str("::".into()), join(&symbolsNormalized2, &Value::Str(",".into()))).into());
-        }
-        let mut url: Value = self.get_ws_private_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        let mut url: Value = self.get_ws_private_url();
         messageHash = Value::Str(format!("{}{}", Value::Str("positions".into()), messageHash).into());
         let mut client: Value = self.client(&[url.clone()]);
         self.authenticate(url.clone(), &[]).await;
-        self.set_positions_cache(client.clone(), &[symbolsNormalized2.clone()]);
+        self.set_positions_cache(client.clone(), &[symbols.clone()]);
         let mut cache: Value = self.positions.clone();
         if (cache == Value::Null) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchPositionsSnapshot".into())])).await;
-            return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized2.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
+            return self.filter_by_symbols_since_limit(snapshot, &[symbols.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
         }
         let mut topics: Value = Value::from(vec![Value::Str("positions".into())]);
         let mut newPositions: Value = self.watch_topics(url, Value::from(vec![messageHash]), topics, &[params]).await;
         if is_true(&self.newUpdates) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(cache, &[symbolsNormalized2, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(cache, &[symbols, since, limit, Value::Bool(true)]);
 
     Value::Null
 }
@@ -1108,20 +1103,18 @@ impl ApexCore {
             self.load_markets(&[]).await;
         }
         let mut messageHash: Value = Value::Str("orders".into());
-        let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
-            symbolResolved = self.symbol(symbol.clone());
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbolResolved).into())).into());
+            symbol = self.symbol(symbol.clone());
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbol).into())).into());
         }
-        let mut url: Value = self.get_ws_private_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        let mut url: Value = self.get_ws_private_url();
         self.authenticate(url.clone(), &[]).await;
         let mut topics: Value = Value::from(vec![Value::Str("orders".into())]);
         let mut orders: Value = self.watch_topics(url, Value::from(vec![messageHash]), topics, &[params]).await;
-        let mut limitResolved: Value = limit.clone();
         if is_true(&self.newUpdates) {
-            limitResolved = orders.get_limit(symbolResolved.clone(), limit);
+            limit = orders.get_limit(symbol.clone(), limit.clone());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit, Value::Bool(true)]);
 
     Value::Null
 }

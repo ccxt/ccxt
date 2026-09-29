@@ -77,33 +77,33 @@ export default class revolutx extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        '2.0/public/order-book/{symbol}': { 'cost': 1 },
-                        '1.0/public/tickers': { 'cost': 1 },
-                        '1.0/public/candles/{symbol}': { 'cost': 1 },
-                        '1.0/public/trades/all': { 'cost': 1 },
-                        '1.0/public/configuration/currencies': { 'cost': 1 },
-                        '1.0/public/configuration/pairs': { 'cost': 1 },
+                        '2.0/public/order-book/{symbol}': 1,
+                        '1.0/public/tickers': 1,
+                        '1.0/public/candles/{symbol}': 1,
+                        '1.0/public/trades/all': 1,
+                        '1.0/public/configuration/currencies': 1,
+                        '1.0/public/configuration/pairs': 1,
                     },
                 },
                 'private': {
                     'get': {
                         '1.0/balances': 1,
-                        '1.0/orders/active': { 'cost': 1 },
-                        '1.0/orders/historical': { 'cost': 1 },
-                        '1.0/orders/{venue_order_id}': { 'cost': 1 },
+                        '1.0/orders/active': 1,
+                        '1.0/orders/historical': 1,
+                        '1.0/orders/{venue_order_id}': 1,
                         '1.0/orders/fills/{venue_order_id}': 1,
-                        '1.0/trades/private/{symbol}': { 'cost': 1 },
+                        '1.0/trades/private/{symbol}': 1,
                         '1.0/transactions': 1,
                     },
                     'post': {
-                        '1.0/orders': { 'cost': 1 },
+                        '1.0/orders': 1,
                     },
                     'put': {
-                        '1.0/orders/{venue_order_id}': { 'cost': 1 },
+                        '1.0/orders/{venue_order_id}': 1,
                     },
                     'delete': {
                         '1.0/orders': 1,
-                        '1.0/orders/{venue_order_id}': { 'cost': 1 },
+                        '1.0/orders/{venue_order_id}': 1,
                     },
                 },
             },
@@ -214,18 +214,11 @@ export default class revolutx extends Exchange {
         });
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = undefined;
-        let requestBody = undefined;
         const implodedPath = this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const queryKeys = Object.keys(query);
         const queryLength = queryKeys.length;
-        const baseApiUrl = this.safeString(this.urls['api'], api);
-        if (baseApiUrl === undefined) {
-            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
-        }
-        const baseUrl = baseApiUrl;
-        let url = baseUrl + '/' + implodedPath;
+        let url = this.urls['api'][api] + '/' + implodedPath;
         let queryString = '';
         if (api === 'private') {
             this.checkRequiredCredentials();
@@ -243,20 +236,22 @@ export default class revolutx extends Exchange {
                 }
             }
             else {
-                requestBody = this.json(query);
+                body = this.json(query);
             }
             const requestPath = '/api/' + implodedPath;
-            const bodyValue = (requestBody !== undefined) ? requestBody : body;
-            const bodyString = (bodyValue !== undefined) ? bodyValue : '';
+            let bodyString = '';
+            if (body !== undefined) {
+                bodyString = body;
+            }
             const message = timestamp + method.toUpperCase() + requestPath + queryString + bodyString;
             const signature = eddsa(this.encode(message), this.privateKey, ed25519);
-            requestHeaders = {
+            headers = {
                 'X-Revx-API-Key': this.apiKey,
                 'X-Revx-Timestamp': timestamp,
                 'X-Revx-Signature': signature,
             };
             if (method === 'POST' || method === 'PUT') {
-                requestHeaders['Content-Type'] = 'application/json';
+                headers['Content-Type'] = 'application/json';
             }
         }
         else {
@@ -267,13 +262,11 @@ export default class revolutx extends Exchange {
                 }
             }
             else {
-                requestBody = this.json(query);
-                requestHeaders = { 'Content-Type': 'application/json' };
+                body = this.json(query);
+                headers = { 'Content-Type': 'application/json' };
             }
         }
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
-        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     /**
      * @method
@@ -387,9 +380,6 @@ export default class revolutx extends Exchange {
             const market = this.safeDict(markets, key, {});
             const base = this.safeString(market, 'base');
             const quote = this.safeString(market, 'quote');
-            if ((base === undefined) || (quote === undefined)) {
-                continue;
-            }
             const marketId = base + '-' + quote;
             const marketData = this.extend(market, { 'id': marketId });
             result.push(this.parseMarket(marketData));

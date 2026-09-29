@@ -584,7 +584,7 @@ class bullish extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
+        if ($this->options['adjustForTimeDifference'] === true) {
             Async\await($this->load_time_difference());
         }
         $response = Async\await($this->publicGetV1Markets($params));
@@ -812,9 +812,6 @@ class bullish extends Exchange {
         $quoteId = $this->safe_string($market, 'quoteSymbol');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        if (($base === null) || ($quote === null)) {
-            return null;
-        }
         $symbol = $base . '/' . $quote;
         $basePrecision = $this->safe_string($market, 'basePrecision');
         $quotePrecision = $this->safe_string($market, 'quotePrecision');
@@ -1004,20 +1001,21 @@ class bullish extends Exchange {
             Async\await($this->load_markets());
         }
         $maxLimit = 100;
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
         if ($paginate) {
-            $paramsPagination = $this->handle_pagination_params('fetchTrades', $since, $paramsPaginate);
-            return Async\await($this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $paramsPagination, $maxLimit));
+            $params = $this->handle_pagination_params('fetchTrades', $since, $params);
+            return Async\await($this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $params, $maxLimit));
         }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
-        $paramsSinceAndUntil = $this->handle_since_and_until($since, $paramsPaginate);
+        $params = $this->handle_since_and_until($since, $params);
         if ($limit !== null) {
             $request['_pageSize'] = $this->get_closest_limit($limit);
         }
-        $response = Async\await($this->publicGetV1HistoryMarketsSymbolTrades($this->extend($request, $paramsSinceAndUntil)));
+        $response = Async\await($this->publicGetV1HistoryMarketsSymbolTrades($this->extend($request, $params)));
         //
         //     [
         //         {
@@ -1070,12 +1068,13 @@ class bullish extends Exchange {
         if ($clientOrderId !== null) {
             $response = Async\await($this->privateGetV1TradesClientOrderIdClientOrderId($this->extend($request, $params)));
         } else {
-            list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
             if ($paginate) {
-                $paramsPagination = $this->handle_pagination_params('fetchMyTrades', $since, $paramsPaginate);
-                return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $paramsPagination, 100));
+                $params = $this->handle_pagination_params('fetchMyTrades', $since, $params);
+                return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params, 100));
             }
-            $paramsSinceAndUntil = $this->handle_since_and_until($since, $paramsPaginate);
+            $params = $this->handle_since_and_until($since, $params);
             if ($limit !== null) {
                 $request['_pageSize'] = $this->get_closest_limit($limit);
             }
@@ -1099,7 +1098,7 @@ class bullish extends Exchange {
             //         }, ...
             //     ]
             //
-            $response = Async\await($this->privateGetV1HistoryTrades($this->extend($request, $paramsSinceAndUntil)));
+            $response = Async\await($this->privateGetV1HistoryTrades($this->extend($request, $params)));
         }
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -1126,11 +1125,10 @@ class bullish extends Exchange {
             Async\await($this->load_markets());
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
-        $paramsExtended = $params;
         if ($clientOrderId === null) {
-            $paramsExtended = $this->extend(array( 'orderId' => $id ), $params);
+            $params = $this->extend(array( 'orderId' => $id ), $params);
         }
-        return Async\await($this->fetch_my_trades($symbol, $since, $limit, $paramsExtended));
+        return Async\await($this->fetch_my_trades($symbol, $since, $limit, $params));
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1184,14 +1182,14 @@ class bullish extends Exchange {
         //     ]
         //
         $marketId = $this->safe_string($trade, 'symbol');
-        $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($trade, 'createdAtTimestamp');
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'quantity');
         $side = $this->safe_string_lower($trade, 'side');
         $isTaker = $this->safe_bool($trade, 'isTaker');
-        $currency = $marketResolved['quote'];
+        $currency = $market['quote'];
         $code = $this->safe_currency_code($currency);
         $feeCost = $this->safe_number($trade, 'quoteFee');
         $fee = null;
@@ -1219,7 +1217,7 @@ class bullish extends Exchange {
             'amount' => $amount,
             'cost' => null,
             'fee' => $fee,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -1325,10 +1323,10 @@ class bullish extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($ticker, 'createdAtTimestamp');
         return $this->safe_ticker(array(
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string($ticker, 'high'),
@@ -1349,7 +1347,7 @@ class bullish extends Exchange {
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'markPrice' => $this->safe_string($ticker, 'markPrice'),
             'info' => $ticker,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function safe_deterministic_call(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array()) {
@@ -1357,22 +1355,23 @@ class bullish extends Exchange {
     }
 
     private function do_safe_deterministic_call(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array()) {
-        list($maxRetries, $paramsMaxRetries) = $this->handle_option_integer_and_params($params, $method, 'maxRetries', 3);
+        $maxRetries = null;
+        list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', 3);
         if (($method !== 'fetchOHLCV') && ($method !== 'fetchFundingRateHistory') && ($method !== 'fetchTrades')) {
             throw new NotSupported($this->id . ' safeDeterministicCall() does not support the ' . $method . ' method');
         }
         $errors = 0;
-        $paramsOmitted = $this->omit($paramsMaxRetries, 'until');
+        $params = $this->omit($params, 'until');
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
         while ($errors <= $maxRetries) {
             try {
                 if ($method === 'fetchOHLCV') {
-                    return Async\await($this->fetch_ohlcv($symbol, $timeframe, $since, $limit, $paramsOmitted));
+                    return Async\await($this->fetch_ohlcv($symbol, $timeframe, $since, $limit, $params));
                 } elseif ($method === 'fetchFundingRateHistory') {
-                    return Async\await($this->fetch_funding_rate_history($symbol, $since, $limit, $paramsOmitted));
+                    return Async\await($this->fetch_funding_rate_history($symbol, $since, $limit, $params));
                 } else {
-                    return Async\await($this->fetch_trades($symbol, $since, $limit, $paramsOmitted));
+                    return Async\await($this->fetch_trades($symbol, $since, $limit, $params));
                 }
             } catch (Exception $e) {
                 if ($e instanceof RateLimitExceeded) {
@@ -1411,17 +1410,18 @@ class bullish extends Exchange {
         }
         $market = $this->market($symbol);
         $maxLimit = 100;
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxLimit));
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit));
         }
         $request = array(
             'symbol' => $market['id'],
             'timeBucket' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             '_pageSize' => $maxLimit,
         );
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('createdAtDatetime[lte]', $request, $paramsPaginate);
-        $until = $this->safe_integer($requestUntil, 'createdAtDatetime[lte]');
+        list($request, $params) = $this->handle_until_option('createdAtDatetime[lte]', $request, $params);
+        $until = $this->safe_integer($request, 'createdAtDatetime[lte]');
         $duration = $this->parse_timeframe($timeframe);
         $maxDelta = 1000 * $duration * $maxLimit;
         $startTime = $since;
@@ -1434,9 +1434,9 @@ class bullish extends Exchange {
         } elseif ($until === null) {
             $until = $this->sum($startTime, $maxDelta);
         }
-        $requestUntil['createdAtDatetime[gte]'] = $this->iso8601($startTime);
-        $requestUntil['createdAtDatetime[lte]'] = $this->iso8601($until);
-        $response = Async\await($this->publicGetV1MarketsSymbolCandle($this->extend($requestUntil, $paramsUntil)));
+        $request['createdAtDatetime[gte]'] = $this->iso8601($startTime);
+        $request['createdAtDatetime[lte]'] = $this->iso8601($until);
+        $response = Async\await($this->publicGetV1MarketsSymbolCandle($this->extend($request, $params)));
         //
         //     [
         //         {
@@ -1489,10 +1489,11 @@ class bullish extends Exchange {
             Async\await($this->load_markets());
         }
         $maxLimit = 100;
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
-            $paramsPagination = $this->handle_pagination_params('fetchFundingRateHistory', $since, $paramsPaginate);
-            return Async\await($this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPagination, $maxLimit));
+            $params = $this->handle_pagination_params('fetchFundingRateHistory', $since, $params);
+            return Async\await($this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $params, $maxLimit));
         }
         $market = $this->market($symbol);
         if ($market['swap'] !== true) {
@@ -1504,8 +1505,8 @@ class bullish extends Exchange {
         if ($limit !== null) {
             $request['_pageSize'] = $this->get_closest_limit($limit);
         }
-        $paramsSinceAndUntil = $this->handle_since_and_until($since, $paramsPaginate, 'updatedAtDatetime[gte]', 'updatedAtDatetime[lte]');
-        $response = Async\await($this->publicGetV1HistoryMarketsSymbolFundingRate($this->extend($request, $paramsSinceAndUntil)));
+        $params = $this->handle_since_and_until($since, $params, 'updatedAtDatetime[gte]', 'updatedAtDatetime[lte]');
+        $response = Async\await($this->publicGetV1HistoryMarketsSymbolFundingRate($this->extend($request, $params)));
         //
         //     [
         //         {
@@ -1532,7 +1533,7 @@ class bullish extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1562,8 +1563,8 @@ class bullish extends Exchange {
         $tradingAccountId = Async\await($this->load_account($params));
         $paginate = $this->safe_bool($params, 'paginate', false);
         if ($paginate === true) {
-            $paramsPagination = $this->handle_pagination_params('fetchOrders', $since, $params);
-            return Async\await($this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $paramsPagination, 100));
+            $params = $this->handle_pagination_params('fetchOrders', $since, $params);
+            return Async\await($this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $params, 100));
         }
         $market = null;
         $request = array(
@@ -1573,13 +1574,12 @@ class bullish extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $paramsSinceAndUntil = $this->handle_since_and_until($since, $params);
+        $params = $this->handle_since_and_until($since, $params);
         if ($limit !== null) {
             $request['_pageSize'] = $this->get_closest_limit($limit);
         }
         $method = 'privateGetV2HistoryOrders';
-        $paramsMethod = null;
-        list($method, $paramsMethod) = $this->handle_option_string_and_params($paramsSinceAndUntil, 'fetchOrders', 'method', $method);
+        list($method, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'method', $method);
         $response = array();
         if ($method === 'privateGetV2Orders') {
             //
@@ -1611,9 +1611,9 @@ class bullish extends Exchange {
             //         }
             //     ]
             //
-            $response = Async\await($this->privateGetV2Orders($this->extend($request, $paramsMethod)));
+            $response = Async\await($this->privateGetV2Orders($this->extend($request, $params)));
         } elseif ($method === 'privateGetV2HistoryOrders') {
-            $response = Async\await($this->privateGetV2HistoryOrders($this->extend($request, $paramsMethod)));
+            $response = Async\await($this->privateGetV2HistoryOrders($this->extend($request, $params)));
         } else {
             throw new BadRequest($this->id . ' fetchOrders() method parameter must be either "privateGetV2Orders" or "privateGetV2HistoryOrders"');
         }
@@ -1627,41 +1627,35 @@ class bullish extends Exchange {
         if (($since !== null) && ($since < $allowedSince)) {
             throw new BadRequest($this->id . ' ' . $method . '() only allows fetching entries up to 90 days in the past');
         }
-        $paramsOmitted = $this->omit($params, 'paginate');
-        $paramsExtended = $this->extend($paramsOmitted, array( 'paginationDirection' => 'backward' ));
-        $until = $this->safe_integer($paramsExtended, 'until');
+        $params = $this->omit($params, 'paginate');
+        $params = $this->extend($params, array( 'paginationDirection' => 'backward' ));
+        $until = $this->safe_integer($params, 'until');
         if ($until === null) {
-            return $this->extend($paramsExtended, array( 'until' => $now ));
+            $params = $this->extend($params, array( 'until' => $now ));
         }
-        return $paramsExtended;
+        return $params;
     }
 
     public function handle_since_and_until(?int $since = null, $params = array(), ?string $sinceKey = 'createdAtDatetime[gte]', ?string $untilKey = 'createdAtDatetime[lte]'): array {
         $until = $this->safe_integer($params, 'until');
-        $sinceFromUntil = ($since === null) && ($until !== null);
-        $paramsResult = $params;
-        if ($sinceFromUntil) {
-            $paramsResult = $this->omit($params, 'until');
-        }
         if (($since !== null) || ($until !== null)) {
             $timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
-            $sinceResolved = $since;
             if ($since === null) {
-                $sinceResolved = $until - $timeDelta;
-            }
-            if (($since !== null) && ($until === null)) {
+                $since = $until - $timeDelta;
+                $params = $this->omit($params, 'until');
+            } elseif ($until === null) {
                 $until = $this->sum($since, $timeDelta);
                 $now = $this->milliseconds();
                 if ($until > $now) {
                     $until = $now;
                 }
             }
-            $sinceDate = $this->iso8601($sinceResolved);
+            $sinceDate = $this->iso8601($since);
             $untilDate = $this->iso8601($until);
-            $paramsResult[$sinceKey] = $sinceDate;
-            $paramsResult[$untilKey] = $untilDate;
+            $params[$sinceKey] = $sinceDate;
+            $params[$untilKey] = $untilDate;
         }
-        return $paramsResult;
+        return $params;
     }
 
     public function get_closest_limit(?int $limit): ?int {
@@ -1863,27 +1857,28 @@ class bullish extends Exchange {
             'tradingAccountId' => $tradingAccountId,
         );
         $isMarketOrder = (($type === 'market') || $type === 'MARKET');
-        list($postOnly, $paramsPostOnly) = $this->handle_post_only($isMarketOrder, $type === 'POST_ONLY', $params);
-        $orderType = $type;
+        $postOnly = false;
+        list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $type === 'POST_ONLY', $params);
         if ($postOnly) {
-            $orderType = 'POST_ONLY';
+            $type = 'POST_ONLY';
         }
-        list($timeInForce, $paramsTimeInForce) = $this->handle_option_string_and_params($paramsPostOnly, 'createOrder', 'timeInForce', 'GTC'); // is mandatory
-        $paramsTimeInForce['timeInForce'] = strtoupper($timeInForce);
+        $timeInForce = 'GTC'; // is mandatory
+        list($timeInForce, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce', $timeInForce);
+        $params['timeInForce'] = strtoupper($timeInForce);
         if (!$isMarketOrder) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $triggerPrice = $this->safe_string($paramsTimeInForce, 'triggerPrice');
+        $triggerPrice = $this->safe_string($params, 'triggerPrice');
         if ($triggerPrice !== null) {
             if ($isMarketOrder) {
                 throw new NotSupported($this->id . ' createOrder() does not support market trigger orders');
             }
             $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-            $orderType = 'STOP_LIMIT';
+            $type = 'STOP_LIMIT';
+            $params = $this->omit($params, 'triggerPrice');
         }
-        $paramsOmitted = ($triggerPrice !== null) ? $this->omit($paramsTimeInForce, 'triggerPrice') : $paramsTimeInForce;
-        $request['type'] = strtoupper($orderType);
-        $response = Async\await($this->privatePostV2Orders($this->extend($request, $paramsOmitted)));
+        $request['type'] = strtoupper($type);
+        $response = Async\await($this->privatePostV2Orders($this->extend($request, $params)));
         //
         //     {
         //         "message": "Command acknowledged - CreateOrder",
@@ -1934,6 +1929,7 @@ class bullish extends Exchange {
         }
         $postOnly = $this->safe_bool($params, 'postOnly', false);
         if ($postOnly === true) {
+            $params = $this->omit($params, 'postOnly');
             $request['type'] = 'POST_ONLY';
         }
         if ($amount !== null) {
@@ -1942,8 +1938,7 @@ class bullish extends Exchange {
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $paramsOmitted = ($postOnly === true) ? $this->omit($params, 'postOnly') : $params;
-        $response = Async\await($this->privatePostV2Command($this->extend($request, $paramsOmitted)));
+        $response = Async\await($this->privatePostV2Command($this->extend($request, $params)));
         return $this->parse_order($response, $market);
     }
 
@@ -2078,8 +2073,10 @@ class bullish extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');
-        $marketResolved = $this->safe_market(($market === null) ? $marketId : null, $market);
-        $symbol = $this->safe_symbol($marketId, $marketResolved);
+        if ($market === null) {
+            $market = $this->safe_market($marketId);
+        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $id = $this->safe_string($order, 'orderId');
         $timestamp = $this->safe_integer($order, 'createdAtTimestamp');
         $type = $this->safe_string($order, 'type');
@@ -2101,7 +2098,7 @@ class bullish extends Exchange {
         $quoteFee = $this->safe_number($order, 'quoteFee');
         if ($quoteFee !== null) {
             $fee['cost'] = $quoteFee;
-            $fee['currency'] = $marketResolved['quote'];
+            $fee['currency'] = $market['quote'];
         }
         $average = $this->safe_string($order, 'averageFillPrice');
         return $this->safe_order(array(
@@ -2126,7 +2123,7 @@ class bullish extends Exchange {
             'fee' => $fee,
             'info' => $order,
             'average' => $average,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function parse_order_status(?string $status) {
@@ -2167,15 +2164,15 @@ class bullish extends Exchange {
          */
         Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
         $request = array();
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('createdAtDatetime[lte]', $request, $params);
-        $until = $this->safe_integer($requestUntil, 'createdAtDatetime[lte]');
+        list($request, $params) = $this->handle_until_option('createdAtDatetime[lte]', $request, $params);
+        $until = $this->safe_integer($request, 'createdAtDatetime[lte]');
         if ($until !== null) {
-            $requestUntil['createdAtDatetime[lte]'] = $this->iso8601($until);
+            $request['createdAtDatetime[lte]'] = $this->iso8601($until);
         }
         if ($since !== null) {
-            $requestUntil['createdAtDatetime[gte]'] = $this->iso8601($since);
+            $request['createdAtDatetime[gte]'] = $this->iso8601($since);
         }
-        $response = Async\await($this->privateGetV1WalletsTransactions($this->extend($requestUntil, $paramsUntil)));
+        $response = Async\await($this->privateGetV1WalletsTransactions($this->extend($request, $params)));
         //
         //     {
         //         "data": [
@@ -2249,13 +2246,14 @@ class bullish extends Exchange {
                 'quantity' => $this->currency_to_precision($code, $amount),
             ),
         );
-        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
             $request['network'] = $this->network_code_to_id($networkCode, $code);
         } else {
             throw new ArgumentsRequired($this->id . ' withdraw() requires a network parameter');
         }
-        $response = Async\await($this->privatePostV1WalletsWithdrawal($this->extend($request, $paramsNetworkCode)));
+        $response = Async\await($this->privatePostV1WalletsWithdrawal($this->extend($request, $params)));
         //
         //     {
         //         "code": "00000",
@@ -2344,7 +2342,7 @@ class bullish extends Exchange {
         );
     }
 
-    public function parse_transaction_type(?string $type) {
+    public function parse_transaction_type(mixed $type) {
         $types = array(
             'DEPOSIT' => 'deposit',
             'WITHDRAW' => 'withdrawal',
@@ -2368,13 +2366,12 @@ class bullish extends Exchange {
 
     private function do_load_account($params = array()) {
         $tradingAccountId = null;
-        $paramsTradingAccountId = null;
-        list($tradingAccountId, $paramsTradingAccountId) = $this->handle_option_string_and_params($params, 'loadAccount', 'tradingAccountId');
+        list($tradingAccountId, $params) = $this->handle_option_and_params($params, 'loadAccount', 'tradingAccountId');
         if ($tradingAccountId === null) {
-            $response = Async\await($this->privateGetV1AccountsTradingAccounts($paramsTradingAccountId));
+            $response = Async\await($this->privateGetV1AccountsTradingAccounts($params));
             $accounts = $this->to_array($response);
             for ($i = 0; $i < count($accounts); $i++) {
-                $account = $this->safe_dict($accounts, $i);
+                $account = $accounts[$i];
                 $name = $this->safe_string($account, 'tradingAccountName');
                 if ($name === 'Primary Account') {
                     $tradingAccountId = $this->safe_string($account, 'tradingAccountId');
@@ -2529,7 +2526,7 @@ class bullish extends Exchange {
         $length = count($safeResponse);
         $data = $this->safe_dict($safeResponse, 0, array());
         $network = null;
-        $network = $this->handle_network_code_and_params($params)[0];
+        list($network, $params) = $this->handle_network_code_and_params($params);
         $networkDefinedByUser = $network !== null;
         if (($length > 1) || ($networkDefinedByUser)) {
             // some currencies have multiple networks
@@ -2556,7 +2553,7 @@ class bullish extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         $id = $this->safe_string($depositAddress, 'symbol');
         $network = $this->safe_string($depositAddress, 'network');
         $code = $this->safe_currency_code($id, $currency);
@@ -2618,7 +2615,7 @@ class bullish extends Exchange {
         }
     }
 
-    public function parse_balance_for_single_currency(array $response, ?string $code): array {
+    public function parse_balance_for_single_currency(mixed $response, ?string $code): array {
         $result = array( 'info' => $response );
         $account = $this->account();
         $account['free'] = $this->safe_string($response, 'availableQuantity');
@@ -2632,7 +2629,7 @@ class bullish extends Exchange {
             'info' => $response,
         );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $this->safe_dict($response, $i);
+            $balance = $response[$i];
             $symbol = $this->safe_string($balance, 'assetSymbol');
             $code = $this->safe_currency_code($symbol);
             $account = $this->account();
@@ -2688,7 +2685,7 @@ class bullish extends Exchange {
         //     ]
         //
         $results = $this->parse_positions($response, $symbols);
-        return $this->filter_by_array_positions($results, 'symbol', $symbols);
+        return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
     }
 
     public function parse_position(array $position, ?array $market = null): array {
@@ -2713,8 +2710,8 @@ class bullish extends Exchange {
         //         }
         //     ]
         //
-        $marketResolved = $this->safe_market($this->safe_string($position, 'symbol'), $market);
-        $symbol = $marketResolved['symbol'];
+        $market = $this->safe_market($this->safe_string($position, 'symbol'), $market);
+        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($position, 'createdAtTimestamp');
         $side = $this->safe_string($position, 'side');
         return $this->safe_position(array(
@@ -2770,17 +2767,18 @@ class bullish extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch transfers for
          * @param {int} [$limit] the maximum number of transfer structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {int} $params->until the latest time in ms to fetch transfers for (default time now)
+         * @param {int} $params->until the latest time in ms to fetch transfers for (default time $now)
          * @param {string} $params->tradingAccountId the trading account id
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
         Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
         $tradingAccountId = Async\await($this->load_account($params));
         $maxLimit = 100;
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTransfers', 'paginate', false);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
         if ($paginate) {
-            $paramsPagination = $this->handle_pagination_params('fetchTransfers', $since, $paramsPaginate);
-            return Async\await($this->fetch_paginated_call_dynamic('fetchTransfers', $code, $since, $limit, $paramsPagination, $maxLimit));
+            $params = $this->handle_pagination_params('fetchTransfers', $since, $params);
+            return Async\await($this->fetch_paginated_call_dynamic('fetchTransfers', $code, $since, $limit, $params, $maxLimit));
         }
         $request = array(
             'tradingAccountId' => $tradingAccountId,
@@ -2790,18 +2788,17 @@ class bullish extends Exchange {
             $currency = $this->currency($code);
             $request['assetSymbol'] = $currency['id'];
         }
-        $until = $this->safe_integer($paramsPaginate, 'until');
-        // since and until are mandatory for this endpoint, set until to now if both are undefined
-        $untilMissing = ($since === null) && ($until === null);
-        $paramsUntil = $paramsPaginate;
-        if ($untilMissing) {
-            $paramsUntil = $this->extend($paramsPaginate, array( 'until' => $this->milliseconds() ));
+        $until = $this->safe_integer($params, 'until');
+        if (($since === null) && ($until === null)) {
+            // since and until are mandatory for this endpoint, set until to now if both are undefined
+            $now = $this->milliseconds();
+            $params = $this->extend($params, array( 'until' => $now ));
         }
-        $paramsSinceAndUntil = $this->handle_since_and_until($since, $paramsUntil);
+        $params = $this->handle_since_and_until($since, $params);
         if ($limit !== null) {
             $request['_pageSize'] = $this->get_closest_limit($limit);
         }
-        $response = Async\await($this->privateGetV1HistoryTransfer($this->extend($request, $paramsSinceAndUntil)));
+        $response = Async\await($this->privateGetV1HistoryTransfer($this->extend($request, $params)));
         //
         //     [
         //         {
@@ -2945,8 +2942,8 @@ class bullish extends Exchange {
         );
         $now = $this->milliseconds();
         $startTimestamp = $since;
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('createdAtDatetime[lte]', $request, $params);
-        $until = $this->safe_integer($requestUntil, 'createdAtDatetime[lte]');
+        list($request, $params) = $this->handle_until_option('createdAtDatetime[lte]', $request, $params);
+        $until = $this->safe_integer($request, 'createdAtDatetime[lte]');
         // current endpoint requires both since and until parameters
         if ($startTimestamp === null) {
             $startTimestamp = $now - 1000 * 60 * 60 * 24 * 90; // Only the last 90 days of data is available for querying
@@ -2954,9 +2951,9 @@ class bullish extends Exchange {
         if ($until === null) {
             $until = $now;
         }
-        $requestUntil['createdAtDatetime[gte]'] = $this->iso8601($startTimestamp);
-        $requestUntil['createdAtDatetime[lte]'] = $this->iso8601($until);
-        $response = Async\await($this->privateGetV1HistoryBorrowInterest($this->extend($requestUntil, $paramsUntil)));
+        $request['createdAtDatetime[gte]'] = $this->iso8601($startTimestamp);
+        $request['createdAtDatetime[lte]'] = $this->iso8601($until);
+        $response = Async\await($this->privateGetV1HistoryBorrowInterest($this->extend($request, $params)));
         //
         //     [
         //         {
@@ -2996,7 +2993,7 @@ class bullish extends Exchange {
     }
 
     public function get_timestamp() {
-        return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
+        return $this->milliseconds() - $this->options['timeDifference'];
     }
 
     public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
@@ -3114,16 +3111,10 @@ class bullish extends Exchange {
         ), $market);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestHeaders = $headers;
-        $requestBody = $body;
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
-        if ($apiUrl === null) {
-            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
-        }
-        $url = $apiUrl . $endpoint;
+        $url = $this->urls['api'][$api] . $endpoint;
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->microseconds();
@@ -3131,38 +3122,38 @@ class bullish extends Exchange {
             if ($method === 'GET') {
                 $payload = $timestamp . $nonce . $method . '/trading-api/' . $path;
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'hex');
-                $requestHeaders = array(
+                $headers = array(
                     'BX-TIMESTAMP' => $timestamp,
                     'BX-NONCE' => $nonce,
                     'BX-SIGNATURE' => $signature,
                 );
             } elseif ($method === 'POST') {
-                $requestBody = $this->json($params);
-                $payload = $timestamp . $nonce . $method . '/trading-api/' . $path . $requestBody;
+                $body = $this->json($params);
+                $payload = $timestamp . $nonce . $method . '/trading-api/' . $path . $body;
                 $digest = $this->hash($this->encode($payload), 'sha256', 'hex');
                 $signature = $this->hmac($this->encode($digest), $this->encode($this->secret), 'sha256', 'hex');
-                $requestHeaders = array(
+                $headers = array(
                     'BX-TIMESTAMP' => $timestamp,
                     'BX-NONCE' => $nonce,
                     'BX-SIGNATURE' => $signature,
                     'Content-Type' => 'application/json',
                 );
-                $requestHeaders['Content-Type'] = 'application/json';
+                $headers['Content-Type'] = 'application/json';
                 $rateLimitToken = $this->safe_string($request, 'rateLimitToken');
                 if ($rateLimitToken !== null) {
-                    $requestHeaders['BX-RATE-LIMIT-TOKEN'] = $rateLimitToken;
+                    $headers['BX-RATE-LIMIT-TOKEN'] = $rateLimitToken;
                 }
             }
             if ($path === 'v1/users/hmac/login') {
-                $requestHeaders = ($requestHeaders === null) ? array() : $requestHeaders;
-                $requestHeaders['BX-PUBLIC-KEY'] = $this->apiKey;
+                $headers = ($headers === null) ? array() : $headers;
+                $headers['BX-PUBLIC-KEY'] = $this->apiKey;
             } else {
                 $token = $this->token;
                 if (($token === null)) {
                     throw new AuthenticationError($this->id . ' requires a token, please call signIn() first');
                 }
-                $requestHeaders = ($requestHeaders === null) ? array() : $requestHeaders;
-                $requestHeaders['Authorization'] = 'Bearer ' . $token;
+                $headers = ($headers === null) ? array() : $headers;
+                $headers['Authorization'] = 'Bearer ' . $token;
                 // headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
             }
         }
@@ -3172,7 +3163,7 @@ class bullish extends Exchange {
                 $url .= '?' . $query;
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function sign_in($params = array()) {

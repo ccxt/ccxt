@@ -77,7 +77,7 @@ class deribit extends \ccxt\async\deribit {
         ));
     }
 
-    public function request_id(): float {
+    public function request_id() {
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
         return $requestId;
@@ -102,7 +102,7 @@ class deribit extends \ccxt\async\deribit {
         $currencies = $this->safe_list($this->options, 'currencies', array());
         $channels = array();
         for ($i = 0; $i < count($currencies); $i++) {
-            $currencyCode = $this->safe_string($currencies, $i);
+            $currencyCode = $currencies[$i];
             $channels[] = 'user.portfolio.' . $currencyCode;
         }
         $subscribe = array(
@@ -195,7 +195,7 @@ class deribit extends \ccxt\async\deribit {
         $market = $this->market($symbol);
         $url = $this->urls['api']['ws'];
         $interval = $this->safe_string($params, 'interval', '100ms');
-        $paramsOmitted = $this->omit($params, 'interval');
+        $params = $this->omit($params, 'interval');
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -211,7 +211,7 @@ class deribit extends \ccxt\async\deribit {
             ),
             'id' => $this->request_id(),
         );
-        $request = $this->deep_extend($message, $paramsOmitted);
+        $request = $this->deep_extend($message, $params);
         return Async\await($this->watch($url, $channel, $request, $channel, $request));
     }
 
@@ -233,10 +233,10 @@ class deribit extends \ccxt\async\deribit {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols, null, false);
+        $symbols = $this->market_symbols($symbols, null, false);
         $url = $this->urls['api']['ws'];
         $interval = $this->safe_string($params, 'interval', '100ms');
-        $paramsOmitted = $this->omit($params, 'interval');
+        $params = $this->omit($params, 'interval');
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -244,8 +244,8 @@ class deribit extends \ccxt\async\deribit {
             Async\await($this->authenticate());
         }
         $channels = array();
-        for ($i = 0; $i < count(($symbolsNormalized)); $i++) {
-            $market = $this->market(($symbolsNormalized)[$i]);
+        for ($i = 0; $i < count(($symbols)); $i++) {
+            $market = $this->market(($symbols)[$i]);
             $channels[] = 'ticker.' . $market['id'] . '.' . $interval;
         }
         $message = array(
@@ -256,17 +256,14 @@ class deribit extends \ccxt\async\deribit {
             ),
             'id' => $this->request_id(),
         );
-        $request = $this->deep_extend($message, $paramsOmitted);
+        $request = $this->deep_extend($message, $params);
         $newTickers = Async\await($this->watch_multiple($url, $channels, $request, $channels, $request));
         if ($this->newUpdates) {
             $tickers = array();
-            $newTickersSymbol = $this->safe_string($newTickers, 'symbol');
-            if ($newTickersSymbol !== null) {
-                $tickers[$newTickersSymbol] = $newTickers;
-            }
+            $tickers[$newTickers['symbol']] = $newTickers;
             return $tickers;
         }
-        return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
     public function handle_ticker(Client $client, array $message) {
@@ -326,11 +323,11 @@ class deribit extends \ccxt\async\deribit {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols, null, false);
+        $symbols = $this->market_symbols($symbols, null, false);
         $url = $this->urls['api']['ws'];
         $channels = array();
-        for ($i = 0; $i < count(($symbolsNormalized)); $i++) {
-            $market = $this->market(($symbolsNormalized)[$i]);
+        for ($i = 0; $i < count(($symbols)); $i++) {
+            $market = $this->market(($symbols)[$i]);
             $channels[] = 'quote.' . $market['id'];
         }
         $message = array(
@@ -345,13 +342,10 @@ class deribit extends \ccxt\async\deribit {
         $newTickers = Async\await($this->watch_multiple($url, $channels, $request, $channels, $request));
         if ($this->newUpdates) {
             $tickers = array();
-            $newTickersSymbol = $this->safe_string($newTickers, 'symbol');
-            if ($newTickersSymbol !== null) {
-                $tickers[$newTickersSymbol] = $newTickers;
-            }
+            $tickers[$newTickers['symbol']] = $newTickers;
             return $tickers;
         }
-        return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
     }
 
     public function handle_bid_ask(Client $client, array $message) {
@@ -383,8 +377,8 @@ class deribit extends \ccxt\async\deribit {
 
     public function parse_ws_bid_ask(array $ticker, ?array $market = null): array {
         $marketId = $this->safe_string($ticker, 'instrument_name');
-        $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_string($marketResolved, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_string($market, 'symbol');
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -395,7 +389,7 @@ class deribit extends \ccxt\async\deribit {
             'bid' => $this->safe_string($ticker, 'best_bid_price'),
             'bidVolume' => $this->safe_string($ticker, 'best_bid_amount'),
             'info' => $ticker,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -435,18 +429,18 @@ class deribit extends \ccxt\async\deribit {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
-        list($interval, $paramsInterval) = $this->handle_option_string_and_params($params, 'watchTradesForSymbols', 'interval', '100ms');
+        $interval = null;
+        list($interval, $params) = $this->handle_option_and_params($params, 'watchTradesForSymbols', 'interval', '100ms');
         if ($interval === 'raw') {
             Async\await($this->authenticate());
         }
-        $trades = Async\await($this->watch_multiple_wrapper('trades', $interval, $symbols, $paramsInterval));
-        $first = $this->safe_dict($trades, 0);
-        $tradeSymbol = $this->safe_string($first, 'symbol');
-        $limitResolved = $limit;
+        $trades = Async\await($this->watch_multiple_wrapper('trades', $interval, $symbols, $params));
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($tradeSymbol, $limit);
+            $first = $this->safe_dict($trades, 0);
+            $tradeSymbol = $this->safe_string($first, 'symbol');
+            $limit = $trades->getLimit($tradeSymbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function handle_trades(Client $client, array $message) {
@@ -514,11 +508,11 @@ class deribit extends \ccxt\async\deribit {
         Async\await($this->authenticate($params));
         if ($symbol !== null) {
             Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
         }
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : null;
         $url = $this->urls['api']['ws'];
         $interval = $this->safe_string($params, 'interval', 'raw');
-        $paramsOmitted = $this->omit($params, 'interval');
+        $params = $this->omit($params, 'interval');
         $channel = 'user.trades.any.any.' . $interval;
         $message = array(
             'jsonrpc' => '2.0',
@@ -528,9 +522,9 @@ class deribit extends \ccxt\async\deribit {
             ),
             'id' => $this->request_id(),
         );
-        $request = $this->deep_extend($message, $paramsOmitted);
+        $request = $this->deep_extend($message, $params);
         $trades = Async\await($this->watch($url, $channel, $request, $channel, $request));
-        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
     public function handle_my_trades(Client $client, array $message) {
@@ -620,23 +614,24 @@ class deribit extends \ccxt\async\deribit {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        list($interval, $paramsInterval) = $this->handle_option_string_and_params($params, 'watchOrderBookForSymbols', 'interval', '100ms');
+        $interval = null;
+        list($interval, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'interval', '100ms');
         if ($interval === 'raw') {
             Async\await($this->authenticate());
         }
-        // for more info on useDepthEndpoint, see comment in .options
-        list($useDepthEndpoint, $paramsUseDepthEndpoint) = $this->handle_option_bool_and_params($paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
-        list($depth, $paramsDepth) = $this->handle_option_string_and_params($paramsUseDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
-        list($group, $paramsGroup) = $this->handle_option_string_and_params($paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
-        $descriptor = $interval;
+        $descriptor = '';
+        $useDepthEndpoint = null; // for more info, see comment in .options
+        list($useDepthEndpoint, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
         if ($useDepthEndpoint) {
+            $depth = null;
+            list($depth, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'depth', '20');
+            $group = null;
+            list($group, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'group', 'none');
             $descriptor = $group . '.' . $depth . '.' . $interval;
+        } else {
+            $descriptor = $interval;
         }
-        $paramsResolved = $paramsUseDepthEndpoint;
-        if ($useDepthEndpoint) {
-            $paramsResolved = $paramsGroup;
-        }
-        $orderbook = Async\await($this->watch_multiple_wrapper('book', $descriptor, $symbols, $paramsResolved));
+        $orderbook = Async\await($this->watch_multiple_wrapper('book', $descriptor, $symbols, $params));
         return $orderbook->limit();
     }
 
@@ -741,10 +736,9 @@ class deribit extends \ccxt\async\deribit {
     public function handle_delta(mixed $bookside, mixed $delta) {
         $price = $delta[1];
         $amount = $delta[2];
-        $action = $this->safe_string($delta, 0);
-        if ($action === 'new' || $action === 'change') {
+        if ($delta[0] === 'new' || $delta[0] === 'change') {
             $bookside->storeArray(array( $price, $amount, 1 ));
-        } elseif ($action === 'delete') {
+        } elseif ($delta[0] === 'delete') {
             $bookside->storeArray(array( $price, $amount, 0 ));
         }
     }
@@ -775,12 +769,14 @@ class deribit extends \ccxt\async\deribit {
             Async\await($this->load_markets());
         }
         Async\await($this->authenticate($params));
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : null;
+        if ($symbol !== null) {
+            $symbol = $this->symbol($symbol);
+        }
         $url = $this->urls['api']['ws'];
         $currency = $this->safe_string($params, 'currency', 'any');
         $interval = $this->safe_string($params, 'interval', 'raw');
         $kind = $this->safe_string($params, 'kind', 'any');
-        $paramsOmitted = $this->omit($params, 'interval', 'currency', 'kind');
+        $params = $this->omit($params, 'interval', 'currency', 'kind');
         $channel = 'user.orders.' . $kind . '.' . $currency . '.' . $interval;
         $message = array(
             'jsonrpc' => '2.0',
@@ -790,13 +786,12 @@ class deribit extends \ccxt\async\deribit {
             ),
             'id' => $this->request_id(),
         );
-        $request = $this->deep_extend($message, $paramsOmitted);
+        $request = $this->deep_extend($message, $params);
         $orders = Async\await($this->watch($url, $channel, $request, $channel, $request));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $orders->getLimit($symbolResolved, $limit);
+            $limit = $orders->getLimit($symbol, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function handle_orders(Client $client, array $message) {
@@ -875,9 +870,9 @@ class deribit extends \ccxt\async\deribit {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolValue = $this->symbol($symbol);
-        $ohlcvs = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbolValue, $timeframe ) ), $since, $limit, $params));
-        return $ohlcvs[$symbolValue][$timeframe];
+        $symbol = $this->symbol($symbol);
+        $ohlcvs = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
+        return $ohlcvs[$symbol][$timeframe];
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -901,11 +896,10 @@ class deribit extends \ccxt\async\deribit {
             throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
         list($symbol, $timeframe, $candles) = Async\await($this->watch_multiple_wrapper('chart.trades', null, $symbolsAndTimeframes, $params));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $candles->getLimit($symbol, $limit);
+            $limit = $candles->getLimit($symbol, $limit);
         }
-        $filtered = $this->filter_by_since_limit($candles, $since, $limitResolved, 0, true);
+        $filtered = $this->filter_by_since_limit($candles, $since, $limit, 0, true);
         return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
     }
 
@@ -999,18 +993,17 @@ class deribit extends \ccxt\async\deribit {
             }
             $current = $symbolsArray[$i];
             $market = null;
-            $currentDescriptor = null;
             if ($isOHLCV) {
                 $market = $this->market($current[0]);
                 $unifiedTf = $current[1];
-                $currentDescriptor = $this->safe_string($this->timeframes, $unifiedTf, $unifiedTf);
+                $rawTf = $this->safe_string($this->timeframes, $unifiedTf, $unifiedTf);
+                $channelDescriptor = $rawTf;
             } else {
                 $market = $this->market($current);
-                $currentDescriptor = $channelDescriptor;
             }
-            $message = $channelName . '.' . $market['id'] . '.' . $currentDescriptor;
+            $message = $channelName . '.' . $market['id'] . '.' . $channelDescriptor;
             $rawSubscriptions[] = $message;
-            $messageHashes[] = $channelName . '|' . $market['symbol'] . '|' . $currentDescriptor;
+            $messageHashes[] = $channelName . '|' . $market['symbol'] . '|' . $channelDescriptor;
         }
         $request = array(
             'jsonrpc' => '2.0',

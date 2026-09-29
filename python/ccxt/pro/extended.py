@@ -62,14 +62,14 @@ class extended(ccxt.async_support.extended):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        messageHash = 'orderbook:' + symbolValue
+        symbol = market['symbol']
+        messageHash = 'orderbook:' + symbol
         query = self.urlencode(params)
-        url = self.safe_string(self.urls['api'], 'ws') + '/orderbooks/' + market['id']
+        url = self.urls['api']['ws'] + '/orderbooks/' + market['id']
         if len(query) > 0:
             url += '?' + query
         orderbook = await self.watch(url, messageHash, None, messageHash, {
-            'symbol': symbolValue,
+            'symbol': symbol,
             'limit': limit,
         })
         return orderbook.limit()
@@ -136,7 +136,7 @@ class extended(ccxt.async_support.extended):
 
     async def watch_private(self, messageHash: str, subscription: dict = None):
         self.check_required_credentials()
-        url = self.safe_string(self.urls['api'], 'ws') + '/account'
+        url = self.urls['api']['ws'] + '/account'
         if (self.clients is None) or not (url in self.clients):
             defaultOptions = {
                 'ws': {
@@ -174,19 +174,17 @@ class extended(ccxt.async_support.extended):
         if self.markets is None:
             await self.load_markets()
         messageHash = 'orders'
-        symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = self.safe_string(market, 'symbol')
-            messageHash += ':' + symbolResolved
+            symbol = market['symbol']
+            messageHash += ':' + symbol
         orders = await self.watch_private(messageHash, {
-            'symbol': symbolResolved,
+            'symbol': symbol,
             'limit': limit,
         })
-        limitResolved = limit
         if self.newUpdates:
-            limitResolved = orders.getLimit(symbolResolved, limit)
-        return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved, True)
+            limit = orders.getLimit(symbol, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     async def watch_balance(self, params: dict = {}) -> Balances:
         """
@@ -276,19 +274,17 @@ class extended(ccxt.async_support.extended):
         if self.markets is None:
             await self.load_markets()
         messageHash = 'myTrades'
-        symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = self.safe_string(market, 'symbol')
-            messageHash += ':' + symbolResolved
+            symbol = market['symbol']
+            messageHash += ':' + symbol
         trades = await self.watch_private(messageHash, {
-            'symbol': symbolResolved,
+            'symbol': symbol,
             'limit': limit,
         })
-        limitResolved = limit
         if self.newUpdates:
-            limitResolved = trades.getLimit(symbolResolved, limit)
-        return self.filter_by_symbol_since_limit(trades, symbolResolved, since, limitResolved, True)
+            limit = trades.getLimit(symbol, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trades(self, client: Client, message: dict):
         #
@@ -357,17 +353,17 @@ class extended(ccxt.async_support.extended):
         """
         if self.markets is None:
             await self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols)
+        symbols = self.market_symbols(symbols)
         messageHash = 'positions'
-        if symbolsNormalized is not None:
-            messageHash += '::' + ','.join(symbolsNormalized)
+        if symbols is not None:
+            messageHash += '::' + ','.join(symbols)
         positions = await self.watch_private(messageHash, {
-            'symbols': symbolsNormalized,
+            'symbols': symbols,
             'limit': limit,
         })
         if self.newUpdates:
             return positions
-        return self.filter_by_symbols_since_limit(self.positions, symbolsNormalized, since, limit, True)
+        return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
     def handle_positions(self, client: Client, message: dict):
         #
@@ -491,14 +487,14 @@ class extended(ccxt.async_support.extended):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        messageHash = 'fundingRate:' + symbolValue
+        symbol = market['symbol']
+        messageHash = 'fundingRate:' + symbol
         query = self.urlencode(params)
-        url = self.safe_string(self.urls['api'], 'ws') + '/funding/' + market['id']
+        url = self.urls['api']['ws'] + '/funding/' + market['id']
         if len(query) > 0:
             url += '?' + query
         return await self.watch(url, messageHash, None, messageHash, {
-            'symbol': symbolValue,
+            'symbol': symbol,
             'messageHash': messageHash,
         })
 
@@ -523,12 +519,12 @@ class extended(ccxt.async_support.extended):
 
     def parse_ws_funding_rate(self, fundingRate: dict, market: Market = None, message: dict = None) -> FundingRate:
         marketId = self.safe_string(fundingRate, 'm')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(message, 'ts')
         fundingTimestamp = self.safe_integer(fundingRate, 'T')
         return {
             'info': fundingRate,
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'markPrice': None,
             'indexPrice': None,
             'interestRate': None,
@@ -560,15 +556,15 @@ class extended(ccxt.async_support.extended):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        messageHash = 'markPrice:' + symbolValue
+        symbol = market['symbol']
+        messageHash = 'markPrice:' + symbol
         query = self.urlencode(params)
-        url = self.safe_string(self.urls['api'], 'ws') + '/prices/mark/' + market['id']
+        url = self.urls['api']['ws'] + '/prices/mark/' + market['id']
         if len(query) > 0:
             url += '?' + query
         return await self.watch(url, messageHash, None, messageHash, {
             'name': 'markPrice',
-            'symbol': symbolValue,
+            'symbol': symbol,
             'messageHash': messageHash,
         })
 
@@ -618,20 +614,19 @@ class extended(ccxt.async_support.extended):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        messageHash = 'trades:' + symbolValue
+        symbol = market['symbol']
+        messageHash = 'trades:' + symbol
         query = self.urlencode(params)
-        url = self.safe_string(self.urls['api'], 'ws') + '/publicTrades/' + market['id']
+        url = self.urls['api']['ws'] + '/publicTrades/' + market['id']
         if len(query) > 0:
             url += '?' + query
         trades = await self.watch(url, messageHash, None, messageHash, {
-            'symbol': symbolValue,
+            'symbol': symbol,
             'limit': limit,
         })
-        limitResolved = limit
         if self.newUpdates:
-            limitResolved = trades.getLimit(symbolValue, limit)
-        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
+            limit = trades.getLimit(symbol, limit)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message: dict):
         #
@@ -694,7 +689,7 @@ class extended(ccxt.async_support.extended):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbol = market['symbol']
         price = self.safe_string(params, 'price')
         candleType = self.safe_string(params, 'candleType')
         if candleType is None:
@@ -704,23 +699,22 @@ class extended(ccxt.async_support.extended):
                 candleType = 'index-prices'
             else:
                 candleType = 'trades'
-        paramsOmitted = self.omit(params, ['candleType', 'price'])
+        params = self.omit(params, ['candleType', 'price'])
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
-        messageHash = 'ohlcv:' + symbolValue + ':' + timeframe + ':' + candleType
-        query = self.urlencode(self.extend({'interval': interval}, paramsOmitted))
-        url = self.safe_string(self.urls['api'], 'ws') + '/candles/' + market['id'] + '/' + candleType + '?' + query
+        messageHash = 'ohlcv:' + symbol + ':' + timeframe + ':' + candleType
+        query = self.urlencode(self.extend({'interval': interval}, params))
+        url = self.urls['api']['ws'] + '/candles/' + market['id'] + '/' + candleType + '?' + query
         ohlcv = await self.watch(url, messageHash, None, messageHash, {
             'name': 'ohlcv',
-            'symbol': symbolValue,
+            'symbol': symbol,
             'timeframe': timeframe,
             'candleType': candleType,
             'limit': limit,
             'messageHash': messageHash,
         })
-        limitResolved = limit
         if self.newUpdates:
-            limitResolved = ohlcv.getLimit(symbolValue, limit)
-        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
+            limit = ohlcv.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message: dict):
         #
@@ -745,11 +739,7 @@ class extended(ccxt.async_support.extended):
         symbol = self.safe_string(subscription, 'symbol')
         timeframe = self.safe_string(subscription, 'timeframe')
         candleType = self.safe_string(subscription, 'candleType')
-        cacheKey = None
-        if candleType == 'trades':
-            cacheKey = timeframe
-        else:
-            cacheKey = timeframe + ':' + candleType
+        cacheKey = timeframe if (candleType == 'trades') else timeframe + ':' + candleType
         messageHash = self.safe_string(subscription, 'messageHash')
         self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.ohlcvs[symbol], cacheKey)

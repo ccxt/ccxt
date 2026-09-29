@@ -15,10 +15,10 @@ func TestJson() {
 	var obj map[string]any = map[string]any{
 		"k": "v",
 	}
-	var objJson string = exchange.Json(obj)
+	var objJson any = exchange.Json(obj)
 	Assert((objJson == "{\"k\":\"v\"}"))
 	// Test: list
 	var list []any = []any{1, 2}
-	var listJson string = exchange.Json(list)
+	var listJson any = exchange.Json(list)
 	Assert((listJson == "[1,2]"))
 }

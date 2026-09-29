@@ -924,7 +924,7 @@ class bit2c extends Exchange {
         return $this->parse_trades($responseList, $market, $since, $limit);
     }
 
-    public function remove_comma_from_value(string $str) {
+    public function remove_comma_from_value(mixed $str) {
         $newString = '';
         $strParts = explode(',', $str);
         for ($i = 0; $i < count($strParts); $i++) {
@@ -971,20 +971,17 @@ class bit2c extends Exchange {
         $orderId = null;
         $fee = null;
         $makerOrTaker = null;
-        $tradeMarket = null;
         $reference = $this->safe_string($trade, 'reference');
         if ($reference !== null) {
             $id = $reference;
             $timestamp = $this->safe_timestamp($trade, 'ticks');
-            $rawPrice = $this->safe_string($trade, 'price');
-            if ($rawPrice !== null) {
-                $price = $this->remove_comma_from_value($rawPrice);
-            }
+            $price = $this->safe_string($trade, 'price');
+            $price = $this->remove_comma_from_value($price);
             $amount = $this->safe_string($trade, 'firstAmount');
             $reference_parts = explode('|', $reference); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             $marketId = $this->safe_string($trade, 'pair');
-            $marketByPair = $this->safe_market($marketId, $market);
-            $tradeMarket = $this->safe_market($reference_parts[0], $marketByPair);
+            $market = $this->safe_market($marketId, $market);
+            $market = $this->safe_market($reference_parts[0], $market);
             $isMaker = $this->safe_bool($trade, 'isMaker');
             $makerOrTaker = ($isMaker === true) ? 'maker' : 'taker';
             $orderId = ($isMaker === true) ? $reference_parts[2] : $reference_parts[1];
@@ -1006,7 +1003,6 @@ class bit2c extends Exchange {
             $id = $this->safe_string($trade, 'tid');
             $price = $this->safe_string($trade, 'price');
             $amount = $this->safe_string($trade, 'amount');
-            $tradeMarket = $this->safe_market(null, $market);
             $side = $this->safe_value($trade, 'isBid');
             if ($side !== null) {
                 if (($side !== null) && ($side !== '')) {
@@ -1016,13 +1012,13 @@ class bit2c extends Exchange {
                 }
             }
         }
-        $marketResolved = $this->safe_market(null, $tradeMarket);
+        $market = $this->safe_market(null, $market);
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'order' => $orderId,
             'type' => null,
             'side' => $side,
@@ -1031,7 +1027,7 @@ class bit2c extends Exchange {
             'amount' => $amount,
             'cost' => null,
             'fee' => $fee,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function is_fiat(?string $code): bool {
@@ -1072,7 +1068,7 @@ class bit2c extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
@@ -1095,14 +1091,8 @@ class bit2c extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
-        if ($apiUrl === null) {
-            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
-        }
-        $url = $apiUrl . '/' . $this->implode_params($path, $params);
-        $requestBody = null;
-        $requestHeaders = null;
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $url = $this->urls['api']['rest'] . '/' . $this->implode_params($path, $params);
         if ($api === 'public') {
             $url .= '.json';
         } else {
@@ -1118,18 +1108,16 @@ class bit2c extends Exchange {
                     $url .= '?' . $auth;
                 }
             } else {
-                $requestBody = $auth;
+                $body = $auth;
             }
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512', 'base64');
-            $requestHeaders = array(
+            $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'key' => $this->apiKey,
                 'sign' => $signature,
             );
         }
-        $bodyResult = ($requestBody === null) ? $body : $requestBody;
-        $headersResult = ($requestHeaders === null) ? $headers : $requestHeaders;
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

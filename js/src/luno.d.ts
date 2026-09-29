@@ -15,7 +15,7 @@ export default class luno extends Exchange {
      * @returns {dict} an associative dictionary of currencies
      */
     fetchCurrencies(params?: Dict): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict[]): CurrencyInterface;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
      * @name luno#fetchMarkets
@@ -245,7 +245,7 @@ export default class luno extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
-    parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     /**
      * @method
      * @name luno#fetchDepositWithdrawFee
@@ -257,6 +257,6 @@ export default class luno extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchDepositWithdrawFee(code: string, params?: Dict): Promise<DepositWithdrawFee>;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

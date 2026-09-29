@@ -212,7 +212,7 @@ export default class btse extends Exchange {
                         'spot/api/v3.3/orderbook': 5, // not used
                         'spot/api/v3.3/orderbook/L2': 5, // done
                         'spot/api/v3.3/trades': { 'cost': 5 }, // done
-                        'spot/api/v3.3/time': { 'cost': 5 }, // done
+                        'spot/api/v3.3/time': 5, // done
                         'futures/api/v2.3/market_summary': { 'cost': 5 }, // done
                         'futures/api/v2.3/ohlcv': { 'cost': 5 }, // done
                         'futures/api/v2.3/price': 5, // not used
@@ -633,7 +633,7 @@ export default class btse extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.safeBool(this.options, 'adjustForTimeDifference', false)) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const response = await this.publicGetPublicApiMarketV1Markets(params);
@@ -717,9 +717,6 @@ export default class btse extends Exchange {
         const quoteId = this.safeString(market, 'quoteCurrency');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        if ((base === undefined) || (quote === undefined)) {
-            return undefined;
-        }
         let symbol = base + '/' + quote;
         const maxAmountString = this.safeString(market, 'maxOrderSize');
         const minAmountString = this.safeString(market, 'minOrderSize');
@@ -815,9 +812,10 @@ export default class btse extends Exchange {
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const maxLimit = 300;
-        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
+            return this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit);
         }
         const market = this.market(symbol);
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -836,7 +834,8 @@ export default class btse extends Exchange {
             // the endpoint accepts timestamps in seconds
             request['start'] = this.parseToInt(since / 1000);
         }
-        const [until, paramsUntil] = this.handleOptionIntegerAndParams(paramsPaginate, 'fetchOHLCV', 'until');
+        let until = undefined;
+        [until, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'until');
         if (until !== undefined) {
             if (since !== undefined) {
                 // check if the requested time range is too large for one request
@@ -852,7 +851,7 @@ export default class btse extends Exchange {
                 request['end'] = this.parseToInt(until / 1000);
             }
         }
-        const response = await this.publicGetPublicApiMarketV1Klines(this.extend(request, paramsUntil));
+        const response = await this.publicGetPublicApiMarketV1Klines(this.extend(request, params));
         //
         //     {
         //         "data": [
@@ -959,8 +958,7 @@ export default class btse extends Exchange {
             throw new BadRequest(this.id + ' fetchFundingRateHistory() supports contract markets only');
         }
         let period = undefined;
-        let paramsPeriod = undefined;
-        [period, paramsPeriod] = this.handleOptionStringAndParams(params, 'fetchFundingRateHistory', 'period');
+        [period, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'period');
         if (period === undefined) {
             period = '7D';
             if (since !== undefined) {
@@ -978,8 +976,9 @@ export default class btse extends Exchange {
             'symbol': market['id'],
             'period': period,
         };
-        const [until, paramsUntil] = this.handleOptionIntegerAndParams(paramsPeriod, 'fetchFundingRateHistory', 'until');
-        const response = await this.publicGetPublicApiMarketV1RecentFundingHistory(this.extend(request, paramsUntil));
+        let until = undefined;
+        [until, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'until');
+        const response = await this.publicGetPublicApiMarketV1RecentFundingHistory(this.extend(request, params));
         //
         //     {
         //         "data": [
@@ -1038,10 +1037,11 @@ export default class btse extends Exchange {
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
-        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchBalance', undefined, params, 'spot');
+        let type = 'spot';
+        [type, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params, type);
         let response = undefined;
-        if (marketType === 'spot') {
-            const walletResponse = await this.privateGetPublicApiWalletV1UserAssets(paramsMarketType);
+        if (type === 'spot') {
+            const walletResponse = await this.privateGetPublicApiWalletV1UserAssets(params);
             //
             //     {
             //         "data": [
@@ -1063,11 +1063,12 @@ export default class btse extends Exchange {
             response = this.safeList(walletResponse, 'data', []);
         }
         else {
-            const [wallet, paramsWallet] = this.handleOptionStringAndParams(paramsMarketType, 'fetchBalance', 'wallet', 'CROSS@');
+            let wallet = undefined;
+            [wallet, params] = this.handleOptionAndParams(params, 'fetchBalance', 'wallet', 'CROSS@');
             const request = {
                 'wallet': wallet,
             };
-            response = await this.privateGetFuturesApiV23UserWallet(this.extend(request, paramsWallet));
+            response = await this.privateGetFuturesApiV23UserWallet(this.extend(request, params));
             //
             //     [
             //         {
@@ -1096,14 +1097,14 @@ export default class btse extends Exchange {
         const frees = {};
         const useds = {};
         for (let i = 0; i < response.length; i++) {
-            const row = this.safeDict(response, i);
+            const row = response[i];
             const assets = this.safeList(row, 'assets');
             if (assets !== undefined) {
                 // futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
                 // several wallet rows can report the same currency, so amounts are aggregated
                 const inUse = this.safeList(row, 'assetsInUse', []);
                 for (let j = 0; j < inUse.length; j++) {
-                    const usedRow = this.safeDict(inUse, j);
+                    const usedRow = inUse[j];
                     const usedCode = this.safeCurrencyCode(this.safeString(usedRow, 'currency'));
                     if (usedCode === undefined) {
                         continue;
@@ -1111,7 +1112,7 @@ export default class btse extends Exchange {
                     useds[usedCode] = Precise.stringAdd(this.safeString(useds, usedCode, '0'), this.safeString(usedRow, 'balance'));
                 }
                 for (let j = 0; j < assets.length; j++) {
-                    const assetRow = this.safeDict(assets, j);
+                    const assetRow = assets[j];
                     const code = this.safeCurrencyCode(this.safeString(assetRow, 'currency'));
                     if (code === undefined) {
                         continue;
@@ -1153,12 +1154,12 @@ export default class btse extends Exchange {
      */
     async fetchLeverageTiers(symbols = undefined, params = {}) {
         await this.loadMarkets();
-        const symbolsNormalized = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols);
         const request = {};
-        if (symbolsNormalized !== undefined) {
-            const length = symbolsNormalized.length;
+        if (symbols !== undefined) {
+            const length = symbols.length;
             if (length === 1) {
-                const requestedSymbol = this.safeString(symbolsNormalized, 0);
+                const requestedSymbol = this.safeString(symbols, 0);
                 const market = this.market(requestedSymbol);
                 request['symbol'] = market['id'];
             }
@@ -1190,11 +1191,11 @@ export default class btse extends Exchange {
         }
         const result = {};
         for (let i = 0; i < data.length; i++) {
-            const entry = this.safeDict(data, i);
+            const entry = data[i];
             const marketId = this.safeString(entry, 'symbol');
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
-            if (symbolsNormalized === undefined || this.inArray(symbol, symbolsNormalized)) {
+            if (symbols === undefined || this.inArray(symbol, symbols)) {
                 const levels = this.safeList(entry, 'riskLimits', []);
                 const tiers = [];
                 for (let j = 0; j < levels.length; j++) {
@@ -1264,12 +1265,12 @@ export default class btse extends Exchange {
      */
     async fetchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
+        symbols = this.marketSymbols(symbols, undefined, true, true);
         // the unified endpoint serves all market types in one call, the legacy type param is accepted and ignored
-        const paramsOmitted = this.omit(params, 'type');
-        const response = await this.publicGetPublicApiMarketV1Ticker24hr(paramsOmitted);
+        params = this.omit(params, 'type');
+        const response = await this.publicGetPublicApiMarketV1Ticker24hr(params);
         const data = this.safeList(response, 'data', []);
-        return this.parseTickers(data, symbolsNormalized);
+        return this.parseTickers(data, symbols);
     }
     /**
      * @method
@@ -1333,20 +1334,20 @@ export default class btse extends Exchange {
         // openInterest, fundingRate, nextFundingTime and fundingIntervalMinutes
         //
         const marketId = this.safeString(ticker, 'symbol');
-        const marketResolved = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market);
         const last = this.safeString(ticker, 'lastPrice');
         let baseVolume = this.safeString(ticker, 'amount');
-        if ((baseVolume !== undefined) && (marketResolved !== undefined) && (marketResolved['contract'] === true)) {
+        if ((baseVolume !== undefined) && (market !== undefined) && (market['contract'] === true)) {
             // for contract markets the amount field is denominated in contracts, verified live -
             // scaling by contractSize converts it into base currency units
-            const contractSizeString = this.numberToString(marketResolved['contractSize']);
+            const contractSizeString = this.numberToString(market['contractSize']);
             if (contractSizeString !== undefined) {
                 baseVolume = Precise.stringMul(baseVolume, contractSizeString);
             }
         }
         const timestamp = this.safeTimestamp(ticker, 'closeTime');
         return this.safeTicker({
-            'symbol': this.safeSymbol(marketId, marketResolved),
+            'symbol': this.safeSymbol(marketId, market),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'high': this.safeString(ticker, 'highPrice'),
@@ -1370,7 +1371,7 @@ export default class btse extends Exchange {
             'markPrice': undefined,
             'indexPrice': undefined,
             'info': ticker,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -1409,7 +1410,7 @@ export default class btse extends Exchange {
      */
     async fetchOpenInterests(symbols = undefined, params = {}) {
         await this.loadMarkets();
-        const symbolsNormalized = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols);
         const response = await this.publicGetPublicApiMarketV1Ticker24hr(params);
         const data = this.safeList(response, 'data', []);
         const rows = [];
@@ -1420,23 +1421,23 @@ export default class btse extends Exchange {
                 rows.push(row);
             }
         }
-        return this.parseOpenInterests(rows, symbolsNormalized);
+        return this.parseOpenInterests(rows, symbols);
     }
     parseOpenInterest(interest, market = undefined) {
         //
         // ticker/24hr contract rows, see parseFundingRate for the full shape
         //
         const marketId = this.safeString(interest, 'symbol');
-        const marketResolved = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market);
         const timestamp = this.safeTimestamp(interest, 'closeTime');
         return this.safeOpenInterest({
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'openInterestAmount': this.safeNumber(interest, 'openInterest'),
             'openInterestValue': this.safeNumber(interest, 'openInterestUSD'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -1475,7 +1476,7 @@ export default class btse extends Exchange {
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
         await this.loadMarkets();
-        const symbolsNormalized = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols);
         const response = await this.publicGetPublicApiMarketV1Ticker24hr(params);
         const data = this.safeList(response, 'data', []);
         const rows = [];
@@ -1486,7 +1487,7 @@ export default class btse extends Exchange {
                 rows.push(row);
             }
         }
-        return this.parseFundingRates(rows, symbolsNormalized);
+        return this.parseFundingRates(rows, symbols);
     }
     parseFundingRate(contract, market = undefined) {
         //
@@ -1515,7 +1516,7 @@ export default class btse extends Exchange {
         //     }
         //
         const marketId = this.safeString(contract, 'symbol');
-        const marketResolved = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market);
         const timestamp = this.safeTimestamp(contract, 'closeTime');
         // dated futures carry a zero nextFundingTime as funding only applies to
         // perpetuals, observed live, the zero means no next funding and is omitted
@@ -1531,7 +1532,7 @@ export default class btse extends Exchange {
         }
         return {
             'info': contract,
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'markPrice': undefined,
             'indexPrice': undefined,
             'interestRate': undefined,
@@ -1572,8 +1573,9 @@ export default class btse extends Exchange {
             request['limit'] = Math.min(limit, 500); // the endpoint supports a maximum of 500 trades
         }
         // the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
-        const [until, paramsUntil] = this.handleOptionIntegerAndParams(params, 'fetchTrades', 'until');
-        const response = await this.publicGetPublicApiMarketV1Trades(this.extend(request, paramsUntil));
+        let until = undefined;
+        [until, params] = this.handleOptionAndParams(params, 'fetchTrades', 'until');
+        const response = await this.publicGetPublicApiMarketV1Trades(this.extend(request, params));
         //
         //     {
         //         "data": [
@@ -1625,7 +1627,8 @@ export default class btse extends Exchange {
         await this.loadMarkets();
         const paginate = this.safeBool(params, 'paginate', false);
         if (paginate === true) {
-            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, this.omit(params, 'paginate'));
+            params = this.omit(params, 'paginate');
+            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params);
         }
         let market = undefined;
         let request = {};
@@ -1639,9 +1642,9 @@ export default class btse extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        let paramsUntil = undefined;
-        [request, paramsUntil] = this.handleUntilOption('endTime', request, params);
-        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchMyTrades', market, paramsUntil, 'spot');
+        [request, params] = this.handleUntilOption('endTime', request, params);
+        let marketType = 'spot';
+        [marketType, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params, marketType);
         let response = undefined;
         if (marketType === 'spot') {
             if (symbol === undefined) {
@@ -1676,7 +1679,7 @@ export default class btse extends Exchange {
             //         "time": 1786610160164
             //     }
             //
-            response = await this.privateGetSpotApiV4TradeTradeHistory(this.extend(request, paramsMarketType));
+            response = await this.privateGetSpotApiV4TradeTradeHistory(this.extend(request, params));
         }
         else {
             // the futures endpoint does not support a count parameter, the limit is applied client-side
@@ -1719,7 +1722,7 @@ export default class btse extends Exchange {
             //         "time": 1786610160164
             //     }
             //
-            response = await this.privateGetFuturesApiV3TradeTradeHistory(this.extend(request, paramsMarketType));
+            response = await this.privateGetFuturesApiV3TradeTradeHistory(this.extend(request, params));
         }
         let rows = this.safeList(response, 'data');
         if (rows === undefined) {
@@ -1745,17 +1748,18 @@ export default class btse extends Exchange {
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const clientOrderId = this.safeString(params, 'clientOrderId');
-        if ((clientOrderId === undefined) && (id === undefined)) {
-            throw new ArgumentsRequired(this.id + ' fetchOrderTrades() requires an id argument or a clientOrderId parameter');
-        }
-        let orderIdParams = {};
         if (clientOrderId === undefined) {
-            orderIdParams = { 'orderID': id };
+            if (id === undefined) {
+                throw new ArgumentsRequired(this.id + ' fetchOrderTrades() requires an id argument or a clientOrderId parameter');
+            }
+            else {
+                params = this.extend(params, { 'orderID': id });
+            }
         }
         else {
-            orderIdParams = { 'clOrderID': clientOrderId };
+            params = this.extend(params, { 'clOrderID': clientOrderId });
         }
-        return await this.fetchMyTrades(symbol, since, limit, this.extend(params, orderIdParams));
+        return await this.fetchMyTrades(symbol, since, limit, params);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -1829,7 +1833,7 @@ export default class btse extends Exchange {
         // the unified futures rows echo the short symbol form but carry the full
         // market id in positionId, which resolves against the markets snapshot
         const marketId = this.safeString2(trade, 'positionId', 'symbol');
-        const marketResolved = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(trade, 'timestamp');
         let fee = undefined;
         const feeCost = this.safeNumber(trade, 'feeAmount');
@@ -1843,7 +1847,7 @@ export default class btse extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'id': this.safeStringN(trade, ['tradeId', 'serialId', 'id']),
             'order': this.safeString(trade, 'orderId'),
             'type': this.parseOrderType(this.safeString2(trade, 'orderType', 'type')),
@@ -1853,7 +1857,7 @@ export default class btse extends Exchange {
             'amount': this.safeString2(trade, 'filledSize', 'size'),
             'cost': undefined,
             'fee': fee,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -1930,7 +1934,7 @@ export default class btse extends Exchange {
     async createSpotOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const typeValue = type.toUpperCase();
+        type = type.toUpperCase();
         const upperSide = side.toUpperCase();
         const request = {
             'symbol': market['id'],
@@ -1939,42 +1943,42 @@ export default class btse extends Exchange {
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clOrderId'] = clientOrderId;
+            params = this.omit(params, 'clientOrderId');
         }
-        let query = this.omit(params, 'clientOrderId');
-        const isMarketOrder = (typeValue === 'MARKET');
-        const isLimitOrder = (typeValue === 'LIMIT');
+        const isMarketOrder = (type === 'MARKET');
+        const isLimitOrder = (type === 'LIMIT');
         let postOnly = false;
         // exchange-specific postOnly is the same as the unified one
-        [postOnly, query] = this.handlePostOnly(isMarketOrder, postOnly, query); // this will remove PO from params.timeInForce if present
+        [postOnly, params] = this.handlePostOnly(isMarketOrder, postOnly, params); // this will remove PO from params.timeInForce if present
         if (postOnly) {
             request['postOnly'] = true;
         }
-        const timeInForce = this.handleTimeInForce(query);
+        const timeInForce = this.handleTimeInForce(params);
         if (timeInForce !== undefined) {
             request['timeInForce'] = timeInForce;
         }
-        const triggerPrice = this.safeString(query, 'triggerPrice');
-        const takeProfitPrice = this.safeString(query, 'takeProfitPrice');
-        const stopLossPrice = this.safeString(query, 'stopLossPrice');
+        const triggerPrice = this.safeString(params, 'triggerPrice');
+        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
+        const stopLossPrice = this.safeString(params, 'stopLossPrice');
         const isTriggerOrder = (triggerPrice !== undefined) || (takeProfitPrice !== undefined);
         const isStopLossOrder = (stopLossPrice !== undefined);
         const isConditionalOrder = (isTriggerOrder || isStopLossOrder) && (isMarketOrder || isLimitOrder);
         const isAlgoOrder = isConditionalOrder || (!isMarketOrder && !isLimitOrder);
-        if (isLimitOrder || (typeValue === 'PEG') || (typeValue === 'OCO')) {
+        if (isLimitOrder || (type === 'PEG') || (type === 'OCO')) {
             if (price === undefined) {
-                throw new InvalidOrder(this.id + ' createOrder() requires a price argument for ' + typeValue + ' orders');
+                throw new InvalidOrder(this.id + ' createOrder() requires a price argument for ' + type + ' orders');
             }
         }
         // market and trailing buys are denominated in the quote currency while
         // every other combination is denominated in the base currency, the
         // sizing rules are strict on both sides, verified live
-        const needsQuoteSize = (isMarketOrder || (typeValue === 'TRAILING')) && (upperSide === 'BUY');
+        const needsQuoteSize = (isMarketOrder || (type === 'TRAILING')) && (upperSide === 'BUY');
         if (needsQuoteSize) {
             let quoteAmount = undefined;
             let createMarketBuyOrderRequiresPrice = true;
-            [createMarketBuyOrderRequiresPrice, query] = this.handleOptionBoolAndParams(query, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-            const cost = this.safeString(query, 'cost');
-            query = this.omit(query, 'cost');
+            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeString(params, 'cost');
+            params = this.omit(params, 'cost');
             if (cost !== undefined) {
                 quoteAmount = this.costToPrecision(symbol, cost);
             }
@@ -1998,7 +2002,7 @@ export default class btse extends Exchange {
         }
         let response = undefined;
         if (!isAlgoOrder) {
-            request['orderType'] = typeValue;
+            request['orderType'] = type;
             if (isLimitOrder) {
                 request['orderPrice'] = this.priceToPrecision(symbol, price);
             }
@@ -2031,7 +2035,7 @@ export default class btse extends Exchange {
             //         }
             //     ]
             //
-            response = await this.privatePostSpotApiV4TradeOrders(this.extend(request, query));
+            response = await this.privatePostSpotApiV4TradeOrders(this.extend(request, params));
         }
         else {
             if (isConditionalOrder) {
@@ -2055,35 +2059,35 @@ export default class btse extends Exchange {
                 }
                 request['triggerOrderType'] = triggerOrderType;
                 request['triggerPrice'] = this.priceToPrecision(symbol, triggerPriceToSend);
-                const triggerPriceType = this.safeString(query, 'triggerPriceType', 'last');
+                const triggerPriceType = this.safeString(params, 'triggerPriceType', 'last');
                 request['triggerPriceType'] = this.encodeTriggerPriceType(triggerPriceType);
-                query = this.omit(query, ['triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'triggerPriceType']);
+                params = this.omit(params, ['triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'triggerPriceType']);
             }
             else {
-                request['orderType'] = typeValue;
-                if (typeValue === 'OCO') {
+                request['orderType'] = type;
+                if (type === 'OCO') {
                     // the price argument is the limit price of the take profit leg,
                     // the stopPrice param is the limit price of the stop loss leg
                     // and the triggerPrice param is where the stop loss leg fires
                     request['takeProfitOrderPrice'] = this.priceToPrecision(symbol, price);
-                    const stopPrice = this.safeString(query, 'stopPrice');
+                    const stopPrice = this.safeString(params, 'stopPrice');
                     if (stopPrice !== undefined) {
                         request['stopLossOrderPrice'] = this.priceToPrecision(symbol, stopPrice);
                     }
                     if (triggerPrice !== undefined) {
                         request['stopLossTriggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
                     }
-                    const triggerPriceType = this.safeString(query, 'triggerPriceType', 'last');
+                    const triggerPriceType = this.safeString(params, 'triggerPriceType', 'last');
                     request['stopLossTriggerPriceType'] = this.encodeTriggerPriceType(triggerPriceType);
-                    query = this.omit(query, ['stopPrice', 'triggerPrice', 'triggerPriceType']);
+                    params = this.omit(params, ['stopPrice', 'triggerPrice', 'triggerPriceType']);
                 }
-                else if (typeValue === 'PEG') {
+                else if (type === 'PEG') {
                     // the required stealth and optional deviation params pass through
                     request['orderPrice'] = this.priceToPrecision(symbol, price);
                 }
-                else if (typeValue === 'TRAILING') {
-                    const trailingAmount = this.safeString(query, 'trailingAmount');
-                    const trailingPercent = this.safeString(query, 'trailingPercent');
+                else if (type === 'TRAILING') {
+                    const trailingAmount = this.safeString(params, 'trailingAmount');
+                    const trailingPercent = this.safeString(params, 'trailingPercent');
                     if (trailingAmount !== undefined) {
                         request['trailValue'] = this.priceToPrecision(symbol, trailingAmount);
                         request['trailValueType'] = 'DISTANCE';
@@ -2092,13 +2096,13 @@ export default class btse extends Exchange {
                         request['trailValue'] = trailingPercent;
                         request['trailValueType'] = 'PERCENTAGE';
                     }
-                    const triggerPriceType = this.safeString(query, 'triggerPriceType', 'last');
+                    const triggerPriceType = this.safeString(params, 'triggerPriceType', 'last');
                     request['triggerPriceType'] = this.encodeTriggerPriceType(triggerPriceType);
-                    query = this.omit(query, ['trailingAmount', 'trailingPercent', 'triggerPriceType']);
+                    params = this.omit(params, ['trailingAmount', 'trailingPercent', 'triggerPriceType']);
                 }
                 // TWAP orders require the timePeriod param which passes through
             }
-            response = await this.privatePostSpotApiV4TradeOrdersAlgo(this.extend(request, query));
+            response = await this.privatePostSpotApiV4TradeOrdersAlgo(this.extend(request, params));
         }
         const order = this.safeDict(response, 0, {});
         return this.parseOrder(order, market);
@@ -2142,7 +2146,7 @@ export default class btse extends Exchange {
     async createContractOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const typeValue = type.toUpperCase();
+        type = type.toUpperCase();
         const request = {
             'symbol': this.futuresRequestId(market),
             'orderSide': side.toUpperCase(),
@@ -2151,16 +2155,16 @@ export default class btse extends Exchange {
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clOrderId'] = clientOrderId;
+            params = this.omit(params, 'clientOrderId');
         }
-        let query = this.omit(params, 'clientOrderId');
         // handle positionMode
-        const positionMode = this.safeString(query, 'positionMode');
+        const positionMode = this.safeString(params, 'positionMode');
         // if positionMode is provided, we will get it from params and send it as is
         if (positionMode === undefined) {
             let hedged = false;
-            [hedged, query] = this.handleOptionBoolAndParams(query, 'createOrder', 'hedged', hedged);
+            [hedged, params] = this.handleOptionAndParams(params, 'createOrder', 'hedged', hedged);
             let marginMode = 'cross';
-            [marginMode, query] = this.handleOptionStringAndParams(query, 'createOrder', 'marginMode', marginMode);
+            [marginMode, params] = this.handleOptionAndParams(params, 'createOrder', 'marginMode', marginMode);
             if (marginMode === 'isolated') {
                 if (hedged) {
                     throw new BadRequest(this.id + ' createOrder() cannot use isolated margin with hedged positions');
@@ -2172,33 +2176,33 @@ export default class btse extends Exchange {
             }
             // if not hedged and not isolated, the default is ONE_WAY
         }
-        const isMarketOrder = (typeValue === 'MARKET');
-        const isLimitOrder = (typeValue === 'LIMIT');
+        const isMarketOrder = (type === 'MARKET');
+        const isLimitOrder = (type === 'LIMIT');
         let postOnly = false;
         // exchange-specific postOnly is the same as the unified one
-        [postOnly, query] = this.handlePostOnly(isMarketOrder, postOnly, query); // this will remove PO from params.timeInForce if present
+        [postOnly, params] = this.handlePostOnly(isMarketOrder, postOnly, params); // this will remove PO from params.timeInForce if present
         if (postOnly) {
             request['postOnly'] = true;
         }
-        const timeInForce = this.handleTimeInForce(query);
+        const timeInForce = this.handleTimeInForce(params);
         if (timeInForce !== undefined) {
             request['timeInForce'] = timeInForce;
         }
-        const triggerPrice = this.safeString(query, 'triggerPrice');
-        const takeProfitPrice = this.safeString(query, 'takeProfitPrice');
-        const stopLossPrice = this.safeString(query, 'stopLossPrice');
+        const triggerPrice = this.safeString(params, 'triggerPrice');
+        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
+        const stopLossPrice = this.safeString(params, 'stopLossPrice');
         const isTriggerOrder = (triggerPrice !== undefined) || (takeProfitPrice !== undefined);
         const isStopLossOrder = (stopLossPrice !== undefined);
         const isConditionalOrder = (isTriggerOrder || isStopLossOrder) && (isMarketOrder || isLimitOrder);
         const isAlgoOrder = isConditionalOrder || (!isMarketOrder && !isLimitOrder);
-        if (isLimitOrder || (typeValue === 'OCO')) {
+        if (isLimitOrder || (type === 'OCO')) {
             if (price === undefined) {
-                throw new InvalidOrder(this.id + ' createOrder() requires a price argument for ' + typeValue + ' orders');
+                throw new InvalidOrder(this.id + ' createOrder() requires a price argument for ' + type + ' orders');
             }
         }
         // here we handling with attached take profit and stop loss orders
-        const takeProfit = this.safeDict(query, 'takeProfit');
-        const stopLoss = this.safeDict(query, 'stopLoss');
+        const takeProfit = this.safeDict(params, 'takeProfit');
+        const stopLoss = this.safeDict(params, 'stopLoss');
         if ((takeProfit !== undefined) || (stopLoss !== undefined)) {
             const takeProfitTriggerPrice = this.safeString(takeProfit, 'triggerPrice');
             const stopLossTriggerPrice = this.safeString(stopLoss, 'triggerPrice');
@@ -2216,11 +2220,11 @@ export default class btse extends Exchange {
                     request['stopLossTriggerType'] = this.encodeTriggerPriceType(stopLossTriggerPriceType);
                 }
             }
-            query = this.omit(query, ['takeProfit', 'stopLoss']);
+            params = this.omit(params, ['takeProfit', 'stopLoss']);
         }
         let response = undefined;
         if (!isAlgoOrder) {
-            request['orderType'] = typeValue;
+            request['orderType'] = type;
             if (isLimitOrder) {
                 request['orderPrice'] = this.priceToPrecision(symbol, price);
             }
@@ -2248,7 +2252,7 @@ export default class btse extends Exchange {
             //         "timeInForce": "GTC"
             //     }
             //
-            response = await this.privatePostFuturesApiV3TradeOrders(this.extend(request, query));
+            response = await this.privatePostFuturesApiV3TradeOrders(this.extend(request, params));
         }
         else {
             if (isConditionalOrder) {
@@ -2263,41 +2267,41 @@ export default class btse extends Exchange {
                     triggerPriceToSend = stopLossPrice;
                 }
                 request['triggerPrice'] = this.priceToPrecision(symbol, triggerPriceToSend);
-                const triggerPriceType = this.safeString(query, 'triggerPriceType', 'mark');
+                const triggerPriceType = this.safeString(params, 'triggerPriceType', 'mark');
                 request['triggerType'] = this.encodeTriggerPriceType(triggerPriceType);
                 if (isLimitOrder) {
                     request['orderPrice'] = this.priceToPrecision(symbol, price);
                 }
-                query = this.omit(query, ['triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'triggerPriceType']);
+                params = this.omit(params, ['triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'triggerPriceType']);
             }
             else {
-                request['orderType'] = typeValue;
-                if (typeValue === 'OCO') {
+                request['orderType'] = type;
+                if (type === 'OCO') {
                     // the price argument is the limit price of the take profit leg,
                     // the stopPrice param is the limit price of the stop loss leg
                     // and the triggerPrice param is where the stop loss leg fires
                     request['takeProfitOrderPrice'] = this.priceToPrecision(symbol, price);
-                    const stopPrice = this.safeString(query, 'stopPrice');
+                    const stopPrice = this.safeString(params, 'stopPrice');
                     if (stopPrice !== undefined) {
                         request['stopLossOrderPrice'] = this.priceToPrecision(symbol, stopPrice);
                     }
                     if (triggerPrice !== undefined) {
                         request['stopLossTriggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
                     }
-                    const triggerPriceType = this.safeString(query, 'triggerPriceType', 'mark');
+                    const triggerPriceType = this.safeString(params, 'triggerPriceType', 'mark');
                     request['stopLossTriggerType'] = this.encodeTriggerPriceType(triggerPriceType);
-                    query = this.omit(query, ['stopPrice', 'triggerPrice', 'triggerPriceType']);
+                    params = this.omit(params, ['stopPrice', 'triggerPrice', 'triggerPriceType']);
                 }
-                else if (typeValue === 'PEG') {
+                else if (type === 'PEG') {
                     // the required deviation and stealth params pass through, the
                     // optional price argument becomes a worst-price bound
                     if (price !== undefined) {
                         request['orderPrice'] = this.priceToPrecision(symbol, price);
                     }
                 }
-                else if (typeValue === 'TRAILING') {
-                    const trailingAmount = this.safeString(query, 'trailingAmount');
-                    const trailingPercent = this.safeString(query, 'trailingPercent');
+                else if (type === 'TRAILING') {
+                    const trailingAmount = this.safeString(params, 'trailingAmount');
+                    const trailingPercent = this.safeString(params, 'trailingPercent');
                     if (trailingAmount !== undefined) {
                         request['trailValue'] = this.priceToPrecision(symbol, trailingAmount);
                         request['trailValueType'] = 'DISTANCE';
@@ -2306,13 +2310,13 @@ export default class btse extends Exchange {
                         request['trailValue'] = trailingPercent;
                         request['trailValueType'] = 'PERCENTAGE';
                     }
-                    const triggerPriceType = this.safeString(query, 'triggerPriceType', 'mark');
+                    const triggerPriceType = this.safeString(params, 'triggerPriceType', 'mark');
                     request['trailTriggerPriceType'] = this.encodeTriggerPriceType(triggerPriceType);
-                    query = this.omit(query, ['trailingAmount', 'trailingPercent', 'triggerPriceType']);
+                    params = this.omit(params, ['trailingAmount', 'trailingPercent', 'triggerPriceType']);
                 }
                 // TWAP orders require the timePeriod param which passes through
             }
-            response = await this.privatePostFuturesApiV3TradeOrdersAlgo(this.extend(request, query));
+            response = await this.privatePostFuturesApiV3TradeOrdersAlgo(this.extend(request, params));
         }
         // the normal futures endpoint responds with a single order dict, keep a
         // one element array guard in case a gateway wraps it
@@ -2353,6 +2357,7 @@ export default class btse extends Exchange {
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clOrderId'] = clientOrderId;
+            params = this.omit(params, 'clientOrderId');
         }
         else if (id === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOpenOrder() requires an id argument or a clientOrderId parameter');
@@ -2360,20 +2365,20 @@ export default class btse extends Exchange {
         else {
             request['orderId'] = id;
         }
-        const paramsOmitted = (clientOrderId !== undefined) ? this.omit(params, 'clientOrderId') : params;
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchOrder', market, paramsOmitted, 'spot');
+        let marketType = 'spot';
+        [marketType, params] = this.handleMarketTypeAndParams('fetchOrder', market, params, marketType);
         let response = undefined;
         if (marketType === 'spot') {
-            response = await this.privateGetSpotApiV4TradeOrder(this.extend(request, paramsMarketType));
+            response = await this.privateGetSpotApiV4TradeOrder(this.extend(request, params));
         }
         else {
             // the futures endpoint doubles as the single order lookup when an
             // order id is sent and responds with a bare array
-            response = await this.privateGetFuturesApiV3TradeOrders(this.extend(request, paramsMarketType));
+            response = await this.privateGetFuturesApiV3TradeOrders(this.extend(request, params));
         }
         // accept a bare order dict, a data envelope and a one element array
         let order = this.safeValue(response, 'data', response);
@@ -2408,6 +2413,7 @@ export default class btse extends Exchange {
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clOrderId'] = clientOrderId;
+            params = this.omit(params, 'clientOrderId');
         }
         else if (id === undefined) {
             throw new ArgumentsRequired(this.id + ' editOrder() requires an id argument or a clientOrderId parameter');
@@ -2415,26 +2421,25 @@ export default class btse extends Exchange {
         else {
             request['orderId'] = id;
         }
-        const paramsOmitted = (clientOrderId !== undefined) ? this.omit(params, 'clientOrderId') : params;
-        const triggerPrice = this.safeString(paramsOmitted, 'triggerPrice');
+        const triggerPrice = this.safeString(params, 'triggerPrice');
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
+            params = this.omit(params, 'triggerPrice');
         }
-        const query = (triggerPrice !== undefined) ? this.omit(paramsOmitted, 'triggerPrice') : paramsOmitted;
         if (amount !== undefined) {
             request['orderSize'] = this.amountToPrecision(symbol, amount);
         }
         if (price !== undefined) {
             request['orderPrice'] = this.priceToPrecision(symbol, price);
         }
-        const isSlide = this.safeBool(query, 'slide', false);
+        const isSlide = this.safeBool(params, 'slide', false);
         if ((amount === undefined) && (price === undefined) && (triggerPrice === undefined) && (isSlide !== true)) {
             throw new ArgumentsRequired(this.id + ' editOrder() requires an amount argument, a price argument or a triggerPrice parameter');
         }
         let response = undefined;
         if (market['spot'] === true) {
             request['symbol'] = market['id'];
-            response = await this.privatePutSpotApiV4TradeOrders(this.extend(request, query));
+            response = await this.privatePutSpotApiV4TradeOrders(this.extend(request, params));
         }
         else {
             // the futures amend requires an explicit amendType discriminator
@@ -2455,7 +2460,7 @@ export default class btse extends Exchange {
             else {
                 request['amendType'] = 'PRICE';
             }
-            response = await this.privatePutFuturesApiV3TradeOrders(this.extend(request, query));
+            response = await this.privatePutFuturesApiV3TradeOrders(this.extend(request, params));
         }
         const order = this.safeDict(response, 0, {});
         return this.parseOrder(order, market);
@@ -2482,6 +2487,7 @@ export default class btse extends Exchange {
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clOrderId'] = clientOrderId;
+            params = this.omit(params, 'clientOrderId');
         }
         else if (id === undefined) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires an id argument or a clientOrderId parameter');
@@ -2489,11 +2495,10 @@ export default class btse extends Exchange {
         else {
             request['orderId'] = id;
         }
-        const paramsOmitted = (clientOrderId !== undefined) ? this.omit(params, 'clientOrderId') : params;
         let response = undefined;
         if (market['spot'] === true) {
             request['symbol'] = market['id'];
-            response = await this.privateDeleteSpotApiV4TradeOrders(this.extend(request, paramsOmitted));
+            response = await this.privateDeleteSpotApiV4TradeOrders(this.extend(request, params));
         }
         else {
             //
@@ -2513,7 +2518,7 @@ export default class btse extends Exchange {
             //     ]
             //
             request['symbol'] = this.futuresRequestId(market);
-            response = await this.privateDeleteFuturesApiV3TradeOrders(this.extend(request, paramsOmitted));
+            response = await this.privateDeleteFuturesApiV3TradeOrders(this.extend(request, params));
         }
         const order = this.safeDict(response, 0, {});
         return this.parseOrder(order, market);
@@ -2535,14 +2540,14 @@ export default class btse extends Exchange {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const marketType = 'spot';
-        const [marketTypeOption, paramsMarketType] = this.handleMarketTypeAndParams('cancelAllOrders', market, params, marketType);
+        let marketType = 'spot';
+        [marketType, params] = this.handleMarketTypeAndParams('cancelAllOrders', market, params, marketType);
         const request = {};
         let response = undefined;
-        if (marketTypeOption === 'spot') {
+        if (marketType === 'spot') {
             // the literal ALL value cancels every open order across all pairs
             request['symbol'] = (market !== undefined) ? market['id'] : 'ALL';
-            response = await this.privateDeleteSpotApiV4TradeOrdersAll(this.extend(request, paramsMarketType));
+            response = await this.privateDeleteSpotApiV4TradeOrdersAll(this.extend(request, params));
         }
         else {
             if (market === undefined) {
@@ -2552,7 +2557,7 @@ export default class btse extends Exchange {
             // endpoint cancels every order for the symbol when no order id is
             // sent, and it identifies contracts by the short symbol form
             request['symbol'] = this.futuresRequestId(market);
-            response = await this.privateDeleteFuturesApiV23Order(this.extend(request, paramsMarketType));
+            response = await this.privateDeleteFuturesApiV23Order(this.extend(request, params));
         }
         return this.parseOrders(response, market);
     }
@@ -2571,16 +2576,16 @@ export default class btse extends Exchange {
         await this.loadMarkets();
         const request = {};
         let response = undefined;
-        const marketType = 'spot';
-        const [marketTypeOption, paramsMarketType] = this.handleMarketTypeAndParams('cancelAllOrdersAfter', undefined, params, marketType);
-        if (marketTypeOption === 'spot') {
+        let marketType = 'spot';
+        [marketType, params] = this.handleMarketTypeAndParams('cancelAllOrdersAfter', undefined, params, marketType);
+        if (marketType === 'spot') {
             request['timeout'] = timeout;
-            response = await this.privatePostSpotApiV4TradeOrdersCancelAllAfter(this.extend(request, paramsMarketType));
+            response = await this.privatePostSpotApiV4TradeOrdersCancelAllAfter(this.extend(request, params));
         }
         else {
             // the futures param is named timeoutMs and is required, zero disarms
             request['timeoutMs'] = timeout;
-            response = await this.privatePostFuturesApiV3TradeOrdersCancelAllAfter(this.extend(request, paramsMarketType));
+            response = await this.privatePostFuturesApiV3TradeOrdersCancelAllAfter(this.extend(request, params));
         }
         return response;
     }
@@ -2604,20 +2609,20 @@ export default class btse extends Exchange {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const marketType = 'spot';
-        const [marketTypeOption, paramsMarketType] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params, marketType);
+        let marketType = 'spot';
+        [marketType, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params, marketType);
         let response = undefined;
-        if (marketTypeOption === 'spot') {
+        if (marketType === 'spot') {
             if (market !== undefined) {
                 request['symbol'] = market['id'];
             }
-            response = await this.privateGetSpotApiV4TradeOrders(this.extend(request, paramsMarketType));
+            response = await this.privateGetSpotApiV4TradeOrders(this.extend(request, params));
         }
         else {
             if (market !== undefined) {
                 request['symbol'] = this.futuresRequestId(market);
             }
-            response = await this.privateGetFuturesApiV3TradeOrders(this.extend(request, paramsMarketType));
+            response = await this.privateGetFuturesApiV3TradeOrders(this.extend(request, params));
         }
         // the endpoints have no server side time filters, accept a bare array
         // and a data envelope and filter client-side
@@ -2687,7 +2692,7 @@ export default class btse extends Exchange {
         //     }
         //
         const marketId = this.safeString2(order, 'symbol', 'market');
-        const marketResolved = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(order, 'timestamp');
         // open_orders rows carry no numeric status - the state lives in
         // orderState (STATUS_ACTIVE / STATUS_INACTIVE), and time_in_force
@@ -2712,7 +2717,7 @@ export default class btse extends Exchange {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': undefined,
             'status': status,
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'type': orderType,
             'timeInForce': this.parseTimeInForce(rawTimeInForce),
             'postOnly': this.safeBool(order, 'postOnly'),
@@ -2729,7 +2734,7 @@ export default class btse extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'average': this.omitZero(this.safeString2(order, 'avgFilledPrice', 'averageFillPrice')),
-        }, marketResolved);
+        }, market);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -2795,15 +2800,15 @@ export default class btse extends Exchange {
     async fetchTradingFees(params = {}) {
         await this.loadMarkets();
         let response = undefined;
-        const marketType = 'spot';
-        const [marketTypeOption, paramsMarketType] = this.handleMarketTypeAndParams('fetchTradingFees', undefined, params, marketType);
-        if (marketTypeOption === 'spot') {
-            response = await this.privateGetSpotApiV4TradeFees(paramsMarketType);
+        let marketType = 'spot';
+        [marketType, params] = this.handleMarketTypeAndParams('fetchTradingFees', undefined, params, marketType);
+        if (marketType === 'spot') {
+            response = await this.privateGetSpotApiV4TradeFees(params);
         }
         else {
             // the futures fees stay on the legacy endpoint, the unified futures
             // api has no fees route
-            response = await this.privateGetFuturesApiV23UserFees(paramsMarketType);
+            response = await this.privateGetFuturesApiV23UserFees(params);
         }
         //
         //     [
@@ -2848,7 +2853,7 @@ export default class btse extends Exchange {
         // the endpoint applies a server side history type filter sent as a
         // json encoded array in the query string, verified live
         request['historyTypes'] = this.json(typesList);
-        const paramsOmitted = this.omit(params, 'walletType');
+        params = this.omit(params, 'walletType');
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -2865,11 +2870,12 @@ export default class btse extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const [until, paramsUntil] = this.handleOptionIntegerAndParams(paramsOmitted, methodName, 'until');
+        let until = undefined;
+        [until, params] = this.handleOptionAndParams(params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.privateGetPublicApiWalletV1UserWalletHistory(this.extend(request, paramsUntil));
+        const response = await this.privateGetPublicApiWalletV1UserWalletHistory(this.extend(request, params));
         //
         //     {
         //         "code": 1,
@@ -3059,7 +3065,7 @@ export default class btse extends Exchange {
         const request = {};
         const walletType = this.safeString(params, 'walletType', 'SPOT');
         request['walletType'] = walletType;
-        const paramsOmitted = this.omit(params, 'walletType');
+        params = this.omit(params, 'walletType');
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -3076,11 +3082,12 @@ export default class btse extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const [until, paramsUntil] = this.handleOptionIntegerAndParams(paramsOmitted, 'fetchLedger', 'until');
+        let until = undefined;
+        [until, params] = this.handleOptionAndParams(params, 'fetchLedger', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.privateGetPublicApiWalletV1UserWalletHistory(this.extend(request, paramsUntil));
+        const response = await this.privateGetPublicApiWalletV1UserWalletHistory(this.extend(request, params));
         //
         //     [
         //         {
@@ -3242,7 +3249,7 @@ export default class btse extends Exchange {
      */
     async fetchPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();
-        const symbolsNormalized = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols);
         const response = await this.privateGetFuturesApiV3TradePositions(params);
         //
         // the response is a bare array of position rows
@@ -3251,7 +3258,7 @@ export default class btse extends Exchange {
         if (rows === undefined) {
             rows = response;
         }
-        return this.parsePositions(rows, symbolsNormalized);
+        return this.parsePositions(rows, symbols);
     }
     /**
      * @method
@@ -3266,10 +3273,10 @@ export default class btse extends Exchange {
     async fetchPositionsForSymbol(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const paramsExtended = this.extend({
+        params = this.extend({
             'symbol': this.futuresRequestId(market),
         }, params);
-        return await this.fetchPositions([symbol], paramsExtended);
+        return await this.fetchPositions([symbol], params);
     }
     parsePosition(position, market = undefined) {
         //
@@ -3320,7 +3327,7 @@ export default class btse extends Exchange {
         else {
             marketId = this.safeString(position, 'symbol');
         }
-        const marketResolved = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(position, 'timestamp');
         const marginType = this.safeString(position, 'marginType');
         const side = this.safeStringLower2(position, 'positionDirection', 'side');
@@ -3333,7 +3340,7 @@ export default class btse extends Exchange {
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'positionId'),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'entryPrice': this.parseNumber(this.safeString(position, 'entryPrice')),
             'markPrice': this.parseNumber(this.safeString(position, 'markPrice')),
             'lastPrice': undefined,
@@ -3433,10 +3440,7 @@ export default class btse extends Exchange {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        let positionMode = 'ONE_WAY';
-        if (hedged) {
-            positionMode = 'HEDGE';
-        }
+        const positionMode = hedged ? 'HEDGE' : 'ONE_WAY';
         const request = {
             'symbol': this.futuresRequestId(market),
             'positionMode': positionMode,
@@ -3472,7 +3476,7 @@ export default class btse extends Exchange {
         //     }
         //
         const marketId = this.safeString(marginMode, 'symbol');
-        const marketResolved = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market);
         const positionMode = this.safeStringLower(marginMode, 'marginMode');
         let marginModeValue = 'cross';
         if (positionMode === 'isolated') {
@@ -3480,7 +3484,7 @@ export default class btse extends Exchange {
         }
         return {
             'info': marginMode,
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'marginMode': marginModeValue,
         };
     }
@@ -3507,13 +3511,13 @@ export default class btse extends Exchange {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        const marginModeValue = marginMode.toLowerCase();
+        marginMode = marginMode.toLowerCase();
         let positionMode = 'ONE_WAY';
-        if ((marginModeValue !== 'cross') && (marginModeValue !== 'isolated')) {
+        if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new BadRequest(this.id + ' setMarginMode() marginMode argument should be either cross or isolated');
         }
         const hedged = this.safeBool(params, 'hedged');
-        if (marginModeValue === 'cross') {
+        if (marginMode === 'cross') {
             if (!('hedged' in params)) {
                 throw new ArgumentsRequired(this.id + ' setMarginMode() requires a hedged parameter for cross margin mode');
             }
@@ -3527,12 +3531,12 @@ export default class btse extends Exchange {
         else {
             positionMode = 'ISOLATED';
         }
-        const paramsOmitted = this.omit(params, 'hedged');
+        params = this.omit(params, 'hedged');
         const request = {
             'symbol': this.futuresRequestId(market),
             'positionMode': positionMode,
         };
-        return await this.privatePostFuturesApiV3TradePositionMode(this.extend(request, paramsOmitted));
+        return await this.privatePostFuturesApiV3TradePositionMode(this.extend(request, params));
     }
     /**
      * @method
@@ -3558,18 +3562,19 @@ export default class btse extends Exchange {
         const request = {
             'symbol': this.futuresRequestId(market),
         };
-        const [orderType, paramsOrderType] = this.handleOptionStringAndParams(params, 'closePosition', 'type', 'market');
-        const typeUpper = orderType.toUpperCase();
-        request['orderType'] = typeUpper;
-        if (typeUpper === 'LIMIT') {
-            const price = this.safeString(paramsOrderType, 'price');
+        let type = 'market';
+        [type, params] = this.handleOptionAndParams(params, 'closePosition', 'type', type);
+        type = type.toUpperCase();
+        request['orderType'] = type;
+        if (type === 'LIMIT') {
+            const price = this.safeString(params, 'price');
             if (price === undefined) {
                 throw new ArgumentsRequired(this.id + ' closePosition() requires a price parameter for limit orders');
             }
             request['orderPrice'] = this.priceToPrecision(symbol, price);
+            params = this.omit(params, 'price');
         }
-        const paramsOmitted = (typeUpper === 'LIMIT') ? this.omit(paramsOrderType, 'price') : paramsOrderType;
-        const response = await this.privateDeleteFuturesApiV3TradePositions(this.extend(request, paramsOmitted));
+        const response = await this.privateDeleteFuturesApiV3TradePositions(this.extend(request, params));
         let order = this.safeDict(response, 0);
         if (order === undefined) {
             order = response;
@@ -3620,7 +3625,7 @@ export default class btse extends Exchange {
         let shortLeverage = undefined;
         let marginMode = undefined;
         for (let i = 0; i < safeResponse.length; i++) {
-            const entrty = this.safeDict(safeResponse, i);
+            const entrty = safeResponse[i];
             const leverageValue = this.safeInteger(entrty, 'leverage');
             const positionDirection = this.safeString(entrty, 'positionDirection');
             marginMode = this.safeStringLower(entrty, 'marginMode');
@@ -3666,11 +3671,12 @@ export default class btse extends Exchange {
         // the endpoint defaults to the ISOLATED bucket when marginMode is omitted,
         // verified live - a bare call on a cross account silently changes the
         // isolated leverage only, so the unified marginMode param is translated here
-        const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('setLeverage', params);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('setLeverage', params);
         if (marginMode !== undefined) {
             request['marginMode'] = marginMode.toUpperCase();
         }
-        const response = await this.privatePostFuturesApiV3TradeLeverage(this.extend(request, paramsMarginMode));
+        const response = await this.privatePostFuturesApiV3TradeLeverage(this.extend(request, params));
         return response;
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -3734,7 +3740,7 @@ export default class btse extends Exchange {
             rows = [response];
         }
         for (let i = 0; i < rows.length; i++) {
-            const row = this.safeDict(rows, i);
+            const row = rows[i];
             const status = this.safeString(row, 'status');
             if (status !== undefined) {
                 let message = this.safeString(row, 'message');
@@ -3750,13 +3756,7 @@ export default class btse extends Exchange {
         return undefined;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestBody = undefined;
-        let requestHeaders = undefined;
-        const apiUrl = this.safeString(this.urls['api'], api);
-        if (apiUrl === undefined) {
-            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
-        }
-        const baseUrl = apiUrl;
+        const baseUrl = this.urls['api'][api];
         let url = baseUrl + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         // the futures v3 trading api reads DELETE params from a signed json
@@ -3779,7 +3779,7 @@ export default class btse extends Exchange {
                 bodyString = '';
             }
             else {
-                requestBody = bodyString;
+                body = bodyString;
             }
             // the signed urlpath is the path relative to the base url of the product, the
             // spot and futures apis of every generation mount under /spot and /futures and
@@ -3794,7 +3794,7 @@ export default class btse extends Exchange {
             }
             const payload = signPath + nonce.toString() + bodyString;
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
-            requestHeaders = {
+            headers = {
                 'request-api': this.apiKey,
                 'request-nonce': nonce.toString(),
                 'request-sign': signature,
@@ -3802,9 +3802,7 @@ export default class btse extends Exchange {
                 'BROKER-ID': 'ccxt',
             };
         }
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
-        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     futuresRequestId(market) {
         // the futures v3 trading api identifies contracts by the short trade-currency
@@ -3819,6 +3817,6 @@ export default class btse extends Exchange {
         return result;
     }
     nonce() {
-        return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
+        return this.milliseconds() - this.options['timeDifference'];
     }
 }

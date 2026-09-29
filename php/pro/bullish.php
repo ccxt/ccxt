@@ -54,7 +54,7 @@ class bullish extends \ccxt\async\bullish {
         ));
     }
 
-    public function request_id(): float {
+    public function request_id() {
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
         return $requestId;
@@ -102,11 +102,7 @@ class bullish extends \ccxt\async\bullish {
             'params' => $request,
             'id' => $id,
         );
-        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'public');
-        if ($wsUrl === null) {
-            throw new ExchangeError($this->id . ' watchPublic() has no public websocket url');
-        }
-        $fullUrl = $wsUrl . $url;
+        $fullUrl = $this->urls['api']['ws']['public'] . $url;
         return Async\await($this->watch($fullUrl, $messageHash, $this->deep_extend($message, $params), $messageHash));
     }
 
@@ -160,11 +156,10 @@ class bullish extends \ccxt\async\bullish {
             'symbol' => $market['id'],
         );
         $trades = Async\await($this->watch_public($url, $messageHash, $request, $params));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($symbol, $limit);
+            $limit = $trades->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function handle_trades(Client $client, array $message) {
@@ -230,13 +225,9 @@ class bullish extends \ccxt\async\bullish {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'public');
-        if ($wsUrl === null) {
-            throw new ExchangeError($this->id . ' watchTicker() has no public websocket url');
-        }
-        $url = $wsUrl . '/trading-api/v1/market-data/tick/' . $market['id'];
-        $messageHash = 'ticker::' . $symbolValue;
+        $symbol = $market['symbol'];
+        $url = $this->urls['api']['ws']['public'] . '/trading-api/v1/market-data/tick/' . $market['id'];
+        $messageHash = 'ticker::' . $symbol;
         return Async\await($this->watch($url, $messageHash, $params, $messageHash)); // no need to send a subscribe message, the server sends a ticker update on connect
     }
 
@@ -418,25 +409,23 @@ class bullish extends \ccxt\async\bullish {
         }
         $subscribeHash = 'orders';
         $messageHash = $subscribeHash;
-        $symbolResolved = null;
         if ($symbol !== null) {
-            $symbolResolved = $this->symbol($symbol);
-            $messageHash = $messageHash . '::' . $symbolResolved;
+            $symbol = $this->symbol($symbol);
+            $messageHash = $messageHash . '::' . $symbol;
         }
         $request = array(
             'topic' => 'orders',
         );
         $tradingAccountId = $this->safe_string($params, 'tradingAccountId');
-        $paramsOmitted = ($tradingAccountId !== null) ? $this->omit($params, 'tradingAccountId') : $params;
         if ($tradingAccountId !== null) {
             $request['tradingAccountId'] = $tradingAccountId;
+            $params = $this->omit($params, 'tradingAccountId');
         }
-        $orders = Async\await($this->watch_private($messageHash, $subscribeHash, $request, $paramsOmitted));
-        $limitResolved = $limit;
+        $orders = Async\await($this->watch_private($messageHash, $subscribeHash, $request, $params));
         if ($this->newUpdates) {
-            $limitResolved = $orders->getLimit($symbolResolved, $limit);
+            $limit = $orders->getLimit($symbol, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function handle_orders(Client $client, array $message) {
@@ -542,25 +531,23 @@ class bullish extends \ccxt\async\bullish {
         }
         $subscribeHash = 'myTrades';
         $messageHash = $subscribeHash;
-        $symbolResolved = null;
         if ($symbol !== null) {
-            $symbolResolved = $this->symbol($symbol);
-            $messageHash .= '::' . $symbolResolved;
+            $symbol = $this->symbol($symbol);
+            $messageHash .= '::' . $symbol;
         }
         $request = array(
             'topic' => 'trades',
         );
         $tradingAccountId = $this->safe_string($params, 'tradingAccountId');
-        $paramsOmitted = ($tradingAccountId !== null) ? $this->omit($params, 'tradingAccountId') : $params;
         if ($tradingAccountId !== null) {
             $request['tradingAccountId'] = $tradingAccountId;
+            $params = $this->omit($params, 'tradingAccountId');
         }
-        $trades = Async\await($this->watch_private($messageHash, $subscribeHash, $request, $paramsOmitted));
-        $limitResolved = $limit;
+        $trades = Async\await($this->watch_private($messageHash, $subscribeHash, $request, $params));
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($symbolResolved, $limit);
+            $limit = $trades->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function handle_my_trades(Client $client, array $message) {
@@ -659,12 +646,12 @@ class bullish extends \ccxt\async\bullish {
         );
         $messageHash = 'balance';
         $tradingAccountId = $this->safe_string($params, 'tradingAccountId');
-        $paramsOmitted = ($tradingAccountId !== null) ? $this->omit($params, 'tradingAccountId') : $params;
         if ($tradingAccountId !== null) {
+            $params = $this->omit($params, 'tradingAccountId');
             $request['tradingAccountId'] = $tradingAccountId;
             $messageHash .= '::' . $tradingAccountId;
         }
-        return Async\await($this->watch_private($messageHash, $messageHash, $request, $paramsOmitted));
+        return Async\await($this->watch_private($messageHash, $messageHash, $request, $params));
     }
 
     public function handle_balance(Client $client, array $message) {
@@ -766,13 +753,9 @@ class bullish extends \ccxt\async\bullish {
         }
         $subscribeHash = 'positions';
         $messageHash = $subscribeHash;
-        $hasSymbols = ($symbols !== null) && !$this->is_empty($symbols);
-        $symbolsNormalized = $symbols;
-        if ($hasSymbols) {
-            $symbolsNormalized = $this->market_symbols($symbols);
-        }
-        if ($hasSymbols && ($symbolsNormalized !== null)) {
-            $messageHash .= '::' . implode(',', $symbolsNormalized);
+        if (($symbols !== null) && !$this->is_empty($symbols)) {
+            $symbols = $this->market_symbols($symbols);
+            $messageHash .= '::' . implode(',', $symbols);
         }
         $request = array(
             'topic' => 'derivativesPositionsV2',
@@ -781,7 +764,7 @@ class bullish extends \ccxt\async\bullish {
         if ($this->newUpdates) {
             return $positions;
         }
-        return $this->filter_by_symbols_since_limit($positions, $symbolsNormalized, $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($positions, $symbols, $since, $limit, true);
     }
 
     public function handle_positions(Client $client, array $message) {

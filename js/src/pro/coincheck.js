@@ -123,7 +123,7 @@ export default class coincheck extends coincheckRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        symbol = market['symbol'];
         const messageHash = 'trade:' + market['symbol'];
         const url = this.urls['api']['ws'];
         const request = {
@@ -132,11 +132,10 @@ export default class coincheck extends coincheckRest {
         };
         const message = this.extend(request, params);
         const trades = await this.watch(url, messageHash, message, messageHash);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit(symbolValue, limit);
+            limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         //

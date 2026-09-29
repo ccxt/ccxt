@@ -468,7 +468,7 @@ class mercado extends mercado$1["default"] {
     }
     parseTrade(trade, market = undefined) {
         const timestamp = this.safeTimestamp2(trade, 'date', 'executed_timestamp');
-        const marketResolved = this.safeMarket(undefined, market);
+        market = this.safeMarket(undefined, market);
         const id = this.safeString2(trade, 'tid', 'operation_id');
         const type = undefined;
         const side = this.safeString(trade, 'type');
@@ -487,7 +487,7 @@ class mercado extends mercado$1["default"] {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'order': undefined,
             'type': type,
             'side': side,
@@ -496,7 +496,7 @@ class mercado extends mercado$1["default"] {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -710,11 +710,11 @@ class mercado extends mercado$1["default"] {
         }
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
         const marketId = this.safeString(order, 'coin_pair');
-        const marketResolved = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market);
         const timestamp = this.safeTimestamp(order, 'created_timestamp');
         const fee = {
             'cost': this.safeString(order, 'fee'),
-            'currency': marketResolved['quote'],
+            'currency': market['quote'],
         };
         const price = this.safeString(order, 'limit_price');
         // price = this.safeNumber (order, 'executed_price_avg', price);
@@ -723,7 +723,7 @@ class mercado extends mercado$1["default"] {
         const filled = this.safeString(order, 'executed_quantity');
         const lastTradeTimestamp = this.safeTimestamp(order, 'updated_timestamp');
         const rawTrades = this.safeList(order, 'operations', []);
-        const symbol = marketResolved['symbol'];
+        const symbol = market['symbol'];
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -746,7 +746,7 @@ class mercado extends mercado$1["default"] {
             'status': status,
             'fee': fee,
             'trades': rawTrades,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -786,7 +786,7 @@ class mercado extends mercado$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -798,28 +798,28 @@ class mercado extends mercado$1["default"] {
             'address': address,
         };
         if (code === 'BRL') {
-            const account_ref = ('account_ref' in paramsWithdrawTag);
+            const account_ref = ('account_ref' in params);
             if (!account_ref) {
                 throw new errors.ArgumentsRequired(this.id + ' withdraw() requires account_ref parameter to withdraw ' + code);
             }
         }
         else if (code !== 'LTC') {
-            const tx_fee = ('tx_fee' in paramsWithdrawTag);
+            const tx_fee = ('tx_fee' in params);
             if (!tx_fee) {
                 throw new errors.ArgumentsRequired(this.id + ' withdraw() requires tx_fee parameter to withdraw ' + code);
             }
             if (code === 'XRP') {
-                if (tagWithdrawTag === undefined) {
-                    if (!('destination_tag' in paramsWithdrawTag)) {
+                if (tag === undefined) {
+                    if (!('destination_tag' in params)) {
                         throw new errors.ArgumentsRequired(this.id + ' withdraw() requires a tag argument or destination_tag parameter to withdraw ' + code);
                     }
                 }
                 else {
-                    request['destination_tag'] = tagWithdrawTag;
+                    request['destination_tag'] = tag;
                 }
             }
         }
-        const response = await this.privatePostWithdrawCoin(this.extend(request, paramsWithdrawTag));
+        const response = await this.privatePostWithdrawCoin(this.extend(request, params));
         //
         //     {
         //         "response_data": {
@@ -857,7 +857,7 @@ class mercado extends mercado$1["default"] {
         //         "updated_timestamp": "1453912088"
         //     }
         //
-        const currencyResolved = this.safeCurrency(undefined, currency);
+        currency = this.safeCurrency(undefined, currency);
         return {
             'id': this.safeString(transaction, 'id'),
             'txid': undefined,
@@ -869,7 +869,7 @@ class mercado extends mercado$1["default"] {
             'addressTo': undefined,
             'amount': undefined,
             'type': undefined,
-            'currency': currencyResolved['code'],
+            'currency': currency['code'],
             'status': undefined,
             'updated': undefined,
             'tagFrom': undefined,
@@ -911,21 +911,21 @@ class mercado extends mercado$1["default"] {
             'resolution': this.safeString(this.timeframes, timeframe, timeframe),
             'symbol': market['base'] + '-' + market['quote'], // exceptional endpoint, that needs custom symbol syntax
         };
-        // set some default limit, as it's required if user doesn't provide it
-        const limitResolved = (limit === undefined) ? 100 : limit;
+        if (limit === undefined) {
+            limit = 100; // set some default limit, as it's required if user doesn't provide it
+        }
         if (since !== undefined) {
             request['from'] = this.parseToInt(since / 1000);
-            request['to'] = this.sum(request['from'], limitResolved * this.parseTimeframe(timeframe));
+            request['to'] = this.sum(request['from'], limit * this.parseTimeframe(timeframe));
         }
         else {
-            const to = this.seconds();
-            request['to'] = to;
-            request['from'] = to - (limitResolved * this.parseTimeframe(timeframe));
+            request['to'] = this.seconds();
+            request['from'] = request['to'] - (limit * this.parseTimeframe(timeframe));
         }
         const response = await this.v4PublicNetGetCandles(this.extend(request, params));
         // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
         // then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix
-        return this.parseTradingViewOHLCV(response, market, timeframe, since, limitResolved);
+        return this.parseTradingViewOHLCV(response, market, timeframe, since, limit);
     }
     /**
      * @method
@@ -1007,7 +1007,7 @@ class mercado extends mercado$1["default"] {
         const ordersRaw = this.safeList(responseData, 'orders', []);
         const orders = this.parseOrders(ordersRaw, market, since, limit);
         const trades = this.ordersToTrades(orders);
-        return this.filterBySymbolSinceLimit(trades, this.safeString(market, 'symbol'), since, limit);
+        return this.filterBySymbolSinceLimit(trades, market['symbol'], since, limit);
     }
     ordersToTrades(orders) {
         const result = [];
@@ -1024,16 +1024,9 @@ class mercado extends mercado$1["default"] {
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
-        if (apiUrl === undefined) {
-            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
-        }
-        let url = apiUrl + '/';
+        let url = this.urls['api'][api] + '/';
         const query = this.omit(params, this.extractParams(path));
-        const isPublic = (api === 'public') || (api === 'v4Public') || (api === 'v4PublicNet');
-        let privateBody = undefined;
-        let privateHeaders = undefined;
-        if (isPublic) {
+        if ((api === 'public') || (api === 'v4Public') || (api === 'v4PublicNet')) {
             url += this.implodeParams(path, params);
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
@@ -1044,26 +1037,18 @@ class mercado extends mercado$1["default"] {
             url += this.version + '/';
             // mercado requires each tonce to be greater than the previous one
             const nonce = this.incrementingNonce();
-            privateBody = this.urlencode(this.extend({
+            body = this.urlencode(this.extend({
                 'tapi_method': path,
                 'tapi_nonce': nonce,
             }, params));
-            const auth = '/tapi/' + this.version + '/' + '?' + privateBody;
-            privateHeaders = {
+            const auth = '/tapi/' + this.version + '/' + '?' + body;
+            headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'TAPI-ID': this.apiKey,
                 'TAPI-MAC': this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha512),
             };
         }
-        let requestBody = privateBody;
-        if (isPublic) {
-            requestBody = body;
-        }
-        let requestHeaders = privateHeaders;
-        if (isPublic) {
-            requestHeaders = headers;
-        }
-        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

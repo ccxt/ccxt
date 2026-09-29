@@ -133,7 +133,7 @@ export default class btcbox extends Exchange {
      */
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     nonce(): number;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    request(path: string, api?: string, method?: string, params?: Dict, headers?: any, body?: any, config?: Dict): Promise<any>;
+    request(path: any, api?: string, method?: string, params?: Dict, headers?: any, body?: any, config?: any): Promise<any>;
 }

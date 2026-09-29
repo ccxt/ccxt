@@ -86,9 +86,9 @@ export default class derive extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
+    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     parseFundingRate(contract: any, market?: Market): FundingRate;
-    hashOrderMessage(order: any): string;
+    hashOrderMessage(order: any): any;
     signOrder(order: any, privateKey: string): string;
     hashMessage(message: any): string;
     signHash(hash: string, privateKey: string): string;
@@ -114,7 +114,7 @@ export default class derive extends Exchange {
      * @param {float} [params.max_fee] *required* the maximum fee you are willing to pay for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     /**
      * @method
      * @name derive#editOrder
@@ -130,7 +130,7 @@ export default class derive extends Exchange {
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     /**
      * @method
      * @name derive#cancelOrder
@@ -266,7 +266,7 @@ export default class derive extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseIncome(income: Dict, market?: Market): Dict;
+    parseIncome(income: any, market?: Market): Dict;
     /**
      * @method
      * @name derive#fetchBalance
@@ -275,7 +275,7 @@ export default class derive extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    fetchBalance(params?: Dict): Promise<Balances>;
+    fetchBalance(params?: {}): Promise<Balances>;
     parseBalance(response: any): Balances;
     /**
      * @method
@@ -306,8 +306,8 @@ export default class derive extends Exchange {
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatus(status: Str): Str;
     handleDeriveSubaccountId(methodName: string, params: Dict): [any, Dict];
-    handleDeriveWalletAddress(methodName: string, params: Dict): [Str, Dict];
+    handleDeriveWalletAddress(methodName: string, params: Dict): (string | Dict)[];
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     nonce(): number;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
 }

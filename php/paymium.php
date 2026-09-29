@@ -301,10 +301,10 @@ class paymium extends Exchange {
     public function parse_trade(array $trade, ?array $market = null): array {
         $timestamp = $this->safe_timestamp($trade, 'created_at_int');
         $id = $this->safe_string($trade, 'uuid');
-        $marketResolved = $this->safe_market(null, $market);
+        $market = $this->safe_market(null, $market);
         $side = $this->safe_string($trade, 'side');
         $price = $this->safe_string($trade, 'price');
-        $amountField = 'traded_' . strtolower($marketResolved['base']);
+        $amountField = 'traded_' . strtolower($market['base']);
         $amount = $this->safe_string($trade, $amountField);
         return $this->safe_trade(array(
             'info' => $trade,
@@ -312,7 +312,7 @@ class paymium extends Exchange {
             'order' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
@@ -320,7 +320,7 @@ class paymium extends Exchange {
             'amount' => $amount,
             'cost' => null,
             'fee' => null,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -426,7 +426,7 @@ class paymium extends Exchange {
         return $this->parse_deposit_addresses($response, $codes, false);
     }
 
-    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -630,13 +630,8 @@ class paymium extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $baseApiUrl = $this->safe_string($this->urls['api'], 'rest');
-        if ($baseApiUrl === null) {
-            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
-        }
-        $baseUrl = $baseApiUrl;
-        $url = $baseUrl . '/' . $this->version . '/' . $this->implode_params($path, $params);
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if (count($query) > 0) {
@@ -647,29 +642,24 @@ class paymium extends Exchange {
             // paymium requires an increasing nonce
             $nonce = (string) $this->incrementing_nonce();
             $auth = $nonce . $url;
-            $signedHeaders = array(
+            $headers = array(
                 'Api-Key' => $this->apiKey,
                 'Api-Nonce' => $nonce,
             );
-            $hasQuery = count($query) > 0;
-            $signedBody = $body;
-            if ($method === 'POST' && $hasQuery) {
-                $signedBody = $this->json($query);
-            }
             if ($method === 'POST') {
-                if ($hasQuery) {
-                    $auth .= $signedBody;
-                    $signedHeaders['Content-Type'] = 'application/json';
+                if (count($query) > 0) {
+                    $body = $this->json($query);
+                    $auth .= $body;
+                    $headers['Content-Type'] = 'application/json';
                 }
             } else {
-                if ($hasQuery) {
+                if (count($query) > 0) {
                     $queryString = $this->urlencode($query);
                     $auth .= $queryString;
                     $url .= '?' . $queryString;
                 }
             }
-            $signedHeaders['Api-Signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            return array( 'url' => $url, 'method' => $method, 'body' => $signedBody, 'headers' => $signedHeaders );
+            $headers['Api-Signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

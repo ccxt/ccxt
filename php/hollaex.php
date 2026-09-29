@@ -355,7 +355,7 @@ class hollaex extends Exchange {
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $market = $this->safe_dict($pairs, $key);
+            $market = $pairs[$key];
             $baseId = $this->safe_string($market, 'pair_base');
             $quoteId = $this->safe_string($market, 'pair_2');
             $base = $this->common_currency_code(strtoupper($baseId));
@@ -499,10 +499,7 @@ class hollaex extends Exchange {
         $code = $this->safe_currency_code($id);
         $withdrawalLimits = $this->safe_list($rawCurrency, 'withdrawal_limits', array());
         $rawType = $this->safe_string($rawCurrency, 'type');
-        $type = 'other';
-        if ($rawType === 'blockchain') {
-            $type = 'crypto';
-        }
+        $type = ($rawType === 'blockchain') ? 'crypto' : 'other';
         $rawNetworks = $this->safe_dict($rawCurrency, 'withdrawal_fees', array());
         $networks = array();
         $networkIds = is_array($rawNetworks) ? array_keys($rawNetworks) : array();
@@ -670,7 +667,7 @@ class hollaex extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetTickers($params);
         //
         //     {
@@ -687,7 +684,7 @@ class hollaex extends Exchange {
         //         // ...
         //     }
         //
-        return $this->parse_tickers($response, $symbolsNormalized);
+        return $this->parse_tickers($response, $symbols);
     }
 
     public function parse_tickers(mixed $tickers, ?array $symbols = null, $params = array()): array {
@@ -732,8 +729,8 @@ class hollaex extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        $marketResolved = $this->safe_market($marketId, $market, '-');
-        $symbol = $marketResolved['symbol'];
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
         $timestamp = $this->parse8601($this->safe_string_2($ticker, 'time', 'timestamp'));
         $close = $this->safe_string($ticker, 'close');
         return $this->safe_ticker(array(
@@ -757,7 +754,7 @@ class hollaex extends Exchange {
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -821,8 +818,8 @@ class hollaex extends Exchange {
         //  }
         //
         $marketId = $this->safe_string($trade, 'symbol');
-        $marketResolved = $this->safe_market($marketId, $market, '-');
-        $symbol = $marketResolved['symbol'];
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
         $datetime = $this->safe_string($trade, 'timestamp');
         $timestamp = $this->parse8601($datetime);
         $side = $this->safe_string($trade, 'side');
@@ -852,7 +849,7 @@ class hollaex extends Exchange {
             'amount' => $amountString,
             'cost' => null,
             'fee' => $fee,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function fetch_trading_fees($params = array()): array {
@@ -942,11 +939,11 @@ class hollaex extends Exchange {
         );
         $paginate = false;
         $maxLimit = 500;
-        list($paginateOption, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', $paginate);
-        if ($paginateOption) {
-            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxLimit);
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', $paginate);
+        if ($paginate) {
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit);
         }
-        $until = $this->safe_integer($paramsPaginate, 'until');
+        $until = $this->safe_integer($params, 'until');
         $timeDelta = $this->parse_timeframe($timeframe) * $maxLimit * 1000;
         $start = $since;
         $now = $this->milliseconds();
@@ -958,8 +955,8 @@ class hollaex extends Exchange {
         }
         $request['from'] = $this->parse_to_int($start / 1000); // convert to seconds
         $request['to'] = $this->parse_to_int($until / 1000); // convert to seconds
-        $paramsOmitted = $this->omit($paramsPaginate, 'until');
-        $response = $this->publicGetChart($this->extend($request, $paramsOmitted));
+        $params = $this->omit($params, 'until');
+        $response = $this->publicGetChart($this->extend($request, $params));
         //
         //     [
         //         {
@@ -1369,8 +1366,8 @@ class hollaex extends Exchange {
         if ($postOnly) {
             $request['meta'] = array( 'post_only' => true );
         }
-        $paramsOmitted = $this->omit($params, array( 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop' ));
-        $response = $this->privatePostOrder($this->extend($request, $paramsOmitted));
+        $params = $this->omit($params, array( 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop' ));
+        $response = $this->privatePostOrder($this->extend($request, $params));
         //
         //     {
         //         "fee": 0,
@@ -1525,7 +1522,7 @@ class hollaex extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "currency":"usdt",
@@ -1545,11 +1542,11 @@ class hollaex extends Exchange {
         }
         $this->check_address($address);
         $currencyId = $this->safe_string($depositAddress, 'currency');
-        $currencyResolved = $this->safe_currency($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $network = $this->safe_string($depositAddress, 'network');
         return array(
             'info' => $depositAddress,
-            'currency' => $currencyResolved['code'],
+            'currency' => $currency['code'],
             'network' => $network,
             'address' => $address,
             'tag' => $tag,
@@ -1570,8 +1567,8 @@ class hollaex extends Exchange {
             $this->load_markets();
         }
         $network = $this->safe_string($params, 'network');
-        $paramsOmitted = $this->omit($params, 'network');
-        $response = $this->privateGetUser($paramsOmitted);
+        $params = $this->omit($params, 'network');
+        $response = $this->privateGetUser($params);
         //
         //     {
         //         "id":620,
@@ -1618,12 +1615,7 @@ class hollaex extends Exchange {
         //     }
         //
         $wallet = $this->safe_list($response, 'wallet', array());
-        $addresses = null;
-        if ($network === null) {
-            $addresses = $wallet;
-        } else {
-            $addresses = $this->filter_by($wallet, 'network', $network);
-        }
+        $addresses = ($network === null) ? $wallet : $this->filter_by($wallet, 'network', $network);
         return $this->parse_deposit_addresses($addresses, $codes, false);
     }
 
@@ -1856,7 +1848,7 @@ class hollaex extends Exchange {
             $tagTo = $tag;
         }
         $currencyId = $this->safe_string($transaction, 'currency');
-        $currencyResolved = $this->safe_currency($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $status = $this->safe_value($transaction, 'status');
         $dismissed = $this->safe_bool($transaction, 'dismissed');
         $rejected = $this->safe_bool($transaction, 'rejected');
@@ -1870,7 +1862,7 @@ class hollaex extends Exchange {
             $status = 'pending';
         }
         $feeCurrencyId = $this->safe_string($transaction, 'fee_coin');
-        $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId, $currencyResolved);
+        $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId, $currency);
         $feeCost = $this->safe_number($transaction, 'fee');
         $fee = null;
         if ($feeCost !== null) {
@@ -1894,7 +1886,7 @@ class hollaex extends Exchange {
             'tagTo' => $tagTo,
             'type' => $type,
             'amount' => $amount,
-            'currency' => $currencyResolved['code'],
+            'currency' => $currency['code'],
             'status' => $status,
             'updated' => $updated,
             'comment' => $this->safe_string($transaction, 'message'),
@@ -1916,28 +1908,27 @@ class hollaex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         if ($this->markets === null) {
             $this->load_markets();
         }
         $currency = $this->currency($code);
-        $addressWithTag = $address;
-        if ($tagWithdrawTag !== null) {
-            $addressWithTag = $address . ':' . $tagWithdrawTag;
+        if ($tag !== null) {
+            $address .= ':' . $tag;
         }
-        $network = $this->safe_string($paramsWithdrawTag, 'network');
+        $network = $this->safe_string($params, 'network');
         if ($network === null) {
             throw new ArgumentsRequired($this->id . ' withdraw() requires a network parameter');
         }
-        $paramsOmitted = $this->omit($paramsWithdrawTag, 'network');
+        $params = $this->omit($params, 'network');
         $request = array(
             'currency' => $currency['id'],
             'amount' => $amount,
-            'address' => $addressWithTag,
+            'address' => $address,
             'network' => $this->network_code_to_id($network, $code),
         );
-        $response = $this->privatePostUserWithdrawal($this->extend($request, $paramsOmitted));
+        $response = $this->privatePostUserWithdrawal($this->extend($request, $params));
         //
         //     {
         //         "message": "Withdrawal request is in the queue and will be processed.",
@@ -2004,7 +1995,7 @@ class hollaex extends Exchange {
             $keysLength = count($keys);
             for ($i = 0; $i < $keysLength; $i++) {
                 $key = $keys[$i];
-                $value = $this->safe_dict($withdrawalFees, $key);
+                $value = $withdrawalFees[$key];
                 $currencyId = $this->safe_string($value, 'symbol');
                 $currencyCode = $this->safe_currency_code($currencyId);
                 $networkCode = $this->network_id_to_code($key, $currencyCode);
@@ -2072,44 +2063,36 @@ class hollaex extends Exchange {
         return $this->parse_deposit_withdraw_fees($coins, $codes, 'symbol');
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $query = $this->omit($params, $this->extract_params($path));
-        $requestPath = '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $path = '/' . $this->version . '/' . $this->implode_params($path, $params);
         if (($method === 'GET') || ($method === 'DELETE')) {
             if (count($query) > 0) {
-                $requestPath .= '?' . $this->urlencode($query);
+                $path .= '?' . $this->urlencode($query);
             }
         }
-        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
-        if ($apiUrl === null) {
-            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
-        }
-        $url = $apiUrl . $requestPath;
-        $requestBody = null;
-        $requestHeaders = null;
+        $url = $this->urls['api']['rest'] . $path;
         if ($api === 'private') {
             $this->check_required_credentials();
             $defaultExpires = $this->safe_integer_2($this->options, 'api-expires', 'expires', $this->parse_to_int($this->timeout / 1000));
             $expires = $this->sum($this->seconds(), $defaultExpires);
             $expiresString = (string) $expires;
-            $auth = $method . $requestPath . $expiresString;
-            $requestHeaders = array(
+            $auth = $method . $path . $expiresString;
+            $headers = array(
                 'api-key' => $this->apiKey,
                 'api-expires' => $expiresString,
             );
             if ($method === 'POST') {
-                $requestHeaders['Content-type'] = 'application/json';
+                $headers['Content-type'] = 'application/json';
                 if (count($query) > 0) {
-                    $requestBody = $this->json($query);
-                    $auth .= $requestBody;
+                    $body = $this->json($query);
+                    $auth .= $body;
                 }
             }
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $requestHeaders['api-signature'] = $signature;
+            $headers['api-signature'] = $signature;
         }
-        $bodyResult = ($requestBody === null) ? $body : $requestBody;
-        $headersResult = ($requestHeaders === null) ? $headers : $requestHeaders;
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

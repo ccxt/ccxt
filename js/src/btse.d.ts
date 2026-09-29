@@ -151,7 +151,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
+    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     /**
      * @method
      * @name btse#fetchFundingRates
@@ -567,7 +567,7 @@ export default class btse extends Exchange {
      * @param {bool} [params.postOnly] true if the order should be post only
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    closePosition(symbol: string, side?: Str, params?: Dict): Promise<Order>;
+    closePosition(symbol: string, side?: OrderSide, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name btse#fetchLeverage
@@ -593,7 +593,7 @@ export default class btse extends Exchange {
      */
     setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<Dict>;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: string, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

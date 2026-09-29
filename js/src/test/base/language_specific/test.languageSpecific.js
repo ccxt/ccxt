@@ -18,7 +18,6 @@ import testOnJsonResponse from './test.onJsonResponse.js';
 import testPrecisionFromStringZero from './test.precisionFromString.js';
 import testBingxTestOrder from './test.bingxTestOrder.js';
 import testFetchTradesDiagnostics from './test.fetchTradesDiagnostics.js';
-import testOptionTypes from './test.optionTypes.js';
 // todo: import testConfig from './test.config.js';
 // import './test.time.js' :todo
 // import './test.timeout_hang.js' :todo
@@ -31,7 +30,6 @@ async function testLanguageSpecific() {
     testLegacyHas();
     testTypes();
     testOnJsonResponse();
-    testOptionTypes();
     testPrecisionFromStringZero();
     await testBingxTestOrder();
     await testFetchTradesDiagnostics();

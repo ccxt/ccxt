@@ -25,7 +25,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
+    unWatchTrades(symbol: string, params?: {}): Promise<any>;
     /**
      * @method
      * @name nado#watchTradesForSymbols
@@ -47,7 +47,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    unWatchTradesForSymbols(symbols: string[], params?: Dict): Promise<any>;
+    unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
     /**
      * @method
      * @name nado#watchOrderBook
@@ -68,7 +68,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     /**
      * @method
      * @name nado#watchOrderBookForSymbols
@@ -89,7 +89,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    unWatchOrderBookForSymbols(symbols: string[], params?: Dict): Promise<any>;
+    unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
     /**
      * @method
      * @name nado#watchOHLCV
@@ -125,7 +125,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
     /**
      * @method
      * @name nado#unWatchOHLCVForSymbols
@@ -135,7 +135,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: Dict): Promise<any>;
+    unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
     /**
      * @method
      * @name nado#watchTicker
@@ -155,7 +155,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
+    unWatchTicker(symbol: string, params?: {}): Promise<any>;
     /**
      * @method
      * @name nado#watchTickers
@@ -175,7 +175,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    unWatchTickers(symbols?: Strings, params?: Dict): Promise<any>;
+    unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
     /**
      * @method
      * @name nado#watchBidsAsks
@@ -195,7 +195,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    unWatchBidsAsks(symbols?: Strings, params?: Dict): Promise<any>;
+    unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
     /**
      * @method
      * @name nado#watchOrders
@@ -220,7 +220,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    unWatchOrders(symbol?: Str, params?: Dict): Promise<any>;
+    unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
     /**
      * @method
      * @name nado#watchMyTrades
@@ -245,7 +245,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    unWatchMyTrades(symbol?: Str, params?: Dict): Promise<any>;
+    unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
     /**
      * @method
      * @name nado#watchPositions
@@ -270,7 +270,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    unWatchPositions(symbols?: Strings, params?: Dict): Promise<any>;
+    unWatchPositions(symbols?: Strings, params?: {}): Promise<any>;
     /**
      * @method
      * @name nado#createOrderWs

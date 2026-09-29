@@ -220,7 +220,7 @@ class bitflyer extends Exchange {
         ));
     }
 
-    public function parse_expiry_date(string $expiry): ?int {
+    public function parse_expiry_date(mixed $expiry) {
         $day = mb_substr($expiry, 0, 2 - 0);
         $monthName = mb_substr($expiry, 2, 5 - 2);
         $year = mb_substr($expiry, 5, 9 - 5);
@@ -239,9 +239,6 @@ class bitflyer extends Exchange {
             'DEC' => '12',
         );
         $month = $this->safe_string($months, $monthName);
-        if ($month === null) {
-            return null;
-        }
         return $this->parse8601($year . '-' . $month . '-' . $day . 'T00:00:00Z');
     }
 
@@ -333,21 +330,12 @@ class bitflyer extends Exchange {
                     $quoteId = mb_substr($currencyIds, -3);
                     $splitId = explode($currencyIds, $id);
                     $expiryDate = $this->safe_string($splitId, 1);
-                    if ($expiryDate === null) {
-                        continue;
-                    }
                     $expiry = $this->parse_expiry_date($expiryDate);
-                }
-                if ($expiry === null) {
-                    continue;
                 }
                 $type = 'future';
             }
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            if (($base === null) || ($quote === null)) {
-                continue;
-            }
             $symbol = $base . '/' . $quote;
             $taker = $this->fees['trading']['taker'];
             $maker = $this->fees['trading']['maker'];
@@ -419,7 +407,7 @@ class bitflyer extends Exchange {
     public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $this->safe_dict($response, $i);
+            $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency_code');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -575,7 +563,7 @@ class bitflyer extends Exchange {
         if ($side !== null) {
             $idInner = $side . '_child_order_acceptance_id';
             if (is_array($trade) && array_key_exists($idInner ?? '', $trade)) {
-                $order = $this->safe_string($trade, $idInner);
+                $order = $trade[$idInner];
             }
         }
         if ($order === null) {
@@ -585,13 +573,13 @@ class bitflyer extends Exchange {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'size');
         $id = $this->safe_string($trade, 'id');
-        $marketResolved = $this->safe_market(null, $market);
+        $market = $this->safe_market(null, $market);
         return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'order' => $order,
             'type' => null,
             'side' => $side,
@@ -600,7 +588,7 @@ class bitflyer extends Exchange {
             'amount' => $amountString,
             'cost' => null,
             'fee' => null,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -880,8 +868,7 @@ class bitflyer extends Exchange {
         $orders = $this->fetch_orders($symbol);
         $ordersById = $this->index_by($orders, 'id');
         if (is_array($ordersById) && array_key_exists($id ?? '', $ordersById)) {
-            $found = $this->safe_dict($ordersById, $id);
-            return $found;
+            return $ordersById[$id];
         }
         throw new OrderNotFound($this->id . ' No order found with id ' . $id);
     }
@@ -1244,9 +1231,7 @@ class bitflyer extends Exchange {
         );
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $bodySigned = null;
-        $headersSigned = null;
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $request = '/' . $this->version . '/';
         if ($api === 'private') {
             $request .= 'me/';
@@ -1257,11 +1242,7 @@ class bitflyer extends Exchange {
                 $request .= '?' . $this->urlencode($params);
             }
         }
-        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
-        if ($apiUrl === null) {
-            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
-        }
-        $baseUrl = $this->implode_hostname($apiUrl);
+        $baseUrl = $this->implode_hostname($this->urls['api']['rest']);
         $url = $baseUrl . $request;
         if ($api === 'private') {
             $this->check_required_credentials();
@@ -1270,20 +1251,18 @@ class bitflyer extends Exchange {
             $auth = implode('', $content);
             if (count($params) > 0) {
                 if ($method !== 'GET') {
-                    $bodySigned = $this->json($params);
-                    $auth .= $bodySigned;
+                    $body = $this->json($params);
+                    $auth .= $body;
                 }
             }
-            $headersSigned = array(
+            $headers = array(
                 'ACCESS-KEY' => $this->apiKey,
                 'ACCESS-TIMESTAMP' => $nonce,
                 'ACCESS-SIGN' => $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'),
                 'Content-Type' => 'application/json',
             );
         }
-        $headersResolved = ($headersSigned === null) ? $headers : $headersSigned;
-        $bodyResolved = ($bodySigned === null) ? $body : $bodySigned;
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

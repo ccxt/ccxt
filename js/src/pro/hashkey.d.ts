@@ -5,7 +5,7 @@ export default class hashkey extends hashkeyRest {
     describe(): any;
     wathPublic(market: Market, topic: string, messageHash: string, params?: Dict): Promise<any>;
     watchPrivate(messageHash: any): Promise<any>;
-    getPrivateUrl(listenKey: Str): string;
+    getPrivateUrl(listenKey: any): string;
     /**
      * @method
      * @name hashkey#watchOHLCV
@@ -32,7 +32,7 @@ export default class hashkey extends hashkeyRest {
      * @param {bool} [params.binary] true or false - default false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     handleTicker(client: Client, message: Dict): void;
     /**
      * @method
@@ -46,7 +46,7 @@ export default class hashkey extends hashkeyRest {
      * @param {bool} [params.binary] true or false - default false
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: Dict): void;
     /**
      * @method
@@ -101,7 +101,7 @@ export default class hashkey extends hashkeyRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     handlePosition(client: Client, message: Dict): void;
-    parseWsPosition(position: Dict, market?: Market): Position;
+    parseWsPosition(position: any, market?: Market): Position;
     /**
      * @method
      * @name hashkey#watchBalance

@@ -3,7 +3,7 @@ import type { Balances, Dict, Int, Market, Order, OrderBook, Str, Strings, Ticke
 import Client from '../base/ws/Client.js';
 export default class coinex extends coinexRest {
     describe(): any;
-    requestId(): number;
+    requestId(): any;
     handleTicker(client: Client, message: Dict): void;
     parseWSTicker(ticker: Dict, market?: Market): Ticker;
     /**

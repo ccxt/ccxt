@@ -121,7 +121,7 @@ export default class bit2c extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    removeCommaFromValue(str: string): string;
+    removeCommaFromValue(str: any): string;
     parseTrade(trade: Dict, market?: Market): Trade;
     isFiat(code: Str): boolean;
     /**
@@ -134,8 +134,8 @@ export default class bit2c extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
-    parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     nonce(): number;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

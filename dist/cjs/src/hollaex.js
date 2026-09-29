@@ -360,7 +360,7 @@ class hollaex extends hollaex$1["default"] {
         const result = [];
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const market = this.safeDict(pairs, key);
+            const market = pairs[key];
             const baseId = this.safeString(market, 'pair_base');
             const quoteId = this.safeString(market, 'pair_2');
             const base = this.commonCurrencyCode(baseId.toUpperCase());
@@ -502,10 +502,7 @@ class hollaex extends hollaex$1["default"] {
         const code = this.safeCurrencyCode(id);
         const withdrawalLimits = this.safeList(rawCurrency, 'withdrawal_limits', []);
         const rawType = this.safeString(rawCurrency, 'type');
-        let type = 'other';
-        if (rawType === 'blockchain') {
-            type = 'crypto';
-        }
+        const type = (rawType === 'blockchain') ? 'crypto' : 'other';
         const rawNetworks = this.safeDict(rawCurrency, 'withdrawal_fees', {});
         const networks = {};
         const networkIds = Object.keys(rawNetworks);
@@ -669,7 +666,7 @@ class hollaex extends hollaex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols);
         const response = await this.publicGetTickers(params);
         //
         //     {
@@ -686,7 +683,7 @@ class hollaex extends hollaex$1["default"] {
         //         // ...
         //     }
         //
-        return this.parseTickers(response, symbolsNormalized);
+        return this.parseTickers(response, symbols);
     }
     parseTickers(tickers, symbols = undefined, params = {}) {
         const result = {};
@@ -729,8 +726,8 @@ class hollaex extends hollaex$1["default"] {
         //     }
         //
         const marketId = this.safeString(ticker, 'symbol');
-        const marketResolved = this.safeMarket(marketId, market, '-');
-        const symbol = marketResolved['symbol'];
+        market = this.safeMarket(marketId, market, '-');
+        const symbol = market['symbol'];
         const timestamp = this.parse8601(this.safeString2(ticker, 'time', 'timestamp'));
         const close = this.safeString(ticker, 'close');
         return this.safeTicker({
@@ -754,7 +751,7 @@ class hollaex extends hollaex$1["default"] {
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'volume'),
             'quoteVolume': undefined,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -816,8 +813,8 @@ class hollaex extends hollaex$1["default"] {
         //  }
         //
         const marketId = this.safeString(trade, 'symbol');
-        const marketResolved = this.safeMarket(marketId, market, '-');
-        const symbol = marketResolved['symbol'];
+        market = this.safeMarket(marketId, market, '-');
+        const symbol = market['symbol'];
         const datetime = this.safeString(trade, 'timestamp');
         const timestamp = this.parse8601(datetime);
         const side = this.safeString(trade, 'side');
@@ -847,7 +844,7 @@ class hollaex extends hollaex$1["default"] {
             'amount': amountString,
             'cost': undefined,
             'fee': fee,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -933,13 +930,13 @@ class hollaex extends hollaex$1["default"] {
             'symbol': market['id'],
             'resolution': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const paginate = false;
+        let paginate = false;
         const maxLimit = 500;
-        const [paginateOption, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', paginate);
-        if (paginateOption) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', paginate);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit);
         }
-        let until = this.safeInteger(paramsPaginate, 'until');
+        let until = this.safeInteger(params, 'until');
         const timeDelta = this.parseTimeframe(timeframe) * maxLimit * 1000;
         let start = since;
         const now = this.milliseconds();
@@ -951,8 +948,8 @@ class hollaex extends hollaex$1["default"] {
         }
         request['from'] = this.parseToInt(start / 1000); // convert to seconds
         request['to'] = this.parseToInt(until / 1000); // convert to seconds
-        const paramsOmitted = this.omit(paramsPaginate, 'until');
-        const response = await this.publicGetChart(this.extend(request, paramsOmitted));
+        params = this.omit(params, 'until');
+        const response = await this.publicGetChart(this.extend(request, params));
         //
         //     [
         //         {
@@ -1351,8 +1348,8 @@ class hollaex extends hollaex$1["default"] {
         if (postOnly) {
             request['meta'] = { 'post_only': true };
         }
-        const paramsOmitted = this.omit(params, ['postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop']);
-        const response = await this.privatePostOrder(this.extend(request, paramsOmitted));
+        params = this.omit(params, ['postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop']);
+        const response = await this.privatePostOrder(this.extend(request, params));
         //
         //     {
         //         "fee": 0,
@@ -1523,11 +1520,11 @@ class hollaex extends hollaex$1["default"] {
         }
         this.checkAddress(address);
         const currencyId = this.safeString(depositAddress, 'currency');
-        const currencyResolved = this.safeCurrency(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const network = this.safeString(depositAddress, 'network');
         return {
             'info': depositAddress,
-            'currency': currencyResolved['code'],
+            'currency': currency['code'],
             'network': network,
             'address': address,
             'tag': tag,
@@ -1547,8 +1544,8 @@ class hollaex extends hollaex$1["default"] {
             await this.loadMarkets();
         }
         const network = this.safeString(params, 'network');
-        const paramsOmitted = this.omit(params, 'network');
-        const response = await this.privateGetUser(paramsOmitted);
+        params = this.omit(params, 'network');
+        const response = await this.privateGetUser(params);
         //
         //     {
         //         "id":620,
@@ -1595,13 +1592,7 @@ class hollaex extends hollaex$1["default"] {
         //     }
         //
         const wallet = this.safeList(response, 'wallet', []);
-        let addresses = undefined;
-        if (network === undefined) {
-            addresses = wallet;
-        }
-        else {
-            addresses = this.filterBy(wallet, 'network', network);
-        }
+        const addresses = (network === undefined) ? wallet : this.filterBy(wallet, 'network', network);
         return this.parseDepositAddresses(addresses, codes, false);
     }
     /**
@@ -1830,7 +1821,7 @@ class hollaex extends hollaex$1["default"] {
             tagTo = tag;
         }
         const currencyId = this.safeString(transaction, 'currency');
-        const currencyResolved = this.safeCurrency(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         let status = this.safeValue(transaction, 'status');
         const dismissed = this.safeBool(transaction, 'dismissed');
         const rejected = this.safeBool(transaction, 'rejected');
@@ -1847,7 +1838,7 @@ class hollaex extends hollaex$1["default"] {
             status = 'pending';
         }
         const feeCurrencyId = this.safeString(transaction, 'fee_coin');
-        const feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, currencyResolved);
+        const feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, currency);
         const feeCost = this.safeNumber(transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -1871,7 +1862,7 @@ class hollaex extends hollaex$1["default"] {
             'tagTo': tagTo,
             'type': type,
             'amount': amount,
-            'currency': currencyResolved['code'],
+            'currency': currency['code'],
             'status': status,
             'updated': updated,
             'comment': this.safeString(transaction, 'message'),
@@ -1892,28 +1883,27 @@ class hollaex extends hollaex$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        let addressWithTag = address;
-        if (tagWithdrawTag !== undefined) {
-            addressWithTag = address + ':' + tagWithdrawTag;
+        if (tag !== undefined) {
+            address += ':' + tag;
         }
-        const network = this.safeString(paramsWithdrawTag, 'network');
+        const network = this.safeString(params, 'network');
         if (network === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' withdraw() requires a network parameter');
         }
-        const paramsOmitted = this.omit(paramsWithdrawTag, 'network');
+        params = this.omit(params, 'network');
         const request = {
             'currency': currency['id'],
             'amount': amount,
-            'address': addressWithTag,
+            'address': address,
             'network': this.networkCodeToId(network, code),
         };
-        const response = await this.privatePostUserWithdrawal(this.extend(request, paramsOmitted));
+        const response = await this.privatePostUserWithdrawal(this.extend(request, params));
         //
         //     {
         //         "message": "Withdrawal request is in the queue and will be processed.",
@@ -1979,7 +1969,7 @@ class hollaex extends hollaex$1["default"] {
             const keysLength = keys.length;
             for (let i = 0; i < keysLength; i++) {
                 const key = keys[i];
-                const value = this.safeDict(withdrawalFees, key);
+                const value = withdrawalFees[key];
                 const currencyId = this.safeString(value, 'symbol');
                 const currencyCode = this.safeCurrencyCode(currencyId);
                 const networkCode = this.networkIdToCode(key, currencyCode);
@@ -2047,42 +2037,34 @@ class hollaex extends hollaex$1["default"] {
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));
-        let requestPath = '/' + this.version + '/' + this.implodeParams(path, params);
+        path = '/' + this.version + '/' + this.implodeParams(path, params);
         if ((method === 'GET') || (method === 'DELETE')) {
             if (Object.keys(query).length > 0) {
-                requestPath += '?' + this.urlencode(query);
+                path += '?' + this.urlencode(query);
             }
         }
-        const apiUrl = this.safeString(this.urls['api'], 'rest');
-        if (apiUrl === undefined) {
-            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
-        }
-        const url = apiUrl + requestPath;
-        let requestBody = undefined;
-        let requestHeaders = undefined;
+        const url = this.urls['api']['rest'] + path;
         if (api === 'private') {
             this.checkRequiredCredentials();
             const defaultExpires = this.safeInteger2(this.options, 'api-expires', 'expires', this.parseToInt(this.timeout / 1000));
             const expires = this.sum(this.seconds(), defaultExpires);
             const expiresString = expires.toString();
-            let auth = method + requestPath + expiresString;
-            requestHeaders = {
+            let auth = method + path + expiresString;
+            headers = {
                 'api-key': this.apiKey,
                 'api-expires': expiresString,
             };
             if (method === 'POST') {
-                requestHeaders['Content-type'] = 'application/json';
+                headers['Content-type'] = 'application/json';
                 if (Object.keys(query).length > 0) {
-                    requestBody = this.json(query);
-                    auth += requestBody;
+                    body = this.json(query);
+                    auth += body;
                 }
             }
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
-            requestHeaders['api-signature'] = signature;
+            headers['api-signature'] = signature;
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
-        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
-        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         // { "message": "Invalid token" }

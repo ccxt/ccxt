@@ -197,7 +197,7 @@ export default class mexc extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
-    createSpotOrderRequest(market: any, type: Str, side: Str, amount: any, price?: Num, marginMode?: Str, params?: {}): any;
+    createSpotOrderRequest(market: any, type: any, side: any, amount: any, price?: Num, marginMode?: Str, params?: {}): any;
     /**
      * @ignore
      * @method
@@ -241,7 +241,7 @@ export default class mexc extends Exchange {
      * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createSwapOrder(market: any, type: any, side: OrderSide, amount: any, price?: Num, marginMode?: Str, params?: {}): Promise<Order>;
+    createSwapOrder(market: any, type: any, side: any, amount: any, price?: Num, marginMode?: Str, params?: {}): Promise<Order>;
     /**
      * @method
      * @name mexc#createOrders
@@ -499,7 +499,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
+    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     /**
      * @method
      * @name mexc#fetchFundingRateHistory
@@ -523,7 +523,7 @@ export default class mexc extends Exchange {
      */
     fetchLeverageTiers(symbols?: Strings, params?: Dict): Promise<LeverageTiers>;
     parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
-    parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     /**
      * @method
      * @name mexc#fetchDepositAddressesByNetwork
@@ -702,7 +702,7 @@ export default class mexc extends Exchange {
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchTransactionFees(codes?: Strings, params?: Dict): Promise<Dict>;
-    parseTransactionFees(response: Dict[], codes?: Strings): Dict;
+    parseTransactionFees(response: any[], codes?: Strings): Dict;
     parseTransactionFee(transaction: Dict, currency?: Currency): Dict;
     /**
      * @method
@@ -726,7 +726,7 @@ export default class mexc extends Exchange {
      */
     fetchLeverage(symbol: string, params?: Dict): Promise<Leverage>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
-    handleMarginModeAndParams(methodName: string, params?: Dict, defaultValue?: Str): [Str, Dict];
+    handleMarginModeAndParams(methodName: string, params?: Dict, defaultValue?: any): [any, Dict];
     /**
      * @method
      * @name mexc#fetchPositionsHistory
@@ -757,6 +757,6 @@ export default class mexc extends Exchange {
      */
     setMarginMode(marginMode: string, symbol?: Str, params?: Dict): Promise<Dict>;
     nonce(): number;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

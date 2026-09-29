@@ -503,8 +503,6 @@ class bydfi(Exchange, ImplicitAPI):
         settleId = self.safe_string(market, 'marginAsset')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        if (base is None) or (quote is None):
-            return None
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
         inverse = self.safe_bool(market, 'reverse')
@@ -702,10 +700,12 @@ class bydfi(Exchange, ImplicitAPI):
         paginate = self.safe_bool(params, 'paginate', False)
         if paginate is True:
             maxLimit = 500
-            paramsPaginate = self.extend(self.omit(params, 'paginate'), {'paginationDirection': 'backward'})
-            paginatedResponse = await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, paramsPaginate, maxLimit, True)
+            params = self.omit(params, 'paginate')
+            params = self.extend(params, {'paginationDirection': 'backward'})
+            paginatedResponse = await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params, maxLimit, True)
             return self.sort_by(paginatedResponse, 'timestamp')
-        contractType, paramsContractType = self.handle_option_string_and_params(params, 'fetchMyTrades', 'contractType', 'FUTURE')
+        contractType = 'FUTURE'
+        contractType, params = self.handle_option_and_params(params, 'fetchMyTrades', 'contractType', contractType)
         request = {
             'contractType': contractType,
         }
@@ -713,10 +713,10 @@ class bydfi(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        paramsSinceUntil = self.handle_since_and_until('fetchMyTrades', since, paramsContractType)
+        params = self.handle_since_and_until('fetchMyTrades', since, params)
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateGetV1FapiTradeHistoryTrade(self.extend(request, paramsSinceUntil))
+        response = await self.privateGetV1FapiTradeHistoryTrade(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -778,7 +778,7 @@ class bydfi(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(trade, 'symbol')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(trade, 'time')
         fee = None
         rawType = self.safe_string(trade, 'type')
@@ -786,7 +786,7 @@ class bydfi(Exchange, ImplicitAPI):
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
-                'currency': marketResolved['settle'],
+                'currency': market['settle'],
             }
         orderId = self.safe_string(trade, 'orderId')
         side = None  # fetchMyTrades always returns side BUY
@@ -797,7 +797,7 @@ class bydfi(Exchange, ImplicitAPI):
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'id': self.safe_string(trade, 'id'),
             'order': orderId,
             'type': self.parse_trade_type(rawType),
@@ -807,7 +807,7 @@ class bydfi(Exchange, ImplicitAPI):
             'amount': self.safe_string_2(trade, 'quantity', 'dealVolume'),
             'cost': None,
             'fee': fee,
-        }, marketResolved)
+        }, market)
 
     def parse_trade_type(self, type: Str) -> Str:
         types = {
@@ -834,9 +834,10 @@ class bydfi(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         maxLimit = 500  # docs says max 1500, but in practice only 500 works
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit)
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         request = {
@@ -844,12 +845,9 @@ class bydfi(Exchange, ImplicitAPI):
             'interval': interval,
         }
         startTime = since
-        numberOfCandles = maxLimit
-        if limit is not None and limit is not None and limit != 0:
-            numberOfCandles = limit
+        numberOfCandles = limit if (limit is not None and limit is not None and limit != 0) else maxLimit
         until = None
-        paramsUntil = None
-        until, paramsUntil = self.handle_option_integer_and_params(paramsPaginate, 'fetchOHLCV', 'until')
+        until, params = self.handle_option_and_params(params, 'fetchOHLCV', 'until')
         now = self.milliseconds()
         duration = self.parse_timeframe(timeframe) * 1000
         timeDelta = duration * numberOfCandles
@@ -868,7 +866,7 @@ class bydfi(Exchange, ImplicitAPI):
         request['endTime'] = until
         if limit is not None:
             request['limit'] = limit
-        response = await self.publicGetV1FapiMarketKlines(self.extend(request, paramsUntil))
+        response = await self.publicGetV1FapiMarketKlines(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -981,11 +979,11 @@ class bydfi(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string_2(ticker, 'symbol', 's')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_2(ticker, 'time', 'E')
         last = self.safe_string_2(ticker, 'last', 'c')
         return self.safe_ticker({
-            'symbol': self.safe_symbol(marketId, marketResolved),
+            'symbol': self.safe_symbol(marketId, market),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_string_2(ticker, 'high', 'h'),
@@ -1007,9 +1005,9 @@ class bydfi(Exchange, ImplicitAPI):
             'markPrice': None,
             'indexPrice': None,
             'info': ticker,
-        }, marketResolved)
+        }, market)
 
-    async def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
+    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
 
@@ -1101,10 +1099,11 @@ class bydfi(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        until, paramsUntil = self.handle_option_integer_and_params(params, 'fetchFundingRateHistory', 'until')
+        until = None
+        until, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'until')
         if until is not None:
             request['endTime'] = until
-        response = await self.publicGetV1FapiMarketFundingRateHistory(self.extend(request, paramsUntil))
+        response = await self.publicGetV1FapiMarketFundingRateHistory(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -1173,8 +1172,8 @@ class bydfi(Exchange, ImplicitAPI):
         market = self.market(symbol)
         orderRequest = self.create_order_request(symbol, type, side, amount, price, params)
         wallet = 'W001'
-        walletOption = self.handle_option_string_and_params(params, 'createOrder', 'wallet', wallet)[0]
-        orderRequest = self.extend(orderRequest, {'wallet': walletOption})
+        wallet, params = self.handle_option_and_params(params, 'createOrder', 'wallet', wallet)
+        orderRequest = self.extend(orderRequest, {'wallet': wallet})
         response = await self.privatePostV1FapiTradePlaceOrder(orderRequest)
         #
         #     {
@@ -1240,68 +1239,65 @@ class bydfi(Exchange, ImplicitAPI):
         trailingPercent = self.safe_string(params, 'trailingPercent')
         isTailingStopOrder = (trailingPercent is not None)
         stopPrice = None
-        isStopOrTakeProfit = isStopLossOrder or isTakeProfitOrder
-        query = params
-        if isStopOrTakeProfit:
-            query = self.omit(params, ['stopLossPrice', 'takeProfitPrice'])
-        if isStopOrTakeProfit:
+        if isStopLossOrder or isTakeProfitOrder:
             stopPrice = stopLossPrice if isStopLossOrder else takeProfitPrice
+            params = self.omit(params, ['stopLossPrice', 'takeProfitPrice'])
             request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         elif isTailingStopOrder:
-            query = self.omit(query, ['trailingPercent'])
+            params = self.omit(params, ['trailingPercent'])
             request['callbackRate'] = trailingPercent
             trailingTriggerPrice = self.number_to_string(price)
-            trailingTriggerPrice, query = self.handle_param_string(query, 'trailingTriggerPrice', trailingTriggerPrice)
+            trailingTriggerPrice, params = self.handle_param_string(params, 'trailingTriggerPrice', trailingTriggerPrice)
             if trailingTriggerPrice is not None:
                 request['activationPrice'] = self.price_to_precision(symbol, trailingTriggerPrice)
-                query = self.omit(query, ['trailingTriggerPrice'])
-        typeValue = type.upper()
-        isMarketOrder = ((typeValue == 'MARKET') or (typeValue == 'STOP_MARKET') or (typeValue == 'TAKE_PROFIT_MARKET') or (typeValue == 'TRAILING_STOP_MARKET'))
+                params = self.omit(params, ['trailingTriggerPrice'])
+        type = type.upper()
+        isMarketOrder = ((type == 'MARKET') or (type == 'STOP_MARKET') or (type == 'TAKE_PROFIT_MARKET') or (type == 'TRAILING_STOP_MARKET'))
         if isMarketOrder:
-            if typeValue == 'MARKET':
+            if type == 'MARKET':
                 if isStopLossOrder:
-                    typeValue = 'STOP_MARKET'
+                    type = 'STOP_MARKET'
                 elif isTakeProfitOrder:
-                    typeValue = 'TAKE_PROFIT_MARKET'
+                    type = 'TAKE_PROFIT_MARKET'
                 elif isTailingStopOrder:
-                    typeValue = 'TRAILING_STOP_MARKET'
+                    type = 'TRAILING_STOP_MARKET'
         else:
             if price is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for a ' + typeValue + ' order')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
             request['price'] = self.price_to_precision(symbol, price)
             if isStopLossOrder:
-                typeValue = 'STOP'
+                type = 'STOP'
             elif isTakeProfitOrder:
-                typeValue = 'TAKE_PROFIT'
-        request['type'] = typeValue
+                type = 'TAKE_PROFIT'
+        request['type'] = type
         hedged = False
-        hedged, query = self.handle_option_bool_and_params(query, 'createOrder', 'hedged', hedged)
-        reduceOnly = self.safe_bool(query, 'reduceOnly', False)
+        hedged, params = self.handle_option_and_params(params, 'createOrder', 'hedged', hedged)
+        reduceOnly = self.safe_bool(params, 'reduceOnly', False)
         if hedged:
-            query = self.omit(query, 'reduceOnly')
+            params = self.omit(params, 'reduceOnly')
             if side == 'buy':
                 request['positionSide'] = 'SHORT' if (reduceOnly is True) else 'LONG'
             elif side == 'sell':
                 request['positionSide'] = 'LONG' if (reduceOnly is True) else 'SHORT'
-        closePosition = self.safe_bool(query, 'closePosition', False)
+        closePosition = self.safe_bool(params, 'closePosition', False)
         if closePosition is not True:
-            query = self.omit(query, 'closePosition')
+            params = self.omit(params, 'closePosition')
             request['quantity'] = self.amount_to_precision(symbol, amount)
-        elif (typeValue != 'STOP_MARKET') and (typeValue != 'TAKE_PROFIT_MARKET'):
+        elif (type != 'STOP_MARKET') and (type != 'TAKE_PROFIT_MARKET'):
             raise NotSupported(self.id + ' createOrder() closePosition is only supported for stopLoss and takeProfit market orders')
-        timeInForce = self.handle_time_in_force(query)
+        timeInForce = self.handle_time_in_force(params)
         postOnly = False
-        postOnly, query = self.handle_post_only(isMarketOrder, timeInForce == 'POST_ONLY', query)
+        postOnly, params = self.handle_post_only(isMarketOrder, timeInForce == 'POST_ONLY', params)
         if postOnly:
             timeInForce = 'POST_ONLY'
         if timeInForce is not None:
             request['timeInForce'] = timeInForce
-            query = self.omit(query, 'timeInForce')
+            params = self.omit(params, 'timeInForce')
         if isStopLossOrder or isTakeProfitOrder or isTailingStopOrder:
             workingType = 'CONTRACT_PRICE'
-            workingType, query = self.handle_option_string_and_params(query, 'createOrder', 'triggerPriceType', workingType)
+            workingType, params = self.handle_option_and_params(params, 'createOrder', 'triggerPriceType', workingType)
             request['workingType'] = self.encode_working_type(workingType)
-        return self.extend(request, query)
+        return self.extend(request, params)
 
     def encode_working_type(self, workingType: Str) -> Str:
         types = {
@@ -1331,7 +1327,7 @@ class bydfi(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' createOrders() accepts a maximum of 5 orders')
         ordersRequests = []
         for i in range(0, len(orders)):
-            rawOrder = self.safe_dict(orders, i)
+            rawOrder = orders[i]
             symbol = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
@@ -1341,12 +1337,12 @@ class bydfi(Exchange, ImplicitAPI):
             orderRequest = self.create_order_request(symbol, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
         wallet = 'W001'
-        walletOption, paramsWallet = self.handle_option_string_and_params(params, 'createOrder', 'wallet', wallet)
+        wallet, params = self.handle_option_and_params(params, 'createOrder', 'wallet', wallet)
         request = {
-            'wallet': walletOption,
+            'wallet': wallet,
             'orders': ordersRequests,
         }
-        response = await self.privatePostV1FapiTradeBatchPlaceOrder(self.extend(request, paramsWallet))
+        response = await self.privatePostV1FapiTradeBatchPlaceOrder(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data)
 
@@ -1371,8 +1367,8 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         request = self.create_edit_order_request(id, symbol, 'limit', side, amount, price, params)
         wallet = 'W001'
-        walletOption = self.handle_option_string_and_params(params, 'editOrder', 'wallet', wallet)[0]
-        request['wallet'] = walletOption
+        wallet, params = self.handle_option_and_params(params, 'editOrder', 'wallet', wallet)
+        request['wallet'] = wallet
         response = await self.privatePostV1FapiTradeEditOrder(request)
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data)
@@ -1395,7 +1391,7 @@ class bydfi(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' editOrders() accepts a maximum of 5 orders')
         ordersRequests = []
         for i in range(0, len(orders)):
-            rawOrder = self.safe_dict(orders, i)
+            rawOrder = orders[i]
             id = self.safe_string(rawOrder, 'id')
             symbol = self.safe_string(rawOrder, 'symbol')
             side = self.safe_string(rawOrder, 'side')
@@ -1405,12 +1401,12 @@ class bydfi(Exchange, ImplicitAPI):
             orderRequest = self.create_edit_order_request(id, symbol, 'limit', side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
         wallet = 'W001'
-        walletOption, paramsWallet = self.handle_option_string_and_params(params, 'editOrder', 'wallet', wallet)
+        wallet, params = self.handle_option_and_params(params, 'editOrder', 'wallet', wallet)
         request = {
-            'wallet': walletOption,
+            'wallet': wallet,
             'editOrders': ordersRequests,
         }
-        response = await self.privatePostV1FapiTradeBatchEditOrder(self.extend(request, paramsWallet))
+        response = await self.privatePostV1FapiTradeBatchEditOrder(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data)
 
@@ -1448,12 +1444,12 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         wallet = 'W001'
-        walletOption, paramsWallet = self.handle_option_string_and_params(params, 'cancelAllOrders', 'wallet', wallet)
+        wallet, params = self.handle_option_and_params(params, 'cancelAllOrders', 'wallet', wallet)
         request = {
             'symbol': market['id'],
-            'wallet': walletOption,
+            'wallet': wallet,
         }
-        response = await self.privatePostV1FapiTradeCancelAllOrder(self.extend(request, paramsWallet))
+        response = await self.privatePostV1FapiTradeCancelAllOrder(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -1510,15 +1506,15 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         wallet = 'W001'
-        walletOption, paramsWallet = self.handle_option_string_and_params(params, 'fetchOpenOrders', 'wallet', wallet)
+        wallet, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'wallet', wallet)
         request = {
             'symbol': market['id'],
-            'wallet': walletOption,
+            'wallet': wallet,
         }
         response: dict
         trigger = False
-        triggerOption, paramsTrigger = self.handle_option_bool_and_params(paramsWallet, 'fetchOpenOrders', 'trigger', trigger)
-        if not triggerOption:
+        trigger, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'trigger', trigger)
+        if not trigger:
             #
             #     {
             #         "code": 200,
@@ -1551,9 +1547,9 @@ class bydfi(Exchange, ImplicitAPI):
             #         "success": true
             #     }
             #
-            response = await self.privateGetV1FapiTradeOpenOrder(self.extend(request, paramsTrigger))
+            response = await self.privateGetV1FapiTradeOpenOrder(self.extend(request, params))
         else:
-            response = await self.privateGetV1FapiTradePlanOrder(self.extend(request, paramsTrigger))
+            response = await self.privateGetV1FapiTradePlanOrder(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
@@ -1586,15 +1582,15 @@ class bydfi(Exchange, ImplicitAPI):
         elif id is not None:
             request['orderId'] = id
         wallet = 'W001'
-        walletOption, paramsWallet = self.handle_option_string_and_params(params, 'fetchOpenOrder', 'wallet', wallet)
-        request['wallet'] = walletOption
+        wallet, params = self.handle_option_and_params(params, 'fetchOpenOrder', 'wallet', wallet)
+        request['wallet'] = wallet
         response: dict
         trigger = False
-        triggerOption, paramsTrigger = self.handle_option_bool_and_params(paramsWallet, 'fetchOpenOrder', 'trigger', trigger)
-        if not triggerOption:
-            response = await self.privateGetV1FapiTradeOpenOrder(self.extend(request, paramsTrigger))
+        trigger, params = self.handle_option_and_params(params, 'fetchOpenOrder', 'trigger', trigger)
+        if not trigger:
+            response = await self.privateGetV1FapiTradeOpenOrder(self.extend(request, params))
         else:
-            response = await self.privateGetV1FapiTradePlanOrder(self.extend(request, paramsTrigger))
+            response = await self.privateGetV1FapiTradePlanOrder(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         order = self.safe_dict(data, 0, {})
         return self.parse_order(order, market)
@@ -1620,10 +1616,12 @@ class bydfi(Exchange, ImplicitAPI):
         paginate = self.safe_bool(params, 'paginate', False)
         if paginate is True:
             maxLimit = 500
-            paramsPaginate = self.extend(self.omit(params, 'paginate'), {'paginationDirection': 'backward'})
-            paginatedResponse = await self.fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate, maxLimit, True)
+            params = self.omit(params, 'paginate')
+            params = self.extend(params, {'paginationDirection': 'backward'})
+            paginatedResponse = await self.fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', symbol, since, limit, params, maxLimit, True)
             return self.sort_by(paginatedResponse, 'timestamp')
-        contractType, paramsContractType = self.handle_option_string_and_params(params, 'fetchCanceledAndClosedOrders', 'contractType', 'FUTURE')
+        contractType = 'FUTURE'
+        contractType, params = self.handle_option_and_params(params, 'fetchCanceledAndClosedOrders', 'contractType', contractType)
         request = {
             'contractType': contractType,
         }
@@ -1631,10 +1629,10 @@ class bydfi(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        paramsSinceUntil = self.handle_since_and_until('fetchCanceledAndClosedOrders', since, paramsContractType)
+        params = self.handle_since_and_until('fetchCanceledAndClosedOrders', since, params)
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateGetV1FapiTradeHistoryOrder(self.extend(request, paramsSinceUntil))
+        response = await self.privateGetV1FapiTradeHistoryOrder(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -1685,8 +1683,7 @@ class bydfi(Exchange, ImplicitAPI):
 
     def handle_since_and_until(self, methodName: str, since: Int = None, params: dict = {}) -> dict:
         until = None
-        paramsUntil = None
-        until, paramsUntil = self.handle_option_integer_and_params_2(params, methodName, 'until', 'endTime')
+        until, params = self.handle_option_and_params_2(params, methodName, 'until', 'endTime')
         now = self.milliseconds()
         sevenDays = 7 * 24 * 60 * 60 * 1000  # the maximum range is 7 days
         startTime = since
@@ -1709,7 +1706,7 @@ class bydfi(Exchange, ImplicitAPI):
             'startTime': startTime,
             'endTime': until,
         }
-        return self.extend(request, paramsUntil)
+        return self.extend(request, params)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
@@ -1777,7 +1774,7 @@ class bydfi(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(order, 'symbol')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_2(order, 'createTime', 'ctime')
         rawType = self.safe_string(order, 'orderType')
         stopPrice = self.safe_string_n(order, ['stopPrice', 'activatePrice', 'triggerPrice'])
@@ -1785,7 +1782,7 @@ class bydfi(Exchange, ImplicitAPI):
         isTakeProfitOrder = (rawType == 'TAKE_PROFIT') or (rawType == 'TAKE_PROFIT_MARKET')
         rawTimeInForce = self.safe_string(order, 'timeInForce')
         timeInForce = self.parse_order_time_in_force(rawTimeInForce)
-        postOnly = False
+        postOnly = None
         if timeInForce == 'PO':
             postOnly = True
         rawStatus = self.safe_string(order, 'status')
@@ -1793,7 +1790,7 @@ class bydfi(Exchange, ImplicitAPI):
         quoteFee = self.safe_number(order, 'quoteFee')
         if quoteFee is not None:
             fee['cost'] = quoteFee
-            fee['currency'] = marketResolved['quote']
+            fee['currency'] = market['quote']
         return self.safe_order({
             'info': order,
             'id': self.safe_string(order, 'orderId'),
@@ -1803,7 +1800,7 @@ class bydfi(Exchange, ImplicitAPI):
             'lastTradeTimestamp': None,
             'lastUpdateTimestamp': self.safe_integer_2(order, 'updateTime', 'mtime'),
             'status': self.parse_order_status(rawStatus),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'type': self.parse_order_type(rawType),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -1820,7 +1817,7 @@ class bydfi(Exchange, ImplicitAPI):
             'trades': None,
             'fee': fee,
             'average': self.omit_zero(self.safe_string(order, 'avgPrice')),
-        }, marketResolved)
+        }, market)
 
     def parse_order_type(self, type: Str) -> Str:
         types = {
@@ -1875,13 +1872,13 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         wallet = 'W001'
-        walletOption, paramsWallet = self.handle_option_string_and_params(params, 'setLeverage', 'wallet', wallet)
+        wallet, params = self.handle_option_and_params(params, 'setLeverage', 'wallet', wallet)
         request = {
             'symbol': market['id'],
             'leverage': leverage,
-            'wallet': walletOption,
+            'wallet': wallet,
         }
-        response = await self.privatePostV1FapiTradeLeverage(self.extend(request, paramsWallet))
+        response = await self.privatePostV1FapiTradeLeverage(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
         return data
 
@@ -1902,12 +1899,12 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         wallet = 'W001'
-        walletOption, paramsWallet = self.handle_option_string_and_params(params, 'fetchLeverage', 'wallet', wallet)
+        wallet, params = self.handle_option_and_params(params, 'fetchLeverage', 'wallet', wallet)
         request = {
             'symbol': market['id'],
-            'wallet': walletOption,
+            'wallet': wallet,
         }
-        response = await self.privateGetV1FapiTradeLeverage(self.extend(request, paramsWallet))
+        response = await self.privateGetV1FapiTradeLeverage(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -1948,11 +1945,11 @@ class bydfi(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         contractType = 'FUTURE'
-        contractTypeOption, paramsContractType = self.handle_option_string_and_params(params, 'fetchPositions', 'contractType', contractType)
+        contractType, params = self.handle_option_and_params(params, 'fetchPositions', 'contractType', contractType)
         request = {
-            'contractType': contractTypeOption,
+            'contractType': contractType,
         }
-        response = await self.privateGetV1FapiTradePositions(self.extend(request, paramsContractType))
+        response = await self.privateGetV1FapiTradePositions(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -1994,12 +1991,12 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         contractType = 'FUTURE'
-        contractTypeOption, paramsContractType = self.handle_option_string_and_params(params, 'fetchPositions', 'contractType', contractType)
+        contractType, params = self.handle_option_and_params(params, 'fetchPositions', 'contractType', contractType)
         request = {
-            'contractType': contractTypeOption,
+            'contractType': contractType,
             'symbol': market['id'],
         }
-        response = await self.privateGetV1FapiTradePositions(self.extend(request, paramsContractType))
+        response = await self.privateGetV1FapiTradePositions(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         return self.parse_positions(data, [market['symbol']])
 
@@ -2056,11 +2053,11 @@ class bydfi(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(position, 'symbol')
-        marketResolved = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market)
         buyOrSell = self.safe_string(position, 'side')
         rawPositionSide = self.safe_string_lower(position, 'positionSide')
         positionSide = self.parse_position_side(buyOrSell)
-        hedged = False
+        hedged = None
         isFetchPositionsHistory = False
         if rawPositionSide is not None:
             isFetchPositionsHistory = True
@@ -2069,7 +2066,7 @@ class bydfi(Exchange, ImplicitAPI):
                 hedged = True
             else:
                 hedged = False
-        contractSize = self.safe_string(marketResolved, 'contractSize')
+        contractSize = self.safe_string(market, 'contractSize')
         contracts = self.safe_string_2(position, 'volume', 'openPositionVolume')
         if not isFetchPositionsHistory:
             # in fetchPositions, the 'volume' is in base currency units, need to convert to contracts
@@ -2078,7 +2075,7 @@ class bydfi(Exchange, ImplicitAPI):
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'id'),
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'entryPrice': self.parse_number(self.safe_string_2(position, 'avgOpenPositionPrice', 'avgPrice')),
             'markPrice': self.parse_number(self.safe_string(position, 'markPrice')),
             'lastPrice': self.parse_number(self.safe_string(position, 'avgClosePositionPrice')),
@@ -2130,15 +2127,15 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         contractType = 'FUTURE'
-        contractTypeOption, paramsContractType = self.handle_option_string_and_params(params, 'fetchPositionHistory', 'contractType', contractType)
+        contractType, params = self.handle_option_and_params(params, 'fetchPositionHistory', 'contractType', contractType)
         request = {
             'symbol': market['id'],
-            'contractType': contractTypeOption,
+            'contractType': contractType,
         }
-        paramsSinceAndUntil = self.handle_since_and_until('fetchPositionsHistory', since, paramsContractType)
+        params = self.handle_since_and_until('fetchPositionsHistory', since, params)
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateGetV1FapiTradePositionHistory(self.extend(request, paramsSinceAndUntil))
+        response = await self.privateGetV1FapiTradePositionHistory(self.extend(request, params))
         #
         #
         data = self.safe_list(response, 'data', [])
@@ -2163,14 +2160,14 @@ class bydfi(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         contractType = 'FUTURE'
-        contractTypeOption, paramsContractType = self.handle_option_string_and_params(params, 'fetchPositionsHistory', 'contractType', contractType)
+        contractType, params = self.handle_option_and_params(params, 'fetchPositionsHistory', 'contractType', contractType)
         request = {
-            'contractType': contractTypeOption,
+            'contractType': contractType,
         }
-        paramsSinceAndUntil = self.handle_since_and_until('fetchPositionsHistory', since, paramsContractType)
+        params = self.handle_since_and_until('fetchPositionsHistory', since, params)
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateGetV1FapiTradePositionHistory(self.extend(request, paramsSinceAndUntil))
+        response = await self.privateGetV1FapiTradePositionHistory(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -2233,15 +2230,15 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         contractType = 'FUTURE'
-        contractTypeOption, paramsContractType = self.handle_option_string_and_params(params, 'fetchMarginMode', 'contractType', contractType)
+        contractType, params = self.handle_option_and_params(params, 'fetchMarginMode', 'contractType', contractType)
         wallet = 'W001'
-        walletOption, paramsWallet = self.handle_option_string_and_params(paramsContractType, 'fetchMarginMode', 'wallet', wallet)
+        wallet, params = self.handle_option_and_params(params, 'fetchMarginMode', 'wallet', wallet)
         request = {
-            'contractType': contractTypeOption,
+            'contractType': contractType,
             'symbol': market['id'],
-            'wallet': walletOption,
+            'wallet': wallet,
         }
-        response = await self.privateGetV1FapiUserDataAssetsMargin(self.extend(request, paramsWallet))
+        response = await self.privateGetV1FapiUserDataAssetsMargin(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -2280,23 +2277,23 @@ class bydfi(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
-        marginModeValue = marginMode.lower()
-        if marginModeValue != 'isolated' and marginModeValue != 'cross':
+        marginMode = marginMode.lower()
+        if marginMode != 'isolated' and marginMode != 'cross':
             raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
         contractType = 'FUTURE'
-        contractTypeOption, paramsContractType = self.handle_option_string_and_params(params, 'setMarginMode', 'contractType', contractType)
+        contractType, params = self.handle_option_and_params(params, 'setMarginMode', 'contractType', contractType)
         wallet = 'W001'
-        walletOption, paramsWallet = self.handle_option_string_and_params(paramsContractType, 'setMarginMode', 'wallet', wallet)
+        wallet, params = self.handle_option_and_params(params, 'setMarginMode', 'wallet', wallet)
         request = {
-            'contractType': contractTypeOption,
+            'contractType': contractType,
             'symbol': market['id'],
-            'marginType': marginModeValue.upper(),
-            'wallet': walletOption,
+            'marginType': marginMode.upper(),
+            'wallet': wallet,
         }
-        return await self.privatePostV1FapiUserDataMarginType(self.extend(request, paramsWallet))
+        return await self.privatePostV1FapiUserDataMarginType(self.extend(request, params))
 
     async def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}) -> dict:
         """
@@ -2316,20 +2313,18 @@ class bydfi(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' setPositionMode() does not support a symbol argument. The position mode is set identically for all markets with same settle currency')
         if self.markets is None:
             await self.load_markets()
-        positionType = 'ONEWAY'
-        if hedged:
-            positionType = 'HEDGE'
+        positionType = 'HEDGE' if hedged else 'ONEWAY'
         wallet = 'W001'
-        walletOption, paramsWallet = self.handle_option_string_and_params(params, 'setPositionMode', 'wallet', wallet)
+        wallet, params = self.handle_option_and_params(params, 'setPositionMode', 'wallet', wallet)
         contractType = 'FUTURE'
-        contractTypeOption, paramsContractType = self.handle_option_string_and_params(paramsWallet, 'setPositionMode', 'contractType', contractType)
+        contractType, params = self.handle_option_and_params(params, 'setPositionMode', 'contractType', contractType)
         settleCoin = 'USDT'
-        settleCoinOption, paramsSettleCoin = self.handle_option_string_and_params(paramsContractType, 'setPositionMode', 'settleCoin', settleCoin)
+        settleCoin, params = self.handle_option_and_params(params, 'setPositionMode', 'settleCoin', settleCoin)
         request = {
-            'contractType': contractTypeOption,
-            'wallet': walletOption,
+            'contractType': contractType,
+            'wallet': wallet,
             'positionType': positionType,
-            'settleCoin': settleCoinOption,
+            'settleCoin': settleCoin,
         }
         #
         #     {
@@ -2338,7 +2333,7 @@ class bydfi(Exchange, ImplicitAPI):
         #         "success": true
         #     }
         #
-        return await self.privatePostV1FapiUserDataPositionSideDual(self.extend(request, paramsSettleCoin))
+        return await self.privatePostV1FapiUserDataPositionSideDual(self.extend(request, params))
 
     async def fetch_position_mode(self, symbol: Str = None, params: dict = {}) -> PositionModeInfo:
         """
@@ -2355,12 +2350,13 @@ class bydfi(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        wallet, paramsWallet = self.handle_option_string_and_params(params, 'fetchPositionMode', 'wallet', 'W001')
-        contractType, paramsContractType = self.handle_option_string_and_params(paramsWallet, 'fetchPositionMode', 'contractType', 'FUTURE')
+        wallet = 'W001'
+        wallet, params = self.handle_option_and_params(params, 'fetchPositionMode', 'wallet', wallet)
+        contractType = 'FUTURE'
+        contractType, params = self.handle_option_and_params(params, 'fetchPositionMode', 'contractType', contractType)
         settleCoin = 'USDT'
-        query = paramsContractType
         if symbol is None:
-            settleCoin, query = self.handle_option_string_and_params(paramsContractType, 'fetchPositionMode', 'settleCoin', settleCoin)
+            settleCoin, params = self.handle_option_and_params(params, 'fetchPositionMode', 'settleCoin', settleCoin)
         else:
             market = self.market(symbol)
             settleCoin = market['settleId']
@@ -2369,7 +2365,7 @@ class bydfi(Exchange, ImplicitAPI):
             'settleCoin': settleCoin,
             'wallet': wallet,
         }
-        response = await self.privateGetV1FapiUserDataPositionSideDual(self.extend(request, query))
+        response = await self.privateGetV1FapiUserDataPositionSideDual(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -2409,8 +2405,10 @@ class bydfi(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        type, paramsMarketType = self.handle_market_type_and_params('fetchBalance', None, params)
-        wallet, paramsWallet = self.handle_option_string_and_params(paramsMarketType, 'fetchBalance', 'wallet')
+        type = None
+        type, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        wallet = None
+        wallet, params = self.handle_option_and_params(params, 'fetchBalance', 'wallet')
         request = {}
         response: dict
         if wallet is None:
@@ -2433,7 +2431,7 @@ class bydfi(Exchange, ImplicitAPI):
             #         "success": true
             #     }
             #
-            response = await self.privateGetV1AccountAssets(self.extend(request, paramsWallet))
+            response = await self.privateGetV1AccountAssets(self.extend(request, params))
         else:
             request['wallet'] = wallet
             #
@@ -2464,7 +2462,7 @@ class bydfi(Exchange, ImplicitAPI):
             #         ],
             #         "success": true
             #     }
-            response = await self.privateGetV1FapiAccountBalance(self.extend(request, paramsWallet))
+            response = await self.privateGetV1FapiAccountBalance(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         return self.parse_balance(data)
 
@@ -2475,7 +2473,7 @@ class bydfi(Exchange, ImplicitAPI):
             'datetime': None,
         }
         for i in range(0, len(response)):
-            balance = self.safe_dict(response, i)
+            balance = response[i]
             symbol = self.safe_string(balance, 'asset')
             code = self.safe_currency_code(symbol)
             account = self.account()
@@ -2549,20 +2547,24 @@ class bydfi(Exchange, ImplicitAPI):
         paginate = self.safe_bool(params, 'paginate', False)
         if paginate is True:
             maxLimit = 50
-            paramsPaginate = self.extend(self.omit(params, 'paginate'), {'paginationDirection': 'backward'})
-            paginatedResponse = await self.fetch_paginated_call_dynamic('fetchTransfers', self.safe_string(currency, 'code'), since, limit, paramsPaginate, maxLimit, True)
+            params = self.omit(params, 'paginate')
+            params = self.extend(params, {'paginationDirection': 'backward'})
+            paginatedResponse = await self.fetch_paginated_call_dynamic('fetchTransfers', currency['code'], since, limit, params, maxLimit, True)
             return self.sort_by(paginatedResponse, 'timestamp')
         request = {
             'asset': currency['id'],
         }
-        until, paramsUntil = self.handle_option_integer_and_params_2(params, 'fetchTransfers', 'until', 'endTime')
-        # exchange requires endTime, and startTime but allows any value
-        sinceResolved = 1 if (since is None) else since
-        request['startTime'] = sinceResolved
-        request['endTime'] = self.milliseconds() if (until is None) else until
+        until = None
+        until, params = self.handle_option_and_params_2(params, 'fetchTransfers', 'until', 'endTime')
+        if until is None:
+            until = self.milliseconds()  # exchange requires endTime
+        if since is None:
+            since = 1  # exchange requires startTime but allows any value
+        request['startTime'] = since
+        request['endTime'] = until
         if limit is not None:
             request['rows'] = limit
-        response = await self.privateGetV1AccountTransferRecords(self.extend(request, paramsUntil))
+        response = await self.privateGetV1AccountTransferRecords(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -2583,7 +2585,7 @@ class bydfi(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        return self.parse_transfers(data, currency, sinceResolved, limit)
+        return self.parse_transfers(data, currency, since, limit)
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
@@ -2662,10 +2664,8 @@ class bydfi(Exchange, ImplicitAPI):
         """
         return await self.fetch_transactions_helper('withdrawal', code, since, limit, params)
 
-    async def fetch_transactions_helper(self, type: str, code: Str, since: Int, limit: Int, params: object) -> list[Transaction]:
-        methodName = 'fetchWithdrawals'
-        if type == 'deposit':
-            methodName = 'fetchDeposits'
+    async def fetch_transactions_helper(self, type: object, code: object, since: object, limit: object, params: object) -> list[Transaction]:
+        methodName = 'fetchDeposits' if (type == 'deposit') else 'fetchWithdrawals'
         if code is None:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a code argument')
         if self.markets is None:
@@ -2674,15 +2674,15 @@ class bydfi(Exchange, ImplicitAPI):
         paginate = self.safe_bool(params, 'paginate', False)
         if paginate is True:
             maxLimit = 50
-            paramsPaginate = self.extend(self.omit(params, 'paginate'), {'paginationDirection': 'backward'})
-            paginatedResponse = await self.fetch_paginated_call_dynamic(methodName, self.safe_string(currency, 'code'), since, limit, paramsPaginate, maxLimit, True)
+            params = self.omit(params, 'paginate')
+            params = self.extend(params, {'paginationDirection': 'backward'})
+            paginatedResponse = await self.fetch_paginated_call_dynamic(methodName, currency['code'], since, limit, params, maxLimit, True)
             return self.sort_by(paginatedResponse, 'timestamp')
         request = {
             'asset': currency['id'],
         }
         until = None
-        paramsUntil = None
-        until, paramsUntil = self.handle_option_integer_and_params_2(params, 'fetchTransfers', 'until', 'endTime')
+        until, params = self.handle_option_and_params_2(params, 'fetchTransfers', 'until', 'endTime')
         now = self.milliseconds()
         sevenDays = 7 * 24 * 60 * 60 * 1000  # the maximum range is 7 days
         startTime = since
@@ -2728,18 +2728,18 @@ class bydfi(Exchange, ImplicitAPI):
             #         "success": true
             #     }
             #
-            response = await self.privateGetV1SpotDepositRecords(self.extend(request, paramsUntil))
+            response = await self.privateGetV1SpotDepositRecords(self.extend(request, params))
         else:
             #
             # todo check after withdrawal
             #
-            response = await self.privateGetV1SpotWithdrawRecords(self.extend(request, paramsUntil))
+            response = await self.privateGetV1SpotWithdrawRecords(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         transactionParams = {
             'type': type,
         }
-        paramsTransaction = self.extend(paramsUntil, transactionParams)
-        return self.parse_transactions(data, currency, since, limit, paramsTransaction)
+        params = self.extend(params, transactionParams)
+        return self.parse_transactions(data, currency, since, limit, params)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
@@ -2799,11 +2799,8 @@ class bydfi(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
-        if apiUrl is None:
-            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = apiUrl
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        url = self.urls['api'][api]
         endpoint = '/' + path
         query = ''
         sortedParams = self.keysort(params)
@@ -2811,33 +2808,29 @@ class bydfi(Exchange, ImplicitAPI):
             query = self.urlencode(sortedParams)
             if len(query) != 0:
                 endpoint += '?' + query
-        requestBody = None
-        requestHeaders = None
         if api == 'private':
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
             if method == 'GET':
                 payload = self.apiKey + timestamp + query
                 signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'hex')
-                requestHeaders = {
+                headers = {
                     'X-API-KEY': self.apiKey,
                     'X-API-TIMESTAMP': timestamp,
                     'X-API-SIGNATURE': signature,
                 }
             else:
-                requestBody = self.json(sortedParams)
-                payload = self.apiKey + timestamp + requestBody
+                body = self.json(sortedParams)
+                payload = self.apiKey + timestamp + body
                 signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'hex')
-                requestHeaders = {
+                headers = {
                     'Content-Type': 'application/json',
                     'X-API-KEY': self.apiKey,
                     'X-API-TIMESTAMP': timestamp,
                     'X-API-SIGNATURE': signature,
                 }
         url += endpoint
-        bodyResolved = body if (requestBody is None) else requestBody
-        headersResolved = headers if (requestHeaders is None) else requestHeaders
-        return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

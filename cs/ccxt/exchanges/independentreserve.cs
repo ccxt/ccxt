@@ -437,20 +437,16 @@ public partial class independentreserve : Exchange
         for (int i = 0; i < (baseCurrencyIds?.Count ?? 0); i++)
         {
             object baseId = baseCurrencyIds[i];
-            string? bs = this.safeCurrencyCode(baseId);
+            object bs = this.safeCurrencyCode(baseId);
             double? minAmount = this.safeNumber(limits, baseId);
             for (int j = 0; j < (quoteCurrencyIds?.Count ?? 0); j++)
             {
                 object quoteId = quoteCurrencyIds[j];
                 string? quote = this.safeCurrencyCode(quoteId);
-                if (((bs == null)) || ((quote == null)))
-                {
-                    continue;
-                }
                 object id = add(add(baseId, "/"), quoteId);
-                result.Add(new Dictionary<string, object>() {
+                ((IList<object>)result).Add(new Dictionary<string, object>() {
                     { "id", id },
-                    { "symbol", ((bs + "/") + quote) },
+                    { "symbol", add(add(bs, "/"), quote) },
                     { "base", bs },
                     { "quote", quote },
                     { "settle", null },
@@ -502,22 +498,22 @@ public partial class independentreserve : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override object parseBalance(object response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            IDictionary<string, object> balance = this.safeDict(response, i);
+            object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "CurrencyCode");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
-            account["free"] = this.safeString(balance, "AvailableBalance");
-            account["total"] = this.safeString(balance, "TotalBalance");
+            ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "AvailableBalance");
+            ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "TotalBalance");
             if ((code != null))
             {
-                result[(string)code] = account;
+                ((IDictionary<string,object>)result)[(string)code] = account;
             }
         }
         return this.safeBalance(result);
@@ -564,10 +560,10 @@ public partial class independentreserve : Exchange
         };
         Dictionary<string, object> response = await this.publicGetGetOrderBook(this.extend(request, parameters));
         Int64? timestamp = this.parse8601(this.safeString(response, "CreatedTimestampUtc"));
-        return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "BuyOrders", "SellOrders", "Price", "Volume");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "BuyOrders", "SellOrders", "Price", "Volume"));
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         // {
         //     "DayHighestPrice":43489.49,
@@ -583,15 +579,15 @@ public partial class independentreserve : Exchange
         //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
         // }
         Int64? timestamp = this.parse8601(this.safeString(ticker, "CreatedTimestampUtc"));
-        string? baseId = this.safeString(ticker, "PrimaryCurrencyCode");
+        object baseId = this.safeString(ticker, "PrimaryCurrencyCode");
         string? quoteId = this.safeString(ticker, "SecondaryCurrencyCode");
-        string? defaultMarketId = null;
+        object defaultMarketId = null;
         if (((baseId != null)) && ((quoteId != null)))
         {
-            defaultMarketId = ((baseId + "/") + quoteId);
+            defaultMarketId = add(add(baseId, "/"), quoteId);
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(defaultMarketId, market, "/");
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        market = this.safeMarket(defaultMarketId, market, "/");
+        object symbol = getValue(market, "symbol");
         string? last = this.safeString(ticker, "LastPrice");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -614,7 +610,7 @@ public partial class independentreserve : Exchange
             { "baseVolume", this.safeString(ticker, "DayVolumeXbtInSecondaryCurrrency") },
             { "quoteVolume", null },
             { "info", ticker },
-        }, marketResolved);
+        }, market);
     }
 
     /**
@@ -651,10 +647,10 @@ public partial class independentreserve : Exchange
         //     "SecondaryCurrencyCode":"Usd",
         //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
         // }
-        return this.parseTicker(response, market);
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // fetchOrder
@@ -709,36 +705,33 @@ public partial class independentreserve : Exchange
         string? baseId = this.safeString(order, "PrimaryCurrencyCode");
         string? quoteId = this.safeString(order, "SecondaryCurrencyCode");
         object bs = null;
-        string? quote = null;
+        object quote = null;
         if (((baseId != null)) && ((quoteId != null)))
         {
             bs = this.safeCurrencyCode(baseId);
             quote = this.safeCurrencyCode(quoteId);
-            if (((bs != null)) && ((quote != null)))
-            {
-                symbol = add(add(bs, "/"), quote);
-            }
+            symbol = add(add(bs, "/"), quote);
         } else if ((market != null))
         {
-            symbol = (market != null && market.ContainsKey("symbol") ? market["symbol"] : null);
-            bs = (market != null && market.ContainsKey("base") ? market["base"] : null);
-            quote = this.safeString(market, "quote");
+            symbol = getValue(market, "symbol");
+            bs = getValue(market, "base");
+            quote = getValue(market, "quote");
         }
         string? orderType = this.safeString2(order, "Type", "OrderType");
         string? side = null;
         if ((orderType != null))
         {
-            if (orderType.IndexOf("Bid", StringComparison.Ordinal) >= 0)
+            if (((string)orderType).IndexOf("Bid", StringComparison.Ordinal) >= 0)
             {
                 side = "buy";
-            } else if (orderType.IndexOf("Offer", StringComparison.Ordinal) >= 0)
+            } else if (((string)orderType).IndexOf("Offer", StringComparison.Ordinal) >= 0)
             {
                 side = "sell";
             }
-            if (orderType.IndexOf("Market", StringComparison.Ordinal) >= 0)
+            if (((string)orderType).IndexOf("Market", StringComparison.Ordinal) >= 0)
             {
                 orderType = "market";
-            } else if (orderType.IndexOf("Limit", StringComparison.Ordinal) >= 0)
+            } else if (((string)orderType).IndexOf("Limit", StringComparison.Ordinal) >= 0)
             {
                 orderType = "limit";
             }
@@ -780,7 +773,7 @@ public partial class independentreserve : Exchange
         }, market);
     }
 
-    public virtual string? parseOrderStatus(string? status)
+    public virtual string? parseOrderStatus(object status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "Open", "open" },
@@ -795,7 +788,7 @@ public partial class independentreserve : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual string? parseTimeInForce(string? timeInForce)
+    public virtual string? parseTimeInForce(object timeInForce)
     {
         Dictionary<string, object> timeInForces = new Dictionary<string, object>() {
             { "Gtc", "GTC" },
@@ -830,7 +823,7 @@ public partial class independentreserve : Exchange
         {
             market = this.market(symbol);
         }
-        return this.parseOrder(response, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
     /**
@@ -845,6 +838,7 @@ public partial class independentreserve : Exchange
      */
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -855,19 +849,18 @@ public partial class independentreserve : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            request["primaryCurrencyCode"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
-            request["secondaryCurrencyCode"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
+            ((IDictionary<string,object>)request)["primaryCurrencyCode"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
+            ((IDictionary<string,object>)request)["secondaryCurrencyCode"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
         }
-        Int64? limitResolved = limit;
-        if ((limitResolved == null))
+        if ((limitVar == null))
         {
-            limitResolved = ((Int64?)50);
+            limitVar = 50;
         }
-        request["pageIndex"] = 1;
-        request["pageSize"] = limitResolved;
+        ((IDictionary<string,object>)request)["pageIndex"] = 1;
+        ((IDictionary<string,object>)request)["pageSize"] = limitVar;
         Dictionary<string, object> response = await this.privatePostGetOpenOrders(this.extend(request, parameters));
         List<object> data = this.safeList(response, "Data", new List<object>() {});
-        return this.parseOrders(data, market, since, limitResolved);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limitVar));
     }
 
     /**
@@ -882,6 +875,7 @@ public partial class independentreserve : Exchange
      */
     public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -892,19 +886,18 @@ public partial class independentreserve : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            request["primaryCurrencyCode"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
-            request["secondaryCurrencyCode"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
+            ((IDictionary<string,object>)request)["primaryCurrencyCode"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
+            ((IDictionary<string,object>)request)["secondaryCurrencyCode"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
         }
-        Int64? limitResolved = limit;
-        if ((limitResolved == null))
+        if ((limitVar == null))
         {
-            limitResolved = ((Int64?)50);
+            limitVar = 50;
         }
-        request["pageIndex"] = 1;
-        request["pageSize"] = limitResolved;
+        ((IDictionary<string,object>)request)["pageIndex"] = 1;
+        ((IDictionary<string,object>)request)["pageSize"] = limitVar;
         Dictionary<string, object> response = await this.privatePostGetClosedOrders(this.extend(request, parameters));
         List<object> data = this.safeList(response, "Data", new List<object>() {});
-        return this.parseOrders(data, market, since, limitResolved);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limitVar));
     }
 
     /**
@@ -919,22 +912,21 @@ public partial class independentreserve : Exchange
      */
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
-        limitVar ??= ((Int64?)50);
+        object limitVar = limit;
+        limitVar ??= 50;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Int64? pageIndex = this.safeInteger(parameters, "pageIndex", 1);
-        object limitResolved = limitVar;
-        if ((limitResolved == null))
+        if (isEqual(limitVar, null))
         {
-            limitResolved = 50;
+            limitVar = 50;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pageIndex", pageIndex },
-            { "pageSize", limitResolved },
+            { "pageSize", limitVar },
         };
         Dictionary<string, object> response = await this.privatePostGetTrades(this.extend(request, parameters));
         IDictionary<string, object> market = null;
@@ -943,10 +935,10 @@ public partial class independentreserve : Exchange
             market = this.market(symbol);
         }
         List<object> data = this.safeList(response, "Data", new List<object>() {});
-        return this.parseTrades(data, market, since, limitResolved);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limitVar));
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         Int64? timestamp = this.parse8601(getValue(trade, "TradeTimestampUtc"));
         string? id = this.safeString(trade, "TradeGuid");
@@ -956,21 +948,21 @@ public partial class independentreserve : Exchange
         double? price = this.parseNumber(priceString);
         double? amount = this.parseNumber(amountString);
         double? cost = this.parseNumber(Precise.stringMul(priceString, amountString));
-        string? baseId = this.safeString(trade, "PrimaryCurrencyCode");
+        object baseId = this.safeString(trade, "PrimaryCurrencyCode");
         string? quoteId = this.safeString(trade, "SecondaryCurrencyCode");
-        string? marketId = null;
+        object marketId = null;
         if (((baseId != null)) && ((quoteId != null)))
         {
-            marketId = ((baseId + "/") + quoteId);
+            marketId = add(add(baseId, "/"), quoteId);
         }
         string? symbol = this.safeSymbol(marketId, market, "/");
         string? side = this.safeString(trade, "OrderType");
         if ((side != null))
         {
-            if (side.IndexOf("Bid", StringComparison.Ordinal) >= 0)
+            if (((string)side).IndexOf("Bid", StringComparison.Ordinal) >= 0)
             {
                 side = "buy";
-            } else if (side.IndexOf("Offer", StringComparison.Ordinal) >= 0)
+            } else if (((string)side).IndexOf("Offer", StringComparison.Ordinal) >= 0)
             {
                 side = "sell";
             }
@@ -1017,7 +1009,7 @@ public partial class independentreserve : Exchange
         };
         Dictionary<string, object> response = await this.publicGetGetRecentTrades(this.extend(request, parameters));
         List<object> trades = this.safeList(response, "Trades", new List<object>() {});
-        return this.parseTrades(trades, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
     /**
@@ -1054,7 +1046,7 @@ public partial class independentreserve : Exchange
             double? tradingFee = this.safeNumber(fee, "Fee");
             if ((code != null))
             {
-                fees[(string)code] = new Dictionary<string, object>() {
+                ((IDictionary<string,object>)fees)[(string)code] = new Dictionary<string, object>() {
                     { "info", fee },
                     { "fee", tradingFee },
                 };
@@ -1064,10 +1056,10 @@ public partial class independentreserve : Exchange
         List<object> symbols = this.symbols;
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)symbols[i]);
+            object symbol = symbols[i];
             Dictionary<string, object> market = this.market(symbol);
             IDictionary<string, object> fee = this.safeDict(fees, (market.ContainsKey("base") ? market["base"] : null), new Dictionary<string, object>() {});
-            result[(string)symbol] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", this.safeDict(fee, "info") },
                 { "symbol", symbol },
                 { "maker", this.safeNumber(fee, "fee") },
@@ -1106,17 +1098,17 @@ public partial class independentreserve : Exchange
             { "secondaryCurrencyCode", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
             { "orderType", orderType },
         };
-        Dictionary<string, object> response = null;
-        request["volume"] = amount;
+        object response = null;
+        ((IDictionary<string,object>)request)["volume"] = amount;
         if ((type == "limit"))
         {
-            request["price"] = price;
+            ((IDictionary<string,object>)request)["price"] = price;
             response = await this.privatePostPlaceLimitOrder(this.extend(request, parameters));
         } else
         {
             response = await this.privatePostPlaceMarketOrder(this.extend(request, parameters));
         }
-        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", GetValue(response, "OrderGuid") },         }, market);
+        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", getValue(response, "OrderGuid") },         }, market));
     }
 
     /**
@@ -1155,7 +1147,7 @@ public partial class independentreserve : Exchange
         //        "VolumeOrdered": 0.358
         //    }
         //
-        return this.parseOrder(response);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
     }
 
     /**
@@ -1174,7 +1166,7 @@ public partial class independentreserve : Exchange
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> currency = this.currency(code);
+        Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "primaryCurrencyCode", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
@@ -1190,7 +1182,7 @@ public partial class independentreserve : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override object parseDepositAddress(object depositAddress, object currency = null)
     {
         //
         //    {
@@ -1228,32 +1220,34 @@ public partial class independentreserve : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
+        object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
-        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
+        IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
+        tagVar = ((IList<object>)tagparametersVariable)[0];
+        parameters = ((IList<object>)tagparametersVariable)[1];
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> currency = this.currency(code);
+        Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "primaryCurrencyCode", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "withdrawalAddress", address },
-            { "amount", this.currencyToPrecision(code, amount) },
+            { "amount", this.currencyToPrecision(((string)code), amount) },
         };
-        if ((tagWithdrawTag != null))
+        if ((tagVar != null))
         {
-            request["destinationTag"] = tagWithdrawTag;
+            ((IDictionary<string,object>)request)["destinationTag"] = tagVar;
         }
-        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(paramsWithdrawTag);
-        string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
-        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
+        string? networkCode = null;
+        IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
+        networkCode = (string)((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if ((networkCode != null))
         {
-            throw new BadRequest ((this.id + " withdraw () does not accept params[\"networkCode\"]")) ;
+            throw new BadRequest ((string)(this.id + " withdraw () does not accept params[\"networkCode\"]")) ;
         }
-        Dictionary<string, object> response = await this.privatePostWithdrawDigitalCurrency(this.extend(request, paramsNetworkCode));
+        Dictionary<string, object> response = await this.privatePostWithdrawDigitalCurrency(this.extend(request, parameters));
         //
         //    {
         //        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
@@ -1274,7 +1268,7 @@ public partial class independentreserve : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override object parseTransaction(object transaction, object currency = null)
     {
         //
         //    {
@@ -1334,56 +1328,45 @@ public partial class independentreserve : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
-        if ((apiUrl == null))
-        {
-            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
-        }
-        string url = ((apiUrl + "/") + path);
-        if ((api is "public"))
+        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), path);
+        if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = url + ("?" + this.urlencode(parameters));
+                url = add(url, ("?" + this.urlencode(parameters)));
             }
         } else
         {
             this.checkRequiredCredentials();
             // independentreserve requires an increasing nonce
-            Int64? nonce = this.incrementingNonce();
+            object nonce = this.incrementingNonce();
             List<object> auth = new List<object>() {url, ("apiKey=" + this.apiKey), ("nonce=" + ((object)nonce).ToString())};
             List<object> keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
             for (int i = 0; i < keys.Count; i++)
             {
                 object key = keys[i];
-                string value = getValue(parameters, key).ToString();
-                auth.Add(add(add(key, "="), value));
+                string value = ((object)getValue(parameters, key)).ToString();
+                ((IList<object>)auth).Add(add(add(key, "="), value));
             }
-            string message = String.Join(",", auth.ToArray());
+            string message = String.Join(",", ((IList<object>)auth).ToArray());
             string signature = this.hmac(this.encode(message), this.encode(this.secret), sha256);
             Dictionary<string, object> query = new Dictionary<string, object>() {};
-            query["apiKey"] = this.apiKey;
-            query["nonce"] = nonce;
-            query["signature"] = signature.ToUpper();
+            ((IDictionary<string,object>)query)["apiKey"] = this.apiKey;
+            ((IDictionary<string,object>)query)["nonce"] = nonce;
+            ((IDictionary<string,object>)query)["signature"] = signature.ToUpper();
             for (int i = 0; i < keys.Count; i++)
             {
                 string? key = ((string)keys[i]);
-                query[(string)key] = getValue(parameters, key);
+                ((IDictionary<string,object>)query)[(string)key] = getValue(parameters, key);
             }
-            string signedBody = this.json(query);
-            Dictionary<string, object> signedHeaders = new Dictionary<string, object>() {
+            body = this.json(query);
+            headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
-            };
-            return new Dictionary<string, object>() {
-                { "url", url },
-                { "method", method },
-                { "body", signedBody },
-                { "headers", signedHeaders },
             };
         }
         return new Dictionary<string, object>() {

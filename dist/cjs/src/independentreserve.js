@@ -352,9 +352,6 @@ class independentreserve extends independentreserve$1["default"] {
             for (let j = 0; j < quoteCurrencyIds.length; j++) {
                 const quoteId = quoteCurrencyIds[j];
                 const quote = this.safeCurrencyCode(quoteId);
-                if ((base === undefined) || (quote === undefined)) {
-                    continue;
-                }
                 const id = baseId + '/' + quoteId;
                 result.push({
                     'id': id,
@@ -412,7 +409,7 @@ class independentreserve extends independentreserve$1["default"] {
     parseBalance(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict(response, i);
+            const balance = response[i];
             const currencyId = this.safeString(balance, 'CurrencyCode');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -481,8 +478,8 @@ class independentreserve extends independentreserve$1["default"] {
         if ((baseId !== undefined) && (quoteId !== undefined)) {
             defaultMarketId = baseId + '/' + quoteId;
         }
-        const marketResolved = this.safeMarket(defaultMarketId, market, '/');
-        const symbol = marketResolved['symbol'];
+        market = this.safeMarket(defaultMarketId, market, '/');
+        const symbol = market['symbol'];
         const last = this.safeString(ticker, 'LastPrice');
         return this.safeTicker({
             'symbol': symbol,
@@ -505,7 +502,7 @@ class independentreserve extends independentreserve$1["default"] {
             'baseVolume': this.safeString(ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -598,14 +595,12 @@ class independentreserve extends independentreserve$1["default"] {
         if ((baseId !== undefined) && (quoteId !== undefined)) {
             base = this.safeCurrencyCode(baseId);
             quote = this.safeCurrencyCode(quoteId);
-            if ((base !== undefined) && (quote !== undefined)) {
-                symbol = base + '/' + quote;
-            }
+            symbol = base + '/' + quote;
         }
         else if (market !== undefined) {
             symbol = market['symbol'];
             base = market['base'];
-            quote = this.safeString(market, 'quote');
+            quote = market['quote'];
         }
         let orderType = this.safeString2(order, 'Type', 'OrderType');
         let side = undefined;
@@ -723,15 +718,14 @@ class independentreserve extends independentreserve$1["default"] {
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        let limitResolved = limit;
-        if (limitResolved === undefined) {
-            limitResolved = 50;
+        if (limit === undefined) {
+            limit = 50;
         }
         request['pageIndex'] = 1;
-        request['pageSize'] = limitResolved;
+        request['pageSize'] = limit;
         const response = await this.privatePostGetOpenOrders(this.extend(request, params));
         const data = this.safeList(response, 'Data', []);
-        return this.parseOrders(data, market, since, limitResolved);
+        return this.parseOrders(data, market, since, limit);
     }
     /**
      * @method
@@ -754,15 +748,14 @@ class independentreserve extends independentreserve$1["default"] {
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        let limitResolved = limit;
-        if (limitResolved === undefined) {
-            limitResolved = 50;
+        if (limit === undefined) {
+            limit = 50;
         }
         request['pageIndex'] = 1;
-        request['pageSize'] = limitResolved;
+        request['pageSize'] = limit;
         const response = await this.privatePostGetClosedOrders(this.extend(request, params));
         const data = this.safeList(response, 'Data', []);
-        return this.parseOrders(data, market, since, limitResolved);
+        return this.parseOrders(data, market, since, limit);
     }
     /**
      * @method
@@ -779,13 +772,12 @@ class independentreserve extends independentreserve$1["default"] {
             await this.loadMarkets();
         }
         const pageIndex = this.safeInteger(params, 'pageIndex', 1);
-        let limitResolved = limit;
-        if (limitResolved === undefined) {
-            limitResolved = 50;
+        if (limit === undefined) {
+            limit = 50;
         }
         const request = {
             'pageIndex': pageIndex,
-            'pageSize': limitResolved,
+            'pageSize': limit,
         };
         const response = await this.privatePostGetTrades(this.extend(request, params));
         let market = undefined;
@@ -793,7 +785,7 @@ class independentreserve extends independentreserve$1["default"] {
             market = this.market(symbol);
         }
         const data = this.safeList(response, 'Data', []);
-        return this.parseTrades(data, market, since, limitResolved);
+        return this.parseTrades(data, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
         const timestamp = this.parse8601(trade['TradeTimestampUtc']);
@@ -1048,7 +1040,7 @@ class independentreserve extends independentreserve$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1058,14 +1050,15 @@ class independentreserve extends independentreserve$1["default"] {
             'withdrawalAddress': address,
             'amount': this.currencyToPrecision(code, amount),
         };
-        if (tagWithdrawTag !== undefined) {
-            request['destinationTag'] = tagWithdrawTag;
+        if (tag !== undefined) {
+            request['destinationTag'] = tag;
         }
-        const [networkCode, paramsNetworkCode] = this.handleNetworkCodeAndParams(paramsWithdrawTag);
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
             throw new errors.BadRequest(this.id + ' withdraw () does not accept params["networkCode"]');
         }
-        const response = await this.privatePostWithdrawDigitalCurrency(this.extend(request, paramsNetworkCode));
+        const response = await this.privatePostWithdrawDigitalCurrency(this.extend(request, params));
         //
         //    {
         //        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
@@ -1142,11 +1135,7 @@ class independentreserve extends independentreserve$1["default"] {
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
-        if (apiUrl === undefined) {
-            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
-        }
-        let url = apiUrl + '/' + path;
+        let url = this.urls['api'][api] + '/' + path;
         if (api === 'public') {
             if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
@@ -1177,9 +1166,8 @@ class independentreserve extends independentreserve$1["default"] {
                 const key = keys[i];
                 query[key] = params[key];
             }
-            const signedBody = this.json(query);
-            const signedHeaders = { 'Content-Type': 'application/json' };
-            return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
+            body = this.json(query);
+            headers = { 'Content-Type': 'application/json' };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

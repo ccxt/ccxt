@@ -324,7 +324,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
+    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     parseFundingRate(fundingRate: any, market?: Market): FundingRate;
     /**
      * @method
@@ -340,7 +340,7 @@ export default class bitstamp extends Exchange {
      */
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     getCurrencyName(code: string): string;
-    isFiat(code: Str): boolean;
+    isFiat(code: any): boolean;
     /**
      * @method
      * @name bitstamp#fetchDepositAddress
@@ -382,6 +382,6 @@ export default class bitstamp extends Exchange {
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;
     nonce(): number;
-    sign(path: string, api?: string, method?: any, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: any, api?: string, method?: any, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

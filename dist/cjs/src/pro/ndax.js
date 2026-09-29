@@ -125,7 +125,7 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        symbol = market['symbol'];
         const name = 'SubscribeTrades';
         const messageHash = name + ':' + market['id'];
         const url = this.urls['api']['ws'];
@@ -143,11 +143,10 @@ class ndax extends ndax$1["default"] {
         };
         const message = this.extend(request, params);
         const trades = await this.watch(url, messageHash, message, messageHash);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit(symbolValue, limit);
+            limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         const payload = this.safeList(message, 'o', []);
@@ -215,7 +214,7 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        symbol = market['symbol'];
         const name = 'SubscribeTicker';
         const messageHash = name + ':' + timeframe + ':' + market['id'];
         const url = this.urls['api']['ws'];
@@ -234,11 +233,10 @@ class ndax extends ndax$1["default"] {
         };
         const message = this.extend(request, params);
         const ohlcv = await this.watch(url, messageHash, message, messageHash);
-        let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit(symbolValue, limit);
+            limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -268,7 +266,7 @@ class ndax extends ndax$1["default"] {
         //
         const updates = {};
         for (let i = 0; i < payload.length; i++) {
-            const ohlcv = this.safeList(payload, i);
+            const ohlcv = payload[i];
             const marketId = this.safeString(ohlcv, 8);
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
@@ -319,7 +317,7 @@ class ndax extends ndax$1["default"] {
                         parsed[4],
                         this.sum(parsed[5], previous[5]),
                     ];
-                    if (marketId !== undefined) {
+                    if ((marketId !== undefined) && (timeframe !== undefined)) {
                         updates[marketId][timeframe] = true;
                     }
                 }
@@ -333,7 +331,7 @@ class ndax extends ndax$1["default"] {
                         if (length >= limit) {
                             stored.shift();
                         }
-                        if (marketId !== undefined) {
+                        if ((marketId !== undefined) && (timeframe !== undefined)) {
                             updates[marketId][timeframe] = true;
                         }
                     }
@@ -372,17 +370,17 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        symbol = market['symbol'];
         const name = 'SubscribeLevel2';
         const messageHash = name + ':' + market['id'];
         const url = this.urls['api']['ws'];
         const requestId = this.requestId();
-        const limitValue = (limit === undefined) ? 100 : limit;
+        limit = (limit === undefined) ? 100 : limit;
         const payload = {
             'OMSId': omsId,
             'InstrumentId': this.safeInteger(market, 'id'), // conditionally optional
             // 'Symbol': market['info']['symbol'], // conditionally optional
-            'Depth': limitValue, // default 100
+            'Depth': limit, // default 100
         };
         const request = {
             'm': 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
@@ -394,10 +392,10 @@ class ndax extends ndax$1["default"] {
             'id': requestId,
             'messageHash': messageHash,
             'name': name,
-            'symbol': symbolValue,
+            'symbol': symbol,
             'marketId': market['id'],
             'method': this.handleOrderBookSubscription,
-            'limit': limitValue,
+            'limit': limit,
             'params': params,
         };
         const message = this.extend(request, params);
@@ -442,7 +440,7 @@ class ndax extends ndax$1["default"] {
         let timestamp = undefined;
         let nonce = undefined;
         for (let i = 0; i < payload.length; i++) {
-            const bidask = this.safeList(payload, i);
+            const bidask = payload[i];
             if (timestamp === undefined) {
                 timestamp = this.safeInteger(bidask, 2);
             }

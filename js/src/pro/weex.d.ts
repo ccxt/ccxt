@@ -3,7 +3,7 @@ import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, St
 import Client from '../base/ws/Client.js';
 export default class weex extends weexRest {
     describe(): any;
-    requestId(): Str;
+    requestId(): string | undefined;
     subscribePublic(messageHashes: string[], channels: Strings, isContract?: boolean, params?: Dict, subscription?: Dict): Promise<any>;
     subscribePrivate(messageHash: string, subscribeHash: string, channel: Str, isContract?: boolean, params?: Dict, subscription?: Dict): Promise<any>;
     authenticate(url: string): void;
@@ -51,7 +51,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTickers(symbols?: Strings, params?: Dict): Promise<any>;
+    unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
     handleTicker(client: Client, message: Dict): void;
     parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
@@ -101,7 +101,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTradesForSymbols(symbols: string[], params?: Dict): Promise<any>;
+    unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
     handleTrade(client: Client, message: Dict): void;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     /**
@@ -153,7 +153,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: Dict): Promise<any>;
+    unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: Dict): void;
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
@@ -190,7 +190,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     /**
      * @method
      * @name weex#unWatchOrderBookForSymbols
@@ -201,7 +201,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBookForSymbols(symbols: string[], params?: Dict): Promise<any>;
+    unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
     /**
@@ -223,7 +223,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchBidsAsks(symbols?: Strings, params?: Dict): Promise<any>;
+    unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
     handleBidAsk(client: Client, message: Dict): void;
     parseWsBidAsk(message: Dict, market?: Market): Ticker;
     /**
@@ -251,7 +251,7 @@ export default class weex extends weexRest {
      * @param {string} [params.type] spot or swap, default is spot
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    unWatchMyTrades(symbol?: Str, params?: Dict): Promise<any>;
+    unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
     handleMyTrades(client: Client, message: Dict): void;
     parseWsMyTrade(trade: Dict, market?: Market): Trade;
     /**
@@ -278,7 +278,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    unWatchOrders(symbol?: Str, params?: Dict): Promise<any>;
+    unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
     handleOrders(client: Client, message: Dict): void;
     parseWsOrder(order: Dict, market?: Market): Order;
     /**
@@ -319,7 +319,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    unWatchPositions(symbols?: Strings, params?: Dict): Promise<any>;
+    unWatchPositions(symbols?: Strings, params?: {}): Promise<any>;
     handlePositions(client: Client, message: Dict): void;
     parseWsPosition(position: Dict, market?: Market): Position;
     getMarketFromClientAndMessage(client: Client, message: Dict): Market;

@@ -66,11 +66,10 @@ class dydx extends \ccxt\async\dydx {
             'id' => $market['id'],
         );
         $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($symbol, $limit);
+            $limit = $trades->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
@@ -316,11 +315,10 @@ class dydx extends \ccxt\async\dydx {
             'id' => $market['id'] . '/' . $resolution,
         );
         $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $ohlcv->getLimit($symbol, $limit);
+            $limit = $ohlcv->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
     public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array()): PromiseInterface {
@@ -429,7 +427,7 @@ class dydx extends \ccxt\async\dydx {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_error_message(Client $client, array $message): bool {
+    public function handle_error_message(Client $client, mixed $message): bool {
         //
         // {
         //     "type": "error",

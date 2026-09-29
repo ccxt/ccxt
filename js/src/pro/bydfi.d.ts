@@ -4,10 +4,10 @@ import Client from '../base/ws/Client.js';
 export default class bydfi extends bydfiRest {
     describe(): any;
     ping(client: Client): {
-        id: number;
+        id: any;
         method: string;
     };
-    requestId(): number;
+    requestId(): any;
     watchPublic(messageHashes: string[], channels: Strings, params?: Dict, subscription?: Dict): Promise<any>;
     watchPrivate(messageHashes: string[], params?: Dict): Promise<any>;
     /**
@@ -51,7 +51,7 @@ export default class bydfi extends bydfiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTickers(symbols?: Strings, params?: Dict): Promise<any>;
+    unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
     getMessageHashesForTickersUnsubscription(): List;
     handleTicker(client: Client, message: Dict): void;
     /**
@@ -99,7 +99,7 @@ export default class bydfi extends bydfiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: Dict): Promise<any>;
+    unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: Dict): void;
     /**
      * @method
@@ -143,7 +143,7 @@ export default class bydfi extends bydfiRest {
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBookForSymbols(symbols: string[], params?: Dict): Promise<any>;
+    unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: Dict): void;
     /**
      * @method

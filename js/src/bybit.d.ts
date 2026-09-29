@@ -556,7 +556,7 @@ export default class bybit extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     /**
      * @method
      * @name bybit#fetchDepositAddressesByNetwork
@@ -625,7 +625,7 @@ export default class bybit extends Exchange {
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
-    parseLedgerEntryType(type: Str): Str;
+    parseLedgerEntryType(type: any): string;
     /**
      * @method
      * @name bybit#withdraw
@@ -839,7 +839,7 @@ export default class bybit extends Exchange {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     repayCrossMargin(code: string, amount: number, params?: Dict): Promise<MarginLoan>;
-    parseMarginLoan(info: Dict, currency?: Currency): MarginLoan;
+    parseMarginLoan(info: any, currency?: Currency): MarginLoan;
     parseTransferStatus(status: Str): Str;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     fetchDerivativesMarketLeverageTiers(symbol: string, params?: Dict): Promise<LeverageTier[]>;
@@ -913,8 +913,8 @@ export default class bybit extends Exchange {
      * @returns {object[]} a list of [settlement history objects]
      */
     fetchMySettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
-    parseSettlement(settlement: Dict, market: Market): Dict;
-    parseSettlements(settlements: any[], market: Market): List;
+    parseSettlement(settlement: Dict, market: any): Dict;
+    parseSettlements(settlements: any[], market: any): List;
     /**
      * @method
      * @name bybit#fetchVolatilityHistory
@@ -993,7 +993,7 @@ export default class bybit extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseIncome(income: Dict, market?: Market): object;
+    parseIncome(income: any, market?: Market): object;
     /**
      * @method
      * @name bybit#fetchOption
@@ -1128,6 +1128,6 @@ export default class bybit extends Exchange {
     fetchMarginMode(symbol: string, params?: Dict): Promise<MarginMode>;
     parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     parseMarginModeType(marginMode: Str): Str;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

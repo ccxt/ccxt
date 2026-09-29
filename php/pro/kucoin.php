@@ -100,15 +100,12 @@ class kucoin extends \ccxt\async\kucoin {
         ));
     }
 
-    public function negotiate(bool $privateChannel, bool $isFuturesMethod = false, $params = array()) {
+    public function negotiate(mixed $privateChannel, bool $isFuturesMethod = false, $params = array()) {
         return Async\async(self::do_negotiate(...))($privateChannel, $isFuturesMethod, $params);
     }
 
-    private function do_negotiate(bool $privateChannel, bool $isFuturesMethod = false, $params = array()) {
-        $connectId = 'public';
-        if ($privateChannel === true) {
-            $connectId = 'private';
-        }
+    private function do_negotiate(mixed $privateChannel, bool $isFuturesMethod = false, $params = array()) {
+        $connectId = ($privateChannel === true) ? 'private' : 'public';
         if ($isFuturesMethod) {
             $connectId .= 'Futures';
         }
@@ -163,9 +160,6 @@ class kucoin extends \ccxt\async\kucoin {
             $firstInstanceServer = $this->safe_dict($instanceServers, 0);
             $pingInterval = $this->safe_integer($firstInstanceServer, 'pingInterval');
             $endpoint = $this->safe_string($firstInstanceServer, 'endpoint');
-            if ($endpoint === null) {
-                throw new ExchangeError($this->id . ' negotiate() response has no websocket endpoint');
-            }
             $token = $this->safe_string($data, 'token');
             $result = $endpoint . '?' . $this->urlencode(array(
                 'token' => $token,
@@ -183,7 +177,7 @@ class kucoin extends \ccxt\async\kucoin {
         return null;
     }
 
-    public function request_id(): float {
+    public function request_id() {
         $this->lock_id();
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
@@ -218,10 +212,7 @@ class kucoin extends \ccxt\async\kucoin {
     private function do_subscribe_public_uta(string $messageHash, string $channel, string $symbol, $params = array(), ?array $subscription = null) {
         $requestId = (string) $this->request_id();
         $market = $this->market($symbol);
-        $urlType = 'spot';
-        if ($market['contract'] === true) {
-            $urlType = 'futures';
-        }
+        $urlType = ($market['contract'] === true) ? 'futures' : 'spot';
         $tradeType = strtoupper($urlType);
         $action = 'subscribe';
         if ($subscription !== null) {
@@ -274,20 +265,16 @@ class kucoin extends \ccxt\async\kucoin {
         return Async\await($this->watch_multiple($url, $messageHashes, $message, array( $subscribeHash ), $subscription));
     }
 
-    public function get_uta_url(): PromiseInterface {
+    public function get_uta_url() {
         return Async\async(self::do_get_uta_url(...))();
     }
 
     private function do_get_uta_url() {
         $utaToken = Async\await($this->authenticate_uta());
-        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'private');
-        if ($wsUrl === null) {
-            throw new ExchangeError($this->id . ' getUtaUrl() has no private websocket url');
-        }
-        return $wsUrl . '?token=' . $utaToken;
+        return $this->urls['api']['ws']['private'] . '?token=' . $utaToken;
     }
 
-    public function authenticate_uta(): PromiseInterface {
+    public function authenticate_uta() {
         return Async\async(self::do_authenticate_uta(...))();
     }
 
@@ -399,21 +386,25 @@ class kucoin extends \ccxt\async\kucoin {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $messageHash = 'ticker:' . $symbolValue;
-        list($uta, $paramsUta) = $this->handle_option_bool_and_params($params, 'watchTicker', 'uta', false);
+        $symbol = $market['symbol'];
+        $messageHash = 'ticker:' . $symbol;
+        $uta = false;
+        list($uta, $params) = $this->handle_option_and_params($params, 'watchTicker', 'uta', $uta);
         if ($uta) {
             $messageHash = 'uta:' . $messageHash;
             $channel = 'ticker';
-            return Async\await($this->subscribe_public_uta($messageHash, $channel, $symbolValue, $paramsUta));
+            return Async\await($this->subscribe_public_uta($messageHash, $channel, $symbol, $params));
         }
         $isFuturesMethod = $market['contract'];
         $url = Async\await($this->negotiate(false, $isFuturesMethod));
-        list($spotMethod, $paramsSpotMethod) = $this->handle_option_string_and_params($paramsUta, 'watchTicker', 'spotMethod', '/market/snapshot');
-        $method = ($isFuturesMethod === true) ? '/contractMarket/ticker' : $spotMethod;
-        $query = ($isFuturesMethod === true) ? $paramsUta : $paramsSpotMethod;
+        $method = '/market/snapshot';
+        if ($isFuturesMethod === true) {
+            $method = '/contractMarket/ticker';
+        } else {
+            list($method, $params) = $this->handle_option_and_params($params, 'watchTicker', 'spotMethod', $method);
+        }
         $topic = $method . ':' . $market['id'];
-        return Async\await($this->subscribe($url, $messageHash, $topic, $query));
+        return Async\await($this->subscribe($url, $messageHash, $topic, $params));
     }
 
     public function un_watch_ticker(string $symbol, $params = array()) {
@@ -437,34 +428,38 @@ class kucoin extends \ccxt\async\kucoin {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbol = $market['symbol'];
         $isFuturesMethod = $market['contract'];
-        list($uta, $paramsUta) = $this->handle_option_bool_and_params($params, 'unWatchTicker', 'uta', false);
+        $uta = false;
+        list($uta, $params) = $this->handle_option_and_params($params, 'unWatchTicker', 'uta', $uta);
         $subscription = array(
-            'symbols' => array( $symbolValue ),
+            'symbols' => array( $symbol ),
             'topic' => 'ticker',
             'unsubscribe' => true,
         );
-        $subMessageHash = 'ticker:' . $symbolValue;
+        $subMessageHash = 'ticker:' . $symbol;
         if ($uta) {
             $subMessageHash = 'uta:' . $subMessageHash;
             $subscription['subMessageHashes'] = array( $subMessageHash );
             $utaMessageHash = 'unsubscribe:' . $subMessageHash;
             $subscription['messageHashes'] = array( $utaMessageHash );
-            return Async\await($this->subscribe_public_uta($utaMessageHash, 'ticker', $symbolValue, $paramsUta, $subscription));
+            return Async\await($this->subscribe_public_uta($utaMessageHash, 'ticker', $symbol, $params, $subscription));
         } else {
             $url = Async\await($this->negotiate(false, $isFuturesMethod));
-            list($spotMethod, $paramsSpotMethod) = $this->handle_option_string_and_params($paramsUta, 'watchTicker', 'spotMethod', '/market/snapshot');
-            $method = ($isFuturesMethod === true) ? '/contractMarket/ticker' : $spotMethod;
-            $query = ($isFuturesMethod === true) ? $paramsUta : $paramsSpotMethod;
+            $method = '/market/snapshot';
+            if ($isFuturesMethod === true) {
+                $method = '/contractMarket/ticker';
+            } else {
+                list($method, $params) = $this->handle_option_and_params($params, 'watchTicker', 'spotMethod', $method);
+            }
             $topic = $method . ':' . $market['id'];
             $messageHash = 'unsubscribe:' . $subMessageHash;
-            $subscription['messageHashes'] = array( $messageHash, $topic );
-            $subscription['subMessageHashes'] = array( $subMessageHash, $topic );
-            return Async\await($this->un_subscribe($url, $messageHash, $topic, $subMessageHash, $query, $subscription));
             // we have to add the topic to the messageHashes and subMessageHashes
             // because handleSubscriptionStatus needs them to remove the subscription from the client
             // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
+            $subscription['messageHashes'] = array( $messageHash, $topic );
+            $subscription['subMessageHashes'] = array( $subMessageHash, $topic );
+            return Async\await($this->un_subscribe($url, $messageHash, $topic, $subMessageHash, $params, $subscription));
         }
     }
 
@@ -490,55 +485,51 @@ class kucoin extends \ccxt\async\kucoin {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols, null, true, true);
-        $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchTickers', $firstMarket, $params);
-        list($uta, $paramsUta) = $this->handle_option_bool_and_params($paramsMarketType, 'watchTickers', 'uta', false);
+        $symbols = $this->market_symbols($symbols, null, true, true);
+        $firstMarket = $this->get_market_from_symbols($symbols);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('watchTickers', $firstMarket, $params);
+        $uta = false;
+        list($uta, $params) = $this->handle_option_and_params($params, 'watchTickers', 'uta', $uta);
         $isFuturesMethod = ($marketType !== 'spot') && ($marketType !== 'margin');
-        if (($isFuturesMethod || $uta) && $symbolsNormalized === null) {
+        if (($isFuturesMethod || $uta) && $symbols === null) {
             throw new ArgumentsRequired($this->id . ' watchTickers() requires a list of symbols for ' . $marketType . ' markets and unified trading account (uta)');
         }
         $messageHash = 'tickers';
-        list($spotMethod, $paramsSpotMethod) = $this->handle_option_string_and_params_2($paramsUta, 'watchTickers', 'method', 'spotMethod', '/market/ticker');
-        $method = $spotMethod;
+        $method = '/market/ticker';
         if ($isFuturesMethod) {
             $method = '/contractMarket/ticker';
-        }
-        $query = $paramsSpotMethod;
-        if ($isFuturesMethod) {
-            $query = $paramsUta;
+        } else {
+            list($method, $params) = $this->handle_option_and_params_2($params, 'watchTickers', 'method', 'spotMethod', $method);
         }
         $messageHashes = array();
         $topics = array();
-        if ($symbolsNormalized !== null) {
-            for ($i = 0; $i < count($symbolsNormalized); $i++) {
-                $symbol = $symbolsNormalized[$i];
+        if ($symbols !== null) {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
                 $messageHashes[] = 'ticker:' . $symbol;
                 $market = $this->market($symbol);
                 $topics[] = $method . ':' . $market['id'];
             }
         }
         $url = Async\await($this->negotiate(false, $isFuturesMethod));
-        if ($symbolsNormalized === null) {
+        if ($symbols === null) {
             $allTopic = $method . ':all';
-            $tickers = Async\await($this->subscribe($url, $messageHash, $allTopic, $query));
+            $tickers = Async\await($this->subscribe($url, $messageHash, $allTopic, $params));
             if ($this->newUpdates) {
                 return $tickers;
             }
         } else {
-            $marketIds = $this->market_ids($symbolsNormalized);
+            $marketIds = $this->market_ids($symbols);
             $symbolsTopic = $method . ':' . implode(',', $marketIds);
-            $tickers = Async\await($this->subscribe_multiple($url, $messageHashes, $symbolsTopic, $topics, $query));
+            $tickers = Async\await($this->subscribe_multiple($url, $messageHashes, $symbolsTopic, $topics, $params));
             if ($this->newUpdates) {
                 $newDict = array();
-                $tickersSymbol = $this->safe_string($tickers, 'symbol');
-                if ($tickersSymbol !== null) {
-                    $newDict[$tickersSymbol] = $tickers;
-                }
+                $newDict[$tickers['symbol']] = $tickers;
                 return $newDict;
             }
         }
-        return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
     public function subscribe_public_multiple_uta(array $messageHashes, string $channel, array $symbols, $params = array(), ?array $subscription = null) {
@@ -548,11 +539,8 @@ class kucoin extends \ccxt\async\kucoin {
     private function do_subscribe_public_multiple_uta(array $messageHashes, string $channel, array $symbols, $params = array(), ?array $subscription = null) {
         $requestId = (string) $this->request_id();
         $market = $this->get_market_from_symbols($symbols);
-        $isContract = $this->safe_bool($market, 'contract', false);
-        $urlType = 'spot';
-        if ($isContract) {
-            $urlType = 'futures';
-        }
+        $isContract = ($market['contract'] === true);
+        $urlType = $isContract ? 'futures' : 'spot';
         $tradeType = strtoupper($urlType);
         $action = 'subscribe';
         if ($subscription !== null) {
@@ -584,20 +572,20 @@ class kucoin extends \ccxt\async\kucoin {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols, null, false, true);
+        $symbols = $this->market_symbols($symbols, null, false, true);
         $messageHash = 'uta:ticker';
         $messageHashes = array();
-        for ($i = 0; $i < count(($symbolsNormalized)); $i++) {
-            $symbol = $this->safe_string($symbolsNormalized, $i);
+        for ($i = 0; $i < count(($symbols)); $i++) {
+            $symbol = $this->safe_string($symbols, $i);
             $market = $this->market($symbol);
             $subMessageHash = $messageHash . ':' . $market['symbol'];
             $messageHashes[] = $subMessageHash;
         }
-        $tickers = Async\await($this->subscribe_public_multiple_uta($messageHashes, 'ticker', $symbolsNormalized, $params));
+        $tickers = Async\await($this->subscribe_public_multiple_uta($messageHashes, 'ticker', $symbols, $params));
         if ($this->newUpdates) {
             return $tickers;
         }
-        return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
     public function handle_ticker(Client $client, array $message) {
@@ -779,7 +767,7 @@ class kucoin extends \ccxt\async\kucoin {
 
     public function parse_ws_uta_ticker(array $ticker, ?array $market = null): array {
         $symbol = $this->safe_string($market, 'symbol');
-        $marketResolved = $this->safe_market($symbol, $market);
+        $market = $this->safe_market($symbol, $market);
         $timestamp = $this->safe_integer($ticker, 'ts');
         if ($timestamp === null) {
             $timestamp = $this->safe_integer_product($ticker, 'M', 0.000001);
@@ -807,7 +795,7 @@ class kucoin extends \ccxt\async\kucoin {
             'markPrice' => $this->safe_string($ticker, 'mp'),
             'indexPrice' => $this->safe_string($ticker, 'ip'),
             'info' => $ticker,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
@@ -828,23 +816,20 @@ class kucoin extends \ccxt\async\kucoin {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols, null, false, true, false);
-        $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
-        $isFuturesMethod = $this->safe_bool($firstMarket, 'contract', false);
+        $symbols = $this->market_symbols($symbols, null, false, true, false);
+        $firstMarket = $this->get_market_from_symbols($symbols);
+        $isFuturesMethod = ($firstMarket['contract'] === true);
         $channelName = '/spotMarket/level1:';
         if ($isFuturesMethod) {
             $channelName = '/contractMarket/tickerV2:';
         }
-        $ticker = Async\await($this->watch_multi_helper('watchBidsAsks', $channelName, $isFuturesMethod, $symbolsNormalized, $params));
+        $ticker = Async\await($this->watch_multi_helper('watchBidsAsks', $channelName, $isFuturesMethod, $symbols, $params));
         if ($this->newUpdates) {
             $tickers = array();
-            $tickerSymbol = $this->safe_string($ticker, 'symbol');
-            if ($tickerSymbol !== null) {
-                $tickers[$tickerSymbol] = $ticker;
-            }
+            $tickers[$ticker['symbol']] = $ticker;
             return $tickers;
         }
-        return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
     }
 
     public function watch_multi_helper(string $methodName, string $channelName, bool $isFuturesChannel, ?array $symbols = null, $params = array()) {
@@ -855,19 +840,19 @@ class kucoin extends \ccxt\async\kucoin {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols, null, false, true, false);
-        $length = count(($symbolsNormalized));
+        $symbols = $this->market_symbols($symbols, null, false, true, false);
+        $length = count(($symbols));
         if ($length > 100) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() accepts a maximum of 100 symbols');
         }
         $messageHashes = array();
-        for ($i = 0; $i < count(($symbolsNormalized)); $i++) {
-            $symbol = ($symbolsNormalized)[$i];
+        for ($i = 0; $i < count(($symbols)); $i++) {
+            $symbol = ($symbols)[$i];
             $market = $this->market($symbol);
             $messageHashes[] = 'bidask@' . $market['symbol'];
         }
         $url = Async\await($this->negotiate(false, $isFuturesChannel));
-        $marketIds = $this->market_ids($symbolsNormalized);
+        $marketIds = $this->market_ids($symbols);
         $joined = implode(',', ($marketIds));
         $requestId = (string) $this->request_id();
         $request = array(
@@ -921,8 +906,8 @@ class kucoin extends \ccxt\async\kucoin {
         if (mb_strpos($topic, 'contractMarket') === false) {
             $parts = explode(':', $topic);
             $marketId = $parts[1];
-            $marketResolved = $this->safe_market($marketId, $market);
-            $symbol = $this->safe_string($marketResolved, 'symbol');
+            $market = $this->safe_market($marketId, $market);
+            $symbol = $this->safe_string($market, 'symbol');
             $data = $this->safe_dict($ticker, 'data', array());
             $ask = $this->safe_list($data, 'asks', array());
             $bid = $this->safe_list($data, 'bids', array());
@@ -936,13 +921,13 @@ class kucoin extends \ccxt\async\kucoin {
                 'bid' => $this->safe_number($bid, 0),
                 'bidVolume' => $this->safe_number($bid, 1),
                 'info' => $ticker,
-            ), $marketResolved);
+            ), $market);
         } else {
             // futures
             $data = $this->safe_dict($ticker, 'data', array());
             $marketId = $this->safe_string($data, 'symbol');
-            $marketResolved = $this->safe_market($marketId, $market);
-            $symbol = $this->safe_string($marketResolved, 'symbol');
+            $market = $this->safe_market($marketId, $market);
+            $symbol = $this->safe_string($market, 'symbol');
             $timestamp = $this->safe_integer_product($data, 'ts', 0.000001);
             return $this->safe_ticker(array(
                 'symbol' => $symbol,
@@ -953,7 +938,7 @@ class kucoin extends \ccxt\async\kucoin {
                 'bid' => $this->safe_number($data, 'bestBidPrice'),
                 'bidVolume' => $this->safe_number($data, 'bestBidSize'),
                 'info' => $ticker,
-            ), $marketResolved);
+            ), $market);
         }
     }
 
@@ -981,10 +966,11 @@ class kucoin extends \ccxt\async\kucoin {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbol = $market['symbol'];
         $period = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        $messageHash = 'candles:' . $symbolValue . ':' . $timeframe;
-        list($uta, $paramsUta) = $this->handle_option_bool_and_params($params, 'watchOHLCV', 'uta', false);
+        $messageHash = 'candles:' . $symbol . ':' . $timeframe;
+        $uta = false;
+        list($uta, $params) = $this->handle_option_and_params($params, 'watchOHLCV', 'uta', $uta);
         $ohlcv = null;
         if ($uta) {
             $channel = 'kline';
@@ -992,7 +978,8 @@ class kucoin extends \ccxt\async\kucoin {
             $extendedParams = array(
                 'interval' => $period,
             );
-            $ohlcv = Async\await($this->subscribe_public_uta($messageHash, $channel, $symbolValue, $this->extend($extendedParams, $paramsUta)));
+            $params = $this->extend($extendedParams, $params);
+            $ohlcv = Async\await($this->subscribe_public_uta($messageHash, $channel, $symbol, $this->extend($extendedParams, $params)));
         } else {
             $isFuturesMethod = $market['contract'];
             $url = Async\await($this->negotiate(false, $isFuturesMethod));
@@ -1001,13 +988,12 @@ class kucoin extends \ccxt\async\kucoin {
                 $channelName = '/contractMarket/limitCandle:';
             }
             $topic = $channelName . $market['id'] . '_' . $period;
-            $ohlcv = Async\await($this->subscribe($url, $messageHash, $topic, $paramsUta));
+            $ohlcv = Async\await($this->subscribe($url, $messageHash, $topic, $params));
         }
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
+            $limit = $ohlcv->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
     public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()) {
@@ -1032,19 +1018,19 @@ class kucoin extends \ccxt\async\kucoin {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbol = $market['symbol'];
         $uta = false;
-        list($utaOption, $paramsUta) = $this->handle_option_bool_and_params($params, 'unWatchOHLCV', 'uta', $uta);
+        list($uta, $params) = $this->handle_option_and_params($params, 'unWatchOHLCV', 'uta', $uta);
         $period = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        $symbolAndTimeframe = array( $symbolValue, $timeframe );
+        $symbolAndTimeframe = array( $symbol, $timeframe );
         $subscription = array(
-            'symbols' => array( $symbolValue ),
+            'symbols' => array( $symbol ),
             'symbolsAndTimeframes' => array( $symbolAndTimeframe ),
             'topic' => 'ohlcv',
             'unsubscribe' => true,
         );
-        $subMessageHash = 'candles:' . $symbolValue . ':' . $timeframe;
-        if ($utaOption) {
+        $subMessageHash = 'candles:' . $symbol . ':' . $timeframe;
+        if ($uta) {
             $subMessageHash = 'uta:' . $subMessageHash;
             $subscription['subMessageHashes'] = array( $subMessageHash );
             $utaMessageHash = 'unsubscribe:' . $subMessageHash;
@@ -1052,7 +1038,7 @@ class kucoin extends \ccxt\async\kucoin {
             $extendedParams = array(
                 'interval' => $period,
             );
-            return Async\await($this->subscribe_public_uta($utaMessageHash, 'kline', $symbolValue, $this->extend($extendedParams, $paramsUta), $subscription));
+            return Async\await($this->subscribe_public_uta($utaMessageHash, 'kline', $symbol, $this->extend($extendedParams, $params), $subscription));
         } else {
             $isFuturesMethod = $market['contract'];
             $url = Async\await($this->negotiate(false, $isFuturesMethod));
@@ -1067,7 +1053,7 @@ class kucoin extends \ccxt\async\kucoin {
             // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
             $subscription['messageHashes'] = array( $messageHash, $topic );
             $subscription['subMessageHashes'] = array( $subMessageHash, $topic );
-            return Async\await($this->un_subscribe($url, $messageHash, $topic, $messageHash, $paramsUta, $subscription));
+            return Async\await($this->un_subscribe($url, $messageHash, $topic, $messageHash, $params, $subscription));
         }
     }
 
@@ -1131,10 +1117,7 @@ class kucoin extends \ccxt\async\kucoin {
             $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
         $isContractMarket = (mb_strpos($topic, 'contractMarket') !== false);
-        $baseVolumeIndex = 5;
-        if ($isContractMarket) {
-            $baseVolumeIndex = 6; // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
-        }
+        $baseVolumeIndex = $isContractMarket ? 6 : 5; // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
         $parsed = array(
             $this->safe_timestamp($candles, 0),
             $this->safe_number($candles, 1),
@@ -1213,23 +1196,22 @@ class kucoin extends \ccxt\async\kucoin {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
         $uta = false;
-        list($utaOption, $paramsUta) = $this->handle_option_bool_and_params($params, 'watchTrades', 'uta', $uta);
-        if ($utaOption) {
+        list($uta, $params) = $this->handle_option_and_params($params, 'watchTrades', 'uta', $uta);
+        if ($uta) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
-            $messageHash = 'uta:trades:' . $symbolResolved;
+            $symbol = $market['symbol'];
+            $messageHash = 'uta:trades:' . $symbol;
             $channel = 'trade';
-            $trades = Async\await($this->subscribe_public_uta($messageHash, $channel, $symbolResolved, $paramsUta));
-            $first = $this->safe_dict($trades, 0);
-            $tradeSymbol = $this->safe_string($first, 'symbol');
-            $limitResolved = $limit;
+            $trades = Async\await($this->subscribe_public_uta($messageHash, $channel, $symbol, $params));
             if ($this->newUpdates) {
-                $limitResolved = $trades->getLimit($tradeSymbol, $limit);
+                $first = $this->safe_dict($trades, 0);
+                $tradeSymbol = $this->safe_string($first, 'symbol');
+                $limit = $trades->getLimit($tradeSymbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }
-        return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $paramsUta));
+        return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1256,10 +1238,10 @@ class kucoin extends \ccxt\async\kucoin {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols, null, false, true);
-        $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
-        $isFuturesMethod = $this->safe_bool($firstMarket, 'contract', false);
-        $marketIds = $this->market_ids($symbolsNormalized);
+        $symbols = $this->market_symbols($symbols, null, false, true);
+        $firstMarket = $this->get_market_from_symbols($symbols);
+        $isFuturesMethod = ($firstMarket['contract'] === true);
+        $marketIds = $this->market_ids($symbols);
         $url = Async\await($this->negotiate(false, $isFuturesMethod));
         $messageHashes = array();
         $subscriptionHashes = array();
@@ -1268,20 +1250,19 @@ class kucoin extends \ccxt\async\kucoin {
             $channelName = '/contractMarket/execution:';
         }
         $topic = $channelName . implode(',', $marketIds);
-        for ($i = 0; $i < count($symbolsNormalized); $i++) {
-            $symbol = $symbolsNormalized[$i];
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $messageHashes[] = 'trades:' . $symbol;
             $marketId = $marketIds[$i];
             $subscriptionHashes[] = $channelName . $marketId;
         }
         $trades = Async\await($this->subscribe_multiple($url, $messageHashes, $topic, $subscriptionHashes, $params));
-        $first = $this->safe_dict($trades, 0);
-        $tradeSymbol = $this->safe_string($first, 'symbol');
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($tradeSymbol, $limit);
+            $first = $this->safe_dict($trades, 0);
+            $tradeSymbol = $this->safe_string($first, 'symbol');
+            $limit = $trades->getLimit($tradeSymbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function un_watch_trades_for_symbols(array $symbols, $params = array()): PromiseInterface {
@@ -1302,10 +1283,10 @@ class kucoin extends \ccxt\async\kucoin {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols, null, false, true);
-        $marketIds = $this->market_ids($symbolsNormalized);
-        $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
-        $isFuturesMethod = $this->safe_bool($firstMarket, 'contract', false);
+        $symbols = $this->market_symbols($symbols, null, false, true);
+        $marketIds = $this->market_ids($symbols);
+        $firstMarket = $this->get_market_from_symbols($symbols);
+        $isFuturesMethod = ($firstMarket['contract'] === true);
         $url = Async\await($this->negotiate(false, $isFuturesMethod));
         $messageHashes = array();
         $subscriptionHashes = array();
@@ -1314,8 +1295,8 @@ class kucoin extends \ccxt\async\kucoin {
             $channelName = '/contractMarket/execution:';
         }
         $topic = $channelName . implode(',', $marketIds);
-        for ($i = 0; $i < count($symbolsNormalized); $i++) {
-            $symbol = $symbolsNormalized[$i];
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $messageHashes[] = 'unsubscribe:trades:' . $symbol;
             $subscriptionHashes[] = 'trades:' . $symbol;
         }
@@ -1329,7 +1310,7 @@ class kucoin extends \ccxt\async\kucoin {
             'subMessageHashes' => $subscriptionHashes,
             'topic' => 'trades',
             'unsubscribe' => true,
-            'symbols' => $symbolsNormalized,
+            'symbols' => $symbols,
         );
         return Async\await($this->un_subscribe_multiple($url, $messageHashes, $topic, $messageHashes, $params, $subscription));
     }
@@ -1352,12 +1333,12 @@ class kucoin extends \ccxt\async\kucoin {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         $uta = false;
-        list($utaOption, $paramsUta) = $this->handle_option_bool_and_params($params, 'watchTrades', 'uta', $uta);
-        if ($utaOption) {
+        list($uta, $params) = $this->handle_option_and_params($params, 'watchTrades', 'uta', $uta);
+        if ($uta) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
-            $subMessageHash = 'uta:trades:' . $symbolResolved;
+            $symbol = $market['symbol'];
+            $subMessageHash = 'uta:trades:' . $symbol;
             $messageHash = 'unsubscribe:' . $subMessageHash;
             $channel = 'trade';
             $subscription = array(
@@ -1365,11 +1346,11 @@ class kucoin extends \ccxt\async\kucoin {
                 'subMessageHashes' => array( $subMessageHash ),
                 'topic' => 'trades',
                 'unsubscribe' => true,
-                'symbols' => array( $symbolResolved ),
+                'symbols' => array( $symbol ),
             );
-            return Async\await($this->subscribe_public_uta($messageHash, $channel, $symbolResolved, $paramsUta, $subscription));
+            return Async\await($this->subscribe_public_uta($messageHash, $channel, $symbol, $params, $subscription));
         }
-        return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $paramsUta));
+        return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
     }
 
     public function handle_trade(Client $client, array $message) {
@@ -1466,7 +1447,7 @@ class kucoin extends \ccxt\async\kucoin {
         //     }
         //
         $marketId = $this->safe_string($trade, 's');
-        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_product_2($trade, 'M', 'E', 0.000001);
         $fee = null;
         $feeCost = $this->safe_string($trade, 'f');
@@ -1484,7 +1465,7 @@ class kucoin extends \ccxt\async\kucoin {
             'order' => $this->safe_string($trade, 'oi'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'type' => $this->safe_string_lower($trade, 'oT'),
             'side' => $this->safe_string_lower($trade, 'S'),
             'takerOrMaker' => $this->safe_string_lower($trade, 'lR'),
@@ -1492,7 +1473,7 @@ class kucoin extends \ccxt\async\kucoin {
             'amount' => $this->safe_string($trade, 'q'),
             'cost' => null,
             'fee' => $fee,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1523,30 +1504,31 @@ class kucoin extends \ccxt\async\kucoin {
         // cache the ws level2 stream, fetch the REST snapshot, then replay only the cached deltas whose
         // sequence follows the snapshot; price 0 → skip (bump sequence), size 0 → remove the price level
         //
-        list($uta, $paramsUta) = $this->handle_option_bool_and_params($params, 'watchOrderBook', 'uta', false);
+        $uta = false;
+        list($uta, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'uta', $uta);
         if ($uta) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
-            // depth: '1', '5', '50' or 'increment'
-            list($depth, $paramsDepth) = $this->handle_option_string_and_params($paramsUta, 'watchOrderBook', 'utaDepth', 'increment');
-            $messageHash = 'uta:orderbook:' . $symbolResolved . ':depth:' . $depth;
+            $symbol = $market['symbol'];
+            $depth = 'increment'; // '1', '5', '50' or 'increment'
+            list($depth, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'utaDepth', $depth);
+            $messageHash = 'uta:orderbook:' . $symbol . ':depth:' . $depth;
             $channel = 'obu';
             $subscription = array();
             if (($depth === 'increment')) { // other streams return the entire orderbook, so we don't need to fetch the snapshot through REST
                 $subscription = array(
                     'method' => array($this, 'handle_order_book_subscription'),
-                    'symbols' => array( $symbolResolved ),
+                    'symbols' => array( $symbol ),
                     'limit' => $limit,
                 );
             }
-            $paramsExtended = $this->extend($paramsDepth, array(
+            $params = $this->extend($params, array(
                 'depth' => $depth,
             ));
-            $orderbook = Async\await($this->subscribe_public_uta($messageHash, $channel, $symbolResolved, $paramsExtended, $subscription));
+            $orderbook = Async\await($this->subscribe_public_uta($messageHash, $channel, $symbol, $params, $subscription));
             return $orderbook->limit();
         }
-        return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $paramsUta));
+        return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
     }
 
     public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
@@ -1571,17 +1553,18 @@ class kucoin extends \ccxt\async\kucoin {
          * @param {string} [$params->method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        list($uta, $paramsUta) = $this->handle_option_bool_and_params($params, 'unWatchOrderBook', 'uta', false);
+        $uta = false;
+        list($uta, $params) = $this->handle_option_and_params($params, 'unWatchOrderBook', 'uta', $uta);
         if ($uta) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
-            // depth: '1', '5', '50' or 'increment'
-            list($depth, $paramsDepth) = $this->handle_option_string_and_params($paramsUta, 'watchOrderBook', 'utaDepth', 'increment');
-            $paramsExtended = $this->extend($paramsDepth, array(
+            $symbol = $market['symbol'];
+            $depth = 'increment'; // '1', '5', '50' or 'increment'
+            list($depth, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'utaDepth', $depth);
+            $params = $this->extend($params, array(
                 'depth' => $depth,
             ));
-            $subMessageHash = 'uta:orderbook:' . $symbolResolved . ':depth:' . $depth;
+            $subMessageHash = 'uta:orderbook:' . $symbol . ':depth:' . $depth;
             $messageHash = 'unsubscribe:' . $subMessageHash;
             $channel = 'obu';
             $subscription = array(
@@ -1589,11 +1572,11 @@ class kucoin extends \ccxt\async\kucoin {
                 'subMessageHashes' => array( $subMessageHash ),
                 'topic' => 'orderbook',
                 'unsubscribe' => true,
-                'symbols' => array( $symbolResolved ),
+                'symbols' => array( $symbol ),
             );
-            return Async\await($this->subscribe_public_uta($messageHash, $channel, $symbolResolved, $paramsExtended, $subscription));
+            return Async\await($this->subscribe_public_uta($messageHash, $channel, $symbol, $params, $subscription));
         }
-        return Async\await($this->un_watch_order_book_for_symbols(array( $symbol ), $paramsUta));
+        return Async\await($this->un_watch_order_book_for_symbols(array( $symbol ), $params));
     }
 
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1629,21 +1612,14 @@ class kucoin extends \ccxt\async\kucoin {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
-        $marketIds = $this->market_ids($symbolsNormalized);
-        $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
-        $isFuturesMethod = $this->safe_bool($firstMarket, 'contract', false);
+        $symbols = $this->market_symbols($symbols);
+        $marketIds = $this->market_ids($symbols);
+        $firstMarket = $this->get_market_from_symbols($symbols);
+        $isFuturesMethod = ($firstMarket['contract'] === true);
         $url = Async\await($this->negotiate(false, $isFuturesMethod));
-        $defaultMethod = '/market/level2';
-        if ($isFuturesMethod) {
-            $defaultMethod = '/contractMarket/level2';
-        }
-        $optionName = 'spotMethod';
-        if ($isFuturesMethod) {
-            $optionName = 'contractMethod';
-        }
-        list($methodOption, $paramsMethod) = $this->handle_option_string_and_params_2($params, 'watchOrderBook', $optionName, 'method', $defaultMethod);
-        $method = $methodOption;
+        $method = $isFuturesMethod ? '/contractMarket/level2' : '/market/level2';
+        $optionName = $isFuturesMethod ? 'contractMethod' : 'spotMethod';
+        list($method, $params) = $this->handle_option_and_params_2($params, 'watchOrderBook', $optionName, 'method', $method);
         if (mb_strpos($method, 'Depth') === false) {
             if (($limit === 5) || ($limit === 50)) {
                 if (!$isFuturesMethod) {
@@ -1655,8 +1631,8 @@ class kucoin extends \ccxt\async\kucoin {
         $topic = $method . ':' . implode(',', $marketIds);
         $messageHashes = array();
         $subscriptionHashes = array();
-        for ($i = 0; $i < count($symbolsNormalized); $i++) {
-            $symbol = $symbolsNormalized[$i];
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $messageHashes[] = 'orderbook:' . $symbol;
             $marketId = $marketIds[$i];
             $subscriptionHashes[] = $method . ':' . $marketId;
@@ -1665,11 +1641,11 @@ class kucoin extends \ccxt\async\kucoin {
         if (($method === '/market/level2') || ($method === '/contractMarket/level2')) { // other streams return the entire orderbook, so we don't need to fetch the snapshot through REST
             $subscription = array(
                 'method' => array($this, 'handle_order_book_subscription'),
-                'symbols' => $symbolsNormalized,
+                'symbols' => $symbols,
                 'limit' => $limit,
             );
         }
-        $orderbook = Async\await($this->subscribe_multiple($url, $messageHashes, $topic, $subscriptionHashes, $paramsMethod, $subscription));
+        $orderbook = Async\await($this->subscribe_multiple($url, $messageHashes, $topic, $subscriptionHashes, $params, $subscription));
         return $orderbook->limit();
     }
 
@@ -1694,25 +1670,18 @@ class kucoin extends \ccxt\async\kucoin {
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
         $limit = $this->safe_integer($params, 'limit');
-        $paramsOmitted = $this->omit($params, 'limit');
+        $params = $this->omit($params, 'limit');
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols, null, false, true);
-        $marketIds = $this->market_ids($symbolsNormalized);
-        $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
-        $isFuturesMethod = $this->safe_bool($firstMarket, 'contract', false);
+        $symbols = $this->market_symbols($symbols, null, false, true);
+        $marketIds = $this->market_ids($symbols);
+        $firstMarket = $this->get_market_from_symbols($symbols);
+        $isFuturesMethod = ($firstMarket['contract'] === true);
         $url = Async\await($this->negotiate(false, $isFuturesMethod));
-        $defaultMethod = '/market/level2';
-        if ($isFuturesMethod) {
-            $defaultMethod = '/contractMarket/level2';
-        }
-        $optionName = 'spotMethod';
-        if ($isFuturesMethod) {
-            $optionName = 'contractMethod';
-        }
-        list($methodOption, $paramsMethod) = $this->handle_option_string_and_params_2($paramsOmitted, 'watchOrderBook', $optionName, 'method', $defaultMethod);
-        $method = $methodOption;
+        $method = $isFuturesMethod ? '/contractMarket/level2' : '/market/level2';
+        $optionName = $isFuturesMethod ? 'contractMethod' : 'spotMethod';
+        list($method, $params) = $this->handle_option_and_params_2($params, 'watchOrderBook', $optionName, 'method', $method);
         if (mb_strpos($method, 'Depth') === false) {
             if (($limit === 5) || ($limit === 50)) {
                 if (!$isFuturesMethod) {
@@ -1724,8 +1693,8 @@ class kucoin extends \ccxt\async\kucoin {
         $topic = $method . ':' . implode(',', $marketIds);
         $messageHashes = array();
         $subscriptionHashes = array();
-        for ($i = 0; $i < count($symbolsNormalized); $i++) {
-            $symbol = $symbolsNormalized[$i];
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $messageHashes[] = 'unsubscribe:orderbook:' . $symbol;
             $subscriptionHashes[] = 'orderbook:' . $symbol;
         }
@@ -1736,12 +1705,12 @@ class kucoin extends \ccxt\async\kucoin {
         $subscriptionHashes[] = $topic;
         $subscription = array(
             'messageHashes' => $messageHashes,
-            'symbols' => $symbolsNormalized,
+            'symbols' => $symbols,
             'unsubscribe' => true,
             'topic' => 'orderbook',
             'subMessageHashes' => $subscriptionHashes,
         );
-        return Async\await($this->un_subscribe_multiple($url, $messageHashes, $topic, $messageHashes, $paramsMethod, $subscription));
+        return Async\await($this->un_subscribe_multiple($url, $messageHashes, $topic, $messageHashes, $params, $subscription));
     }
 
     public function handle_order_book(Client $client, array $message) {
@@ -1831,7 +1800,7 @@ class kucoin extends \ccxt\async\kucoin {
                 return;
             }
         }
-        $this->handle_book_delta($this->orderbooks[$symbol], $data);
+        $this->handle_delta($this->orderbooks[$symbol], $data);
         $client->resolve($this->orderbooks[$symbol], $messageHash);
     }
 
@@ -1890,7 +1859,7 @@ class kucoin extends \ccxt\async\kucoin {
                 return;
             }
         }
-        $this->handle_book_delta($this->orderbooks[$symbol], $data);
+        $this->handle_delta($this->orderbooks[$symbol], $data);
         $client->resolve($this->orderbooks[$symbol], $messageHash);
     }
 
@@ -1905,7 +1874,7 @@ class kucoin extends \ccxt\async\kucoin {
             return -1;
         }
         for ($i = 0; $i < count($cache); $i++) {
-            $delta = $this->safe_dict($cache, $i);
+            $delta = $cache[$i];
             $deltaStart = $this->safe_integer_n($delta, array( 'sequenceStart', 'sequence', 'O' ));
             $deltaEnd = $this->safe_integer_n($delta, array( 'sequenceEnd', 'sequence', 'C' )); // todo check
             if (($deltaStart === null) || ($deltaEnd === null)) {
@@ -1918,7 +1887,7 @@ class kucoin extends \ccxt\async\kucoin {
         return count($cache);
     }
 
-    public function handle_book_delta(mixed $orderbook, mixed $delta) {
+    public function handle_delta(mixed $orderbook, mixed $delta) {
         $timestamp = $this->safe_integer_product($delta, 'M', 0.000001);
         if ($timestamp === null) {
             $timestamp = $this->safe_integer_2($delta, 'time', 'timestamp');
@@ -1936,10 +1905,7 @@ class kucoin extends \ccxt\async\kucoin {
             $price = $this->safe_number($splitChange, 0);
             $side = $this->safe_string($splitChange, 1);
             $quantity = $this->safe_number($splitChange, 2);
-            $type = 'asks';
-            if ($side === 'buy') {
-                $type = 'bids';
-            }
+            $type = ($side === 'buy') ? 'bids' : 'asks';
             $value = array( $price, $quantity );
             if ($type === 'bids') {
                 $storedBids->storeArray($value);
@@ -2085,55 +2051,50 @@ class kucoin extends \ccxt\async\kucoin {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $utaEnabled = Async\await($this->is_uta_enabled());
-        list($uta, $paramsUta) = $this->handle_option_bool_and_params($params, 'watchOrders', 'uta', $utaEnabled);
+        $uta = Async\await($this->is_uta_enabled());
+        list($uta, $params) = $this->handle_option_and_params($params, 'watchOrders', 'uta', $uta);
         $market = null;
+        $messageHash = 'orders';
         if ($symbol !== null) {
             $market = $this->market($symbol);
-        }
-        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
-        $messageHash = 'orders';
-        if ($symbolResolved !== null) {
-            $messageHash = $messageHash . ':' . $symbolResolved;
+            $symbol = $market['symbol'];
+            $messageHash = $messageHash . ':' . $symbol;
         }
         $orders = null;
         if ($uta) {
-            $paramsExtended = $this->extend($paramsUta, array(
+            $params = $this->extend($params, array(
                 'tradeType' => 'UNIFIED',
             ));
             $messageHash = 'uta:' . $messageHash;
             $channel = 'order';
-            if ($symbolResolved === null) {
+            if ($symbol === null) {
                 $channel .= 'All';
             }
-            $orders = Async\await($this->subscribe_private_uta(array( $messageHash ), $messageHash, $channel, $symbolResolved, $paramsExtended));
+            $orders = Async\await($this->subscribe_private_uta(array( $messageHash ), $messageHash, $channel, $symbol, $params));
         } else {
-            $trigger = $this->safe_bool_2($paramsUta, 'stop', 'trigger');
-            $paramsOmitted = $this->omit($paramsUta, array( 'stop', 'trigger' ));
-            list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchOrders', $market, $paramsOmitted);
+            $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
             $isFuturesMethod = (($marketType !== 'spot') && ($marketType !== 'margin'));
             $url = Async\await($this->negotiate(true, $isFuturesMethod));
-            $topic = '/spotMarket/tradeOrders';
-            if ($trigger === true) {
-                $topic = '/spotMarket/advancedOrders';
-            }
+            $topic = ($trigger === true) ? '/spotMarket/advancedOrders' : '/spotMarket/tradeOrders';
             if ($isFuturesMethod) {
                 $topic = ($trigger === true) ? '/contractMarket/advancedOrders' : '/contractMarket/tradeOrders';
             }
-            if ($symbolResolved === null) {
+            if ($symbol === null) {
                 $suffix = $this->get_orders_message_hash_suffix($topic);
                 $messageHash .= $suffix;
             }
             $request = array(
                 'privateChannel' => true,
             );
-            $orders = Async\await($this->subscribe($url, $messageHash, $topic, $this->extend($request, $paramsMarketType)));
+            $orders = Async\await($this->subscribe($url, $messageHash, $topic, $this->extend($request, $params)));
         }
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $orders->getLimit($symbolResolved, $limit);
+            $limit = $orders->getLimit($symbol, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function get_orders_message_hash_suffix(?string $topic): string {
@@ -2229,8 +2190,8 @@ class kucoin extends \ccxt\async\kucoin {
         $status = $this->parse_ws_order_status($rawType);
         $timestamp = $this->safe_integer_2($order, 'orderTime', 'createdAt');
         $marketId = $this->safe_string($order, 'symbol');
-        $marketResolved = $this->safe_market($marketId, $market);
-        if ($marketResolved['contract'] === true) {
+        $market = $this->safe_market($marketId, $market);
+        if ($market['contract'] === true) {
             $timestamp = $this->safe_integer_product($order, 'orderTime', 0.000001);
         }
         $triggerPrice = $this->safe_string($order, 'stopPrice');
@@ -2241,7 +2202,7 @@ class kucoin extends \ccxt\async\kucoin {
         }
         return $this->safe_order(array(
             'info' => $order,
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'id' => $this->safe_string($order, 'orderId'),
             'clientOrderId' => $this->safe_string($order, 'clientOid'),
             'timestamp' => $timestamp,
@@ -2262,7 +2223,7 @@ class kucoin extends \ccxt\async\kucoin {
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function parse_ws_uta_order(array $order, ?array $market = null): array {
@@ -2315,7 +2276,7 @@ class kucoin extends \ccxt\async\kucoin {
         $remainSize = $this->safe_string($order, 'rS');
         $canceledSize = $this->safe_string($order, 'cS');
         $remaining = Precise::string_add($remainSize, $canceledSize);
-        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $fee = array(
             'cost' => $this->safe_string($order, 'f'),
             'currency' => $this->safe_currency_code($this->safe_string($order, 'fC')),
@@ -2330,7 +2291,7 @@ class kucoin extends \ccxt\async\kucoin {
             'lastTradeTimestamp' => null,
             'lastUpdateTimestamp' => $this->safe_integer_product($order, 'U', 0.000001),
             'status' => $this->parse_order_status($rawStatus),
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'type' => $this->safe_string_lower($order, 'oT'),
             'timeInForce' => $this->parseOrderTimeInForce($rawTimeInForce),
             'side' => $this->safe_string_lower($order, 'S'),
@@ -2347,7 +2308,7 @@ class kucoin extends \ccxt\async\kucoin {
             'fee' => $fee,
             'reduceOnly' => $this->safe_bool($order, 'rO'),
             'postOnly' => $this->safe_bool($order, 'pO'),
-        ), $marketResolved);
+        ), $market);
     }
 
     public function handle_order(Client $client, array $message) {
@@ -2390,7 +2351,7 @@ class kucoin extends \ccxt\async\kucoin {
         $orders = $this->safe_dict($cachedOrders->hashmap, $symbol, array());
         $order = $this->safe_dict($orders, $orderId);
         if ($order !== null) {
-            if ($this->safe_string($order, 'status') === 'closed') {
+            if ($order['status'] === 'closed') {
                 $parsed['status'] = 'closed';
             }
             // carry the accumulated fill state forward, the raw feed only
@@ -2521,51 +2482,43 @@ class kucoin extends \ccxt\async\kucoin {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-        }
-        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
-        if ($market !== null) {
+            $symbol = $market['symbol'];
             $messageHash = $messageHash . ':' . $market['symbol'];
         }
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
         $isFuturesMethod = (($marketType !== 'spot') && ($marketType !== 'margin'));
-        $utaEnabled = Async\await($this->is_uta_enabled());
-        list($uta, $paramsUta) = $this->handle_option_bool_and_params($paramsMarketType, 'watchMyTrades', 'uta', $utaEnabled);
+        $uta = Async\await($this->is_uta_enabled());
+        list($uta, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'uta', $uta);
         $trades = null;
         if ($uta) {
-            $paramsExtended = $this->extend($paramsUta, array(
+            $params = $this->extend($params, array(
                 'tradeType' => 'UNIFIED',
             ));
             $messageHash = 'uta:' . $messageHash;
             $channel = 'execution.lite';
-            $trades = Async\await($this->subscribe_private_uta(array( $messageHash ), $channel, $channel, null, $paramsExtended));
+            $trades = Async\await($this->subscribe_private_uta(array( $messageHash ), $channel, $channel, null, $params));
         } else {
             $url = Async\await($this->negotiate(true, $isFuturesMethod));
-            $defaultTopic = '/spotMarket/tradeOrders';
-            if ($isFuturesMethod) {
-                $defaultTopic = '/contractMarket/tradeOrders';
-            }
-            $optionName = 'spotMethod';
-            if ($isFuturesMethod) {
-                $optionName = 'contractMethod';
-            }
-            list($topic, $paramsTopic) = $this->handle_option_string_and_params_2($paramsUta, 'watchMyTrades', $optionName, 'method', $defaultTopic);
+            $topic = $isFuturesMethod ? '/contractMarket/tradeOrders' : '/spotMarket/tradeOrders';
+            $optionName = $isFuturesMethod ? 'contractMethod' : 'spotMethod';
+            list($topic, $params) = $this->handle_option_and_params_2($params, 'watchMyTrades', $optionName, 'method', $topic);
             $request = array(
                 'privateChannel' => true,
             );
-            if ($symbolResolved === null) {
+            if ($symbol === null) {
                 $suffix = $this->get_my_trades_message_hash_suffix($topic);
                 $messageHash .= $suffix;
             }
-            $trades = Async\await($this->subscribe($url, $messageHash, $topic, $this->extend($request, $paramsTopic)));
+            $trades = Async\await($this->subscribe($url, $messageHash, $topic, $this->extend($request, $params)));
         }
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($symbolResolved, $limit);
+            $limit = $trades->getLimit($symbol, $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
-    public function get_my_trades_message_hash_suffix(mixed $topic): string {
+    public function get_my_trades_message_hash_suffix(mixed $topic) {
         $suffix = '-spot';
         if (mb_strpos($topic, 'contractMarket') !== false) {
             $suffix = '-contract';
@@ -2654,7 +2607,7 @@ class kucoin extends \ccxt\async\kucoin {
         $client->resolve($cache, $symbolMessageHash);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null): array {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         // /spotMarket/tradeOrders
         //
@@ -2696,8 +2649,8 @@ class kucoin extends \ccxt\async\kucoin {
         //    }
         //
         $marketId = $this->safe_string($trade, 'symbol');
-        $marketResolved = $this->safe_market($marketId, $market, '-');
-        $symbol = $marketResolved['symbol'];
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
         $type = $this->safe_string($trade, 'orderType');
         $side = $this->safe_string($trade, 'side');
         $tradeId = $this->safe_string($trade, 'tradeId');
@@ -2710,7 +2663,7 @@ class kucoin extends \ccxt\async\kucoin {
         }
         $order = $this->safe_string($trade, 'orderId');
         $timestamp = $this->safe_integer_product_2($trade, 'ts', 'time', 0.000001);
-        $feeCurrency = $marketResolved['quote'];
+        $feeCurrency = $market['quote'];
         $feeRate = $this->safe_string($trade, 'feeRate');
         $feeCost = $this->safe_string($trade, 'fee');
         return $this->safe_trade(array(
@@ -2731,7 +2684,7 @@ class kucoin extends \ccxt\async\kucoin {
                 'rate' => $feeRate,
                 'currency' => $feeCurrency,
             ),
-        ), $marketResolved);
+        ), $market);
     }
 
     public function watch_balance($params = array()): PromiseInterface {
@@ -2755,26 +2708,20 @@ class kucoin extends \ccxt\async\kucoin {
             Async\await($this->load_markets());
         }
         $uta = Async\await($this->is_uta_enabled());
-        list($utaOption, $paramsUta) = $this->handle_option_bool_and_params($params, 'watchBalance', 'uta', $uta);
-        $defaultType = 'spot';
-        if ($utaOption) {
-            $defaultType = 'unified';
-        }
+        list($uta, $params) = $this->handle_option_and_params($params, 'watchBalance', 'uta', $uta);
+        $defaultType = $uta ? 'unified' : 'spot';
         $type = $defaultType;
-        if (!$utaOption) {
+        if (!$uta) {
             $defaultType = $this->safe_string($this->options, 'defaultType', $defaultType);
-            $type = $this->safe_string($paramsUta, 'type', $defaultType);
+            $type = $this->safe_string($params, 'type', $defaultType);
         }
-        $paramsOmitted = $this->omit($paramsUta, 'type');
+        $params = $this->omit($params, 'type');
         $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $uniformType = $this->safe_string($accountsByType, $type, $type);
         $isClassicFuturesMethod = ($uniformType === 'contract');
-        $subscriptionHash = '/account/balance';
-        if ($isClassicFuturesMethod) {
-            $subscriptionHash = '/contractAccount/wallet';
-        }
+        $subscriptionHash = $isClassicFuturesMethod ? '/contractAccount/wallet' : '/account/balance';
         $url = null;
-        if ($utaOption) {
+        if ($uta) {
             $url = Async\await($this->get_uta_url());
             $subscriptionHash = $uniformType;
         } else {
@@ -2789,12 +2736,12 @@ class kucoin extends \ccxt\async\kucoin {
             Async\await($client->future($uniformType . ':fetchBalanceSnapshot'));
         }
         $messageHash = $uniformType . ':balance';
-        if ($utaOption) {
+        if ($uta) {
             $extendedParams = array(
                 'accountType' => $uniformType,
             );
             $channel = 'balance';
-            return Async\await($this->subscribe_private_uta(array( $messageHash ), $subscriptionHash, $channel, null, $this->extend($extendedParams, $paramsOmitted)));
+            return Async\await($this->subscribe_private_uta(array( $messageHash ), $subscriptionHash, $channel, null, $this->extend($extendedParams, $params)));
         } else {
             $requestId = (string) $this->request_id();
             $request = array(
@@ -2804,7 +2751,7 @@ class kucoin extends \ccxt\async\kucoin {
                 'response' => true,
                 'privateChannel' => true,
             );
-            $message = $this->extend($request, $paramsOmitted);
+            $message = $this->extend($request, $params);
             if (!(is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions))) {
                 $client->subscriptions[$requestId] = $subscriptionHash;
             }
@@ -2987,7 +2934,7 @@ class kucoin extends \ccxt\async\kucoin {
         $account['free'] = $this->safe_string($data, 'a');
         $account['used'] = $this->safe_string($data, 'h');
         $account['total'] = $this->safe_string($data, 'b');
-        if ($code !== null) {
+        if (($type !== null) && ($code !== null)) {
             $this->balance[$type][$code] = $account;
         }
         $this->balance[$type] = $this->safe_balance($this->balance[$type]);
@@ -3055,41 +3002,38 @@ class kucoin extends \ccxt\async\kucoin {
             Async\await($this->load_markets());
         }
         $uta = Async\await($this->is_uta_enabled());
-        list($utaOption, $paramsUta) = $this->handle_option_bool_and_params($params, 'watchPositions', 'uta', $uta);
-        $tradeType = 'TRADE';
-        if ($utaOption) {
-            $tradeType = 'UNIFIED';
-        }
+        list($uta, $params) = $this->handle_option_and_params($params, 'watchPositions', 'uta', $uta);
+        $tradeType = $uta ? 'UNIFIED' : 'TRADE';
         $messageHash = 'positions';
         $messageHashes = array();
-        $symbolsNormalized = $this->market_symbols($symbols);
-        if ($symbolsNormalized === null) {
+        $symbols = $this->market_symbols($symbols);
+        if ($symbols === null) {
             $messageHashes[] = $messageHash;
         } else {
-            for ($i = 0; $i < count($symbolsNormalized); $i++) {
-                $symbol = $symbolsNormalized[$i];
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
                 $messageHashes[] = $messageHash . ':' . $symbol;
             }
         }
         $url = Async\await($this->get_uta_url());
         $client = $this->client($url);
-        $this->set_positions_cache($client, $utaOption);
+        $this->set_positions_cache($client, $uta);
         $fetchPositionSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
         $cache = $this->positions;
         if (($fetchPositionSnapshot === true) && ($awaitPositionSnapshot === true) && ($cache === null)) {
             $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
-            return $this->filter_by_symbols_since_limit($snapshot, $symbolsNormalized, $since, $limit, true);
+            return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
         }
         $channel = 'positionAll';
-        $paramsExtended = $this->extend($paramsUta, array(
+        $params = $this->extend($params, array(
             'tradeType' => $tradeType,
         ));
-        $newPositions = Async\await($this->subscribe_private_uta($messageHashes, $channel, $channel, null, $paramsExtended));
+        $newPositions = Async\await($this->subscribe_private_uta($messageHashes, $channel, $channel, null, $params));
         if ($this->newUpdates) {
             return $newPositions;
         }
-        return $this->filter_by_symbols_since_limit($cache, $symbolsNormalized, $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($cache, $symbols, $since, $limit, true);
     }
 
     public function get_current_position(string $symbol) {
@@ -3356,15 +3300,12 @@ class kucoin extends \ccxt\async\kucoin {
         //     }
         //
         $marketId = $this->safe_string($position, 's');
-        $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_product($position, 'O', 0.000001);
         $amountString = $this->safe_string($position, 'q');
         $size = Precise::string_abs($amountString);
-        $side = 'short';
-        if (Precise::string_gt($amountString, '0')) {
-            $side = 'long';
-        }
+        $side = Precise::string_gt($amountString, '0') ? 'long' : 'short';
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'pi'),
@@ -3381,7 +3322,7 @@ class kucoin extends \ccxt\async\kucoin {
             'leverage' => $this->safe_number($position, 'l'),
             'unrealizedPnl' => $this->safe_number($position, 'uPL'),
             'contracts' => $this->parse_number($size),
-            'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
+            'contractSize' => $this->safe_number($market, 'contractSize'),
             'realizedPnl' => $this->safe_number($position, 'rPL'),
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'lP'),
@@ -3413,10 +3354,10 @@ class kucoin extends \ccxt\async\kucoin {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolValue = $this->safe_symbol($symbol);
+        $symbol = $this->safe_symbol($symbol);
         $channel = 'funding-fee';
-        $messageHash = 'fundingRate:' . $symbolValue;
-        return Async\await($this->subscribe_public_uta($messageHash, $channel, $symbolValue, $params));
+        $messageHash = 'fundingRate:' . $symbol;
+        return Async\await($this->subscribe_public_uta($messageHash, $channel, $symbol, $params));
     }
 
     public function un_watch_funding_rate(string $symbol, $params = array()): PromiseInterface {
@@ -3436,18 +3377,18 @@ class kucoin extends \ccxt\async\kucoin {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolValue = $this->safe_symbol($symbol);
+        $symbol = $this->safe_symbol($symbol);
         $channel = 'funding-fee';
-        $subMessageHash = 'fundingRate:' . $symbolValue;
+        $subMessageHash = 'fundingRate:' . $symbol;
         $unSubMessageHash = 'unsubscribe:' . $subMessageHash;
         $subscription = array(
-            'symbols' => array( $symbolValue ),
+            'symbols' => array( $symbol ),
             'topic' => 'fundingRate',
             'unsubscribe' => true,
             'subMessageHashes' => array( $subMessageHash ),
             'messageHashes' => array( $unSubMessageHash ),
         );
-        return Async\await($this->subscribe_public_uta($unSubMessageHash, $channel, $symbolValue, $params, $subscription));
+        return Async\await($this->subscribe_public_uta($unSubMessageHash, $channel, $symbol, $params, $subscription));
     }
 
     public function handle_uta_funding_rate(Client $client, array $message) {
@@ -3531,10 +3472,10 @@ class kucoin extends \ccxt\async\kucoin {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolValue = $this->safe_symbol($symbol);
+        $symbol = $this->safe_symbol($symbol);
         $channel = 'mark-price';
-        $messageHash = 'uta:ticker:' . $symbolValue;
-        return Async\await($this->subscribe_public_uta($messageHash, $channel, $symbolValue, $params));
+        $messageHash = 'uta:ticker:' . $symbol;
+        return Async\await($this->subscribe_public_uta($messageHash, $channel, $symbol, $params));
     }
 
     public function un_watch_mark_price(string $symbol, $params = array()): PromiseInterface {
@@ -3554,18 +3495,18 @@ class kucoin extends \ccxt\async\kucoin {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolValue = $this->safe_symbol($symbol);
+        $symbol = $this->safe_symbol($symbol);
         $channel = 'mark-price';
-        $subMessageHash = 'uta:ticker:' . $symbolValue;
+        $subMessageHash = 'uta:ticker:' . $symbol;
         $unSubMessageHash = 'unsubscribe:' . $subMessageHash;
         $subscription = array(
-            'symbols' => array( $symbolValue ),
+            'symbols' => array( $symbol ),
             'topic' => 'ticker',
             'unsubscribe' => true,
             'subMessageHashes' => array( $subMessageHash ),
             'messageHashes' => array( $unSubMessageHash ),
         );
-        return Async\await($this->subscribe_public_uta($unSubMessageHash, $channel, $symbolValue, $params, $subscription));
+        return Async\await($this->subscribe_public_uta($unSubMessageHash, $channel, $symbol, $params, $subscription));
     }
 
     public function handle_subject(Client $client, array $message) {
@@ -3730,7 +3671,7 @@ class kucoin extends \ccxt\async\kucoin {
         }
     }
 
-    public function get_message_hash(string $elementName, ?string $symbol = null): string {
+    public function get_message_hash(string $elementName, ?string $symbol = null) {
         // method from kucoinfutures
         // elementName can be 'ticker', 'bidask', ...
         if ($symbol !== null) {

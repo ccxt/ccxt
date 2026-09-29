@@ -148,8 +148,8 @@ export default class grvt extends grvtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrder(client: Client, message: Dict): void;
     parseWsOrder(order: any, market?: Market): Order;
-    handleErrorMessage(client: Client, response: Dict): Bool;
+    handleErrorMessage(client: Client, response: any): Bool;
 }

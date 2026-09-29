@@ -15,6 +15,7 @@ func newBinancecoinm() *Binancecoinm {
 	base := newBinance()
 	p.base = base
 	p.Binance = base
+	ccxt.SetDefaults(p)
 	return p
 }
 

@@ -108,10 +108,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         if ($authenticated === null) {
             $timestamp = $this->milliseconds();
             $timestampString = $this->number_to_string($timestamp);
-            $timestampEncoded = $timestampString;
-            if ($timestampString === null) {
-                $timestampEncoded = '';
-            }
+            $timestampEncoded = ($timestampString === null) ? '' : $timestampString;
             $signature = $this->hmac($this->encode($timestampEncoded), $this->encode($this->secret), 'sha256', 'hex');
             $request = array(
                 'method' => 'login',
@@ -159,13 +156,13 @@ class hitbtc extends \ccxt\async\hitbtc {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbols = $this->market_symbols($symbols);
         $isBatch = mb_strpos($name, 'batch') !== false;
         $url = $this->urls['api']['ws']['public'];
         $messageHashes = array();
-        if ($symbolsNormalized !== null && !$isBatch) {
-            for ($i = 0; $i < count($symbolsNormalized); $i++) {
-                $messageHashes[] = $messageHashPrefix . '::' . $symbolsNormalized[$i];
+        if ($symbols !== null && !$isBatch) {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $messageHashes[] = $messageHashPrefix . '::' . $symbols[$i];
             }
         } else {
             $messageHashes[] = $messageHashPrefix;
@@ -300,10 +297,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //
         $snapshot = $this->safe_dict($message, 'snapshot');
         $data = $this->safe_dict_2($message, 'snapshot', 'update', array());
-        $type = 'update';
-        if ($snapshot !== null && $snapshot !== null) {
-            $type = 'snapshot';
-        }
+        $type = ($snapshot !== null && $snapshot !== null) ? 'snapshot' : 'update';
         $marketIds = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
@@ -388,19 +382,19 @@ class hitbtc extends \ccxt\async\hitbtc {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbols = $this->market_symbols($symbols);
         $options = $this->safe_dict($this->options, 'watchTicker');
         $defaultMethod = $this->safe_string($options, 'method', 'ticker/{speed}/batch');
         $method = $this->safe_string_2($params, 'method', 'defaultMethod', $defaultMethod);
         $speed = $this->safe_string($params, 'speed', '1s');
         $name = $this->implode_params($method, array( 'speed' => $speed ));
-        $paramsOmitted = $this->omit($params, array( 'method', 'speed' ));
+        $params = $this->omit($params, array( 'method', 'speed' ));
         $marketIds = array();
-        if ($symbolsNormalized === null) {
+        if ($symbols === null) {
             $marketIds[] = '*';
         } else {
-            for ($i = 0; $i < count($symbolsNormalized); $i++) {
-                $marketId = $this->market_id($symbolsNormalized[$i]);
+            for ($i = 0; $i < count($symbols); $i++) {
+                $marketId = $this->market_id($symbols[$i]);
                 if ($marketId !== null) {
                     $marketIds[] = $marketId;
                 }
@@ -411,18 +405,15 @@ class hitbtc extends \ccxt\async\hitbtc {
                 'symbols' => $marketIds,
             ),
         );
-        $newTickers = Async\await($this->subscribe_public($name, 'tickers', $symbolsNormalized, $this->deep_extend($request, $paramsOmitted)));
+        $newTickers = Async\await($this->subscribe_public($name, 'tickers', $symbols, $this->deep_extend($request, $params)));
         if ($this->newUpdates) {
             if ((gettype($newTickers) !== 'array' || array_keys($newTickers) !== array_keys(array_keys($newTickers)))) {
                 $tickers = array();
-                $newTickersSymbol = $this->safe_string($newTickers, 'symbol');
-                if ($newTickersSymbol !== null) {
-                    $tickers[$newTickersSymbol] = $newTickers;
-                }
+                $tickers[$newTickers['symbol']] = $newTickers;
                 return $tickers;
             }
         }
-        return $this->filter_by_array($newTickers, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array($newTickers, 'symbol', $symbols);
     }
 
     public function handle_ticker(Client $client, array $message) {
@@ -481,7 +472,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         $client->resolve($result, $topic);
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
+    public function parse_ws_ticker(array $ticker, ?array $market = null) {
         //
         //    {
         //        "t": 1614815872000,             // Timestamp in milliseconds
@@ -556,31 +547,28 @@ class hitbtc extends \ccxt\async\hitbtc {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols, null, false);
+        $symbols = $this->market_symbols($symbols, null, false);
         $options = $this->safe_dict($this->options, 'watchBidsAsks');
         $defaultMethod = $this->safe_string($options, 'method', 'orderbook/top/{speed}/batch');
         $method = $this->safe_string_2($params, 'method', 'defaultMethod', $defaultMethod);
         $speed = $this->safe_string($params, 'speed', '100ms');
         $name = $this->implode_params($method, array( 'speed' => $speed ));
-        $paramsOmitted = $this->omit($params, array( 'method', 'speed' ));
-        $marketIds = $this->market_ids($symbolsNormalized);
+        $params = $this->omit($params, array( 'method', 'speed' ));
+        $marketIds = $this->market_ids($symbols);
         $request = array(
             'params' => array(
                 'symbols' => $marketIds,
             ),
         );
-        $newTickers = Async\await($this->subscribe_public($name, 'bidask', $symbolsNormalized, $this->deep_extend($request, $paramsOmitted)));
+        $newTickers = Async\await($this->subscribe_public($name, 'bidask', $symbols, $this->deep_extend($request, $params)));
         if ($this->newUpdates) {
             if ((gettype($newTickers) !== 'array' || array_keys($newTickers) !== array_keys(array_keys($newTickers)))) {
                 $tickers = array();
-                $newTickersSymbol = $this->safe_string($newTickers, 'symbol');
-                if ($newTickersSymbol !== null) {
-                    $tickers[$newTickersSymbol] = $newTickers;
-                }
+                $tickers[$newTickers['symbol']] = $newTickers;
                 return $tickers;
             }
         }
-        return $this->filter_by_array($newTickers, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array($newTickers, 'symbol', $symbols);
     }
 
     public function handle_bid_ask(Client $client, array $message) {
@@ -617,10 +605,7 @@ class hitbtc extends \ccxt\async\hitbtc {
 
     public function parse_ws_bid_ask(array $ticker, ?array $market = null): array {
         $timestamp = $this->safe_integer($ticker, 't');
-        $bidAskSymbol = null;
-        if ($market !== null) {
-            $bidAskSymbol = $market['symbol'];
-        }
+        $bidAskSymbol = ($market !== null) ? $market['symbol'] : null;
         return $this->safe_ticker(array(
             'symbol' => $bidAskSymbol,
             'timestamp' => $timestamp,
@@ -663,11 +648,10 @@ class hitbtc extends \ccxt\async\hitbtc {
         }
         $name = 'trades';
         $trades = Async\await($this->subscribe_public($name, 'trades', array( $symbol ), $this->deep_extend($request, $params)));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($symbol, $limit);
+            $limit = $trades->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp');
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
     }
 
     public function handle_trades(Client $client, array $message): array {
@@ -801,11 +785,10 @@ class hitbtc extends \ccxt\async\hitbtc {
             $request['params']['limit'] = $limit;
         }
         $ohlcv = Async\await($this->subscribe_public($name, 'candles', array( $symbol ), $this->deep_extend($request, $params)));
-        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $ohlcv->getLimit($symbol, $limit);
+            $limit = $ohlcv->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0);
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
     }
 
     public function handle_ohlcv(Client $client, array $message): array {
@@ -856,7 +839,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
             $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
-            $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
+            $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp($limit);
@@ -915,23 +898,23 @@ class hitbtc extends \ccxt\async\hitbtc {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $marketType = null;
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchOrders', $market, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
         $name = $this->get_supported_mapping($marketType, array(
             'spot' => 'spot_subscribe',
             'margin' => 'margin_subscribe',
             'swap' => 'futures_subscribe',
             'future' => 'futures_subscribe',
         ));
-        $orders = Async\await($this->subscribe_private($name, $symbol, $paramsMarketType));
-        $limitResolved = $limit;
+        $orders = Async\await($this->subscribe_private($name, $symbol, $params));
         if ($this->newUpdates) {
-            $limitResolved = $orders->getLimit($symbol, $limit);
+            $limit = $orders->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($orders, $since, $limitResolved, 'timestamp');
+        return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp');
     }
 
     public function handle_order(Client $client, array $message): array {
@@ -1025,9 +1008,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         $parsed = $this->parse_order($order);
         $orders->append($parsed);
         $client->resolve($orders, $messageHash);
-        if ($messageHash !== null) {
-            $client->resolve($orders, $messageHash . '::' . $symbol);
-        }
+        $client->resolve($orders, $messageHash . '::' . $symbol);
     }
 
     public function parse_ws_order_trade(array $trade, ?array $market = null): array {
@@ -1109,11 +1090,11 @@ class hitbtc extends \ccxt\async\hitbtc {
         //
         $timestamp = $this->safe_string($order, 'created_at');
         $marketId = $this->safe_string($order, 'symbol');
-        $marketResolved = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $tradeId = $this->safe_string($order, 'trade_id');
         $trades = null;
         if ($tradeId !== null) {
-            $trade = $this->parse_ws_order_trade($order, $marketResolved);
+            $trade = $this->parse_ws_order_trade($order, $market);
             $trades = array( $trade );
         }
         $rawStatus = $this->safe_string($order, 'status');
@@ -1131,7 +1112,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'price' => $this->safe_string($order, 'price'),
             'amount' => $this->safe_string($order, 'quantity'),
             'type' => $this->safe_string($order, 'type'),
@@ -1146,7 +1127,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             'average' => null,
             'trades' => $trades,
             'fee' => null,
-        ), $marketResolved);
+        ), $market);
     }
 
     public function watch_balance($params = array()): PromiseInterface {
@@ -1170,18 +1151,19 @@ class hitbtc extends \ccxt\async\hitbtc {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchBalance', null, $params);
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
         $name = $this->get_supported_mapping($type, array(
             'spot' => 'spot_balance_subscribe',
             'swap' => 'futures_balance_subscribe',
             'future' => 'futures_balance_subscribe',
         ));
-        $mode = $this->safe_string($paramsMarketType, 'mode', 'batches');
-        $paramsOmitted = $this->omit($paramsMarketType, 'mode');
+        $mode = $this->safe_string($params, 'mode', 'batches');
+        $params = $this->omit($params, 'mode');
         $request = array(
             'mode' => $mode,
         );
-        return Async\await($this->subscribe_private($name, null, $this->extend($request, $paramsOmitted)));
+        return Async\await($this->subscribe_private($name, null, $this->extend($request, $params)));
     }
 
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
@@ -1213,10 +1195,13 @@ class hitbtc extends \ccxt\async\hitbtc {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('createOrder', $market, $params);
-        list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('createOrder', $paramsMarketType);
-        list($orderRequest, $paramsValue) = $this->create_order_request($market, $marketType, $type, $side, $amount, $price, $marginMode, $paramsMarginMode);
-        $request = $this->extend($orderRequest, $paramsValue);
+        $request = array();
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+        list($request, $params) = $this->create_order_request($market, $marketType, $type, $side, $amount, $price, $marginMode, $params);
+        $request = $this->extend($request, $params);
         if ($marketType === 'swap') {
             return Async\await($this->trade_request('futures_new_order', $request));
         } elseif (($marketType === 'margin') || ($marginMode !== null)) {
@@ -1255,8 +1240,9 @@ class hitbtc extends \ccxt\async\hitbtc {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('cancelOrderWs', $market, $params);
-        list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelOrderWs', $paramsMarketType);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelOrderWs', $market, $params);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelOrderWs', $params);
         $request = $this->extend($request, $query);
         if ($marketType === 'swap') {
             return Async\await($this->trade_request('futures_cancel_order', $request));
@@ -1291,14 +1277,16 @@ class hitbtc extends \ccxt\async\hitbtc {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('cancelAllOrdersWs', $market, $params);
-        list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('cancelAllOrdersWs', $paramsMarketType);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrdersWs', $market, $params);
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelAllOrdersWs', $params);
         if ($marketType === 'swap') {
-            return Async\await($this->trade_request('futures_cancel_orders', $paramsMarginMode));
+            return Async\await($this->trade_request('futures_cancel_orders', $params));
         } elseif (($marketType === 'margin') || ($marginMode !== null)) {
             throw new NotSupported($this->id . ' cancelAllOrdersWs is not supported for margin orders');
         } else {
-            return Async\await($this->trade_request('spot_cancel_orders', $paramsMarginMode));
+            return Async\await($this->trade_request('spot_cancel_orders', $params));
         }
     }
 
@@ -1331,8 +1319,10 @@ class hitbtc extends \ccxt\async\hitbtc {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchOpenOrdersWs', $market, $params);
-        $marginMode = $this->handle_margin_mode_and_params('fetchOpenOrdersWs', $paramsMarketType)[0];
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrdersWs', $market, $params);
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrdersWs', $params);
         if ($marketType === 'swap') {
             return Async\await($this->trade_request('futures_get_orders', $request));
         } elseif (($marketType === 'margin') || ($marginMode !== null)) {
@@ -1359,7 +1349,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //    }
         //
         $messageHash = $this->safe_string($message, 'method');
-        $params = $this->safe_list($message, 'params');
+        $params = $this->safe_value($message, 'params');
         $balance = $this->parse_balance($params);
         $this->balance = $this->deep_extend($this->balance, $balance);
         $client->resolve($this->balance, $messageHash);

@@ -34,7 +34,7 @@ export default class delta extends Exchange {
      */
     fetchCurrencies(params?: Dict): Promise<Currencies>;
     parseCurrency(rawCurrency: Dict): CurrencyInterface;
-    loadMarkets(reload?: boolean, params?: Dict): Promise<import("./base/types.js").Dictionary<Market>>;
+    loadMarkets(reload?: boolean, params?: {}): Promise<import("./base/types.js").Dictionary<Market>>;
     indexByStringifiedNumericId(input: NullableDict): Dict | undefined;
     /**
      * @method
@@ -226,7 +226,7 @@ export default class delta extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
-    fetchOrdersWithMethod(method: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    fetchOrdersWithMethod(method: any, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name delta#fetchMyTrades
@@ -251,7 +251,7 @@ export default class delta extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
-    parseLedgerEntryType(type: Str): Str;
+    parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     /**
      * @method
@@ -263,7 +263,7 @@ export default class delta extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
-    parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     /**
      * @method
      * @name delta#fetchFundingRate
@@ -273,7 +273,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
+    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     /**
      * @method
      * @name delta#fetchFundingRates
@@ -307,7 +307,7 @@ export default class delta extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     reduceMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
-    modifyMarginHelper(symbol: string, amount: any, type: string, params?: Dict): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: any, type: any, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
      * @method
@@ -354,8 +354,8 @@ export default class delta extends Exchange {
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
     fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
-    parseSettlement(settlement: Dict, market: Market): Dict;
-    parseSettlements(settlements: any[], market: Market): Dict[];
+    parseSettlement(settlement: Dict, market: any): Dict;
+    parseSettlements(settlements: any[], market: any): Dict[];
     /**
      * @method
      * @name delta#fetchGreeks
@@ -422,6 +422,6 @@ export default class delta extends Exchange {
      */
     fetchPositionsADLRank(symbols?: Strings, params?: Dict): Promise<ADL[]>;
     parseADLRank(info: Dict, market?: Market): ADL;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

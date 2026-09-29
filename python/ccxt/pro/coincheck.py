@@ -121,7 +121,7 @@ class coincheck(ccxt.async_support.coincheck):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbol = market['symbol']
         messageHash = 'trade:' + market['symbol']
         url = self.urls['api']['ws']
         request = {
@@ -130,10 +130,9 @@ class coincheck(ccxt.async_support.coincheck):
         }
         message = self.extend(request, params)
         trades = await self.watch(url, messageHash, message, messageHash)
-        limitResolved = limit
         if self.newUpdates:
-            limitResolved = trades.getLimit(symbolValue, limit)
-        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
+            limit = trades.getLimit(symbol, limit)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message: list[object]):
         #
@@ -164,7 +163,7 @@ class coincheck(ccxt.async_support.coincheck):
         messageHash = 'trade:' + symbol
         client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade: list, market: Market = None) -> Trade:
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     [
         #         "1663318663", // transaction timestamp (unix time)

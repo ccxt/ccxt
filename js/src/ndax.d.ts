@@ -1,5 +1,5 @@
 import Exchange from './abstract/ndax.js';
-import type { IndexType, Balances, Currency, CurrencyInterface, Int, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress, NullableDict, Status } from './base/types.js';
+import type { IndexType, Balances, Currency, CurrencyInterface, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress, NullableDict, Status } from './base/types.js';
 /**
  * @class ndax
  * @augments Exchange
@@ -91,7 +91,7 @@ export default class ndax extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
-    parseTrade(trade: Dict | List, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
      * @name ndax#fetchTrades
@@ -122,7 +122,7 @@ export default class ndax extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseLedgerEntryType(type: Str): Str;
+    parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     /**
      * @method
@@ -260,7 +260,7 @@ export default class ndax extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
-    parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     /**
      * @method
      * @name ndax#createDepositAddress
@@ -309,6 +309,6 @@ export default class ndax extends Exchange {
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
     nonce(): number;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

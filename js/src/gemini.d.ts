@@ -1,5 +1,5 @@
 import Exchange from './abstract/gemini.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Bool, NullableDict, DepositAddresses } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Bool, NullableDict, DepositAddresses } from './base/types.js';
 import type { OpenInterest } from './base/types.js';
 /**
  * @class gemini
@@ -24,7 +24,7 @@ export default class gemini extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrenciesFromWeb(params?: Dict): Promise<Currencies>;
-    parseCurrency(rawCurrency: List): CurrencyInterface;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
      * @name gemini#fetchMarkets
@@ -38,7 +38,7 @@ export default class gemini extends Exchange {
     parseMarketActive(status: Str): Bool;
     fetchUSDTMarkets(params?: Dict): Promise<Market[]>;
     fetchMarketsFromAPI(params?: Dict): Promise<Market[]>;
-    parseMarket(response: Dict | List | string): Market;
+    parseMarket(response: Dict): Market;
     /**
      * @method
      * @name gemini#fetchOrderBook
@@ -197,7 +197,7 @@ export default class gemini extends Exchange {
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatus(status: Str): Str;
-    parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     /**
      * @method
      * @name gemini#fetchDepositAddress
@@ -220,7 +220,7 @@ export default class gemini extends Exchange {
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
     fetchDepositAddressesByNetwork(code: string, params?: Dict): Promise<DepositAddresses>;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     /**
      * @method

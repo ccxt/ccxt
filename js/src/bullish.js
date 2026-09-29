@@ -562,7 +562,7 @@ export default class bullish extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.safeBool(this.options, 'adjustForTimeDifference', false)) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const response = await this.publicGetV1Markets(params);
@@ -789,9 +789,6 @@ export default class bullish extends Exchange {
         const quoteId = this.safeString(market, 'quoteSymbol');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        if ((base === undefined) || (quote === undefined)) {
-            return undefined;
-        }
         let symbol = base + '/' + quote;
         const basePrecision = this.safeString(market, 'basePrecision');
         const quotePrecision = this.safeString(market, 'quotePrecision');
@@ -973,20 +970,21 @@ export default class bullish extends Exchange {
             await this.loadMarkets();
         }
         const maxLimit = 100;
-        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchTrades', 'paginate', false);
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
         if (paginate) {
-            const paramsPagination = this.handlePaginationParams('fetchTrades', since, paramsPaginate);
-            return await this.fetchPaginatedCallDynamic('fetchTrades', symbol, since, limit, paramsPagination, maxLimit);
+            params = this.handlePaginationParams('fetchTrades', since, params);
+            return await this.fetchPaginatedCallDynamic('fetchTrades', symbol, since, limit, params, maxLimit);
         }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
-        const paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsPaginate);
+        params = this.handleSinceAndUntil(since, params);
         if (limit !== undefined) {
             request['_pageSize'] = this.getClosestLimit(limit);
         }
-        const response = await this.publicGetV1HistoryMarketsSymbolTrades(this.extend(request, paramsSinceAndUntil));
+        const response = await this.publicGetV1HistoryMarketsSymbolTrades(this.extend(request, params));
         //
         //     [
         //         {
@@ -1036,12 +1034,13 @@ export default class bullish extends Exchange {
             response = await this.privateGetV1TradesClientOrderIdClientOrderId(this.extend(request, params));
         }
         else {
-            const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchMyTrades', 'paginate', false);
+            let paginate = false;
+            [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
             if (paginate) {
-                const paramsPagination = this.handlePaginationParams('fetchMyTrades', since, paramsPaginate);
-                return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, paramsPagination, 100);
+                params = this.handlePaginationParams('fetchMyTrades', since, params);
+                return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params, 100);
             }
-            const paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsPaginate);
+            params = this.handleSinceAndUntil(since, params);
             if (limit !== undefined) {
                 request['_pageSize'] = this.getClosestLimit(limit);
             }
@@ -1065,7 +1064,7 @@ export default class bullish extends Exchange {
             //         }, ...
             //     ]
             //
-            response = await this.privateGetV1HistoryTrades(this.extend(request, paramsSinceAndUntil));
+            response = await this.privateGetV1HistoryTrades(this.extend(request, params));
         }
         return this.parseTrades(response, market, since, limit);
     }
@@ -1087,11 +1086,10 @@ export default class bullish extends Exchange {
             await this.loadMarkets();
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
-        let paramsExtended = params;
         if (clientOrderId === undefined) {
-            paramsExtended = this.extend({ 'orderId': id }, params);
+            params = this.extend({ 'orderId': id }, params);
         }
-        return await this.fetchMyTrades(symbol, since, limit, paramsExtended);
+        return await this.fetchMyTrades(symbol, since, limit, params);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -1144,14 +1142,14 @@ export default class bullish extends Exchange {
         //     ]
         //
         const marketId = this.safeString(trade, 'symbol');
-        const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        market = this.safeMarket(marketId, market);
+        const symbol = market['symbol'];
         const timestamp = this.safeInteger(trade, 'createdAtTimestamp');
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'quantity');
         const side = this.safeStringLower(trade, 'side');
         const isTaker = this.safeBool(trade, 'isTaker');
-        const currency = marketResolved['quote'];
+        const currency = market['quote'];
         const code = this.safeCurrencyCode(currency);
         const feeCost = this.safeNumber(trade, 'quoteFee');
         let fee = undefined;
@@ -1180,7 +1178,7 @@ export default class bullish extends Exchange {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        }, marketResolved);
+        }, market);
     }
     /**
      * @method
@@ -1280,10 +1278,10 @@ export default class bullish extends Exchange {
         //     }
         //
         const marketId = this.safeString(ticker, 'symbol');
-        const marketResolved = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(ticker, 'createdAtTimestamp');
         return this.safeTicker({
-            'symbol': marketResolved['symbol'],
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'high': this.safeString(ticker, 'high'),
@@ -1304,27 +1302,28 @@ export default class bullish extends Exchange {
             'quoteVolume': this.safeString(ticker, 'quoteVolume'),
             'markPrice': this.safeString(ticker, 'markPrice'),
             'info': ticker,
-        }, marketResolved);
+        }, market);
     }
     async safeDeterministicCall(method, symbol = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}) {
-        const [maxRetries, paramsMaxRetries] = this.handleOptionIntegerAndParams(params, method, 'maxRetries', 3);
+        let maxRetries = undefined;
+        [maxRetries, params] = this.handleOptionAndParams(params, method, 'maxRetries', 3);
         if ((method !== 'fetchOHLCV') && (method !== 'fetchFundingRateHistory') && (method !== 'fetchTrades')) {
             throw new NotSupported(this.id + ' safeDeterministicCall() does not support the ' + method + ' method');
         }
         let errors = 0;
-        const paramsOmitted = this.omit(paramsMaxRetries, 'until');
+        params = this.omit(params, 'until');
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
         while (errors <= maxRetries) {
             try {
                 if (method === 'fetchOHLCV') {
-                    return await this.fetchOHLCV(symbol, timeframe, since, limit, paramsOmitted);
+                    return await this.fetchOHLCV(symbol, timeframe, since, limit, params);
                 }
                 else if (method === 'fetchFundingRateHistory') {
-                    return await this.fetchFundingRateHistory(symbol, since, limit, paramsOmitted);
+                    return await this.fetchFundingRateHistory(symbol, since, limit, params);
                 }
                 else {
-                    return await this.fetchTrades(symbol, since, limit, paramsOmitted);
+                    return await this.fetchTrades(symbol, since, limit, params);
                 }
             }
             catch (e) {
@@ -1359,17 +1358,18 @@ export default class bullish extends Exchange {
         }
         const market = this.market(symbol);
         const maxLimit = 100;
-        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit);
         }
-        const request = {
+        let request = {
             'symbol': market['id'],
             'timeBucket': this.safeString(this.timeframes, timeframe, timeframe),
             '_pageSize': maxLimit,
         };
-        const [requestUntil, paramsUntil] = this.handleUntilOption('createdAtDatetime[lte]', request, paramsPaginate);
-        let until = this.safeInteger(requestUntil, 'createdAtDatetime[lte]');
+        [request, params] = this.handleUntilOption('createdAtDatetime[lte]', request, params);
+        let until = this.safeInteger(request, 'createdAtDatetime[lte]');
         const duration = this.parseTimeframe(timeframe);
         const maxDelta = 1000 * duration * maxLimit;
         let startTime = since;
@@ -1384,9 +1384,9 @@ export default class bullish extends Exchange {
         else if (until === undefined) {
             until = this.sum(startTime, maxDelta);
         }
-        requestUntil['createdAtDatetime[gte]'] = this.iso8601(startTime);
-        requestUntil['createdAtDatetime[lte]'] = this.iso8601(until);
-        const response = await this.publicGetV1MarketsSymbolCandle(this.extend(requestUntil, paramsUntil));
+        request['createdAtDatetime[gte]'] = this.iso8601(startTime);
+        request['createdAtDatetime[lte]'] = this.iso8601(until);
+        const response = await this.publicGetV1MarketsSymbolCandle(this.extend(request, params));
         //
         //     [
         //         {
@@ -1433,10 +1433,11 @@ export default class bullish extends Exchange {
             await this.loadMarkets();
         }
         const maxLimit = 100;
-        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            const paramsPagination = this.handlePaginationParams('fetchFundingRateHistory', since, paramsPaginate);
-            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPagination, maxLimit);
+            params = this.handlePaginationParams('fetchFundingRateHistory', since, params);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, params, maxLimit);
         }
         const market = this.market(symbol);
         if (market['swap'] !== true) {
@@ -1448,8 +1449,8 @@ export default class bullish extends Exchange {
         if (limit !== undefined) {
             request['_pageSize'] = this.getClosestLimit(limit);
         }
-        const paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsPaginate, 'updatedAtDatetime[gte]', 'updatedAtDatetime[lte]');
-        const response = await this.publicGetV1HistoryMarketsSymbolFundingRate(this.extend(request, paramsSinceAndUntil));
+        params = this.handleSinceAndUntil(since, params, 'updatedAtDatetime[gte]', 'updatedAtDatetime[lte]');
+        const response = await this.publicGetV1HistoryMarketsSymbolFundingRate(this.extend(request, params));
         //
         //     [
         //         {
@@ -1476,7 +1477,7 @@ export default class bullish extends Exchange {
             });
         }
         const sorted = this.sortBy(rates, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, 'symbol'), since, limit);
+        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
     }
     /**
      * @method
@@ -1501,8 +1502,8 @@ export default class bullish extends Exchange {
         const tradingAccountId = await this.loadAccount(params);
         const paginate = this.safeBool(params, 'paginate', false);
         if (paginate === true) {
-            const paramsPagination = this.handlePaginationParams('fetchOrders', since, params);
-            return await this.fetchPaginatedCallDynamic('fetchOrders', symbol, since, limit, paramsPagination, 100);
+            params = this.handlePaginationParams('fetchOrders', since, params);
+            return await this.fetchPaginatedCallDynamic('fetchOrders', symbol, since, limit, params, 100);
         }
         let market = undefined;
         const request = {
@@ -1512,13 +1513,12 @@ export default class bullish extends Exchange {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        const paramsSinceAndUntil = this.handleSinceAndUntil(since, params);
+        params = this.handleSinceAndUntil(since, params);
         if (limit !== undefined) {
             request['_pageSize'] = this.getClosestLimit(limit);
         }
         let method = 'privateGetV2HistoryOrders';
-        let paramsMethod = undefined;
-        [method, paramsMethod] = this.handleOptionStringAndParams(paramsSinceAndUntil, 'fetchOrders', 'method', method);
+        [method, params] = this.handleOptionAndParams(params, 'fetchOrders', 'method', method);
         let response = [];
         if (method === 'privateGetV2Orders') {
             //
@@ -1550,10 +1550,10 @@ export default class bullish extends Exchange {
             //         }
             //     ]
             //
-            response = await this.privateGetV2Orders(this.extend(request, paramsMethod));
+            response = await this.privateGetV2Orders(this.extend(request, params));
         }
         else if (method === 'privateGetV2HistoryOrders') {
-            response = await this.privateGetV2HistoryOrders(this.extend(request, paramsMethod));
+            response = await this.privateGetV2HistoryOrders(this.extend(request, params));
         }
         else {
             throw new BadRequest(this.id + ' fetchOrders() method parameter must be either "privateGetV2Orders" or "privateGetV2HistoryOrders"');
@@ -1567,40 +1567,35 @@ export default class bullish extends Exchange {
         if ((since !== undefined) && (since < allowedSince)) {
             throw new BadRequest(this.id + ' ' + method + '() only allows fetching entries up to 90 days in the past');
         }
-        const paramsOmitted = this.omit(params, 'paginate');
-        const paramsExtended = this.extend(paramsOmitted, { 'paginationDirection': 'backward' });
-        const until = this.safeInteger(paramsExtended, 'until');
+        params = this.omit(params, 'paginate');
+        params = this.extend(params, { 'paginationDirection': 'backward' });
+        const until = this.safeInteger(params, 'until');
         if (until === undefined) {
-            return this.extend(paramsExtended, { 'until': now });
+            params = this.extend(params, { 'until': now });
         }
-        return paramsExtended;
+        return params;
     }
     handleSinceAndUntil(since = undefined, params = {}, sinceKey = 'createdAtDatetime[gte]', untilKey = 'createdAtDatetime[lte]') {
         let until = this.safeInteger(params, 'until');
-        const sinceFromUntil = (since === undefined) && (until !== undefined);
-        let paramsResult = params;
-        if (sinceFromUntil) {
-            paramsResult = this.omit(params, 'until');
-        }
         if ((since !== undefined) || (until !== undefined)) {
             const timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
-            let sinceResolved = since;
             if (since === undefined) {
-                sinceResolved = until - timeDelta;
+                since = until - timeDelta;
+                params = this.omit(params, 'until');
             }
-            if ((since !== undefined) && (until === undefined)) {
+            else if (until === undefined) {
                 until = this.sum(since, timeDelta);
                 const now = this.milliseconds();
                 if (until > now) {
                     until = now;
                 }
             }
-            const sinceDate = this.iso8601(sinceResolved);
+            const sinceDate = this.iso8601(since);
             const untilDate = this.iso8601(until);
-            paramsResult[sinceKey] = sinceDate;
-            paramsResult[untilKey] = untilDate;
+            params[sinceKey] = sinceDate;
+            params[untilKey] = untilDate;
         }
-        return paramsResult;
+        return params;
     }
     getClosestLimit(limit) {
         let pageSize = 5;
@@ -1773,27 +1768,28 @@ export default class bullish extends Exchange {
             'tradingAccountId': tradingAccountId,
         };
         const isMarketOrder = ((type === 'market') || type === 'MARKET');
-        const [postOnly, paramsPostOnly] = this.handlePostOnly(isMarketOrder, type === 'POST_ONLY', params);
-        let orderType = type;
+        let postOnly = false;
+        [postOnly, params] = this.handlePostOnly(isMarketOrder, type === 'POST_ONLY', params);
         if (postOnly) {
-            orderType = 'POST_ONLY';
+            type = 'POST_ONLY';
         }
-        const [timeInForce, paramsTimeInForce] = this.handleOptionStringAndParams(paramsPostOnly, 'createOrder', 'timeInForce', 'GTC'); // is mandatory
-        paramsTimeInForce['timeInForce'] = timeInForce.toUpperCase();
+        let timeInForce = 'GTC'; // is mandatory
+        [timeInForce, params] = this.handleOptionAndParams(params, 'createOrder', 'timeInForce', timeInForce);
+        params['timeInForce'] = timeInForce.toUpperCase();
         if (!isMarketOrder) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const triggerPrice = this.safeString(paramsTimeInForce, 'triggerPrice');
+        const triggerPrice = this.safeString(params, 'triggerPrice');
         if (triggerPrice !== undefined) {
             if (isMarketOrder) {
                 throw new NotSupported(this.id + ' createOrder() does not support market trigger orders');
             }
             request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
-            orderType = 'STOP_LIMIT';
+            type = 'STOP_LIMIT';
+            params = this.omit(params, 'triggerPrice');
         }
-        const paramsOmitted = (triggerPrice !== undefined) ? this.omit(paramsTimeInForce, 'triggerPrice') : paramsTimeInForce;
-        request['type'] = orderType.toUpperCase();
-        const response = await this.privatePostV2Orders(this.extend(request, paramsOmitted));
+        request['type'] = type.toUpperCase();
+        const response = await this.privatePostV2Orders(this.extend(request, params));
         //
         //     {
         //         "message": "Command acknowledged - CreateOrder",
@@ -1839,6 +1835,7 @@ export default class bullish extends Exchange {
         }
         const postOnly = this.safeBool(params, 'postOnly', false);
         if (postOnly === true) {
+            params = this.omit(params, 'postOnly');
             request['type'] = 'POST_ONLY';
         }
         if (amount !== undefined) {
@@ -1847,8 +1844,7 @@ export default class bullish extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const paramsOmitted = (postOnly === true) ? this.omit(params, 'postOnly') : params;
-        const response = await this.privatePostV2Command(this.extend(request, paramsOmitted));
+        const response = await this.privatePostV2Command(this.extend(request, params));
         return this.parseOrder(response, market);
     }
     /**
@@ -1973,8 +1969,10 @@ export default class bullish extends Exchange {
         //     }
         //
         const marketId = this.safeString(order, 'symbol');
-        const marketResolved = this.safeMarket((market === undefined) ? marketId : undefined, market);
-        const symbol = this.safeSymbol(marketId, marketResolved);
+        if (market === undefined) {
+            market = this.safeMarket(marketId);
+        }
+        const symbol = this.safeSymbol(marketId, market);
         const id = this.safeString(order, 'orderId');
         const timestamp = this.safeInteger(order, 'createdAtTimestamp');
         const type = this.safeString(order, 'type');
@@ -1996,7 +1994,7 @@ export default class bullish extends Exchange {
         const quoteFee = this.safeNumber(order, 'quoteFee');
         if (quoteFee !== undefined) {
             fee['cost'] = quoteFee;
-            fee['currency'] = marketResolved['quote'];
+            fee['currency'] = market['quote'];
         }
         const average = this.safeString(order, 'averageFillPrice');
         return this.safeOrder({
@@ -2021,7 +2019,7 @@ export default class bullish extends Exchange {
             'fee': fee,
             'info': order,
             'average': average,
-        }, marketResolved);
+        }, market);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -2054,16 +2052,16 @@ export default class bullish extends Exchange {
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         await Promise.all([this.loadMarkets(), this.handleToken()]);
-        const request = {};
-        const [requestUntil, paramsUntil] = this.handleUntilOption('createdAtDatetime[lte]', request, params);
-        const until = this.safeInteger(requestUntil, 'createdAtDatetime[lte]');
+        let request = {};
+        [request, params] = this.handleUntilOption('createdAtDatetime[lte]', request, params);
+        const until = this.safeInteger(request, 'createdAtDatetime[lte]');
         if (until !== undefined) {
-            requestUntil['createdAtDatetime[lte]'] = this.iso8601(until);
+            request['createdAtDatetime[lte]'] = this.iso8601(until);
         }
         if (since !== undefined) {
-            requestUntil['createdAtDatetime[gte]'] = this.iso8601(since);
+            request['createdAtDatetime[gte]'] = this.iso8601(since);
         }
-        const response = await this.privateGetV1WalletsTransactions(this.extend(requestUntil, paramsUntil));
+        const response = await this.privateGetV1WalletsTransactions(this.extend(request, params));
         //
         //     {
         //         "data": [
@@ -2132,14 +2130,15 @@ export default class bullish extends Exchange {
                 'quantity': this.currencyToPrecision(code, amount),
             },
         };
-        const [networkCode, paramsNetworkCode] = this.handleNetworkCodeAndParams(params);
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
             request['network'] = this.networkCodeToId(networkCode, code);
         }
         else {
             throw new ArgumentsRequired(this.id + ' withdraw() requires a network parameter');
         }
-        const response = await this.privatePostV1WalletsWithdrawal(this.extend(request, paramsNetworkCode));
+        const response = await this.privatePostV1WalletsWithdrawal(this.extend(request, params));
         //
         //     {
         //         "code": "00000",
@@ -2244,13 +2243,12 @@ export default class bullish extends Exchange {
     }
     async loadAccount(params = {}) {
         let tradingAccountId = undefined;
-        let paramsTradingAccountId = undefined;
-        [tradingAccountId, paramsTradingAccountId] = this.handleOptionStringAndParams(params, 'loadAccount', 'tradingAccountId');
+        [tradingAccountId, params] = this.handleOptionAndParams(params, 'loadAccount', 'tradingAccountId');
         if (tradingAccountId === undefined) {
-            const response = await this.privateGetV1AccountsTradingAccounts(paramsTradingAccountId);
+            const response = await this.privateGetV1AccountsTradingAccounts(params);
             const accounts = this.toArray(response);
             for (let i = 0; i < accounts.length; i++) {
-                const account = this.safeDict(accounts, i);
+                const account = accounts[i];
                 const name = this.safeString(account, 'tradingAccountName');
                 if (name === 'Primary Account') {
                     tradingAccountId = this.safeString(account, 'tradingAccountId');
@@ -2394,7 +2392,7 @@ export default class bullish extends Exchange {
         const length = safeResponse.length;
         let data = this.safeDict(safeResponse, 0, {});
         let network = undefined;
-        network = this.handleNetworkCodeAndParams(params)[0];
+        [network, params] = this.handleNetworkCodeAndParams(params);
         const networkDefinedByUser = network !== undefined;
         if ((length > 1) || (networkDefinedByUser)) {
             // some currencies have multiple networks
@@ -2490,7 +2488,7 @@ export default class bullish extends Exchange {
             'info': response,
         };
         for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict(response, i);
+            const balance = response[i];
             const symbol = this.safeString(balance, 'assetSymbol');
             const code = this.safeCurrencyCode(symbol);
             const account = this.account();
@@ -2541,7 +2539,7 @@ export default class bullish extends Exchange {
         //     ]
         //
         const results = this.parsePositions(response, symbols);
-        return this.filterByArrayPositions(results, 'symbol', symbols);
+        return this.filterByArrayPositions(results, 'symbol', symbols, false);
     }
     parsePosition(position, market = undefined) {
         //
@@ -2565,8 +2563,8 @@ export default class bullish extends Exchange {
         //         }
         //     ]
         //
-        const marketResolved = this.safeMarket(this.safeString(position, 'symbol'), market);
-        const symbol = marketResolved['symbol'];
+        market = this.safeMarket(this.safeString(position, 'symbol'), market);
+        const symbol = market['symbol'];
         const timestamp = this.safeInteger(position, 'createdAtTimestamp');
         const side = this.safeString(position, 'side');
         return this.safePosition({
@@ -2623,10 +2621,11 @@ export default class bullish extends Exchange {
         await Promise.all([this.loadMarkets(), this.handleToken()]);
         const tradingAccountId = await this.loadAccount(params);
         const maxLimit = 100;
-        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchTransfers', 'paginate', false);
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchTransfers', 'paginate');
         if (paginate) {
-            const paramsPagination = this.handlePaginationParams('fetchTransfers', since, paramsPaginate);
-            return await this.fetchPaginatedCallDynamic('fetchTransfers', code, since, limit, paramsPagination, maxLimit);
+            params = this.handlePaginationParams('fetchTransfers', since, params);
+            return await this.fetchPaginatedCallDynamic('fetchTransfers', code, since, limit, params, maxLimit);
         }
         const request = {
             'tradingAccountId': tradingAccountId,
@@ -2636,18 +2635,17 @@ export default class bullish extends Exchange {
             currency = this.currency(code);
             request['assetSymbol'] = currency['id'];
         }
-        const until = this.safeInteger(paramsPaginate, 'until');
-        // since and until are mandatory for this endpoint, set until to now if both are undefined
-        const untilMissing = (since === undefined) && (until === undefined);
-        let paramsUntil = paramsPaginate;
-        if (untilMissing) {
-            paramsUntil = this.extend(paramsPaginate, { 'until': this.milliseconds() });
+        const until = this.safeInteger(params, 'until');
+        if ((since === undefined) && (until === undefined)) {
+            // since and until are mandatory for this endpoint, set until to now if both are undefined
+            const now = this.milliseconds();
+            params = this.extend(params, { 'until': now });
         }
-        const paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsUntil);
+        params = this.handleSinceAndUntil(since, params);
         if (limit !== undefined) {
             request['_pageSize'] = this.getClosestLimit(limit);
         }
-        const response = await this.privateGetV1HistoryTransfer(this.extend(request, paramsSinceAndUntil));
+        const response = await this.privateGetV1HistoryTransfer(this.extend(request, params));
         //
         //     [
         //         {
@@ -2773,14 +2771,14 @@ export default class bullish extends Exchange {
         await Promise.all([this.loadMarkets(), this.handleToken()]);
         const tradingAccountId = await this.loadAccount(params);
         const currency = this.currency(code);
-        const request = {
+        let request = {
             'assetSymbol': currency['id'],
             'tradingAccountId': tradingAccountId,
         };
         const now = this.milliseconds();
         let startTimestamp = since;
-        const [requestUntil, paramsUntil] = this.handleUntilOption('createdAtDatetime[lte]', request, params);
-        let until = this.safeInteger(requestUntil, 'createdAtDatetime[lte]');
+        [request, params] = this.handleUntilOption('createdAtDatetime[lte]', request, params);
+        let until = this.safeInteger(request, 'createdAtDatetime[lte]');
         // current endpoint requires both since and until parameters
         if (startTimestamp === undefined) {
             startTimestamp = now - 1000 * 60 * 60 * 24 * 90; // Only the last 90 days of data is available for querying
@@ -2788,9 +2786,9 @@ export default class bullish extends Exchange {
         if (until === undefined) {
             until = now;
         }
-        requestUntil['createdAtDatetime[gte]'] = this.iso8601(startTimestamp);
-        requestUntil['createdAtDatetime[lte]'] = this.iso8601(until);
-        const response = await this.privateGetV1HistoryBorrowInterest(this.extend(requestUntil, paramsUntil));
+        request['createdAtDatetime[gte]'] = this.iso8601(startTimestamp);
+        request['createdAtDatetime[lte]'] = this.iso8601(until);
+        const response = await this.privateGetV1HistoryBorrowInterest(this.extend(request, params));
         //
         //     [
         //         {
@@ -2828,7 +2826,7 @@ export default class bullish extends Exchange {
         };
     }
     getTimestamp() {
-        return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
+        return this.milliseconds() - this.options['timeDifference'];
     }
     /**
      * @method
@@ -2940,15 +2938,9 @@ export default class bullish extends Exchange {
         }, market);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = headers;
-        let requestBody = body;
         const request = this.omit(params, this.extractParams(path));
         const endpoint = '/' + this.implodeParams(path, params);
-        const apiUrl = this.safeString(this.urls['api'], api);
-        if (apiUrl === undefined) {
-            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
-        }
-        let url = apiUrl + endpoint;
+        let url = this.urls['api'][api] + endpoint;
         if (api === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.microseconds().toString();
@@ -2956,40 +2948,40 @@ export default class bullish extends Exchange {
             if (method === 'GET') {
                 const payload = timestamp + nonce + method + '/trading-api/' + path;
                 const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'hex');
-                requestHeaders = {
+                headers = {
                     'BX-TIMESTAMP': timestamp,
                     'BX-NONCE': nonce,
                     'BX-SIGNATURE': signature,
                 };
             }
             else if (method === 'POST') {
-                requestBody = this.json(params);
-                const payload = timestamp + nonce + method + '/trading-api/' + path + requestBody;
+                body = this.json(params);
+                const payload = timestamp + nonce + method + '/trading-api/' + path + body;
                 const digest = this.hash(this.encode(payload), sha256, 'hex');
                 const signature = this.hmac(this.encode(digest), this.encode(this.secret), sha256, 'hex');
-                requestHeaders = {
+                headers = {
                     'BX-TIMESTAMP': timestamp,
                     'BX-NONCE': nonce,
                     'BX-SIGNATURE': signature,
                     'Content-Type': 'application/json',
                 };
-                requestHeaders['Content-Type'] = 'application/json';
+                headers['Content-Type'] = 'application/json';
                 const rateLimitToken = this.safeString(request, 'rateLimitToken');
                 if (rateLimitToken !== undefined) {
-                    requestHeaders['BX-RATE-LIMIT-TOKEN'] = rateLimitToken;
+                    headers['BX-RATE-LIMIT-TOKEN'] = rateLimitToken;
                 }
             }
             if (path === 'v1/users/hmac/login') {
-                requestHeaders = (requestHeaders === undefined) ? {} : requestHeaders;
-                requestHeaders['BX-PUBLIC-KEY'] = this.apiKey;
+                headers = (headers === undefined) ? {} : headers;
+                headers['BX-PUBLIC-KEY'] = this.apiKey;
             }
             else {
                 const token = this.token;
                 if ((token === undefined)) {
                     throw new AuthenticationError(this.id + ' requires a token, please call signIn() first');
                 }
-                requestHeaders = (requestHeaders === undefined) ? {} : requestHeaders;
-                requestHeaders['Authorization'] = 'Bearer ' + token;
+                headers = (headers === undefined) ? {} : headers;
+                headers['Authorization'] = 'Bearer ' + token;
                 // headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
             }
         }
@@ -2999,7 +2991,7 @@ export default class bullish extends Exchange {
                 url += '?' + query;
             }
         }
-        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     /**
      * @method

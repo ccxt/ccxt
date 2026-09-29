@@ -92,9 +92,9 @@ public class BtseApi extends Exchange
      * Calls the publicGetSpotApiV33Time endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public CompletableFuture<Map<String, Object>>  publicGetSpotApiV33Time (Object... optionalArgs)
+    public CompletableFuture<Object>  publicGetSpotApiV33Time (Object... optionalArgs)
     {
         return this.callAsync ("publicGetSpotApiV33Time", optionalArgs);
     }

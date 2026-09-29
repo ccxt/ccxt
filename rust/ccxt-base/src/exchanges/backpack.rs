@@ -1119,8 +1119,8 @@ impl BackpackCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_236: bool = true;
-            while { if !__for_first_236 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_236 = false; j.as_f64().unwrap_or(f64::NAN) < ((networks.len() as i64) as f64) } {
+            let mut __for_first_235: bool = true;
+            while { if !__for_first_235 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_235 = false; j.as_f64().unwrap_or(f64::NAN) < ((networks.len() as i64) as f64) } {
             let mut network: Value = networks.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut networkId: Value = self.safe_string_k(network.clone(), "blockchain", &[]);
             let mut networkIdLowerCase: Value = self.safe_string_lower_k(network.clone(), "blockchain", &[]);
@@ -1213,7 +1213,7 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
+        if is_equal(&self.options.as_map().and_then(|__m| __m.get("adjustForTimeDifference")).cloned().unwrap_or(Value::Null), &Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
         let mut response: Value = self.public_get_api_v1_markets(&[params]).await;
@@ -1316,9 +1316,6 @@ impl BackpackCore {
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteSymbol", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        if (base == Value::Null) || (quote == Value::Null) {
-            return Value::Null;
-        }
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         let mut filters: Value = self.safe_dict_k(market.clone(), "filters", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1515,8 +1512,8 @@ impl BackpackCore {
         //     }, ...
         //
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone(), market]);
-        let mut symbol: Value = self.safe_symbol(marketId, &[marketResolved.clone()]);
+        market = self.safe_market(&[marketId.clone(), market.clone()]);
+        let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
         let mut open: Value = self.safe_string_k(ticker.clone(), "firstPrice", &[]);
         let mut last: Value = self.safe_string_k(ticker.clone(), "lastPrice", &[]);
         let mut high: Value = self.safe_string_k(ticker.clone(), "high", &[]);
@@ -1555,7 +1552,7 @@ impl BackpackCore {
         m.insert("indexPrice".to_string(), Value::Null);
         m.insert("info".to_string(), ticker);
     m
-}), &[marketResolved]);
+}), &[market]);
         return parsedTicker;
 
     Value::Null
@@ -1645,35 +1642,32 @@ impl BackpackCore {
                 m.insert("interval".to_string(), interval);
             m
         });
-        let mut untilparamsUntilVariable = self.handle_option_integer_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("until".into()), &[]);
-        let mut until: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut until: Value = Value::Null;
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("until".into()), &[]); until = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (until != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }; // convert milliseconds to seconds
         }
         let mut defaultLimit: Value = Value::Int(100);
-        let mut limitResolved: Value = limit.clone();
-        if (since == Value::Null) && (limit == Value::Null) {
-            limitResolved = defaultLimit.clone();
-        }
         if (since == Value::Null) {
+            if (limit == Value::Null) {
+                limit = defaultLimit;
+            }
             let mut duration: Value = self.parse_timeframe(timeframe.clone());
             let mut endTime: Value = (if ((until != Value::Null) && (until != Value::Null) && (until.as_f64() != Some(0.0))) { self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { self.seconds() });
-            let mut windowLimit: Value = (if (limit == Value::Null) { defaultLimit } else { limit });
-            let mut startTime: Value = (match (&(endTime), &(((match (&(windowLimit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+            let mut startTime: Value = (match (&(endTime), &(((match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), startTime); }
         }  else {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }; // convert milliseconds to seconds
         }
-        let mut price: Value = self.safe_string_k(paramsUntil.clone(), "price", &[]);
-        let mut paramsOmitted: Value = (if (price != Value::Null) { self.omit(paramsUntil.clone(), Value::Str("price".into()), &[]) } else { paramsUntil });
+        let mut price: Value = self.safe_string_k(params.clone(), "price", &[]);
         if (price != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("priceType".into(), self.capitalize(price)); }
+            params = self.omit(params.clone(), Value::Str("price".into()), &[]);
         }
-        let __ws_arg_3 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_3 = self.extend(request, &[params]);
         let mut response: Value = self.public_get_api_v1_klines(&[__ws_arg_3]).await;
         let mut ohlcvs: Value = self.to_array(response);
-        return self.parse_ohlc_vs(ohlcvs, &[market, timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(ohlcvs, &[market, timeframe, since, limit]);
 
     Value::Null
 }
@@ -1734,8 +1728,8 @@ impl BackpackCore {
         //     }
         //
         let mut marketId: Value = self.safe_string_k(contract.clone(), "symbol", &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone(), market]);
-        let mut symbol: Value = self.safe_symbol(marketId, &[marketResolved]);
+        market = self.safe_market(&[marketId.clone(), market.clone()]);
+        let mut symbol: Value = self.safe_symbol(marketId, &[market]);
         let mut nextFundingTimestamp: Value = self.safe_integer_k(contract.clone(), "nextFundingTimestamp", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1876,8 +1870,8 @@ impl BackpackCore {
         let mut rawRates: Value = self.to_array(response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_237: bool = true;
-            while { if !__for_first_237 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_237 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawRates.len() as i64) as f64) } {
+            let mut __for_first_236: bool = true;
+            while { if !__for_first_236 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_236 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawRates.len() as i64) as f64) } {
             let mut rate: Value = rawRates.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut datetime: Value = self.safe_string_k(rate.clone(), "intervalEndTimestamp", &[]);
             let mut timestamp: Value = self.parse8601(datetime.clone());
@@ -1893,7 +1887,7 @@ impl BackpackCore {
         }
         }
         let mut sorted: Value = self.sort_by(rates, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[self.safe_string_k(market, "symbol", &[]), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), since, limit]);
 
     Value::Null
 }
@@ -1985,15 +1979,15 @@ impl BackpackCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        let mut paramsOmitted: Value = (if (until != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { params });
         if (until != Value::Null) {
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("until".into())]), &[]);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to".into(), until); }
         }
-        let mut fillType: Option<String> = self.safe_string_k(paramsOmitted.clone(), "fillType", &[]).as_str().map(str::to_owned);
+        let mut fillType: Option<String> = self.safe_string_k(params.clone(), "fillType", &[]).as_str().map(str::to_owned);
         if (fillType.is_none()) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("fillType".into(), Value::Str("User".into())); }; // default
         }
-        let __ws_arg_9 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_9 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_wapi_v1_history_fills(&[__ws_arg_9]).await;
         let mut responseList: Value = self.to_array(response);
         return self.parse_trades(responseList, &[market, since, limit]);
@@ -2032,7 +2026,7 @@ impl BackpackCore {
         //
         let mut id: Value = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("tradeId".into()), &[]);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
+        market = self.safe_market(&[marketId, market.clone()]);
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amount: Value = self.safe_string_k(trade.clone(), "quantity", &[]);
         let mut isBuyerMaker: Value = self.safe_bool_k(trade.clone(), "isBuyerMaker", &[]);
@@ -2069,7 +2063,7 @@ impl BackpackCore {
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("id".to_string(), id);
         m.insert("order".to_string(), orderId);
         m.insert("type".to_string(), Value::Null);
@@ -2080,7 +2074,7 @@ impl BackpackCore {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
     m
-}), &[marketResolved]);
+}), &[market]);
 
     Value::Null
 }
@@ -2180,11 +2174,12 @@ impl BackpackCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_238: bool = true;
-            while { if !__for_first_238 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_238 = false; i.as_f64().unwrap_or(f64::NAN) < ((balanceKeys.len() as i64) as f64) } {
+            let mut __for_first_237: bool = true;
+            while { if !__for_first_237 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_237 = false; i.as_f64().unwrap_or(f64::NAN) < ((balanceKeys.len() as i64) as f64) } {
             let mut id: Value = balanceKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-            let mut balance: Value = self.safe_dict(response.clone(), id, &[]);
+            let mut balance: Value = get_value(&response, &id);
+            let mut balance: Value = get_value(&response, &id);
             let mut account: Value = self.account();
             let mut locked: Value = self.safe_string_k(balance.clone(), "locked", &[]);
             let mut staked: Value = self.safe_string_k(balance.clone(), "staked", &[]);
@@ -2238,13 +2233,12 @@ impl BackpackCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }; // default 100, max 1000
         }
-        let mut untilparamsUntilVariable = self.handle_option_integer_and_params(params, Value::Str("fetchDeposits".into()), Value::Str("until".into()), &[]);
-        let mut until: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut until: Value = Value::Null;
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchDeposits".into()), Value::Str("until".into()), &[]); until = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (until != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
         }
-        let __ws_arg_10 = self.extend(request, &[paramsUntil]);
+        let __ws_arg_10 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_wapi_v1_capital_deposits(&[__ws_arg_10]).await;
         return self.parse_transactions(response, &[currency, since, limit]);
 
@@ -2288,13 +2282,12 @@ impl BackpackCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
-        let mut untilparamsUntilVariable = self.handle_option_integer_and_params(params, Value::Str("fetchWithdrawals".into()), Value::Str("until".into()), &[]);
-        let mut until: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut until: Value = Value::Null;
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchWithdrawals".into()), Value::Str("until".into()), &[]); until = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (until != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to".into(), until); }
         }
-        let __ws_arg_11 = self.extend(request, &[paramsUntil]);
+        let __ws_arg_11 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_wapi_v1_capital_withdrawals(&[__ws_arg_11]).await;
         return self.parse_transactions(response, &[currency, since, limit]);
 
@@ -2337,7 +2330,7 @@ impl BackpackCore {
         let mut networkCodequeryVariable = self.handle_network_code_and_params(params);
         let mut networkCode: Value = networkCodequeryVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut query: Value = networkCodequeryVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut networkId: Value = self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])]);
+        let mut networkId: Value = self.network_code_to_id(networkCode, &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]);
         if (networkId == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter".into()))));
         }
@@ -2510,19 +2503,18 @@ impl BackpackCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut networkCodeparamsNetworkCodeVariable = self.handle_network_code_and_params(params);
-        let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut networkCode: Value = Value::Null;
+        { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (networkCode == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes".into()))));
         }
         let mut currency: Value = self.currency(code);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("blockchain".to_string(), self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])]));
+                m.insert("blockchain".to_string(), self.network_code_to_id(networkCode, &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]));
             m
         });
-        let __ws_arg_13 = self.extend(request, &[paramsNetworkCode]);
+        let __ws_arg_13 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_wapi_v1_capital_deposit_address(&[__ws_arg_13]).await;
         return self.parse_deposit_address(response, &[currency]);
 
@@ -2538,11 +2530,11 @@ impl BackpackCore {
         //
         let mut address: Value = self.safe_string_k(depositAddress.clone(), "address", &[]);
         let mut currencyId: Value = self.safe_string_k(depositAddress.clone(), "currency", &[]);
-        let mut currencyResolved: Value = self.safe_currency(currencyId, &[currency]);
+        currency = self.safe_currency(currencyId, &[currency.clone()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress);
-        m.insert("currency".to_string(), currencyResolved.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
+        m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address);
         m.insert("tag".to_string(), Value::Null);
@@ -2619,9 +2611,9 @@ impl BackpackCore {
         let mut ordersRequests: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_239: bool = true;
-            while { if !__for_first_239 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_239 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-            let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
+            let mut __for_first_238: bool = true;
+            while { if !__for_first_238 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_238 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut rawOrder: Value = orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[]);
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
@@ -2664,11 +2656,7 @@ impl BackpackCore {
         });
         let mut triggerPrice: Value = self.safe_string_k(params.clone(), "triggerPrice", &[]);
         let mut isTriggerOrder: bool = triggerPrice != Value::Null;
-        let mut quantityKey: Value = Value::Str("quantity".into());
-        if isTriggerOrder {
-            quantityKey = Value::Str("triggerQuantity".into());
-        }
-        let mut omitKeys: Value = Value::from(vec![]);
+        let mut quantityKey: Value = (if isTriggerOrder { Value::Str("triggerQuantity".into()) } else { Value::Str("quantity".into()) });
         // handle basic limit/market order types
         if (type_var.as_str() == Some("limit")) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol.clone(), price)); }
@@ -2677,8 +2665,7 @@ impl BackpackCore {
             let mut cost: Value = self.safe_string2(params.clone(), Value::Str("cost".into()), Value::Str("quoteQuantity".into()), &[]);
             if (cost != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quoteQuantity".into(), self.cost_to_precision(symbol.clone(), cost)); }
-                append_to_array(&mut omitKeys, Value::Str("cost".into()));
-                append_to_array(&mut omitKeys, Value::Str("quoteQuantity".into()));
+                params = self.omit(params.clone(), Value::from(vec![Value::Str("cost".into()), Value::Str("quoteQuantity".into())]), &[]);
             }  else {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&quantityKey), self.amount_to_precision(symbol.clone(), amount)); }
             }
@@ -2686,21 +2673,19 @@ impl BackpackCore {
         // trigger orders
         if isTriggerOrder {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice)); }
-            append_to_array(&mut omitKeys, Value::Str("triggerPrice".into()));
+            params = self.omit(params.clone(), Value::Str("triggerPrice".into()), &[]);
         }
         let mut clientOrderId: Value = self.safe_integer_k(params.clone(), "clientOrderId", &[]); // the exchange requires uint
         if (clientOrderId != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientId".into(), clientOrderId); }
-            append_to_array(&mut omitKeys, Value::Str("clientOrderId".into()));
+            params = self.omit(params.clone(), Value::Str("clientOrderId".into()), &[]);
         }
-        let mut postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[self.omit(params, omitKeys, &[])]);
-        let mut postOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut postOnly: Value = Value::Bool(false);
+        { let __destr_tmp = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[params.clone()]); postOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&postOnly) {
-            add_element_to_object(&mut paramsPostOnly, &Value::Str("postOnly".into()), Value::Bool(true));
+            add_element_to_object(&mut params, &Value::Str("postOnly".into()), Value::Bool(true));
         }
-        let mut bracketKeys: Value = Value::from(vec![]);
-        let mut takeProfit: Value = self.safe_dict_k(paramsPostOnly.clone(), "takeProfit", &[]);
+        let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
         if (takeProfit != Value::Null) {
             let mut takeProfitTriggerPrice: Value = self.safe_string_k(takeProfit.clone(), "triggerPrice", &[]);
             if (takeProfitTriggerPrice != Value::Null) {
@@ -2710,9 +2695,9 @@ impl BackpackCore {
             if (takeProfitPrice != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("takeProfitLimitPrice".into(), self.price_to_precision(symbol.clone(), takeProfitPrice)); }
             }
-            append_to_array(&mut bracketKeys, Value::Str("takeProfit".into()));
+            params = self.omit(params.clone(), Value::Str("takeProfit".into()), &[]);
         }
-        let mut stopLoss: Value = self.safe_dict_k(paramsPostOnly.clone(), "stopLoss", &[]);
+        let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
         if (stopLoss != Value::Null) {
             let mut stopLossTriggerPrice: Value = self.safe_string_k(stopLoss.clone(), "triggerPrice", &[]);
             if (stopLossTriggerPrice != Value::Null) {
@@ -2722,11 +2707,10 @@ impl BackpackCore {
             if (stopLossPrice != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopLossLimitPrice".into(), self.price_to_precision(symbol, stopLossPrice)); }
             }
-            append_to_array(&mut bracketKeys, Value::Str("stopLoss".into()));
+            params = self.omit(params.clone(), Value::Str("stopLoss".into()), &[]);
         }
-        let mut selfTradePreventionparamsSelfTradePreventionVariable = self.handle_option_string_and_params(self.omit(paramsPostOnly, bracketKeys, &[]), Value::Str("createOrder".into()), Value::Str("selfTradePrevention".into()), &[]);
-        let mut selfTradePrevention: Value = selfTradePreventionparamsSelfTradePreventionVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut paramsSelfTradePrevention: Value = selfTradePreventionparamsSelfTradePreventionVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut selfTradePrevention: Value = Value::Null;
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("selfTradePrevention".into()), &[]); selfTradePrevention = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (selfTradePrevention != Value::Null) {
             if (selfTradePrevention.as_str() == Some("EXPIRE_MAKER")) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("selfTradePrevention".into(), Value::Str("RejectMaker".into())); }
@@ -2736,7 +2720,7 @@ impl BackpackCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("selfTradePrevention".into(), Value::Str("RejectBoth".into())); }
             }
         }
-        return self.extend(request, &[paramsSelfTradePrevention]);
+        return self.extend(request, &[params]);
 
     Value::Null
 }
@@ -3135,8 +3119,8 @@ impl BackpackCore {
         if self.is_empty(symbols.clone()).as_bool() == Some(true) {
             return positions;
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        return self.filter_by_array_positions(positions, Value::Str("symbol".into()), &[symbolsNormalized]);
+        symbols = self.market_symbols(&[symbols.clone()]);
+        return self.filter_by_array_positions(positions, Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
 
     Value::Null
 }
@@ -3179,8 +3163,8 @@ impl BackpackCore {
         //
         let mut id: Value = self.safe_string_k(position.clone(), "positionId", &[]);
         let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
-        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        market = self.safe_market(&[marketId, market.clone()]);
+        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut entryPrice: Value = self.safe_string_k(position.clone(), "entryPrice", &[]);
         let mut markPrice: Value = self.safe_string_k(position.clone(), "markPrice", &[]);
         let mut netCost: Value = self.safe_string_k(position.clone(), "netCost", &[]);
@@ -3309,11 +3293,7 @@ impl BackpackCore {
 }
 
     pub fn nonce(&self) -> Value {
-        let mut timeDifference: Value = self.safe_integer_k(self.options.clone(), "timeDifference", &[]);
-        if (timeDifference == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" nonce() requires a numeric options[\"timeDifference\"]".into()))));
-        }
-        return (match (&(self.milliseconds()), &(timeDifference)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        return subtract(&self.milliseconds(), &self.options.as_map().and_then(|__m| __m.get("timeDifference")).cloned().unwrap_or(Value::Null));
 
     Value::Null
 }
@@ -3327,15 +3307,9 @@ impl BackpackCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".into()), path).into());
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
-        if (apiUrl == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
-        }
-        let mut url: Value = apiUrl;
+        let mut endpoint: Value = add(&Value::Str("/".into()), &path);
+        let mut url: Value = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api);
         let mut sortedParams: Value = (if (matches!(&params, Value::Arr(_))) { params.clone() } else { self.keysort(params.clone(), &[]) });
-        let mut headersSigned: Value = Value::Null;
-        let mut bodySigned: Value = Value::Null;
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut ts: Value = to_string_val(&self.nonce());
@@ -3362,7 +3336,7 @@ impl BackpackCore {
             let mut secretBytes: Value = self.base64_to_binary(self.secret.clone(), &[]);
             let mut seed: Value = self.array_slice(secretBytes, Value::Int(0), &[Value::Int(32)]);
             let mut signature: Value = eddsa(self.encode(payload), seed, Value::Str("ed25519".into()));
-            headersSigned = Value::Map({
+            headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-Timestamp".to_string(), ts);
                     m.insert("X-Window".to_string(), recvWindow);
@@ -3372,8 +3346,8 @@ impl BackpackCore {
                 m
             });
             if (method.as_str() != Some("GET")) {
-                bodySigned = json_stringify(&sortedParams);
-                add_element_to_object(&mut headersSigned, &Value::Str("Content-Type".into()), Value::Str("application/json".into()));
+                body = json_stringify(&sortedParams);
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
             }
         }
         if (method.as_str() == Some("GET")) {
@@ -3382,18 +3356,13 @@ impl BackpackCore {
                 endpoint = Value::Str(format!("{}{}", endpoint, Value::Str(format!("{}{}", Value::Str("?".into()), query).into())).into());
             }
         }
-        url = Value::Str(format!("{}{}", url, endpoint).into());
-        let mut headersResolved: Value = (if (api.as_str() == Some("private")) { headersSigned } else { headers });
-        let mut bodyResolved: Value = body;
-        if (api.as_str() == Some("private")) && (method.as_str() != Some("GET")) {
-            bodyResolved = bodySigned;
-        }
+        url = add(&url, &endpoint);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
-        m.insert("headers".to_string(), headersResolved);
+        m.insert("body".to_string(), body);
+        m.insert("headers".to_string(), headers);
     m
 });
 
@@ -3404,8 +3373,8 @@ impl BackpackCore {
         let mut payload: Value = Value::Str("".into());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_240: bool = true;
-            while { if !__for_first_240 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_240 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&params).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_239: bool = true;
+            while { if !__for_first_239 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_239 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&params).as_f64().unwrap_or(f64::NAN) } {
             let mut order: Value = self.safe_dict(params.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

@@ -6,7 +6,6 @@ import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -22,7 +21,7 @@ public class TestFetchClosedOrders extends BaseTest {
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchClosedOrders";
-        Object orders = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchClosedOrders", new Object[]{Helpers.toStringArg(symbol), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
+        Object orders = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchClosedOrders", new Object[]{symbol})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, orders, symbol);
         Object now = exchange.milliseconds();
         for (var i = 0; i < ((List<?>)orders).size(); i++)

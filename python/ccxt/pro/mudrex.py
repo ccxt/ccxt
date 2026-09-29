@@ -42,7 +42,7 @@ class mudrex(ccxt.async_support.mudrex):
             'method': 'PING',
         }
 
-    def request_id(self) -> float:
+    def request_id(self):
         reqid = self.sum(self.safe_integer(self.options, 'correlationId', 0), 1)
         self.options['correlationId'] = reqid
         return reqid
@@ -67,8 +67,8 @@ class mudrex(ccxt.async_support.mudrex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        messageHash = 'ticker:' + symbolValue
+        symbol = market['symbol']
+        messageHash = 'ticker:' + symbol
         url = self.urls['api']['ws']
         self.set_broker_headers()
         baseIdString = market['baseId'] if (market['baseId'] is not None) else ''
@@ -86,12 +86,12 @@ class mudrex(ccxt.async_support.mudrex):
     async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         if self.markets is None:
             await self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols)
+        symbols = self.market_symbols(symbols)
         messageHashes = []
         assets = []
-        if symbolsNormalized is not None:
-            for i in range(0, len(symbolsNormalized)):
-                market = self.market(symbolsNormalized[i])
+        if symbols is not None:
+            for i in range(0, len(symbols)):
+                market = self.market(symbols[i])
                 messageHashes.append('ticker:' + market['symbol'])
                 baseIdString = market['baseId'] if (market['baseId'] is not None) else ''
                 quoteIdString = market['quoteId'] if (market['quoteId'] is not None) else ''
@@ -108,19 +108,17 @@ class mudrex(ccxt.async_support.mudrex):
         ticker = await self.watch_multiple(url, messageHashes, request, messageHashes)
         if self.newUpdates:
             result = {}
-            tickerSymbol = self.safe_string(ticker, 'symbol')
-            if tickerSymbol is not None:
-                result[tickerSymbol] = ticker
+            result[ticker['symbol']] = ticker
             return result
-        return self.filter_by_array_tickers(self.tickers, 'symbol', symbolsNormalized)
+        return self.filter_by_array_tickers(self.tickers, 'symbol', symbols)
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbol = market['symbol']
         priceType = self.safe_string(params, 'price')
-        paramsOmitted = self.omit(params, 'price')
+        params = self.omit(params, 'price')
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         if interval != '1s' and interval != '1m':
             raise NotSupported(self.id + ' watchOHLCV() supports 1s and 1m timeframes only')
@@ -138,12 +136,11 @@ class mudrex(ccxt.async_support.mudrex):
             'method': 'SUBSCRIBE',
             'params': [stream],
         }
-        request = self.extend(subscribe, paramsOmitted)
+        request = self.extend(subscribe, params)
         ohlcv = await self.watch(url, messageHash, request, messageHash)
-        limitResolved = limit
         if self.newUpdates:
-            limitResolved = ohlcv.getLimit(symbolValue, limit)
-        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
+            limit = ohlcv.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_message(self, client: Client, message: object):
         if self.safe_string(message, 'method') == 'PONG':
