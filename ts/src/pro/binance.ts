@@ -4591,6 +4591,9 @@ export default class binance extends binanceRest {
         } else if (executionType === 'TRADE') {
             lastTradeTimestamp = T;
         }
+        if (timestamp === undefined) {
+            timestamp = T; // ALGO_UPDATE carries no execution type and no order time
+        }
         const lastUpdateTimestamp = T;
         let fee: FeeString = undefined;
         const feeCost = this.safeString (order, 'n');
@@ -4608,11 +4611,11 @@ export default class binance extends binanceRest {
         if ((clientOrderId === undefined) || (clientOrderId.length === 0)) {
             clientOrderId = this.safeString (order, 'c');
         }
-        const stopPrice = this.safeStringN (order, [ 'P', 'sp', 'tp' ]);
+        const stopPrice = this.omitZero (this.safeStringN (order, [ 'P', 'sp', 'tp' ]));
         const orderType = this.safeStringLower (order, 'o');
         // stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
         const isTakeProfitType = this.inArray (orderType, [ 'take_profit', 'take_profit_market', 'take_profit_limit' ]);
-        const takeProfitPrice = isTakeProfitType ? this.omitZero (stopPrice) : undefined;
+        const takeProfitPrice = isTakeProfitType ? stopPrice : undefined;
         let timeInForce = this.safeString (order, 'f');
         if (timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
@@ -4776,7 +4779,11 @@ export default class binance extends binanceRest {
                 this.handleOptionsOrderUpdate (client, message);
                 return;
             }
-            message = this.safeDict (message, 'o', message);
+            const innerOrder = this.safeDict (message, 'o', message);
+            if ((e === 'ALGO_UPDATE') && !('T' in innerOrder)) {
+                innerOrder['T'] = this.safeInteger (message, 'T'); // keep the outer event time, the algo payload carries no timestamps
+            }
+            message = innerOrder;
         }
         this.handleMyTrade (client, message);
         this.handleOrder (client, message);

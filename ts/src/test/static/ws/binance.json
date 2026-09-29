@@ -5161,7 +5161,7 @@
                         "fetchPositionsSnapshot": false
                     }
                 },
-                                "messages": [
+                "messages": [
                     {
                         "e": "ALGO_UPDATE",
                         "T": 1790420981562,
@@ -5217,15 +5217,16 @@
                                 "R": false,
                                 "tt": 0,
                                 "gtd": 0,
-                                "ia": false
+                                "ia": false,
+                                "T": 1790420981562
                             },
                             "symbol": "ETH/USDT:USDT",
                             "id": "1000000219326089",
                             "clientOrderId": "x-cvBPrNm941fed79a040f4b9c862342",
-                            "timestamp": null,
-                            "datetime": null,
+                            "timestamp": 1790420981562,
+                            "datetime": "2026-09-26T11:09:41.562Z",
                             "lastTradeTimestamp": null,
-                            "lastUpdateTimestamp": null,
+                            "lastUpdateTimestamp": 1790420981562,
                             "type": "limit",
                             "timeInForce": "GTC",
                             "postOnly": false,
