@@ -1511,7 +1511,7 @@ System.out.println(kraken.id + " " + markets.size() + " markets");
 
 <!-- tabs:end -->
 
-Apart from the market info (which is being stored in the `.markets` property), the `loadMarkets()` call also fetches the currencies from the exchange (if a corresponding endpoint exists) and stores it in the `.currencies` property.
+Apart from the market info (stored in the `.markets` property), the `loadMarkets()` call also fetches the currencies data from the exchange (if a corresponding endpoint exists) and stores it in the `.currencies` property.
 
 To ignore the stored data and re-fetch the latest data, use the force argument - `loadMarkets(true)`. You can also manually call `fetchMarkets()` and `fetchCurrencies()` methods, however there is no need for end-users to use those methods manually, because the recommended way to preload markets is by calling the `loadMarkets` method.
 
