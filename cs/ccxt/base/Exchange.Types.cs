@@ -1686,20 +1686,20 @@ public struct DepositWithdrawFee
     public Dictionary<string, object>? info;
     public DepositWithdrawFeeNetwork? withdraw;
     public DepositWithdrawFeeNetwork? deposit;
-    public Dictionary<string, DepositWithdrawFeeNetwork> networks;
+    public Dictionary<string, DepositWithdrawFeeNetworkEntry> networks;
 
     public DepositWithdrawFee(object depositWithdrawFee)
     {
         info = Helper.GetInfo(depositWithdrawFee);
         withdraw = Exchange.SafeValue(depositWithdrawFee, "withdraw") != null ? new DepositWithdrawFeeNetwork(Exchange.SafeValue(depositWithdrawFee, "withdraw")) : null;
         deposit = Exchange.SafeValue(depositWithdrawFee, "deposit") != null ? new DepositWithdrawFeeNetwork(Exchange.SafeValue(depositWithdrawFee, "deposit")) : null;
-        networks = new Dictionary<string, DepositWithdrawFeeNetwork>();
+        networks = new Dictionary<string, DepositWithdrawFeeNetworkEntry>();
         if (Exchange.SafeValue(depositWithdrawFee, "networks") != null)
         {
             var networks2 = (Dictionary<string, object>)Exchange.SafeValue(depositWithdrawFee, "networks");
             foreach (var network in networks2)
             {
-                networks.Add(network.Key, new DepositWithdrawFeeNetwork(network.Value));
+                networks.Add(network.Key, new DepositWithdrawFeeNetworkEntry(network.Value));
             }
         }
     }
@@ -2506,5 +2506,17 @@ public struct AllGreeks
         {
             greeks[key] = value;
         }
+    }
+}
+
+
+public struct DepositWithdrawFeeNetworkEntry
+{
+    public DepositWithdrawFeeNetwork? deposit;
+    public DepositWithdrawFeeNetwork? withdraw;
+    public DepositWithdrawFeeNetworkEntry(object network)
+    {
+        deposit = Exchange.SafeValue(network, "deposit") != null ? new DepositWithdrawFeeNetwork(Exchange.SafeValue(network, "deposit")) : null;
+        withdraw = Exchange.SafeValue(network, "withdraw") != null ? new DepositWithdrawFeeNetwork(Exchange.SafeValue(network, "withdraw")) : null;
     }
 }

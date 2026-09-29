@@ -1775,7 +1775,6 @@ for (const [ name, type ] of Object.entries ({
     'handleActiveAssetCtx': 'bool',
     'handleProtobufMessage': 'bool',
     'handleWsTickers': 'bool',
-    'isDecimalPrecision': 'bool',
     'isEmptyString': 'bool',
     'isFiat': 'bool',
     'isFuturesMethod': 'bool',
