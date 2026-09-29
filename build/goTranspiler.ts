@@ -18,6 +18,7 @@ import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import Piscina from 'piscina';
 import os from 'os';
 import { isMainEntry } from "./transpile.js";
+import { goGofmtBinarySpacing } from "./goGofmtLayout.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { goNativeArithmetic, g10kArithSelfTest } from './go-native-arith.js';
 import { installCcxtGoLocalTypes, installCcxtGoIndexableTypes, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES, CCXT_GO_STRING_PTR_METHOD_NAMES } from './go-local-types.js';
@@ -4006,6 +4007,11 @@ function overwriteFileAndFolder (path: string, content: string) {
     // fs.writeFileSync below wrote every generated file a second time
     content = g10kNativeDerefs (path, content);
     content = g10kStrNativeStringHelpers (path, content);  // G10K-str
+    // layout last: the passes above splice operands (derefs, natives) after spacing and the
+    // comment columns were computed; recompute both from the final text
+    if (path.endsWith ('.go')) {
+        content = alignGoTrailingComments (goGofmtBinarySpacing (content));
+    }
     overwriteFile (path, content);
 }
 

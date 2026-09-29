@@ -14,11 +14,11 @@ func TestOptionTypes() {
 		"id": "sampleexchange",
 		"options": map[string]any{
 			"fetchX": map[string]any{
-				"wrongBool":   "yes",
-				"wrongString": 5,
-				"wrongInteger": "5",
+				"wrongBool":       "yes",
+				"wrongString":     5,
+				"wrongInteger":    "5",
 				"fractionInteger": 1.5,
-				"integralDouble": 2.0,
+				"integralDouble":  2.0,
 			},
 		},
 	}, map[string]any{}, exchange)
