@@ -13,7 +13,9 @@
                     10.1,
                     "8vW5Fpyeyae8fGQMfQEUmPpyyGetYwBtasuKvRVsWpyc",
                     {
-                      "network": "SOL"
+                      "tag": {
+                        "network": "SOL"
+                      }
                     }
                   ],
                 "output": "coin=USDT&address=8vW5Fpyeyae8fGQMfQEUmPpyyGetYwBtasuKvRVsWpyc&quantity=10.1&chainType=SOL&clientOrderId=1766511589&recvWindow=5000&timestamp=1766511589371123&signature=55c38a209d641464634455ea8e84caa227a29cf7b1a126adfd4a15e07e85f607"
@@ -27,7 +29,9 @@
                     10.1,
                     "TEhmKXCPgX64yjRTTxNKKzYFXzuMFwsPQX",
                     {
-                      "network": "TRC20"
+                      "tag": {
+                        "network": "TRC20"
+                      }
                     }
                   ],
                 "output": "coin=USDT&address=TEhmKXCPgX64yjRTTxNKKzYFXzuMFwsPQX&quantity=10.1&chainType=TRX&clientOrderId=1766511589&recvWindow=5000&timestamp=1766511589371123&signature=55c38a209d641464634455ea8e84caa227a29cf7b1a126adfd4a15e07e85f607"

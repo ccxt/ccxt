@@ -711,7 +711,9 @@
                   5,
                   "address_here",
                   {
-                    "network": "TRC20"
+                    "tag": {
+                      "network": "TRC20"
+                    }
                   }
                 ],
                 "output": { "currency_symbol": "usdt", "amount": "5", "destination_address": "address_here", "network_code": "trc20" }
@@ -725,7 +727,9 @@
                   5,
                   "address_here",
                   {
-                    "network": "ton"
+                    "tag": {
+                      "network": "ton"
+                    }
                   }
                 ],
                 "output": { "currency_symbol": "usdt", "amount": "5", "destination_address": "address_here", "network_code": "ton" }
@@ -739,8 +743,10 @@
                   5,
                   "address_here",
                   {
-                    "tag": "tag_here",
-                    "network": "ton"
+                    "tag": {
+                      "tag": "tag_here",
+                      "network": "ton"
+                    }
                   }
                 ],
                 "output": { "currency_symbol": "usdt", "amount": "5", "destination_address": "address_here", "destination_tag": "tag_here", "network_code": "ton" }

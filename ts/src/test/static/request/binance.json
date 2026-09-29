@@ -4280,7 +4280,9 @@
                   10.34332,
                   "TKRxCKea88ZvHeGsXEY33CqAQHPDqcAw4N",
                   {
-                    "network": "TRC20"
+                    "tag": {
+                      "network": "TRC20"
+                    }
                   }
                 ],
                 "output": "timestamp=1718724487672&coin=USDT&address=TKRxCKea88ZvHeGsXEY33CqAQHPDqcAw4N&amount=10.34332&network=TRX&recvWindow=10000&signature=d9a2ecdfd7a207b2e7770b45a1971a3ea6bfcdb9c0796691b6528a7a7b77fe02"
@@ -4294,7 +4296,9 @@
                   10.34,
                   "xyz",
                   {
-                    "network": "BSC"
+                    "tag": {
+                      "network": "BSC"
+                    }
                   }
                 ],
                 "output": "timestamp=1718724487672&coin=ASR&address=xyz&amount=10.34&network=BSC&recvWindow=10000&signature=signature"
@@ -4308,7 +4312,9 @@
                   10.34,
                   "xyz",
                   {
-                    "network": "TRX"
+                    "tag": {
+                      "network": "TRX"
+                    }
                   }
                 ],
                 "output": "timestamp=1718724487672&coin=USDT&address=xyz&amount=10.34&network=TRX&recvWindow=10000&signature=signature"

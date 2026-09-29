@@ -441,7 +441,6 @@
                     "USDT",
                     10,
                     "0x24625c5f1b6574403a0469994dea24271bfbd443",
-                    null,
                     {
                         "network": "ERC20"
                     }

@@ -1337,7 +1337,9 @@
                     1.863679444,
                     "Ec59AaXM8qMmZo2j5qaKytKMcvvixekypQ85ZF5ASR4A",
                     {
-                      "network": "SOL"
+                      "tag": {
+                        "network": "SOL"
+                      }
                     }
                   ],
                 "output": "{\"amount\":\"1.863679\",\"ccy\":\"TRUMP\",\"chain\":\"SOL\",\"to_address\":\"Ec59AaXM8qMmZo2j5qaKytKMcvvixekypQ85ZF5ASR4A\"}"
@@ -1351,7 +1353,9 @@
             15,
             "TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN",
             {
-              "network": "TRC20"
+              "tag": {
+                "network": "TRC20"
+              }
             }
           ],
           "output": "{\"amount\":\"15\",\"ccy\":\"USDT\",\"chain\":\"TRC20\",\"to_address\":\"TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN\"}"

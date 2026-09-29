@@ -35,8 +35,10 @@
                     5,
                     "0x0000000000000000000000000000000000000000",
                     {
-                      "network": "ARBITRUM",
-                      "fee": 1.01
+                      "tag": {
+                        "network": "ARBITRUM",
+                        "fee": 1.01
+                      }
                     }
                   ],
                 "output": "asset=USDT&receiver=0x0000000000000000000000000000000000000000&userNonce=1776362282719000&chainId=42161&fee=1.01&amount=5&userSignature=0x51e0b4a4045605524f7141def1c27a35273194e4ac79011f27a4fa6e070b2b5636ed422323e67bf48c3ed325ed85f0acf1734e4c04bac2d0f1bd39fde6e9a8451c&nonce=1776362282755000&user=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&signer=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&signature=0x69a7fdfe7d6f9ed8310c93963dc7e4ae8c073a46530f5b2850a4d7a38c1cc74304dd6b660c02b4f615039c88b4a26df671f39922d6f74a4f8cb4db495306af621b"

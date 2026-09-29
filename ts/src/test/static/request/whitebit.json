@@ -912,8 +912,10 @@
                     5,
                     "TQMbNLpgvJ4hPtR3HXi5zccc2mL2n9PURD",
                     {
-                      "uniqueId": "ccxt-test-withdraw-0001",
-                      "network": "TRC20"
+                      "tag": {
+                        "uniqueId": "ccxt-test-withdraw-0001",
+                        "network": "TRC20"
+                      }
                     }
                   ],
                 "output": {

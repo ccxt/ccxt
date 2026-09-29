@@ -1606,7 +1606,7 @@
             {
                 "description": "live on-chain withdrawal, harvested from the venue 2026-09-15",
                 "method": "withdraw",
-                "input": ["USDT", 30, "TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6", null, {"network": "TRC20"}],
+                "input": ["USDT", 30, "TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6", {"network": "TRC20"}],
                 "httpResponse": {"code": "0", "msg": "success", "data": {"withdrawId": "11112222333344445555666677778888", "clientId": ""}},
                 "parsedResponse": {"info": {"currency": "USDT", "address": "TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6", "amount": "30", "dest": "onchain", "addrType": "1", "chain": "Tron (TRC20)", "withdrawId": "11112222333344445555666677778888", "clientId": ""}, "id": "11112222333344445555666677778888", "currency": "USDT", "amount": 30, "network": "TRC20", "addressFrom": null, "addressTo": "TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6", "address": "TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6", "tagFrom": null, "tagTo": null, "tag": null, "status": null, "type": "withdrawal", "updated": null, "txid": null, "timestamp": null, "datetime": null, "internal": null, "comment": null, "fee": {"currency": null, "cost": null}}
             }

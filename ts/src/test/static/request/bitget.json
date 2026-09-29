@@ -154,7 +154,9 @@
                     11.123456789,
                     "EBz7xtobD2Rm8aAXH2VHmE2rnePATevbHcWQ3RRo4nqA",
                     {
-                      "network": "SOL"
+                      "tag": {
+                        "network": "SOL"
+                      }
                     }
                   ],
                 "output": { "coin": "USDT", "address": "EBz7xtobD2Rm8aAXH2VHmE2rnePATevbHcWQ3RRo4nqA", "chain": "SOL", "size": "11.123457", "transferType": "on_chain" }
@@ -168,8 +170,10 @@
                     11.123456789,
                     "EBz7xtobD2Rm8aAXH2VHmE2rnePATevbHcWQ3RRo4nqA",
                     {
-                      "network": "SOL",
-                      "uta": true
+                      "tag": {
+                        "network": "SOL",
+                        "uta": true
+                      }
                     }
                   ],
                 "output": {

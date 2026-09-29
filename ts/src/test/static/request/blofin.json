@@ -624,8 +624,10 @@
   50,
   "TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6",
   {
-    "network": "TRC20",
-    "clientId": "ccxt-test-0001"
+    "tag": {
+      "network": "TRC20",
+      "clientId": "ccxt-test-0001"
+    }
   }
 ],
                 "output": "{\"currency\":\"USDT\",\"address\":\"TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6\",\"amount\":\"50\",\"dest\":\"onchain\",\"addrType\":\"1\",\"chain\":\"Tron (TRC20)\",\"clientId\":\"ccxt-test-0001\"}"
@@ -639,8 +641,10 @@
   25,
   "123456789",
   {
-    "dest": "internal",
-    "addrType": "2"
+    "tag": {
+      "dest": "internal",
+      "addrType": "2"
+    }
   }
 ],
                 "output": "{\"currency\":\"USDT\",\"address\":\"123456789\",\"amount\":\"25\",\"dest\":\"internal\",\"addrType\":\"2\"}"
@@ -654,9 +658,11 @@
   50,
   "TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6",
   {
-    "network": "TRC20",
-    "chain": "Tron",
-    "clientId": "ccxt-test-0001"
+    "tag": {
+      "network": "TRC20",
+      "chain": "Tron",
+      "clientId": "ccxt-test-0001"
+    }
   }
 ],
                 "output": "{\"currency\":\"USDT\",\"address\":\"TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6\",\"amount\":\"50\",\"dest\":\"onchain\",\"addrType\":\"1\",\"chain\":\"Tron\",\"clientId\":\"ccxt-test-0001\"}"

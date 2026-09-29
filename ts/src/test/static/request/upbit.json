@@ -21,7 +21,9 @@
                     1,
                     "1234",
                     {
-                      "network": "TRX"
+                      "tag": {
+                        "network": "TRX"
+                      }
                     }
                   ],
                 "output": { "amount": 1, "net_type": "TRX", "address": "1234", "currency": "USDT" }

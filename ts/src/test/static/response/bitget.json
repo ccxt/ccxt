@@ -358,7 +358,6 @@
                     "USDT",
                     11.123456789,
                     "EBz7xtobD2Rm8aAXH2VHmE2rnePATevbHcWQ3RRo4nqA",
-                    null,
                     {
                         "network": "SOL"
                     }
@@ -405,7 +404,6 @@
                     "USDT",
                     11.123456789,
                     "EBz7xtobD2Rm8aAXH2VHmE2rnePATevbHcWQ3RRo4nqA",
-                    null,
                     {
                         "network": "SOL",
                         "uta": true
