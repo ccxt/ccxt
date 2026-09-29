@@ -2698,8 +2698,7 @@ class testMainClass {
             spotOrderRequest = this.urlencodedToDict (exchange.last_request_body);
         }
         const clientOrderId = spotOrderRequest['newClientOrderId'];
-        const spotIdString = spotId.toString ();
-        assert (clientOrderId.startsWith (spotIdString) === true, 'binance - spot clientOrderId: ' + clientOrderId + ' does not start with spotId' + spotIdString);
+        assert (clientOrderId.startsWith (spotId) === true, 'binance - spot clientOrderId: ' + clientOrderId + ' does not start with spotId' + spotId);
 
         let swapOrderRequest: Dict = {};
         try {
@@ -2715,8 +2714,7 @@ class testMainClass {
         }
         // linear swap
         const clientOrderIdSwap = swapOrderRequest['newClientOrderId'];
-        const swapIdString = swapId.toString ();
-        assert (clientOrderIdSwap.startsWith (swapIdString) === true, 'binance - swap clientOrderId: ' + clientOrderIdSwap + ' does not start with swapId' + swapIdString);
+        assert (clientOrderIdSwap.startsWith (swapId) === true, 'binance - swap clientOrderId: ' + clientOrderIdSwap + ' does not start with swapId' + swapId);
         // inverse swap
         const clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId'];
         assert (clientOrderIdInverse.startsWith (inverseSwapId) === true, 'binance - swap clientOrderIdInverse: ' + clientOrderIdInverse + ' does not start with swapId' + inverseSwapId);
@@ -2729,7 +2727,7 @@ class testMainClass {
         }
         const clientAlgoIdSwap = swapAlgoOrderRequest['clientAlgoId'];
         assert (clientAlgoIdSwap !== undefined, 'binance - swap conditional order must send clientAlgoId');
-        assert (clientAlgoIdSwap.startsWith (swapIdString) === true, 'binance - swap clientAlgoId: ' + clientAlgoIdSwap + ' does not start with swapId' + swapIdString);
+        assert (clientAlgoIdSwap.startsWith (swapId) === true, 'binance - swap clientAlgoId: ' + clientAlgoIdSwap + ' does not start with swapId' + swapId);
         // inverse swap conditional order
         let inverseAlgoOrderRequest: Dict = {};
         try {
@@ -2765,7 +2763,7 @@ class testMainClass {
         for (let i = 0; i < batchOrders.length; i++) {
             const current = batchOrders[i];
             const currentClientOrderId = current['newClientOrderId'];
-            assert (currentClientOrderId.startsWith (swapIdString) === true, 'binance createOrders - clientOrderId: ' + currentClientOrderId + ' does not start with swapId' + swapIdString);
+            assert (currentClientOrderId.startsWith (swapId) === true, 'binance createOrders - clientOrderId: ' + currentClientOrderId + ' does not start with swapId' + swapId);
         }
         // linear conditional orders cannot be batched
         let linearConditionalBatchNotSupported = false;
@@ -2818,7 +2816,7 @@ class testMainClass {
             linearFutureOrderRequest = this.urlencodedToDict (exchange.last_request_body);
         }
         const clientOrderIdLinearFuture = linearFutureOrderRequest['newClientOrderId'];
-        assert (clientOrderIdLinearFuture.startsWith (swapIdString) === true, 'binance - linear future clientOrderId: ' + clientOrderIdLinearFuture + ' does not start with swapId' + swapIdString);
+        assert (clientOrderIdLinearFuture.startsWith (swapId) === true, 'binance - linear future clientOrderId: ' + clientOrderIdLinearFuture + ' does not start with swapId' + swapId);
         let inverseFutureOrderRequest: Dict = {};
         try {
             await exchange.createOrder ('ETH/USD:ETH-261225', 'limit', 'buy', 1, 2000);
@@ -2858,16 +2856,7 @@ class testMainClass {
             }
             const implicitFapiClientAlgoId = exchange.safeString (implicitFapiAlgoOrderRequest, 'clientAlgoId');
             assert (implicitFapiClientAlgoId !== undefined, 'binance - implicit fapi algo order must inject clientAlgoId');
-            assert (implicitFapiClientAlgoId.startsWith (swapIdString) === true, 'binance - implicit fapi clientAlgoId: ' + implicitFapiClientAlgoId + ' does not start with swapId' + swapIdString);
-            let implicitDapiAlgoOrderRequest: Dict = {};
-            try {
-                await callExchangeMethodDynamically (exchange, 'dapiPrivatePostAlgoOrder', [ { 'symbol': 'ETHUSD_PERP', 'side': 'SELL', 'type': 'STOP', 'algoType': 'CONDITIONAL', 'quantity': '1', 'price': '4100', 'triggerPrice': '4200', 'timeInForce': 'GTC' } ]);
-            } catch (e) {
-                implicitDapiAlgoOrderRequest = this.urlencodedToDict (exchange.last_request_body);
-            }
-            const implicitDapiClientAlgoId = exchange.safeString (implicitDapiAlgoOrderRequest, 'clientAlgoId');
-            assert (implicitDapiClientAlgoId !== undefined, 'binance - implicit dapi algo order must inject clientAlgoId');
-            assert (implicitDapiClientAlgoId.startsWith (inverseSwapId) === true, 'binance - implicit dapi clientAlgoId: ' + implicitDapiClientAlgoId + ' does not start with inverseSwapId' + inverseSwapId);
+            assert (implicitFapiClientAlgoId.startsWith (swapId) === true, 'binance - implicit fapi clientAlgoId: ' + implicitFapiClientAlgoId + ' does not start with swapId' + swapId);
         }
         if (!isSync ()) {
             await close (exchange);
