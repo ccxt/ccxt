@@ -1646,8 +1646,8 @@ export default class coinex extends Exchange {
         //         "low": "66988.53",
         //         "market": "BTCUSDT",
         //         "open": "66988.53",
-        //         "value": "0.1572393",        // base volume
-        //         "volume": "10533.2501364336" // quote volume
+        //         "value": "10533.2501364336", // quote volume
+        //         "volume": "0.1572393"        // base volume
         //     }
         //
         return [
@@ -1656,7 +1656,7 @@ export default class coinex extends Exchange {
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
             this.safeNumber (ohlcv, 'close'),
-            this.safeNumber (ohlcv, 'value'),
+            this.safeNumber (ohlcv, 'volume'),
         ];
     }
 
