@@ -4584,7 +4584,8 @@ export class BaseExchange {
     }
 
     setMarkets (markets: any, currencies = undefined): Dictionary<Market> {
-      this.marketsMutexLocker (true);
+      try {
+        this.marketsMutexLocker (true);
         const values: Dict[] = [];
         this.markets_by_id = this.createSafeDictionary ();
         // handle marketId conflicts
