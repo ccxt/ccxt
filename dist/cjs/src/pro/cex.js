@@ -1047,7 +1047,8 @@ class cex extends cex$1["default"] {
         const messageHash = 'orderbook:' + symbol;
         if (incrementalId !== storedOrderBook['nonce'] + 1) {
             delete client.subscriptions[messageHash];
-            client.reject(this.id + ' watchOrderBook() skipped a message', messageHash);
+            const error = new errors.InvalidNonce(this.id + ' watchOrderBook() skipped a message');
+            client.reject(error, messageHash);
             return;
         }
         const timestamp = this.safeInteger(data, 'time');

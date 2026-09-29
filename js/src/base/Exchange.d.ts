@@ -959,7 +959,6 @@ export declare class BaseExchange {
     currencyToPrecision(code: Str, fee: any, networkCode?: Str): Str;
     forceString(value: any): Str;
     isTickPrecision(): boolean;
-    isDecimalPrecision(): boolean;
     isSignificantPrecision(): boolean;
     safeNumber(obj: any, key: NullableIndexType, defaultNumber?: Num): Num;
     safeNumberN(obj: object, arr: NullableIndexType[], defaultNumber?: Num): Num;

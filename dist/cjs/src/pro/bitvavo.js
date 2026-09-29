@@ -1788,7 +1788,8 @@ class bitvavo extends bitvavo$1["default"] {
             client.reject(e, messageHash);
         }
         if (!rejected) {
-            client.reject(message, messageHash);
+            const feedback = new errors.ExchangeError(this.id + ' ' + this.json(message));
+            client.reject(feedback, messageHash);
             return true;
         }
         return undefined;

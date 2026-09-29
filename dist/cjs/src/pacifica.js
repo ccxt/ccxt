@@ -2864,8 +2864,8 @@ class pacifica extends pacifica$1["default"] {
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/request-withdrawal
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
-     * @param {string} address the address to withdraw to
-     * @param {string} tag
+     * @param {string} address validated but not sent, funds go to the account wallet
+     * @param {string} tag not used by withdraw ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
@@ -2877,7 +2877,7 @@ class pacifica extends pacifica$1["default"] {
         }
         this.checkAddress(address);
         const sigPayload = {
-            'amount': amount.toString(),
+            'amount': this.numberToString(amount),
         };
         const request = this.postActionRequest(operationType, sigPayload, params);
         params = this.omit(params, ['expiryWindow']);

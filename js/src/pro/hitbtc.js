@@ -53,7 +53,7 @@ export default class hitbtc extends hitbtcRest {
                     'method': 'ticker/{speed}', // 'ticker/{speed}' or 'ticker/price/{speed}'
                 },
                 'watchTickers': {
-                    'method': 'ticker/{speed}', // 'ticker/{speed}','ticker/price/{speed}', 'ticker/{speed}/batch', or 'ticker/{speed}/price/batch''
+                    'method': 'ticker/{speed}', // 'ticker/{speed}', 'ticker/price/{speed}', 'ticker/{speed}/batch', or 'ticker/price/{speed}/batch'
                 },
                 'watchBidsAsks': {
                     'method': 'orderbook/top/{speed}', // 'orderbook/top/{speed}', 'orderbook/top/{speed}/batch'
@@ -142,9 +142,10 @@ export default class hitbtc extends hitbtcRest {
         }
         symbols = this.marketSymbols(symbols);
         const isBatch = name.indexOf('batch') >= 0;
+        const resolvedPerSymbol = !isBatch || (messageHashPrefix === 'orderbooks'); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
         const url = this.urls['api']['ws']['public'];
         const messageHashes = [];
-        if (symbols !== undefined && !isBatch) {
+        if (symbols !== undefined && resolvedPerSymbol) {
             for (let i = 0; i < symbols.length; i++) {
                 messageHashes.push(messageHashPrefix + '::' + symbols[i]);
             }
@@ -152,13 +153,17 @@ export default class hitbtc extends hitbtcRest {
         else {
             messageHashes.push(messageHashPrefix);
         }
+        const requestId = this.incrementingNonce();
         const subscribe = {
             'method': 'subscribe',
-            'id': this.incrementingNonce(),
+            'id': requestId,
             'ch': name,
         };
         const request = this.extend(subscribe, params);
-        return await this.watchMultiple(url, messageHashes, request, messageHashes);
+        const subscription = {
+            'id': requestId,
+        };
+        return await this.watchMultiple(url, messageHashes, request, messageHashes, subscription);
     }
     /**
      * @ignore
@@ -178,12 +183,16 @@ export default class hitbtc extends hitbtcRest {
         if (symbol !== undefined) {
             messageHash = messageHash + '::' + symbol;
         }
+        const requestId = this.incrementingNonce();
         const subscribe = {
             'method': name,
             'params': params,
-            'id': this.incrementingNonce(),
+            'id': requestId,
         };
-        return await this.watch(url, messageHash, subscribe, messageHash);
+        const subscription = {
+            'id': requestId,
+        };
+        return await this.watch(url, messageHash, subscribe, messageHash, subscription);
     }
     /**
      * @ignore
@@ -226,13 +235,14 @@ export default class hitbtc extends hitbtcRest {
         const options = this.safeDict(this.options, 'watchOrderBook');
         const defaultMethod = this.safeString(options, 'method', 'orderbook/full');
         let name = this.safeString2(params, 'method', 'defaultMethod', defaultMethod);
-        const depth = this.safeString(params, 'depth', '20');
-        const speed = this.safeString(params, 'depth', '100');
+        const depthValue = this.safeString(params, 'depth', '20'); // not named depth: the php transpiler would turn the '{depth}' literals into '{$depth}'
+        const speedValue = this.safeString(params, 'speed', '100'); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
+        params = this.omit(params, ['method', 'defaultMethod', 'depth', 'speed']);
         if (name === 'orderbook/{depth}/{speed}') {
-            name = 'orderbook/D' + depth + '/' + speed + 'ms';
+            name = 'orderbook/D' + depthValue + '/' + speedValue + 'ms';
         }
         else if (name === 'orderbook/{depth}/{speed}/batch') {
-            name = 'orderbook/D' + depth + '/' + speed + 'ms/batch';
+            name = 'orderbook/D' + depthValue + '/' + speedValue + 'ms/batch';
         }
         const market = this.market(symbol);
         const request = {
@@ -267,8 +277,22 @@ export default class hitbtc extends hitbtcRest {
         //        }
         //    }
         //
-        const snapshot = this.safeDict(message, 'snapshot');
-        const data = this.safeDict2(message, 'snapshot', 'update', {});
+        // partial orderbook ('orderbook/D{depth}/{speed}ms' and its '/batch' variant), every message is a full top-N snapshot
+        //
+        //    {
+        //        "ch": "orderbook/D5/500ms",
+        //        "data": {
+        //            "BTCUSDT": {
+        //                "t": 1790511595279,
+        //                "s": 1520022,
+        //                "a": [ [ "85025.97", "0.00732" ], [ "85037.31", "0.03659" ] ],
+        //                "b": [ [ "84995.48", "0.02769" ], [ "84994.29", "0.00724" ] ]
+        //            }
+        //        }
+        //    }
+        //
+        const snapshot = this.safeDict2(message, 'snapshot', 'data');
+        const data = (snapshot !== undefined) ? snapshot : this.safeDict(message, 'update', {});
         const type = (snapshot !== undefined && snapshot !== null) ? 'snapshot' : 'update';
         const marketIds = Object.keys(data);
         for (let i = 0; i < marketIds.length; i++) {
@@ -328,30 +352,36 @@ export default class hitbtc extends hitbtcRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        const ticker = await this.watchTickers([symbol], params);
+        const ticker = await this.watchTickers([symbol], this.extend(params, { 'callerMethodName': 'watchTicker' }));
         return this.safeValue(ticker, symbol);
     }
     /**
      * @method
-     * @name hitbtc#watchTicker
-     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @param {string[]} [symbols]
-     * @param {object} params extra parameters specific to the exchange API endpoint
-     * @param {string} params.method 'ticker/{speed}' ,'ticker/price/{speed}', 'ticker/{speed}/batch' (default), or 'ticker/{speed}/price/batch''
-     * @param {string} params.speed '1s' (default), or '3s'
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+     * @name hitbtc#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://api.hitbtc.com/#subscribe-to-ticker
+     * @see https://api.hitbtc.com/#subscribe-to-ticker-in-batches
+     * @see https://api.hitbtc.com/#subscribe-to-mini-ticker
+     * @see https://api.hitbtc.com/#subscribe-to-mini-ticker-in-batches
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the tickers for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] 'ticker/{speed}' (default), 'ticker/price/{speed}', 'ticker/{speed}/batch', or 'ticker/price/{speed}/batch'
+     * @param {string} [params.speed] '1s' (default), or '3s'
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        const options = this.safeDict(this.options, 'watchTicker');
+        let methodName = undefined;
+        [methodName, params] = this.handleParamString(params, 'callerMethodName', 'watchTickers'); // watchTicker passes its own name, so options.watchTicker still applies to it
+        const options = this.safeDict(this.options, methodName);
         const defaultMethod = this.safeString(options, 'method', 'ticker/{speed}/batch');
         const method = this.safeString2(params, 'method', 'defaultMethod', defaultMethod);
-        const speed = this.safeString(params, 'speed', '1s');
-        const name = this.implodeParams(method, { 'speed': speed });
-        params = this.omit(params, ['method', 'speed']);
+        const speedValue = this.safeString(params, 'speed', '1s'); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
+        const name = this.implodeParams(method, { 'speed': speedValue });
+        params = this.omit(params, ['method', 'defaultMethod', 'speed']);
         const marketIds = [];
         if (symbols === undefined) {
             marketIds.push('*');
@@ -496,7 +526,7 @@ export default class hitbtc extends hitbtcRest {
      * @see https://api.hitbtc.com/#subscribe-to-top-of-book
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.method] 'orderbook/top/{speed}' or 'orderbook/top/{speed}/batch (default)'
+     * @param {string} [params.method] 'orderbook/top/{speed}' (default) or 'orderbook/top/{speed}/batch'
      * @param {string} [params.speed] '100ms' (default) or '500ms' or '1000ms'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -508,9 +538,9 @@ export default class hitbtc extends hitbtcRest {
         const options = this.safeDict(this.options, 'watchBidsAsks');
         const defaultMethod = this.safeString(options, 'method', 'orderbook/top/{speed}/batch');
         const method = this.safeString2(params, 'method', 'defaultMethod', defaultMethod);
-        const speed = this.safeString(params, 'speed', '100ms');
-        const name = this.implodeParams(method, { 'speed': speed });
-        params = this.omit(params, ['method', 'speed']);
+        const speedValue = this.safeString(params, 'speed', '100ms'); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
+        const name = this.implodeParams(method, { 'speed': speedValue });
+        params = this.omit(params, ['method', 'defaultMethod', 'speed']);
         const marketIds = this.marketIds(symbols);
         const request = {
             'params': {
@@ -1052,7 +1082,7 @@ export default class hitbtc extends hitbtcRest {
             'side': this.safeStringUpper(order, 'side'),
             'timeInForce': this.safeString(order, 'time_in_force'),
             'postOnly': this.safeString(order, 'post_only'),
-            'reduceOnly': this.safeValue(order, 'reduce_only'),
+            'reduceOnly': this.safeBool(order, 'reduce_only'),
             'filled': undefined,
             'remaining': undefined,
             'cost': undefined,
@@ -1264,7 +1294,7 @@ export default class hitbtc extends hitbtcRest {
         //    }
         //
         const messageHash = this.safeString(message, 'method');
-        const params = this.safeValue(message, 'params');
+        const params = this.safeList(message, 'params', []);
         const balance = this.parseBalance(params);
         this.balance = this.deepExtend(this.balance, balance);
         client.resolve(this.balance, messageHash);
@@ -1409,7 +1439,7 @@ export default class hitbtc extends hitbtcRest {
         const error = this.safeDict(message, 'error');
         if (error !== undefined) {
             try {
-                const code = this.safeValue(error, 'code');
+                const code = this.safeString(error, 'code');
                 const errorMessage = this.safeString(error, 'message');
                 const description = this.safeString(error, 'description');
                 const feedback = this.id + ' ' + description;
@@ -1418,6 +1448,7 @@ export default class hitbtc extends hitbtcRest {
                 throw new ExchangeError(feedback); // unknown message
             }
             catch (e) {
+                const id = this.safeString(message, 'id');
                 if (e instanceof AuthenticationError) {
                     const messageHash = 'authenticated';
                     client.reject(e, messageHash);
@@ -1426,8 +1457,19 @@ export default class hitbtc extends hitbtcRest {
                     }
                 }
                 else {
-                    const id = this.safeString(message, 'id');
-                    client.reject(e, id);
+                    client.reject(e, id); // trade requests use the request id as the message hash
+                }
+                // subscriptions keep the request id, reject the futures waiting for a subscription refused by the exchange,
+                // authentication errors included: a private channel the api key has no access to is refused with 1003
+                // the login request has no id, so a login error matches no subscription
+                const subscriptionHashes = Object.keys(client.subscriptions);
+                for (let i = 0; i < subscriptionHashes.length; i++) {
+                    const subscriptionHash = subscriptionHashes[i];
+                    const subscriptionId = this.safeString(client.subscriptions[subscriptionHash], 'id');
+                    if ((subscriptionId !== undefined) && (subscriptionId === id)) {
+                        client.reject(e, subscriptionHash);
+                        delete client.subscriptions[subscriptionHash]; // so a retry sends the subscribe request again
+                    }
                 }
                 return true;
             }
