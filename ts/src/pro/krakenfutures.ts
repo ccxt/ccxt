@@ -506,7 +506,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.account] can be either 'futures' or 'flex_futures'
-     * @returns {object} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure} of the account type the message updated ('cash', 'futures' margin, or 'flex_futures')
      */
     override async watchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
@@ -1480,22 +1480,27 @@ export default class krakenfutures extends krakenfuturesRest {
         if (this.balance === undefined) {
             this.balance = {};
         }
+        let updatedBalance = undefined;
         if (holding !== undefined) {
             const holdingKeys = Object.keys (holding);                  // cashAccount
             this.balance['cash'] = this.safeDict (this.balance, 'cash', {});
             this.balance['cash']['info'] = message;
             this.balance['cash']['timestamp'] = timestamp;
             this.balance['cash']['datetime'] = this.iso8601 (timestamp);
+            const holdingCodes: Dict = {};
             for (let i = 0; i < holdingKeys.length; i++) {
                 const key = holdingKeys[i];
                 const code = this.safeCurrencyCode (key);
                 const newAccount = this.account ();
                 newAccount['total'] = this.safeString (holding, key);
                 if (code !== undefined) {
+                    holdingCodes[code] = true;
                     this.balance['cash'][code] = newAccount;
                 }
             }
+            this.pruneStaleBalanceKeys (this.balance['cash'], holdingCodes);
             this.balance['cash'] = this.safeBalance (this.balance['cash']);
+            updatedBalance = this.balance['cash'];
         }
         if (futures !== undefined) {
             const futuresKeys = Object.keys (futures);                  // marginAccount
@@ -1503,6 +1508,7 @@ export default class krakenfutures extends krakenfuturesRest {
             this.balance['margin']['info'] = message;
             this.balance['margin']['timestamp'] = timestamp;
             this.balance['margin']['datetime'] = this.iso8601 (timestamp);
+            const futuresSymbols: Dict = {};
             for (let i = 0; i < futuresKeys.length; i++) {
                 const key = futuresKeys[i];
                 const symbol = this.safeSymbol (key);
@@ -1515,11 +1521,16 @@ export default class krakenfutures extends krakenfuturesRest {
                 newAccount['total'] = this.safeString (future, 'balance');
                 this.balance['margin'][symbol] = {};
                 if ((symbol !== undefined) && (code !== undefined)) {
+                    futuresSymbols[symbol] = true;
                     this.balance['margin'][symbol][code] = newAccount;
                 }
             }
+            this.pruneStaleBalanceKeys (this.balance['margin'], futuresSymbols);
             this.balance['margin'] = this.safeBalance (this.balance['margin']);
             client.resolve (this.balance['margin'], messageHash + ':futures');
+            if (updatedBalance === undefined) {
+                updatedBalance = this.balance['margin'];
+            }
         }
         if (flexFutures !== undefined) {
             const flexFutureCurrencies = this.safeDict (flexFutures, 'currencies', {});
@@ -1528,6 +1539,7 @@ export default class krakenfutures extends krakenfuturesRest {
             this.balance['flex']['info'] = message;
             this.balance['flex']['timestamp'] = timestamp;
             this.balance['flex']['datetime'] = this.iso8601 (timestamp);
+            const flexCodes: Dict = {};
             for (let i = 0; i < flexFuturesKeys.length; i++) {
                 const key = flexFuturesKeys[i];
                 const flexFuture = this.safeDict (flexFutureCurrencies, key);
@@ -1537,16 +1549,42 @@ export default class krakenfutures extends krakenfuturesRest {
                 newAccount['used'] = this.safeString (flexFuture, 'collateral_value');
                 newAccount['total'] = this.safeString (flexFuture, 'quantity');
                 if (code !== undefined) {
+                    flexCodes[code] = true;
                     this.balance['flex'][code] = newAccount;
                 }
             }
+            this.pruneStaleBalanceKeys (this.balance['flex'], flexCodes);
             this.balance['flex'] = this.safeBalance (this.balance['flex']);
             client.resolve (this.balance['flex'], messageHash + ':flex_futures');
+            if (updatedBalance === undefined) {
+                updatedBalance = this.balance['flex'];
+            }
         }
-        // resolve the plain hash exactly once per message, with the dict of wallet
-        // types the docstring promises: a second resolve on the same hash is not
-        // portable (the rust client hands the consumer the LAST resolved value)
-        client.resolve (this.balance, messageHash);
+        // resolve the plain hash exactly once per message, with the unified
+        // balance of the account the message updated (cash first, matching the
+        // legacy behaviour): a second resolve on the same hash is not portable
+        // (the rust client hands the consumer the LAST resolved value)
+        if (updatedBalance !== undefined) {
+            client.resolve (updatedBalance, messageHash);
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description removes currency/symbol keys that disappeared from a full-state balance message, keeping the cached object itself alive for consumers holding a reference to it
+     * @param {object} balanceObject the cached per-account balance object, mutated in place
+     * @param {object} seenKeys the currency codes / symbols present in the current message
+     */
+    pruneStaleBalanceKeys (balanceObject: Dict, seenKeys: Dict) {
+        const reserved = [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total', 'debt' ];
+        const keys = Object.keys (balanceObject);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (!(key in seenKeys) && !this.inArray (key, reserved)) {
+                delete balanceObject[key];
+            }
+        }
     }
 
     handleMyTrades (client: Client, message: Dict) {
