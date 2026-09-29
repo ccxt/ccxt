@@ -227,6 +227,7 @@ impl crate::exchange_generated::ExchangeBase for OkxCore {
                 "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "handle_market_type_and_params" => self.handle_market_type_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "handle_trading_statistics_window" => self.handle_trading_statistics_window(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
                 "modify_margin_helper" => self.modify_margin_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "nonce" => self.nonce(),
                 "parse_balance_by_type" => self.parse_balance_by_type(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -11157,13 +11158,14 @@ impl OkxCore {
 /*
  * @method
  * @name okx#fetchOpenInterestHistory
- * @description Retrieves the open interest history of a currency
- * @see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-contracts-open-interest-and-volume
- * @see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-options-open-interest-and-volume
- * @param {string} symbol Unified CCXT currency code or unified symbol
+ * @description Retrieves the open interest history of a swap or future market, or of a currency when a currency code is given
+ * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-open-interest-history
+ * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contracts-open-interest-and-volume
+ * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-options-open-interest-and-volume
+ * @param {string} symbol unified symbol of a swap or future market for the history of that instrument, otherwise a unified currency code, or the symbol of a spot or option market, for the aggregate over all contracts of the currency
  * @param {string} timeframe "5m", "1h", or "1d" for option only "1d" or "8h"
  * @param {int} [since] The time in ms of the earliest record to retrieve as a unix timestamp
- * @param {int} [limit] Not used by okx, but parsed internally by CCXT
+ * @param {int} [limit] the maximum number of records to retrieve, at most 100 for a swap or future market; not used by the currency aggregate
  * @param {object} [params] Exchange specific parameters
  * @param {int} [params.until] The time in ms of the latest record to retrieve as a unix timestamp
  * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -11204,15 +11206,43 @@ impl OkxCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ccy".to_string(), currencyId);
-                m.insert("period".to_string(), timeframe);
+                m.insert("period".to_string(), timeframe.clone());
             m
         });
         let mut type_var: Value = Value::Null;
         let mut response: Value = Value::Null;
-        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOpenInterestHistory".into()), &[market, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOpenInterestHistory".into()), &[market.clone(), params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        if (market != Value::Null) && ((market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) || (market.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) {
+            let mut instrumentRequest: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                    m.insert("period".to_string(), timeframe.clone());
+                m
+            });
+            { let __destr_tmp = self.handle_trading_statistics_window(instrumentRequest.clone(), timeframe, &[since.clone(), limit.clone(), params.clone()]); instrumentRequest = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+            let __ws_arg_82 = self.extend(instrumentRequest, &[params.clone()]);
+            response = self.public_get_rubik_stat_contracts_open_interest_history(&[__ws_arg_82]).await;
+            //
+            //    {
+            //        "code": "0",
+            //        "data": [
+            //            [
+            //                "1790550000000",  // timestamp
+            //                "2800476.45",  // open interest (contracts)
+            //                "28006.5419",  // open interest (base currency)
+            //                "2360916466.88",  // open interest (USD)
+            //            ],
+            //            ...
+            //        ],
+            //        "msg": ""
+            //    }
+            //
+            let mut instrumentData: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+            return self.parse_open_interests_history(instrumentData, &[market, since.clone(), limit.clone()]);
+        }
         if (type_var.as_str() == Some("option")) {
-            let __ws_arg_82 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_get_rubik_stat_option_open_interest_volume(&[__ws_arg_82]).await;
+            let __ws_arg_83 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_get_rubik_stat_option_open_interest_volume(&[__ws_arg_83]).await;
         }  else {
             if (since != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("begin".into(), since.clone()); }
@@ -11222,8 +11252,8 @@ impl OkxCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end".into(), until); }
                 params = self.omit(params.clone(), Value::from(vec![Value::Str("until".into())]), &[]);
             }
-            let __ws_arg_83 = self.extend(request, &[params]);
-            response = self.public_get_rubik_stat_contracts_open_interest_volume(&[__ws_arg_83]).await;
+            let __ws_arg_84 = self.extend(request, &[params]);
+            response = self.public_get_rubik_stat_contracts_open_interest_volume(&[__ws_arg_84]).await;
         }
         //
         //    {
@@ -11245,6 +11275,67 @@ impl OkxCore {
     Value::Null
 }
 
+/*
+ * @ignore
+ * @method
+ * @name okx#handleTradingStatisticsWindow
+ * @description sets begin, end and limit of a trading statistics history request: okx treats both bounds as exclusive and returns the latest entries first, while since and until are inclusive and since with a limit asks for the earliest entries from since on
+ * @param {object} request the request of the history endpoint
+ * @param {string} period the okx period of the request, e.g. 5m, 1H, 2D, 1M or 6Hutc
+ * @param {int} [since] the earliest time in ms of the entries to fetch
+ * @param {int} [limit] the maximum number of entries to fetch, at most 100
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms of the entries to fetch
+ * @returns {object[]} the request and the remaining params
+ */
+    pub fn handle_trading_statistics_window(&self, mut request: Value, mut period: Value, optional_args: &[Value]) -> Value {
+        let mut since = get_arg(optional_args, 0, Value::Null);
+        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut maxLimit: Value = Value::Int(100);
+        let mut effectiveLimit: Value = (if (limit == Value::Null) { maxLimit.clone() } else { crate::runtime::Math::min(&limit, &maxLimit) });
+        if (limit != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), effectiveLimit.clone()); }
+        }
+        if (since != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("begin".into(), (match (&(since), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
+        }
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
+        params = self.omit(params.clone(), Value::Str("until".into()), &[]);
+        let mut end: Value = Value::Null;
+        if (until != Value::Null) {
+            end = self.sum(&[until, Value::Int(1)]);
+        }
+        if (since != Value::Null) {
+            // end the window after limit periods, so that the earliest entries from since on come back
+            // okx periods are 5m, 1H, 2D, 1W, 1M, 3M and so on, optionally with a utc suffix that only moves the opening time
+            let mut unitPeriod: Value = (if (ends_with(&period, &Value::Str("utc".into()))) { period.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 3).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null) } else { period.clone() });
+            let mut unit: Value = unitPeriod.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 1).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+            let mut windowDuration: Value = Value::Null;
+            if (unit.as_str() == Some("M")) {
+                // calendar months last 28 to 31 days: the window spans limit of the longest months, but no more than 100 of the shortest,
+                // all entries in it are requested and the caller keeps the earliest limit of them
+                let mut months: Value = self.parse_to_int(unitPeriod.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 1).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                let mut day: Value = Value::Int(86400000);
+                windowDuration = crate::runtime::Math::min(&(match (&((match (&((match (&(effectiveLimit), &(months)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(31))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(day)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), &(match (&((match (&((match (&(maxLimit), &(months)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(28))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(day)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), maxLimit); }
+            }  else {
+                windowDuration = (match (&((match (&(effectiveLimit), &(self.parse_timeframe(to_lower(&unitPeriod)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            }
+            let mut windowEnd: Value = self.sum(&[since, windowDuration]);
+            end = (if (end == Value::Null) { windowEnd.clone() } else { crate::runtime::Math::min(&end, &windowEnd) });
+        }
+        if (end != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end".into(), end); }
+        }
+        return Value::from(vec![request, params]);
+
+    Value::Null
+}
+
     pub fn parse_open_interest(&self, mut interest: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
@@ -11254,6 +11345,15 @@ impl OkxCore {
         //        "1648221300000",  // timestamp
         //        "2183354317.945",  // open interest (USD) - (coin) for options
         //        "74285877.617",  // volume (USD) - (coin) for options
+        //    ]
+        //
+        // fetchOpenInterestHistory for a swap or future market
+        //
+        //    [
+        //        "1790550000000",  // timestamp
+        //        "2800476.45",  // open interest (contracts)
+        //        "28006.5419",  // open interest (base currency)
+        //        "2360916466.88",  // open interest (USD)
         //    ]
         //
         // fetchOpenInterest
@@ -11277,7 +11377,12 @@ impl OkxCore {
         let mut openInterestValue: Value = Value::Null;
         let mut type_var: Option<String> = self.safe_string_k(self.options.clone(), "defaultType", &[]).as_str().map(str::to_owned);
         if (matches!(&interest, Value::Arr(_))) {
-            if (type_var.as_deref() == Some("option")) {
+            let mut numFields: f64 = ((interest.len() as i64) as f64);
+            if numFields > ((3i64) as f64) {
+                openInterestAmount = self.safe_number(interest.clone(), Value::Int(1), &[]);
+                baseVolume = self.safe_number(interest.clone(), Value::Int(2), &[]);
+                openInterestValue = self.safe_number(interest.clone(), Value::Int(3), &[]);
+            }  else if (type_var.as_deref() == Some("option")) {
                 openInterestAmount = self.safe_number(interest.clone(), Value::Int(1), &[]);
                 baseVolume = self.safe_number(interest.clone(), Value::Int(2), &[]);
             }  else {
@@ -11341,8 +11446,8 @@ impl OkxCore {
             let mut ids: Value = self.currency_ids(&[codes.clone()]);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ccy".into(), join(&ids, &Value::Str(",".into()))); }
         }
-        let __ws_arg_84 = self.extend(request, &[params]);
-        let mut response: Value = self.private_get_asset_currencies(&[__ws_arg_84]).await;
+        let __ws_arg_85 = self.extend(request, &[params]);
+        let mut response: Value = self.private_get_asset_currencies(&[__ws_arg_85]).await;
         //
         //    {
         //        "code": "0",
@@ -11529,8 +11634,8 @@ impl OkxCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
-        let __ws_arg_85 = self.extend(request, &[params]);
-        let mut response: Value = self.public_get_public_delivery_exercise_history(&[__ws_arg_85]).await;
+        let __ws_arg_86 = self.extend(request, &[params]);
+        let mut response: Value = self.public_get_public_delivery_exercise_history(&[__ws_arg_86]).await;
         //
         //     {
         //         "code": "0",
@@ -11605,11 +11710,11 @@ impl OkxCore {
                 let mut __for_first_1014: bool = true;
                 while { if !__for_first_1014 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1014 = false; j.as_f64().unwrap_or(f64::NAN) < ((details.len() as i64) as f64) } {
                 let mut settlement: Value = self.parse_settlement(details.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), market.clone());
-                let __ws_arg_86 = self.iso8601(timestamp.clone());
+                let __ws_arg_87 = self.iso8601(timestamp.clone());
                 append_to_array(&mut result, self.extend(settlement, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("timestamp".to_string(), timestamp.clone());
-                        m.insert("datetime".to_string(), __ws_arg_86);
+                        m.insert("datetime".to_string(), __ws_arg_87);
                     m
                 })]));
             }
@@ -11651,8 +11756,8 @@ impl OkxCore {
                 m.insert("instType".to_string(), self.convert_to_instrument_type(marketType));
             m
         });
-        let __ws_arg_87 = self.extend(request, &[params]);
-        let mut response: Value = self.public_get_public_underlying(&[__ws_arg_87]).await;
+        let __ws_arg_88 = self.extend(request, &[params]);
+        let mut response: Value = self.public_get_public_underlying(&[__ws_arg_88]).await;
         //
         //     {
         //         "code": "0",
@@ -11698,8 +11803,8 @@ impl OkxCore {
                 m.insert("expTime".to_string(), self.safe_string(optionParts, Value::Int(2), &[]));
             m
         });
-        let __ws_arg_88 = self.extend(request, &[params]);
-        let mut response: Value = self.public_get_public_opt_summary(&[__ws_arg_88]).await;
+        let __ws_arg_89 = self.extend(request, &[params]);
+        let mut response: Value = self.public_get_public_opt_summary(&[__ws_arg_89]).await;
         //
         //     {
         //         "code": "0",
@@ -11800,8 +11905,8 @@ impl OkxCore {
             }
         }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("uly".into()), Value::Str("instFamily".into())]), &[]);
-        let __ws_arg_89 = self.extend(request, &[params]);
-        let mut response: Value = self.public_get_public_opt_summary(&[__ws_arg_89]).await;
+        let __ws_arg_90 = self.extend(request, &[params]);
+        let mut response: Value = self.public_get_public_opt_summary(&[__ws_arg_90]).await;
         //
         //     {
         //         "code": "0",
@@ -11945,8 +12050,8 @@ impl OkxCore {
             let mut currency: Value = self.currency(code);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ccy".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
-        let __ws_arg_90 = self.extend(request, &[params]);
-        let mut response: Value = self.private_post_trade_close_position(&[__ws_arg_90]).await;
+        let __ws_arg_91 = self.extend(request, &[params]);
+        let mut response: Value = self.private_post_trade_close_position(&[__ws_arg_91]).await;
         //
         //    {
         //        "code": "1",
@@ -11994,8 +12099,8 @@ impl OkxCore {
                 m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_91 = self.extend(request, &[params]);
-        let mut response: Value = self.public_get_market_ticker(&[__ws_arg_91]).await;
+        let __ws_arg_92 = self.extend(request, &[params]);
+        let mut response: Value = self.public_get_market_ticker(&[__ws_arg_92]).await;
         //
         //     {
         //         "code": "0",
@@ -12057,8 +12162,8 @@ impl OkxCore {
                 m.insert("instType".to_string(), Value::Str("OPTION".into()));
             m
         });
-        let __ws_arg_92 = self.extend(request, &[params]);
-        let mut response: Value = self.public_get_market_tickers(&[__ws_arg_92]).await;
+        let __ws_arg_93 = self.extend(request, &[params]);
+        let mut response: Value = self.public_get_market_tickers(&[__ws_arg_93]).await;
         //
         //     {
         //         "code": "0",
@@ -12171,8 +12276,8 @@ impl OkxCore {
                 m.insert("side".to_string(), Value::Str("sell".into()));
             m
         });
-        let __ws_arg_93 = self.extend(request, &[params]);
-        let mut response: Value = self.private_post_asset_convert_estimate_quote(&[__ws_arg_93]).await;
+        let __ws_arg_94 = self.extend(request, &[params]);
+        let mut response: Value = self.private_post_asset_convert_estimate_quote(&[__ws_arg_94]).await;
         //
         //     {
         //         "code": "0",
@@ -12241,8 +12346,8 @@ impl OkxCore {
                 m.insert("side".to_string(), Value::Str("sell".into()));
             m
         });
-        let __ws_arg_94 = self.extend(request, &[params]);
-        let mut response: Value = self.private_post_asset_convert_trade(&[__ws_arg_94]).await;
+        let __ws_arg_95 = self.extend(request, &[params]);
+        let mut response: Value = self.private_post_asset_convert_trade(&[__ws_arg_95]).await;
         //
         //     {
         //         "code": "0",
@@ -12303,8 +12408,8 @@ impl OkxCore {
                 m.insert("clTReqId".to_string(), id);
             m
         });
-        let __ws_arg_95 = self.extend(request, &[params]);
-        let mut response: Value = self.private_get_asset_convert_history(&[__ws_arg_95]).await;
+        let __ws_arg_96 = self.extend(request, &[params]);
+        let mut response: Value = self.private_get_asset_convert_history(&[__ws_arg_96]).await;
         //
         //     {
         //         "code": "0",
@@ -12380,8 +12485,8 @@ impl OkxCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
-        let __ws_arg_96 = self.extend(request, &[params]);
-        let mut response: Value = self.private_get_asset_convert_history(&[__ws_arg_96]).await;
+        let __ws_arg_97 = self.extend(request, &[params]);
+        let mut response: Value = self.private_get_asset_convert_history(&[__ws_arg_97]).await;
         //
         //     {
         //         "code": "0",
@@ -12684,11 +12789,11 @@ impl OkxCore {
         let mut oneWeekAgo: Value = (match (&(now), &(Value::Int(604800000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         let mut threeMonthsAgo: Value = (match (&(now), &(Value::Int(7776000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         if (since == Value::Null) || (since.as_f64().unwrap_or(f64::NAN) > oneWeekAgo.as_f64().unwrap_or(f64::NAN)) {
-            let __ws_arg_97 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_get_account_bills(&[__ws_arg_97]).await;
+            let __ws_arg_98 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_account_bills(&[__ws_arg_98]).await;
         }  else if since.as_f64().unwrap_or(f64::NAN) > threeMonthsAgo.as_f64().unwrap_or(f64::NAN) {
-            let __ws_arg_98 = self.extend(request, &[params]);
-            response = self.private_get_account_bills_archive(&[__ws_arg_98]).await;
+            let __ws_arg_99 = self.extend(request, &[params]);
+            response = self.private_get_account_bills_archive(&[__ws_arg_99]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months".into()))));
         }
@@ -12795,8 +12900,8 @@ impl OkxCore {
         if (instType != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instType".into(), instType); }
         }
-        let __ws_arg_99 = self.extend(request, &[params.clone()]);
-        let mut response: Value = self.private_get_account_positions_history(&[__ws_arg_99]).await;
+        let __ws_arg_100 = self.extend(request, &[params.clone()]);
+        let mut response: Value = self.private_get_account_positions_history(&[__ws_arg_100]).await;
         //
         //    {
         //        code: '0',
@@ -12871,22 +12976,14 @@ impl OkxCore {
                 m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut until: Value = self.safe_string2(params.clone(), Value::Str("until".into()), Value::Str("end".into()), &[]);
-        params = self.omit(params.clone(), Value::Str("until".into()), &[]);
-        if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end".into(), until); }
-        }
+        let mut period: Value = Value::Str("5m".into()); // the default period of the endpoint
         if (timeframe != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("period".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()])); }
+            period = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("period".into(), period.clone()); }
         }
-        if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("begin".into(), since); }
-        }
-        if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit); }
-        }
-        let __ws_arg_100 = self.extend(request, &[params]);
-        let mut response: Value = self.public_get_rubik_stat_contracts_long_short_account_ratio_contract(&[__ws_arg_100]).await;
+        { let __destr_tmp = self.handle_trading_statistics_window(request.clone(), period, &[since.clone(), limit.clone(), params.clone()]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let __ws_arg_101 = self.extend(request, &[params]);
+        let mut response: Value = self.public_get_rubik_stat_contracts_long_short_account_ratio_contract(&[__ws_arg_101]).await;
         //
         //     {
         //         "code": "0",
@@ -12913,7 +13010,7 @@ impl OkxCore {
             }));
         }
         }
-        return self.parse_long_short_ratio_history(result, &[market]);
+        return self.parse_long_short_ratio_history(result, &[market, since, limit]);
 
     Value::Null
 }

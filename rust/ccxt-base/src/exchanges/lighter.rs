@@ -1481,7 +1481,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             // group order
             add_element_to_object(get_value_mut(&mut orders, &Value::Int(0)), &Value::Str("client_order_index".into()), Value::Int(0)); // client order index should be 0
             let mut triggerOrderSide: Value = Value::Str("".into());
-            if (side.as_str() == Some("BUY")) {
+            if (orderSide.as_str() == Some("BUY")) {
                 triggerOrderSide = Value::Str("sell".into());
             }  else {
                 triggerOrderSide = Value::Str("buy".into());

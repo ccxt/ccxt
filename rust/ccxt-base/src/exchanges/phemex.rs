@@ -3626,6 +3626,10 @@ impl PhemexCore {
         let mut amount: Value = self.safe_number2(order.clone(), Value::Str("orderQty".into()), Value::Str("orderQtyRq".into()), &[]);
         let mut filled: Value = self.safe_number2(order.clone(), Value::Str("cumQty".into()), Value::Str("cumQtyRq".into()), &[]);
         let mut remaining: Value = self.safe_number2(order.clone(), Value::Str("leavesQty".into()), Value::Str("leavesQtyRq".into()), &[]);
+        if (self.safe_string_k(order.clone(), "ordStatus", &[]).as_str() == Some("Untriggered")) {
+            // an untriggered order cannot fill, so leaves reads zero while the whole amount is outstanding
+            remaining = Value::Null;
+        }
         let mut timestamp: Value = self.safe_integer_product_k(order.clone(), "actionTimeNs", Value::Float(0.000001), &[]);
         if (timestamp == Value::Null) {
             timestamp = self.safe_integer_k(order.clone(), "createdAt", &[]);

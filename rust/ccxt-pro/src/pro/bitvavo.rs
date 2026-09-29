@@ -2694,7 +2694,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             client.reject(&[e, messageHash.clone()]);
         }
         if !rejected {
-            client.reject(&[message.clone(), messageHash]);
+            let mut feedback = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
+            client.reject(&[feedback, messageHash]);
             return Value::Bool(true);
         }
         return Value::Null;

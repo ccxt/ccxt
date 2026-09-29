@@ -3760,8 +3760,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subscriptionId: Option<i64> = self.safe_integer_k(result, "subscriptionId", &[]).as_i64();
         if (subscriptionId.is_none()) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &accountType);
-            client.reject(&[message.clone(), accountType]);
-            client.reject(&[message.clone(), messageHash.clone()]);
+            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" user data stream subscribe failed ".into())).into()), json_stringify(&message))));
+            client.reject(&[Value::from(error.clone()), accountType]);
+            client.reject(&[Value::from(error), messageHash.clone()]);
             return;
         }
         client.resolve(&[message.clone(), messageHash.clone()]);
@@ -7127,12 +7128,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         if !rejected {
-            client.reject(&[message.clone(), id.clone()]);
+            let mut feedback = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
+            client.reject(&[feedback, id.clone()]);
         }
         // reset connection if 5xx error
         let mut codeString: Value = self.safe_string_k(error.clone(), "code", &[]);
         if (codeString != Value::Null) && (get_value(&codeString, &Value::Int(0)).as_str() == Some("5")) {
-            client.reset(message.clone());
+            let mut resetError = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
+            client.reset(resetError);
         }
 }
 
@@ -7149,7 +7152,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut accountType: Value = self.get_account_type_from_subscriptions(subscriptionsKeys).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         if (event.as_deref() == Some("eventStreamTerminated")) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &accountType);
-            client.reject(&[message.clone(), accountType]);
+            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" user data event stream terminated ".into())).into()), json_stringify(&message))));
+            client.reject(&[Value::from(error.clone()), accountType]);
         }
 }
 
