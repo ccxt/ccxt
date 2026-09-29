@@ -50,9 +50,7 @@
                     10,
                     "0x34625d5f0b6575503a0669994dea24271bfbd443",
                     {
-                      "tag": {
-                        "network": "ERC20"
-                      }
+                      "network": "ERC20"
                     }
                   ],
                 "output": "{\"address\":\"0x34625d5f0b6575503a0669994dea24271bfbd443\",\"amount\":10,\"network\":\"ETH\",\"token\":\"USDT\"}"

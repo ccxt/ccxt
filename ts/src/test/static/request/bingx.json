@@ -161,9 +161,7 @@
                     2.31157,
                     "eWA8obxPaabuRhNjc2LHVeZ8PpNx3juFe8LKQVzX4QJ",
                     {
-                      "tag": {
-                        "network": "SOL"
-                      }
+                      "network": "SOL"
                     }
                   ],
                 "output": null

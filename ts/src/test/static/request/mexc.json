@@ -929,10 +929,8 @@
                     0.1,
                     "to_someone@gmail.com",
                     {
-                      "tag": {
-                        "internal": true,
-                        "toAccountType": "EMAIL"
-                      }
+                      "internal": true,
+                      "toAccountType": "EMAIL"
                     }
                   ],
                 "output": null
@@ -946,9 +944,7 @@
                   5,
                   "THb2SXyLLBn81JWPNhTbGBEoXHtDX62eU7",
                   {
-                    "tag": {
-                      "network": "TRC20"
-                    }
+                    "network": "TRC20"
                   }
                 ]
               }
