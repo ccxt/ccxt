@@ -1803,6 +1803,19 @@
                 ]
             },
             {
+                "description": "linear fetchOrders without symbol",
+                "method": "fetchOrders",
+                "url": "https://demo-fapi.binance.com/fapi/v1/allOrders?timestamp=1790667864095&recvWindow=10000&signature=29a7e22377fa08cb134effa08e434b71b2f2a2319c1d8e89de53014b6d13d28e",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ]
+            },
+            {
                 "description": "stock fetchOrders",
                 "method": "fetchOrders",
                 "url": "https://api.binance.com/sapi/v1/equity/order/history?timestamp=1785925976373&symbol=AAPL&endTime=1785925976372&startTime=1785321176372&recvWindow=10000&signature=8cfe001e2184b35eac4f7ad9972a73caa718dccf45617dba3a041efe007c5aad",

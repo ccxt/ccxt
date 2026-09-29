@@ -7743,8 +7743,6 @@ export default class binance extends Exchange {
             market = this.market (symbol);
             stock = this.safeBool (market, 'stock', false);
             request['symbol'] = market['id'];
-        } else if (!stock) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params, 'spot');
@@ -7758,6 +7756,13 @@ export default class binance extends Exchange {
         const isOptionType = type === 'option';
         const isLinearType = this.isLinear (type, subType);
         const isInverseType = this.isInverse (type, subType);
+        if (symbol === undefined) {
+            // the linear allOrders endpoint accepts requests without a symbol since 2026-08-25 and also returns the inverse orders then
+            const canOmitSymbol = (stock === true) || (isLinearType && (isConditional !== true) && (isPortfolioMargin !== true));
+            if (!canOmitSymbol) {
+                throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+            }
+        }
         let until = this.safeIntegerN (params, [ 'until', 'till', 'endTime' ]);
         params = this.omit (params, [ 'stop', 'trigger', 'conditional', 'until', 'till', 'endTime' ]);
         if (since !== undefined) {
