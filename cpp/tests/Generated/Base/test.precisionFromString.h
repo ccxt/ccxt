@@ -53,6 +53,26 @@ void testPrecisionFromString() {
   assertTrue(isEqual(exchange.precisionFromString(std::string("1.0")), 0));
   // Test 20: Mixed precision
   assertTrue(isEqual(exchange.precisionFromString(std::string("0.12345")), 5));
+  // The mantissa's sign and digits must not become part of the exponent.
+  assertTrue(isEqual(exchange.precisionFromString(std::string("-1e-4")), 4));
+  assertTrue(isEqual(exchange.precisionFromString(std::string("-1E-05")), 5));
+  assertTrue(isEqual(exchange.precisionFromString(std::string("-2.5e-6")), 6));
+  assertTrue(isEqual(exchange.precisionFromString(std::string("-1e4")), -4));
+  assertTrue(isEqual(exchange.precisionFromString(std::string("-1e+4")), -4));
+  assertTrue(isEqual(exchange.precisionFromString(std::string("+1e-4")), 4));
+  assertTrue(isEqual(exchange.precisionFromString(std::string("+1E+04")), -4));
+  assertTrue(isEqual(exchange.precisionFromString(std::string("12.34e-5")), 5));
+  assertTrue(
+      isEqual(exchange.precisionFromString(std::string("-12.34e-5")), 5));
+  assertTrue(
+      isEqual(exchange.precisionFromString(std::string("+12.34E+04")), -4));
+  assertTrue(isEqual(exchange.precisionFromString(std::string("-.5E-04")), 4));
+  assertTrue(isEqual(exchange.precisionFromString(std::string("-1e0")), 0));
+  assertTrue(isEqual(exchange.precisionFromString(std::string("-0.00100")), 3));
+  // Zero exponents must also return zero in the typed language ports.
+  assertTrue(isEqual(exchange.precisionFromString(std::string("1e0")), 0));
+  assertTrue(isEqual(exchange.precisionFromString(std::string("1E+00")), 0));
+  assertTrue(isEqual(exchange.precisionFromString(std::string("1e-0")), 0));
   // Test 21: Negative mantissa with negative exponent
   assertTrue(isEqual(exchange.precisionFromString(std::string("-8e-8")), 8));
   // Test 22: Negative mantissa uppercase E with zero-padded exponent

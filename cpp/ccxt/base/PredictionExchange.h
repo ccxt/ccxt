@@ -582,7 +582,9 @@ public:
     if (isTrue(!isEqual(outcomeObj, ccxt::any{}))) {
       return outcomeObj;
     }
-    return ccxt::dict{
+    // stub for an unknown handle; it only carries the identity keys, not the
+    // market fields
+    ccxt::any outcomeObjValue = ccxt::dict{
         {std::string("outcome"), outcomeIdOrSymbol},
         {std::string("outcomeId"), outcomeIdOrSymbol},
         {std::string("market"), ccxt::any{}},
@@ -590,12 +592,14 @@ public:
         {std::string("event"), ccxt::any{}},
         {std::string("info"), ccxt::dict{}},
     };
+    return outcomeObjValue;
   }
 
   virtual ccxt::any safeOutcomeSymbol(ccxt::any outcomeIdOrSymbol,
                                       ccxt::any outcomeObj = ccxt::any{}) {
-    outcomeObj = this->safeOutcome(outcomeIdOrSymbol, outcomeObj);
-    return ::getValue(outcomeObj, std::string("outcome"));
+    ccxt::any outcomeObjValue =
+        this->safeOutcome(outcomeIdOrSymbol, outcomeObj);
+    return ::getValue(outcomeObjValue, std::string("outcome"));
   }
 
   virtual ccxt::any shortenSlug(ccxt::any slug) {
@@ -715,10 +719,10 @@ public:
     // spaces or currency symbols ("JD Vance", a dollar-sign price) yield clean
     // handles (JD_VANCE, 120) instead of leaking raw text into the outcome
     // handle
-    if (isTrue(isEqual(outcome, ccxt::any{}))) {
-      outcome = std::string("");
-    }
-    ccxt::any upper = toUpperCase(outcome);
+    ccxt::any outcomeValue =
+        (isTrue((isEqual(outcome, ccxt::any{}))) ? ccxt::any(std::string(""))
+                                                 : ccxt::any(outcome));
+    ccxt::any upper = toUpperCase(outcomeValue);
     ccxt::any allowed = std::string("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
     ccxt::any chars = this->stringToCharsArray(upper);
     ccxt::any label = std::string("");
@@ -2241,25 +2245,26 @@ public:
     // PredictionOrderBook structure.
     ccxt::any fallback = this->safeString2(orderbook, std::string("outcome"),
                                            std::string("symbol"));
-    ::setValue(orderbook, std::string("outcome"),
-               (isTrue((isEqual(outcomeObj, ccxt::any{})))
-                    ? ccxt::any(fallback)
-                    : ccxt::any(this->safeString(
-                          outcomeObj, std::string("outcome"), fallback))));
-    ::setValue(
-        orderbook, std::string("outcomeId"),
-        (isTrue((isEqual(outcomeObj, ccxt::any{})))
-             ? ccxt::any(this->safeString(orderbook, std::string("outcomeId")))
-             : ccxt::any(
-                   this->safeString(outcomeObj, std::string("outcomeId")))));
-    ::setValue(
-        orderbook, std::string("market"),
-        (isTrue((isEqual(outcomeObj, ccxt::any{})))
-             ? ccxt::any(this->safeString(orderbook, std::string("market")))
-             : ccxt::any(this->safeString(outcomeObj, std::string("market")))));
+    ccxt::any identity = ccxt::dict{
+        {std::string("outcome"),
+         (isTrue((isEqual(outcomeObj, ccxt::any{})))
+              ? ccxt::any(fallback)
+              : ccxt::any(this->safeString(outcomeObj, std::string("outcome"),
+                                           fallback)))},
+        {std::string("outcomeId"),
+         (isTrue((isEqual(outcomeObj, ccxt::any{})))
+              ? ccxt::any(this->safeString(orderbook, std::string("outcomeId")))
+              : ccxt::any(
+                    this->safeString(outcomeObj, std::string("outcomeId"))))},
+        {std::string("market"),
+         (isTrue((isEqual(outcomeObj, ccxt::any{})))
+              ? ccxt::any(this->safeString(orderbook, std::string("market")))
+              : ccxt::any(
+                    this->safeString(outcomeObj, std::string("market"))))},
+    };
     // omit (not delete) — `del dict['symbol']` raises KeyError in python/php
     // when absent
-    return this->omit(orderbook, std::string("symbol"));
+    return this->extend(this->omit(orderbook, std::string("symbol")), identity);
   }
 
   virtual ccxt::any parsePredictionTicker(ccxt::any ticker,
@@ -2551,7 +2556,7 @@ public:
     }
     ccxt::any h = this->remove0xPrefix(hexValue);
     ccxt::any start = 0;
-    ccxt::any total = getArrayLength(h);
+    ccxt::any total = getStringLength(h);
     while (
         isTrue((isLessThan(start, total))) &&
         isTrue((isEqual(slice(h, start, add(start, 1)), std::string("0"))))) {
@@ -3435,7 +3440,7 @@ public:
 
   // typed facade over fetchOrderBook
   PredictionOrderBook
-  FetchOrderBook(const std::optional<std::string> &outcome,
+  FetchOrderBook(const std::string &outcome,
                  std::optional<int64_t> limit = std::nullopt,
                  const dict &params = dict{}) {
     return PredictionOrderBook(awaitValue(ccxt::any(this->fetchOrderBook(

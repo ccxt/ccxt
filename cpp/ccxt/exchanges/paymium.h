@@ -475,12 +475,12 @@ public:
     ccxt::any timestamp =
         this->safeTimestamp(trade, std::string("created_at_int"));
     ccxt::any id = this->safeString(trade, std::string("uuid"));
-    market = this->safeMarket(ccxt::any{}, market);
+    ccxt::any marketResolved = this->safeMarket(ccxt::any{}, market);
     ccxt::any side = this->safeString(trade, std::string("side"));
     ccxt::any price = this->safeString(trade, std::string("price"));
     ccxt::any amountField =
         add(std::string("traded_"),
-            toLowerCase(::getValue(market, std::string("base"))));
+            toLowerCase(::getValue(marketResolved, std::string("base"))));
     ccxt::any amount = this->safeString(trade, amountField);
     return this->safeTrade(
         ccxt::dict{
@@ -489,7 +489,8 @@ public:
             {std::string("order"), ccxt::any{}},
             {std::string("timestamp"), timestamp},
             {std::string("datetime"), this->iso8601(timestamp)},
-            {std::string("symbol"), ::getValue(market, std::string("symbol"))},
+            {std::string("symbol"),
+             ::getValue(marketResolved, std::string("symbol"))},
             {std::string("type"), ccxt::any{}},
             {std::string("side"), side},
             {std::string("takerOrMaker"), ccxt::any{}},
@@ -498,7 +499,7 @@ public:
             {std::string("cost"), ccxt::any{}},
             {std::string("fee"), ccxt::any{}},
         },
-        market);
+        marketResolved);
   }
 
   /**
@@ -916,18 +917,28 @@ public:
     return this->safeString(statuses, status, status);
   }
 
+  ccxt::any nonce() override {
+    // the venue accepts any strictly-increasing integer, so use milliseconds:
+    // with the second-resolution base nonce a burst of N calls would leave
+    // incrementingNonce N seconds ahead of the clock
+    return this->milliseconds();
+  }
+
   ccxt::any sign(ccxt::any path, ccxt::any api = std::string("public"),
                  ccxt::any method = std::string("GET"),
                  ccxt::any params = ccxt::dict{},
                  ccxt::any headers = ccxt::any{},
                  ccxt::any body = ccxt::any{}) override {
-    ccxt::any url =
-        add(add(add(add(::getValue(::getValue(this->urls, std::string("api")),
-                                   std::string("rest")),
-                        std::string("/")),
-                    this->version),
-                std::string("/")),
-            this->implodeParams(path, params));
+    ccxt::any baseApiUrl = this->safeString(
+        ::getValue(this->urls, std::string("api")), std::string("rest"));
+    if (isTrue(isEqual(baseApiUrl, ccxt::any{}))) {
+      throw ExchangeError(toString(add(
+          this->id, std::string(" sign() has no API URL for this endpoint"))));
+    }
+    ccxt::any baseUrl = baseApiUrl;
+    ccxt::any url = add(add(add(add(baseUrl, std::string("/")), this->version),
+                            std::string("/")),
+                        this->implodeParams(path, params));
     ccxt::any query = this->omit(params, this->extractParams(path));
     if (isTrue(isEqual(api, std::string("public")))) {
       if (isTrue(isGreaterThan(getArrayLength(getObjectKeys(query)), 0))) {
@@ -935,29 +946,42 @@ public:
       }
     } else {
       this->checkRequiredCredentials();
-      ccxt::any nonce = toString(this->nonce());
+      // paymium requires an increasing nonce
+      ccxt::any nonce = toString(this->incrementingNonce());
       ccxt::any auth = add(nonce, url);
-      headers = ccxt::dict{
+      ccxt::any signedHeaders = ccxt::dict{
           {std::string("Api-Key"), this->apiKey},
           {std::string("Api-Nonce"), nonce},
       };
+      ccxt::any hasQuery =
+          isGreaterThan(getArrayLength(getObjectKeys(query)), 0);
+      ccxt::any signedBody = body;
+      if (isTrue(isTrue(isEqual(method, std::string("POST"))) &&
+                 isTrue(hasQuery))) {
+        signedBody = this->json(query);
+      }
       if (isTrue(isEqual(method, std::string("POST")))) {
-        if (isTrue(isGreaterThan(getArrayLength(getObjectKeys(query)), 0))) {
-          body = this->json(query);
-          auth = add(auth, body);
-          ::setValue(headers, std::string("Content-Type"),
+        if (isTrue(hasQuery)) {
+          auth = add(auth, signedBody);
+          ::setValue(signedHeaders, std::string("Content-Type"),
                      std::string("application/json"));
         }
       } else {
-        if (isTrue(isGreaterThan(getArrayLength(getObjectKeys(query)), 0))) {
+        if (isTrue(hasQuery)) {
           ccxt::any queryString = this->urlencode(query);
           auth = add(auth, queryString);
           url = add(url, add(std::string("?"), queryString));
         }
       }
       ::setValue(
-          headers, std::string("Api-Signature"),
+          signedHeaders, std::string("Api-Signature"),
           this->hmac(this->encode(auth), this->encode(this->secret), sha256));
+      return ccxt::dict{
+          {std::string("url"), url},
+          {std::string("method"), method},
+          {std::string("body"), signedBody},
+          {std::string("headers"), signedHeaders},
+      };
     }
     return ccxt::dict{
         {std::string("url"), url},
@@ -1123,6 +1147,10 @@ public:
       if (true)
         return this->parseTransferStatus(::getValue(args, 0));
     }
+    if (which == "nonce") {
+      if (true)
+        return this->nonce();
+    }
     if (which == "sign") {
       if (count <= 1)
         return this->sign(::getValue(args, 0));
@@ -1178,6 +1206,18 @@ public:
     if (which == "handleDelta") {
       if (true) {
         this->handleDelta(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDeltas") {
+      if (true) {
+        this->handleBookDeltas(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDelta") {
+      if (true) {
+        this->handleBookDelta(::getValue(args, 0), ::getValue(args, 1));
         return ccxt::any{};
       }
     }

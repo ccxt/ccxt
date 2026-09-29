@@ -41,9 +41,13 @@ virtual ccxt::any safeList(ccxt::any dictionaryOrList, ccxt::any key,
 
 virtual void storeByKey(ccxt::any dict, ccxt::any key, ccxt::any value);
 
-virtual void handleDeltas(ccxt::any orderbook, ccxt::any deltas);
+virtual void handleDeltas(ccxt::any bookside, ccxt::any deltas);
 
 virtual void handleDelta(ccxt::any bookside, ccxt::any delta);
+
+virtual void handleBookDeltas(ccxt::any orderbook, ccxt::any deltas);
+
+virtual void handleBookDelta(ccxt::any orderbook, ccxt::any delta);
 
 virtual void handleDeltasWithKeys(ccxt::any bookSide, ccxt::any deltas,
                                   ccxt::any priceKey = 0,
@@ -384,7 +388,8 @@ fetchMarginMode(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
                               false)))) {
                  ccxt::any marginModes = awaitValue(
                      this->fetchMarginModes(ccxt::list{symbol}, params));
-                 return this->safeDict(marginModes, symbol);
+                 ccxt::any marginMode = this->safeDict(marginModes, symbol);
+                 return marginMode;
                } else {
                  throw NotSupported(toString(add(
                      this->id,
@@ -692,7 +697,8 @@ fetchLeverage(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
                            false)))) {
                  ccxt::any leverages = awaitValue(
                      this->fetchLeverages(ccxt::list{symbol}, params));
-                 return this->safeDict(leverages, symbol);
+                 ccxt::any leverage = this->safeDict(leverages, symbol);
+                 return leverage;
                } else {
                  throw NotSupported(toString(add(
                      this->id,
@@ -1234,8 +1240,8 @@ fetchWebEndpoint(ccxt::any method, ccxt::any endpointMethod,
                          options, std::string("webApiEnable"), true))) {
                    return ccxt::any{};
                  }
-                 ccxt::any maxRetries =
-                     this->safeValue(options, std::string("webApiRetries"), 10);
+                 ccxt::any maxRetries = this->safeInteger(
+                     options, std::string("webApiRetries"), 10);
                  ccxt::any response = ccxt::any{};
                  ccxt::any retry = 0;
                  ccxt::any shouldBreak = false;
@@ -1575,95 +1581,117 @@ fetch2(ccxt::any path, ccxt::any api = std::string("public"),
        ccxt::any method = std::string("GET"), ccxt::any params = ccxt::dict{},
        ccxt::any headers = ccxt::any{}, ccxt::any body = ccxt::any{},
        ccxt::any config = ccxt::dict{}) {
-  return std::async(
-             std::launch::deferred,
-             [=]() mutable -> ccxt::any {
-               if (isTrue(this->enableRateLimit)) {
-                 ccxt::any cost = this->calculateRateLimiterCost(
-                     api, method, path, params, config);
-                 awaitValue(this->throttle(cost));
-               }
-               ccxt::any retries = 0;
-               ccxt::any retriesparamsVariable = this->handleOptionAndParams(
-                   params, path, std::string("maxRetriesOnFailure"), retries);
-               retries = ::getValue(retriesparamsVariable, 0);
-               params = ::getValue(retriesparamsVariable, 1);
-               ccxt::any retryDelay = 0;
-               ccxt::any retryDelayparamsVariable = this->handleOptionAndParams(
-                   params, path, std::string("maxRetriesOnFailureDelay"),
-                   retryDelay);
-               retryDelay = ::getValue(retryDelayparamsVariable, 0);
-               params = ::getValue(retryDelayparamsVariable, 1);
-               ccxt::any fetchDataCacheEnabled =
-                   isGreaterThan(this->fetchHistoryCacheSize, 0);
-               for (ccxt::any i = 0; isLessThan(i, add(retries, 1));
-                    postFixIncrement(i)) {
-                 ccxt::any fetchData = ccxt::any{};
-                 if (isTrue(fetchDataCacheEnabled)) {
-                   fetchData = ccxt::dict{
-                       {std::string("request"), ccxt::any{}},
-                       {std::string("response"),
-                        ccxt::dict{
-                            {std::string("body"), ccxt::any{}},
-                        }},
-                       {std::string("error"), ccxt::any{}},
-                   };
-                 }
-                 try {
-                   this->setLastRestRequestTimestamp();
-                   ccxt::any request =
-                       this->sign(path, api, method, params, headers, body);
-                   if (isTrue(!isEqual(fetchData, ccxt::any{}))) {
-                     ::setValue(fetchData, std::string("request"), request);
-                   }
-                   this->setLastRequest(request);
-                   ccxt::any response = awaitValue(
-                       this->fetch(::getValue(request, std::string("url")),
-                                   ::getValue(request, std::string("method")),
-                                   ::getValue(request, std::string("headers")),
-                                   ::getValue(request, std::string("body"))));
-                   if (isTrue(!isEqual(fetchData, ccxt::any{}))) {
-                     ::setValue(::getValue(fetchData, std::string("response")),
-                                std::string("body"), response);
-                     this->addFetchCache(fetchData);
-                   }
-                   return response;
-                 } catch (const std::exception &e) {
-                   if (isTrue(!isEqual(fetchData, ccxt::any{}))) {
-                     ::setValue(fetchData, std::string("error"), e);
-                     this->addFetchCache(fetchData);
-                   }
-                   if (isTrue(isInstanceOf<OperationFailed>(e))) {
-                     if (isTrue(isLessThan(i, retries))) {
-                       if (isTrue(this->verbose)) {
-                         ccxt::any index = add(i, 1);
-                         this->log(
-                             add(add(add(add(add(add(std::string(
-                                                         "Request failed with "
-                                                         "the error: "),
-                                                     toString(e)),
-                                                 std::string(", retrying ")),
-                                             toString(index)),
-                                         std::string(" of ")),
-                                     toString(retries)),
-                                 std::string("...")));
-                       }
-                       if (isTrue(isTrue((!isEqual(retryDelay, ccxt::any{}))) &&
-                                  isTrue((!isEqual(retryDelay, 0))))) {
-                         awaitValue(this->sleep(retryDelay));
-                       }
-                     } else {
-                       throw;
-                     }
-                   } else {
-                     throw;
-                   }
-                 }
-               }
-               return ccxt::any{}; // this line is never reached, but exists for
-                                   // c# value return requirement
-             })
-      .share();
+  return std::
+      async(std::launch::deferred,
+            [=]() mutable -> ccxt::any {
+              if (isTrue(this->enableRateLimit)) {
+                ccxt::any cost = this->calculateRateLimiterCost(
+                    api, method, path, params, config);
+                awaitValue(this->throttle(cost));
+              }
+              ccxt::any retries = 0;
+              // implicit endpoints may pass a list body as params: keep it an
+              // untyped box
+              ccxt::any requestParams = params;
+              ccxt::any
+                  retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable =
+                      this->handleOptionIntegerAndParams(
+                          requestParams, path,
+                          std::string("maxRetriesOnFailure"), retries);
+              ccxt::any retriesMaxRetriesOnFailure = ::getValue(
+                  retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable,
+                  0);
+              ccxt::any paramsMaxRetriesOnFailure = ::getValue(
+                  retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable,
+                  1);
+              ccxt::any retryDelay = 0;
+              ccxt::any
+                  retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable =
+                      this->handleOptionIntegerAndParams(
+                          paramsMaxRetriesOnFailure, path,
+                          std::string("maxRetriesOnFailureDelay"), retryDelay);
+              ccxt::any retryDelayMaxRetriesOnFailureDelay = ::getValue(
+                  retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable,
+                  0);
+              ccxt::any paramsMaxRetriesOnFailureDelay = ::getValue(
+                  retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable,
+                  1);
+              ccxt::any fetchDataCacheEnabled =
+                  isGreaterThan(this->fetchHistoryCacheSize, 0);
+              for (ccxt::any i = 0;
+                   isLessThan(i, add(retriesMaxRetriesOnFailure, 1));
+                   postFixIncrement(i)) {
+                ccxt::any fetchData = ccxt::any{};
+                if (isTrue(fetchDataCacheEnabled)) {
+                  fetchData = ccxt::dict{
+                      {std::string("request"), ccxt::any{}},
+                      {std::string("response"),
+                       ccxt::dict{
+                           {std::string("body"), ccxt::any{}},
+                       }},
+                      {std::string("error"), ccxt::any{}},
+                  };
+                }
+                try {
+                  this->setLastRestRequestTimestamp();
+                  ccxt::any request =
+                      this->sign(path, api, method,
+                                 paramsMaxRetriesOnFailureDelay, headers, body);
+                  if (isTrue(!isEqual(fetchData, ccxt::any{}))) {
+                    ::setValue(fetchData, std::string("request"), request);
+                  }
+                  this->setLastRequest(request);
+                  ccxt::any response = awaitValue(
+                      this->fetch(::getValue(request, std::string("url")),
+                                  ::getValue(request, std::string("method")),
+                                  ::getValue(request, std::string("headers")),
+                                  ::getValue(request, std::string("body"))));
+                  if (isTrue(!isEqual(fetchData, ccxt::any{}))) {
+                    ::setValue(::getValue(fetchData, std::string("response")),
+                               std::string("body"), response);
+                    this->addFetchCache(fetchData);
+                  }
+                  return response;
+                } catch (const std::exception &e) {
+                  if (isTrue(!isEqual(fetchData, ccxt::any{}))) {
+                    ::setValue(fetchData, std::string("error"), e);
+                    this->addFetchCache(fetchData);
+                  }
+                  if (isTrue(isInstanceOf<OperationFailed>(e))) {
+                    if (isTrue(isLessThan(i, retriesMaxRetriesOnFailure))) {
+                      if (isTrue(this->verbose)) {
+                        ccxt::any index = add(i, 1);
+                        this->log(add(
+                            add(add(add(add(add(std::string("Request failed "
+                                                            "with the error: "),
+                                                toString(e)),
+                                            std::string(", retrying ")),
+                                        toString(index)),
+                                    std::string(" of ")),
+                                toString(retriesMaxRetriesOnFailure)),
+                            std::string("...")));
+                      }
+                      if (isTrue(
+                              isTrue(
+                                  (!isEqual(retryDelayMaxRetriesOnFailureDelay,
+                                            ccxt::any{}))) &&
+                              isTrue((!isEqual(
+                                  retryDelayMaxRetriesOnFailureDelay, 0))))) {
+                        awaitValue(
+                            this->sleep(retryDelayMaxRetriesOnFailureDelay));
+                      }
+                    } else {
+                      throw;
+                    }
+                  } else {
+                    throw;
+                  }
+                }
+              }
+              return ccxt::any{}; // this line is never reached, but exists for
+                                  // c# value return requirement
+            })
+          .share();
 }
 
 virtual std::shared_future<ccxt::any>
@@ -1970,7 +1998,7 @@ fetchCrossBorrowRate(ccxt::any code, ccxt::any params = ccxt::dict{}) {
                }
                ccxt::any borrowRates =
                    awaitValue(this->fetchCrossBorrowRates(params));
-               ccxt::any rate = this->safeValue(borrowRates, code);
+               ccxt::any rate = this->safeDict(borrowRates, code);
                if (isTrue(isEqual(rate, ccxt::any{}))) {
                  throw ExchangeError(toString(add(
                      add(this->id,
@@ -2036,6 +2064,48 @@ virtual ccxt::any handleOptionAndParams2(ccxt::any params,
                                          ccxt::any optionName1,
                                          ccxt::any optionName2,
                                          ccxt::any defaultValue = ccxt::any{});
+
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
+virtual ccxt::any
+handleOptionStringAndParams(ccxt::any params, ccxt::any methodName,
+                            ccxt::any optionName,
+                            ccxt::any defaultValue = ccxt::any{});
+
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
+virtual ccxt::any
+handleOptionStringAndParams2(ccxt::any params, ccxt::any methodName,
+                             ccxt::any optionName1, ccxt::any optionName2,
+                             ccxt::any defaultValue = ccxt::any{});
+
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
+virtual ccxt::any
+handleOptionBoolAndParams(ccxt::any params, ccxt::any methodName,
+                          ccxt::any optionName,
+                          ccxt::any defaultValue = ccxt::any{});
+
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
+virtual ccxt::any
+handleOptionBoolAndParams2(ccxt::any params, ccxt::any methodName,
+                           ccxt::any optionName1, ccxt::any optionName2,
+                           ccxt::any defaultValue = ccxt::any{});
+
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
+virtual ccxt::any
+handleOptionIntegerAndParams(ccxt::any params, ccxt::any methodName,
+                             ccxt::any optionName,
+                             ccxt::any defaultValue = ccxt::any{});
+
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
+virtual ccxt::any
+handleOptionIntegerAndParams2(ccxt::any params, ccxt::any methodName,
+                              ccxt::any optionName1, ccxt::any optionName2,
+                              ccxt::any defaultValue = ccxt::any{});
 
 virtual ccxt::any handleOption(ccxt::any methodName, ccxt::any optionName,
                                ccxt::any defaultValue = ccxt::any{});
@@ -2257,15 +2327,16 @@ fetchPositionADLRank(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
                               false)))) {
                  awaitValue(this->loadMarkets());
                  ccxt::any market = this->market(symbol);
-                 symbol = ::getValue(market, std::string("symbol"));
-                 ccxt::any ranks = awaitValue(
-                     this->fetchPositionsADLRank(ccxt::list{symbol}, params));
+                 ccxt::any symbolResolved =
+                     ::getValue(market, std::string("symbol"));
+                 ccxt::any ranks = awaitValue(this->fetchPositionsADLRank(
+                     ccxt::list{symbolResolved}, params));
                  ccxt::any rank = this->safeDict(ranks, 0);
                  if (isTrue(isEqual(rank, ccxt::any{}))) {
                    throw NullResponse(toString(add(
                        add(this->id, std::string(" fetchPositionsADLRank() "
                                                  "could not find a rank for ")),
-                       symbol)));
+                       symbolResolved)));
                  } else {
                    return rank;
                  }
@@ -2641,9 +2712,10 @@ fetchDepositAddress(ccxt::any code, ccxt::any params = ccxt::dict{}) {
                                      false)))) {
                  ccxt::any network =
                      this->safeString(params, std::string("network"));
-                 params = this->omit(params, std::string("network"));
+                 ccxt::any paramsOmitted =
+                     this->omit(params, std::string("network"));
                  ccxt::any addressStructures = awaitValue(
-                     this->fetchDepositAddressesByNetwork(code, params));
+                     this->fetchDepositAddressesByNetwork(code, paramsOmitted));
                  if (isTrue(!isEqual(network, ccxt::any{}))) {
                    return this->safeDict(addressStructures, network);
                  } else {
@@ -2722,8 +2794,6 @@ virtual ccxt::any currencyToPrecision(ccxt::any code, ccxt::any fee,
 virtual ccxt::any forceString(ccxt::any value);
 
 virtual ccxt::any isTickPrecision();
-
-virtual ccxt::any isDecimalPrecision();
 
 virtual ccxt::any isSignificantPrecision();
 
@@ -2975,22 +3045,23 @@ fetchFundingRate(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
                               false)))) {
                  awaitValue(this->loadMarkets());
                  ccxt::any market = this->market(symbol);
-                 symbol = ::getValue(market, std::string("symbol"));
+                 ccxt::any symbolResolved =
+                     ::getValue(market, std::string("symbol"));
                  if (isTrue(!isEqual(
                          ::getValue(market, std::string("contract")), true))) {
                    throw BadSymbol(toString(
                        add(this->id, std::string(" fetchFundingRate() supports "
                                                  "contract markets only"))));
                  }
-                 ccxt::any rates = awaitValue(
-                     this->fetchFundingRates(ccxt::list{symbol}, params));
-                 ccxt::any rate = this->safeValue(rates, symbol);
+                 ccxt::any rates = awaitValue(this->fetchFundingRates(
+                     ccxt::list{symbolResolved}, params));
+                 ccxt::any rate = this->safeDict(rates, symbolResolved);
                  if (isTrue(isEqual(rate, ccxt::any{}))) {
                    throw NullResponse(toString(add(
                        add(this->id,
                            std::string(
                                " fetchFundingRate () returned no data for ")),
-                       symbol)));
+                       symbolResolved)));
                  } else {
                    return rate;
                  }
@@ -3020,22 +3091,23 @@ fetchFundingInterval(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
                              false)))) {
                 awaitValue(this->loadMarkets());
                 ccxt::any market = this->market(symbol);
-                symbol = ::getValue(market, std::string("symbol"));
+                ccxt::any symbolResolved =
+                    ::getValue(market, std::string("symbol"));
                 if (isTrue(!isEqual(::getValue(market, std::string("contract")),
                                     true))) {
                   throw BadSymbol(toString(add(
                       this->id, std::string(" fetchFundingInterval() supports "
                                             "contract markets only"))));
                 }
-                ccxt::any rates = awaitValue(
-                    this->fetchFundingIntervals(ccxt::list{symbol}, params));
-                ccxt::any rate = this->safeValue(rates, symbol);
+                ccxt::any rates = awaitValue(this->fetchFundingIntervals(
+                    ccxt::list{symbolResolved}, params));
+                ccxt::any rate = this->safeDict(rates, symbolResolved);
                 if (isTrue(isEqual(rate, ccxt::any{}))) {
                   throw NullResponse(toString(add(
                       add(this->id,
                           std::string(
                               " fetchFundingInterval() returned no data for ")),
-                      symbol)));
+                      symbolResolved)));
                 } else {
                   return rate;
                 }
@@ -3280,12 +3352,10 @@ fetchTransactions(ccxt::any code = ccxt::any{}, ccxt::any since = ccxt::any{},
 }
 
 virtual ccxt::any filterByArrayPositions(ccxt::any objects, ccxt::any key,
-                                         ccxt::any values = ccxt::any{},
-                                         ccxt::any indexed = true);
+                                         ccxt::any values = ccxt::any{});
 
 virtual ccxt::any filterByArrayTickers(ccxt::any objects, ccxt::any key,
-                                       ccxt::any values = ccxt::any{},
-                                       ccxt::any indexed = true);
+                                       ccxt::any values = ccxt::any{});
 
 virtual ccxt::any filterByArrayADLRanks(ccxt::any objects, ccxt::any key,
                                         ccxt::any values = ccxt::any{},
@@ -3305,172 +3375,187 @@ fetchPaginatedCallDynamic(ccxt::any method, ccxt::any symbol = ccxt::any{},
                           ccxt::any params = ccxt::dict{},
                           ccxt::any maxEntriesPerRequest = ccxt::any{},
                           ccxt::any removeRepeated = true) {
-  return std::async(
-             std::launch::deferred,
-             [=]() mutable -> ccxt::any {
-               ccxt::any maxCalls = 10;
-               ccxt::any maxCallsparamsVariable = this->handleOptionAndParams(
-                   params, method, std::string("paginationCalls"), maxCalls);
-               maxCalls = ::getValue(maxCallsparamsVariable, 0);
-               params = ::getValue(maxCallsparamsVariable, 1);
-               ccxt::any maxRetries = 3;
-               ccxt::any maxRetriesparamsVariable = this->handleOptionAndParams(
-                   params, method, std::string("maxRetries"), maxRetries);
-               maxRetries = ::getValue(maxRetriesparamsVariable, 0);
-               params = ::getValue(maxRetriesparamsVariable, 1);
-               ccxt::any paginationDirection = ccxt::any{};
-               ccxt::any paginationDirectionparamsVariable =
-                   this->handleOptionAndParams(
-                       params, method, std::string("paginationDirection"),
-                       std::string("backward"));
-               paginationDirection =
-                   ::getValue(paginationDirectionparamsVariable, 0);
-               params = ::getValue(paginationDirectionparamsVariable, 1);
-               ccxt::any paginationTimestamp = ccxt::any{};
-               ccxt::any removeRepeatedOption = removeRepeated;
-               ccxt::any removeRepeatedOptionparamsVariable =
-                   this->handleOptionAndParams(params, method,
-                                               std::string("removeRepeated"),
-                                               removeRepeated);
-               removeRepeatedOption =
-                   ::getValue(removeRepeatedOptionparamsVariable, 0);
-               params = ::getValue(removeRepeatedOptionparamsVariable, 1);
-               ccxt::any calls = 0;
-               ccxt::any result = ccxt::list{};
-               ccxt::any errors = 0;
-               ccxt::any until = this->safeIntegerN(
-                   params,
-                   ccxt::list{
-                       std::string("until"), std::string("untill"),
-                       std::string("till")}); // do not omit it from params here
-               ccxt::any maxEntriesPerRequestparamsVariable =
-                   this->handleMaxEntriesPerRequestAndParams(
-                       method, maxEntriesPerRequest, params);
-               maxEntriesPerRequest =
-                   ::getValue(maxEntriesPerRequestparamsVariable, 0);
-               params = ::getValue(maxEntriesPerRequestparamsVariable, 1);
-               if (isTrue((
-                       isEqual(paginationDirection, std::string("forward"))))) {
-                 if (isTrue(isEqual(since, ccxt::any{}))) {
-                   throw ArgumentsRequired(toString(add(
-                       this->id,
-                       std::string(" pagination requires a since argument when "
-                                   "paginationDirection set to forward"))));
-                 }
-                 paginationTimestamp = since;
-               }
-               while ((isLessThan(calls, maxCalls))) {
-                 calls = add(calls, 1);
-                 try {
-                   if (isTrue(isEqual(paginationDirection,
-                                      std::string("backward")))) {
-                     // do it backwards, starting from the last
-                     // UNTIL filtering is required in order to work
-                     if (isTrue(!isEqual(paginationTimestamp, ccxt::any{}))) {
-                       ::setValue(params, std::string("until"),
-                                  subtract(paginationTimestamp, 1));
-                     }
-                     ccxt::any response = awaitValue(callDynamically(
-                         this, method,
-                         ccxt::list{symbol, ccxt::any{}, maxEntriesPerRequest,
-                                    params}));
-                     ccxt::any responseLength = getArrayLength(response);
-                     if (isTrue(this->verbose)) {
-                       ccxt::any backwardMessage =
-                           add(add(add(add(add(std::string(
-                                                   "Dynamic pagination call "),
-                                               this->numberToString(calls)),
-                                           std::string(" method ")),
-                                       method),
-                                   std::string(" response length ")),
-                               this->numberToString(responseLength));
-                       if (isTrue(!isEqual(paginationTimestamp, ccxt::any{}))) {
-                         backwardMessage = add(
-                             backwardMessage,
-                             add(std::string(" timestamp "),
-                                 this->numberToString(paginationTimestamp)));
-                       }
-                       this->log(backwardMessage);
-                     }
-                     if (isTrue(isEqual(responseLength, 0))) {
-                       break;
-                     }
-                     errors = 0;
-                     result = this->arrayConcat(result, response);
-                     ccxt::any firstElement = this->safeValue(response, 0);
-                     paginationTimestamp = this->safeInteger2(
-                         firstElement, std::string("timestamp"), 0);
-                     if (isTrue(isEqual(paginationTimestamp, ccxt::any{}))) {
-                       break;
-                     }
-                     if (isTrue(isTrue((!isEqual(since, ccxt::any{}))) &&
-                                isTrue((isLessThanOrEqual(paginationTimestamp,
-                                                          since))))) {
-                       break;
-                     }
-                   } else {
-                     // do it forwards, starting from the since
-                     ccxt::any response = awaitValue(callDynamically(
-                         this, method,
-                         ccxt::list{symbol, paginationTimestamp,
-                                    maxEntriesPerRequest, params}));
-                     ccxt::any responseLength = getArrayLength(response);
-                     if (isTrue(this->verbose)) {
-                       ccxt::any forwardMessage =
-                           add(add(add(add(add(std::string(
-                                                   "Dynamic pagination call "),
-                                               this->numberToString(calls)),
-                                           std::string(" method ")),
-                                       method),
-                                   std::string(" response length ")),
-                               this->numberToString(responseLength));
-                       if (isTrue(!isEqual(paginationTimestamp, ccxt::any{}))) {
-                         forwardMessage = add(
-                             forwardMessage,
-                             add(std::string(" timestamp "),
-                                 this->numberToString(paginationTimestamp)));
-                       }
-                       this->log(forwardMessage);
-                     }
-                     if (isTrue(isEqual(responseLength, 0))) {
-                       break;
-                     }
-                     errors = 0;
-                     result = this->arrayConcat(result, response);
-                     ccxt::any last =
-                         this->safeValue(response, subtract(responseLength, 1));
-                     ccxt::any lastTimestamp =
-                         this->safeInteger(last, std::string("timestamp"), 0);
-                     if (isTrue(isEqual(lastTimestamp, ccxt::any{}))) {
-                       break;
-                     }
-                     ccxt::any nextPaginationTimestamp = add(lastTimestamp, 1);
-                     paginationTimestamp = nextPaginationTimestamp;
-                     if (isTrue(isTrue((!isEqual(until, ccxt::any{}))) &&
-                                isTrue((isGreaterThanOrEqual(
-                                    nextPaginationTimestamp, until))))) {
-                       break;
-                     }
-                   }
-                 } catch (const std::exception &e) {
-                   errors = add(errors, 1);
-                   if (isTrue(isGreaterThan(errors, maxRetries))) {
-                     throw;
-                   }
-                 }
-               }
-               ccxt::any uniqueResults = result;
-               if (isTrue(removeRepeatedOption)) {
-                 uniqueResults = this->removeRepeatedElementsFromArray(result);
-               }
-               ccxt::any key =
-                   (isTrue((isEqual(method, std::string("fetchOHLCV"))))
-                        ? ccxt::any(0)
-                        : ccxt::any(std::string("timestamp")));
-               ccxt::any sortedRes = this->sortBy(uniqueResults, key);
-               return this->filterBySinceLimit(sortedRes, since, limit, key);
-             })
-      .share();
+  return std::
+      async(std::launch::deferred,
+            [=]() mutable -> ccxt::any {
+              ccxt::any maxCalls = 10;
+              ccxt::any maxCallsPaginationCallsparamsPaginationCallsVariable =
+                  this->handleOptionIntegerAndParams(
+                      params, method, std::string("paginationCalls"), maxCalls);
+              ccxt::any maxCallsPaginationCalls = ::getValue(
+                  maxCallsPaginationCallsparamsPaginationCallsVariable, 0);
+              ccxt::any paramsPaginationCalls = ::getValue(
+                  maxCallsPaginationCallsparamsPaginationCallsVariable, 1);
+              ccxt::any maxRetries = 3;
+              ccxt::any maxRetriesOptionparamsMaxRetriesVariable =
+                  this->handleOptionIntegerAndParams(
+                      paramsPaginationCalls, method, std::string("maxRetries"),
+                      maxRetries);
+              ccxt::any maxRetriesOption =
+                  ::getValue(maxRetriesOptionparamsMaxRetriesVariable, 0);
+              ccxt::any paramsMaxRetries =
+                  ::getValue(maxRetriesOptionparamsMaxRetriesVariable, 1);
+              ccxt::any paginationDirectionparamsPaginationDirectionVariable =
+                  this->handleOptionAndParams(
+                      paramsMaxRetries, method,
+                      std::string("paginationDirection"),
+                      std::string("backward"));
+              ccxt::any paginationDirection = ::getValue(
+                  paginationDirectionparamsPaginationDirectionVariable, 0);
+              ccxt::any paramsPaginationDirection = ::getValue(
+                  paginationDirectionparamsPaginationDirectionVariable, 1);
+              ccxt::any paginationTimestamp = ccxt::any{};
+              ccxt::any removeRepeatedOptionparamsRemoveRepeatedVariable =
+                  this->handleOptionAndParams(paramsPaginationDirection, method,
+                                              std::string("removeRepeated"),
+                                              removeRepeated);
+              ccxt::any removeRepeatedOption = ::getValue(
+                  removeRepeatedOptionparamsRemoveRepeatedVariable, 0);
+              ccxt::any paramsRemoveRepeated = ::getValue(
+                  removeRepeatedOptionparamsRemoveRepeatedVariable, 1);
+              ccxt::any calls = 0;
+              ccxt::any result = ccxt::list{};
+              ccxt::any errors = 0;
+              ccxt::any until = this->safeIntegerN(
+                  paramsRemoveRepeated,
+                  ccxt::list{
+                      std::string("until"), std::string("untill"),
+                      std::string("till")}); // do not omit it from params here
+              ccxt::any
+                  maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable =
+                      this->handleMaxEntriesPerRequestAndParams(
+                          method, maxEntriesPerRequest, paramsRemoveRepeated);
+              ccxt::any maxEntriesPerRequestOption = ::getValue(
+                  maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable,
+                  0);
+              ccxt::any paramsMaxEntriesPerRequest = ::getValue(
+                  maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable,
+                  1);
+              if (isTrue(
+                      (isEqual(paginationDirection, std::string("forward"))))) {
+                if (isTrue(isEqual(since, ccxt::any{}))) {
+                  throw ArgumentsRequired(toString(add(
+                      this->id,
+                      std::string(" pagination requires a since argument when "
+                                  "paginationDirection set to forward"))));
+                }
+                paginationTimestamp = since;
+              }
+              while ((isLessThan(calls, maxCallsPaginationCalls))) {
+                calls = add(calls, 1);
+                try {
+                  if (isTrue(isEqual(paginationDirection,
+                                     std::string("backward")))) {
+                    // do it backwards, starting from the last
+                    // UNTIL filtering is required in order to work
+                    if (isTrue(!isEqual(paginationTimestamp, ccxt::any{}))) {
+                      ::setValue(paramsMaxEntriesPerRequest,
+                                 std::string("until"),
+                                 subtract(paginationTimestamp, 1));
+                    }
+                    ccxt::any response = awaitValue(callDynamically(
+                        this, method,
+                        ccxt::list{symbol, ccxt::any{},
+                                   maxEntriesPerRequestOption,
+                                   paramsMaxEntriesPerRequest}));
+                    ccxt::any responseLength = getArrayLength(response);
+                    if (isTrue(this->verbose)) {
+                      ccxt::any backwardMessage =
+                          add(add(add(add(add(std::string(
+                                                  "Dynamic pagination call "),
+                                              this->numberToString(calls)),
+                                          std::string(" method ")),
+                                      method),
+                                  std::string(" response length ")),
+                              this->numberToString(responseLength));
+                      if (isTrue(!isEqual(paginationTimestamp, ccxt::any{}))) {
+                        backwardMessage =
+                            add(backwardMessage,
+                                add(std::string(" timestamp "),
+                                    this->numberToString(paginationTimestamp)));
+                      }
+                      this->log(backwardMessage);
+                    }
+                    if (isTrue(isEqual(responseLength, 0))) {
+                      break;
+                    }
+                    errors = 0;
+                    result = this->arrayConcat(result, response);
+                    ccxt::any firstElement = this->safeValue(response, 0);
+                    paginationTimestamp = this->safeInteger2(
+                        firstElement, std::string("timestamp"), 0);
+                    if (isTrue(isEqual(paginationTimestamp, ccxt::any{}))) {
+                      break;
+                    }
+                    if (isTrue(isTrue((!isEqual(since, ccxt::any{}))) &&
+                               isTrue((isLessThanOrEqual(paginationTimestamp,
+                                                         since))))) {
+                      break;
+                    }
+                  } else {
+                    // do it forwards, starting from the since
+                    ccxt::any response = awaitValue(callDynamically(
+                        this, method,
+                        ccxt::list{symbol, paginationTimestamp,
+                                   maxEntriesPerRequestOption,
+                                   paramsMaxEntriesPerRequest}));
+                    ccxt::any responseLength = getArrayLength(response);
+                    if (isTrue(this->verbose)) {
+                      ccxt::any forwardMessage =
+                          add(add(add(add(add(std::string(
+                                                  "Dynamic pagination call "),
+                                              this->numberToString(calls)),
+                                          std::string(" method ")),
+                                      method),
+                                  std::string(" response length ")),
+                              this->numberToString(responseLength));
+                      if (isTrue(!isEqual(paginationTimestamp, ccxt::any{}))) {
+                        forwardMessage =
+                            add(forwardMessage,
+                                add(std::string(" timestamp "),
+                                    this->numberToString(paginationTimestamp)));
+                      }
+                      this->log(forwardMessage);
+                    }
+                    if (isTrue(isEqual(responseLength, 0))) {
+                      break;
+                    }
+                    errors = 0;
+                    result = this->arrayConcat(result, response);
+                    ccxt::any last =
+                        this->safeValue(response, subtract(responseLength, 1));
+                    ccxt::any lastTimestamp =
+                        this->safeInteger(last, std::string("timestamp"), 0);
+                    if (isTrue(isEqual(lastTimestamp, ccxt::any{}))) {
+                      break;
+                    }
+                    ccxt::any nextPaginationTimestamp = add(lastTimestamp, 1);
+                    paginationTimestamp = nextPaginationTimestamp;
+                    if (isTrue(isTrue((!isEqual(until, ccxt::any{}))) &&
+                               isTrue((isGreaterThanOrEqual(
+                                   nextPaginationTimestamp, until))))) {
+                      break;
+                    }
+                  }
+                } catch (const std::exception &e) {
+                  errors = add(errors, 1);
+                  if (isTrue(isGreaterThan(errors, maxRetriesOption))) {
+                    throw;
+                  }
+                }
+              }
+              ccxt::any uniqueResults = result;
+              if (isTrue(removeRepeatedOption)) {
+                uniqueResults = this->removeRepeatedElementsFromArray(result);
+              }
+              ccxt::any key =
+                  (isTrue((isEqual(method, std::string("fetchOHLCV"))))
+                       ? ccxt::any(0)
+                       : ccxt::any(std::string("timestamp")));
+              ccxt::any sortedRes = this->sortBy(uniqueResults, key);
+              return this->filterBySinceLimit(sortedRes, since, limit, key);
+            })
+          .share();
 }
 
 virtual std::shared_future<ccxt::any> safeDeterministicCall(
@@ -3481,12 +3566,15 @@ virtual std::shared_future<ccxt::any> safeDeterministicCall(
              std::launch::deferred,
              [=]() mutable -> ccxt::any {
                ccxt::any maxRetries = 3;
-               ccxt::any maxRetriesparamsVariable = this->handleOptionAndParams(
-                   params, method, std::string("maxRetries"), maxRetries);
-               maxRetries = ::getValue(maxRetriesparamsVariable, 0);
-               params = ::getValue(maxRetriesparamsVariable, 1);
+               ccxt::any maxRetriesOptionparamsMaxRetriesVariable =
+                   this->handleOptionIntegerAndParams(
+                       params, method, std::string("maxRetries"), maxRetries);
+               ccxt::any maxRetriesOption =
+                   ::getValue(maxRetriesOptionparamsMaxRetriesVariable, 0);
+               ccxt::any paramsMaxRetries =
+                   ::getValue(maxRetriesOptionparamsMaxRetriesVariable, 1);
                ccxt::any errors = 0;
-               while (isLessThanOrEqual(errors, maxRetries)) {
+               while (isLessThanOrEqual(errors, maxRetriesOption)) {
                  try {
                    if (isTrue(
                            isTrue((
@@ -3495,20 +3583,21 @@ virtual std::shared_future<ccxt::any> safeDeterministicCall(
                            isTrue(!isEqual(
                                method,
                                std::string("fetchFundingRateHistory"))))) {
-                     return awaitValue(callDynamically(
-                         this, method,
-                         ccxt::list{symbol, timeframe, since, limit, params}));
+                     return awaitValue(
+                         callDynamically(this, method,
+                                         ccxt::list{symbol, timeframe, since,
+                                                    limit, paramsMaxRetries}));
                    } else {
                      return awaitValue(callDynamically(
                          this, method,
-                         ccxt::list{symbol, since, limit, params}));
+                         ccxt::list{symbol, since, limit, paramsMaxRetries}));
                    }
                  } catch (const std::exception &e) {
                    if (isTrue(isInstanceOf<RateLimitExceeded>(e))) {
                      throw;
                    }
                    errors = add(errors, 1);
-                   if (isTrue(isGreaterThan(errors, maxRetries))) {
+                   if (isTrue(isGreaterThan(errors, maxRetriesOption))) {
                      throw;
                    }
                  }
@@ -3523,111 +3612,121 @@ virtual std::shared_future<ccxt::any> fetchPaginatedCallDeterministic(
     ccxt::any since = ccxt::any{}, ccxt::any limit = ccxt::any{},
     ccxt::any timeframe = ccxt::any{}, ccxt::any params = ccxt::dict{},
     ccxt::any maxEntriesPerRequest = ccxt::any{}) {
-  return std::async(
-             std::launch::deferred,
-             [=]() mutable -> ccxt::any {
-               ccxt::any maxCalls = 10;
-               ccxt::any maxCallsparamsVariable = this->handleOptionAndParams(
-                   params, method, std::string("paginationCalls"), maxCalls);
-               maxCalls = ::getValue(maxCallsparamsVariable, 0);
-               params = ::getValue(maxCallsparamsVariable, 1);
-               ccxt::any maxEntriesPerRequestparamsVariable =
-                   this->handleMaxEntriesPerRequestAndParams(
-                       method, maxEntriesPerRequest, params);
-               maxEntriesPerRequest =
-                   ::getValue(maxEntriesPerRequestparamsVariable, 0);
-               params = ::getValue(maxEntriesPerRequestparamsVariable, 1);
-               // paginationDirection is only relevant to
-               // fetchPaginatedCallDynamic/Cursor; deterministic pagination
-               // always walks forward internally, so strip it here to avoid
-               // leaking an unrecognized param into the underlying exchange
-               // request (e.g. binance -1104 errors)
-               params = this->omit(params, std::string("paginationDirection"));
-               ccxt::any current = this->milliseconds();
-               ccxt::any tasks = ccxt::list{};
-               ccxt::any time = multiply(this->parseTimeframe(timeframe), 1000);
-               maxEntriesPerRequest = this->requireValue(
-                   maxEntriesPerRequest,
-                   std::string("fetchPaginatedCallDeterministic() "
-                               "maxEntriesPerRequest is required"));
-               ccxt::any step = multiply(time, maxEntriesPerRequest);
-               ccxt::any until = this->safeInteger2(
-                   params, std::string("until"),
-                   std::string("till")); // do not omit it here
-               ccxt::any currentSince =
-                   subtract(subtract(current, (multiply(maxCalls, step))), 1);
-               if (isTrue(!isEqual(since, ccxt::any{}))) {
-                 if (isTrue(!isEqual(until, ccxt::any{}))) {
-                   // the recent-window floor below would jump past a
-                   // fully-historical [ since, until ] range and return an
-                   // empty result - requiredCalls is validated against maxCalls
-                   // further down, so anchoring at since directly is safe here,
-                   // see https://github.com/ccxt/ccxt/issues/26252
-                   currentSince = since;
-                 } else {
-                   currentSince = mathMax(currentSince, since);
-                 }
-               } else {
-                 currentSince =
-                     mathMax(currentSince,
-                             1241440531000); // avoid timestamps older than 2009
-               }
-               if (isTrue(!isEqual(until, ccxt::any{}))) {
-                 if (isTrue(isEqual(since, ccxt::any{}))) {
-                   throw ArgumentsRequired(toString(
-                       add(this->id,
-                           std::string(
-                               " fetchPaginatedCallDeterministic() requires a "
-                               "since argument when until is set"))));
-                 }
-                 ccxt::any requiredCalls =
-                     mathCeil(divide((subtract(until, since)), step));
-                 if (isTrue(isGreaterThan(requiredCalls, maxCalls))) {
-                   throw BadRequest(toString(
-                       add(add(add(add(this->id,
-                                       std::string(
-                                           " the number of required calls is "
-                                           "greater than the max number of "
-                                           "calls allowed, either increase the "
-                                           "paginationCalls or decrease the "
-                                           "since-until gap. Current "
-                                           "paginationCalls limit is ")),
-                                   toString(maxCalls)),
-                               std::string(" required calls is ")),
-                           toString(requiredCalls))));
-                 }
-               }
-               for (ccxt::any i = 0; isLessThan(i, maxCalls);
-                    postFixIncrement(i)) {
-                 if (isTrue(
-                         isTrue((!isEqual(until, ccxt::any{}))) &&
-                         isTrue((isGreaterThanOrEqual(currentSince, until))))) {
-                   break;
-                 }
-                 if (isTrue(isGreaterThanOrEqual(currentSince, current))) {
-                   break;
-                 }
-                 arrayPush(tasks, this->safeDeterministicCall(
-                                      method, symbol, currentSince,
-                                      maxEntriesPerRequest, timeframe, params));
-                 currentSince = subtract(this->sum(currentSince, step), 1);
-               }
-               ccxt::any results = awaitValue(promiseAll(tasks));
-               ccxt::any result = ccxt::list{};
-               for (ccxt::any i = 0; isLessThan(i, getArrayLength(results));
-                    postFixIncrement(i)) {
-                 result = this->arrayConcat(result, ::getValue(results, i));
-               }
-               ccxt::any uniqueResults =
-                   this->removeRepeatedElementsFromArray(result);
-               ccxt::any key =
-                   (isTrue((isEqual(method, std::string("fetchOHLCV"))))
-                        ? ccxt::any(0)
-                        : ccxt::any(std::string("timestamp")));
-               return this->filterBySinceLimit(uniqueResults, since, limit,
-                                               key);
-             })
-      .share();
+  return std::
+      async(std::launch::deferred,
+            [=]() mutable -> ccxt::any {
+              ccxt::any maxCalls = 10;
+              ccxt::any maxCallsPaginationCallsparamsPaginationCallsVariable =
+                  this->handleOptionIntegerAndParams(
+                      params, method, std::string("paginationCalls"), maxCalls);
+              ccxt::any maxCallsPaginationCalls = ::getValue(
+                  maxCallsPaginationCallsparamsPaginationCallsVariable, 0);
+              ccxt::any paramsPaginationCalls = ::getValue(
+                  maxCallsPaginationCallsparamsPaginationCallsVariable, 1);
+              ccxt::any
+                  maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable =
+                      this->handleMaxEntriesPerRequestAndParams(
+                          method, maxEntriesPerRequest, paramsPaginationCalls);
+              ccxt::any maxEntriesPerRequestOption = ::getValue(
+                  maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable,
+                  0);
+              ccxt::any paramsMaxEntriesPerRequest = ::getValue(
+                  maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable,
+                  1);
+              // paginationDirection is only relevant to
+              // fetchPaginatedCallDynamic/Cursor; deterministic pagination
+              // always walks forward internally, so strip it here to avoid
+              // leaking an unrecognized param into the underlying exchange
+              // request (e.g. binance -1104 errors)
+              ccxt::any paramsOmitted =
+                  this->omit(paramsMaxEntriesPerRequest,
+                             std::string("paginationDirection"));
+              ccxt::any current = this->milliseconds();
+              ccxt::any tasks = ccxt::list{};
+              ccxt::any time = multiply(this->parseTimeframe(timeframe), 1000);
+              ccxt::any maxEntriesPerRequestValue = this->requireValue(
+                  maxEntriesPerRequestOption,
+                  std::string("fetchPaginatedCallDeterministic() "
+                              "maxEntriesPerRequest is required"));
+              ccxt::any step = multiply(time, maxEntriesPerRequestValue);
+              ccxt::any until = this->safeInteger2(
+                  paramsOmitted, std::string("until"),
+                  std::string("till")); // do not omit it here
+              ccxt::any currentSince = subtract(
+                  subtract(current, (multiply(maxCallsPaginationCalls, step))),
+                  1);
+              if (isTrue(!isEqual(since, ccxt::any{}))) {
+                if (isTrue(!isEqual(until, ccxt::any{}))) {
+                  // the recent-window floor below would jump past a
+                  // fully-historical [ since, until ] range and return an empty
+                  // result - requiredCalls is validated against maxCalls
+                  // further down, so anchoring at since directly is safe here,
+                  // see https://github.com/ccxt/ccxt/issues/26252
+                  currentSince = since;
+                } else {
+                  currentSince = mathMax(currentSince, since);
+                }
+              } else {
+                currentSince =
+                    mathMax(currentSince,
+                            1241440531000); // avoid timestamps older than 2009
+              }
+              if (isTrue(!isEqual(until, ccxt::any{}))) {
+                if (isTrue(isEqual(since, ccxt::any{}))) {
+                  throw ArgumentsRequired(toString(add(
+                      this->id,
+                      std::string(" fetchPaginatedCallDeterministic() requires "
+                                  "a since argument when until is set"))));
+                }
+                ccxt::any requiredCalls =
+                    mathCeil(divide((subtract(until, since)), step));
+                if (isTrue(isGreaterThan(requiredCalls,
+                                         maxCallsPaginationCalls))) {
+                  throw BadRequest(toString(
+                      add(add(add(add(this->id,
+                                      std::string(
+                                          " the number of required calls is "
+                                          "greater than the max number of "
+                                          "calls allowed, either increase the "
+                                          "paginationCalls or decrease the "
+                                          "since-until gap. Current "
+                                          "paginationCalls limit is ")),
+                                  toString(maxCallsPaginationCalls)),
+                              std::string(" required calls is ")),
+                          toString(requiredCalls))));
+                }
+              }
+              for (ccxt::any i = 0; isLessThan(i, maxCallsPaginationCalls);
+                   postFixIncrement(i)) {
+                if (isTrue(
+                        isTrue((!isEqual(until, ccxt::any{}))) &&
+                        isTrue((isGreaterThanOrEqual(currentSince, until))))) {
+                  break;
+                }
+                if (isTrue(isGreaterThanOrEqual(currentSince, current))) {
+                  break;
+                }
+                arrayPush(tasks, this->safeDeterministicCall(
+                                     method, symbol, currentSince,
+                                     maxEntriesPerRequestValue, timeframe,
+                                     paramsOmitted));
+                currentSince = subtract(add(currentSince, step), 1);
+              }
+              ccxt::any results = awaitValue(promiseAll(tasks));
+              ccxt::any result = ccxt::list{};
+              for (ccxt::any i = 0; isLessThan(i, getArrayLength(results));
+                   postFixIncrement(i)) {
+                result = this->arrayConcat(result, ::getValue(results, i));
+              }
+              ccxt::any uniqueResults =
+                  this->removeRepeatedElementsFromArray(result);
+              ccxt::any key =
+                  (isTrue((isEqual(method, std::string("fetchOHLCV"))))
+                       ? ccxt::any(0)
+                       : ccxt::any(std::string("timestamp")));
+              return this->filterBySinceLimit(uniqueResults, since, limit, key);
+            })
+          .share();
 }
 
 // the 'symbol' slot is forwarded to `this[method]` untouched and is only
@@ -3639,165 +3738,175 @@ virtual std::shared_future<ccxt::any> fetchPaginatedCallCursor(
     ccxt::any params = ccxt::dict{}, ccxt::any cursorReceived = ccxt::any{},
     ccxt::any cursorSent = ccxt::any{}, ccxt::any cursorIncrement = ccxt::any{},
     ccxt::any maxEntriesPerRequest = ccxt::any{}) {
-  return std::async(
-             std::launch::deferred,
-             [=]() mutable -> ccxt::any {
-               ccxt::any maxCalls = 10;
-               ccxt::any maxCallsparamsVariable = this->handleOptionAndParams(
-                   params, method, std::string("paginationCalls"), maxCalls);
-               maxCalls = ::getValue(maxCallsparamsVariable, 0);
-               params = ::getValue(maxCallsparamsVariable, 1);
-               ccxt::any maxRetries = 3;
-               ccxt::any maxRetriesparamsVariable = this->handleOptionAndParams(
-                   params, method, std::string("maxRetries"), maxRetries);
-               maxRetries = ::getValue(maxRetriesparamsVariable, 0);
-               params = ::getValue(maxRetriesparamsVariable, 1);
-               ccxt::any maxEntriesPerRequestparamsVariable =
-                   this->handleMaxEntriesPerRequestAndParams(
-                       method, maxEntriesPerRequest, params);
-               maxEntriesPerRequest =
-                   ::getValue(maxEntriesPerRequestparamsVariable, 0);
-               params = ::getValue(maxEntriesPerRequestparamsVariable, 1);
-               ccxt::any cursorValue = ccxt::any{};
-               ccxt::any i = 0;
-               ccxt::any errors = 0;
-               ccxt::any result = ccxt::list{};
-               ccxt::any timeframe =
-                   this->safeString(params, std::string("timeframe"));
-               params = this->omit(
-                   params,
-                   std::string("timeframe")); // reading the timeframe from the
-                                              // method arguments to avoid
-                                              // changing the signature
-               while (isLessThan(i, maxCalls)) {
-                 try {
-                   if (isTrue(!isEqual(cursorValue, ccxt::any{}))) {
-                     if (isTrue(!isEqual(cursorIncrement, ccxt::any{}))) {
-                       cursorValue =
-                           add(this->parseToInt(cursorValue), cursorIncrement);
-                     }
-                     ::setValue(params, cursorSent, cursorValue);
-                   }
-                   ccxt::any response = ccxt::any{};
-                   if (isTrue(isEqual(method, std::string("fetchAccounts")))) {
-                     response = awaitValue(
-                         callDynamically(this, method, ccxt::list{params}));
-                   } else if (isTrue(isTrue(isEqual(
-                                         method,
-                                         std::string(
-                                             "getLeverageTiersPaginated"))) ||
-                                     isTrue(isEqual(
-                                         method,
-                                         std::string("fetchPositions"))))) {
-                     response = awaitValue(callDynamically(
-                         this, method, ccxt::list{symbol, params}));
-                   } else if (isTrue(isEqual(
-                                  method,
-                                  std::string("fetchOpenInterestHistory")))) {
-                     if (isTrue(!isString(symbol))) {
-                       throw ArgumentsRequired(toString(
-                           add(this->id,
-                               std::string(" fetchPaginatedCallCursor() "
-                                           "requires a symbol argument"))));
-                     }
-                     if (isTrue(isEqual(timeframe, ccxt::any{}))) {
-                       throw ArgumentsRequired(toString(
-                           add(this->id,
-                               std::string(" fetchPaginatedCallCursor() "
-                                           "requires a timeframe argument"))));
-                     }
-                     response = awaitValue(callDynamically(
-                         this, method,
-                         ccxt::list{symbol, timeframe, since,
-                                    maxEntriesPerRequest, params}));
-                   } else {
-                     response = awaitValue(callDynamically(
-                         this, method,
-                         ccxt::list{symbol, since, maxEntriesPerRequest,
-                                    params}));
-                   }
-                   errors = 0;
-                   if (isTrue(isEqual(response, ccxt::any{}))) {
-                     throw NullResponse(toString(add(
-                         this->id, std::string(" fetchPaginatedCallCursor() "
-                                               "returned empty response"))));
-                   }
-                   ccxt::any responseLength = getArrayLength(response);
-                   if (isTrue(this->verbose)) {
-                     ccxt::any cursorString =
-                         (isTrue((isEqual(cursorValue, ccxt::any{})))
-                              ? ccxt::any(std::string(""))
-                              : ccxt::any(cursorValue));
-                     ccxt::any iteration = (add(i, 1));
-                     ccxt::any cursorMessage = add(
-                         add(add(add(add(add(add(std::string(
-                                                     "Cursor pagination call "),
-                                                 toString(iteration)),
-                                             std::string(" method ")),
-                                         method),
-                                     std::string(" response length ")),
-                                 toString(responseLength)),
-                             std::string(" cursor ")),
-                         cursorString);
-                     this->log(cursorMessage);
-                   }
-                   if (isTrue(isEqual(responseLength, 0))) {
-                     break;
-                   }
-                   if (isTrue(!isEqual(response, ccxt::any{}))) {
-                     result = this->arrayConcat(result, response);
-                   }
-                   ccxt::any last =
-                       this->safeDict(response, subtract(responseLength, 1));
-                   // cursorValue = this.safeValue (last['info'],
-                   // cursorReceived);
-                   cursorValue = ccxt::any{}; // search for the cursor
-                   for (ccxt::any j = 0; isLessThan(j, responseLength);
-                        postFixIncrement(j)) {
-                     ccxt::any index = subtract(subtract(responseLength, j), 1);
-                     ccxt::any entry = this->safeDict(response, index);
-                     ccxt::any info =
-                         this->safeDict(entry, std::string("info"));
-                     ccxt::any cursor =
-                         (isTrue((isEqual(cursorReceived, ccxt::any{})))
-                              ? ccxt::any(ccxt::any{})
-                              : ccxt::any(
-                                    this->safeValue(info, cursorReceived)));
-                     if (isTrue(!isEqual(cursor, ccxt::any{}))) {
-                       cursorValue = cursor;
-                       break;
-                     }
-                   }
-                   if (isTrue(isEqual(cursorValue, ccxt::any{}))) {
-                     break;
-                   }
-                   ccxt::any lastTimestamp =
-                       this->safeInteger(last, std::string("timestamp"));
-                   if (isTrue(isEqual(since, ccxt::any{}))) {
-                     throw ArgumentsRequired(toString(add(
-                         this->id, std::string(" fetchPaginatedCallCursor() "
-                                               "requires a since argument"))));
-                   }
-                   if (isTrue(isTrue(!isEqual(lastTimestamp, ccxt::any{})) &&
-                              isTrue(isLessThan(lastTimestamp, since)))) {
-                     break;
-                   }
-                 } catch (const std::exception &e) {
-                   errors = add(errors, 1);
-                   if (isTrue(isGreaterThan(errors, maxRetries))) {
-                     throw;
-                   }
-                 }
-                 i = add(i, 1);
-               }
-               ccxt::any sorted = this->sortCursorPaginatedResult(result);
-               ccxt::any key =
-                   (isTrue((isEqual(method, std::string("fetchOHLCV"))))
-                        ? ccxt::any(0)
-                        : ccxt::any(std::string("timestamp")));
-               return this->filterBySinceLimit(sorted, since, limit, key);
-             })
-      .share();
+  return std::
+      async(std::launch::deferred,
+            [=]() mutable -> ccxt::any {
+              ccxt::any maxCalls = 10;
+              ccxt::any maxCallsPaginationCallsparamsPaginationCallsVariable =
+                  this->handleOptionIntegerAndParams(
+                      params, method, std::string("paginationCalls"), maxCalls);
+              ccxt::any maxCallsPaginationCalls = ::getValue(
+                  maxCallsPaginationCallsparamsPaginationCallsVariable, 0);
+              ccxt::any paramsPaginationCalls = ::getValue(
+                  maxCallsPaginationCallsparamsPaginationCallsVariable, 1);
+              ccxt::any maxRetries = 3;
+              ccxt::any maxRetriesOptionparamsMaxRetriesVariable =
+                  this->handleOptionIntegerAndParams(
+                      paramsPaginationCalls, method, std::string("maxRetries"),
+                      maxRetries);
+              ccxt::any maxRetriesOption =
+                  ::getValue(maxRetriesOptionparamsMaxRetriesVariable, 0);
+              ccxt::any paramsMaxRetries =
+                  ::getValue(maxRetriesOptionparamsMaxRetriesVariable, 1);
+              ccxt::any
+                  maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable =
+                      this->handleMaxEntriesPerRequestAndParams(
+                          method, maxEntriesPerRequest, paramsMaxRetries);
+              ccxt::any maxEntriesPerRequestOption = ::getValue(
+                  maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable,
+                  0);
+              ccxt::any paramsMaxEntriesPerRequest = ::getValue(
+                  maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable,
+                  1);
+              ccxt::any cursorValue = ccxt::any{};
+              ccxt::any i = 0;
+              ccxt::any errors = 0;
+              ccxt::any result = ccxt::list{};
+              ccxt::any timeframe = this->safeString(paramsMaxEntriesPerRequest,
+                                                     std::string("timeframe"));
+              ccxt::any paramsOmitted = this->omit(
+                  paramsMaxEntriesPerRequest,
+                  std::string("timeframe")); // reading the timeframe from the
+                                             // method arguments to avoid
+                                             // changing the signature
+              while (isLessThan(i, maxCallsPaginationCalls)) {
+                try {
+                  if (isTrue(!isEqual(cursorValue, ccxt::any{}))) {
+                    if (isTrue(!isEqual(cursorIncrement, ccxt::any{}))) {
+                      cursorValue =
+                          add(this->parseToInt(cursorValue), cursorIncrement);
+                    }
+                    ::setValue(paramsOmitted, cursorSent, cursorValue);
+                  }
+                  ccxt::any response = ccxt::any{};
+                  if (isTrue(isEqual(method, std::string("fetchAccounts")))) {
+                    response = awaitValue(callDynamically(
+                        this, method, ccxt::list{paramsOmitted}));
+                  } else if (isTrue(
+                                 isTrue(isEqual(
+                                     method,
+                                     std::string(
+                                         "getLeverageTiersPaginated"))) ||
+                                 isTrue(isEqual(
+                                     method, std::string("fetchPositions"))))) {
+                    response = awaitValue(callDynamically(
+                        this, method, ccxt::list{symbol, paramsOmitted}));
+                  } else if (isTrue(isEqual(
+                                 method,
+                                 std::string("fetchOpenInterestHistory")))) {
+                    if (isTrue(!isString(symbol))) {
+                      throw ArgumentsRequired(toString(
+                          add(this->id,
+                              std::string(" fetchPaginatedCallCursor() "
+                                          "requires a symbol argument"))));
+                    }
+                    if (isTrue(isEqual(timeframe, ccxt::any{}))) {
+                      throw ArgumentsRequired(toString(
+                          add(this->id,
+                              std::string(" fetchPaginatedCallCursor() "
+                                          "requires a timeframe argument"))));
+                    }
+                    response = awaitValue(callDynamically(
+                        this, method,
+                        ccxt::list{symbol, timeframe, since,
+                                   maxEntriesPerRequestOption, paramsOmitted}));
+                  } else {
+                    response = awaitValue(callDynamically(
+                        this, method,
+                        ccxt::list{symbol, since, maxEntriesPerRequestOption,
+                                   paramsOmitted}));
+                  }
+                  errors = 0;
+                  if (isTrue(isEqual(response, ccxt::any{}))) {
+                    throw NullResponse(toString(
+                        add(this->id, std::string(" fetchPaginatedCallCursor() "
+                                                  "returned empty response"))));
+                  }
+                  ccxt::any responseLength = getArrayLength(response);
+                  if (isTrue(this->verbose)) {
+                    ccxt::any cursorString =
+                        (isTrue((isEqual(cursorValue, ccxt::any{})))
+                             ? ccxt::any(std::string(""))
+                             : ccxt::any(cursorValue));
+                    ccxt::any iteration = (add(i, 1));
+                    ccxt::any cursorMessage = add(
+                        add(add(add(add(add(add(std::string(
+                                                    "Cursor pagination call "),
+                                                toString(iteration)),
+                                            std::string(" method ")),
+                                        method),
+                                    std::string(" response length ")),
+                                toString(responseLength)),
+                            std::string(" cursor ")),
+                        cursorString);
+                    this->log(cursorMessage);
+                  }
+                  if (isTrue(isEqual(responseLength, 0))) {
+                    break;
+                  }
+                  if (isTrue(!isEqual(response, ccxt::any{}))) {
+                    result = this->arrayConcat(result, response);
+                  }
+                  ccxt::any last =
+                      this->safeDict(response, subtract(responseLength, 1));
+                  // cursorValue = this.safeValue (last['info'],
+                  // cursorReceived);
+                  cursorValue = ccxt::any{}; // search for the cursor
+                  for (ccxt::any j = 0; isLessThan(j, responseLength);
+                       postFixIncrement(j)) {
+                    ccxt::any index = subtract(subtract(responseLength, j), 1);
+                    ccxt::any entry = this->safeDict(response, index);
+                    ccxt::any info = this->safeDict(entry, std::string("info"));
+                    ccxt::any cursor =
+                        (isTrue((isEqual(cursorReceived, ccxt::any{})))
+                             ? ccxt::any(ccxt::any{})
+                             : ccxt::any(
+                                   this->safeValue(info, cursorReceived)));
+                    if (isTrue(!isEqual(cursor, ccxt::any{}))) {
+                      cursorValue = cursor;
+                      break;
+                    }
+                  }
+                  if (isTrue(isEqual(cursorValue, ccxt::any{}))) {
+                    break;
+                  }
+                  ccxt::any lastTimestamp =
+                      this->safeInteger(last, std::string("timestamp"));
+                  if (isTrue(isEqual(since, ccxt::any{}))) {
+                    throw ArgumentsRequired(toString(add(
+                        this->id, std::string(" fetchPaginatedCallCursor() "
+                                              "requires a since argument"))));
+                  }
+                  if (isTrue(isTrue(!isEqual(lastTimestamp, ccxt::any{})) &&
+                             isTrue(isLessThan(lastTimestamp, since)))) {
+                    break;
+                  }
+                } catch (const std::exception &e) {
+                  errors = add(errors, 1);
+                  if (isTrue(isGreaterThan(errors, maxRetriesOption))) {
+                    throw;
+                  }
+                }
+                i = add(i, 1);
+              }
+              ccxt::any sorted = this->sortCursorPaginatedResult(result);
+              ccxt::any key =
+                  (isTrue((isEqual(method, std::string("fetchOHLCV"))))
+                       ? ccxt::any(0)
+                       : ccxt::any(std::string("timestamp")));
+              return this->filterBySinceLimit(sorted, since, limit, key);
+            })
+          .share();
 }
 
 virtual std::shared_future<ccxt::any> fetchPaginatedCallIncremental(
@@ -3805,69 +3914,80 @@ virtual std::shared_future<ccxt::any> fetchPaginatedCallIncremental(
     ccxt::any since = ccxt::any{}, ccxt::any limit = ccxt::any{},
     ccxt::any params = ccxt::dict{}, ccxt::any pageKey = ccxt::any{},
     ccxt::any maxEntriesPerRequest = ccxt::any{}) {
-  return std::async(
-             std::launch::deferred,
-             [=]() mutable -> ccxt::any {
-               ccxt::any maxCalls = 10;
-               ccxt::any maxCallsparamsVariable = this->handleOptionAndParams(
-                   params, method, std::string("paginationCalls"), maxCalls);
-               maxCalls = ::getValue(maxCallsparamsVariable, 0);
-               params = ::getValue(maxCallsparamsVariable, 1);
-               ccxt::any maxRetries = 3;
-               ccxt::any maxRetriesparamsVariable = this->handleOptionAndParams(
-                   params, method, std::string("maxRetries"), maxRetries);
-               maxRetries = ::getValue(maxRetriesparamsVariable, 0);
-               params = ::getValue(maxRetriesparamsVariable, 1);
-               ccxt::any maxEntriesPerRequestparamsVariable =
-                   this->handleMaxEntriesPerRequestAndParams(
-                       method, maxEntriesPerRequest, params);
-               maxEntriesPerRequest =
-                   ::getValue(maxEntriesPerRequestparamsVariable, 0);
-               params = ::getValue(maxEntriesPerRequestparamsVariable, 1);
-               ccxt::any i = 0;
-               ccxt::any errors = 0;
-               ccxt::any result = ccxt::list{};
-               while (isLessThan(i, maxCalls)) {
-                 try {
-                   ::setValue(params, pageKey, add(i, 1));
-                   ccxt::any response = awaitValue(callDynamically(
-                       this, method,
-                       ccxt::list{symbol, since, maxEntriesPerRequest,
-                                  params}));
-                   errors = 0;
-                   ccxt::any responseLength = getArrayLength(response);
-                   if (isTrue(this->verbose)) {
-                     ccxt::any iteration = toString((add(i, 1)));
-                     ccxt::any incrementalMessage = add(
-                         add(add(add(add(std::string(
-                                             "Incremental pagination call "),
-                                         iteration),
-                                     std::string(" method ")),
-                                 method),
-                             std::string(" response length ")),
-                         toString(responseLength));
-                     this->log(incrementalMessage);
-                   }
-                   if (isTrue(isEqual(responseLength, 0))) {
-                     break;
-                   }
-                   result = this->arrayConcat(result, response);
-                 } catch (const std::exception &e) {
-                   errors = add(errors, 1);
-                   if (isTrue(isGreaterThan(errors, maxRetries))) {
-                     throw;
-                   }
-                 }
-                 i = add(i, 1);
-               }
-               ccxt::any sorted = this->sortCursorPaginatedResult(result);
-               ccxt::any key =
-                   (isTrue((isEqual(method, std::string("fetchOHLCV"))))
-                        ? ccxt::any(0)
-                        : ccxt::any(std::string("timestamp")));
-               return this->filterBySinceLimit(sorted, since, limit, key);
-             })
-      .share();
+  return std::
+      async(std::launch::deferred,
+            [=]() mutable -> ccxt::any {
+              ccxt::any maxCalls = 10;
+              ccxt::any maxCallsPaginationCallsparamsPaginationCallsVariable =
+                  this->handleOptionIntegerAndParams(
+                      params, method, std::string("paginationCalls"), maxCalls);
+              ccxt::any maxCallsPaginationCalls = ::getValue(
+                  maxCallsPaginationCallsparamsPaginationCallsVariable, 0);
+              ccxt::any paramsPaginationCalls = ::getValue(
+                  maxCallsPaginationCallsparamsPaginationCallsVariable, 1);
+              ccxt::any maxRetries = 3;
+              ccxt::any maxRetriesOptionparamsMaxRetriesVariable =
+                  this->handleOptionIntegerAndParams(
+                      paramsPaginationCalls, method, std::string("maxRetries"),
+                      maxRetries);
+              ccxt::any maxRetriesOption =
+                  ::getValue(maxRetriesOptionparamsMaxRetriesVariable, 0);
+              ccxt::any paramsMaxRetries =
+                  ::getValue(maxRetriesOptionparamsMaxRetriesVariable, 1);
+              ccxt::any
+                  maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable =
+                      this->handleMaxEntriesPerRequestAndParams(
+                          method, maxEntriesPerRequest, paramsMaxRetries);
+              ccxt::any maxEntriesPerRequestOption = ::getValue(
+                  maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable,
+                  0);
+              ccxt::any paramsMaxEntriesPerRequest = ::getValue(
+                  maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable,
+                  1);
+              ccxt::any i = 0;
+              ccxt::any errors = 0;
+              ccxt::any result = ccxt::list{};
+              while (isLessThan(i, maxCallsPaginationCalls)) {
+                try {
+                  ::setValue(paramsMaxEntriesPerRequest, pageKey, add(i, 1));
+                  ccxt::any response = awaitValue(callDynamically(
+                      this, method,
+                      ccxt::list{symbol, since, maxEntriesPerRequestOption,
+                                 paramsMaxEntriesPerRequest}));
+                  errors = 0;
+                  ccxt::any responseLength = getArrayLength(response);
+                  if (isTrue(this->verbose)) {
+                    ccxt::any iteration = toString((add(i, 1)));
+                    ccxt::any incrementalMessage =
+                        add(add(add(add(add(std::string(
+                                                "Incremental pagination call "),
+                                            iteration),
+                                        std::string(" method ")),
+                                    method),
+                                std::string(" response length ")),
+                            toString(responseLength));
+                    this->log(incrementalMessage);
+                  }
+                  if (isTrue(isEqual(responseLength, 0))) {
+                    break;
+                  }
+                  result = this->arrayConcat(result, response);
+                } catch (const std::exception &e) {
+                  errors = add(errors, 1);
+                  if (isTrue(isGreaterThan(errors, maxRetriesOption))) {
+                    throw;
+                  }
+                }
+                i = add(i, 1);
+              }
+              ccxt::any sorted = this->sortCursorPaginatedResult(result);
+              ccxt::any key =
+                  (isTrue((isEqual(method, std::string("fetchOHLCV"))))
+                       ? ccxt::any(0)
+                       : ccxt::any(std::string("timestamp")));
+              return this->filterBySinceLimit(sorted, since, limit, key);
+            })
+          .share();
 }
 
 virtual ccxt::any sortCursorPaginatedResult(ccxt::any result);

@@ -597,8 +597,15 @@ public:
   }
 
   ccxt::any nonce() override {
-    return subtract(this->milliseconds(),
-                    ::getValue(this->options, std::string("timeDifference")));
+    ccxt::any timeDifference =
+        this->safeInteger(this->options, std::string("timeDifference"));
+    if (isTrue(isEqual(timeDifference, ccxt::any{}))) {
+      throw ExchangeError(toString(
+          add(this->id,
+              std::string(
+                  " nonce() requires a numeric options[\"timeDifference\"]"))));
+    }
+    return subtract(this->milliseconds(), timeDifference);
   }
 
   /**
@@ -956,7 +963,7 @@ public:
                      this->safeList(balancesByType, accountType, ccxt::list{});
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(balances));
                       postFixIncrement(i)) {
-                   ccxt::any balance = ::getValue(balances, i);
+                   ccxt::any balance = this->safeDict(balances, i);
                    ccxt::any currencyId =
                        this->safeString(balance, std::string("currency"));
                    ccxt::any timestamp =
@@ -1322,10 +1329,15 @@ public:
     ccxt::any quoteId = this->safeString(trade, std::string("quoteCurrency"));
     ccxt::any base = this->safeCurrencyCode(baseId);
     ccxt::any quote = this->safeCurrencyCode(quoteId);
-    ccxt::any symbol = add(add(base, std::string("/")), quote);
-    if (isTrue(isTrue((!isEqual(this->markets, ccxt::any{}))) &&
-               isTrue((inOp(this->markets, symbol))))) {
-      market = this->market(symbol);
+    ccxt::any symbol = ccxt::any{};
+    ccxt::any marketResolved = market;
+    if (isTrue(isTrue((!isEqual(base, ccxt::any{}))) &&
+               isTrue((!isEqual(quote, ccxt::any{}))))) {
+      symbol = add(add(base, std::string("/")), quote);
+      if (isTrue(isTrue((!isEqual(this->markets, ccxt::any{}))) &&
+                 isTrue((inOp(this->markets, symbol))))) {
+        marketResolved = this->market(symbol);
+      }
     }
     ccxt::any id = this->safeString(trade, std::string("id"));
     ccxt::any orderId = this->safeString(trade, std::string("order"));
@@ -1353,7 +1365,7 @@ public:
             {std::string("cost"), costString},
             {std::string("fee"), fee},
         },
-        market);
+        marketResolved);
   }
 
   /**
@@ -1430,16 +1442,17 @@ public:
                                       std::string("fetchPrivateTradingFee"));
                  ccxt::any method = this->safeString(
                      params, std::string("method"), defaultMethod);
-                 params = this->omit(params, std::string("method"));
+                 ccxt::any paramsOmitted =
+                     this->omit(params, std::string("method"));
                  if (isTrue(isEqual(method,
                                     std::string("fetchPrivateTradingFee")))) {
                    return awaitValue(
-                       this->fetchPrivateTradingFee(symbol, params));
+                       this->fetchPrivateTradingFee(symbol, paramsOmitted));
                  } else if (isTrue(isEqual(
                                 method,
                                 std::string("fetchPublicTradingFee")))) {
                    return awaitValue(
-                       this->fetchPublicTradingFee(symbol, params));
+                       this->fetchPublicTradingFee(symbol, paramsOmitted));
                  } else {
                    throw NotSupported(toString(
                        add(this->id, std::string(" not support this method"))));
@@ -1682,10 +1695,14 @@ public:
     if (isTrue(isTrue((!isEqual(base, ccxt::any{}))) &&
                isTrue((!isEqual(quote, ccxt::any{}))))) {
       symbol = add(add(base, std::string("/")), quote);
-      if (isTrue(isTrue((!isEqual(this->markets, ccxt::any{}))) &&
-                 isTrue((inOp(this->markets, symbol))))) {
-        market = this->market(symbol);
-      }
+    }
+    ccxt::any symbolKnown =
+        isTrue(isTrue((!isEqual(symbol, ccxt::any{}))) &&
+               isTrue((!isEqual(this->markets, ccxt::any{})))) &&
+        isTrue((inOp(this->markets, symbol)));
+    ccxt::any marketResolved = market;
+    if (isTrue(symbolKnown)) {
+      marketResolved = this->market(symbol);
     }
     ccxt::any orderSide = this->safeString(order, std::string("side"));
     ccxt::any side = ccxt::any{};
@@ -1741,7 +1758,7 @@ public:
             {std::string("fee"), ccxt::any{}},
             {std::string("trades"), ccxt::any{}},
         },
-        market);
+        marketResolved);
   }
 
   /**
@@ -1782,7 +1799,8 @@ public:
                  ccxt::any response = ccxt::any{};
                  ccxt::any isTrigger = this->safeBool2(
                      params, std::string("trigger"), std::string("stop"));
-                 params = this->omit(params, std::string("stop"));
+                 ccxt::any paramsOmitted =
+                     this->omit(params, std::string("stop"));
                  // privateGetAuthOrderActive doesn't work even though its
                  // listed at
                  // https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
@@ -1796,11 +1814,11 @@ public:
                  if (isTrue(isEqual(isTrigger, true))) {
                    response = awaitValue(
                        this->privateGetAuthStopOrderPairCurrencyQuoteActive(
-                           this->extend(request, params)));
+                           this->extend(request, paramsOmitted)));
                  } else {
                    response = awaitValue(
                        this->privateGetAuthOrderPairCurrencyQuoteActive(
-                           this->extend(request, params)));
+                           this->extend(request, paramsOmitted)));
                  }
                  //
                  //     [
@@ -1865,7 +1883,7 @@ public:
                  ccxt::any market = ccxt::any{};
                  ccxt::any isTrigger = this->safeBool2(
                      params, std::string("trigger"), std::string("stop"));
-                 params =
+                 ccxt::any paramsOmitted =
                      this->omit(params, ccxt::list{std::string("stop"),
                                                    std::string("trigger")});
                  if (isTrue(!isEqual(limit, ccxt::any{}))) {
@@ -1882,19 +1900,19 @@ public:
                    if (isTrue(isEqual(isTrigger, true))) {
                      response = awaitValue(
                          this->privateGetAuthStopOrderPairCurrencyQuote(
-                             this->extend(request, params)));
+                             this->extend(request, paramsOmitted)));
                    } else {
                      response =
                          awaitValue(this->privateGetAuthOrderPairCurrencyQuote(
-                             this->extend(request, params)));
+                             this->extend(request, paramsOmitted)));
                    }
                  } else {
                    if (isTrue(isEqual(isTrigger, true))) {
                      response = awaitValue(this->privateGetAuthStopOrder(
-                         this->extend(request, params)));
+                         this->extend(request, paramsOmitted)));
                    } else {
                      response = awaitValue(this->privateGetAuthOrder(
-                         this->extend(request, params)));
+                         this->extend(request, paramsOmitted)));
                    }
                  }
                  //
@@ -1953,17 +1971,17 @@ public:
                  };
                  ccxt::any isTrigger = this->safeBool2(
                      params, std::string("trigger"), std::string("stop"));
-                 params =
+                 ccxt::any paramsOmitted =
                      this->omit(params, ccxt::list{std::string("stop"),
                                                    std::string("trigger")});
                  ccxt::any response = ccxt::any{};
                  if (isTrue(isEqual(isTrigger, true))) {
                    response =
                        awaitValue(this->privateGetAuthStopOrderGetOrderId(
-                           this->extend(request, params)));
+                           this->extend(request, paramsOmitted)));
                  } else {
                    response = awaitValue(this->privateGetAuthOrderGetOrderId(
-                       this->extend(request, params)));
+                       this->extend(request, paramsOmitted)));
                  }
                  //
                  //     {
@@ -2028,12 +2046,8 @@ public:
                  }
                  ccxt::any market = this->market(symbol);
                  ccxt::any uppercaseType = toUpperCase(type);
-                 if (isTrue(isEqual(side, ccxt::any{}))) {
-                   throw ArgumentsRequired(toString(
-                       add(this->id,
-                           std::string(
-                               " createOrder() requires a side argument"))));
-                 }
+                 this->checkRequiredArgument(std::string("createOrder"), side,
+                                             std::string("side"));
                  ccxt::any request = ccxt::dict{
                      {std::string("baseCurrency"),
                       ::getValue(market, std::string("baseId"))},
@@ -2054,7 +2068,7 @@ public:
                  ccxt::any triggerPrice =
                      this->safeString2(params, std::string("triggerPrice"),
                                        std::string("stopPrice"));
-                 params =
+                 ccxt::any paramsOmitted =
                      this->omit(params, ccxt::list{std::string("triggerPrice"),
                                                    std::string("stopPrice")});
                  ccxt::any response = ccxt::any{};
@@ -2062,10 +2076,10 @@ public:
                    ::setValue(request, std::string("stopPrice"),
                               this->priceToPrecision(symbol, triggerPrice));
                    response = awaitValue(this->privatePostAuthStopOrderPlace(
-                       this->extend(request, params)));
+                       this->extend(request, paramsOmitted)));
                  } else {
                    response = awaitValue(this->privatePostAuthOrderPlace(
-                       this->extend(request, params)));
+                       this->extend(request, paramsOmitted)));
                  }
                  //
                  //    {
@@ -2114,16 +2128,16 @@ public:
                  };
                  ccxt::any isTrigger = this->safeBool2(
                      params, std::string("trigger"), std::string("stop"));
-                 params =
+                 ccxt::any paramsOmitted =
                      this->omit(params, ccxt::list{std::string("stop"),
                                                    std::string("trigger")});
                  ccxt::any response = ccxt::any{};
                  if (isTrue(isEqual(isTrigger, true))) {
                    response = awaitValue(this->privatePostAuthStopOrderCancel(
-                       this->extend(request, params)));
+                       this->extend(request, paramsOmitted)));
                  } else {
                    response = awaitValue(this->privatePostAuthOrderCancel(
-                       this->extend(request, params)));
+                       this->extend(request, paramsOmitted)));
                  }
                  //
                  //     {
@@ -2166,7 +2180,7 @@ public:
                  ccxt::any market = ccxt::any{};
                  ccxt::any isTrigger = this->safeBool2(
                      params, std::string("trigger"), std::string("stop"));
-                 params =
+                 ccxt::any paramsOmitted =
                      this->omit(params, ccxt::list{std::string("stop"),
                                                    std::string("trigger")});
                  ccxt::any response = ccxt::any{};
@@ -2179,20 +2193,20 @@ public:
                    if (isTrue(isEqual(isTrigger, true))) {
                      response = awaitValue(
                          this->privatePostAuthStopOrderCancelAllCurrencyQuote(
-                             this->extend(request, params)));
+                             this->extend(request, paramsOmitted)));
                    } else {
                      response = awaitValue(
                          this->privatePostAuthOrderCancelAllCurrencyQuote(
-                             this->extend(request, params)));
+                             this->extend(request, paramsOmitted)));
                    }
                  } else {
                    if (isTrue(isEqual(isTrigger, true))) {
                      response =
                          awaitValue(this->privatePostAuthStopOrderCancelAll(
-                             this->extend(request, params)));
+                             this->extend(request, paramsOmitted)));
                    } else {
                      response = awaitValue(this->privatePostAuthOrderCancelAll(
-                         this->extend(request, params)));
+                         this->extend(request, paramsOmitted)));
                    }
                  }
                  //
@@ -2579,6 +2593,8 @@ public:
                  ccxt::any params = ccxt::dict{},
                  ccxt::any headers = ccxt::any{},
                  ccxt::any body = ccxt::any{}) override {
+    ccxt::any requestHeaders = headers;
+    ccxt::any requestBody = body;
     ccxt::any request =
         add(add(add(std::string("/"), this->version), std::string("/")),
             this->implodeParams(path, params));
@@ -2596,25 +2612,29 @@ public:
       ccxt::any auth = add(add(method, request), urlencodedQuery);
       ccxt::any signature =
           this->hmac(this->encode(auth), this->encode(this->secret), sha512);
-      headers = ccxt::dict{
+      requestHeaders = ccxt::dict{
           {std::string("X-LA-APIKEY"), this->apiKey},
           {std::string("X-LA-SIGNATURE"), signature},
           {std::string("X-LA-DIGEST"), std::string("HMAC-SHA512")},
       };
       if (isTrue(isEqual(method, std::string("POST")))) {
-        ::setValue(headers, std::string("Content-Type"),
+        ::setValue(requestHeaders, std::string("Content-Type"),
                    std::string("application/json"));
-        body = this->json(query);
+        requestBody = this->json(query);
       }
     }
-    ccxt::any url = add(::getValue(::getValue(this->urls, std::string("api")),
-                                   std::string("rest")),
-                        requestString);
+    ccxt::any apiUrl = this->safeString(
+        ::getValue(this->urls, std::string("api")), std::string("rest"));
+    if (isTrue(isEqual(apiUrl, ccxt::any{}))) {
+      throw ExchangeError(toString(add(
+          this->id, std::string(" sign() has no API URL for this endpoint"))));
+    }
+    ccxt::any url = add(apiUrl, requestString);
     return ccxt::dict{
         {std::string("url"), url},
         {std::string("method"), method},
-        {std::string("body"), body},
-        {std::string("headers"), headers},
+        {std::string("body"), requestBody},
+        {std::string("headers"), requestHeaders},
     };
   }
 
@@ -3013,6 +3033,18 @@ public:
     if (which == "handleDelta") {
       if (true) {
         this->handleDelta(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDeltas") {
+      if (true) {
+        this->handleBookDeltas(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDelta") {
+      if (true) {
+        this->handleBookDelta(::getValue(args, 0), ::getValue(args, 1));
         return ccxt::any{};
       }
     }

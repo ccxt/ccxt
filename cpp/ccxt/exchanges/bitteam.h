@@ -609,6 +609,10 @@ public:
     ccxt::any quoteId = this->safeString(parts, 1);
     ccxt::any base = this->safeCurrencyCode(baseId);
     ccxt::any quote = this->safeCurrencyCode(quoteId);
+    if (isTrue(isTrue((isEqual(base, ccxt::any{}))) ||
+               isTrue((isEqual(quote, ccxt::any{}))))) {
+      return ccxt::any{};
+    }
     ccxt::any active = this->safeBool(market, std::string("active"));
     ccxt::any timeStart = this->safeString(market, std::string("timeStart"));
     ccxt::any created = this->parse8601(timeStart);
@@ -1699,7 +1703,7 @@ public:
     //
     ccxt::any id = this->safeString(order, std::string("id"));
     ccxt::any marketId = this->safeString(order, std::string("pair"));
-    market = this->safeMarket(marketId, market);
+    ccxt::any marketResolved = this->safeMarket(marketId, market);
     ccxt::any clientOrderId = this->safeString(order, std::string("orderCid"));
     ccxt::any timestamp = ccxt::any{};
     ccxt::any createdAt = this->safeString(order, std::string("createdAt"));
@@ -1738,7 +1742,8 @@ public:
             {std::string("lastTradeTimestamp"), ccxt::any{}},
             {std::string("lastUpdateTimestamp"), lastUpdateTimestamp},
             {std::string("status"), status},
-            {std::string("symbol"), ::getValue(market, std::string("symbol"))},
+            {std::string("symbol"),
+             ::getValue(marketResolved, std::string("symbol"))},
             {std::string("type"), type},
             {std::string("timeInForce"), std::string("GTC")},
             {std::string("side"), side},
@@ -1755,7 +1760,7 @@ public:
             {std::string("info"), order},
             {std::string("postOnly"), false},
         },
-        market);
+        marketResolved);
   }
 
   virtual ccxt::any parseOrderStatus(ccxt::any status) {
@@ -2198,7 +2203,7 @@ public:
     //     }
     ccxt::any marketId =
         this->safeStringLower(ticker, std::string("trading_pairs"));
-    market = this->safeMarket(marketId, market);
+    ccxt::any marketResolved = this->safeMarket(marketId, market);
     ccxt::any bestBidPrice = ccxt::any{};
     ccxt::any bestAskPrice = ccxt::any{};
     ccxt::any bestBidVolume = ccxt::any{};
@@ -2234,7 +2239,8 @@ public:
                           std::string("price_change_percent_24h"));
     return this->safeTicker(
         ccxt::dict{
-            {std::string("symbol"), ::getValue(market, std::string("symbol"))},
+            {std::string("symbol"),
+             ::getValue(marketResolved, std::string("symbol"))},
             {std::string("timestamp"), ccxt::any{}},
             {std::string("datetime"), ccxt::any{}},
             {std::string("open"), ccxt::any{}},
@@ -2254,7 +2260,7 @@ public:
             {std::string("quoteVolume"), quoteVolume},
             {std::string("info"), ticker},
         },
-        market);
+        marketResolved);
   }
 
   /**
@@ -2557,8 +2563,8 @@ public:
     //     }
     //
     ccxt::any marketId = this->safeString(trade, std::string("pair"));
-    market = this->safeMarket(marketId, market);
-    ccxt::any symbol = ::getValue(market, std::string("symbol"));
+    ccxt::any marketResolved = this->safeMarket(marketId, market);
+    ccxt::any symbol = ::getValue(marketResolved, std::string("symbol"));
     ccxt::any id =
         this->safeString2(trade, std::string("id"), std::string("trade_id"));
     ccxt::any price = this->safeString(trade, std::string("price"));
@@ -2611,7 +2617,7 @@ public:
             {std::string("fee"), fee},
             {std::string("info"), trade},
         },
-        market);
+        marketResolved);
   }
 
   /**
@@ -2995,31 +3001,44 @@ public:
     ccxt::any request = this->omit(params, this->extractParams(path));
     ccxt::any endpoint =
         add(std::string("/"), this->implodeParams(path, params));
-    ccxt::any url = add(
-        ::getValue(::getValue(this->urls, std::string("api")), api), endpoint);
+    ccxt::any apiUrl =
+        this->safeString(::getValue(this->urls, std::string("api")), api);
+    if (isTrue(isEqual(apiUrl, ccxt::any{}))) {
+      throw ExchangeError(toString(add(
+          this->id, std::string(" sign() has no API URL for this endpoint"))));
+    }
+    ccxt::any url = add(apiUrl, endpoint);
     ccxt::any query = this->urlencode(request);
+    ccxt::any requestBody = ccxt::any{};
+    ccxt::any requestHeaders = ccxt::any{};
     if (isTrue(isEqual(api, std::string("private")))) {
       this->checkRequiredCredentials();
       if (isTrue(isEqual(method, std::string("POST")))) {
-        body = this->json(request);
+        requestBody = this->json(request);
       } else if (isTrue(!isEqual(getStringLength(query), 0))) {
         url = add(url, add(std::string("?"), query));
       }
       ccxt::any auth = add(add(this->apiKey, std::string(":")), this->secret);
       ccxt::any auth64 = this->stringToBase64(auth);
       ccxt::any signature = add(std::string("Basic "), auth64);
-      headers = ccxt::dict{
+      requestHeaders = ccxt::dict{
           {std::string("Authorization"), signature},
           {std::string("Content-Type"), std::string("application/json")},
       };
     } else if (isTrue(!isEqual(getStringLength(query), 0))) {
       url = add(url, add(std::string("?"), query));
     }
+    ccxt::any bodyResolved =
+        (isTrue((isEqual(requestBody, ccxt::any{}))) ? ccxt::any(body)
+                                                     : ccxt::any(requestBody));
+    ccxt::any headersResolved = (isTrue((isEqual(requestHeaders, ccxt::any{})))
+                                     ? ccxt::any(headers)
+                                     : ccxt::any(requestHeaders));
     return ccxt::dict{
         {std::string("url"), url},
         {std::string("method"), method},
-        {std::string("body"), body},
-        {std::string("headers"), headers},
+        {std::string("body"), bodyResolved},
+        {std::string("headers"), headersResolved},
     };
   }
 
@@ -3418,6 +3437,18 @@ public:
     if (which == "handleDelta") {
       if (true) {
         this->handleDelta(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDeltas") {
+      if (true) {
+        this->handleBookDeltas(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDelta") {
+      if (true) {
+        this->handleBookDelta(::getValue(args, 0), ::getValue(args, 1));
         return ccxt::any{};
       }
     }

@@ -986,10 +986,9 @@ public:
     return std::async(
                std::launch::deferred,
                [=]() mutable -> ccxt::any {
-                 if (isTrue(isEqual(
-                         ::getValue(this->options,
-                                    std::string("adjustForTimeDifference")),
-                         true))) {
+                 if (isTrue(this->safeBool(
+                         this->options, std::string("adjustForTimeDifference"),
+                         false))) {
                    awaitValue(this->loadTimeDifference());
                  }
                  ccxt::any response =
@@ -1093,6 +1092,10 @@ public:
     ccxt::any quoteId = this->safeString(market, std::string("quoteSymbol"));
     ccxt::any base = this->safeCurrencyCode(baseId);
     ccxt::any quote = this->safeCurrencyCode(quoteId);
+    if (isTrue(isTrue((isEqual(base, ccxt::any{}))) ||
+               isTrue((isEqual(quote, ccxt::any{}))))) {
+      return ccxt::any{};
+    }
     ccxt::any symbol = add(add(base, std::string("/")), quote);
     ccxt::any filters =
         this->safeDict(market, std::string("filters"), ccxt::dict{});
@@ -1282,8 +1285,8 @@ public:
     //     }, ...
     //
     ccxt::any marketId = this->safeString(ticker, std::string("symbol"));
-    market = this->safeMarket(marketId, market);
-    ccxt::any symbol = this->safeSymbol(marketId, market);
+    ccxt::any marketResolved = this->safeMarket(marketId, market);
+    ccxt::any symbol = this->safeSymbol(marketId, marketResolved);
     ccxt::any open = this->safeString(ticker, std::string("firstPrice"));
     ccxt::any last = this->safeString(ticker, std::string("lastPrice"));
     ccxt::any high = this->safeString(ticker, std::string("high"));
@@ -1326,7 +1329,7 @@ public:
             {std::string("indexPrice"), ccxt::any{}},
             {std::string("info"), ticker},
         },
-        market);
+        marketResolved);
     return parsedTicker;
   }
 
@@ -1427,11 +1430,13 @@ public:
                       ::getValue(market, std::string("id"))},
                      {std::string("interval"), interval},
                  };
-                 ccxt::any until = ccxt::any{};
-                 ccxt::any untilparamsVariable = this->handleOptionAndParams(
-                     params, std::string("fetchOHLCV"), std::string("until"));
-                 until = ::getValue(untilparamsVariable, 0);
-                 params = ::getValue(untilparamsVariable, 1);
+                 ccxt::any untilparamsUntilVariable =
+                     this->handleOptionIntegerAndParams(
+                         params, std::string("fetchOHLCV"),
+                         std::string("until"));
+                 ccxt::any until = ::getValue(untilparamsUntilVariable, 0);
+                 ccxt::any paramsUntil =
+                     ::getValue(untilparamsUntilVariable, 1);
                  if (isTrue(!isEqual(until, ccxt::any{}))) {
                    ::setValue(
                        request, std::string("endTime"),
@@ -1439,10 +1444,12 @@ public:
                            until, 1000))); // convert milliseconds to seconds
                  }
                  ccxt::any defaultLimit = 100;
+                 ccxt::any limitResolved = limit;
+                 if (isTrue(isTrue((isEqual(since, ccxt::any{}))) &&
+                            isTrue((isEqual(limit, ccxt::any{}))))) {
+                   limitResolved = defaultLimit;
+                 }
                  if (isTrue(isEqual(since, ccxt::any{}))) {
-                   if (isTrue(isEqual(limit, ccxt::any{}))) {
-                     limit = defaultLimit;
-                   }
                    ccxt::any duration = this->parseTimeframe(timeframe);
                    ccxt::any endTime =
                        (isTrue((isTrue(isTrue(!isEqual(until, ccxt::any{})) &&
@@ -1450,8 +1457,12 @@ public:
                                 isTrue(!isEqual(until, 0))))
                             ? ccxt::any(this->parseToInt(divide(until, 1000)))
                             : ccxt::any(this->seconds()));
+                   ccxt::any windowLimit =
+                       (isTrue((isEqual(limit, ccxt::any{})))
+                            ? ccxt::any(defaultLimit)
+                            : ccxt::any(limit));
                    ccxt::any startTime =
-                       subtract(endTime, (multiply(limit, duration)));
+                       subtract(endTime, (multiply(windowLimit, duration)));
                    ::setValue(request, std::string("startTime"), startTime);
                  } else {
                    ::setValue(
@@ -1460,17 +1471,21 @@ public:
                            since, 1000))); // convert milliseconds to seconds
                  }
                  ccxt::any price =
-                     this->safeString(params, std::string("price"));
+                     this->safeString(paramsUntil, std::string("price"));
+                 ccxt::any paramsOmitted =
+                     (isTrue((!isEqual(price, ccxt::any{})))
+                          ? ccxt::any(
+                                this->omit(paramsUntil, std::string("price")))
+                          : ccxt::any(paramsUntil));
                  if (isTrue(!isEqual(price, ccxt::any{}))) {
                    ::setValue(request, std::string("priceType"),
                               this->capitalize(price));
-                   params = this->omit(params, std::string("price"));
                  }
-                 ccxt::any response = awaitValue(
-                     this->publicGetApiV1Klines(this->extend(request, params)));
+                 ccxt::any response = awaitValue(this->publicGetApiV1Klines(
+                     this->extend(request, paramsOmitted)));
                  ccxt::any ohlcvs = this->toArray(response);
                  return this->parseOHLCVs(ohlcvs, market, timeframe, since,
-                                          limit);
+                                          limitResolved);
                })
         .share();
   }
@@ -1553,8 +1568,8 @@ public:
     //     }
     //
     ccxt::any marketId = this->safeString(contract, std::string("symbol"));
-    market = this->safeMarket(marketId, market);
-    ccxt::any symbol = this->safeSymbol(marketId, market);
+    ccxt::any marketResolved = this->safeMarket(marketId, market);
+    ccxt::any symbol = this->safeSymbol(marketId, marketResolved);
     ccxt::any nextFundingTimestamp =
         this->safeInteger(contract, std::string("nextFundingTimestamp"));
     return ccxt::dict{
@@ -1724,8 +1739,8 @@ public:
                  ccxt::any sorted =
                      this->sortBy(rates, std::string("timestamp"));
                  return this->filterBySymbolSinceLimit(
-                     sorted, ::getValue(market, std::string("symbol")), since,
-                     limit);
+                     sorted, this->safeString(market, std::string("symbol")),
+                     since, limit);
                })
         .share();
   }
@@ -1824,20 +1839,23 @@ public:
                  }
                  ccxt::any until =
                      this->safeInteger(params, std::string("until"));
+                 ccxt::any paramsOmitted =
+                     (isTrue((!isEqual(until, ccxt::any{})))
+                          ? ccxt::any(this->omit(
+                                params, ccxt::list{std::string("until")}))
+                          : ccxt::any(params));
                  if (isTrue(!isEqual(until, ccxt::any{}))) {
-                   params =
-                       this->omit(params, ccxt::list{std::string("until")});
                    ::setValue(request, std::string("to"), until);
                  }
                  ccxt::any fillType =
-                     this->safeString(params, std::string("fillType"));
+                     this->safeString(paramsOmitted, std::string("fillType"));
                  if (isTrue(isEqual(fillType, ccxt::any{}))) {
                    ::setValue(request, std::string("fillType"),
                               std::string("User")); // default
                  }
                  ccxt::any response =
                      awaitValue(this->privateGetWapiV1HistoryFills(
-                         this->extend(request, params)));
+                         this->extend(request, paramsOmitted)));
                  ccxt::any responseList = this->toArray(response);
                  return this->parseTrades(responseList, market, since, limit);
                })
@@ -1876,7 +1894,7 @@ public:
     ccxt::any id =
         this->safeString2(trade, std::string("id"), std::string("tradeId"));
     ccxt::any marketId = this->safeString(trade, std::string("symbol"));
-    market = this->safeMarket(marketId, market);
+    ccxt::any marketResolved = this->safeMarket(marketId, market);
     ccxt::any price = this->safeString(trade, std::string("price"));
     ccxt::any amount = this->safeString(trade, std::string("quantity"));
     ccxt::any isBuyerMaker = this->safeBool(trade, std::string("isBuyerMaker"));
@@ -1915,7 +1933,8 @@ public:
             {std::string("info"), trade},
             {std::string("timestamp"), timestamp},
             {std::string("datetime"), this->iso8601(timestamp)},
-            {std::string("symbol"), ::getValue(market, std::string("symbol"))},
+            {std::string("symbol"),
+             ::getValue(marketResolved, std::string("symbol"))},
             {std::string("id"), id},
             {std::string("order"), orderId},
             {std::string("type"), ccxt::any{}},
@@ -1926,7 +1945,7 @@ public:
             {std::string("cost"), ccxt::any{}},
             {std::string("fee"), fee},
         },
-        market);
+        marketResolved);
   }
 
   /**
@@ -2037,7 +2056,7 @@ public:
          postFixIncrement(i)) {
       ccxt::any id = ::getValue(balanceKeys, i);
       ccxt::any code = this->safeCurrencyCode(id);
-      ccxt::any balance = ::getValue(response, id);
+      ccxt::any balance = this->safeDict(response, id);
       ccxt::any account = this->account();
       ccxt::any locked = this->safeString(balance, std::string("locked"));
       ccxt::any staked = this->safeString(balance, std::string("staked"));
@@ -2087,19 +2106,20 @@ public:
                           ::setValue(request, std::string("limit"),
                                      limit); // default 100, max 1000
                         }
-                        ccxt::any until = ccxt::any{};
-                        ccxt::any untilparamsVariable =
-                            this->handleOptionAndParams(
+                        ccxt::any untilparamsUntilVariable =
+                            this->handleOptionIntegerAndParams(
                                 params, std::string("fetchDeposits"),
                                 std::string("until"));
-                        until = ::getValue(untilparamsVariable, 0);
-                        params = ::getValue(untilparamsVariable, 1);
+                        ccxt::any until =
+                            ::getValue(untilparamsUntilVariable, 0);
+                        ccxt::any paramsUntil =
+                            ::getValue(untilparamsUntilVariable, 1);
                         if (isTrue(!isEqual(until, ccxt::any{}))) {
                           ::setValue(request, std::string("endTime"), until);
                         }
                         ccxt::any response =
                             awaitValue(this->privateGetWapiV1CapitalDeposits(
-                                this->extend(request, params)));
+                                this->extend(request, paramsUntil)));
                         return this->parseTransactions(response, currency,
                                                        since, limit);
                       })
@@ -2143,19 +2163,20 @@ public:
                         if (isTrue(!isEqual(limit, ccxt::any{}))) {
                           ::setValue(request, std::string("limit"), limit);
                         }
-                        ccxt::any until = ccxt::any{};
-                        ccxt::any untilparamsVariable =
-                            this->handleOptionAndParams(
+                        ccxt::any untilparamsUntilVariable =
+                            this->handleOptionIntegerAndParams(
                                 params, std::string("fetchWithdrawals"),
                                 std::string("until"));
-                        until = ::getValue(untilparamsVariable, 0);
-                        params = ::getValue(untilparamsVariable, 1);
+                        ccxt::any until =
+                            ::getValue(untilparamsUntilVariable, 0);
+                        ccxt::any paramsUntil =
+                            ::getValue(untilparamsUntilVariable, 1);
                         if (isTrue(!isEqual(until, ccxt::any{}))) {
                           ::setValue(request, std::string("to"), until);
                         }
                         ccxt::any response =
                             awaitValue(this->privateGetWapiV1CapitalWithdrawals(
-                                this->extend(request, params)));
+                                this->extend(request, paramsUntil)));
                         return this->parseTransactions(response, currency,
                                                        since, limit);
                       })
@@ -2205,7 +2226,8 @@ public:
                      ::getValue(networkCodequeryVariable, 0);
                  ccxt::any query = ::getValue(networkCodequeryVariable, 1);
                  ccxt::any networkId = this->networkCodeToId(
-                     networkCode, ::getValue(currency, std::string("code")));
+                     networkCode,
+                     this->safeString(currency, std::string("code")));
                  if (isTrue(isEqual(networkId, ccxt::any{}))) {
                    throw BadRequest(toString(
                        add(this->id,
@@ -2383,36 +2405,38 @@ public:
   std::shared_future<ccxt::any>
   fetchDepositAddress(ccxt::any code,
                       ccxt::any params = ccxt::dict{}) override {
-    return std::async(std::launch::deferred,
-                      [=]() mutable -> ccxt::any {
-                        if (isTrue(isEqual(this->markets, ccxt::any{}))) {
-                          awaitValue(this->loadMarkets());
-                        }
-                        ccxt::any networkCode = ccxt::any{};
-                        ccxt::any networkCodeparamsVariable =
-                            this->handleNetworkCodeAndParams(params);
-                        networkCode = ::getValue(networkCodeparamsVariable, 0);
-                        params = ::getValue(networkCodeparamsVariable, 1);
-                        if (isTrue(isEqual(networkCode, ccxt::any{}))) {
-                          throw ArgumentsRequired(toString(add(
-                              this->id,
-                              std::string(
-                                  " fetchDepositAddress() requires a network "
-                                  "parameter, see "
-                                  "https://docs.ccxt.com/?id=network-codes"))));
-                        }
-                        ccxt::any currency = this->currency(code);
-                        ccxt::any request = ccxt::dict{
-                            {std::string("blockchain"),
-                             this->networkCodeToId(
-                                 networkCode,
-                                 ::getValue(currency, std::string("code")))},
-                        };
-                        ccxt::any response = awaitValue(
-                            this->privateGetWapiV1CapitalDepositAddress(
-                                this->extend(request, params)));
-                        return this->parseDepositAddress(response, currency);
-                      })
+    return std::async(
+               std::launch::deferred,
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
+                   awaitValue(this->loadMarkets());
+                 }
+                 ccxt::any networkCodeparamsNetworkCodeVariable =
+                     this->handleNetworkCodeAndParams(params);
+                 ccxt::any networkCode =
+                     ::getValue(networkCodeparamsNetworkCodeVariable, 0);
+                 ccxt::any paramsNetworkCode =
+                     ::getValue(networkCodeparamsNetworkCodeVariable, 1);
+                 if (isTrue(isEqual(networkCode, ccxt::any{}))) {
+                   throw ArgumentsRequired(toString(
+                       add(this->id,
+                           std::string(
+                               " fetchDepositAddress() requires a network "
+                               "parameter, see "
+                               "https://docs.ccxt.com/?id=network-codes"))));
+                 }
+                 ccxt::any currency = this->currency(code);
+                 ccxt::any request = ccxt::dict{
+                     {std::string("blockchain"),
+                      this->networkCodeToId(
+                          networkCode,
+                          this->safeString(currency, std::string("code")))},
+                 };
+                 ccxt::any response =
+                     awaitValue(this->privateGetWapiV1CapitalDepositAddress(
+                         this->extend(request, paramsNetworkCode)));
+                 return this->parseDepositAddress(response, currency);
+               })
         .share();
   }
 
@@ -2427,10 +2451,11 @@ public:
         this->safeString(depositAddress, std::string("address"));
     ccxt::any currencyId =
         this->safeString(depositAddress, std::string("currency"));
-    currency = this->safeCurrency(currencyId, currency);
+    ccxt::any currencyResolved = this->safeCurrency(currencyId, currency);
     return ccxt::dict{
         {std::string("info"), depositAddress},
-        {std::string("currency"), ::getValue(currency, std::string("code"))},
+        {std::string("currency"),
+         ::getValue(currencyResolved, std::string("code"))},
         {std::string("network"), ccxt::any{}},
         {std::string("address"), address},
         {std::string("tag"), ccxt::any{}},
@@ -2529,7 +2554,7 @@ public:
                  ccxt::any ordersRequests = ccxt::list{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(orders));
                       postFixIncrement(i)) {
-                   ccxt::any rawOrder = ::getValue(orders, i);
+                   ccxt::any rawOrder = this->safeDict(orders, i);
                    ccxt::any marketId =
                        this->safeString(rawOrder, std::string("symbol"));
                    ccxt::any type =
@@ -2579,9 +2604,11 @@ public:
     ccxt::any triggerPrice =
         this->safeString(params, std::string("triggerPrice"));
     ccxt::any isTriggerOrder = !isEqual(triggerPrice, ccxt::any{});
-    ccxt::any quantityKey =
-        (isTrue(isTriggerOrder) ? ccxt::any(std::string("triggerQuantity"))
-                                : ccxt::any(std::string("quantity")));
+    ccxt::any quantityKey = std::string("quantity");
+    if (isTrue(isTriggerOrder)) {
+      quantityKey = std::string("triggerQuantity");
+    }
+    ccxt::any omitKeys = ccxt::list{};
     // handle basic limit/market order types
     if (isTrue(isEqual(type, std::string("limit")))) {
       ::setValue(request, std::string("price"),
@@ -2593,8 +2620,8 @@ public:
       if (isTrue(!isEqual(cost, ccxt::any{}))) {
         ::setValue(request, std::string("quoteQuantity"),
                    this->costToPrecision(symbol, cost));
-        params = this->omit(params, ccxt::list{std::string("cost"),
-                                               std::string("quoteQuantity")});
+        arrayPush(omitKeys, std::string("cost"));
+        arrayPush(omitKeys, std::string("quoteQuantity"));
       } else {
         ::setValue(request, quantityKey,
                    this->amountToPrecision(symbol, amount));
@@ -2604,23 +2631,25 @@ public:
     if (isTrue(isTriggerOrder)) {
       ::setValue(request, std::string("triggerPrice"),
                  this->priceToPrecision(symbol, triggerPrice));
-      params = this->omit(params, std::string("triggerPrice"));
+      arrayPush(omitKeys, std::string("triggerPrice"));
     }
     ccxt::any clientOrderId = this->safeInteger(
         params, std::string("clientOrderId")); // the exchange requires uint
     if (isTrue(!isEqual(clientOrderId, ccxt::any{}))) {
       ::setValue(request, std::string("clientId"), clientOrderId);
-      params = this->omit(params, std::string("clientOrderId"));
+      arrayPush(omitKeys, std::string("clientOrderId"));
     }
-    ccxt::any postOnly = false;
-    ccxt::any postOnlyparamsVariable = this->handlePostOnly(
-        isEqual(type, std::string("market")), false, params);
-    postOnly = ::getValue(postOnlyparamsVariable, 0);
-    params = ::getValue(postOnlyparamsVariable, 1);
+    ccxt::any postOnlyparamsPostOnlyVariable =
+        this->handlePostOnly(isEqual(type, std::string("market")), false,
+                             this->omit(params, omitKeys));
+    ccxt::any postOnly = ::getValue(postOnlyparamsPostOnlyVariable, 0);
+    ccxt::any paramsPostOnly = ::getValue(postOnlyparamsPostOnlyVariable, 1);
     if (isTrue(postOnly)) {
-      ::setValue(params, std::string("postOnly"), true);
+      ::setValue(paramsPostOnly, std::string("postOnly"), true);
     }
-    ccxt::any takeProfit = this->safeDict(params, std::string("takeProfit"));
+    ccxt::any bracketKeys = ccxt::list{};
+    ccxt::any takeProfit =
+        this->safeDict(paramsPostOnly, std::string("takeProfit"));
     if (isTrue(!isEqual(takeProfit, ccxt::any{}))) {
       ccxt::any takeProfitTriggerPrice =
           this->safeString(takeProfit, std::string("triggerPrice"));
@@ -2634,9 +2663,10 @@ public:
         ::setValue(request, std::string("takeProfitLimitPrice"),
                    this->priceToPrecision(symbol, takeProfitPrice));
       }
-      params = this->omit(params, std::string("takeProfit"));
+      arrayPush(bracketKeys, std::string("takeProfit"));
     }
-    ccxt::any stopLoss = this->safeDict(params, std::string("stopLoss"));
+    ccxt::any stopLoss =
+        this->safeDict(paramsPostOnly, std::string("stopLoss"));
     if (isTrue(!isEqual(stopLoss, ccxt::any{}))) {
       ccxt::any stopLossTriggerPrice =
           this->safeString(stopLoss, std::string("triggerPrice"));
@@ -2650,13 +2680,16 @@ public:
         ::setValue(request, std::string("stopLossLimitPrice"),
                    this->priceToPrecision(symbol, stopLossPrice));
       }
-      params = this->omit(params, std::string("stopLoss"));
+      arrayPush(bracketKeys, std::string("stopLoss"));
     }
-    ccxt::any selfTradePrevention = ccxt::any{};
-    ccxt::any selfTradePreventionparamsVariable = this->handleOptionAndParams(
-        params, std::string("createOrder"), std::string("selfTradePrevention"));
-    selfTradePrevention = ::getValue(selfTradePreventionparamsVariable, 0);
-    params = ::getValue(selfTradePreventionparamsVariable, 1);
+    ccxt::any selfTradePreventionparamsSelfTradePreventionVariable =
+        this->handleOptionStringAndParams(
+            this->omit(paramsPostOnly, bracketKeys), std::string("createOrder"),
+            std::string("selfTradePrevention"));
+    ccxt::any selfTradePrevention =
+        ::getValue(selfTradePreventionparamsSelfTradePreventionVariable, 0);
+    ccxt::any paramsSelfTradePrevention =
+        ::getValue(selfTradePreventionparamsSelfTradePreventionVariable, 1);
     if (isTrue(!isEqual(selfTradePrevention, ccxt::any{}))) {
       if (isTrue(isEqual(selfTradePrevention, std::string("EXPIRE_MAKER")))) {
         ::setValue(request, std::string("selfTradePrevention"),
@@ -2671,7 +2704,7 @@ public:
                    std::string("RejectBoth"));
       }
     }
-    return this->extend(request, params);
+    return this->extend(request, paramsSelfTradePrevention);
   }
 
   virtual ccxt::any encodeOrderSide(ccxt::any side) {
@@ -3074,21 +3107,22 @@ public:
   std::shared_future<ccxt::any>
   fetchPositions(ccxt::any symbols = ccxt::any{},
                  ccxt::any params = ccxt::dict{}) override {
-    return std::async(std::launch::deferred,
-                      [=]() mutable -> ccxt::any {
-                        if (isTrue(isEqual(this->markets, ccxt::any{}))) {
-                          awaitValue(this->loadMarkets());
-                        }
-                        ccxt::any response =
-                            awaitValue(this->privateGetApiV1Position(params));
-                        ccxt::any positions = this->parsePositions(response);
-                        if (isTrue(this->isEmpty(symbols))) {
-                          return positions;
-                        }
-                        symbols = this->marketSymbols(symbols);
-                        return this->filterByArrayPositions(
-                            positions, std::string("symbol"), symbols, false);
-                      })
+    return std::async(
+               std::launch::deferred,
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
+                   awaitValue(this->loadMarkets());
+                 }
+                 ccxt::any response =
+                     awaitValue(this->privateGetApiV1Position(params));
+                 ccxt::any positions = this->parsePositions(response);
+                 if (isTrue(this->isEmpty(symbols))) {
+                   return positions;
+                 }
+                 ccxt::any symbolsNormalized = this->marketSymbols(symbols);
+                 return this->filterByArrayPositions(
+                     positions, std::string("symbol"), symbolsNormalized);
+               })
         .share();
   }
 
@@ -3130,8 +3164,8 @@ public:
     //
     ccxt::any id = this->safeString(position, std::string("positionId"));
     ccxt::any marketId = this->safeString(position, std::string("symbol"));
-    market = this->safeMarket(marketId, market);
-    ccxt::any symbol = ::getValue(market, std::string("symbol"));
+    ccxt::any marketResolved = this->safeMarket(marketId, market);
+    ccxt::any symbol = ::getValue(marketResolved, std::string("symbol"));
     ccxt::any entryPrice =
         this->safeString(position, std::string("entryPrice"));
     ccxt::any markPrice = this->safeString(position, std::string("markPrice"));
@@ -3266,8 +3300,15 @@ public:
   }
 
   ccxt::any nonce() override {
-    return subtract(this->milliseconds(),
-                    ::getValue(this->options, std::string("timeDifference")));
+    ccxt::any timeDifference =
+        this->safeInteger(this->options, std::string("timeDifference"));
+    if (isTrue(isEqual(timeDifference, ccxt::any{}))) {
+      throw ExchangeError(toString(
+          add(this->id,
+              std::string(
+                  " nonce() requires a numeric options[\"timeDifference\"]"))));
+    }
+    return subtract(this->milliseconds(), timeDifference);
   }
 
   ccxt::any sign(ccxt::any path, ccxt::any api = std::string("public"),
@@ -3276,10 +3317,18 @@ public:
                  ccxt::any headers = ccxt::any{},
                  ccxt::any body = ccxt::any{}) override {
     ccxt::any endpoint = add(std::string("/"), path);
-    ccxt::any url = ::getValue(::getValue(this->urls, std::string("api")), api);
+    ccxt::any apiUrl =
+        this->safeString(::getValue(this->urls, std::string("api")), api);
+    if (isTrue(isEqual(apiUrl, ccxt::any{}))) {
+      throw ExchangeError(toString(add(
+          this->id, std::string(" sign() has no API URL for this endpoint"))));
+    }
+    ccxt::any url = apiUrl;
     ccxt::any sortedParams =
         (isTrue(isArray(params)) ? ccxt::any(params)
                                  : ccxt::any(this->keysort(params)));
+    ccxt::any headersSigned = ccxt::any{};
+    ccxt::any bodySigned = ccxt::any{};
     if (isTrue(isEqual(api, std::string("private")))) {
       this->checkRequiredCredentials();
       ccxt::any ts = toString(this->nonce());
@@ -3314,7 +3363,7 @@ public:
       ccxt::any secretBytes = this->base64ToBinary(this->secret);
       ccxt::any seed = this->arraySlice(secretBytes, 0, 32);
       ccxt::any signature = eddsa(this->encode(payload), seed, ed25519);
-      headers = ccxt::dict{
+      headersSigned = ccxt::dict{
           {std::string("X-Timestamp"), ts},
           {std::string("X-Window"), recvWindow},
           {std::string("X-API-Key"), this->apiKey},
@@ -3322,8 +3371,8 @@ public:
           {std::string("X-Broker-Id"), std::string("1400")},
       };
       if (isTrue(!isEqual(method, std::string("GET")))) {
-        body = this->json(sortedParams);
-        ::setValue(headers, std::string("Content-Type"),
+        bodySigned = this->json(sortedParams);
+        ::setValue(headersSigned, std::string("Content-Type"),
                    std::string("application/json"));
       }
     }
@@ -3334,11 +3383,19 @@ public:
       }
     }
     url = add(url, endpoint);
+    ccxt::any headersResolved = (isTrue((isEqual(api, std::string("private"))))
+                                     ? ccxt::any(headersSigned)
+                                     : ccxt::any(headers));
+    ccxt::any bodyResolved = body;
+    if (isTrue(isTrue((isEqual(api, std::string("private")))) &&
+               isTrue((!isEqual(method, std::string("GET")))))) {
+      bodyResolved = bodySigned;
+    }
     return ccxt::dict{
         {std::string("url"), url},
         {std::string("method"), method},
-        {std::string("body"), body},
-        {std::string("headers"), headers},
+        {std::string("body"), bodyResolved},
+        {std::string("headers"), headersResolved},
     };
   }
 
@@ -3881,6 +3938,18 @@ public:
     if (which == "handleDelta") {
       if (true) {
         this->handleDelta(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDeltas") {
+      if (true) {
+        this->handleBookDeltas(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDelta") {
+      if (true) {
+        this->handleBookDelta(::getValue(args, 0), ::getValue(args, 1));
         return ccxt::any{};
       }
     }

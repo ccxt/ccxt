@@ -552,33 +552,36 @@ public:
                    amountX18 =
                        ccxt::Precise::stringMul(amountX18, std::string("-1"));
                  }
-                 ccxt::any subaccount = ccxt::any{};
-                 ccxt::any subaccountparamsVariable =
-                     this->handleOptionAndParams(
+                 ccxt::any subaccountparamsSubaccountVariable =
+                     this->handleOptionStringAndParams(
                          params, std::string("createOrder"),
                          std::string("subaccount"), std::string("default"));
-                 subaccount = ::getValue(subaccountparamsVariable, 0);
-                 params = ::getValue(subaccountparamsVariable, 1);
-                 ccxt::any expiration = ccxt::any{};
-                 ccxt::any expirationparamsVariable =
-                     this->handleOptionAndParams(
-                         params, std::string("createOrder"),
+                 ccxt::any subaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 0);
+                 ccxt::any paramsSubaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 1);
+                 ccxt::any expirationparamsExpirationVariable =
+                     this->handleOptionStringAndParams(
+                         paramsSubaccount, std::string("createOrder"),
                          std::string("expiration"), std::string("4294967295"));
-                 expiration = ::getValue(expirationparamsVariable, 0);
-                 params = ::getValue(expirationparamsVariable, 1);
-                 ccxt::any recvWindow = ccxt::any{};
-                 ccxt::any recvWindowparamsVariable =
-                     this->handleOptionAndParams(
-                         params, std::string("createOrder"),
+                 ccxt::any expiration =
+                     ::getValue(expirationparamsExpirationVariable, 0);
+                 ccxt::any paramsExpiration =
+                     ::getValue(expirationparamsExpirationVariable, 1);
+                 ccxt::any recvWindowparamsRecvWindowVariable =
+                     this->handleOptionIntegerAndParams(
+                         paramsExpiration, std::string("createOrder"),
                          std::string("recvWindow"), 5000);
-                 recvWindow = ::getValue(recvWindowparamsVariable, 0);
-                 params = ::getValue(recvWindowparamsVariable, 1);
+                 ccxt::any recvWindow =
+                     ::getValue(recvWindowparamsRecvWindowVariable, 0);
+                 ccxt::any paramsRecvWindow =
+                     ::getValue(recvWindowparamsRecvWindowVariable, 1);
                  ccxt::any nonce = this->createOrderNonce(recvWindow);
                  ccxt::any requestId =
-                     this->safeInteger(params, std::string("id"));
-                 ccxt::any spotLeverage =
-                     this->safeBool2(params, std::string("spotLeverage"),
-                                     std::string("spot_leverage"));
+                     this->safeInteger(paramsRecvWindow, std::string("id"));
+                 ccxt::any spotLeverage = this->safeBool2(
+                     paramsRecvWindow, std::string("spotLeverage"),
+                     std::string("spot_leverage"));
                  ccxt::any sender =
                      this->createSubaccount(this->walletAddress, subaccount);
                  ccxt::any order = ccxt::dict{
@@ -599,13 +602,13 @@ public:
                               spotLeverage);
                  }
                  ccxt::any isBuy = (isEqual(side, std::string("buy")));
-                 ccxt::any triggerPrice =
-                     this->safeString2(params, std::string("triggerPrice"),
-                                       std::string("stopPrice"));
-                 ccxt::any stopLossTriggerPrice =
-                     this->safeString(params, std::string("stopLossPrice"));
-                 ccxt::any takeProfitTriggerPrice =
-                     this->safeString(params, std::string("takeProfitPrice"));
+                 ccxt::any triggerPrice = this->safeString2(
+                     paramsRecvWindow, std::string("triggerPrice"),
+                     std::string("stopPrice"));
+                 ccxt::any stopLossTriggerPrice = this->safeString(
+                     paramsRecvWindow, std::string("stopLossPrice"));
+                 ccxt::any takeProfitTriggerPrice = this->safeString(
+                     paramsRecvWindow, std::string("takeProfitPrice"));
                  ccxt::any isStopLossOrder =
                      !isEqual(stopLossTriggerPrice, ccxt::any{});
                  ccxt::any isTakeProfitOrder =
@@ -615,17 +618,16 @@ public:
                      isTrue(isTrue(isStopOrder) || isTrue(isStopLossOrder)) ||
                      isTrue(isTakeProfitOrder);
                  if (isTrue(isStopOrder)) {
-                   ccxt::any triggerDirection = ccxt::any{};
-                   ccxt::any triggerDirectionparamsVariable =
-                       this->handleTriggerDirectionAndParams(params);
-                   triggerDirection =
-                       ::getValue(triggerDirectionparamsVariable, 0);
-                   params = ::getValue(triggerDirectionparamsVariable, 1);
-                   ccxt::any directionSuffix =
-                       (isTrue((isEqual(triggerDirection,
-                                        std::string("ascending"))))
-                            ? ccxt::any(std::string("above"))
-                            : ccxt::any(std::string("below")));
+                   // the final omit drops triggerDirection from the request
+                   ccxt::any triggerDirectionAndParams =
+                       this->handleTriggerDirectionAndParams(paramsRecvWindow);
+                   ccxt::any triggerDirection =
+                       ::getValue(triggerDirectionAndParams, 0);
+                   ccxt::any directionSuffix = std::string("below");
+                   if (isTrue(isEqual(triggerDirection,
+                                      std::string("ascending")))) {
+                     directionSuffix = std::string("above");
+                   }
                    ccxt::any triggerPriceX18 = this->convertToX18(triggerPrice);
                    ccxt::any priceRequirement = ccxt::dict{};
                    ::setValue(
@@ -642,25 +644,26 @@ public:
                    ::setValue(placeOrder, std::string("trigger"), trigger);
                  } else if (isTrue(isTrue(isStopLossOrder) ||
                                    isTrue(isTakeProfitOrder))) {
-                   ccxt::any triggerDirection = std::string("");
+                   ccxt::any oracleSide = std::string("");
                    if (isTrue(isBuy)) {
-                     triggerDirection = (isTrue(isStopLossOrder)
-                                             ? ccxt::any(std::string("above"))
-                                             : ccxt::any(std::string("below")));
+                     oracleSide = (isTrue(isStopLossOrder)
+                                       ? ccxt::any(std::string("above"))
+                                       : ccxt::any(std::string("below")));
                    } else {
-                     triggerDirection = (isTrue(isStopLossOrder)
-                                             ? ccxt::any(std::string("below"))
-                                             : ccxt::any(std::string("above")));
+                     oracleSide = (isTrue(isStopLossOrder)
+                                       ? ccxt::any(std::string("below"))
+                                       : ccxt::any(std::string("above")));
                    }
-                   triggerPrice = (isTrue(isStopLossOrder)
-                                       ? ccxt::any(stopLossTriggerPrice)
-                                       : ccxt::any(takeProfitTriggerPrice));
+                   if (isTrue(isStopLossOrder)) {
+                     triggerPrice = stopLossTriggerPrice;
+                   } else {
+                     triggerPrice = takeProfitTriggerPrice;
+                   }
                    ccxt::any triggerPriceX18 = this->convertToX18(triggerPrice);
                    ccxt::any priceRequirement = ccxt::dict{};
-                   ::setValue(
-                       priceRequirement,
-                       add(std::string("oracle_price_"), triggerDirection),
-                       triggerPriceX18);
+                   ::setValue(priceRequirement,
+                              add(std::string("oracle_price_"), oracleSide),
+                              triggerPriceX18);
                    ccxt::any trigger = ccxt::dict{
                        {std::string("price_trigger"),
                         ccxt::dict{
@@ -670,10 +673,11 @@ public:
                    };
                    ::setValue(placeOrder, std::string("trigger"), trigger);
                  }
-                 ccxt::any appendix =
-                     this->safeString(params, std::string("appendix"));
+                 ccxt::any appendix = this->safeString(paramsRecvWindow,
+                                                       std::string("appendix"));
                  if (isTrue(isEqual(appendix, ccxt::any{}))) {
-                   appendix = this->createOrderAppendix(isTriggerOrder, params);
+                   appendix = this->createOrderAppendix(isTriggerOrder,
+                                                        paramsRecvWindow);
                  }
                  ::setValue(order, std::string("appendix"), appendix);
                  ccxt::any contracts = awaitValue(this->queryContracts());
@@ -683,8 +687,8 @@ public:
                      this->signOrder(order, productId, chainId);
                  ::setValue(placeOrder, std::string("order"), order);
                  ::setValue(placeOrder, std::string("signature"), signature);
-                 params = this->omit(
-                     params,
+                 ccxt::any paramsOmitted = this->omit(
+                     paramsRecvWindow,
                      ccxt::list{
                          std::string("expiration"), std::string("nonce"),
                          std::string("appendix"), std::string("reduceOnly"),
@@ -698,7 +702,7 @@ public:
                  ccxt::any request = ccxt::dict{
                      {std::string("place_order"), placeOrder},
                  };
-                 return this->extend(request, params);
+                 return this->extend(request, paramsOmitted);
                })
         .share();
   }
@@ -848,48 +852,52 @@ public:
                  }
                  ccxt::any editOrderOptions = this->safeDict(
                      this->options, std::string("editOrder"), ccxt::dict{});
-                 ccxt::any subaccount = ccxt::any{};
-                 ccxt::any subaccountparamsVariable =
-                     this->handleOptionAndParams(
+                 ccxt::any subaccountparamsSubaccountVariable =
+                     this->handleOptionStringAndParams(
                          params, std::string("editOrder"),
                          std::string("subaccount"), std::string("default"));
-                 subaccount = ::getValue(subaccountparamsVariable, 0);
-                 params = ::getValue(subaccountparamsVariable, 1);
-                 ccxt::any expiration = ccxt::any{};
-                 ccxt::any expirationparamsVariable =
-                     this->handleOptionAndParams(
-                         params, std::string("editOrder"),
+                 ccxt::any subaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 0);
+                 ccxt::any paramsSubaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 1);
+                 ccxt::any expirationparamsExpirationVariable =
+                     this->handleOptionStringAndParams(
+                         paramsSubaccount, std::string("editOrder"),
                          std::string("expiration"), std::string("4294967295"));
-                 expiration = ::getValue(expirationparamsVariable, 0);
-                 params = ::getValue(expirationparamsVariable, 1);
-                 ccxt::any recvWindow = ccxt::any{};
-                 ccxt::any recvWindowparamsVariable =
-                     this->handleOptionAndParams(
-                         params, std::string("editOrder"),
+                 ccxt::any expiration =
+                     ::getValue(expirationparamsExpirationVariable, 0);
+                 ccxt::any paramsExpiration =
+                     ::getValue(expirationparamsExpirationVariable, 1);
+                 ccxt::any recvWindowparamsRecvWindowVariable =
+                     this->handleOptionIntegerAndParams(
+                         paramsExpiration, std::string("editOrder"),
                          std::string("recvWindow"), 5000);
-                 recvWindow = ::getValue(recvWindowparamsVariable, 0);
-                 params = ::getValue(recvWindowparamsVariable, 1);
+                 ccxt::any recvWindow =
+                     ::getValue(recvWindowparamsRecvWindowVariable, 0);
+                 ccxt::any paramsRecvWindow =
+                     ::getValue(recvWindowparamsRecvWindowVariable, 1);
                  ccxt::any cancelNonce = this->createOrderNonce(recvWindow);
                  ccxt::any orderNonce =
                      ccxt::Precise::stringAdd(cancelNonce, std::string("1"));
-                 ccxt::any appendix =
-                     this->safeString(params, std::string("appendix"));
+                 ccxt::any appendix = this->safeString(paramsRecvWindow,
+                                                       std::string("appendix"));
                  if (isTrue(isEqual(appendix, ccxt::any{}))) {
-                   appendix = this->createOrderAppendix(false, params);
+                   appendix =
+                       this->createOrderAppendix(false, paramsRecvWindow);
                  }
                  ccxt::any requestId =
-                     this->safeInteger(params, std::string("id"));
-                 ccxt::any spotLeverage =
-                     this->safeBool2(params, std::string("spotLeverage"),
-                                     std::string("spot_leverage"));
+                     this->safeInteger(paramsRecvWindow, std::string("id"));
+                 ccxt::any spotLeverage = this->safeBool2(
+                     paramsRecvWindow, std::string("spotLeverage"),
+                     std::string("spot_leverage"));
                  ccxt::any placeRequiresUnfilled = this->safeBool2(
-                     params, std::string("placeRequiresUnfilled"),
+                     paramsRecvWindow, std::string("placeRequiresUnfilled"),
                      std::string("place_requires_unfilled"),
                      this->safeBool(editOrderOptions,
                                     std::string("placeRequiresUnfilled"),
                                     true));
-                 params = this->omit(
-                     params,
+                 ccxt::any paramsOmitted = this->omit(
+                     paramsRecvWindow,
                      ccxt::list{
                          std::string("expiration"), std::string("nonce"),
                          std::string("appendix"), std::string("reduceOnly"),
@@ -951,7 +959,7 @@ public:
                  ccxt::any request = ccxt::dict{
                      {std::string("cancel_and_place"), cancelAndPlace},
                  };
-                 return this->extend(request, params);
+                 return this->extend(request, paramsOmitted);
                })
         .share();
   }
@@ -983,7 +991,8 @@ public:
                       [=]() mutable -> ccxt::any {
                         ccxt::any orders = awaitValue(
                             this->cancelOrders(ccxt::list{id}, symbol, params));
-                        return this->safeDict(orders, 0);
+                        ccxt::any canceled = this->safeDict(orders, 0);
+                        return canceled;
                       })
         .share();
   }
@@ -1021,11 +1030,11 @@ public:
                  }
                  ccxt::any trigger = this->safeBool2(
                      params, std::string("stop"), std::string("trigger"));
-                 params =
+                 ccxt::any paramsOmitted =
                      this->omit(params, ccxt::list{std::string("stop"),
                                                    std::string("trigger")});
-                 ccxt::any request =
-                     awaitValue(this->cancelAllOrdersRequest(symbol, params));
+                 ccxt::any request = awaitValue(
+                     this->cancelAllOrdersRequest(symbol, paramsOmitted));
                  ccxt::any response = ccxt::any{};
                  if (isTrue(isEqual(trigger, true))) {
                    response =
@@ -1079,22 +1088,24 @@ public:
                    arrayPush(productIds, this->parseToInt(::getValue(
                                              market, std::string("id"))));
                  }
-                 ccxt::any subaccount = ccxt::any{};
-                 ccxt::any subaccountparamsVariable =
-                     this->handleOptionAndParams(
+                 ccxt::any subaccountparamsSubaccountVariable =
+                     this->handleOptionStringAndParams(
                          params, std::string("cancelAllOrders"),
                          std::string("subaccount"), std::string("default"));
-                 subaccount = ::getValue(subaccountparamsVariable, 0);
-                 params = ::getValue(subaccountparamsVariable, 1);
+                 ccxt::any subaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 0);
+                 ccxt::any paramsSubaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 1);
                  ccxt::any sender =
                      this->createSubaccount(this->walletAddress, subaccount);
-                 ccxt::any recvWindow = ccxt::any{};
-                 ccxt::any recvWindowparamsVariable =
-                     this->handleOptionAndParams(
-                         params, std::string("cancelAllOrders"),
+                 ccxt::any recvWindowparamsRecvWindowVariable =
+                     this->handleOptionIntegerAndParams(
+                         paramsSubaccount, std::string("cancelAllOrders"),
                          std::string("recvWindow"), 5000);
-                 recvWindow = ::getValue(recvWindowparamsVariable, 0);
-                 params = ::getValue(recvWindowparamsVariable, 1);
+                 ccxt::any recvWindow =
+                     ::getValue(recvWindowparamsRecvWindowVariable, 0);
+                 ccxt::any paramsRecvWindow =
+                     ::getValue(recvWindowparamsRecvWindowVariable, 1);
                  ccxt::any nonce = this->createOrderNonce(recvWindow);
                  ccxt::any tx = ccxt::dict{
                      {std::string("sender"), sender},
@@ -1115,8 +1126,9 @@ public:
                  ccxt::any signature = this->signCancellationProducts(
                      tx, chainId, endpointAddress);
                  ccxt::any requestId =
-                     this->safeInteger(params, std::string("id"));
-                 params = this->omit(params, ccxt::list{std::string("id")});
+                     this->safeInteger(paramsRecvWindow, std::string("id"));
+                 ccxt::any paramsOmitted = this->omit(
+                     paramsRecvWindow, ccxt::list{std::string("id")});
                  ccxt::any cancelProductOrders = ccxt::dict{
                      {std::string("tx"), tx},
                      {std::string("signature"), signature},
@@ -1129,7 +1141,7 @@ public:
                      {std::string("cancel_product_orders"),
                       cancelProductOrders},
                  };
-                 return this->extend(request, params);
+                 return this->extend(request, paramsOmitted);
                })
         .share();
   }
@@ -1173,11 +1185,11 @@ public:
                  ccxt::any market = this->market(symbol);
                  ccxt::any trigger = this->safeBool2(
                      params, std::string("stop"), std::string("trigger"));
-                 params =
+                 ccxt::any paramsOmitted =
                      this->omit(params, ccxt::list{std::string("stop"),
                                                    std::string("trigger")});
-                 ccxt::any request =
-                     awaitValue(this->cancelOrdersRequest(ids, symbol, params));
+                 ccxt::any request = awaitValue(
+                     this->cancelOrdersRequest(ids, symbol, paramsOmitted));
                  ccxt::any response = ccxt::any{};
                  if (isTrue(isEqual(trigger, true))) {
                    response =
@@ -1228,13 +1240,14 @@ public:
                  ccxt::any market = this->market(symbol);
                  ccxt::any productId =
                      this->parseToInt(::getValue(market, std::string("id")));
-                 ccxt::any subaccount = ccxt::any{};
-                 ccxt::any subaccountparamsVariable =
-                     this->handleOptionAndParams(
+                 ccxt::any subaccountparamsSubaccountVariable =
+                     this->handleOptionStringAndParams(
                          params, std::string("cancelOrders"),
                          std::string("subaccount"), std::string("default"));
-                 subaccount = ::getValue(subaccountparamsVariable, 0);
-                 params = ::getValue(subaccountparamsVariable, 1);
+                 ccxt::any subaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 0);
+                 ccxt::any paramsSubaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 1);
                  ccxt::any sender =
                      this->createSubaccount(this->walletAddress, subaccount);
                  ccxt::any productIds = ccxt::list{};
@@ -1242,13 +1255,14 @@ public:
                       postFixIncrement(i)) {
                    arrayPush(productIds, productId);
                  }
-                 ccxt::any recvWindow = ccxt::any{};
-                 ccxt::any recvWindowparamsVariable =
-                     this->handleOptionAndParams(
-                         params, std::string("cancelOrders"),
+                 ccxt::any recvWindowparamsRecvWindowVariable =
+                     this->handleOptionIntegerAndParams(
+                         paramsSubaccount, std::string("cancelOrders"),
                          std::string("recvWindow"), 5000);
-                 recvWindow = ::getValue(recvWindowparamsVariable, 0);
-                 params = ::getValue(recvWindowparamsVariable, 1);
+                 ccxt::any recvWindow =
+                     ::getValue(recvWindowparamsRecvWindowVariable, 0);
+                 ccxt::any paramsRecvWindow =
+                     ::getValue(recvWindowparamsRecvWindowVariable, 1);
                  ccxt::any nonce = this->createOrderNonce(recvWindow);
                  ccxt::any tx = ccxt::dict{
                      {std::string("sender"), sender},
@@ -1270,13 +1284,13 @@ public:
                  ccxt::any signature =
                      this->signCancellation(tx, chainId, endpointAddress);
                  ccxt::any requestId =
-                     this->safeInteger(params, std::string("id"));
+                     this->safeInteger(paramsRecvWindow, std::string("id"));
                  ccxt::any requiredUnfilledAmountRaw = this->safeString(
-                     params, std::string("required_unfilled_amount"));
+                     paramsRecvWindow, std::string("required_unfilled_amount"));
                  ccxt::any requiredUnfilledAmount = this->safeString(
-                     params, std::string("requiredUnfilledAmount"));
-                 params = this->omit(
-                     params,
+                     paramsRecvWindow, std::string("requiredUnfilledAmount"));
+                 ccxt::any paramsOmitted = this->omit(
+                     paramsRecvWindow,
                      ccxt::list{std::string("id"),
                                 std::string("requiredUnfilledAmount"),
                                 std::string("required_unfilled_amount")});
@@ -1300,7 +1314,7 @@ public:
                  ccxt::any request = ccxt::dict{
                      {std::string("cancel_orders"), cancelOrders},
                  };
-                 return this->extend(request, params);
+                 return this->extend(request, paramsOmitted);
                })
         .share();
   }
@@ -1401,32 +1415,35 @@ public:
                    arrayPush(productIds, this->parseToInt(::getValue(
                                              market, std::string("id"))));
                  }
-                 ccxt::any subaccount = ccxt::any{};
-                 ccxt::any subaccountparamsVariable =
-                     this->handleOptionAndParams(
+                 ccxt::any subaccountparamsSubaccountVariable =
+                     this->handleOptionStringAndParams(
                          params, std::string("fetchOrders"),
                          std::string("subaccount"), std::string("default"));
-                 subaccount = ::getValue(subaccountparamsVariable, 0);
-                 params = ::getValue(subaccountparamsVariable, 1);
+                 ccxt::any subaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 0);
+                 ccxt::any paramsSubaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 1);
                  ccxt::any sender =
                      this->createSubaccount(this->walletAddress, subaccount);
-                 ccxt::any trigger = this->safeBool2(
-                     params, std::string("stop"), std::string("trigger"));
-                 params =
-                     this->omit(params, ccxt::list{std::string("stop"),
-                                                   std::string("trigger")});
+                 ccxt::any trigger =
+                     this->safeBool2(paramsSubaccount, std::string("stop"),
+                                     std::string("trigger"));
+                 ccxt::any paramsOmitted = this->omit(
+                     paramsSubaccount,
+                     ccxt::list{std::string("stop"), std::string("trigger")});
                  if (isTrue(!isEqual(trigger, true))) {
                    throw NotSupported(toString(
                        add(this->id,
                            std::string(" fetchOrders only support trigger"))));
                  }
-                 ccxt::any recvWindow = ccxt::any{};
-                 ccxt::any recvWindowparamsVariable =
-                     this->handleOptionAndParams(
-                         params, std::string("fetchOrders"),
+                 ccxt::any recvWindowparamsRecvWindowVariable =
+                     this->handleOptionIntegerAndParams(
+                         paramsOmitted, std::string("fetchOrders"),
                          std::string("recvWindow"), 5000);
-                 recvWindow = ::getValue(recvWindowparamsVariable, 0);
-                 params = ::getValue(recvWindowparamsVariable, 1);
+                 ccxt::any recvWindow =
+                     ::getValue(recvWindowparamsRecvWindowVariable, 0);
+                 ccxt::any paramsRecvWindow =
+                     ::getValue(recvWindowparamsRecvWindowVariable, 1);
                  ccxt::any tx = ccxt::dict{
                      {std::string("sender"), sender},
                      {std::string("recvTime"),
@@ -1451,7 +1468,7 @@ public:
                      this->signFetchTriggerOrders(tx, chainId, endpointAddress);
                  ::setValue(request, std::string("signature"), signature);
                  ccxt::any response = awaitValue(this->triggerPrivatePostQuery(
-                     this->extend(request, params)));
+                     this->extend(request, paramsRecvWindow)));
                  //
                  // {
                  //     "status": "success",
@@ -1524,22 +1541,24 @@ public:
                                " fetchOpenOrders() requires walletAddress"))));
                  }
                  awaitValue(this->loadMarkets());
-                 ccxt::any subaccount = ccxt::any{};
-                 ccxt::any subaccountparamsVariable =
-                     this->handleOptionAndParams(
+                 ccxt::any subaccountparamsSubaccountVariable =
+                     this->handleOptionStringAndParams(
                          params, std::string("fetchOpenOrders"),
                          std::string("subaccount"), std::string("default"));
-                 subaccount = ::getValue(subaccountparamsVariable, 0);
-                 params = ::getValue(subaccountparamsVariable, 1);
+                 ccxt::any subaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 0);
+                 ccxt::any paramsSubaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 1);
                  ccxt::any sender =
                      this->createSubaccount(this->walletAddress, subaccount);
-                 ccxt::any trigger = this->safeBool2(
-                     params, std::string("stop"), std::string("trigger"));
+                 ccxt::any trigger =
+                     this->safeBool2(paramsSubaccount, std::string("stop"),
+                                     std::string("trigger"));
                  if (isTrue(isEqual(trigger, true))) {
                    return awaitValue(this->fetchOrders(
                        symbol, since, limit,
                        this->extend(
-                           params,
+                           paramsSubaccount,
                            ccxt::dict{
                                {std::string("status_types"),
                                 ccxt::list{std::string("waiting_price"),
@@ -1560,7 +1579,7 @@ public:
                       this->parseToInt(::getValue(market, std::string("id")))},
                  };
                  ccxt::any response = awaitValue(this->gatewayPublicGetQuery(
-                     this->extend(request, params)));
+                     this->extend(request, paramsSubaccount)));
                  //
                  // single product
                  //
@@ -1641,22 +1660,24 @@ public:
                  if (isTrue(!isEqual(symbol, ccxt::any{}))) {
                    market = this->market(symbol);
                  }
-                 ccxt::any subaccount = ccxt::any{};
-                 ccxt::any subaccountparamsVariable =
-                     this->handleOptionAndParams(
+                 ccxt::any subaccountparamsSubaccountVariable =
+                     this->handleOptionStringAndParams(
                          params, std::string("fetchClosedOrders"),
                          std::string("subaccount"), std::string("default"));
-                 subaccount = ::getValue(subaccountparamsVariable, 0);
-                 params = ::getValue(subaccountparamsVariable, 1);
+                 ccxt::any subaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 0);
+                 ccxt::any paramsSubaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 1);
                  ccxt::any sender =
                      this->createSubaccount(this->walletAddress, subaccount);
-                 ccxt::any trigger = this->safeBool2(
-                     params, std::string("stop"), std::string("trigger"));
+                 ccxt::any trigger =
+                     this->safeBool2(paramsSubaccount, std::string("stop"),
+                                     std::string("trigger"));
                  if (isTrue(isEqual(trigger, true))) {
                    return awaitValue(this->fetchOrders(
                        symbol, since, limit,
                        this->extend(
-                           params,
+                           paramsSubaccount,
                            ccxt::dict{
                                {std::string("status_types"),
                                 ccxt::list{std::string("triggered"),
@@ -1673,20 +1694,23 @@ public:
                               ccxt::list{this->parseToInt(
                                   ::getValue(market, std::string("id")))});
                  }
-                 ccxt::any ordersRequestparamsVariable =
+                 ccxt::any ordersRequestUntilparamsUntilVariable =
                      this->handleUntilOption(std::string("max_time"),
-                                             ordersRequest, params, 0.001);
-                 ordersRequest = ::getValue(ordersRequestparamsVariable, 0);
-                 params = ::getValue(ordersRequestparamsVariable, 1);
+                                             ordersRequest, paramsSubaccount,
+                                             0.001);
+                 ccxt::any ordersRequestUntil =
+                     ::getValue(ordersRequestUntilparamsUntilVariable, 0);
+                 ccxt::any paramsUntil =
+                     ::getValue(ordersRequestUntilparamsUntilVariable, 1);
                  if (isTrue(!isEqual(limit, ccxt::any{}))) {
-                   ::setValue(ordersRequest, std::string("limit"),
+                   ::setValue(ordersRequestUntil, std::string("limit"),
                               mathMin(limit, 500));
                  }
                  ccxt::any request = ccxt::dict{
-                     {std::string("orders"), ordersRequest},
+                     {std::string("orders"), ordersRequestUntil},
                  };
                  ccxt::any response = awaitValue(
-                     this->archivePost(this->deepExtend(request, params)));
+                     this->archivePost(this->deepExtend(request, paramsUntil)));
                  //
                  //     {
                  //         "orders": [
@@ -1840,13 +1864,14 @@ public:
                  if (isTrue(!isEqual(symbol, ccxt::any{}))) {
                    market = this->market(symbol);
                  }
-                 ccxt::any subaccount = ccxt::any{};
-                 ccxt::any subaccountparamsVariable =
-                     this->handleOptionAndParams(
+                 ccxt::any subaccountparamsSubaccountVariable =
+                     this->handleOptionStringAndParams(
                          params, std::string("fetchMyTrades"),
                          std::string("subaccount"), std::string("default"));
-                 subaccount = ::getValue(subaccountparamsVariable, 0);
-                 params = ::getValue(subaccountparamsVariable, 1);
+                 ccxt::any subaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 0);
+                 ccxt::any paramsSubaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 1);
                  ccxt::any matchesRequest = ccxt::dict{
                      {std::string("subaccounts"),
                       ccxt::list{this->createSubaccount(this->walletAddress,
@@ -1857,20 +1882,23 @@ public:
                               ccxt::list{this->parseToInt(
                                   ::getValue(market, std::string("id")))});
                  }
-                 ccxt::any matchesRequestparamsVariable =
+                 ccxt::any matchesRequestUntilparamsUntilVariable =
                      this->handleUntilOption(std::string("max_time"),
-                                             matchesRequest, params, 0.001);
-                 matchesRequest = ::getValue(matchesRequestparamsVariable, 0);
-                 params = ::getValue(matchesRequestparamsVariable, 1);
+                                             matchesRequest, paramsSubaccount,
+                                             0.001);
+                 ccxt::any matchesRequestUntil =
+                     ::getValue(matchesRequestUntilparamsUntilVariable, 0);
+                 ccxt::any paramsUntil =
+                     ::getValue(matchesRequestUntilparamsUntilVariable, 1);
                  if (isTrue(!isEqual(limit, ccxt::any{}))) {
-                   ::setValue(matchesRequest, std::string("limit"),
+                   ::setValue(matchesRequestUntil, std::string("limit"),
                               mathMin(limit, 500));
                  }
                  ccxt::any request = ccxt::dict{
-                     {std::string("matches"), matchesRequest},
+                     {std::string("matches"), matchesRequestUntil},
                  };
                  ccxt::any response = awaitValue(
-                     this->archivePost(this->deepExtend(request, params)));
+                     this->archivePost(this->deepExtend(request, paramsUntil)));
                  //
                  //     {
                  //         "matches": [
@@ -1947,20 +1975,21 @@ public:
                        std::string(" fetchBalance() requires walletAddress"))));
                  }
                  awaitValue(this->loadMarkets());
-                 ccxt::any subaccount = ccxt::any{};
-                 ccxt::any subaccountparamsVariable =
-                     this->handleOptionAndParams(
+                 ccxt::any subaccountparamsSubaccountVariable =
+                     this->handleOptionStringAndParams(
                          params, std::string("fetchBalance"),
                          std::string("subaccount"), std::string("default"));
-                 subaccount = ::getValue(subaccountparamsVariable, 0);
-                 params = ::getValue(subaccountparamsVariable, 1);
+                 ccxt::any subaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 0);
+                 ccxt::any paramsSubaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 1);
                  ccxt::any request = ccxt::dict{
                      {std::string("type"), std::string("subaccount_info")},
                      {std::string("subaccount"),
                       this->createSubaccount(this->walletAddress, subaccount)},
                  };
                  ccxt::any response = awaitValue(this->gatewayPublicGetQuery(
-                     this->extend(request, params)));
+                     this->extend(request, paramsSubaccount)));
                  //
                  //     {
                  //         "status": "success",
@@ -2068,13 +2097,14 @@ public:
                  if (isTrue(!isEqual(code, ccxt::any{}))) {
                    currency = this->currency(code);
                  }
-                 ccxt::any subaccount = ccxt::any{};
-                 ccxt::any subaccountparamsVariable =
-                     this->handleOptionAndParams(params, methodName,
-                                                 std::string("subaccount"),
-                                                 std::string("default"));
-                 subaccount = ::getValue(subaccountparamsVariable, 0);
-                 params = ::getValue(subaccountparamsVariable, 1);
+                 ccxt::any subaccountparamsSubaccountVariable =
+                     this->handleOptionStringAndParams(
+                         params, methodName, std::string("subaccount"),
+                         std::string("default"));
+                 ccxt::any subaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 0);
+                 ccxt::any paramsSubaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 1);
                  ccxt::any eventsRequest = ccxt::dict{
                      {std::string("subaccounts"),
                       ccxt::list{this->createSubaccount(this->walletAddress,
@@ -2093,16 +2123,19 @@ public:
                               ccxt::list{this->parseToInt(
                                   ::getValue(currency, std::string("id")))});
                  }
-                 ccxt::any eventsRequestparamsVariable =
+                 ccxt::any eventsRequestUntilparamsUntilVariable =
                      this->handleUntilOption(std::string("max_time"),
-                                             eventsRequest, params, 0.001);
-                 eventsRequest = ::getValue(eventsRequestparamsVariable, 0);
-                 params = ::getValue(eventsRequestparamsVariable, 1);
+                                             eventsRequest, paramsSubaccount,
+                                             0.001);
+                 ccxt::any eventsRequestUntil =
+                     ::getValue(eventsRequestUntilparamsUntilVariable, 0);
+                 ccxt::any paramsUntil =
+                     ::getValue(eventsRequestUntilparamsUntilVariable, 1);
                  ccxt::any request = ccxt::dict{
-                     {std::string("events"), eventsRequest},
+                     {std::string("events"), eventsRequestUntil},
                  };
                  ccxt::any response = awaitValue(
-                     this->archivePost(this->deepExtend(request, params)));
+                     this->archivePost(this->deepExtend(request, paramsUntil)));
                  //
                  //     {
                  //         "events": [
@@ -2196,21 +2229,22 @@ public:
                                " fetchPositions() requires walletAddress"))));
                  }
                  awaitValue(this->loadMarkets());
-                 symbols = this->marketSymbols(symbols);
-                 ccxt::any subaccount = ccxt::any{};
-                 ccxt::any subaccountparamsVariable =
-                     this->handleOptionAndParams(
+                 ccxt::any symbolsNormalized = this->marketSymbols(symbols);
+                 ccxt::any subaccountparamsSubaccountVariable =
+                     this->handleOptionStringAndParams(
                          params, std::string("fetchPositions"),
                          std::string("subaccount"), std::string("default"));
-                 subaccount = ::getValue(subaccountparamsVariable, 0);
-                 params = ::getValue(subaccountparamsVariable, 1);
+                 ccxt::any subaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 0);
+                 ccxt::any paramsSubaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 1);
                  ccxt::any request = ccxt::dict{
                      {std::string("type"), std::string("subaccount_info")},
                      {std::string("subaccount"),
                       this->createSubaccount(this->walletAddress, subaccount)},
                  };
                  ccxt::any response = awaitValue(this->gatewayPublicGetQuery(
-                     this->extend(request, params)));
+                     this->extend(request, paramsSubaccount)));
                  //
                  //     {
                  //         "status": "success",
@@ -2281,7 +2315,7 @@ public:
                                          position)));
                  }
                  return this->filterByArrayPositions(
-                     result, std::string("symbol"), symbols, false);
+                     result, std::string("symbol"), symbolsNormalized);
                })
         .share();
   }
@@ -2460,10 +2494,10 @@ public:
                        this->safeDict(assetsById, id, ccxt::dict{});
                    ccxt::any rawType =
                        this->safeString(market, std::string("type"));
-                   ccxt::any type =
-                       (isTrue((isEqual(rawType, std::string("perp"))))
-                            ? ccxt::any(std::string("swap"))
-                            : ccxt::any(rawType));
+                   ccxt::any type = rawType;
+                   if (isTrue(isEqual(rawType, std::string("perp")))) {
+                     type = std::string("swap");
+                   }
                    ccxt::any contract = (isEqual(type, std::string("swap")));
                    ccxt::any tickerId = this->safeString2(
                        pair, std::string("ticker_id"), std::string("tickerId"));
@@ -2477,6 +2511,10 @@ public:
                    ccxt::any base = this->safeCurrencyCode(
                        this->removeMarketSuffix(rawBaseId));
                    ccxt::any quote = this->safeCurrencyCode(rawQuoteId);
+                   if (isTrue(isTrue((isEqual(base, ccxt::any{}))) ||
+                              isTrue((isEqual(quote, ccxt::any{}))))) {
+                     continue;
+                   }
                    ccxt::any baseAsset =
                        this->safeDict(assetsByCode, base, asset);
                    ccxt::any quoteAsset = this->safeDict(assetsByCode, quote);
@@ -2664,7 +2702,8 @@ public:
     return std::async(std::launch::deferred,
                       [=]() mutable -> ccxt::any {
                         awaitValue(this->loadMarkets());
-                        symbols = this->marketSymbols(symbols);
+                        ccxt::any symbolsNormalized =
+                            this->marketSymbols(symbols);
                         ccxt::any response =
                             awaitValue(this->archiveV2PublicGetTickers(params));
                         //
@@ -2683,7 +2722,7 @@ public:
                         //     }
                         //
                         ccxt::any tickers = this->toArray(response);
-                        return this->parseTickers(tickers, symbols);
+                        return this->parseTickers(tickers, symbolsNormalized);
                       })
         .share();
   }
@@ -2707,15 +2746,16 @@ public:
                [=]() mutable -> ccxt::any {
                  awaitValue(this->loadMarkets());
                  ccxt::any market = this->market(symbol);
-                 symbol = ::getValue(market, std::string("symbol"));
-                 ccxt::any tickers =
-                     awaitValue(this->fetchTickers(ccxt::list{symbol}, params));
-                 ccxt::any ticker = this->safeDict(tickers, symbol);
+                 ccxt::any symbolValue =
+                     ::getValue(market, std::string("symbol"));
+                 ccxt::any tickers = awaitValue(
+                     this->fetchTickers(ccxt::list{symbolValue}, params));
+                 ccxt::any ticker = this->safeDict(tickers, symbolValue);
                  if (isTrue(isEqual(ticker, ccxt::any{}))) {
                    throw BadSymbol(toString(add(
                        add(this->id,
                            std::string(" fetchTicker() ticker not found for ")),
-                       symbol)));
+                       symbolValue)));
                  }
                  return ticker;
                })
@@ -2826,13 +2866,14 @@ public:
                        this->id, std::string(" fetchFundingHistory() supports "
                                              "swap contracts only"))));
                  }
-                 ccxt::any subaccount = ccxt::any{};
-                 ccxt::any subaccountparamsVariable =
-                     this->handleOptionAndParams(
+                 ccxt::any subaccountparamsSubaccountVariable =
+                     this->handleOptionStringAndParams(
                          params, std::string("fetchFundingHistory"),
                          std::string("subaccount"), std::string("default"));
-                 subaccount = ::getValue(subaccountparamsVariable, 0);
-                 params = ::getValue(subaccountparamsVariable, 1);
+                 ccxt::any subaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 0);
+                 ccxt::any paramsSubaccount =
+                     ::getValue(subaccountparamsSubaccountVariable, 1);
                  ccxt::any request = ccxt::dict{
                      {std::string("interest_and_funding"),
                       ccxt::dict{
@@ -2848,8 +2889,8 @@ public:
                                 : ccxt::any(mathMin(limit, 100)))},
                       }},
                  };
-                 ccxt::any response = awaitValue(
-                     this->archivePost(this->deepExtend(request, params)));
+                 ccxt::any response = awaitValue(this->archivePost(
+                     this->deepExtend(request, paramsSubaccount)));
                  //
                  //     {
                  //         "interest_payments": [],
@@ -2906,7 +2947,7 @@ public:
                std::launch::deferred,
                [=]() mutable -> ccxt::any {
                  awaitValue(this->loadMarkets());
-                 symbols =
+                 ccxt::any symbolsNormalized =
                      this->marketSymbols(symbols, std::string("swap"), true);
                  ccxt::any response =
                      awaitValue(this->archiveV2PublicGetContracts(params));
@@ -2941,7 +2982,7 @@ public:
                    arrayPush(rates,
                              this->safeDict(response, ticker, ccxt::dict{}));
                  }
-                 return this->parseFundingRates(rates, symbols);
+                 return this->parseFundingRates(rates, symbolsNormalized);
                })
         .share();
   }
@@ -3026,7 +3067,7 @@ public:
                std::launch::deferred,
                [=]() mutable -> ccxt::any {
                  awaitValue(this->loadMarkets());
-                 symbols =
+                 ccxt::any symbolsNormalized =
                      this->marketSymbols(symbols, std::string("swap"), true);
                  ccxt::any response =
                      awaitValue(this->archiveV2PublicGetContracts(params));
@@ -3061,7 +3102,7 @@ public:
                    arrayPush(interests,
                              this->safeDict(response, ticker, ccxt::dict{}));
                  }
-                 return this->parseOpenInterests(interests, symbols);
+                 return this->parseOpenInterests(interests, symbolsNormalized);
                })
         .share();
   }
@@ -3207,7 +3248,8 @@ public:
                  ccxt::any market = this->market(symbol);
                  ccxt::any until =
                      this->safeInteger(params, std::string("until"));
-                 params = this->omit(params, std::string("until"));
+                 ccxt::any paramsOmitted =
+                     this->omit(params, std::string("until"));
                  ccxt::any request = ccxt::dict{
                      {std::string("candlesticks"),
                       ccxt::dict{
@@ -3228,8 +3270,8 @@ public:
                               std::string("max_time"),
                               this->parseToInt(divide(until, 1000)));
                  }
-                 ccxt::any response = awaitValue(
-                     this->archivePost(this->deepExtend(request, params)));
+                 ccxt::any response = awaitValue(this->archivePost(
+                     this->deepExtend(request, paramsOmitted)));
                  //
                  //     {
                  //         "candlesticks": [
@@ -3312,7 +3354,7 @@ public:
     //     }
     //
     ccxt::any marketId = this->safeString(trade, std::string("product_id"));
-    market = this->safeMarket(marketId, market);
+    ccxt::any marketResolved = this->safeMarket(marketId, market);
     ccxt::any timestamp = this->safeTimestamp(trade, std::string("timestamp"));
     ccxt::any rawOrder = this->safeDict(trade, std::string("order"));
     ccxt::any isArchiveMatch = !isEqual(rawOrder, ccxt::any{});
@@ -3360,7 +3402,8 @@ public:
     if (isTrue(!isEqual(feeCost, ccxt::any{}))) {
       fee = ccxt::dict{
           {std::string("cost"), feeCost},
-          {std::string("currency"), ::getValue(market, std::string("quote"))},
+          {std::string("currency"),
+           ::getValue(marketResolved, std::string("quote"))},
       };
     }
     ccxt::any parsedAmount = ccxt::any{};
@@ -3386,7 +3429,8 @@ public:
             {std::string("info"), trade},
             {std::string("timestamp"), timestamp},
             {std::string("datetime"), this->iso8601(timestamp)},
-            {std::string("symbol"), ::getValue(market, std::string("symbol"))},
+            {std::string("symbol"),
+             ::getValue(marketResolved, std::string("symbol"))},
             {std::string("id"),
              this->safeString2(trade, std::string("trade_id"),
                                std::string("submission_idx"))},
@@ -3400,7 +3444,7 @@ public:
             {std::string("cost"), parsedCost},
             {std::string("fee"), fee},
         },
-        market);
+        marketResolved);
   }
 
   ccxt::any parseFundingRate(ccxt::any contract,
@@ -3427,12 +3471,13 @@ public:
     //     }
     //
     ccxt::any marketId = this->safeString(contract, std::string("product_id"));
-    market = this->safeMarket(marketId, market);
+    ccxt::any marketResolved = this->safeMarket(marketId, market);
     ccxt::any fundingTimestamp = this->safeTimestamp(
         contract, std::string("next_funding_rate_timestamp"));
     return ccxt::dict{
         {std::string("info"), contract},
-        {std::string("symbol"), ::getValue(market, std::string("symbol"))},
+        {std::string("symbol"),
+         ::getValue(marketResolved, std::string("symbol"))},
         {std::string("markPrice"),
          this->safeNumber(contract, std::string("mark_price"))},
         {std::string("indexPrice"),
@@ -3469,13 +3514,15 @@ public:
     //     }
     //
     ccxt::any marketId = this->safeString(funding, std::string("product_id"));
-    market = this->safeMarket(marketId, market);
+    ccxt::any marketResolved = this->safeMarket(marketId, market);
     ccxt::any timestamp =
         this->safeTimestamp(funding, std::string("timestamp"));
     return ccxt::dict{
         {std::string("info"), funding},
-        {std::string("symbol"), ::getValue(market, std::string("symbol"))},
-        {std::string("code"), this->safeString(market, std::string("settle"))},
+        {std::string("symbol"),
+         ::getValue(marketResolved, std::string("symbol"))},
+        {std::string("code"),
+         this->safeString(marketResolved, std::string("settle"))},
         {std::string("timestamp"), timestamp},
         {std::string("datetime"), this->iso8601(timestamp)},
         {std::string("id"), this->safeString(funding, std::string("idx"))},
@@ -3508,10 +3555,11 @@ public:
     //     }
     //
     ccxt::any marketId = this->safeString(interest, std::string("product_id"));
-    market = this->safeMarket(marketId, market);
+    ccxt::any marketResolved = this->safeMarket(marketId, market);
     return this->safeOpenInterest(
         ccxt::dict{
-            {std::string("symbol"), ::getValue(market, std::string("symbol"))},
+            {std::string("symbol"),
+             ::getValue(marketResolved, std::string("symbol"))},
             {std::string("openInterestAmount"),
              this->safeNumber(interest, std::string("open_interest"))},
             {std::string("openInterestValue"),
@@ -3520,18 +3568,19 @@ public:
             {std::string("datetime"), ccxt::any{}},
             {std::string("info"), interest},
         },
-        market);
+        marketResolved);
   }
 
   ccxt::any parseTicker(ccxt::any ticker,
                         ccxt::any market = ccxt::any{}) override {
     ccxt::any marketId = this->safeString(ticker, std::string("product_id"));
-    market = this->safeMarket(marketId, market);
+    ccxt::any marketResolved = this->safeMarket(marketId, market);
     ccxt::any timestamp = ccxt::any{};
     ccxt::any last = this->safeString(ticker, std::string("last_price"));
     return this->safeTicker(
         ccxt::dict{
-            {std::string("symbol"), ::getValue(market, std::string("symbol"))},
+            {std::string("symbol"),
+             ::getValue(marketResolved, std::string("symbol"))},
             {std::string("timestamp"), timestamp},
             {std::string("datetime"), this->iso8601(timestamp)},
             {std::string("high"), ccxt::any{}},
@@ -3555,7 +3604,7 @@ public:
              this->safeString(ticker, std::string("quote_volume"))},
             {std::string("info"), ticker},
         },
-        market);
+        marketResolved);
   }
 
   ccxt::any parseCurrency(ccxt::any rawCurrency) override {
@@ -3620,7 +3669,7 @@ public:
         this->safeList(response, std::string("spot_balances"), ccxt::list{});
     for (ccxt::any i = 0; isLessThan(i, getArrayLength(balances));
          postFixIncrement(i)) {
-      ccxt::any rawBalance = ::getValue(balances, i);
+      ccxt::any rawBalance = this->safeDict(balances, i);
       ccxt::any currencyId =
           this->safeString(rawBalance, std::string("product_id"));
       ccxt::any code = this->safeCurrencyCode(currencyId);
@@ -3629,8 +3678,7 @@ public:
       } else if (isTrue(isEqual(code, currencyId))) {
         ccxt::any market = this->safeMarket(currencyId, ccxt::any{},
                                             ccxt::any{}, std::string("spot"));
-        if (isTrue(
-                isEqual(this->safeBool(market, std::string("spot")), true))) {
+        if (isTrue(this->safeBool(market, std::string("spot"), false))) {
           code = this->safeString(market, std::string("base"), code);
         }
       }
@@ -3748,7 +3796,7 @@ public:
     //     }
     //
     ccxt::any marketId = this->safeString(position, std::string("product_id"));
-    market = this->safeMarket(marketId, market);
+    ccxt::any marketResolved = this->safeMarket(marketId, market);
     ccxt::any balance =
         this->safeDict(position, std::string("balance"), ccxt::dict{});
     ccxt::any amountString = this->safeString(balance, std::string("amount"));
@@ -3790,7 +3838,8 @@ public:
     return this->safePosition(ccxt::dict{
         {std::string("info"), position},
         {std::string("id"), ccxt::any{}},
-        {std::string("symbol"), ::getValue(market, std::string("symbol"))},
+        {std::string("symbol"),
+         ::getValue(marketResolved, std::string("symbol"))},
         {std::string("timestamp"), ccxt::any{}},
         {std::string("datetime"), ccxt::any{}},
         {std::string("isolated"), ccxt::any{}},
@@ -3798,7 +3847,7 @@ public:
         {std::string("side"), side},
         {std::string("contracts"), contracts},
         {std::string("contractSize"),
-         this->safeNumber(market, std::string("contractSize"))},
+         this->safeNumber(marketResolved, std::string("contractSize"))},
         {std::string("entryPrice"), entryPrice},
         {std::string("markPrice"), markPrice},
         {std::string("notional"), notional},
@@ -3910,6 +3959,7 @@ public:
     ccxt::any lastTradeTimestamp = ccxt::any{};
     ccxt::any lastUpdateTimestamp = ccxt::any{};
     ccxt::any status = ccxt::any{};
+    ccxt::any marketResolved = ccxt::any{};
     ccxt::any cancelOrderDigest =
         this->safeString(order, std::string("digest"));
     ccxt::any archiveFilled =
@@ -3917,7 +3967,7 @@ public:
     if (isTrue(!isEqual(archiveFilled, ccxt::any{}))) {
       id = cancelOrderDigest;
       ccxt::any marketId = this->safeString(order, std::string("product_id"));
-      market = this->safeMarket(marketId, market);
+      marketResolved = this->safeMarket(marketId, market);
       ccxt::any amountString = this->safeString(order, std::string("amount"));
       if (isTrue(!isEqual(amountString, ccxt::any{}))) {
         side = (isTrue(ccxt::Precise::stringLt(amountString, std::string("0")))
@@ -3960,13 +4010,14 @@ public:
       if (isTrue(!isEqual(feeCost, ccxt::any{}))) {
         fee = ccxt::dict{
             {std::string("cost"), feeCost},
-            {std::string("currency"), ::getValue(market, std::string("quote"))},
+            {std::string("currency"),
+             this->safeString(marketResolved, std::string("quote"))},
         };
       }
     } else if (isTrue(!isEqual(cancelOrderDigest, ccxt::any{}))) {
       id = cancelOrderDigest;
       ccxt::any marketId = this->safeString(order, std::string("product_id"));
-      market = this->safeMarket(marketId, market);
+      marketResolved = this->safeMarket(marketId, market);
       ccxt::any amountString = this->safeString(order, std::string("amount"));
       if (isTrue(!isEqual(amountString, ccxt::any{}))) {
         side = (isTrue(ccxt::Precise::stringLt(amountString, std::string("0")))
@@ -3994,7 +4045,7 @@ public:
           this->safeDict(placeOrder, std::string("order"), ccxt::dict{});
       ccxt::any marketId =
           this->safeString(placeOrder, std::string("product_id"));
-      market = this->safeMarket(marketId, market);
+      marketResolved = this->safeMarket(marketId, market);
       ccxt::any data = this->safeDict(order, std::string("data"), ccxt::dict{});
       id = this->safeString(data, std::string("digest"));
       if (isTrue(isEqual(id, ccxt::any{}))) {
@@ -4041,7 +4092,8 @@ public:
             {std::string("datetime"), this->iso8601(timestamp)},
             {std::string("lastTradeTimestamp"), lastTradeTimestamp},
             {std::string("lastUpdateTimestamp"), lastUpdateTimestamp},
-            {std::string("symbol"), ::getValue(market, std::string("symbol"))},
+            {std::string("symbol"),
+             ::getValue(marketResolved, std::string("symbol"))},
             {std::string("type"), std::string("limit")},
             {std::string("timeInForce"), timeInForce},
             {std::string("postOnly"), postOnly},
@@ -4058,7 +4110,7 @@ public:
             {std::string("fee"), fee},
             {std::string("trades"), ccxt::any{}},
         },
-        market);
+        marketResolved);
   }
 
   virtual ccxt::any parseOrderTimeInForce(ccxt::any timeInForce) {
@@ -4165,17 +4217,18 @@ public:
           add(this->id,
               std::string(" createSubaccount() requires walletAddress"))));
     }
-    if (isTrue(isEqual(subaccount, ccxt::any{}))) {
-      subaccount = std::string("default");
-    }
+    ccxt::any subaccountName = (isTrue((isEqual(subaccount, ccxt::any{})))
+                                    ? ccxt::any(std::string("default"))
+                                    : ccxt::any(subaccount));
     ccxt::any address = toLowerCase(this->remove0xPrefix(walletAddress));
-    if (isTrue(!isEqual(getArrayLength(address), 40))) {
+    if (isTrue(!isEqual(getStringLength(address), 40))) {
       throw BadRequest(toString(
           add(this->id,
               std::string(" createOrder() requires a 20-byte walletAddress"))));
     }
-    ccxt::any encoded = this->remove0xPrefix(this->stringToBase16(subaccount));
-    if (isTrue(isGreaterThan(getArrayLength(encoded), 24))) {
+    ccxt::any encoded =
+        this->remove0xPrefix(this->stringToBase16(subaccountName));
+    if (isTrue(isGreaterThan(getStringLength(encoded), 24))) {
       throw BadRequest(toString(
           add(this->id,
               std::string(" createOrder() subaccount must fit in 12 bytes"))));
@@ -4222,8 +4275,12 @@ public:
     ccxt::any zeros = std::string(
         "0000000000000000000000000000000000000000000000000000000000000000000000"
         "0000000000000000000000000000000000000000000000000000000000");
-    ccxt::any padded = (isTrue(left) ? ccxt::any((add(zeros, value)))
-                                     : ccxt::any((add(value, zeros))));
+    ccxt::any padded = ccxt::any{};
+    if (isTrue(left)) {
+      padded = (add(zeros, value));
+    } else {
+      padded = (add(value, zeros));
+    }
     if (isTrue(left)) {
       ccxt::any start = subtract(getStringLength(padded), length);
       return slice(padded, start, getStringLength(padded));
@@ -4396,20 +4453,26 @@ public:
                  ccxt::any params = ccxt::dict{},
                  ccxt::any headers = ccxt::any{},
                  ccxt::any body = ccxt::any{}) override {
+    ccxt::any requestBody = ccxt::any{};
     ccxt::any endpoint = ::getValue(api, 0);
     if (isTrue(isString(api))) {
       endpoint = api;
     }
-    ccxt::any url =
-        ::getValue(::getValue(this->urls, std::string("api")), endpoint);
+    ccxt::any baseApiUrl =
+        this->safeString(::getValue(this->urls, std::string("api")), endpoint);
+    if (isTrue(isEqual(baseApiUrl, ccxt::any{}))) {
+      throw ExchangeError(toString(add(
+          this->id, std::string(" sign() has no API URL for this endpoint"))));
+    }
+    ccxt::any url = baseApiUrl;
     if (isTrue(!isEqual(path, std::string("")))) {
       url = add(url, add(std::string("/"), this->implodeParams(path, params)));
     }
     ccxt::any query = this->omit(params, this->extractParams(path));
-    headers = ccxt::dict{};
+    ccxt::any headersValue = ccxt::dict{};
     if (isTrue(isTrue((isEqual(endpoint, std::string("gateway")))) ||
                isTrue((isEqual(endpoint, std::string("archive")))))) {
-      ::setValue(headers, std::string("Accept-Encoding"),
+      ::setValue(headersValue, std::string("Accept-Encoding"),
                  std::string("gzip, br, deflate"));
     }
     if (isTrue(isEqual(method, std::string("GET")))) {
@@ -4417,15 +4480,18 @@ public:
         url = add(url, add(std::string("?"), this->urlencode(query)));
       }
     } else {
-      ::setValue(headers, std::string("Content-Type"),
+      ::setValue(headersValue, std::string("Content-Type"),
                  std::string("application/json"));
-      body = this->json(query);
+      requestBody = this->json(query);
     }
+    ccxt::any bodyResult =
+        (isTrue((!isEqual(requestBody, ccxt::any{}))) ? ccxt::any(requestBody)
+                                                      : ccxt::any(body));
     return ccxt::dict{
         {std::string("url"), url},
         {std::string("method"), method},
-        {std::string("body"), body},
-        {std::string("headers"), headers},
+        {std::string("body"), bodyResult},
+        {std::string("headers"), headersValue},
     };
   }
 
@@ -5100,6 +5166,18 @@ public:
     if (which == "handleDelta") {
       if (true) {
         this->handleDelta(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDeltas") {
+      if (true) {
+        this->handleBookDeltas(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDelta") {
+      if (true) {
+        this->handleBookDelta(::getValue(args, 0), ::getValue(args, 1));
         return ccxt::any{};
       }
     }

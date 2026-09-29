@@ -28,6 +28,7 @@ struct PredictionFees;
 struct PredictionEvent;
 struct PredictionMarket;
 struct PredictionOutcome;
+struct PredictionOutcomeMarket;
 struct PredictionOrder;
 struct PredictionTrade;
 struct PredictionPosition;
@@ -601,6 +602,26 @@ struct PredictionOutcome {
         this->winner = typedsupport::optBool (raw, "winner");
         this->settleFraction = typedsupport::optNum (raw, "settleFraction");
         this->precision = typedsupport::optStruct<Precision> (raw, "precision");
+    }
+};
+
+struct PredictionOutcomeMarket {
+    std::optional<std::string> outcome;
+    std::optional<std::string> outcomeId;
+    std::optional<std::string> label;
+    std::optional<std::string> market;
+    std::optional<std::string> marketId;
+    std::optional<std::string> event;
+
+    PredictionOutcomeMarket () = default;
+    explicit PredictionOutcomeMarket (const ccxt::any& raw) {
+        if (!isDict (raw)) { return; }
+        this->outcome = typedsupport::optStr (raw, "outcome");
+        this->outcomeId = typedsupport::optStr (raw, "outcomeId");
+        this->label = typedsupport::optStr (raw, "label");
+        this->market = typedsupport::optStr (raw, "market");
+        this->marketId = typedsupport::optStr (raw, "marketId");
+        this->event = typedsupport::optStr (raw, "event");
     }
 };
 

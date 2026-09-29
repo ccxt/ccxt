@@ -16,32 +16,32 @@ public:
     revolutxApi () = default;
     explicit revolutxApi (ccxt::any config) : Exchange (config) {}
 
-    // Calls the publicGet20PublicOrderBookSymbol endpoint. Returns a JSON object or a JSON array.
+    // Calls the publicGet20PublicOrderBookSymbol endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> publicGet20PublicOrderBookSymbol (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGet20PublicOrderBookSymbol"), parameters);
     }
 
-    // Calls the publicGet10PublicTickers endpoint. Returns a JSON object or a JSON array.
+    // Calls the publicGet10PublicTickers endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> publicGet10PublicTickers (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGet10PublicTickers"), parameters);
     }
 
-    // Calls the publicGet10PublicCandlesSymbol endpoint. Returns a JSON object or a JSON array.
+    // Calls the publicGet10PublicCandlesSymbol endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> publicGet10PublicCandlesSymbol (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGet10PublicCandlesSymbol"), parameters);
     }
 
-    // Calls the publicGet10PublicTradesAll endpoint. Returns a JSON object or a JSON array.
+    // Calls the publicGet10PublicTradesAll endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> publicGet10PublicTradesAll (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGet10PublicTradesAll"), parameters);
     }
 
-    // Calls the publicGet10PublicConfigurationCurrencies endpoint. Returns a JSON object or a JSON array.
+    // Calls the publicGet10PublicConfigurationCurrencies endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> publicGet10PublicConfigurationCurrencies (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGet10PublicConfigurationCurrencies"), parameters);
     }
 
-    // Calls the publicGet10PublicConfigurationPairs endpoint. Returns a JSON object or a JSON array.
+    // Calls the publicGet10PublicConfigurationPairs endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> publicGet10PublicConfigurationPairs (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGet10PublicConfigurationPairs"), parameters);
     }
@@ -51,17 +51,17 @@ public:
         return this->callEndpoint (std::string ("privateGet10Balances"), parameters);
     }
 
-    // Calls the privateGet10OrdersActive endpoint. Returns a JSON object or a JSON array.
+    // Calls the privateGet10OrdersActive endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGet10OrdersActive (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGet10OrdersActive"), parameters);
     }
 
-    // Calls the privateGet10OrdersHistorical endpoint. Returns a JSON object or a JSON array.
+    // Calls the privateGet10OrdersHistorical endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGet10OrdersHistorical (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGet10OrdersHistorical"), parameters);
     }
 
-    // Calls the privateGet10OrdersVenueOrderId endpoint. Returns a JSON object or a JSON array.
+    // Calls the privateGet10OrdersVenueOrderId endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGet10OrdersVenueOrderId (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGet10OrdersVenueOrderId"), parameters);
     }
@@ -71,7 +71,7 @@ public:
         return this->callEndpoint (std::string ("privateGet10OrdersFillsVenueOrderId"), parameters);
     }
 
-    // Calls the privateGet10TradesPrivateSymbol endpoint. Returns a JSON object or a JSON array.
+    // Calls the privateGet10TradesPrivateSymbol endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGet10TradesPrivateSymbol (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGet10TradesPrivateSymbol"), parameters);
     }
@@ -81,12 +81,12 @@ public:
         return this->callEndpoint (std::string ("privateGet10Transactions"), parameters);
     }
 
-    // Calls the privatePost10Orders endpoint. Returns a JSON object or a JSON array.
+    // Calls the privatePost10Orders endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePost10Orders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePost10Orders"), parameters);
     }
 
-    // Calls the privatePut10OrdersVenueOrderId endpoint. Returns a JSON object or a JSON array.
+    // Calls the privatePut10OrdersVenueOrderId endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePut10OrdersVenueOrderId (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePut10OrdersVenueOrderId"), parameters);
     }
@@ -96,7 +96,7 @@ public:
         return this->callEndpoint (std::string ("privateDelete10Orders"), parameters);
     }
 
-    // Calls the privateDelete10OrdersVenueOrderId endpoint. Returns a JSON object or a JSON array.
+    // Calls the privateDelete10OrdersVenueOrderId endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateDelete10OrdersVenueOrderId (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateDelete10OrdersVenueOrderId"), parameters);
     }

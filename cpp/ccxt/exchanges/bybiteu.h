@@ -93,6 +93,11 @@ public:
             {std::string("options"),
              ccxt::dict{
                  {std::string("mica"), true},
+                 {std::string("defaultType"), std::string("spot")},
+                 {std::string("fetchMarkets"),
+                  ccxt::dict{
+                      {std::string("types"), ccxt::list{std::string("spot")}},
+                  }},
              }},
         });
   }
@@ -139,6 +144,18 @@ public:
     if (which == "handleDelta") {
       if (true) {
         this->handleDelta(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDeltas") {
+      if (true) {
+        this->handleBookDeltas(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDelta") {
+      if (true) {
+        this->handleBookDelta(::getValue(args, 0), ::getValue(args, 1));
         return ccxt::any{};
       }
     }

@@ -88,13 +88,30 @@ public:
                   ccxt::dict{
                       {std::string("get"),
                        ccxt::dict{
-                           {std::string("2.0/public/order-book/{symbol}"), 1},
-                           {std::string("1.0/public/tickers"), 1},
-                           {std::string("1.0/public/candles/{symbol}"), 1},
-                           {std::string("1.0/public/trades/all"), 1},
+                           {std::string("2.0/public/order-book/{symbol}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("1.0/public/tickers"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("1.0/public/candles/{symbol}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("1.0/public/trades/all"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("1.0/public/configuration/currencies"),
-                            1},
-                           {std::string("1.0/public/configuration/pairs"), 1},
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("1.0/public/configuration/pairs"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                   }},
                  {std::string("private"),
@@ -102,26 +119,47 @@ public:
                       {std::string("get"),
                        ccxt::dict{
                            {std::string("1.0/balances"), 1},
-                           {std::string("1.0/orders/active"), 1},
-                           {std::string("1.0/orders/historical"), 1},
-                           {std::string("1.0/orders/{venue_order_id}"), 1},
+                           {std::string("1.0/orders/active"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("1.0/orders/historical"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("1.0/orders/{venue_order_id}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("1.0/orders/fills/{venue_order_id}"),
                             1},
-                           {std::string("1.0/trades/private/{symbol}"), 1},
+                           {std::string("1.0/trades/private/{symbol}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("1.0/transactions"), 1},
                        }},
                       {std::string("post"),
                        ccxt::dict{
-                           {std::string("1.0/orders"), 1},
+                           {std::string("1.0/orders"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                       {std::string("put"),
                        ccxt::dict{
-                           {std::string("1.0/orders/{venue_order_id}"), 1},
+                           {std::string("1.0/orders/{venue_order_id}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                       {std::string("delete"),
                        ccxt::dict{
                            {std::string("1.0/orders"), 1},
-                           {std::string("1.0/orders/{venue_order_id}"), 1},
+                           {std::string("1.0/orders/{venue_order_id}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                   }},
              }},
@@ -260,14 +298,20 @@ public:
                  ccxt::any params = ccxt::dict{},
                  ccxt::any headers = ccxt::any{},
                  ccxt::any body = ccxt::any{}) override {
+    ccxt::any requestHeaders = ccxt::any{};
+    ccxt::any requestBody = ccxt::any{};
     ccxt::any implodedPath = this->implodeParams(path, params);
     ccxt::any query = this->omit(params, this->extractParams(path));
     ccxt::any queryKeys = getObjectKeys(query);
     ccxt::any queryLength = getArrayLength(queryKeys);
-    ccxt::any url =
-        add(add(::getValue(::getValue(this->urls, std::string("api")), api),
-                std::string("/")),
-            implodedPath);
+    ccxt::any baseApiUrl =
+        this->safeString(::getValue(this->urls, std::string("api")), api);
+    if (isTrue(isEqual(baseApiUrl, ccxt::any{}))) {
+      throw ExchangeError(toString(add(
+          this->id, std::string(" sign() has no API URL for this endpoint"))));
+    }
+    ccxt::any baseUrl = baseApiUrl;
+    ccxt::any url = add(add(baseUrl, std::string("/")), implodedPath);
     ccxt::any queryString = std::string("");
     if (isTrue(isEqual(api, std::string("private")))) {
       this->checkRequiredCredentials();
@@ -283,27 +327,29 @@ public:
           url = add(url, add(std::string("?"), queryString));
         }
       } else {
-        body = this->json(query);
+        requestBody = this->json(query);
       }
       ccxt::any requestPath = add(std::string("/api/"), implodedPath);
-      ccxt::any bodyString = std::string("");
-      if (isTrue(!isEqual(body, ccxt::any{}))) {
-        bodyString = body;
-      }
+      ccxt::any bodyValue =
+          (isTrue((!isEqual(requestBody, ccxt::any{}))) ? ccxt::any(requestBody)
+                                                        : ccxt::any(body));
+      ccxt::any bodyString = (isTrue((!isEqual(bodyValue, ccxt::any{})))
+                                  ? ccxt::any(bodyValue)
+                                  : ccxt::any(std::string("")));
       ccxt::any message =
           add(add(add(add(timestamp, toUpperCase(method)), requestPath),
                   queryString),
               bodyString);
       ccxt::any signature =
           eddsa(this->encode(message), this->privateKey, ed25519);
-      headers = ccxt::dict{
+      requestHeaders = ccxt::dict{
           {std::string("X-Revx-API-Key"), this->apiKey},
           {std::string("X-Revx-Timestamp"), timestamp},
           {std::string("X-Revx-Signature"), signature},
       };
       if (isTrue(isTrue(isEqual(method, std::string("POST"))) ||
                  isTrue(isEqual(method, std::string("PUT"))))) {
-        ::setValue(headers, std::string("Content-Type"),
+        ::setValue(requestHeaders, std::string("Content-Type"),
                    std::string("application/json"));
       }
     } else {
@@ -313,17 +359,23 @@ public:
           url = add(url, add(std::string("?"), queryString));
         }
       } else {
-        body = this->json(query);
-        headers = ccxt::dict{
+        requestBody = this->json(query);
+        requestHeaders = ccxt::dict{
             {std::string("Content-Type"), std::string("application/json")},
         };
       }
     }
+    ccxt::any headersResult = (isTrue((!isEqual(requestHeaders, ccxt::any{})))
+                                   ? ccxt::any(requestHeaders)
+                                   : ccxt::any(headers));
+    ccxt::any bodyResult =
+        (isTrue((!isEqual(requestBody, ccxt::any{}))) ? ccxt::any(requestBody)
+                                                      : ccxt::any(body));
     return ccxt::dict{
         {std::string("url"), url},
         {std::string("method"), method},
-        {std::string("body"), body},
-        {std::string("headers"), headers},
+        {std::string("body"), bodyResult},
+        {std::string("headers"), headersResult},
     };
   }
 
@@ -470,6 +522,10 @@ public:
                        this->safeString(market, std::string("base"));
                    ccxt::any quote =
                        this->safeString(market, std::string("quote"));
+                   if (isTrue(isTrue((isEqual(base, ccxt::any{}))) ||
+                              isTrue((isEqual(quote, ccxt::any{}))))) {
+                     continue;
+                   }
                    ccxt::any marketId = add(add(base, std::string("-")), quote);
                    ccxt::any marketData =
                        this->extend(market, ccxt::dict{
@@ -2386,6 +2442,18 @@ public:
     if (which == "handleDelta") {
       if (true) {
         this->handleDelta(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDeltas") {
+      if (true) {
+        this->handleBookDeltas(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDelta") {
+      if (true) {
+        this->handleBookDelta(::getValue(args, 0), ::getValue(args, 1));
         return ccxt::any{};
       }
     }

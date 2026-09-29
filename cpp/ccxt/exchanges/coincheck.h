@@ -489,7 +489,8 @@ public:
                  for (ccxt::any i = 0;
                       isLessThan(i, getArrayLength(exchangeStatuses));
                       postFixIncrement(i)) {
-                   ccxt::any exchangeStatus = ::getValue(exchangeStatuses, i);
+                   ccxt::any exchangeStatus =
+                       this->safeDict(exchangeStatuses, i);
                    ccxt::any rawStatus =
                        this->safeString(exchangeStatus, std::string("status"));
                    if (isTrue(isEqual(updated, ccxt::any{}))) {
@@ -806,10 +807,11 @@ public:
     ccxt::any id = this->safeString(trade, std::string("id"));
     ccxt::any priceString = this->safeString(trade, std::string("rate"));
     ccxt::any marketId = this->safeString(trade, std::string("pair"));
-    market = this->safeMarket(marketId, market, std::string("_"));
-    ccxt::any baseId = ::getValue(market, std::string("baseId"));
-    ccxt::any quoteId = ::getValue(market, std::string("quoteId"));
-    ccxt::any symbol = ::getValue(market, std::string("symbol"));
+    ccxt::any marketResolved =
+        this->safeMarket(marketId, market, std::string("_"));
+    ccxt::any baseId = ::getValue(marketResolved, std::string("baseId"));
+    ccxt::any quoteId = ::getValue(marketResolved, std::string("quoteId"));
+    ccxt::any symbol = ::getValue(marketResolved, std::string("symbol"));
     ccxt::any takerOrMaker = ccxt::any{};
     ccxt::any amountString = ccxt::any{};
     ccxt::any costString = ccxt::any{};
@@ -856,7 +858,7 @@ public:
             {std::string("cost"), costString},
             {std::string("fee"), fee},
         },
-        market);
+        marketResolved);
   }
 
   /**
@@ -1082,7 +1084,6 @@ public:
                    } else {
                      ccxt::any cost =
                          this->safeNumber(params, std::string("cost"));
-                     params = this->omit(params, std::string("cost"));
                      if (isTrue(!isEqual(cost, ccxt::any{}))) {
                        throw ArgumentsRequired(toString(
                            add(this->id,
@@ -1100,8 +1101,8 @@ public:
                    ::setValue(request, std::string("amount"), amount);
                  }
                  ccxt::any response =
-                     awaitValue(this->privatePostExchangeOrders(
-                         this->extend(request, params)));
+                     awaitValue(this->privatePostExchangeOrders(this->extend(
+                         request, this->omit(params, std::string("cost")))));
                  ccxt::any id = this->safeString(response, std::string("id"));
                  return this->safeOrder(
                      ccxt::dict{
@@ -1377,11 +1378,16 @@ public:
                  ccxt::any params = ccxt::dict{},
                  ccxt::any headers = ccxt::any{},
                  ccxt::any body = ccxt::any{}) override {
+    ccxt::any bodySigned = ccxt::any{};
+    ccxt::any headersSigned = ccxt::any{};
+    ccxt::any apiUrl = this->safeString(
+        ::getValue(this->urls, std::string("api")), std::string("rest"));
+    if (isTrue(isEqual(apiUrl, ccxt::any{}))) {
+      throw ExchangeError(toString(add(
+          this->id, std::string(" sign() has no API URL for this endpoint"))));
+    }
     ccxt::any url =
-        add(add(::getValue(::getValue(this->urls, std::string("api")),
-                           std::string("rest")),
-                std::string("/")),
-            this->implodeParams(path, params));
+        add(add(apiUrl, std::string("/")), this->implodeParams(path, params));
     ccxt::any query = this->omit(params, this->extractParams(path));
     if (isTrue(isEqual(api, std::string("public")))) {
       if (isTrue(isGreaterThan(getArrayLength(getObjectKeys(query)), 0))) {
@@ -1398,12 +1404,12 @@ public:
         }
       } else {
         if (isTrue(isGreaterThan(getArrayLength(getObjectKeys(query)), 0))) {
-          body = this->urlencode(this->keysort(query));
-          queryString = body;
+          bodySigned = this->urlencode(this->keysort(query));
+          queryString = bodySigned;
         }
       }
       ccxt::any auth = add(add(nonce, url), queryString);
-      headers = ccxt::dict{
+      headersSigned = ccxt::dict{
           {std::string("Content-Type"),
            std::string("application/x-www-form-urlencoded")},
           {std::string("ACCESS-KEY"), this->apiKey},
@@ -1412,11 +1418,17 @@ public:
            this->hmac(this->encode(auth), this->encode(this->secret), sha256)},
       };
     }
+    ccxt::any headersResolved = (isTrue((isEqual(headersSigned, ccxt::any{})))
+                                     ? ccxt::any(headers)
+                                     : ccxt::any(headersSigned));
+    ccxt::any bodyResolved =
+        (isTrue((isEqual(bodySigned, ccxt::any{}))) ? ccxt::any(body)
+                                                    : ccxt::any(bodySigned));
     return ccxt::dict{
         {std::string("url"), url},
         {std::string("method"), method},
-        {std::string("body"), body},
-        {std::string("headers"), headers},
+        {std::string("body"), bodyResolved},
+        {std::string("headers"), headersResolved},
     };
   }
 
@@ -1694,6 +1706,18 @@ public:
     if (which == "handleDelta") {
       if (true) {
         this->handleDelta(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDeltas") {
+      if (true) {
+        this->handleBookDeltas(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDelta") {
+      if (true) {
+        this->handleBookDelta(::getValue(args, 0), ::getValue(args, 1));
         return ccxt::any{};
       }
     }

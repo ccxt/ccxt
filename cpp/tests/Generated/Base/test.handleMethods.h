@@ -8,6 +8,7 @@
 // forward declarations - TS hoists function declarations, C++ does not
 void helperTestHandleMarketTypeAndParams();
 void helperTestHandleNetworkRequest();
+void helperTestHandleTypedOptions();
 void testHandleMethods();
 
 void helperTestHandleMarketTypeAndParams() {
@@ -121,7 +122,51 @@ void helperTestHandleNetworkRequest() {
   assertTrue(isEqual(::getValue(request1, std::string("chain_id")),
                      std::string("Xyz")));
 }
+void helperTestHandleTypedOptions() {
+  ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
+      {std::string("id"), std::string("sampleexchange")},
+      {std::string("options"),
+       ccxt::dict{
+           {std::string("marginMode"), std::string("isolated")},
+           {std::string("fetchX"),
+            ccxt::dict{
+                {std::string("uta"), true},
+            }},
+       }},
+  });
+  ccxt::any marginModeparams1Variable = exchange.handleMarginModeAndParams(
+      std::string("fetchX"), ccxt::dict{}, std::string("cross"));
+  ccxt::any marginMode = ::getValue(marginModeparams1Variable, 0);
+  ccxt::any params1 = ::getValue(marginModeparams1Variable, 1);
+  assertTrue(isEqual(marginMode, std::string("isolated")));
+  ccxt::any utaparams2Variable = exchange.handleOptionBoolAndParams(
+      ccxt::dict{}, std::string("fetchX"), std::string("uta"), false);
+  ccxt::any uta = ::getValue(utaparams2Variable, 0);
+  ccxt::any params2 = ::getValue(utaparams2Variable, 1);
+  assertTrue(isEqual(uta, true));
+  ccxt::any absentparams3Variable = exchange.handleOptionStringAndParams(
+      ccxt::dict{}, std::string("fetchX"), std::string("absentKey"),
+      std::string("fallback"));
+  ccxt::any absent = ::getValue(absentparams3Variable, 0);
+  ccxt::any params3 = ::getValue(absentparams3Variable, 1);
+  assertTrue(isEqual(absent, std::string("fallback")));
+  ccxt::any fromParamsparams4Variable = exchange.handleOptionStringAndParams(
+      ccxt::dict{
+          {std::string("absentKey"), std::string("p")},
+      },
+      std::string("fetchX"), std::string("absentKey"), std::string("fallback"));
+  ccxt::any fromParams = ::getValue(fromParamsparams4Variable, 0);
+  ccxt::any params4 = ::getValue(fromParamsparams4Variable, 1);
+  assertTrue(isEqual(fromParams, std::string("p")));
+  assertTrue(!isTrue((inOp(params4, std::string("absentKey")))));
+  // a wrong-typed option is covered per language in language_specific (it
+  // throws only in C#, Java and Go)
+  assertTrue(isTrue(isTrue(!isEqual(params1, ccxt::any{})) ||
+                    isTrue(!isEqual(params2, ccxt::any{}))) ||
+             isTrue(!isEqual(params3, ccxt::any{})));
+}
 void testHandleMethods() {
   helperTestHandleMarketTypeAndParams();
   helperTestHandleNetworkRequest();
+  helperTestHandleTypedOptions();
 }

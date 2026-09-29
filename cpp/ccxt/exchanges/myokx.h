@@ -125,6 +125,18 @@ public:
         return ccxt::any{};
       }
     }
+    if (which == "handleBookDeltas") {
+      if (true) {
+        this->handleBookDeltas(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
+    if (which == "handleBookDelta") {
+      if (true) {
+        this->handleBookDelta(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
+    }
     if (which == "handleDeltasWithKeys") {
       if (count <= 2) {
         this->handleDeltasWithKeys(::getValue(args, 0), ::getValue(args, 1));
