@@ -2623,7 +2623,6 @@ export default class ndax extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         // this method required login, password and twofa key
         const sessionToken = this.safeString (this.options, 'sessionToken');
         if (sessionToken === undefined) {
@@ -2632,7 +2631,7 @@ export default class ndax extends Exchange {
         if (this.twofa === undefined) {
             throw new AuthenticationError (this.id + ' withdraw() requires exchange.twofa credentials');
         }
-        this.checkAddress (address);
+        this.checkAddress (address, code, tag, params);
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         if (this.markets === undefined) {
             await this.loadMarkets ();

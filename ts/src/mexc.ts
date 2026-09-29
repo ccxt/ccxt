@@ -5767,7 +5767,6 @@ export default class mexc extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         const internal = this.safeBool (params, 'internal', false);
         if (internal === true) {
             params = this.omit (params, 'internal');
@@ -5792,7 +5791,7 @@ export default class mexc extends Exchange {
         let network = this.safeString2 (params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ETH > ERC-20 alias
         network = this.networkCodeToId (network, currency['code']);
-        this.checkAddress (address);
+        this.checkAddress (address, code, tag, params);
         const request: Dict = {
             'coin': currency['id'],
             'address': address,

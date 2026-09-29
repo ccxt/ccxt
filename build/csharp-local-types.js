@@ -1200,7 +1200,7 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     'handleProductTypeAndParams': 'List<object>', 'handlePublicAddress': 'List<object>', 'handleRequestNetwork': 'List<object>', 'handleSubTypeAndParams': 'List<object>',
     'handleTriggerAndParams': 'List<object>', 'handleTriggerDirectionAndParams': 'List<object>', 'handleTriggerOptionAndParams': 'List<object>', 'handleTriggerPrices': 'List<object>',
     'handleTriggerPricesAndParams': 'List<object>', 'handleTypePostOnlyAndTimeInForce': 'List<object>', 'handleUntilOption': 'List<object>', 'handleUntilOptionString': 'List<object>',
-    'handleWithdrawTagAndParams': 'List<object>', 'idsQueryStrings': 'List<object>', 'multiOrderSpotPrepareRequest': 'List<object>', 'orderRequest': 'List<object>',
+    'idsQueryStrings': 'List<object>', 'multiOrderSpotPrepareRequest': 'List<object>', 'orderRequest': 'List<object>',
     'orderRequestWs': 'List<object>', 'ordersToTrades': 'List<object>', 'parseAccountPositions': 'List<object>', 'parseAccounts': 'List<object>',
     'parseAddress': 'List<object>', 'parseBinaryMarketToOutcomes': 'List<object>', 'parseCancelOrders': 'List<object>', 'parseContractBidsAsks': 'List<object>',
     'parseCreateEditOrderArgs': 'List<object>', 'parseDepositMethodIds': 'List<object>', 'parseEventToMarkets': 'List<object>', 'parseEvents': 'List<object>',
@@ -7573,7 +7573,7 @@ function coreArgParamType (csharp, node) {
 
 // the parameter is the target of a write anywhere in the method body: its own symbol, an
 // assignment (or compound assignment) left side -- through parens and array/object patterns, so
-// a `[ tag, params ] = this.handleWithdrawTagAndParams (…)` destructure counts -- or ++/--
+// a `[ type, params ] = this.handleMarketTypeAndParams (…)` destructure counts -- or ++/--
 function csharpParameterIsWritten (csharp, owner, declaration) {
     if (owner.body === undefined) {
         return false;

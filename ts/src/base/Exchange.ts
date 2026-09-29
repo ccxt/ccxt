@@ -3516,7 +3516,7 @@ export class BaseExchange {
         }
     }
 
-    checkAddress (address: Str = undefined): Str {
+    checkAddress (address: Str = undefined, code: Str = undefined, tag: Str = undefined, params: Dict = {}): Str {
         if (address === undefined) {
             throw new InvalidAddress (this.id + ' address is undefined');
         }
@@ -3525,6 +3525,15 @@ export class BaseExchange {
         const length = uniqChars.length; // py transpiler trick
         if (length === 1 || address.length < this.minFundingAddressLength || address.indexOf (' ') > -1) {
             throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + address.toString () + '"');
+        }
+        if (code !== undefined) {
+            const tagRequiredCurrencies = this.safeList (this.options, 'withdrawTagRequiredCurrencies', []);
+            if (this.inArray (code, tagRequiredCurrencies)) {
+                const paramsTag = this.safeString (params, 'tag');
+                if (tag === undefined && paramsTag === undefined) {
+                    throw new ArgumentsRequired (this.id + ' withdraw() requires a tag argument or params["tag"] for ' + code);
+                }
+            }
         }
         return address;
     }
@@ -4311,6 +4320,8 @@ export class BaseExchange {
                 'ARBONE': 'ARBITRUM',
                 'ARBNOVA': 'ARBITRUM_NOVA',
             },
+            // withdrawals of these currencies need a destination tag / memo
+            'withdrawTagRequiredCurrencies': [ 'XRP', 'XLM', 'EOS' ],
         };
     }
 
@@ -7391,20 +7402,6 @@ export class BaseExchange {
             }
         }
         return false;
-    }
-
-    handleWithdrawTagAndParams (tag: any, params: any): any {
-        if (this.isDictionary (tag)) {
-            params = this.extend (tag, params);
-            tag = undefined;
-        }
-        if (tag === undefined) {
-            tag = this.safeString (params, 'tag');
-            if (tag !== undefined) {
-                params = this.omit (params, 'tag');
-            }
-        }
-        return [ tag, params ];
     }
 
     costToPrecision (symbol: Str, cost: any): Str {

@@ -2701,8 +2701,7 @@ export default class bithumb extends Exchange {
         }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'withdraw', 'generation', 2);
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
+        this.checkAddress (address, code, tag, params);
         const network = this.safeString2 (params, 'network', 'net_type');
         params = this.omit (params, 'network');
         const currency = this.currency (code);

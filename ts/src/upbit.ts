@@ -2382,7 +2382,6 @@ export default class upbit extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2392,7 +2391,7 @@ export default class upbit extends Exchange {
         };
         let response: Dict;
         if (code !== 'KRW') {
-            this.checkAddress (address);
+            this.checkAddress (address, code, tag, params);
             // 2023-05-23 Change to required parameters for digital assets
             const network = this.safeStringUpper2 (params, 'network', 'net_type');
             if (network === undefined) {

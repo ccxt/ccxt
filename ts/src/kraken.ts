@@ -3433,7 +3433,6 @@ export default class kraken extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         if ('key' in params) {
             await this.loadMarkets ();
             const currency = this.currency (code);
@@ -3444,7 +3443,7 @@ export default class kraken extends Exchange {
             };
             if (address !== undefined && address !== '') {
                 request['address'] = address;
-                this.checkAddress (address);
+                this.checkAddress (address, code, tag, params);
             }
             const response = await this.privatePostWithdraw (this.extend (request, params));
             //
