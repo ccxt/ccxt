@@ -5848,7 +5848,7 @@ export default class binance extends Exchange {
             }
         }
         if (clientOrderId === undefined) {
-            request['newClientOrderId'] = this.createBrokerId (market);
+            request['newClientOrderId'] = this.generateClientOrderId (market);
         } else {
             request['newClientOrderId'] = clientOrderId;
         }
@@ -7095,35 +7095,51 @@ export default class binance extends Exchange {
     /**
      * @method
      * @ignore
-     * @name binance#createBrokerId
-     * @description builds a fresh client order id carrying the broker prefix of the target market or implicit api section
+     * @name binance#generateClientOrderId
+     * @description builds a fresh client order id
      * @param {object} [market] the market of the order, takes precedence over the api argument
      * @param {string} [api] the implicit api section the order is sent to (private, sapi, fapiPrivate, dapiPrivate, eapiPrivate, ...)
      * @returns {string} the broker prefix followed by 22 random characters
      */
-    createBrokerId (market: Market = undefined, api: Str = undefined): string {
-        let idMarketType = 'spot';
+    generateClientOrderId (market: Market = undefined, api: Str = undefined): string {
+        let idMarketType: Str = undefined;
         if (market !== undefined) {
             if (market['option'] === true) {
                 idMarketType = 'option';
             } else if (market['linear'] === true) {
                 idMarketType = (market['swap'] === true) ? 'swap' : 'future';
             } else if (market['inverse'] === true) {
-                idMarketType = (market['swap'] === true) ? 'inverse' : 'delivery';
+                idMarketType = 'inverse';
+            } else {
+                idMarketType = 'spot';
             }
         } else if (api !== undefined) {
             const isSpotOrMargin = (api.indexOf ('sapi') > -1 || api === 'private');
-            if (!isSpotOrMargin) {
-                if (api.indexOf ('dapi') > -1) {
-                    idMarketType = 'delivery';
-                } else if (api.indexOf ('eapi') > -1) {
-                    idMarketType = 'option';
-                } else {
-                    idMarketType = 'future';
-                }
+            if (isSpotOrMargin) {
+                idMarketType = 'spot';
+            } else if (api.indexOf ('dapi') > -1) {
+                idMarketType = 'inverse';
+            } else if (api.indexOf ('eapi') > -1) {
+                idMarketType = 'option';
+            } else {
+                idMarketType = 'future';
+            }
+        } else {
+            const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+            const defaultSubType = this.safeString (this.options, 'defaultSubType');
+            idMarketType = defaultType;
+            if (defaultType === 'delivery') {
+                idMarketType = 'inverse';
+            } else if ((defaultSubType === 'inverse') && ((defaultType === 'swap') || (defaultType === 'future'))) {
+                idMarketType = 'inverse';
             }
         }
-        const defaultId = (idMarketType === 'spot') ? 'x-TKT5PX2F' : 'x-xcKtGhcu';
+        let defaultId = 'x-xcKtGhcu'; // inverse, option
+        if ((idMarketType === 'spot') || (idMarketType === 'margin')) {
+            defaultId = 'x-TKT5PX2F';
+        } else if ((idMarketType === 'future') || (idMarketType === 'swap')) {
+            defaultId = 'x-cvBPrNm9';
+        }
         const broker = this.safeDict (this.options, 'broker', {});
         const brokerId = this.safeString (broker, idMarketType, defaultId);
         return brokerId + this.uuid22 ();
@@ -7284,7 +7300,7 @@ export default class binance extends Exchange {
             clientOrderIdRequest = 'clientOrderId';
         }
         if (clientOrderId === undefined) {
-            request[clientOrderIdRequest] = this.createBrokerId (market);
+            request[clientOrderIdRequest] = this.generateClientOrderId (market);
         } else {
             request[clientOrderIdRequest] = clientOrderId;
         }
@@ -13208,13 +13224,13 @@ export default class binance extends Exchange {
                 // inject in implicit API calls
                 const newClientOrderId = this.safeString (params, 'newClientOrderId');
                 if (newClientOrderId === undefined) {
-                    params['newClientOrderId'] = this.createBrokerId (undefined, api);
+                    params['newClientOrderId'] = this.generateClientOrderId (undefined, api);
                 }
             } else if (method === 'POST' && (path === 'algoOrder')) {
                 // the fapi/dapi algo order endpoints take clientAlgoId instead of newClientOrderId
                 const clientAlgoId = this.safeString (params, 'clientAlgoId');
                 if (clientAlgoId === undefined) {
-                    params['clientAlgoId'] = this.createBrokerId (undefined, api);
+                    params['clientAlgoId'] = this.generateClientOrderId (undefined, api);
                 }
             }
             let query: Str = undefined;
@@ -13229,7 +13245,7 @@ export default class binance extends Exchange {
                         const batchOrder = batchOrders[i];
                         const newClientOrderId = this.safeString (batchOrder, 'newClientOrderId');
                         if (newClientOrderId === undefined) {
-                            batchOrder['newClientOrderId'] = this.createBrokerId (undefined, api);
+                            batchOrder['newClientOrderId'] = this.generateClientOrderId (undefined, api);
                         }
                         checkedBatchOrders.push (batchOrder);
                     }
