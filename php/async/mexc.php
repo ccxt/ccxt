@@ -488,8 +488,8 @@ class mexc extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => $this->parse_number('0.002'), // maker / taker
-                    'taker' => $this->parse_number('0.002'),
+                    'maker' => $this->parse_number('0.00'),
+                    'taker' => $this->parse_number('0.0005'),
                 ),
             ),
             'options' => array(
