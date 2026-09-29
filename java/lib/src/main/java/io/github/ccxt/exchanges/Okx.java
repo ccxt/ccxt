@@ -8583,18 +8583,18 @@ public class Okx extends OkxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
                 for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
-                    Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(i)));
+                    Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                     Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
                     String ruleType = this.safeString(marketInfo, "ruleType");
                     Boolean isExtendedPerpetual = (java.util.Objects.equals(ruleType, "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
                     if ((!java.util.Objects.equals(market.get("swap"), true)) && !Boolean.TRUE.equals(isExtendedPerpetual))
                     {
-                        throw new BadRequest((((this.id + " fetchFundingRates() symbols must be swap markets or XPERP futures, ") + (symbolsNormalized == null || i < 0 || i >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(i))) + " is not")) ;
+                        throw new BadRequest((((this.id + " fetchFundingRates() symbols must be swap markets or XPERP futures, ") + (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))) + " is not")) ;
                     }
                 }
             }
@@ -8619,7 +8619,7 @@ public class Okx extends OkxApi
             //    }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseFundingRates(data, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseFundingRates(data, symbolsNormalized);
         }).thenApply(FundingRates::new);
 
     }

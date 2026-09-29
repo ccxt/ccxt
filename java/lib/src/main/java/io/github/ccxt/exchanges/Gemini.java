@@ -976,7 +976,7 @@ public class Gemini extends GeminiApi
                 }};
                 // don't use Promise.all here, for some reason the exchange can't handle it and crashes
                 Map<String, Object> rawResponse = (this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters))).join();
-                Object parsed = this.parseMarket(rawResponse);
+                MarketInterface parsed = this.parseMarket(rawResponse);
                 if (!java.util.Objects.equals(parsed, null))
                 {
                     ((List<Object>)result).add(parsed);
@@ -1030,7 +1030,7 @@ public class Gemini extends GeminiApi
                 Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
                 for (var i = 0; i < ((List<?>)responses).size(); i++)
                 {
-                    Object parsed = this.parseMarket((responses == null || i < 0 || i >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(i)));
+                    MarketInterface parsed = this.parseMarket((responses == null || i < 0 || i >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(i)));
                     if (!java.util.Objects.equals(parsed, null))
                     {
                         ((List<Object>)result).add(parsed);
@@ -1049,7 +1049,7 @@ public class Gemini extends GeminiApi
                         List<Object> pairInfo = (List<Object>) this.safeList(indexedTradingPairs, ((String)marketId).toUpperCase(), (Object) null);
                         if (!java.util.Objects.equals(pairInfo, null) && !this.inArray(marketId, brokenPairs))
                         {
-                            Object parsed = this.parseMarket(pairInfo);
+                            MarketInterface parsed = this.parseMarket(pairInfo);
                             if (!java.util.Objects.equals(parsed, null))
                             {
                                 ((List<Object>)result).add(parsed);
@@ -1062,7 +1062,7 @@ public class Gemini extends GeminiApi
                     {
                         if (!this.inArray((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)), brokenPairs))
                         {
-                            Object parsed = this.parseMarket((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)));
+                            MarketInterface parsed = this.parseMarket((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)));
                             if (!java.util.Objects.equals(parsed, null))
                             {
                                 ((List<Object>)result).add(parsed);

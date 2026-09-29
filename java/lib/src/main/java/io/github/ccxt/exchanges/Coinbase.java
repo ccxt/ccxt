@@ -1924,7 +1924,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object spotMarket = this.parseSpotMarket((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) (feeTier));
+                MarketInterface spotMarket = this.parseSpotMarket((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) (feeTier));
                 if (!java.util.Objects.equals(spotMarket, null))
                 {
                     ((List<Object>)result).add(spotMarket);

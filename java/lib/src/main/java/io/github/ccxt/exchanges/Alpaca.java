@@ -1292,7 +1292,7 @@ public class Alpaca extends AlpacaApi
                 Map<String, Object> latestQuote = (Map<String, Object>) this.safeDict(entry, "latestQuote", new HashMap<String, Object>() {{}});
                 Map<String, Object> latestTrade = (Map<String, Object>) this.safeDict(entry, "latestTrade", new HashMap<String, Object>() {{}});
                 String datetime = this.safeString(latestQuote, "t");
-                Object ticker = this.safeTicker(new HashMap<String, Object>() {{
+                Ticker ticker = this.safeTicker(new HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", market.get("symbol") );
                     put( "timestamp", Alpaca.this.parse8601(datetime) );

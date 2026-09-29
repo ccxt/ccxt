@@ -1742,7 +1742,7 @@ public class Onetrading extends OnetradingApi
             //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
             //     ]
             //
-            Object order = this.safeOrder(new HashMap<String, Object>() {{
+            Order order = this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
             }}, (Map<String, Object>) null);
             return new ArrayList<Object>(Arrays.asList(order));
