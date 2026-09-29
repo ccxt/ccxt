@@ -2896,6 +2896,21 @@
                 ]
             }
         ],
+        "fetchDepositAddresses": [
+            {
+                "description": "USDT on TRC20",
+                "method": "fetchDepositAddresses",
+                "url": "https://api.bitget.com/api/v2/spot/wallet/deposit-address?chain=TRC20&coin=USDT",
+                "input": [
+                    [
+                        "USDT"
+                    ],
+                    {
+                        "network": "TRC20"
+                    }
+                ]
+            }
+        ],
         "fetchLeverage": [
             {
                 "description": "Swap fetch set leverage",
