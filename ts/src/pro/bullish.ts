@@ -6,7 +6,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '..
 import type { Balances, Dict, Int, List, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -304,7 +304,7 @@ export default class bullish extends bullishRest {
             'topic': 'l2Orderbook', // 'l2Orderbook' returns only snapshots while 'l1Orderbook' returns only updates
             'symbol': market['id'],
         };
-        const orderbook: Ob = await this.watchPublic (url, messageHash, request, params);
+        const orderbook: WsOrderBook = await this.watchPublic (url, messageHash, request, params);
         return orderbook.limit ();
     }
 

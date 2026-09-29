@@ -7,7 +7,7 @@ import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import type { Balances, Dict, Int, Market, FeeString, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, List } from '../base/types.js';
 import { ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -498,7 +498,7 @@ export default class bydfi extends bydfiRest {
             channels.push (market['id'] + '@depth' + depthOption + channelSuffix);
             messageHashes.push ('orderbook::' + symbol);
         }
-        const orderbook: Ob = await this.watchPublic (messageHashes, channels, paramsFrequency);
+        const orderbook: WsOrderBook = await this.watchPublic (messageHashes, channels, paramsFrequency);
         return orderbook.limit ();
     }
 

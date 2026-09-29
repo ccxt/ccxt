@@ -7,7 +7,7 @@ import { ArgumentsRequired, ExchangeError, BadRequest, InvalidNonce } from '../b
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1013,7 +1013,7 @@ export default class cex extends cexRest {
             'oid': this.requestId (),
         };
         const request = this.deepExtend (subscribe, params);
-        const orderbook: Ob = await this.watch (url, messageHash, request, messageHash);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, request, messageHash);
         return orderbook.limit ();
     }
 

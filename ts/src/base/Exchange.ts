@@ -39,7 +39,7 @@ import { Precise } from './Precise.js';
 import WsClient from './ws/WsClient.js';
 import type Client from './ws/Client.js';
 import { Future, type FutureInterface } from './ws/Future.js';
-import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook as Ob } from './ws/OrderBook.js';
+import { WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 // ----------------------------------------------------------------------------
 //
 // import types
@@ -286,7 +286,7 @@ export class BaseExchange {
 
     balance: Dict = {};
     liquidations: any = undefined;
-    orderbooks: Dictionary<Ob> = {};
+    orderbooks: Dictionary<WsOrderBook> = {};
     tickers: Dictionary<Ticker> = {};
     fundingRates: Dictionary<FundingRate> = {};
     bidsasks: Dictionary<Ticker> = {};
@@ -3360,13 +3360,13 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' handleDelta not supported yet');
     }
 
-    handleBookDeltas (orderbook: Ob, deltas: any) {
+    handleBookDeltas (orderbook: WsOrderBook, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleBookDelta (orderbook, deltas[i]);
         }
     }
 
-    handleBookDelta (orderbook: Ob, delta: any) {
+    handleBookDelta (orderbook: WsOrderBook, delta: any) {
         throw new NotSupported (this.id + ' handleBookDelta not supported yet');
     }
 

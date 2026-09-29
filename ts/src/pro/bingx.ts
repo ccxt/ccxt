@@ -7,7 +7,7 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type{ Int, Market, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Position, Dict, Bool, List, NullableList, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -612,7 +612,7 @@ export default class bingx extends bingxRest {
                 'params': paramsSubType,
             };
         }
-        const orderbook: Ob = await this.watch (url, messageHash, this.deepExtend (request, paramsSubType), subscriptionHash, subscriptionArgs);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, this.deepExtend (request, paramsSubType), subscriptionHash, subscriptionArgs);
         return orderbook.limit ();
     }
 

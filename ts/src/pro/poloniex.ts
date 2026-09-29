@@ -7,7 +7,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../ba
 import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, NullableList, Market, List } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -506,7 +506,7 @@ export default class poloniex extends poloniexRest {
         const watchOrderBookOptions = this.safeDict (this.options, 'watchOrderBook');
         const name = this.safeString (watchOrderBookOptions, 'name', 'book_lv2');
         const [ nameOption, paramsName ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'name', name);
-        const orderbook: Ob = await this.subscribe (nameOption, nameOption, false, [ symbol ], paramsName);
+        const orderbook: WsOrderBook = await this.subscribe (nameOption, nameOption, false, [ symbol ], paramsName);
         return orderbook.limit ();
     }
 

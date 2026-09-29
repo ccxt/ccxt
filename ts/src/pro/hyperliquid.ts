@@ -5,7 +5,7 @@ import { NotSupported, ExchangeError, ArgumentsRequired, RequestTimeout } from '
 import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool, Balances, Position, type NullableDict } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -250,7 +250,7 @@ export default class hyperliquid extends hyperliquidRest {
         };
         const message = this.extend (request, params);
         await this.waitForPendingUnsubscribe (url, messageHash);
-        const orderbook: Ob = await this.watch (url, messageHash, message, messageHash);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, message, messageHash);
         return orderbook.limit ();
     }
 

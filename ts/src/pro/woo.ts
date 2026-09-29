@@ -7,7 +7,7 @@ import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBy
 import { Precise } from '../base/Precise.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Fee, List, Bool, FundingRate, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 // ----------------------------------------------------------------------------
 
@@ -168,7 +168,7 @@ export default class woo extends wooRest {
         if (method === 'orderbookupdate') {
             subscription['method'] = this.handleOrderBookSubscription;
         }
-        const orderbook: Ob = await this.watch (url, topic, this.extend (request, paramsMethod), topic, subscription);
+        const orderbook: WsOrderBook = await this.watch (url, topic, this.extend (request, paramsMethod), topic, subscription);
         return orderbook.limit ();
     }
 
@@ -319,7 +319,7 @@ export default class woo extends wooRest {
         }
     }
 
-    handleOrderBookMessage (client: Client, message: Dict, orderbook: Ob) {
+    handleOrderBookMessage (client: Client, message: Dict, orderbook: WsOrderBook) {
         const data = this.safeDict (message, 'data');
         this.handleDeltas (orderbook['asks'], this.safeList (data, 'asks', []));
         this.handleDeltas (orderbook['bids'], this.safeList (data, 'bids', []));
