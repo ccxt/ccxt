@@ -3,11 +3,10 @@
     "skipKeys": [
         "signature",
         "timestamp",
-        "recvWindow"
-    ],
-    "skipValues": [
+        "recvWindow",
         "newClientOrderId",
-        "newClientStrategyId"
+        "newClientStrategyId",
+        "clientAlgoId"
     ],
     "outputType": "urlencoded",
     "options": {
@@ -18,6 +17,9 @@
             {
                 "description": "cancel inverse swap conditional order by client order id",
                 "method": "cancelOrderWithClientOrderId",
+                "checkSkippedKeys": [
+                    "clientAlgoId"
+                ],
                 "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder?timestamp=1782213044315&symbol=ETHUSD_PERP&clientAlgoId=Q2ayA6g41m6hGYhnZANh5E&recvWindow=10000&signature=175d59e6ede5d9d423a708f6c130a1b9a6dd50c252419644c6a6964fd5f3c289",
                 "input": [
                     "Q2ayA6g41m6hGYhnZANh5E",
@@ -71,9 +73,6 @@
             {
                 "description": "Swap trailingPercent order",
                 "method": "createOrder",
-                "skipValues": [
-                    "clientAlgoId"
-                ],
                 "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder",
                 "input": [
                     "BTC/USDT:USDT",
@@ -91,9 +90,6 @@
             {
                 "description": "linear swap conditional createOrder",
                 "method": "createOrder",
-                "skipValues": [
-                    "clientAlgoId"
-                ],
                 "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder",
                 "input": [
                     "BTC/USDT:USDT",
@@ -110,9 +106,6 @@
             {
                 "description": "swap trigger bbo order",
                 "method": "createOrder",
-                "skipValues": [
-                    "clientAlgoId"
-                ],
                 "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder",
                 "input": [
                     "LTC/USDT:USDT",
@@ -130,9 +123,6 @@
             {
                 "description": "Swap limit sell with stopLossPrice (type 2)",
                 "method": "createOrder",
-                "skipValues": [
-                    "clientAlgoId"
-                ],
                 "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder",
                 "input": [
                     "LTC/USDT:USDT",
@@ -149,9 +139,6 @@
             {
                 "description": "Swap limit sell with takeProfitPrice (type 2)",
                 "method": "createOrder",
-                "skipValues": [
-                    "clientAlgoId"
-                ],
                 "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder",
                 "input": [
                     "LTC/USDT:USDT",
@@ -168,9 +155,6 @@
             {
                 "description": "Swap limit buy with triggerPrice",
                 "method": "createOrder",
-                "skipValues": [
-                    "clientAlgoId"
-                ],
                 "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder",
                 "input": [
                     "LTC/USDT:USDT",
@@ -187,9 +171,6 @@
             {
                 "description": "algo order for inverse swap market without client id in params",
                 "method": "createOrder",
-                "skipValues": [
-                    "clientAlgoId"
-                ],
                 "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
                 "input": [
                     "ETH/USD:ETH",
@@ -206,6 +187,9 @@
             {
                 "description": "Swap inverse market sell with stopLossPrice",
                 "method": "createOrder",
+                "checkSkippedKeys": [
+                    "clientAlgoId"
+                ],
                 "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
                 "input": [
                     "ETH/USD:ETH",
@@ -223,6 +207,9 @@
             {
                 "description": "Swap inverse limit sell with takeProfitPrice (type 2)",
                 "method": "createOrder",
+                "checkSkippedKeys": [
+                    "clientAlgoId"
+                ],
                 "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
                 "input": [
                     "ETH/USD:ETH",
@@ -501,6 +488,9 @@
             {
                 "description": "inverse swap trailingDelta order with activation price",
                 "method": "createOrder",
+                "checkSkippedKeys": [
+                    "clientAlgoId"
+                ],
                 "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
                 "input": [
                     "ETH/USD:ETH",
@@ -519,6 +509,9 @@
             {
                 "description": "linear swap trailingPercent order with activation price",
                 "method": "createOrder",
+                "checkSkippedKeys": [
+                    "clientAlgoId"
+                ],
                 "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder",
                 "input": [
                     "ETH/USDT:USDT",
@@ -537,6 +530,9 @@
             {
                 "description": "linear future conditional createOrder",
                 "method": "createOrder",
+                "checkSkippedKeys": [
+                    "clientAlgoId"
+                ],
                 "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder",
                 "input": [
                     "ETH/USDT:USDT-261225",
@@ -554,6 +550,9 @@
             {
                 "description": "inverse future conditional createOrder",
                 "method": "createOrder",
+                "checkSkippedKeys": [
+                    "clientAlgoId"
+                ],
                 "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
                 "input": [
                     "ETH/USD:ETH-261225",
