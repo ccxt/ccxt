@@ -4578,7 +4578,7 @@ export class BaseExchange {
         return this.extend (cleanStructure);
     }
 
-    setMarkets (markets: any, currencies: Currencies | undefined = undefined): Dictionary<Market> {
+    setMarkets (markets: any, currencies: any = undefined): Dictionary<Market> {
         const values: Dict[] = [];
         this.markets_by_id = this.createSafeDictionary ();
         // handle marketId conflicts
