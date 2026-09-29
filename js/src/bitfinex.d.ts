@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitfinex.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, NullableDict, int, Status } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, List, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, NullableDict, int, Status } from './base/types.js';
 /**
  * @class bitfinex
  * @augments Exchange
@@ -7,7 +7,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, Fun
 export default class bitfinex extends Exchange {
     describe(): any;
     isFiat(code: any): boolean;
-    getCurrencyName(code: any): any;
+    getCurrencyName(code: string): any;
     amountToPrecision(symbol: Str, amount: any): string;
     priceToPrecision(symbol: Str, price: any): string;
     /**
@@ -75,7 +75,7 @@ export default class bitfinex extends Exchange {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
-    parseTicker(ticker: Dict, market?: Market): Ticker;
+    parseTicker(ticker: List, market?: Market): Ticker;
     /**
      * @method
      * @name bitfinex#fetchTickers
@@ -296,7 +296,7 @@ export default class bitfinex extends Exchange {
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     parseTransactionStatus(status: Str): Str;
-    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
+    parseTransaction(transaction: List, currency?: Currency): Transaction;
     /**
      * @method
      * @name bitfinex#fetchTradingFees
@@ -344,7 +344,7 @@ export default class bitfinex extends Exchange {
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(statusCode: int, statusText: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     parseLedgerEntryType(type: Str): string | undefined;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
@@ -468,7 +468,7 @@ export default class bitfinex extends Exchange {
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
     setMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
-    parseMarginModification(data: Dict, market?: Market): MarginModification;
+    parseMarginModification(data: List, market?: Market): MarginModification;
     /**
      * @method
      * @name bitfinex#fetchOrder

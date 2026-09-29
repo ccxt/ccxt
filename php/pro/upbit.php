@@ -46,14 +46,13 @@ class upbit extends \ccxt\async\upbit {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $symbolsRequested = $symbols;
         if ($symbols === null) {
-            $symbols = $this->symbols;
+            $symbolsRequested = $this->symbols;
         }
-        $symbols = $this->market_symbols($symbols);
-        if ($symbols === null) {
-            $symbols = array();
-        }
-        $marketIds = $this->market_ids($symbols);
+        $symbolsMarket = $this->market_symbols($symbolsRequested);
+        $symbolsNormalized = ($symbolsMarket === null) ? array() : $symbolsMarket;
+        $marketIds = $this->market_ids($symbolsNormalized);
         $url = $this->implode_params($this->urls['api']['ws'], array(
             'hostname' => $this->hostname,
         ));
@@ -64,9 +63,9 @@ class upbit extends \ccxt\async\upbit {
         }
         $subscriptions = $client->subscriptions[$subscriptionsKey];
         $messageHashes = array();
-        for ($i = 0; $i < count($symbols); $i++) {
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $marketId = $marketIds[$i];
-            $symbol = $symbols[$i];
+            $symbol = $symbolsNormalized[$i];
             $messageHash = $channel . ':' . $symbol;
             $messageHashes[] = $messageHash;
             if (!(is_array($subscriptions) && array_key_exists($messageHash ?? '', $subscriptions))) {
@@ -119,7 +118,10 @@ class upbit extends \ccxt\async\upbit {
         $newTickers = Async\await($this->watch_public_multiple($symbols, 'ticker'));
         if ($this->newUpdates) {
             $tickers = array();
-            $tickers[$newTickers['symbol']] = $newTickers;
+            $newTickersSymbol = $this->safe_string($newTickers, 'symbol');
+            if ($newTickersSymbol !== null) {
+                $tickers[$newTickersSymbol] = $newTickers;
+            }
             return $tickers;
         }
         return $this->filter_by_array($this->tickers, 'symbol', $symbols);
@@ -157,12 +159,13 @@ class upbit extends \ccxt\async\upbit {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
         $trades = Async\await($this->watch_public_multiple($symbols, 'trade'));
+        $first = $this->safe_dict($trades, 0);
+        $tradeSymbol = $this->safe_string($first, 'symbol');
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $first = $this->safe_dict($trades, 0);
-            $tradeSymbol = $this->safe_string($first, 'symbol');
-            $limit = $trades->getLimit($tradeSymbol, $limit);
+            $limitResolved = $trades->getLimit($tradeSymbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -294,7 +297,7 @@ class upbit extends \ccxt\async\upbit {
         $asks = $orderbook['asks'];
         $data = $this->safe_list($message, 'orderbook_units', array());
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i);
             $ask_price = $this->safe_float($entry, 'ask_price');
             $ask_size = $this->safe_float($entry, 'ask_size');
             $bid_price = $this->safe_float($entry, 'bid_price');
@@ -381,7 +384,7 @@ class upbit extends \ccxt\async\upbit {
             );
             $this->options['ws'] = $wsOptions;
         }
-        $url = $this->urls['api']['ws'] . '/private';
+        $url = $this->safe_string($this->urls['api'], 'ws') . '/private';
         $client = $this->client($url);
         return $client;
     }
@@ -395,14 +398,18 @@ class upbit extends \ccxt\async\upbit {
         $request = array(
             'type' => $channel,
         );
+        $symbolResolved = null;
         if ($symbol !== null) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $symbols = array( $symbol );
+            $symbolResolved = $market['symbol'];
+            $symbols = array( $symbolResolved );
             $marketIds = $this->market_ids($symbols);
             $request['codes'] = $marketIds;
-            $messageHash = $messageHash . ':' . $symbol;
+        }
+        $messageHashResolved = $messageHash;
+        if ($symbolResolved !== null) {
+            $messageHashResolved = $messageHash . ':' . $symbolResolved;
         }
         $url = $this->implode_params($this->urls['api']['ws'], array(
             'hostname' => $this->hostname,
@@ -415,8 +422,8 @@ class upbit extends \ccxt\async\upbit {
             $client->subscriptions[$subscriptionsKey] = $this->create_safe_dictionary(true);
         }
         $channelKey = $channel;
-        if ($symbol !== null) {
-            $channelKey = $channel . ':' . $symbol;
+        if ($symbolResolved !== null) {
+            $channelKey = $channel . ':' . $symbolResolved;
         }
         $subscriptions = $client->subscriptions[$subscriptionsKey];
         $isNewChannel = !(is_array($subscriptions) && array_key_exists($channelKey ?? '', $subscriptions));
@@ -438,7 +445,7 @@ class upbit extends \ccxt\async\upbit {
         for ($i = 0; $i < count($requests); $i++) {
             $message[] = $requests[$i];
         }
-        return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        return Async\await($this->watch($url, $messageHashResolved, $message, $messageHashResolved));
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -463,10 +470,11 @@ class upbit extends \ccxt\async\upbit {
         $channel = 'myOrder';
         $messageHash = 'myOrder';
         $orders = Async\await($this->watch_private($symbol, $channel, $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbol, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limitResolved, true);
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -491,10 +499,11 @@ class upbit extends \ccxt\async\upbit {
         $channel = 'myOrder';
         $messageHash = 'myTrades';
         $trades = Async\await($this->watch_private($symbol, $channel, $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbol, $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limitResolved, true);
     }
 
     public function parse_ws_order_status(?string $status) {
@@ -546,12 +555,12 @@ class upbit extends \ccxt\async\upbit {
         $timestamp = $this->parse8601($this->safe_string($order, 'order_timestamp'));
         $status = $this->parse_ws_order_status($this->safe_string($order, 'state'));
         $marketId = $this->safe_string($order, 'code');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $fee = null;
         $feeCost = $this->safe_string($order, 'paid_fee');
         if ($feeCost !== null) {
             $fee = array(
-                'currency' => $market['quote'],
+                'currency' => $marketResolved['quote'],
                 'cost' => $feeCost,
             );
         }
@@ -562,7 +571,7 @@ class upbit extends \ccxt\async\upbit {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $this->safe_string($order, 'trade_timestamp'),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => $this->safe_string($order, 'order_type'),
             'timeInForce' => $this->safe_string($order, 'time_in_force'),
             'postOnly' => null,
@@ -591,12 +600,12 @@ class upbit extends \ccxt\async\upbit {
         }
         $timestamp = $this->parse8601($this->safe_string($trade, 'trade_timestamp'));
         $marketId = $this->safe_string($trade, 'code');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $fee = null;
         $feeCost = $this->safe_string($trade, 'paid_fee');
         if ($feeCost !== null) {
             $fee = array(
-                'currency' => $market['quote'],
+                'currency' => $marketResolved['quote'],
                 'cost' => $feeCost,
             );
         }
@@ -604,7 +613,7 @@ class upbit extends \ccxt\async\upbit {
             'id' => $this->safe_string($trade, 'trade_uuid'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'side' => $side,
             'price' => $this->safe_string($trade, 'price'),
             'amount' => $this->safe_string($trade, 'volume'),
@@ -614,7 +623,7 @@ class upbit extends \ccxt\async\upbit {
             'type' => $this->safe_string($trade, 'order_type'),
             'fee' => $fee,
             'info' => $trade,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function handle_my_order(Client $client, array $message) {
@@ -657,7 +666,7 @@ class upbit extends \ccxt\async\upbit {
             if ($fee !== null) {
                 $parsed['fee'] = $fee;
             }
-            $fees = $this->safe_value($order, 'fees');
+            $fees = $this->safe_list($order, 'fees');
             if ($fees !== null) {
                 $parsed['fees'] = $fees;
             }
@@ -715,7 +724,7 @@ class upbit extends \ccxt\async\upbit {
         $this->balance['timestamp'] = $timestamp;
         $this->balance['datetime'] = $this->iso8601($timestamp);
         for ($i = 0; $i < count($data); $i++) {
-            $balance = $data[$i];
+            $balance = $this->safe_dict($data, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $available = $this->safe_string($balance, 'balance');

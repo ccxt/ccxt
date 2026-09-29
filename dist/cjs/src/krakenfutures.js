@@ -474,6 +474,9 @@ class krakenfutures extends krakenfutures$1["default"] {
             const quoteId = 'usd'; // always USD
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             // swap == perpetual
             let settle = undefined;
             let settleId = undefined;
@@ -741,8 +744,8 @@ class krakenfutures extends krakenfutures$1["default"] {
         //    }
         //
         const marketId = this.safeString(ticker, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const timestamp = this.parse8601(this.safeString(ticker, 'lastTime'));
         const open = this.safeString(ticker, 'open24h');
         const last = this.safeString(ticker, 'last');
@@ -752,12 +755,12 @@ class krakenfutures extends krakenfutures$1["default"] {
         const volume = this.safeString(ticker, 'vol24h');
         let baseVolume = undefined;
         let quoteVolume = undefined;
-        const isIndex = this.safeBool(market, 'index', false);
+        const isIndex = this.safeBool(marketResolved, 'index', false);
         if (isIndex !== true) {
-            if (market['linear'] === true) {
+            if (marketResolved['linear'] === true) {
                 baseVolume = volume;
             }
-            else if (market['inverse'] === true) {
+            else if (marketResolved['inverse'] === true) {
                 quoteVolume = volume;
             }
         }
@@ -868,7 +871,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         let makerFee = undefined;
         let takerFee = undefined;
         for (let i = 0; i < tiers.length; i++) {
-            const tier = tiers[i];
+            const tier = this.safeDict(tiers, i);
             const tierVolume = this.safeString(tier, 'usdVolume');
             if ((volume === undefined) || Precise["default"].stringGe(volume, tierVolume)) {
                 makerFee = this.safeString(tier, 'makerFee');
@@ -906,12 +909,11 @@ class krakenfutures extends krakenfutures$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 2000);
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 2000);
         }
-        let priceType = this.safeString(params, 'price', 'trade');
+        let priceType = this.safeString(paramsPaginate, 'price', 'trade');
         if (priceType === 'index') {
             priceType = 'spot'; // the venue's name for index-price candles
         }
@@ -923,25 +925,25 @@ class krakenfutures extends krakenfutures$1["default"] {
             'price_type': priceType,
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        params = this.omit(params, 'price');
+        const paramsOmitted = this.omit(paramsPaginate, 'price');
+        const windowLimit = (limit === undefined) ? 2000 : Math.min(limit, 2000);
+        let limitResolved = undefined;
+        if ((since !== undefined) || (limit !== undefined)) {
+            limitResolved = windowLimit;
+        }
         if (since !== undefined) {
             const duration = this.parseTimeframe(timeframe);
             request['from'] = this.parseToInt(since / 1000);
-            if (limit === undefined) {
-                limit = 2000;
-            }
-            limit = Math.min(limit, 2000);
-            const toTimestamp = this.sum(request['from'], limit * duration - 1);
+            const toTimestamp = this.sum(request['from'], windowLimit * duration - 1);
             const currentTimestamp = this.seconds();
             request['to'] = Math.min(toTimestamp, currentTimestamp);
         }
-        else if (limit !== undefined) {
-            limit = Math.min(limit, 2000);
+        else if (limitResolved !== undefined) {
             const duration = this.parseTimeframe(timeframe);
             request['to'] = this.seconds();
-            request['from'] = this.parseToInt(request['to'] - (duration * limit));
+            request['from'] = this.parseToInt(request['to'] - (duration * limitResolved));
         }
-        const response = await this.chartsGetPriceTypeSymbolInterval(this.extend(request, params));
+        const response = await this.chartsGetPriceTypeSymbolInterval(this.extend(request, paramsOmitted));
         //
         //    {
         //        "candles": [
@@ -958,7 +960,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         //    }
         //
         const candles = this.safeList(response, 'candles');
-        return this.parseOHLCVs(candles, market, timeframe, since, limit);
+        return this.parseOHLCVs(candles, market, timeframe, since, limitResolved);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -999,29 +1001,27 @@ class krakenfutures extends krakenfutures$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchTrades', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchTrades', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic('fetchTrades', symbol, since, limit, paramsPaginate);
         }
         const market = this.market(symbol);
-        let request = {
+        const request = {
             'symbol': market['id'],
         };
-        let method = undefined;
-        [method, params] = this.handleOptionAndParams(params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions');
+        const [method, paramsMethod] = this.handleOptionStringAndParams(paramsPaginate, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions');
         let rawTrades = [];
         const isFullHistoryEndpoint = (method === 'historyGetMarketSymbolExecutions');
         if (isFullHistoryEndpoint) {
-            [request, params] = this.handleUntilOption('before', request, params);
+            const [requestUntil, paramsUntil] = this.handleUntilOption('before', request, paramsMethod);
             if (since !== undefined) {
-                request['since'] = since;
-                request['sort'] = 'asc';
+                requestUntil['since'] = since;
+                requestUntil['sort'] = 'asc';
             }
             if (limit !== undefined) {
-                request['count'] = limit;
+                requestUntil['count'] = limit;
             }
-            const response = await this.historyGetMarketSymbolExecutions(this.extend(request, params));
+            const response = await this.historyGetMarketSymbolExecutions(this.extend(requestUntil, paramsUntil));
             //
             //    {
             //        "elements": [
@@ -1077,7 +1077,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             const length = elements.length;
             for (let i = 0; i < length; i++) {
                 const index = length - 1 - i;
-                const element = elements[index];
+                const element = this.safeDict(elements, index);
                 const event = this.safeDict(element, 'event', {});
                 const executionContainer = this.safeDict(event, 'Execution', {});
                 const rawTrade = this.safeDict(executionContainer, 'execution', {});
@@ -1085,8 +1085,8 @@ class krakenfutures extends krakenfutures$1["default"] {
             }
         }
         else {
-            [request, params] = this.handleUntilOption('lastTime', request, params);
-            const response = await this.publicGetHistory(this.extend(request, params));
+            const [requestUntil, paramsUntil] = this.handleUntilOption('lastTime', request, paramsMethod);
+            const response = await this.publicGetHistory(this.extend(requestUntil, paramsUntil));
             //
             //    {
             //        "result": "success",
@@ -1203,17 +1203,17 @@ class krakenfutures extends krakenfutures$1["default"] {
         if (type !== undefined) {
             type = this.parseOrderType(type);
         }
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         let cost = undefined;
-        const linear = this.safeBool(market, 'linear');
-        if ((amount !== undefined) && (price !== undefined) && (market !== undefined)) {
+        const linear = this.safeBool(marketResolved, 'linear');
+        if ((amount !== undefined) && (price !== undefined) && (marketResolved !== undefined)) {
             if (linear === true) {
                 cost = Precise["default"].stringMul(amount, price); // in quote
             }
             else {
                 cost = Precise["default"].stringDiv(amount, price); // in base
             }
-            const contractSize = this.safeString(market, 'contractSize');
+            const contractSize = this.safeString(marketResolved, 'contractSize');
             cost = Precise["default"].stringMul(cost, contractSize);
         }
         let takerOrMaker = undefined;
@@ -1237,12 +1237,12 @@ class krakenfutures extends krakenfutures$1["default"] {
         }
         let fee = undefined;
         if ((takerOrMaker !== undefined) && (cost !== undefined)) {
-            const feeRate = this.safeString(market, takerOrMaker);
+            const feeRate = this.safeString(marketResolved, takerOrMaker);
             // fees are charged in the settlement currency: the quote currency
             // for linear contracts, the base currency for inverse contracts
-            let feeCurrency = this.safeString(market, 'settle');
+            let feeCurrency = this.safeString(marketResolved, 'settle');
             if (feeCurrency === undefined) {
-                feeCurrency = this.safeString(market, 'quote');
+                feeCurrency = this.safeString(marketResolved, 'quote');
             }
             fee = {
                 'cost': Precise["default"].stringMul(cost, feeRate),
@@ -1253,7 +1253,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         return this.safeTrade({
             'info': trade,
             'id': id,
-            'symbol': this.safeString(market, 'symbol'),
+            'symbol': this.safeString(marketResolved, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'order': order,
@@ -1274,75 +1274,74 @@ class krakenfutures extends krakenfutures$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        type = this.safeString(params, 'orderType', type);
+        const symbolValue = market['symbol'];
+        let typeValue = this.safeString(params, 'orderType', type);
         const timeInForce = this.safeString(params, 'timeInForce');
-        let postOnly = false;
-        [postOnly, params] = this.handlePostOnly(type === 'market', type === 'post', params);
+        const [postOnly, paramsPostOnly] = this.handlePostOnly(typeValue === 'market', typeValue === 'post', params);
         if (postOnly) {
-            type = 'post';
+            typeValue = 'post';
         }
         else if (timeInForce === 'ioc') {
-            type = 'ioc';
+            typeValue = 'ioc';
         }
-        else if (type === 'limit') {
-            type = 'lmt';
+        else if (typeValue === 'limit') {
+            typeValue = 'lmt';
         }
-        else if (type === 'market') {
-            type = 'mkt';
+        else if (typeValue === 'market') {
+            typeValue = 'mkt';
         }
         const request = {
             'symbol': market['id'],
             'side': side,
-            'size': this.amountToPrecision(symbol, amount),
+            'size': this.amountToPrecision(symbolValue, amount),
         };
-        const clientOrderId = this.safeString2(params, 'clientOrderId', 'cliOrdId');
+        const clientOrderId = this.safeString2(paramsPostOnly, 'clientOrderId', 'cliOrdId');
         if (clientOrderId !== undefined) {
             request['cliOrdId'] = clientOrderId;
         }
-        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString2(paramsPostOnly, 'triggerPrice', 'stopPrice');
         const isTriggerOrder = triggerPrice !== undefined;
-        const stopLossTriggerPrice = this.safeString(params, 'stopLossPrice');
-        const takeProfitTriggerPrice = this.safeString(params, 'takeProfitPrice');
+        const stopLossTriggerPrice = this.safeString(paramsPostOnly, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeString(paramsPostOnly, 'takeProfitPrice');
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
-        const triggerSignal = this.safeString(params, 'triggerSignal', 'last');
-        let reduceOnly = this.safeValue(params, 'reduceOnly');
+        const triggerSignal = this.safeString(paramsPostOnly, 'triggerSignal', 'last');
+        let reduceOnly = this.safeBool(paramsPostOnly, 'reduceOnly');
         if (isStopLossOrTakeProfitTrigger || isTriggerOrder) {
             request['triggerSignal'] = triggerSignal;
         }
         if (isTriggerOrder) {
-            type = 'stp';
-            request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
+            typeValue = 'stp';
+            request['stopPrice'] = this.priceToPrecision(symbolValue, triggerPrice);
         }
         else if (isStopLossOrTakeProfitTrigger) {
             reduceOnly = true;
             if (isStopLossTriggerOrder) {
-                type = 'stp';
-                request['stopPrice'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                typeValue = 'stp';
+                request['stopPrice'] = this.priceToPrecision(symbolValue, stopLossTriggerPrice);
             }
             else if (isTakeProfitTriggerOrder) {
-                type = 'take_profit';
-                request['stopPrice'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                typeValue = 'take_profit';
+                request['stopPrice'] = this.priceToPrecision(symbolValue, takeProfitTriggerPrice);
             }
         }
         if (reduceOnly === true) {
             request['reduceOnly'] = true;
         }
-        request['orderType'] = type;
-        price = this.parseNumber(price); // some callers pass null instead of undefined, normalize it
-        const isLimitOrder = (type === 'lmt') || (type === 'post') || (type === 'ioc');
-        const limitPriceParam = this.safeString(params, 'limitPrice'); // the venue's own field name, forwarded as-is by this.extend below
-        if (isLimitOrder && (price === undefined) && (limitPriceParam === undefined)) {
-            throw new errors.ArgumentsRequired(this.id + ' createOrder () requires a price argument for ' + type + ' orders');
+        request['orderType'] = typeValue;
+        const priceValue = this.parseNumber(price); // some callers pass null instead of undefined, normalize it
+        const isLimitOrder = (typeValue === 'lmt') || (typeValue === 'post') || (typeValue === 'ioc');
+        const limitPriceParam = this.safeString(paramsPostOnly, 'limitPrice'); // the venue's own field name, forwarded as-is by this.extend below
+        if (isLimitOrder && (priceValue === undefined) && (limitPriceParam === undefined)) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder () requires a price argument for ' + typeValue + ' orders');
         }
-        const isMarketOrder = (type === 'mkt');
-        if ((price !== undefined) && !isMarketOrder) {
-            request['limitPrice'] = this.priceToPrecision(symbol, price);
+        const isMarketOrder = (typeValue === 'mkt');
+        if ((priceValue !== undefined) && !isMarketOrder) {
+            request['limitPrice'] = this.priceToPrecision(symbolValue, priceValue);
         }
-        params = this.omit(params, ['clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
-        return this.extend(request, params);
+        const paramsOmitted = this.omit(paramsPostOnly, ['clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
+        return this.extend(request, paramsOmitted);
     }
     /**
      * @method
@@ -1456,7 +1455,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict(orders, i);
             const marketId = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
@@ -1804,9 +1803,9 @@ class krakenfutures extends krakenfutures$1["default"] {
         }
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         let response;
+        const paramsOmitted = this.omit(params, ['trigger', 'stop']);
         if (isTrigger === true) {
-            params = this.omit(params, ['trigger', 'stop']);
-            response = await this.historyGetTriggers(this.extend(request, params));
+            response = await this.historyGetTriggers(this.extend(request, paramsOmitted));
         }
         else {
             response = await this.historyGetOrders(this.extend(request, params));
@@ -1814,7 +1813,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         const allOrders = this.safeList(response, 'elements', []);
         const closedOrders = [];
         for (let i = 0; i < allOrders.length; i++) {
-            const order = allOrders[i];
+            const order = this.safeDict(allOrders, i);
             const event = this.safeDict(order, 'event', {});
             const orderPlaced = this.safeDict2(event, 'OrderPlaced', 'OrderTriggerActivated');
             const orderUpdated = this.safeDict(event, 'OrderUpdated');
@@ -1866,9 +1865,9 @@ class krakenfutures extends krakenfutures$1["default"] {
         }
         let response;
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
+        const paramsOmitted = this.omit(params, ['trigger', 'stop']);
         if (isTrigger === true) {
-            params = this.omit(params, ['trigger', 'stop']);
-            response = await this.historyGetTriggers(this.extend(request, params));
+            response = await this.historyGetTriggers(this.extend(request, paramsOmitted));
         }
         else {
             response = await this.historyGetOrders(this.extend(request, params));
@@ -1876,7 +1875,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         const allOrders = this.safeList(response, 'elements', []);
         const canceledAndRejected = [];
         for (let i = 0; i < allOrders.length; i++) {
-            const order = allOrders[i];
+            const order = this.safeDict(allOrders, i);
             const event = this.safeDict(order, 'event', {});
             const isCancelledTriggerOrder = ('OrderTriggerCancelled' in event);
             const orderPlaced = this.safeDict2(event, 'OrderPlaced', 'OrderTriggerCancelled');
@@ -2370,8 +2369,8 @@ class krakenfutures extends krakenfutures$1["default"] {
         let status = this.parseOrderStatus(statusId);
         let isClosed = this.inArray(status, ['canceled', 'rejected', 'closed']);
         const marketId = this.safeString2(details, 'symbol', 'tradeable');
-        market = this.safeMarket(marketId, market);
-        const symbol = this.safeString(market, 'symbol');
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.parse8601(this.safeString2(details, 'timestamp', 'receivedTime'));
         const lastUpdateTimestamp = this.parse8601(this.safeString(details, 'lastUpdateTime'));
         let amount = this.safeString(details, 'quantity');
@@ -2383,7 +2382,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         if (tradesLength > 0) {
             let vwapSum = '0.0';
             for (let i = 0; i < trades.length; i++) {
-                const trade = trades[i];
+                const trade = this.safeDict(trades, i);
                 const tradeAmount = this.safeString(trade, 'amount');
                 const tradePrice = this.safeString(trade, 'price');
                 filled2 = Precise["default"].stringAdd(filled2, tradeAmount);
@@ -2417,10 +2416,13 @@ class krakenfutures extends krakenfutures$1["default"] {
             amount = Precise["default"].stringAdd(filled, remaining);
         }
         let cost = undefined;
-        if ((filled !== undefined) && (market !== undefined)) {
-            const whichPrice = (average !== undefined) ? average : price;
+        if ((filled !== undefined) && (marketResolved !== undefined)) {
+            let whichPrice = price;
+            if (average !== undefined) {
+                whichPrice = average;
+            }
             if (whichPrice !== undefined) {
-                if (market['linear'] === true) {
+                if (marketResolved['linear'] === true) {
                     cost = Precise["default"].stringMul(filled, whichPrice); // in quote
                 }
                 else {
@@ -2547,10 +2549,10 @@ class krakenfutures extends krakenfutures$1["default"] {
         }
         const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, 'until');
             request['before'] = until;
         }
-        const response = await this.historyGetAccountLog(this.extend(request, params));
+        const paramsOmitted = (until !== undefined) ? this.omit(params, 'until') : params;
+        const response = await this.historyGetAccountLog(this.extend(request, paramsOmitted));
         //
         //    {
         //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
@@ -2624,10 +2626,10 @@ class krakenfutures extends krakenfutures$1["default"] {
         }
         const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, 'until');
             request['before'] = until;
         }
-        const response = await this.historyGetAccountLog(this.extend(request, params));
+        const paramsOmitted = (until !== undefined) ? this.omit(params, 'until') : params;
+        const response = await this.historyGetAccountLog(this.extend(request, paramsOmitted));
         //
         //    {
         //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
@@ -2744,7 +2746,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         const timestamp = this.parse8601(this.safeString(item, 'date'));
         const currencyId = this.safeString(item, 'asset');
         const code = this.safeCurrencyCode(currencyId, currency);
-        currency = this.safeCurrency(currencyId, currency);
+        const currencyResolved = this.safeCurrency(currencyId, currency);
         const before = this.safeString(item, 'old_balance');
         const after = this.safeString(item, 'new_balance');
         const feeCost = this.safeString(item, 'fee');
@@ -2785,7 +2787,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 'cost': this.parseNumber(feeCost),
                 'currency': code,
             },
-        }, currency);
+        }, currencyResolved);
     }
     /**
      * @method
@@ -2803,8 +2805,8 @@ class krakenfutures extends krakenfutures$1["default"] {
         }
         let type = this.safeString2(params, 'type', 'account');
         let symbol = this.safeString(params, 'symbol');
-        params = this.omit(params, ['type', 'account', 'symbol']);
-        const response = await this.privateGetAccounts(params);
+        const paramsOmitted = this.omit(params, ['type', 'account', 'symbol']);
+        const response = await this.privateGetAccounts(paramsOmitted);
         //
         //    {
         //        "result": "success",
@@ -2900,14 +2902,23 @@ class krakenfutures extends krakenfutures$1["default"] {
             type = symbol;
         }
         if (type === undefined) {
-            type = (symbol === undefined) ? 'flex' : symbol;
+            if (symbol === undefined) {
+                type = 'flex';
+            }
+            else {
+                type = symbol;
+            }
         }
         const accountName = this.parseAccount(type);
         const accounts = this.safeDict(response, 'accounts');
         const account = this.safeDict(accounts, accountName);
         if (account === undefined) {
-            type = (type === undefined) ? '' : type;
-            symbol = (symbol === undefined) ? '' : symbol;
+            if (type === undefined) {
+                type = '';
+            }
+            if (symbol === undefined) {
+                symbol = '';
+            }
             throw new errors.BadRequest(this.id + ' fetchBalance has no account for ' + type);
         }
         const balance = this.parseBalance(account);
@@ -3035,7 +3046,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         const tickers = this.safeList(response, 'tickers', []);
         const fundingRates = [];
         for (let i = 0; i < tickers.length; i++) {
-            const entry = tickers[i];
+            const entry = this.safeDict(tickers, i);
             const entry_symbol = this.safeString(entry, 'symbol');
             if (marketIds !== undefined) {
                 if (!this.inArray(entry_symbol, marketIds)) {
@@ -3158,7 +3169,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         const rates = this.safeValue(response, 'rates');
         const result = [];
         for (let i = 0; i < rates.length; i++) {
-            const item = rates[i];
+            const item = this.safeDict(rates, i);
             const datetime = this.safeString(item, 'timestamp');
             result.push({
                 'info': item,
@@ -3260,10 +3271,10 @@ class krakenfutures extends krakenfutures$1["default"] {
         }
         const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, 'until');
             request['before'] = until;
         }
-        const response = await this.historyGetPositions(this.extend(request, params));
+        const paramsOmitted = (until !== undefined) ? this.omit(params, 'until') : params;
+        const response = await this.historyGetPositions(this.extend(request, paramsOmitted));
         //
         //    {
         //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
@@ -3395,11 +3406,11 @@ class krakenfutures extends krakenfutures$1["default"] {
             }
         }
         const marketId = this.safeString2(position, 'symbol', 'tradeable');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         return {
             'info': position,
             'id': this.safeString(position, 'executionUid'),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': datetime,
             'initialMargin': undefined,
@@ -3412,7 +3423,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             'unrealizedPnl': this.safeNumber(position, 'unrealizedPnl'),
             'realizedPnl': this.safeNumber(position, 'realizedPnL'),
             'contracts': this.parseNumber(contracts),
-            'contractSize': this.safeNumber(market, 'contractSize'),
+            'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'marginRatio': undefined,
             'liquidationPrice': undefined,
             'markPrice': undefined,
@@ -3526,7 +3537,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         //
         const marginLevels = this.safeList(info, 'marginLevels');
         const marketId = this.safeString(info, 'symbol');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const tiers = [];
         if (marginLevels === undefined) {
             return tiers;
@@ -3542,8 +3553,8 @@ class krakenfutures extends krakenfutures$1["default"] {
             }
             tiers.push({
                 'tier': this.sum(i, 1),
-                'symbol': this.safeSymbol(marketId, market),
-                'currency': market['quote'],
+                'symbol': this.safeSymbol(marketId, marketResolved),
+                'currency': marketResolved['quote'],
                 'minNotional': minNotional,
                 'maxNotional': undefined,
                 'maintenanceMarginRate': this.safeNumber(tier, 'maintenanceMargin'),
@@ -3800,28 +3811,33 @@ class krakenfutures extends krakenfutures$1["default"] {
         const methodVersions = this.safeDict(apiVersions, method, {});
         const defaultVersion = this.safeString(methodVersions, path, this.version);
         const version = this.safeString(params, 'version', defaultVersion);
-        params = this.omit(params, 'version');
+        const paramsOmitted = this.omit(params, 'version');
         const apiAccess = this.safeDict(this.options['access'], api, {});
         const methodAccess = this.safeDict(apiAccess, method, {});
         const access = this.safeString(methodAccess, path, 'public');
-        const endpoint = version + '/' + this.implodeParams(path, params);
-        params = this.omit(params, this.extractParams(path));
+        const endpoint = version + '/' + this.implodeParams(path, paramsOmitted);
+        const paramsOmitted2 = this.omit(paramsOmitted, this.extractParams(path));
         let query = endpoint;
         let postData = '';
         if (path === 'batchorder') {
-            postData = 'json=' + this.json(params);
-            body = postData;
+            postData = 'json=' + this.json(paramsOmitted2);
         }
-        else if (Object.keys(params).length > 0) {
-            if ('orderIds' in params) {
-                postData = this.urlencodeWithArrayRepeat(params);
+        else if (Object.keys(paramsOmitted2).length > 0) {
+            if ('orderIds' in paramsOmitted2) {
+                postData = this.urlencodeWithArrayRepeat(paramsOmitted2);
             }
             else {
-                postData = this.urlencode(params);
+                postData = this.urlencode(paramsOmitted2);
             }
             query += '?' + postData;
         }
-        const url = this.urls['api'][api] + query;
+        const apiUrl = this.safeString(this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + query;
+        const requestBody = (path === 'batchorder') ? postData : body;
+        let privateHeaders = undefined;
         if (api === 'private' || access === 'private') {
             this.checkRequiredCredentials();
             let auth = postData + '/api/';
@@ -3832,14 +3848,15 @@ class krakenfutures extends krakenfutures$1["default"] {
             const hash = this.hash(this.encode(auth), sha2_js.sha256, 'binary'); // 2
             const secret = this.base64ToBinary(this.secret); // 3
             const signature = this.hmac(hash, secret, sha2_js.sha512, 'base64'); // 4-5
-            headers = {
+            privateHeaders = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Accept': 'application/json',
                 'APIKey': this.apiKey,
                 'Authent': signature,
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const requestHeaders = (privateHeaders !== undefined) ? privateHeaders : headers;
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 }
 

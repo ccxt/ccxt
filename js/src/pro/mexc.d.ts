@@ -1,5 +1,6 @@
 import mexcRest from '../mexc.js';
 import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict, Tickers, Strings, FundingRate, Market } from '../base/types.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 import Client from '../base/ws/Client.js';
 export default class mexc extends mexcRest {
     describe(): any;
@@ -75,8 +76,8 @@ export default class mexc extends mexcRest {
     handleOrderBookSubscription(client: Client, message: Dict): void;
     getCacheIndex(orderbook: any, cache: any): number;
     handleOrderBook(client: Client, message: Dict): void;
-    handleBooksideDelta(bookside: any, bidasks: any): void;
-    handleDelta(orderbook: any, delta: any): void;
+    handleBooksideDelta(bookside: any, bidasks: any[]): void;
+    handleBookDelta(orderbook: Ob, delta: any): void;
     /**
      * @method
      * @name mexc#watchTrades
@@ -103,7 +104,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     handleMyTrade(client: Client, message: Dict, subscription?: Dict | undefined): void;
     parseWsTrade(trade: any, market?: Market): Trade;
     /**
@@ -119,7 +120,7 @@ export default class mexc extends mexcRest {
      * @param {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'swap'
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     handleOrder(client: Client, message: Dict): void;
     parseWsOrder(order: any, market?: Market): Order;
     parseWsOrderStatus(status: Str, market?: Market): Str;
@@ -155,7 +156,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    unWatchFundingRate(symbol: string, params?: {}): Promise<any>;
+    unWatchFundingRate(symbol: string, params?: Dict): Promise<any>;
     handleFundingRate(client: Client, message: Dict): void;
     /**
      * @method
@@ -174,7 +175,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
+    unWatchTickers(symbols?: Strings, params?: Dict): Promise<any>;
     /**
      * @method
      * @name mexc#unWatchBidsAsks
@@ -183,7 +184,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
+    unWatchBidsAsks(symbols?: Strings, params?: Dict): Promise<any>;
     /**
      * @method
      * @name mexc#unWatchOHLCV

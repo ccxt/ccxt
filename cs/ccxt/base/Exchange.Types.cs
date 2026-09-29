@@ -66,6 +66,27 @@ class Helper
         return result;
     }
 
+    // Undeclared source keys go into a copy of `info` so the typed struct does not drop them.
+    // A key already present in the raw info keeps the raw venue value.
+    public static Dictionary<string, object> GetInfoWithExtra(object data2, HashSet<string> known)
+    {
+        var info = GetInfo(data2);
+        var extra = GetExtra(data2, known);
+        if (extra == null)
+        {
+            return info;
+        }
+        info = info == null ? new Dictionary<string, object>() : new Dictionary<string, object>(info);
+        foreach (var pair in extra)
+        {
+            if (!info.ContainsKey(pair.Key))
+            {
+                info[pair.Key] = pair.Value;
+            }
+        }
+        return info;
+    }
+
     public static Dictionary<string, object> GetInfo(object data2)
     {
         var data = (IDictionary<string, object>)data2;
@@ -339,6 +360,11 @@ public struct Trade
     // several venues (kraken, bybit, woo, hashkey, toobit, apex) put the raw venue order
     // id on the trade as `orderId` next to the unified `order`.
     public string? orderId;
+
+    private static readonly HashSet<string> TradeKeys = new HashSet<string> {
+        "amount", "price", "cost", "id", "order", "info", "timestamp", "datetime", "symbol", "type", "side", "takerOrMaker", "fee", "fees", "orderId",
+    };
+
     public Trade(object trade2)
     {
         var trade = (Dictionary<string, object>)trade2;
@@ -357,7 +383,7 @@ public struct Trade
         fee = trade.ContainsKey("fee") ? new Fee(trade["fee"]) : null;
         fees = Helper.GetFees(trade);
         orderId = Exchange.SafeString(trade, "orderId");
-        info = Helper.GetInfo(trade);
+        info = Helper.GetInfoWithExtra(trade, TradeKeys);
     }
 }
 
@@ -406,6 +432,11 @@ public struct Order
     public bool? trigger;
     public IEnumerable<Trade>? trades;
     public Dictionary<string, object>? info;
+
+    private static readonly HashSet<string> OrderKeys = new HashSet<string> {
+        "id", "clientOrderId", "timestamp", "datetime", "lastTradeTimestamp", "lastUpdateTimestamp", "symbol", "type", "timeInForce", "side", "price", "cost", "average", "amount", "filled", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "remaining", "status", "reduceOnly", "postOnly", "fee", "fees", "hedged", "leverage", "marginMode", "isMultiLeg", "lastTradeTimeStamp", "trigger", "trades", "info",
+    };
+
     public Order(object order2)
     {
         var order = (Dictionary<string, object>)order2;
@@ -441,7 +472,7 @@ public struct Order
         reduceOnly = Exchange.SafeBool(order, "reduceOnly", false);
         postOnly = Exchange.SafeBool(order, "postOnly", false);
         fees = Helper.GetFees(order);
-        info = Helper.GetInfo(order);
+        info = Helper.GetInfoWithExtra(order, OrderKeys);
     }
 }
 
@@ -474,6 +505,11 @@ public struct Ticker
     public double? markPrice;
     public Dictionary<string, object> info;
 
+
+    private static readonly HashSet<string> TickerKeys = new HashSet<string> {
+        "symbol", "id", "timestamp", "datetime", "high", "low", "bid", "bidVolume", "ask", "askVolume", "vwap", "open", "close", "last", "previousClose", "change", "percentage", "average", "baseVolume", "quoteVolume", "indexPrice", "markPrice", "info",
+    };
+
     public Ticker(object ticker2)
     {
         var ticker = (Dictionary<string, object>)ticker2;
@@ -497,7 +533,7 @@ public struct Ticker
         average = Exchange.SafeFloat(ticker, "average");
         baseVolume = Exchange.SafeFloat(ticker, "baseVolume");
         quoteVolume = Exchange.SafeFloat(ticker, "quoteVolume");
-        info = Helper.GetInfo(ticker);
+        info = Helper.GetInfoWithExtra(ticker, TickerKeys);
         indexPrice = Exchange.SafeFloat(ticker, "indexPrice");
         markPrice = Exchange.SafeFloat(ticker, "markPrice");
     }
@@ -824,6 +860,12 @@ public struct OrderBook
     public Int64? timestamp;
     public string? datetime;
     public Int64? nonce;
+    // undeclared keys (and a dict `info`, if any) land here rather than being dropped
+    public Dictionary<string, object>? info;
+
+    private static readonly HashSet<string> OrderBookKeys = new HashSet<string> {
+        "bids", "asks", "symbol", "timestamp", "datetime", "nonce",
+    };
 
     public OrderBook(object orderbook2)
     {
@@ -834,6 +876,7 @@ public struct OrderBook
         timestamp = Exchange.SafeInteger(orderbook, "timestamp");
         datetime = Exchange.SafeString(orderbook, "datetime");
         nonce = Exchange.SafeInteger(orderbook, "nonce");
+        info = Helper.GetInfoWithExtra(orderbook, OrderBookKeys);
     }
 }
 
@@ -1686,20 +1729,20 @@ public struct DepositWithdrawFee
     public Dictionary<string, object>? info;
     public DepositWithdrawFeeNetwork? withdraw;
     public DepositWithdrawFeeNetwork? deposit;
-    public Dictionary<string, DepositWithdrawFeeNetwork> networks;
+    public Dictionary<string, DepositWithdrawFeeNetworkEntry> networks;
 
     public DepositWithdrawFee(object depositWithdrawFee)
     {
         info = Helper.GetInfo(depositWithdrawFee);
         withdraw = Exchange.SafeValue(depositWithdrawFee, "withdraw") != null ? new DepositWithdrawFeeNetwork(Exchange.SafeValue(depositWithdrawFee, "withdraw")) : null;
         deposit = Exchange.SafeValue(depositWithdrawFee, "deposit") != null ? new DepositWithdrawFeeNetwork(Exchange.SafeValue(depositWithdrawFee, "deposit")) : null;
-        networks = new Dictionary<string, DepositWithdrawFeeNetwork>();
+        networks = new Dictionary<string, DepositWithdrawFeeNetworkEntry>();
         if (Exchange.SafeValue(depositWithdrawFee, "networks") != null)
         {
             var networks2 = (Dictionary<string, object>)Exchange.SafeValue(depositWithdrawFee, "networks");
             foreach (var network in networks2)
             {
-                networks.Add(network.Key, new DepositWithdrawFeeNetwork(network.Value));
+                networks.Add(network.Key, new DepositWithdrawFeeNetworkEntry(network.Value));
             }
         }
     }
@@ -2506,5 +2549,17 @@ public struct AllGreeks
         {
             greeks[key] = value;
         }
+    }
+}
+
+
+public struct DepositWithdrawFeeNetworkEntry
+{
+    public DepositWithdrawFeeNetwork? deposit;
+    public DepositWithdrawFeeNetwork? withdraw;
+    public DepositWithdrawFeeNetworkEntry(object network)
+    {
+        deposit = Exchange.SafeValue(network, "deposit") != null ? new DepositWithdrawFeeNetwork(Exchange.SafeValue(network, "deposit")) : null;
+        withdraw = Exchange.SafeValue(network, "withdraw") != null ? new DepositWithdrawFeeNetwork(Exchange.SafeValue(network, "withdraw")) : null;
     }
 }

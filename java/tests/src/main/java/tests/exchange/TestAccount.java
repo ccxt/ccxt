@@ -24,7 +24,7 @@ public class TestAccount extends BaseTest {
             put( "type", "spot" );
             put( "id", "12345" );
         }};
-        List<Object> emptyAllowedFor = new ArrayList<Object>(Arrays.asList("code", "id"));
+        List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("code", "id"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("code"));
     }

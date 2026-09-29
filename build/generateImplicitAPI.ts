@@ -11,6 +11,7 @@ import ts from 'typescript6';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { applyJavaImports } from './javaUtilImports.js';
+import { goPredictionEndpointBody, goPredictionNeedsCcxtImport } from './go-pred-endpoint.js';
 
 const HTTP_METHODS = [ 'get', 'post', 'put', 'delete', 'patch' ];
 
@@ -933,7 +934,34 @@ function goBakes (resolvable: any): boolean {
     return !!(resolvable && typeof resolvable.goCost === 'number' && typeof resolvable.endpoint === 'string');
 }
 
-function goEndpointBody (method: string, resolvable: any, callEndpoint: string, pkgPrefix: string): string {
+// Go spelling of a declared shape as a channel element. The same channel also carries the
+// transport's recovered panic string, so the element is a carrier over the value: the shape
+// narrows without giving up the failure path.
+const GO_RETURN_TYPES: Dict = {
+    'Dict': 'map[string]any',
+    'List': '[]any',
+    'string': 'string',
+};
+
+// the element of a generated Go endpoint channel. A union or an undeclared shape has no
+// member that would be honest for every response, and the runtime dispatch is not asserted
+// by the api leaf, so both keep the widest element.
+function goChannelElement (exchange: string, method: string, resolvable: any): string {
+    if (!goBakes (resolvable)) {
+        return 'any'
+    }
+    const members = returnTypeMembers (exchange, method)
+    const element = (members.length === 1) ? GO_RETURN_TYPES[members[0]] : undefined
+    return element || 'any'
+}
+
+// the channel type as written in the signature; the carrier is package-local in ccxt and is
+// reached through the ccxt import in ccxtprediction
+function goChannelType (element: string, pkgPrefix: string): string {
+    return (element === 'any') ? (pkgPrefix + 'AsyncResult[any]') : (pkgPrefix + 'EndpointResult[' + element + ']')
+}
+
+function goEndpointBody (method: string, resolvable: any, callEndpoint: string, pkgPrefix: string, element: string): string {
     if (!goBakes (resolvable)) {
         return `\treturn this.${callEndpoint}("${method}", args...)`
     }
@@ -941,7 +969,11 @@ function goEndpointBody (method: string, resolvable: any, callEndpoint: string, 
     // transformApiNew keys by the parent key itself when it is the only path
     // level, and by the []string it walked for a nested one
     const api = paths.length === 1 ? JSON.stringify (paths[0]) : `[]string{${paths.map (x => JSON.stringify (x)).join (', ')}}`
-    return `\treturn this.Fetch2Async(${JSON.stringify (resolvable.endpoint)}, ${api}, ${JSON.stringify (resolvable.method)}, ${pkgPrefix}GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(${resolvable.goCost})})`
+    const call = `${JSON.stringify (resolvable.endpoint)}, ${api}, ${JSON.stringify (resolvable.method)}, ${pkgPrefix}GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(${resolvable.goCost})}`
+    if (element === 'any') {
+        return `\treturn this.Fetch2Async(${call})`
+    }
+    return `\treturn ${pkgPrefix}Fetch2Result[${element}](this, ${call})`
 }
 
 function createImplicitMethodsGo(){
@@ -992,16 +1024,13 @@ function createImplicitMethodsGo(){
         }
         const ownMethodNames = methodNames.filter (method => !(capitalize(method) in inherited));
         const resolvable: Map<string, Dict> = storedResolvableNames[exchange] || new Map<string, Dict> ();
-        let bakedAny = false;
         const methods = ownMethodNames.map(method => {
             const own = resolvable.get (method);
-            if (goBakes (own)) {
-                bakedAny = true;
-            }
+            const element = goChannelElement (exchange, method, own);
             return [
                 `// ${capitalize(method)} returns a channel that yields ${proseReturnShape (exchange, method)}.`,
-                `func (this *${capitalize(exchange)}) ${capitalize(method)}(args ...any) <-chan any {`,
-                goEndpointBody (method, own, callEndpoint, pkgPrefix),
+                `func (this *${capitalize(exchange)}) ${capitalize(method)}(args ...any) <-chan ${goChannelType (element, pkgPrefix)} {`,
+                isPrediction ? goPredictionEndpointBody (goEndpointBody (method, own, callEndpoint, pkgPrefix, element)) : goEndpointBody (method, own, callEndpoint, pkgPrefix, element),
                 `}`,
                 ``,
             ].join('\n')
@@ -1014,9 +1043,8 @@ function createImplicitMethodsGo(){
             // ].join('\n')
         });
         // methods.unshift (reusableMethod);
-        if (isPrediction && bakedAny) {
-            // the baked bodies thin args through the package-level GetArg, which
-            // ccxtprediction takes from package ccxt
+        if (isPrediction && goPredictionNeedsCcxtImport (methods)) {
+            // baked bodies (GetArg) and every channel type (AsyncResult) name package ccxt
             storedGoMethods[exchange].push (`import ccxt "github.com/ccxt/ccxt/go/v4"`, '')
         }
         storedGoMethods[exchange] = storedGoMethods[exchange].concat (methods)
@@ -1263,7 +1291,9 @@ async function generateImplicitAPIs (exchanges: string[], shouldGenerateAll: boo
     log.bright.cyan ('Exporting TypeScript implicit api methods', subdir ? ('(' + subdir + ')') : '')
     populateImplicitMethods(exchanges); // common step for all languages
 
-    if (shouldGenerateAll || langKeys['--ts']) {
+    // typed ports (go/cs/java/rust) check their stubs against the TS abstract: emit it with them
+    const typedPort = langKeys['--go'] || langKeys['--csharp'] || langKeys['--java'] || langKeys['--rust'];
+    if (shouldGenerateAll || langKeys['--ts'] || typedPort) {
         createImplicitMethodsTs ()
         await editFiles (TS_PATH + subdir, storedTypeScriptMethods, '.ts');
         log.bright.cyan ('TypeScript implicit api methods completed!')

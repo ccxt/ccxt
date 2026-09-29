@@ -769,6 +769,9 @@ impl BitteamCore {
         let mut quoteId: Value = self.safe_string(parts, Value::Int(1), &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+        if (base == Value::Null) || (quote == Value::Null) {
+            return Value::Null;
+        }
         let mut active: Value = self.safe_bool_k(market.clone(), "active", &[]);
         let mut timeStart: Value = self.safe_string_k(market.clone(), "timeStart", &[]);
         let mut created: Value = self.parse8601(timeStart);
@@ -1042,8 +1045,8 @@ impl BitteamCore {
         let mut typeRaw: Value = self.safe_string_k(currency.clone(), "type", &[]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_415: bool = true;
-            while { if !__for_first_415 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_415 = false; j.as_f64().unwrap_or(f64::NAN) < ((networkIds.len() as i64) as f64) } {
+            let mut __for_first_416: bool = true;
+            while { if !__for_first_416 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_416 = false; j.as_f64().unwrap_or(f64::NAN) < ((networkIds.len() as i64) as f64) } {
             let mut networkId: Value = networkIds.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             let mut networkFee: Value = self.safe_number(feesByNetworkId.clone(), networkId.clone(), &[]);
@@ -1823,7 +1826,7 @@ impl BitteamCore {
         //
         let mut id: Value = self.safe_string_k(order.clone(), "id", &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "pair", &[]);
-        market = self.safe_market(&[marketId, market.clone()]);
+        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "orderCid", &[]);
         let mut timestamp: Value = Value::Null;
         let mut createdAt: Value = self.safe_string_k(order.clone(), "createdAt", &[]);
@@ -1862,7 +1865,7 @@ impl BitteamCore {
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp);
         m.insert("status".to_string(), status);
-        m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), Value::Str("GTC".into()));
         m.insert("side".to_string(), side);
@@ -1878,7 +1881,7 @@ impl BitteamCore {
         m.insert("info".to_string(), order);
         m.insert("postOnly".to_string(), Value::Bool(false));
     m
-}), &[market]);
+}), &[marketResolved]);
 
     Value::Null
 }
@@ -1980,8 +1983,8 @@ impl BitteamCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_416: bool = true;
-            while { if !__for_first_416 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_416 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTickers.len() as i64) as f64) } {
+            let mut __for_first_417: bool = true;
+            while { if !__for_first_417 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_417 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTickers.len() as i64) as f64) } {
             let mut rawTicker: Value = rawTickers.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = self.parse_ticker(rawTicker, &[]);
             append_to_array(&mut tickers, ticker);
@@ -2295,7 +2298,7 @@ impl BitteamCore {
         //         "lowest_price_24h": 37574.894999
         //     }
         let mut marketId: Value = self.safe_string_lower_k(ticker.clone(), "trading_pairs", &[]);
-        market = self.safe_market(&[marketId, market.clone()]);
+        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
         let mut bestBidPrice: Value = Value::Null;
         let mut bestAskPrice: Value = Value::Null;
         let mut bestBidVolume: Value = Value::Null;
@@ -2327,7 +2330,7 @@ impl BitteamCore {
         let mut changePcnt: Value = self.safe_string2(ticker.clone(), Value::Str("change24".into()), Value::Str("price_change_percent_24h".into()), &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
@@ -2347,7 +2350,7 @@ impl BitteamCore {
         m.insert("quoteVolume".to_string(), quoteVolume);
         m.insert("info".to_string(), ticker);
     m
-}), &[market]);
+}), &[marketResolved]);
 
     Value::Null
 }
@@ -2622,8 +2625,8 @@ impl BitteamCore {
         //     }
         //
         let mut marketId: Value = self.safe_string_k(trade.clone(), "pair", &[]);
-        market = self.safe_market(&[marketId, market.clone()]);
-        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
+        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut id: Value = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("trade_id".into()), &[]);
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amount: Value = self.safe_string2(trade.clone(), Value::Str("quantity".into()), Value::Str("base_volume".into()), &[]);
@@ -2680,7 +2683,7 @@ impl BitteamCore {
         m.insert("fee".to_string(), fee);
         m.insert("info".to_string(), trade);
     m
-}), &[market]);
+}), &[marketResolved]);
 
     Value::Null
 }
@@ -2764,8 +2767,8 @@ impl BitteamCore {
         let mut rawCurrencyIds: Value = object_keys(&balanceByCurrencies);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_417: bool = true;
-            while { if !__for_first_417 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_417 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawCurrencyIds.len() as i64) as f64) } {
+            let mut __for_first_418: bool = true;
+            while { if !__for_first_418 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_418 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawCurrencyIds.len() as i64) as f64) } {
             let mut rawCurrencyId: Value = rawCurrencyIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut currencyBalance: Value = self.safe_dict(result.clone(), rawCurrencyId.clone(), &[]);
             let mut free: Value = self.safe_string_k(currencyBalance.clone(), "free", &[]);
@@ -3054,19 +3057,25 @@ impl BitteamCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut request: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path, params)).into());
-        let mut url: Value = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &endpoint);
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        if (apiUrl == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+        }
+        let mut url: Value = Value::Str(format!("{}{}", apiUrl, endpoint).into());
         let mut query: Value = self.urlencode(request.clone(), &[]);
+        let mut requestBody: Value = Value::Null;
+        let mut requestHeaders: Value = Value::Null;
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("POST")) {
-                body = json_stringify(&request);
+                requestBody = json_stringify(&request);
             }  else if (Value::Int(query.len() as i64).as_f64() != Some(0.0)) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), query).into())).into());
             }
             let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), Value::Str(":".into())).into()), self.secret.clone()).into());
             let mut auth64: Value = self.string_to_base64(auth, &[]);
             let mut signature: Value = Value::Str(format!("{}{}", Value::Str("Basic ".into()), auth64).into());
-            headers = Value::Map({
+            requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Authorization".to_string(), signature);
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
@@ -3075,12 +3084,14 @@ impl BitteamCore {
         }  else if (Value::Int(query.len() as i64).as_f64() != Some(0.0)) {
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), query).into())).into());
         }
+        let mut bodyResolved: Value = (if (requestBody == Value::Null) { body } else { requestBody });
+        let mut headersResolved: Value = (if (requestHeaders == Value::Null) { headers } else { requestHeaders });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), bodyResolved);
+        m.insert("headers".to_string(), headersResolved);
     m
 });
 

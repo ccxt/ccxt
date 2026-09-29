@@ -43,7 +43,7 @@ class ConcurrencyStressTest {
 
         // Load markets with real HTTP first (needed for fetchTicker routing)
         try {
-            exchange.loadMarkets().join();
+            exchange.loadMarkets(false, new java.util.HashMap<String, Object>()).join();
         } catch (Exception e) {
             assumeTrue(false, "Skipping: exchange not reachable (" + e.getMessage() + ")");
         }
@@ -190,7 +190,7 @@ class ConcurrencyStressTest {
         exchange.verbose = false;
         exchange.enableRateLimit = false;
         try {
-            exchange.loadMarkets().join();
+            exchange.loadMarkets(false, new java.util.HashMap<String, Object>()).join();
         } catch (Exception e) {
             assumeTrue(false, "Skipping: exchange not reachable (" + e.getMessage() + ")");
         }
@@ -237,7 +237,7 @@ class ConcurrencyStressTest {
             threads[i] = new Thread(() -> {
                 try {
                     barrier.await();
-                    futures[idx] = exchange.loadMarkets();
+                    futures[idx] = exchange.loadMarkets(false, new java.util.HashMap<String, Object>());
                 } catch (Exception ignored) { }
             });
             threads[i].start();

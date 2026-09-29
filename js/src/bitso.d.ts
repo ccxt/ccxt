@@ -59,7 +59,7 @@ export default class bitso extends Exchange {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
-    parseTicker(ticker: Dict, market?: Market): Ticker;
+    parseTicker(ticker: NullableDict, market?: Market): Ticker;
     /**
      * @method
      * @name bitso#fetchTicker
@@ -270,6 +270,6 @@ export default class bitso extends Exchange {
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatus(status: Str): Str;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }
