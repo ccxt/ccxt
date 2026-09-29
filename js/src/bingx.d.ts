@@ -97,7 +97,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     /**
      * @method
      * @name bingx#fetchFundingRates
@@ -140,7 +140,7 @@ export default class bingx extends Exchange {
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseIncome(income: any, market?: Market): object;
+    parseIncome(income: Dict, market?: Market): object;
     /**
      * @method
      * @name bingx#fetchOpenInterest
@@ -544,7 +544,7 @@ export default class bingx extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
+    parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
     /**
      * @method
      * @name bingx#fetchDeposits
@@ -695,7 +695,7 @@ export default class bingx extends Exchange {
      * @param {string|undefined} [params.positionId] the id of the position you would like to close, only supported for linear swap
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    closePosition(symbol: string, side?: OrderSide, params?: Dict): Promise<Order>;
+    closePosition(symbol: string, side?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name bitget#closePositions
@@ -797,7 +797,7 @@ export default class bingx extends Exchange {
      */
     fetchMarketLeverageTiers(symbol: string, params?: Dict): Promise<LeverageTier[]>;
     parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
-    sign(path: any, section?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, section?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     nonce(): number;
     setSandboxMode(enable: boolean): void;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;

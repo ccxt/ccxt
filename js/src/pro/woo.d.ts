@@ -1,6 +1,7 @@
 import wooRest from '../woo.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Bool, FundingRate, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 export default class woo extends wooRest {
     describe(): any;
     requestId(url: string): number;
@@ -29,11 +30,11 @@ export default class woo extends wooRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
     handleOrderBook(client: Client, message: Dict): void;
     handleOrderBookSubscription(client: Client, message: Dict, subscription: Dict): void;
     fetchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<void>;
-    handleOrderBookMessage(client: Client, message: Dict, orderbook: any): any;
+    handleOrderBookMessage(client: Client, message: Dict, orderbook: Ob): Ob;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     /**
@@ -53,7 +54,7 @@ export default class woo extends wooRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol: string, params?: {}): Promise<any>;
+    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
     parseWsTicker(ticker: Dict, market?: Market): Ticker;
     handleTicker(client: Client, message: Dict): Dict;
     /**
@@ -96,7 +97,7 @@ export default class woo extends wooRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
+    unWatchBidsAsks(symbols?: Strings, params?: Dict): Promise<any>;
     handleBidAsk(client: Client, message: Dict): void;
     parseWsBidAsk(ticker: Dict, market?: Market): Ticker;
     /**
@@ -146,7 +147,7 @@ export default class woo extends wooRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
     handleTrade(client: Client, message: Dict): void;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     checkRequiredUid(error?: boolean): boolean;
@@ -219,7 +220,7 @@ export default class woo extends wooRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    watchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     handleFundingRate(client: Client, message: Dict): void;
     handleErrorMessage(client: Client, message: Dict): Bool;
     handleUnSubscription(client: Client, message: Dict): void;

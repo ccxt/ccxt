@@ -6,7 +6,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, Fun
  */
 export default class okx extends Exchange {
     describe(): any;
-    handleMarketTypeAndParams(methodName: string, market?: Market, params?: Dict, defaultValue?: any): any;
+    handleMarketTypeAndParams(methodName: string, market?: Market, params?: Dict, defaultValue?: Str): [string, Dict];
     convertToInstrumentType(type: any): string;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
@@ -48,7 +48,7 @@ export default class okx extends Exchange {
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
     parseMarket(market: Dict): Market;
-    fetchMarketsByType(type: any, params?: Dict): Promise<Market[]>;
+    fetchMarketsByType(type: string, params?: Dict): Promise<Market[]>;
     /**
      * @method
      * @name okx#fetchCurrencies
@@ -260,7 +260,7 @@ export default class okx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
-    editOrderRequest(id: string, symbol: Str, type: Str, side: Str, amount?: Num, price?: Num, params?: Dict): Dict;
+    editOrderRequest(id: string, symbol: Str, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Dict;
     /**
      * @method
      * @name okx#editOrder
@@ -463,7 +463,7 @@ export default class okx extends Exchange {
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
     parseLedgerEntryType(type: Str): Str;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
-    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
+    parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
     /**
      * @method
      * @name okx#fetchDepositAddressesByNetwork
@@ -635,7 +635,7 @@ export default class okx extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<TransferEntry[]>;
-    sign(path: any, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     parseFundingRate(contract: any, market?: Market): FundingRate;
     parseFundingInterval(interval: Str): Str;
     /**
@@ -657,7 +657,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     /**
      * @method
      * @name okx#fetchFundingRates
@@ -745,7 +745,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
+    fetchCrossBorrowRate(code: string, params?: Dict): Promise<CrossBorrowRate>;
     parseBorrowRate(info: any, currency?: Currency): {
         currency: Str;
         rate: number;
@@ -970,7 +970,7 @@ export default class okx extends Exchange {
      * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    closePosition(symbol: string, side?: OrderSide, params?: Dict): Promise<Order>;
+    closePosition(symbol: string, side?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name okx#fetchOption
