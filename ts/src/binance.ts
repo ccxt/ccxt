@@ -5513,6 +5513,13 @@ export default class binance extends Exchange {
                 }
             }
         }
+        // linear and spot trades carry the cost in quoteQty, inverse trades in baseQty
+        // since 2026-08-05 the futures endpoints return both fields, the unused one as "0",
+        // so the field must be picked by the market side, see the coin-m migration changelog
+        let cost = this.safeStringN (trade, [ 'quoteQty', 'baseQty', 'total' ]);
+        if (market['inverse'] === true) {
+            cost = this.safeString (trade, 'baseQty', cost);
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -5525,7 +5532,7 @@ export default class binance extends Exchange {
             'takerOrMaker': takerOrMaker,
             'price': this.safeString2 (trade, 'p', 'price'),
             'amount': amount,
-            'cost': this.safeStringN (trade, [ 'quoteQty', 'baseQty', 'total' ]),
+            'cost': cost,
             'fee': fee,
         }, market);
     }

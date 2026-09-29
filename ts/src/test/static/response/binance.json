@@ -6733,6 +6733,152 @@
                 ]
             },
             {
+                "description": "fetchMyTrades linear swap cost from quoteQty",
+                "method": "fetchMyTrades",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "ETHUSDT",
+                        "id": 332478250,
+                        "orderId": 16808390395,
+                        "pair": "ETHUSDT",
+                        "side": "BUY",
+                        "price": "2677.66",
+                        "qty": "0.100",
+                        "realizedPnl": "0",
+                        "quoteQty": "267.76600",
+                        "commission": "0.10710640",
+                        "commissionAsset": "USDT",
+                        "time": 1790606175621,
+                        "buyer": true,
+                        "maker": false,
+                        "positionSide": "BOTH",
+                        "baseQty": "0",
+                        "marginAsset": "USDT"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "ETHUSDT",
+                            "id": 332478250,
+                            "orderId": 16808390395,
+                            "pair": "ETHUSDT",
+                            "side": "BUY",
+                            "price": "2677.66",
+                            "qty": "0.100",
+                            "realizedPnl": "0",
+                            "quoteQty": "267.76600",
+                            "commission": "0.10710640",
+                            "commissionAsset": "USDT",
+                            "time": 1790606175621,
+                            "buyer": true,
+                            "maker": false,
+                            "positionSide": "BOTH",
+                            "baseQty": "0",
+                            "marginAsset": "USDT"
+                        },
+                        "timestamp": 1790606175621,
+                        "datetime": "2026-09-28T14:36:15.621Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "id": "332478250",
+                        "order": "16808390395",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 2677.66,
+                        "amount": 0.1,
+                        "cost": 267.766,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.1071064
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.1071064
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "fetchMyTrades inverse swap cost from baseQty",
+                "method": "fetchMyTrades",
+                "input": [
+                    "ETH/USD:ETH",
+                    null,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "ETHUSD_PERP",
+                        "id": 562350269,
+                        "orderId": 1475666691,
+                        "pair": "ETHUSD",
+                        "side": "BUY",
+                        "price": "2667.17",
+                        "qty": "1",
+                        "realizedPnl": "0",
+                        "quoteQty": "0",
+                        "commission": "0.00000187",
+                        "commissionAsset": "ETH",
+                        "time": 1790656342112,
+                        "buyer": true,
+                        "maker": false,
+                        "positionSide": "BOTH",
+                        "baseQty": "0.00374929",
+                        "marginAsset": "ETH"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "ETHUSD_PERP",
+                            "id": 562350269,
+                            "orderId": 1475666691,
+                            "pair": "ETHUSD",
+                            "side": "BUY",
+                            "price": "2667.17",
+                            "qty": "1",
+                            "realizedPnl": "0",
+                            "quoteQty": "0",
+                            "commission": "0.00000187",
+                            "commissionAsset": "ETH",
+                            "time": 1790656342112,
+                            "buyer": true,
+                            "maker": false,
+                            "positionSide": "BOTH",
+                            "baseQty": "0.00374929",
+                            "marginAsset": "ETH"
+                        },
+                        "timestamp": 1790656342112,
+                        "datetime": "2026-09-29T04:32:22.112Z",
+                        "symbol": "ETH/USD:ETH",
+                        "id": "562350269",
+                        "order": "1475666691",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 2667.17,
+                        "amount": 1,
+                        "cost": 0.00374929,
+                        "fee": {
+                            "currency": "ETH",
+                            "cost": 1.87e-06
+                        },
+                        "fees": [
+                            {
+                                "currency": "ETH",
+                                "cost": 1.87e-06
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
                 "description": "spot porfolioMargin private trade",
                 "method": "fetchMyTrades",
                 "input": [
