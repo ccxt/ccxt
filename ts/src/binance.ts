@@ -6787,7 +6787,8 @@ export default class binance extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         const isContract = ('positionSide' in order) || ('cumQuote' in order);
         const marketType = isContract ? 'contract' : 'spot';
-        const symbol = this.safeSymbol (marketId, market, undefined, marketType);
+        market = this.safeMarket (marketId, market, undefined, marketType);
+        const symbol = market['symbol'];
         const filled = this.safeString2 (order, 'executedQty', 'filledQty', '0');
         const timestamp = this.safeIntegerN (order, [ 'time', 'createTime', 'workingTime', 'transactTime', 'updateTime', 'createdAt' ]); // order of the keys matters here
         let lastTradeTimestamp: Int = undefined;
@@ -6806,10 +6807,14 @@ export default class binance extends Exchange {
         const price = this.safeString2 (order, 'price', 'limitPrice');
         const amount = this.safeStringN (order, [ 'origQty', 'quantity', 'qty' ]);
         // - Spot/Margin market: cummulativeQuoteQty
-        // - Futures market: cumQuote.
+        // - Linear futures: cumQuote, inverse futures: cumBase.
+        //   Since 2026-08-05 both endpoints return both fields, the unused one as "0",
+        //   so the field must be picked by the market side, see the coin-m migration changelog.
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
         let cost = this.safeString2 (order, 'cummulativeQuoteQty', 'cumQuote');
-        cost = this.safeString (order, 'cumBase', cost);
+        if (market['inverse'] === true) {
+            cost = this.safeString (order, 'cumBase', cost);
+        }
         const type = this.safeStringLower2 (order, 'type', 'orderType');
         const side = this.safeStringLower (order, 'side');
         const fills = this.safeList2 (order, 'fills', 'trades', []);
