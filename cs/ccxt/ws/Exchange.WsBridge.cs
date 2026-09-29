@@ -323,8 +323,16 @@ public partial class Exchange
         {
             error = e;
         }
+        // reject the watcher and drop the connection, not only its registry entry:
+        // a client removed from this.clients but left open keeps feeding every
+        // subscription on it into the exchange caches, next to the replacement
+        // connection that the next watch call dials, see
+        // https://github.com/ccxt/ccxt/issues/30669. onError rejects the other
+        // watchers on this connection and detaches the client by reference, then
+        // Close() tears down the transport, as the keepalive timeout does
         (client).reject(error, messageHash);
-        this.clients.TryRemove(client.url, out _);
+        client.onError(error);
+        await client.Close();
         ((System.Collections.Generic.IDictionary<string, object>)this.orderbooks)[(string)symbol] = this.orderBook();
     }
 }
