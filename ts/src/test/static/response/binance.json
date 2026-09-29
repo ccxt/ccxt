@@ -7006,6 +7006,132 @@
                 ]
             }
         ],
+        "fetchLedger": [
+            {
+                "description": "fetchLedger linear swap income types",
+                "method": "fetchLedger",
+                "input": [
+                    "USDT",
+                    null,
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "ETHUSDT",
+                        "incomeType": "FUNDING_FEE",
+                        "income": "-0.02724950",
+                        "asset": "USDT",
+                        "time": "1790064000000",
+                        "info": "FUNDING_FEE",
+                        "tranId": "1546885366823570070",
+                        "tradeId": ""
+                    },
+                    {
+                        "symbol": "ETHUSDT",
+                        "incomeType": "COMMISSION",
+                        "income": "-0.10707720",
+                        "asset": "USDT",
+                        "time": "1790606173000",
+                        "info": "332478150",
+                        "tranId": "90061332478150",
+                        "tradeId": "332478150"
+                    },
+                    {
+                        "symbol": "ETHUSDT",
+                        "incomeType": "REALIZED_PNL",
+                        "income": "1.92460124",
+                        "asset": "USDT",
+                        "time": "1790606176000",
+                        "info": "332478253",
+                        "tranId": "90060332478253",
+                        "tradeId": "332478253"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "1546885366823570070",
+                        "timestamp": 1790064000000,
+                        "datetime": "2026-09-22T08:00:00.000Z",
+                        "direction": "out",
+                        "account": null,
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "fee",
+                        "currency": "USDT",
+                        "amount": 0.0272495,
+                        "before": null,
+                        "after": null,
+                        "status": null,
+                        "fee": null,
+                        "info": {
+                            "symbol": "ETHUSDT",
+                            "incomeType": "FUNDING_FEE",
+                            "income": "-0.02724950",
+                            "asset": "USDT",
+                            "time": "1790064000000",
+                            "info": "FUNDING_FEE",
+                            "tranId": "1546885366823570070",
+                            "tradeId": ""
+                        }
+                    },
+                    {
+                        "id": "90061332478150",
+                        "timestamp": 1790606173000,
+                        "datetime": "2026-09-28T14:36:13.000Z",
+                        "direction": "out",
+                        "account": null,
+                        "referenceId": "332478150",
+                        "referenceAccount": null,
+                        "type": "commission",
+                        "currency": "USDT",
+                        "amount": 0.1070772,
+                        "before": null,
+                        "after": null,
+                        "status": null,
+                        "fee": null,
+                        "info": {
+                            "symbol": "ETHUSDT",
+                            "incomeType": "COMMISSION",
+                            "income": "-0.10707720",
+                            "asset": "USDT",
+                            "time": "1790606173000",
+                            "info": "332478150",
+                            "tranId": "90061332478150",
+                            "tradeId": "332478150"
+                        }
+                    },
+                    {
+                        "id": "90060332478253",
+                        "timestamp": 1790606176000,
+                        "datetime": "2026-09-28T14:36:16.000Z",
+                        "direction": "in",
+                        "account": null,
+                        "referenceId": "332478253",
+                        "referenceAccount": null,
+                        "type": "trade",
+                        "currency": "USDT",
+                        "amount": 1.92460124,
+                        "before": null,
+                        "after": null,
+                        "status": null,
+                        "fee": null,
+                        "info": {
+                            "symbol": "ETHUSDT",
+                            "incomeType": "REALIZED_PNL",
+                            "income": "1.92460124",
+                            "asset": "USDT",
+                            "time": "1790606176000",
+                            "info": "332478253",
+                            "tranId": "90060332478253",
+                            "tradeId": "332478253"
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "Spot balance",
