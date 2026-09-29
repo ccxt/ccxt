@@ -856,9 +856,9 @@ export const CORE_STRING_ARGS = {
     'watchPosition': [ 0 ],
     'watchTicker': [ 0 ],
     'watchTrades': [ 0 ],
-    'withdraw': [ 0, 2, 3 ],
+    'withdraw': [ 0, 2 ],
     'withdrawRequest': [ 0 ],
-    'withdrawWs': [ 0, 2, 3 ],
+    'withdrawWs': [ 0, 2 ],
     // fetchRestOrderBookSafe omitted: TS declares `symbol: any`, so the wrapper and the
     // hand-written WsBridge caller both pass `object` and cannot be narrowed here
 };
