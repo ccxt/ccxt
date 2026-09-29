@@ -526,6 +526,7 @@ type Trade struct {
 	Side         *string
 	TakerOrMaker *string
 	Fee          Fee
+	extra        map[string]any
 }
 
 func NewTrade(data any) Trade {
@@ -576,6 +577,7 @@ type Order struct {
 	TimeInForce         *string
 	StopPrice           *float64
 	Info                map[string]any
+	extra               map[string]any
 }
 
 func NewOrder(data any) Order {
@@ -643,6 +645,7 @@ type Ticker struct {
 	IndexPrice    *float64
 	MarkPrice     *float64
 	Info          map[string]any
+	extra         map[string]any
 }
 
 func NewTicker(data any) Ticker {
@@ -669,7 +672,7 @@ func NewTicker(data any) Ticker {
 		QuoteVolume:   SafeFloatTyped(m, "quoteVolume"),
 		IndexPrice:    SafeFloatTyped(m, "indexPrice"),
 		MarkPrice:     SafeFloatTyped(m, "markPrice"),
-		Info:          GetInfo(m),
+		Info:          GetInfoWithExtra(m, "symbol", "timestamp", "datetime", "high", "low", "bid", "bidVolume", "ask", "askVolume", "vwap", "open", "close", "last", "previousClose", "change", "percentage", "average", "quoteVolume", "baseVolume", "indexPrice", "markPrice"),
 	}
 }
 
@@ -681,6 +684,7 @@ type OHLCV struct {
 	Low       float64
 	Close     float64
 	Volume    float64
+	row       any
 }
 
 func NewOHLCV(data any) OHLCV {
