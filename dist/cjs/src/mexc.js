@@ -480,8 +480,8 @@ class mexc extends mexc$1["default"] {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': this.parseNumber('0.002'), // maker / taker
-                    'taker': this.parseNumber('0.002'),
+                    'maker': this.parseNumber('0.00'),
+                    'taker': this.parseNumber('0.0005'),
                 },
             },
             'options': {
